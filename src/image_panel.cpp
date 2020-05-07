@@ -7,21 +7,21 @@ BEGIN_EVENT_TABLE(wxImagePanel, wxScrolledWindow)
     EVT_SCROLLWIN(wxImagePanel::OnScroll)
 END_EVENT_TABLE()
 
-wxImagePanel::wxImagePanel(wxWindow *parent) : wxScrolledWindow(parent) { }
-
-wxImagePanel::~wxImagePanel() {
-    if (bitmap)
-        delete bitmap;
-    bitmap = nullptr;
+wxImagePanel::wxImagePanel(wxWindow *parent) : wxScrolledWindow(parent) {
+    SetScrollRate(20, 20);
 }
 
-void wxImagePanel::setImage(const wxImage &image) {
-    if (bitmap != nullptr)
-        delete bitmap;
-    bitmap = new wxBitmap(image);
-    SetVirtualSize(image.GetSize());
-    SetScrollRate(20, 20);
-    paintNow();
+wxImagePanel::~wxImagePanel() {
+    if (image)
+        delete image;
+    image = nullptr;
+}
+
+void wxImagePanel::setImage(const wxImage &new_image) {
+    if (image)
+        delete image;
+    image = new wxImage(new_image);
+    rescale(1.f);
 }
 
 void wxImagePanel::paintNow() {
@@ -29,9 +29,20 @@ void wxImagePanel::paintNow() {
     render(dc);
 }
 
+void wxImagePanel::rescale(float factor) {
+    if (image) {
+        scale = factor;
+        SetVirtualSize(image->GetWidth() * scale, image->GetHeight() * scale);
+        scaled_image = image->Scale(image->GetWidth() * scale, image->GetHeight() * scale);
+        paintNow();
+    }
+}
+
 void wxImagePanel::render(wxDC &dc) {
-    if (bitmap) {
-        dc.DrawBitmap(*bitmap,
+    if (image) {
+        wxBitmap bitmap(scaled_image);
+        dc.Clear();
+        dc.DrawBitmap(bitmap,
             -GetScrollPos(wxHORIZONTAL) * 20,
             -GetScrollPos(wxVERTICAL) * 20, false);
     }

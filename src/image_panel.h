@@ -8,9 +8,11 @@ public:
     wxImagePanel(wxWindow *parent);
     ~wxImagePanel();
 
-    void setImage(const wxImage &image);
+    void setImage(const wxImage &new_image);
 
     void paintNow();
+
+    void rescale(float factor);
 
 private:
     void OnPaint(wxPaintEvent &evt);
@@ -18,7 +20,10 @@ private:
     void render(wxDC &dc);
 
 private:
-    wxBitmap *bitmap = nullptr;
+    wxImage *image = nullptr;
+    wxImage scaled_image;
+
+    float scale = 1.f;
 
     DECLARE_EVENT_TABLE()
 };

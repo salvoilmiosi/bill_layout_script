@@ -7,6 +7,7 @@
 
 static constexpr wxWindowID BUTTON1 = 10001;
 static constexpr wxWindowID DROPDOWN = 10002;
+static constexpr wxWindowID SLIDER = 10003;
 
 class MainApp : public wxApp {
 public:
@@ -15,12 +16,14 @@ public:
 private:
     void OnButtonClick(wxCommandEvent &evt);
     void OnPageSelect(wxCommandEvent &evt);
+    void OnScaleChange(wxCommandEvent &evt);
 
 private:
     wxFrame *m_frame;
     wxImagePanel *m_image;
 
     wxChoice *dropdown;
+    wxSlider *scale;
 
     std::string app_path;
     std::string pdf_filename{};
@@ -32,6 +35,7 @@ wxIMPLEMENT_APP(MainApp);
 BEGIN_EVENT_TABLE(MainApp, wxApp)
     EVT_BUTTON(BUTTON1, MainApp::OnButtonClick)
     EVT_CHOICE(DROPDOWN, MainApp::OnPageSelect)
+    EVT_SLIDER(SLIDER, MainApp::OnScaleChange)
 END_EVENT_TABLE()
 
 bool MainApp::OnInit() {
@@ -51,9 +55,12 @@ bool MainApp::OnInit() {
     header->Add(btn, 0, wxALL, 10);
 
     wxString default_choices[] = {"Seleziona Pagina"};
-    dropdown = new wxChoice(m_panel, DROPDOWN, wxDefaultPosition, wxSize(200, 30), 1, default_choices);
+    dropdown = new wxChoice(m_panel, DROPDOWN, wxDefaultPosition, wxSize(150, 30), 1, default_choices);
     dropdown->SetSelection(0);
     header->Add(dropdown, 0, wxALL, 10);
+
+    scale = new wxSlider(m_panel, SLIDER, 100, 1, 100, wxDefaultPosition, wxSize(200, 30));
+    header->Add(scale, 0, wxALL, 10);
 
     top_level->Add(header, 0, wxALL);
 
@@ -66,7 +73,7 @@ bool MainApp::OnInit() {
 }
 
 void MainApp::OnButtonClick(wxCommandEvent &evt) {
-    wxFileDialog diag(m_frame, "Apri PDF", wxEmptyString, wxEmptyString, "PDF files (*.pdf)|*.pdf|All files (*.*)|*.*");
+    wxFileDialog diag(m_frame, "Apri PDF", wxEmptyString, wxEmptyString, "File PDF (*.pdf)|*.pdf|Tutti i file (*.*)|*.*");
 
     if (diag.ShowModal() == wxID_CANCEL)
         return;
@@ -97,4 +104,8 @@ void MainApp::OnPageSelect(wxCommandEvent &evt) {
     } catch(const std::invalid_argument &error) {
 
     }
+}
+
+void MainApp::OnScaleChange(wxCommandEvent &evt) {
+    m_image->rescale(scale->GetValue() / 100.f);
 }
