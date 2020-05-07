@@ -30,8 +30,8 @@ void wxImagePanel::paintNow() {
 }
 
 void wxImagePanel::rescale(float factor) {
+    scale = factor;
     if (image) {
-        scale = factor;
         SetVirtualSize(image->GetWidth() * scale, image->GetHeight() * scale);
         scaled_image = image->Scale(image->GetWidth() * scale, image->GetHeight() * scale);
         paintNow();
