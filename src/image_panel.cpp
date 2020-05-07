@@ -21,7 +21,7 @@ void wxImagePanel::setImage(const wxImage &new_image) {
     if (image)
         delete image;
     image = new wxImage(new_image);
-    rescale(1.f);
+    rescale(scale);
 }
 
 void wxImagePanel::paintNow() {
@@ -54,6 +54,5 @@ void wxImagePanel::OnPaint(wxPaintEvent &evt) {
 }
 
 void wxImagePanel::OnScroll(wxScrollWinEvent &evt) {
-    paintNow();
     evt.Skip();
 }

@@ -85,9 +85,9 @@ void MainApp::OnButtonClick(wxCommandEvent &evt) {
         for (int i=1; i<=info.num_pages; ++i) {
             dropdown->Append(wxString::Format("%i", i));
         }
+        m_image->setImage(xpdf::pdf_to_image(app_path, pdf_filename, 1));
         dropdown->Fit();
         dropdown->SetSelection(0);
-        m_image->setImage(xpdf::pdf_to_image(app_path, pdf_filename, 1));
     } catch (const pipe_error &error) {
         wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
     }
