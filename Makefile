@@ -1,5 +1,5 @@
 CXX = g++
-CFLAGS = -g -Wall --std=c++17 `wx-config --cflags`
+CFLAGS = -g -Wall --std=c++17
 
 LIBS = `wx-config --libs`
 
@@ -9,13 +9,17 @@ BIN_DIR = bin
 
 BIN_NAME = layoutbolletta
 
-INCLUDE = 
+INCLUDE = `wx-config --cflags`
 
 SOURCES = $(wildcard $(SRC_DIR)/*.cpp $(SRC_DIR)/**/*.cpp)
 OBJECTS = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES)))
 
+RC_FILES = $(wildcard resources/*.rc)
+RESOURCES =
+
 ifeq ($(OS),Windows_NT)
 	BIN_NAME := $(BIN_NAME).exe
+	RESOURCES := $(patsubst resources/%,$(OBJ_DIR)/%.res,$(basename $(RC_FILES)))
 endif
 
 all: $(BIN_DIR)/$(BIN_NAME)
@@ -25,8 +29,11 @@ clean:
 
 $(shell mkdir -p $(BIN_DIR) >/dev/null)
 
-$(BIN_DIR)/$(BIN_NAME): $(OBJECTS)
-	$(CXX) -o $(BIN_DIR)/$(BIN_NAME) $(LDFLAGS) $(OBJECTS) $(LIBS)
+$(BIN_DIR)/$(BIN_NAME): $(OBJECTS) $(RESOURCES)
+	$(CXX) -o $(BIN_DIR)/$(BIN_NAME) $(LDFLAGS) $(OBJECTS) $(RESOURCES) $(LIBS)
+
+$(OBJ_DIR)/%.res : resources/%.rc
+	windres $(INCLUDE) -O coff -i $< -o $@
 
 DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJ_DIR)/$*.Td
 
