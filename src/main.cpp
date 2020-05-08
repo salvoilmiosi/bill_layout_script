@@ -1,71 +1,10 @@
-#include <wx/wxprec.h>
-
-#ifndef WX_PRECOMP
-    #include <wx/wx.h>
-#endif
+#include "main.h"
 
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/artprov.h>
-#include <wx/listctrl.h>
 #include <wx/splitter.h>
 
-#include "image_panel.h"
-#include "xpdf.h"
-
-enum {
-    FIRST = 10000,
-    
-    MENU_NEW, MENU_OPEN, MENU_SAVE, MENU_SAVEAS, MENU_CLOSE,
-    MENU_UNDO, MENU_REDO, MENU_CUT, MENU_COPY, MENU_PASTE,
-
-    TOOL_NEW, TOOL_OPEN, TOOL_SAVE,
-    TOOL_UNDO, TOOL_REDO, TOOL_CUT, TOOL_COPY, TOOL_PASTE,
-
-    CTL_LOAD_PDF, CTL_PAGE, CTL_SCALE,
-
-    TOOL_SELECT, TOOL_NEWBOX, TOOL_DELETEBOX,
-    
-    CTL_LIST_BOXES,
-};
-
-class MainApp : public wxApp {
-public:
-    virtual bool OnInit();
-
-private:
-    void OnNewFile      (wxCommandEvent &evt);
-    void OnOpenFile     (wxCommandEvent &evt);
-    void OnSaveFile     (wxCommandEvent &evt);
-    void OnSaveFileAs   (wxCommandEvent &evt);
-    void OnClose        (wxCommandEvent &evt);
-    void OnUndo         (wxCommandEvent &evt);
-    void OnRedo         (wxCommandEvent &evt);
-    void OnCut          (wxCommandEvent &evt);
-    void OnCopy         (wxCommandEvent &evt);
-    void OnPaste        (wxCommandEvent &evt);
-    void OnLoadPdf      (wxCommandEvent &evt);
-    void OnPageSelect   (wxCommandEvent &evt);
-    void OnScaleChange  (wxCommandEvent &evt);
-    void OnChangeTool   (wxCommandEvent &evt);
-
-    DECLARE_EVENT_TABLE()
-
-private:
-    wxFrame *m_frame;
-    wxImagePanel *m_image;
-
-    wxComboBox *m_page;
-    wxSlider *m_scale;
-
-    wxListCtrl *m_list_boxes;
-
-private:
-    std::string app_path;
-    xpdf::pdf_info info;
-    std::string pdf_filename{};
-    int selected_tool = TOOL_SELECT;
-};
 wxIMPLEMENT_APP(MainApp);
 
 BEGIN_EVENT_TABLE(MainApp, wxApp)
@@ -172,11 +111,11 @@ bool MainApp::OnInit() {
     toolbar_side->Realize();
     sizer->Add(toolbar_side, 0, wxEXPAND);
 
-    m_list_boxes = new wxListCtrl(m_panel_left, CTL_LIST_BOXES);
+    m_list_boxes = new wxListBox(m_panel_left, CTL_LIST_BOXES);
     sizer->Add(m_list_boxes, 1, wxEXPAND);
 
     m_panel_left->SetSizer(sizer);
-    m_image = new wxImagePanel(m_splitter);
+    m_image = new box_editor_panel(m_splitter, this);
 
     m_splitter->SplitVertically(m_panel_left, m_image, 200);
     m_splitter->SetMinimumPaneSize(100);
@@ -237,6 +176,7 @@ void MainApp::OnLoadPdf(wxCommandEvent &evt) {
         for (int i=1; i<=info.num_pages; ++i) {
             m_page->Append(wxString::Format("%i", i));
         }
+        selected_page = 1;
         m_image->setImage(xpdf::pdf_to_image(app_path, pdf_filename, 1));
         m_page->Fit();
         m_page->SetSelection(0);
@@ -249,10 +189,11 @@ void MainApp::OnPageSelect(wxCommandEvent &evt) {
     if (pdf_filename.empty()) return;
 
     try {
-        int selected_page = std::stoi(m_page->GetValue().ToStdString());
-        if (selected_page > info.num_pages || selected_page <= 0) {
+        int page = std::stoi(m_page->GetValue().ToStdString());
+        if (page > info.num_pages || page <= 0) {
             wxBell();
         } else {
+            selected_page = page;
             m_image->setImage(xpdf::pdf_to_image(app_path, pdf_filename, selected_page));
         }
     } catch (const pipe_error &error) {

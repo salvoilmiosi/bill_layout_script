@@ -6,6 +6,9 @@
 
 BEGIN_EVENT_TABLE(wxImagePanel, wxScrolledWindow)
     EVT_PAINT(wxImagePanel::OnPaint)
+    EVT_LEFT_DOWN(wxImagePanel::OnMouseDown)
+    EVT_LEFT_UP(wxImagePanel::OnMouseUp)
+    EVT_MOTION(wxImagePanel::OnMouseMove)
 END_EVENT_TABLE()
 
 constexpr int SCROLL_RATE_X = 20;
@@ -28,9 +31,9 @@ void wxImagePanel::setImage(const wxImage &new_image) {
     rescale(scale);
 }
 
-void wxImagePanel::paintNow() {
+void wxImagePanel::paintNow(bool clear) {
     wxClientDC dc(this);
-    render(dc);
+    render(dc, clear);
 }
 
 void wxImagePanel::rescale(float factor) {
@@ -38,21 +41,26 @@ void wxImagePanel::rescale(float factor) {
     if (image) {
         SetVirtualSize(image->GetWidth() * scale, image->GetHeight() * scale);
         scaled_image = image->Scale(image->GetWidth() * scale, image->GetHeight() * scale);
-        paintNow();
+        paintNow(true);
     }
 }
 
-void wxImagePanel::render(wxDC &dc) {
+bool wxImagePanel::render(wxDC &dc, bool clear) {
     if (image) {
-        int scrollx = -GetScrollPos(wxHORIZONTAL) * SCROLL_RATE_X;
-        int scrolly = -GetScrollPos(wxVERTICAL) * SCROLL_RATE_Y;
+        scrollx = -GetScrollPos(wxHORIZONTAL) * SCROLL_RATE_X;
+        scrolly = -GetScrollPos(wxVERTICAL) * SCROLL_RATE_Y;
+
         wxBitmap bitmap(scaled_image);
-        dc.Clear();
+        
+        if (clear) dc.Clear();
         dc.DrawBitmap(bitmap, scrollx, scrolly, false);
+        return true;
     }
+    return false;
 }
 
 void wxImagePanel::OnPaint(wxPaintEvent &evt) {
     wxPaintDC dc(this);
     render(dc);
+    evt.Skip();
 }
