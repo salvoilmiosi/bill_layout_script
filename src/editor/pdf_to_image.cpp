@@ -1,21 +1,6 @@
 #include "pdf_to_image.h"
 
-#include <wx/sstream.h>
-
 namespace xpdf {
-
-class proc_stream : public wxInputStream {
-public:
-    proc_stream(std::unique_ptr<rwops> &&proc) : proc(std::move(proc)) {}
-
-protected:
-    size_t OnSysRead(void *buffer, size_t size) {
-        return proc->read(size, buffer);
-    }
-
-private:
-    std::unique_ptr<rwops> proc;
-};
 
 wxImage pdf_to_image(const std::string &app_dir, const std::string &pdf, int page) {
     std::string args;
