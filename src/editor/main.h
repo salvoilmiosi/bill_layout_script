@@ -9,7 +9,7 @@
 
 #include "box_editor_panel.h"
 
-#include "../shared/box_layout.h"
+#include "../shared/layout.h"
 
 #include <vector>
 
@@ -33,7 +33,10 @@ class MainApp : public wxApp {
 public:
     virtual bool OnInit() override;
 
-    void add_box(const box_layout &box);
+public:
+    void setSelectedPage(int page);
+    void updateBoxList();
+    void selectBox(int id);
 
 private:
     void OnNewFile      (wxCommandEvent &evt);
@@ -50,7 +53,7 @@ private:
     void OnPageSelect   (wxCommandEvent &evt);
     void OnScaleChange  (wxCommandEvent &evt);
     void OnChangeTool   (wxCommandEvent &evt);
-    void OnMouseDown    (wxMouseEvent &evt);
+    void OnSelectBox    (wxCommandEvent &evt);
 
     DECLARE_EVENT_TABLE()
 
@@ -63,7 +66,7 @@ private:
 
     wxListBox *m_list_boxes;
 
-    std::vector<box_layout> boxes;
+    layout_bolletta layout;
 
 private:
     std::string app_path;

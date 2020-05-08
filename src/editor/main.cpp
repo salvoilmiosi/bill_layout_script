@@ -35,6 +35,7 @@ BEGIN_EVENT_TABLE(MainApp, wxApp)
     EVT_TOOL        (TOOL_SELECT,   MainApp::OnChangeTool)
     EVT_TOOL        (TOOL_NEWBOX,   MainApp::OnChangeTool)
     EVT_TOOL        (TOOL_DELETEBOX,MainApp::OnChangeTool)
+    EVT_LISTBOX     (CTL_LIST_BOXES,MainApp::OnSelectBox)
 END_EVENT_TABLE()
 
 bool MainApp::OnInit() {
@@ -125,11 +126,6 @@ bool MainApp::OnInit() {
     return true;
 }
 
-void MainApp::add_box(const box_layout &box) {
-    boxes.push_back(box);
-    m_list_boxes->Append(box.name);
-}
-
 void MainApp::OnNewFile(wxCommandEvent &evt) {
 
 }
@@ -192,6 +188,18 @@ void MainApp::OnLoadPdf(wxCommandEvent &evt) {
     }
 }
 
+void MainApp::setSelectedPage(int page) {
+    if (page == selected_page) return;
+
+    m_page->SetValue(std::to_string(page));
+    try {
+        selected_page = page;
+        m_image->setImage(xpdf::pdf_to_image(app_path, pdf_filename, page));
+    } catch (const pipe_error &error) {
+        wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
+    }
+}
+
 void MainApp::OnPageSelect(wxCommandEvent &evt) {
     if (pdf_filename.empty()) return;
 
@@ -200,11 +208,8 @@ void MainApp::OnPageSelect(wxCommandEvent &evt) {
         if (page > info.num_pages || page <= 0) {
             wxBell();
         } else {
-            selected_page = page;
-            m_image->setImage(xpdf::pdf_to_image(app_path, pdf_filename, selected_page));
+            setSelectedPage(page);
         }
-    } catch (const pipe_error &error) {
-        wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
     } catch(const std::invalid_argument &error) {
         wxBell();
     }
@@ -216,4 +221,31 @@ void MainApp::OnScaleChange(wxCommandEvent &evt) {
 
 void MainApp::OnChangeTool(wxCommandEvent &evt) {
     selected_tool = evt.GetId();
+}
+
+void MainApp::updateBoxList() {
+    m_list_boxes->Clear();
+    for (size_t i=0; i<layout.boxes.size(); ++i) {
+        auto &box = layout.boxes[i];
+        m_list_boxes->Append(box.name);
+        if (box.selected) {
+            m_list_boxes->SetSelection(i);
+        }
+    }
+}
+
+void MainApp::OnSelectBox(wxCommandEvent &evt) {
+    size_t selection = m_list_boxes->GetSelection();
+    selectBox(selection);
+}
+
+void MainApp::selectBox(int selection) {
+    m_list_boxes->SetSelection(selection);
+    for (size_t i=0; i<layout.boxes.size(); ++i) {
+        layout.boxes[i].selected = (int)i == selection;
+    }
+    if (selection >= 0 && selection < (int) layout.boxes.size()) {
+        setSelectedPage(layout.boxes[selection].page);
+    }
+    m_image->paintNow();
 }

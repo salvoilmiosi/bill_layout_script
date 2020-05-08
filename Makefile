@@ -38,7 +38,7 @@ endif
 all: editor reader
 
 clean:
-	rm -f $(BIN_DIR)/$(BIN_NAME) $(OBJECTS) $(OBJECTS:.o=.d)
+	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(OBJECTS) $(OBJECTS:.o=.d)
 
 $(shell mkdir -p $(BIN_DIR) >/dev/null)
 
