@@ -6,17 +6,17 @@
 #include <vector>
 
 enum box_type { 
-    BOX_STRING,
-    BOX_NUMBER,
-    BOX_NUMBER_ARRAY,
-    BOX_NUMBER_GRID,
+    BOX_SINGLE,
+    BOX_MULTIPLE,
+    BOX_HGRID,
+    BOX_VGRID,
 };
 
 struct layout_box : public xpdf::rect {
     bool selected = false;
     std::string name = "";
     std::string parse_string = "";
-    box_type type = BOX_STRING;
+    box_type type = BOX_SINGLE;
 };
 
 struct layout_error {

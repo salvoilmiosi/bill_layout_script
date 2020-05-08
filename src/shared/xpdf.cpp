@@ -1,10 +1,14 @@
 #include "xpdf.h"
 
 #include <sstream>
+#include <filesystem>
 
 namespace xpdf {
 
 std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, const pdf_info &info, const rect &in_rect) {
+    if (!std::filesystem::exists(pdf)) {
+        throw pipe_error("Il file non esiste");
+    }
     std::string args;
     args += "-f " + std::to_string(in_rect.page) + " ";
     args += "-l " + std::to_string(in_rect.page) + " ";
@@ -19,6 +23,9 @@ std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, cons
 }
 
 pdf_info pdf_get_info(const std::string &app_dir, const std::string &pdf) {
+    if (!std::filesystem::exists(pdf)) {
+        throw pipe_error("Il file non esiste");
+    }
     std::string output = open_process(app_dir + "/xpdf/pdfinfo.exe", '"' + pdf + '"')->read_all();
     std::istringstream iss(output);
 
