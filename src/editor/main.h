@@ -54,6 +54,7 @@ private:
     void OnScaleChange  (wxCommandEvent &evt);
     void OnChangeTool   (wxCommandEvent &evt);
     void OnSelectBox    (wxCommandEvent &evt);
+    void EditSelectedBox(wxCommandEvent &evt);
 
     DECLARE_EVENT_TABLE()
 

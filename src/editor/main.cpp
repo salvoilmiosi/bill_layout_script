@@ -6,6 +6,7 @@
 #include <wx/splitter.h>
 
 #include "pdf_to_image.h"
+#include "box_dialog.h"
 
 wxIMPLEMENT_APP(MainApp);
 
@@ -36,6 +37,7 @@ BEGIN_EVENT_TABLE(MainApp, wxApp)
     EVT_TOOL        (TOOL_NEWBOX,   MainApp::OnChangeTool)
     EVT_TOOL        (TOOL_DELETEBOX,MainApp::OnChangeTool)
     EVT_LISTBOX     (CTL_LIST_BOXES,MainApp::OnSelectBox)
+    EVT_LISTBOX_DCLICK (CTL_LIST_BOXES, MainApp::EditSelectedBox)
 END_EVENT_TABLE()
 
 bool MainApp::OnInit() {
@@ -248,4 +250,14 @@ void MainApp::selectBox(int selection) {
         setSelectedPage(layout.boxes[selection].page);
     }
     m_image->paintNow();
+}
+
+void MainApp::EditSelectedBox(wxCommandEvent &evt) {
+    int selection = m_list_boxes->GetSelection();
+    auto &box = layout.boxes[selection];
+    box_dialog diag(m_frame, box);
+
+    if (diag.ShowModal() == wxID_OK) {
+        updateBoxList();
+    }
 }

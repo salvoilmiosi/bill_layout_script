@@ -5,9 +5,18 @@
 
 #include <vector>
 
+enum box_type {
+    BOX_STRING,
+    BOX_NUMBER,
+    BOX_NUMBER_ARRAY,
+    BOX_NUMBER_GRID,
+};
+
 struct layout_box : public xpdf::rect {
-    std::string name = "";
     bool selected = false;
+    std::string name = "";
+    std::string parse_string = "";
+    box_type type = BOX_STRING;
 };
 
 class layout_bolletta {

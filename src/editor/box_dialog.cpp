@@ -5,14 +5,32 @@
 #include <wx/statline.h>
 #include <wx/stattext.h>
 
-box_dialog::box_dialog(wxWindow *parent, layout_box &box) : wxDialog(parent, wxID_ANY, "Opzioni rettangolo"), box(box) {
+box_dialog::box_dialog(wxWindow *parent, layout_box &box) :
+    wxDialog(parent, wxID_ANY, "Opzioni rettangolo", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), box(box)
+{
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
-    wxStaticText *name_label = new wxStaticText(this, wxID_ANY, "Nome del rettangolo:");
-    sizer->Add(name_label, 0, wxEXPAND | wxALL, 5);
+    auto addLabelAndCtrl = [&](const wxString &labelText, wxWindow *ctrl, int proportion = 0) {
+        wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_box_name = new wxTextCtrl(this, wxID_ANY);
-    sizer->Add(m_box_name, 0, wxEXPAND | wxALL, 5);
+        wxStaticText *label = new wxStaticText(this, wxID_ANY, labelText, wxDefaultPosition, wxSize(60, -1), wxALIGN_RIGHT);
+        hsizer->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+        hsizer->Add(ctrl, 1, wxEXPAND | wxLEFT, 5);
+
+        sizer->Add(hsizer, proportion, wxEXPAND | wxALL, 5);
+    };
+    
+    m_box_name = new wxTextCtrl(this, wxID_ANY, box.name);
+    addLabelAndCtrl("Nome:", m_box_name);
+
+    static const wxString box_types[] = {"Valore testuale", "Numero", "Lista di numeri", "Griglia di numeri"};
+    m_box_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, std::size(box_types), box_types);
+    m_box_type->SetSelection(box.type);
+    addLabelAndCtrl("Tipo:", m_box_type);
+
+    m_box_parser = new wxTextCtrl(this, wxID_ANY, box.parse_string, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+    addLabelAndCtrl("Elementi:", m_box_parser, 1);
 
     wxStaticLine *line = new wxStaticLine(this, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
     sizer->Add(line, 0, wxGROW | wxALL, 5);
@@ -27,24 +45,24 @@ box_dialog::box_dialog(wxWindow *parent, layout_box &box) : wxDialog(parent, wxI
 
     sizer->Add(okCancelSizer, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
 
-    SetSizer(sizer);
-    Fit();
+    SetSizerAndFit(sizer);
 }
 
 BEGIN_EVENT_TABLE(box_dialog, wxDialog)
     EVT_BUTTON(wxID_OK, box_dialog::OnOK)
 END_EVENT_TABLE()
 
-bool box_dialog::validateAndUpdateBox() {
-    if (! m_box_name->GetValue().IsEmpty()) {
-        box.name = m_box_name->GetValue();
-        return true;
-    }
-    return false;
+bool box_dialog::validateData() {
+    if (m_box_name->GetValue().IsEmpty()) return false;
+    if (m_box_parser->GetValue().IsEmpty()) return false;
+    return true;
 }
 
 void box_dialog::OnOK(wxCommandEvent &evt) {
-    if (validateAndUpdateBox()) {
+    if (validateData()) {
+        box.name = m_box_name->GetValue();
+        box.type = static_cast<box_type>(m_box_type->GetSelection());
+        box.parse_string = m_box_parser->GetValue();
         evt.Skip();
     } else {
         wxBell();

@@ -3,6 +3,7 @@
 
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
+#include <wx/choice.h>
 
 #include "../shared/layout.h"
 
@@ -11,7 +12,7 @@ public:
     box_dialog(wxWindow *parent, layout_box &box);
 
 private:
-    bool validateAndUpdateBox();
+    bool validateData();
 
     void OnOK(wxCommandEvent &evt);
 
@@ -19,6 +20,8 @@ private:
     layout_box &box;
 
     wxTextCtrl *m_box_name;
+    wxTextCtrl *m_box_parser;
+    wxChoice *m_box_type;
 
     DECLARE_EVENT_TABLE()
 };
