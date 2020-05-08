@@ -5,6 +5,8 @@
 #include <wx/artprov.h>
 #include <wx/splitter.h>
 
+#include "pdf_to_image.h"
+
 wxIMPLEMENT_APP(MainApp);
 
 BEGIN_EVENT_TABLE(MainApp, wxApp)
@@ -121,6 +123,11 @@ bool MainApp::OnInit() {
     m_splitter->SetMinimumPaneSize(100);
     m_frame->Show();
     return true;
+}
+
+void MainApp::add_box(const box_layout &box) {
+    boxes.push_back(box);
+    m_list_boxes->Append(box.name);
 }
 
 void MainApp::OnNewFile(wxCommandEvent &evt) {

@@ -8,7 +8,10 @@
 #endif
 
 #include "box_editor_panel.h"
-#include "xpdf.h"
+
+#include "../shared/box_layout.h"
+
+#include <vector>
 
 enum {
     FIRST = 10000,
@@ -28,7 +31,9 @@ enum {
 
 class MainApp : public wxApp {
 public:
-    virtual bool OnInit();
+    virtual bool OnInit() override;
+
+    void add_box(const box_layout &box);
 
 private:
     void OnNewFile      (wxCommandEvent &evt);
@@ -57,6 +62,8 @@ private:
     wxSlider *m_scale;
 
     wxListBox *m_list_boxes;
+
+    std::vector<box_layout> boxes;
 
 private:
     std::string app_path;

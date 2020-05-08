@@ -1,6 +1,6 @@
 #include "image_panel.h"
 
-#include "xpdf.h"
+#include "../shared/xpdf.h"
 
 #include <wx/dcclient.h>
 
@@ -39,7 +39,9 @@ void wxImagePanel::paintNow(bool clear) {
 void wxImagePanel::rescale(float factor) {
     scale = factor;
     if (image) {
-        SetVirtualSize(image->GetWidth() * scale, image->GetHeight() * scale);
+        scaled_width = image->GetWidth() * scale;
+        scaled_height = image->GetHeight() * scale;
+        SetVirtualSize(scaled_width, scaled_height);
         scaled_image = image->Scale(image->GetWidth() * scale, image->GetHeight() * scale);
         paintNow(true);
     }
@@ -47,13 +49,13 @@ void wxImagePanel::rescale(float factor) {
 
 bool wxImagePanel::render(wxDC &dc, bool clear) {
     if (image) {
-        scrollx = -GetScrollPos(wxHORIZONTAL) * SCROLL_RATE_X;
-        scrolly = -GetScrollPos(wxVERTICAL) * SCROLL_RATE_Y;
+        scrollx = GetScrollPos(wxHORIZONTAL) * SCROLL_RATE_X;
+        scrolly = GetScrollPos(wxVERTICAL) * SCROLL_RATE_Y;
 
         wxBitmap bitmap(scaled_image);
         
         if (clear) dc.Clear();
-        dc.DrawBitmap(bitmap, scrollx, scrolly, false);
+        dc.DrawBitmap(bitmap, -scrollx, -scrolly, false);
         return true;
     }
     return false;

@@ -1,7 +1,6 @@
 #ifndef __XPDF_H__
 #define __XPDF_H__
 
-#include <wx/image.h>
 #include <string>
 
 #include "pipe.h"
@@ -23,8 +22,6 @@ struct rect {
 std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, const pdf_info &info, const rect &in_rect);
 
 pdf_info pdf_get_info(const std::string &app_dir, const std::string &pdf);
-
-wxImage pdf_to_image(const std::string &app_dir, const std::string &pdf, int page);
 
 }
 

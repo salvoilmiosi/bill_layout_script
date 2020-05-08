@@ -9,6 +9,9 @@ public:
     wxImagePanel(wxWindow *parent);
     ~wxImagePanel();
 
+    wxImage *getImage() {
+        return image;
+    }
     void setImage(const wxImage &new_image);
 
     void paintNow(bool clear = false);
@@ -21,6 +24,14 @@ public:
 
     int getScrollY() {
         return scrolly;
+    }
+
+    float getScaledWidth() {
+        return scaled_width;
+    }
+
+    float getScaledHeight() {
+        return scaled_height;
     }
     
 protected:
@@ -40,6 +51,9 @@ private:
 
     int scrollx = 0;
     int scrolly = 0;
+
+    float scaled_width;
+    float scaled_height;
 
     float scale = 0.5f;
 };
