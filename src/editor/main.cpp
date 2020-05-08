@@ -129,19 +129,41 @@ bool MainApp::OnInit() {
 }
 
 void MainApp::OnNewFile(wxCommandEvent &evt) {
-
+    layout.newFile();
+    updateLayout();
 }
 
 void MainApp::OnOpenFile(wxCommandEvent &evt) {
+    wxFileDialog diag(m_frame, "Apri Layout Bolletta", wxEmptyString, wxEmptyString, "File bolletta (*.bolletta)|*.bolletta|Tutti i file (*.*)|*.*");
 
+    if (diag.ShowModal() == wxID_CANCEL)
+        return;
+
+    try {
+        layout_filename = diag.GetPath().ToStdString();
+        layout.openFile(layout_filename);
+        updateLayout();
+    } catch (layout_error &error) {
+        wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
+    }
 }
 
 void MainApp::OnSaveFile(wxCommandEvent &evt) {
-
+    if (layout_filename.empty()) {
+        OnSaveFileAs(evt);
+    } else {
+        layout.saveFile(layout_filename);
+    }
 }
 
 void MainApp::OnSaveFileAs(wxCommandEvent &evt) {
+    wxFileDialog diag(m_frame, "Salva Layout Bolletta", wxEmptyString, layout_filename, "File bolletta (*.bolletta)|*.bolletta|Tutti i file (*.*)|*.*", wxFD_SAVE);
 
+    if (diag.ShowModal() == wxID_CANCEL)
+        return;
+
+    layout_filename = diag.GetPath().ToStdString();
+    layout.saveFile(layout_filename);
 }
 
 void MainApp::OnClose(wxCommandEvent &evt) {
@@ -225,7 +247,7 @@ void MainApp::OnChangeTool(wxCommandEvent &evt) {
     selected_tool = evt.GetId();
 }
 
-void MainApp::updateBoxList() {
+void MainApp::updateLayout() {
     m_list_boxes->Clear();
     for (size_t i=0; i<layout.boxes.size(); ++i) {
         auto &box = layout.boxes[i];
@@ -234,6 +256,7 @@ void MainApp::updateBoxList() {
             m_list_boxes->SetSelection(i);
         }
     }
+    m_image->paintNow();
 }
 
 void MainApp::OnSelectBox(wxCommandEvent &evt) {
@@ -258,6 +281,6 @@ void MainApp::EditSelectedBox(wxCommandEvent &evt) {
     box_dialog diag(m_frame, box);
 
     if (diag.ShowModal() == wxID_OK) {
-        updateBoxList();
+        updateLayout();
     }
 }

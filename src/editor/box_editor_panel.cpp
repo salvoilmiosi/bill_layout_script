@@ -88,7 +88,7 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
             auto it = app->layout.getBoxUnder(xx, yy, app->selected_page);
             if (it != app->layout.boxes.end()) {
                 app->layout.boxes.erase(it);
-                app->updateBoxList();
+                app->updateLayout();
                 paintNow();
             }
             break;
@@ -120,7 +120,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 box_dialog diag(this, box);
                 if (diag.ShowModal() == wxID_OK) {
                     app->layout.boxes.push_back(box);
-                    app->updateBoxList();
+                    app->updateLayout();
                     app->selectBox(app->layout.boxes.size() - 1);
                 }
                 break;

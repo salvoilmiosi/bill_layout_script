@@ -5,7 +5,7 @@
 
 #include <vector>
 
-enum box_type {
+enum box_type { 
     BOX_STRING,
     BOX_NUMBER,
     BOX_NUMBER_ARRAY,
@@ -19,10 +19,20 @@ struct layout_box : public xpdf::rect {
     box_type type = BOX_STRING;
 };
 
+struct layout_error {
+    const char *message;
+
+    layout_error(const char *message) : message(message) {}
+};
+
 class layout_bolletta {
 public:
     layout_bolletta();
     std::vector<layout_box>::iterator getBoxUnder(float x, float y, int page);
+
+    void newFile();
+    void saveFile(const std::string &filename);
+    void openFile(const std::string &filename);
 
 public:
     std::vector<layout_box> boxes;

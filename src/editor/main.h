@@ -35,7 +35,7 @@ public:
 
 public:
     void setSelectedPage(int page);
-    void updateBoxList();
+    void updateLayout();
     void selectBox(int id);
 
 private:
@@ -72,6 +72,7 @@ private:
 private:
     std::string app_path;
     xpdf::pdf_info info;
+    std::string layout_filename{};
     std::string pdf_filename{};
     int selected_tool = TOOL_SELECT;
     int selected_page = 0;
