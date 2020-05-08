@@ -3,6 +3,13 @@
 #include "main.h"
 #include "box_dialog.h"
 
+BEGIN_EVENT_TABLE(box_editor_panel, wxImagePanel)
+    EVT_LEFT_DOWN(box_editor_panel::OnMouseDown)
+    EVT_LEFT_UP(box_editor_panel::OnMouseUp)
+    EVT_LEFT_DCLICK(box_editor_panel::OnDoubleClick)
+    EVT_MOTION(box_editor_panel::OnMouseMove)
+END_EVENT_TABLE()
+
 box_editor_panel::box_editor_panel(wxWindow *parent, MainApp *app) : wxImagePanel(parent), app(app) {
 
 }
@@ -54,12 +61,6 @@ bool box_editor_panel::render(wxDC &dc, bool clear) {
         return true;
     }
     return false;
-}
-
-std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ") {
-    str.erase(0, str.find_first_not_of(chars));
-    str.erase(str.find_last_not_of(chars) + 1);
-    return str;
 }
 
 void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
@@ -133,6 +134,22 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
         paintNow(true);
     }
     evt.Skip();
+}
+
+void box_editor_panel::OnDoubleClick(wxMouseEvent &evt) {
+    switch (app->selected_tool) {
+    case TOOL_SELECT:
+        if (selected_box != app->layout.boxes.end()) {
+            box_dialog diag(this, *selected_box);
+            if (diag.ShowModal() == wxID_OK) {
+                app->updateLayout();
+            }
+        }
+    case TOOL_NEWBOX:
+        break;
+    case TOOL_DELETEBOX:
+        break;
+    }
 }
 
 void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {

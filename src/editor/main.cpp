@@ -152,7 +152,11 @@ void MainApp::OnSaveFile(wxCommandEvent &evt) {
     if (layout_filename.empty()) {
         OnSaveFileAs(evt);
     } else {
-        layout.saveFile(layout_filename);
+        try {
+            layout.saveFile(layout_filename);
+        } catch (layout_error &error) {
+            wxMessageBox(error.message, "Errore", wxICON_ERROR);
+        }
     }
 }
 
@@ -162,8 +166,12 @@ void MainApp::OnSaveFileAs(wxCommandEvent &evt) {
     if (diag.ShowModal() == wxID_CANCEL)
         return;
 
-    layout_filename = diag.GetPath().ToStdString();
-    layout.saveFile(layout_filename);
+    try {
+        layout_filename = diag.GetPath().ToStdString();
+        layout.saveFile(layout_filename);
+    } catch (layout_error &error) {
+        wxMessageBox(error.message, "Errore", wxICON_ERROR);
+    }
 }
 
 void MainApp::OnClose(wxCommandEvent &evt) {

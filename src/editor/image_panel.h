@@ -35,9 +35,6 @@ public:
     }
     
 protected:
-    virtual void OnMouseDown(wxMouseEvent &evt) { evt.Skip(); };
-    virtual void OnMouseUp(wxMouseEvent &evt) { evt.Skip(); };
-    virtual void OnMouseMove(wxMouseEvent &evt) { evt.Skip(); };
     virtual bool render(wxDC &dc, bool clear = false);
 
 private:

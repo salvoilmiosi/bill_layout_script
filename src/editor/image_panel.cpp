@@ -6,9 +6,6 @@
 
 BEGIN_EVENT_TABLE(wxImagePanel, wxScrolledWindow)
     EVT_PAINT(wxImagePanel::OnPaint)
-    EVT_LEFT_DOWN(wxImagePanel::OnMouseDown)
-    EVT_LEFT_UP(wxImagePanel::OnMouseUp)
-    EVT_MOTION(wxImagePanel::OnMouseMove)
 END_EVENT_TABLE()
 
 constexpr int SCROLL_RATE_X = 20;

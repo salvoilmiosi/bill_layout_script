@@ -26,6 +26,8 @@ void layout_bolletta::newFile() {
 void layout_bolletta::saveFile(const std::string &filename) {
     binary_ofstream ofs(filename);
 
+    if (ofs.bad()) throw layout_error("Impossibile aprire il file");
+
     ofs.writeInt(MAGIC);
     ofs.writeInt(VERSION);
     ofs.writeShort(boxes.size());
@@ -46,6 +48,8 @@ void layout_bolletta::saveFile(const std::string &filename) {
 
 void layout_bolletta::openFile(const std::string &filename) {
     binary_ifstream ifs(filename);
+
+    if (ifs.bad()) throw layout_error("Impossibile aprire il file");
 
     uint32_t magic = ifs.readInt();
     if (magic != MAGIC) throw layout_error("Tipo di file invalido");

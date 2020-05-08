@@ -14,9 +14,10 @@ private:
 
 protected:
     bool render(wxDC &dc, bool clear = false) override;
-    void OnMouseDown(wxMouseEvent &evt) override;
-    void OnMouseUp(wxMouseEvent &evt) override;
-    void OnMouseMove(wxMouseEvent &evt) override;
+    void OnMouseDown(wxMouseEvent &evt);
+    void OnMouseUp(wxMouseEvent &evt);
+    void OnDoubleClick(wxMouseEvent &evt);
+    void OnMouseMove(wxMouseEvent &evt);
 
 private:
     class MainApp *app;
@@ -25,6 +26,9 @@ private:
     std::vector<layout_box>::iterator selected_box;
     float startx, starty;
     bool mouseIsDown = false;
+
+private:
+    DECLARE_EVENT_TABLE()
 };
 
 #endif
