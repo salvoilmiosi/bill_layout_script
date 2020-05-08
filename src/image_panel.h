@@ -17,16 +17,15 @@ public:
 
 private:
     void OnPaint(wxPaintEvent &evt);
-    void OnScroll(wxScrollWinEvent &evt);
     void render(wxDC &dc);
+
+    DECLARE_EVENT_TABLE()
 
 private:
     wxImage *image = nullptr;
     wxImage scaled_image;
 
-    float scale = 1.f;
-
-    DECLARE_EVENT_TABLE()
+    float scale = 0.5f;
 };
 
 #endif

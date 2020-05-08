@@ -6,11 +6,13 @@
 
 BEGIN_EVENT_TABLE(wxImagePanel, wxScrolledWindow)
     EVT_PAINT(wxImagePanel::OnPaint)
-    EVT_SCROLLWIN(wxImagePanel::OnScroll)
 END_EVENT_TABLE()
 
+constexpr int SCROLL_RATE_X = 20;
+constexpr int SCROLL_RATE_Y = 20;
+
 wxImagePanel::wxImagePanel(wxWindow *parent) : wxScrolledWindow(parent) {
-    SetScrollRate(20, 20);
+    SetScrollRate(SCROLL_RATE_X, SCROLL_RATE_Y);
 }
 
 wxImagePanel::~wxImagePanel() {
@@ -42,19 +44,15 @@ void wxImagePanel::rescale(float factor) {
 
 void wxImagePanel::render(wxDC &dc) {
     if (image) {
+        int scrollx = -GetScrollPos(wxHORIZONTAL) * SCROLL_RATE_X;
+        int scrolly = -GetScrollPos(wxVERTICAL) * SCROLL_RATE_Y;
         wxBitmap bitmap(scaled_image);
         dc.Clear();
-        dc.DrawBitmap(bitmap,
-            -GetScrollPos(wxHORIZONTAL) * 20,
-            -GetScrollPos(wxVERTICAL) * 20, false);
+        dc.DrawBitmap(bitmap, scrollx, scrolly, false);
     }
 }
 
 void wxImagePanel::OnPaint(wxPaintEvent &evt) {
     wxPaintDC dc(this);
     render(dc);
-}
-
-void wxImagePanel::OnScroll(wxScrollWinEvent &evt) {
-    evt.Skip();
 }

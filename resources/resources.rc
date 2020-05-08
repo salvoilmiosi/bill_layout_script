@@ -1,1 +1,5 @@
 #include "wx/msw/wx.rc"
+
+IDT_SELECT RCDATA "select_32.png"
+IDT_NEWBOX RCDATA "newbox_32.png"
+IDT_DELETEBOX RCDATA "deletebox_32.png"
