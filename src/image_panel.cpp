@@ -2,6 +2,8 @@
 
 #include "xpdf.h"
 
+#include <wx/dcclient.h>
+
 BEGIN_EVENT_TABLE(wxImagePanel, wxScrolledWindow)
     EVT_PAINT(wxImagePanel::OnPaint)
     EVT_SCROLLWIN(wxImagePanel::OnScroll)

@@ -1,7 +1,7 @@
 #ifndef __XPDF_H__
 #define __XPDF_H__
 
-#include <wx/wx.h>
+#include <wx/image.h>
 #include <string>
 
 #include "pipe.h"

@@ -1,7 +1,8 @@
 #ifndef __FRAME_H__
 #define __FRAME_H__
 
-#include <wx/wx.h>
+#include <wx/image.h>
+#include <wx/scrolwin.h>
 
 class wxImagePanel : public wxScrolledWindow {
 public:
