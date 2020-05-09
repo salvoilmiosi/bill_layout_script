@@ -26,9 +26,7 @@ void parse_values(const layout_box &box, const std::string &text) {
             for (size_t i=0; i<value.size(); ++i) {
                 if (isNumber(value.at(i))) {
                     std::cout << value.at(i);
-                } else if (value.at(i) == ',') {
-                    std::cout << '.';
-                } else if (value.at(i) == '.' && (i + 3 >= value.size() || !isNumber(value.at(i + 3)))) {
+                } else if (value.at(i) == ',' || (value.at(i) == '.' && (i + 3 >= value.size() || !isNumber(value.at(i + 3))))) {
                     std::cout << '.';
                 }
             }

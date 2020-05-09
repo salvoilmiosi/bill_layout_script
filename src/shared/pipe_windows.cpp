@@ -48,12 +48,23 @@ windows_process_rwops::windows_process_rwops(char *const args[]) {
     start_info.hStdOutput = pipe_stdout[PIPE_WRITE];
     start_info.dwFlags |= STARTF_USESTDHANDLES;
 
-    char cmdline[FILENAME_MAX];
-    strcpy(cmdline, args[0]);
-    strcat(cmdline, ".exe");
-    for (char *const *cmd = args + 1; *cmd != nullptr; ++cmd) {
-        strcat(cmdline, " \"");
-        strcat(cmdline, *cmd);
+    char cmdline[1024] = "";
+    for (char *const *cmd = args; *cmd != nullptr; ++cmd) {
+        if (cmd != args) {
+            strcat(cmdline, " ");
+        }
+        strcat(cmdline, "\"");
+        for (char *c = *cmd; *c != '\0'; ++c) {
+            switch (*c) {
+            case '\\':
+                strcat(cmdline, "\\");
+            default:
+                strncat(cmdline, c, 1);
+            }
+        }
+        if (cmd == args) {
+            strcat(cmdline, ".exe");
+        }
         strcat(cmdline, "\"");
     }
 
