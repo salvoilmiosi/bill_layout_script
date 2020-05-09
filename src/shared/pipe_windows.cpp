@@ -8,7 +8,7 @@
 
 class windows_process_rwops : public rwops {
 public:
-    windows_process_rwops(const std::string &cmd, const std::string &args, const std::string &cwd);
+    windows_process_rwops(char *const args[]);
     ~windows_process_rwops();
 
 public:
@@ -22,7 +22,7 @@ private:
     HANDLE pipe_stdin[2], pipe_stdout[2];
 };
 
-windows_process_rwops::windows_process_rwops(const char *path, const char *const args[]) {
+windows_process_rwops::windows_process_rwops(char *const args[]) {
     SECURITY_ATTRIBUTES attrs;
 
     attrs.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -48,10 +48,17 @@ windows_process_rwops::windows_process_rwops(const char *path, const char *const
     start_info.hStdOutput = pipe_stdout[PIPE_WRITE];
     start_info.dwFlags |= STARTF_USESTDHANDLES;
 
-    std::string cmdline = cmd + " " + args;
+    char cmdline[FILENAME_MAX];
+    strcpy(cmdline, args[0]);
+    strcat(cmdline, ".exe");
+    for (char *const *cmd = args + 1; *cmd != nullptr; ++cmd) {
+        strcat(cmdline, " \"");
+        strcat(cmdline, *cmd);
+        strcat(cmdline, "\"");
+    }
 
-    if (!CreateProcessA(nullptr, const_cast<LPSTR>(cmdline.c_str()), nullptr, nullptr, true,
-            CREATE_NO_WINDOW, nullptr, cwd.empty() ? nullptr : cwd.c_str(), &start_info, &proc_info)) {
+    if (!CreateProcessA(nullptr, cmdline, nullptr, nullptr, true,
+            CREATE_NO_WINDOW, nullptr, nullptr, &start_info, &proc_info)) {
         throw pipe_error("Could not open child process");
     } else {
         CloseHandle(proc_info.hProcess);
@@ -84,8 +91,8 @@ void windows_process_rwops::close() {
     CloseHandle(pipe_stdin[PIPE_READ]);
 }
 
-std::unique_ptr<rwops> open_process(const char *path, const char *const args[]) {
-    return std::make_unique<windows_process_rwops>(path, args);
+std::unique_ptr<rwops> open_process(char *const args[]) {
+    return std::make_unique<windows_process_rwops>(args);
 }
 
 #endif
