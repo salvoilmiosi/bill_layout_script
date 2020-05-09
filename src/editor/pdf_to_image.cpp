@@ -32,7 +32,6 @@ wxImage pdf_to_image(const std::string &app_dir, const std::string &pdf, int pag
     std::string filename = app_dir + '/' + base_filename;
 
     wxImage img;
-    img.AddHandler(new wxPNGHandler);
 
     if (wxFileExists(filename)) {
         img.LoadFile(filename, wxBITMAP_TYPE_PNG);

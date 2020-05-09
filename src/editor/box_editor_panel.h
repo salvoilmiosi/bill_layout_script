@@ -9,9 +9,6 @@ class box_editor_panel : public wxImagePanel {
 public:
     box_editor_panel(wxWindow *parent, class MainApp *app);
 
-private:
-    layout_box *getBoxUnder(int x, int y);
-
 protected:
     bool render(wxDC &dc, bool clear = false) override;
     void OnMouseDown(wxMouseEvent &evt);

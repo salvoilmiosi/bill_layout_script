@@ -1,88 +1,7 @@
 #include <iostream>
-#include <sstream>
 
-#include "../shared/layout.h"
+#include "result.h"
 #include "../shared/xpdf.h"
-
-std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ") {
-    str.erase(0, str.find_first_not_of(chars));
-    str.erase(str.find_last_not_of(chars) + 1);
-    return str;
-}
-
-void parse_values(const layout_box &box, const std::string &text) {
-    auto isNumber = [](char c) {
-        return c >= '0' && c <= '9';
-    };
-
-    auto print_value = [&](const std::string &name, const std::string &value) {
-        switch (name.at(0)) {
-        case '#':
-            // skip
-            return;
-        case '%':
-            // treat as number
-            std::cout << name.substr(1) << " = ";
-            for (size_t i=0; i<value.size(); ++i) {
-                if (isNumber(value.at(i))) {
-                    std::cout << value.at(i);
-                } else if (value.at(i) == ',' || (value.at(i) == '.' && (i + 3 >= value.size() || !isNumber(value.at(i + 3))))) {
-                    std::cout << '.';
-                }
-            }
-            std::cout << std::endl;
-            break;
-        default:
-            // treat as string
-            std::cout << name << " = " << value << std::endl;
-            break;
-        }
-    };
-    std::istringstream iss_names(box.parse_string);
-    std::istringstream iss_values(text);
-    std::string value;
-    std::vector<std::string> names;
-    while(!iss_names.eof()) {
-        std::string name;
-        iss_names >> name;
-        names.push_back(name);
-    }
-    switch(box.type) {
-        case BOX_SINGLE:
-            while(true) {
-                std::string token;
-                iss_values >> token;
-                if (iss_values.eof()) break;
-                value.append(token + " ");
-            }
-            trim(value);
-            print_value(names[0], value);
-            break;
-        case BOX_MULTIPLE:
-        {
-            for (size_t i=0; i<names.size(); ++i) {
-                iss_values >> value;
-                if (iss_values.eof()) break;
-                print_value(names[i], value);
-            }
-            break;
-        }
-        case BOX_HGRID:
-            for (size_t i=0; ;++i) {
-                iss_values >> value;
-                if (iss_values.eof()) break;
-                print_value (names[i % names.size()] + "[" + std::to_string(i / names.size()) + "]", value);
-            }
-            break;
-        case BOX_VGRID:
-            for (size_t i=0; ;++i) {
-                iss_values >> value;
-                if (iss_values.eof()) break;
-                print_value (names[i / names.size()] + "[" + std::to_string(i % names.size()) + "]", value);
-            }
-            break;
-    }
-}
 
 int main(int argc, char **argv) {
     if (argc < 3) {
@@ -96,6 +15,7 @@ int main(int argc, char **argv) {
     const char *file_bolletta = argv[2];
 
     layout_bolletta layout;
+    result res;
     try {
         layout.openFile(file_bolletta);
     } catch (layout_error &error) {
@@ -108,12 +28,14 @@ int main(int argc, char **argv) {
 
         for (auto &box : layout.boxes) {
             std::string text = xpdf::pdf_to_text(app_dir, file_pdf, info, box);
-            parse_values(box, text);
+            res.parse_values(box, text);
         }
     } catch (pipe_error &error) {
         std::cerr << error.message << std::endl;
         return 2;
     }
+
+    std::cout << res << std::endl;
 
     return 0;
 }

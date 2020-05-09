@@ -28,7 +28,7 @@ struct layout_error {
 class layout_bolletta {
 public:
     layout_bolletta();
-    std::vector<layout_box>::iterator getBoxUnder(float x, float y, int page);
+    std::vector<layout_box>::iterator getBoxAt(float x, float y, int page);
 
     void newFile();
     void saveFile(const std::string &filename);

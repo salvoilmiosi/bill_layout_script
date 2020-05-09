@@ -69,7 +69,7 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
     if (getImage() && !mouseIsDown) {
         switch (app->selected_tool) {
         case TOOL_SELECT:
-            selected_box = app->layout.getBoxUnder(xx, yy, app->selected_page);
+            selected_box = app->layout.getBoxAt(xx, yy, app->selected_page);
             if (selected_box != app->layout.boxes.end()) {
                 startx = selected_box->x;
                 starty = selected_box->y;
@@ -86,7 +86,7 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
             break;
         case TOOL_DELETEBOX:
         {
-            auto it = app->layout.getBoxUnder(xx, yy, app->selected_page);
+            auto it = app->layout.getBoxAt(xx, yy, app->selected_page);
             if (it != app->layout.boxes.end()) {
                 app->layout.boxes.erase(it);
                 app->updateLayout();

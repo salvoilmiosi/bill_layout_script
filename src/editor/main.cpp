@@ -30,6 +30,8 @@ BEGIN_EVENT_TABLE(MainApp, wxApp)
     EVT_TOOL        (TOOL_COPY,     MainApp::OnCopy)
     EVT_MENU        (MENU_PASTE,    MainApp::OnPaste)
     EVT_TOOL        (TOOL_PASTE,    MainApp::OnPaste)
+    EVT_MENU        (MENU_EDITBOX,  MainApp::EditSelectedBox)
+    EVT_MENU        (MENU_DELETE,   MainApp::OnDelete)
     EVT_BUTTON      (CTL_LOAD_PDF,  MainApp::OnLoadPdf)
     EVT_COMBOBOX    (CTL_PAGE,      MainApp::OnPageSelect)
     EVT_TEXT_ENTER  (CTL_PAGE,      MainApp::OnPageSelect)
@@ -46,12 +48,12 @@ DECLARE_RESOURCE(icon_newbox_png)
 DECLARE_RESOURCE(icon_deletebox_png)
 
 bool MainApp::OnInit() {
-    wxInitAllImageHandlers();
+    wxImage::AddHandler(new wxPNGHandler);
 
     wxFileName f(wxStandardPaths::Get().GetExecutablePath());
     app_path = f.GetPath().ToStdString();
 
-    m_frame = new wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxDefaultPosition, wxSize(900, 800));
+    m_frame = new wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxDefaultPosition, wxSize(900, 700));
 
     wxMenuBar *menuBar = new wxMenuBar();
 
@@ -72,6 +74,12 @@ bool MainApp::OnInit() {
     menuEdit->Append(MENU_COPY, "&Copia\tCtrl-C", "Copia la selezione");
     menuEdit->Append(MENU_PASTE, "&Incolla\tCtrl-V", "Incolla nella selezione");
     menuBar->Append(menuEdit, "&Modifica");
+
+    wxMenu *menuBox = new wxMenu;
+    menuBox->Append(MENU_EDITBOX, "Modifica &Opzioni\tCtrl-E", "Modifica il rettangolo selezionato");
+    menuBox->Append(MENU_DELETE, "Cancella selezione\tDel", "Cancella il rettangolo selezionato");
+
+    menuBar->Append(menuBox, "&Rettangolo");
 
     m_frame->SetMenuBar(menuBar);
 
@@ -294,10 +302,20 @@ void MainApp::selectBox(int selection) {
 
 void MainApp::EditSelectedBox(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    auto &box = layout.boxes[selection];
-    box_dialog diag(m_frame, box);
+    if (selection >= 0) {
+        auto &box = layout.boxes[selection];
+        box_dialog diag(m_frame, box);
 
-    if (diag.ShowModal() == wxID_OK) {
+        if (diag.ShowModal() == wxID_OK) {
+            updateLayout();
+        }
+    }
+}
+
+void MainApp::OnDelete(wxCommandEvent &evt) {
+    int selection = m_list_boxes->GetSelection();
+    if (selection >= 0) {
+        layout.boxes.erase(layout.boxes.begin() + selection);
         updateLayout();
     }
 }
