@@ -1,8 +1,10 @@
-#include "result.h"
+#include "parser.h"
 
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+
+#include <json/json.h>
 
 static std::vector<std::string> tokenize(const std::string &str) {
     std::istringstream iss(str);
@@ -25,7 +27,7 @@ static std::string implode(const std::vector<std::string> &vec, const std::strin
     return out;
 };
 
-void result::read_box(const layout_box &box, const std::string &text) {
+void parser::read_box(const layout_box &box, const std::string &text) {
     std::vector<std::string> names = tokenize(box.parse_string);
     std::vector<std::string> values = tokenize(text);
 
@@ -51,7 +53,7 @@ void result::read_box(const layout_box &box, const std::string &text) {
     }
 }
 
-std::string result::evaluate(const std::string &value) {
+std::string parser::evaluate(const std::string &value) {
     switch(value.at(0)) {
     case '%':
     {
@@ -68,7 +70,7 @@ std::string result::evaluate(const std::string &value) {
     }
 }
 
-std::string result::parse_function(const std::string &value) {
+std::string parser::parse_function(const std::string &value) {
     int brace_start = value.find_first_of('(');
     int brace_end = value.find_last_of(')');
     std::string func_name = value.substr(1, brace_start - 1);
@@ -83,7 +85,7 @@ std::string result::parse_function(const std::string &value) {
     }
 }
 
-void result::top_function(const std::string &name, const std::string &value) {
+void parser::top_function(const std::string &name, const std::string &value) {
     int brace_start = name.find_first_of('(');
     int brace_end = name.find_last_of(')');
     std::string func_name = name.substr(1, brace_start - 1);
@@ -101,7 +103,7 @@ void result::top_function(const std::string &name, const std::string &value) {
     }
 }
 
-void result::add_entry(const std::string &name, const std::string &value) {
+void parser::add_entry(const std::string &name, const std::string &value) {
     std::string parsed;
     switch (name.at(0)) {
     case '#':
@@ -129,27 +131,15 @@ void result::add_entry(const std::string &name, const std::string &value) {
     }
 }
 
-std::ostream & operator<<(std::ostream &out, const result &res) {
-    auto escape_slashes = [](std::string str) {
-        return str; // TODO
-    };
+std::ostream & operator << (std::ostream &out, const parser &res) {
+    Json::Value root(Json::objectValue);
 
-    out << "{";
-    for (auto i = res.m_values.begin(); i != res.m_values.end(); ++i) {
-        if (i != res.m_values.begin()) {
-            out << ", ";
+    for (auto &pair : res.m_values) {
+        auto &array = root[pair.first] = Json::arrayValue;
+        for (auto &str : pair.second) {
+            array.append(str);
         }
-        out << '"' << i->first << "\" : [";
-        for (auto j = i->second.begin(); j != i->second.end(); ++j) {
-            if (j != i->second.begin()) {
-                out << ", ";
-            }
-            out << '"' << escape_slashes(*j) << '"';
-        }
-        out << ']';
     }
 
-    out << '}';
-
-    return out;
+    return out << root << std::endl;
 }

@@ -1,17 +1,19 @@
-#ifndef __RESULT_H__
-#define __RESULT_H__
+#ifndef __PARSER_H__
+#define __PARSER_H__
 
 #include <string>
 #include <vector>
 #include <map>
 
+#include <json/json.h>
+
 #include "../shared/layout.h"
 
-class result {
+class parser {
 public:
     void read_box(const layout_box &box, const std::string &text);
 
-    friend std::ostream & operator << (std::ostream &out, const result &res);
+    friend std::ostream & operator << (std::ostream &out, const parser &res);
 
 private:
     std::string evaluate(const std::string &value);

@@ -12,7 +12,7 @@ BIN_READER = layout_reader
 INCLUDE = `wx-config --cflags`
 
 LIBS_EDITOR = `wx-config --libs`
-LIBS_READER = 
+LIBS_READER = -ljsoncpp
 
 SOURCES_SHARED = $(wildcard $(SRC_DIR)/shared/*.cpp $(SRC_DIR)/shared/**/*.cpp)
 OBJECTS_SHARED = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_SHARED)))

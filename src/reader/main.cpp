@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "result.h"
+#include "parser.h"
 #include "../shared/xpdf.h"
 
 int main(int argc, char **argv) {
@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     const char *file_bolletta = argv[2];
 
     layout_bolletta layout;
-    result res;
+    parser result;
     try {
         layout.openFile(file_bolletta);
     } catch (layout_error &error) {
@@ -28,14 +28,14 @@ int main(int argc, char **argv) {
 
         for (auto &box : layout.boxes) {
             std::string text = xpdf::pdf_to_text(app_dir, file_pdf, info, box);
-            res.read_box(box, text);
+            result.read_box(box, text);
         }
     } catch (pipe_error &error) {
         std::cerr << error.message << std::endl;
         return 2;
     }
 
-    std::cout << res << std::endl;
+    std::cout << result << std::endl;
 
     return 0;
 }
