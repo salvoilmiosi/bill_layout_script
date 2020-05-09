@@ -25,7 +25,7 @@ enum {
 
     CTL_LOAD_PDF, CTL_PAGE, CTL_SCALE,
 
-    TOOL_SELECT, TOOL_NEWBOX, TOOL_DELETEBOX,
+    TOOL_SELECT, TOOL_NEWBOX, TOOL_DELETEBOX, TOOL_MOVEUP, TOOL_MOVEDOWN,
     
     CTL_LIST_BOXES,
 };
@@ -58,6 +58,8 @@ private:
     void EditSelectedBox(wxCommandEvent &evt);
     void OnDelete       (wxCommandEvent &evt);
     void OnReadData     (wxCommandEvent &evt);
+    void OnMoveUp       (wxCommandEvent &evt);
+    void OnMoveDown     (wxCommandEvent &evt);
 
     DECLARE_EVENT_TABLE()
 

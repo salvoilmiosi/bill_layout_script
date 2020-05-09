@@ -40,6 +40,8 @@ BEGIN_EVENT_TABLE(MainApp, wxApp)
     EVT_TOOL        (TOOL_SELECT,   MainApp::OnChangeTool)
     EVT_TOOL        (TOOL_NEWBOX,   MainApp::OnChangeTool)
     EVT_TOOL        (TOOL_DELETEBOX,MainApp::OnChangeTool)
+    EVT_TOOL        (TOOL_MOVEUP,   MainApp::OnMoveUp)
+    EVT_TOOL        (TOOL_MOVEDOWN, MainApp::OnMoveDown)
     EVT_LISTBOX     (CTL_LIST_BOXES,MainApp::OnSelectBox)
     EVT_LISTBOX_DCLICK (CTL_LIST_BOXES, MainApp::EditSelectedBox)
 END_EVENT_TABLE()
@@ -133,6 +135,11 @@ bool MainApp::OnInit() {
     toolbar_side->AddRadioTool(TOOL_NEWBOX, "Nuovo rettangolo", loadPNG(GET_RESOURCE(icon_newbox_png)), wxNullBitmap, "Nuovo rettangolo");
     toolbar_side->AddRadioTool(TOOL_DELETEBOX, "Cancella rettangolo", loadPNG(GET_RESOURCE(icon_deletebox_png)), wxNullBitmap, "Cancella rettangolo");
 
+    toolbar_side->AddSeparator();
+
+    toolbar_side->AddTool(TOOL_MOVEUP, "Muovi su", wxArtProvider::GetBitmap(wxART_GO_UP), "Muovi su");
+    toolbar_side->AddTool(TOOL_MOVEDOWN, L"Muovi giù", wxArtProvider::GetBitmap(wxART_GO_DOWN), L"Muovi giù");
+
     toolbar_side->Realize();
     sizer->Add(toolbar_side, 0, wxEXPAND);
 
@@ -163,7 +170,7 @@ void MainApp::OnNewFile(wxCommandEvent &evt) {
 }
 
 void MainApp::OnOpenFile(wxCommandEvent &evt) {
-    wxFileDialog diag(m_frame, "Apri Layout Bolletta", wxEmptyString, wxEmptyString, "File bolletta (*.bolletta)|*.bolletta|Tutti i file (*.*)|*.*");
+    wxFileDialog diag(m_frame, "Apri Layout Bolletta", wxEmptyString, wxEmptyString, "File layout (*.layout)|*.layout|Tutti i file (*.*)|*.*");
 
     if (diag.ShowModal() == wxID_CANCEL)
         return;
@@ -190,7 +197,7 @@ void MainApp::OnSaveFile(wxCommandEvent &evt) {
 }
 
 void MainApp::OnSaveFileAs(wxCommandEvent &evt) {
-    wxFileDialog diag(m_frame, "Salva Layout Bolletta", wxEmptyString, layout_filename, "File bolletta (*.bolletta)|*.bolletta|Tutti i file (*.*)|*.*", wxFD_SAVE);
+    wxFileDialog diag(m_frame, "Salva Layout Bolletta", wxEmptyString, layout_filename, "File layout (*.layout)|*.layout|Tutti i file (*.*)|*.*", wxFD_SAVE);
 
     if (diag.ShowModal() == wxID_CANCEL)
         return;
@@ -356,5 +363,21 @@ void MainApp::OnReadData(wxCommandEvent &evt) {
         wxMessageBox(output, "Output di layout_reader", wxICON_INFORMATION);
     } catch (pipe_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);
+    }
+}
+
+void MainApp::OnMoveUp(wxCommandEvent &evt) {
+    int selection = m_list_boxes->GetSelection();
+    if (selection > 0) {
+        std::swap(layout.boxes[selection], layout.boxes[selection-1]);
+        updateLayout();
+    }
+}
+
+void MainApp::OnMoveDown(wxCommandEvent &evt) {
+    int selection = m_list_boxes->GetSelection();
+    if (selection >= 0 && selection < (int)layout.boxes.size() - 1) {
+        std::swap(layout.boxes[selection], layout.boxes[selection+1]);
+        updateLayout();
     }
 }
