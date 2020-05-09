@@ -32,6 +32,7 @@ BEGIN_EVENT_TABLE(MainApp, wxApp)
     EVT_TOOL        (TOOL_PASTE,    MainApp::OnPaste)
     EVT_MENU        (MENU_EDITBOX,  MainApp::EditSelectedBox)
     EVT_MENU        (MENU_DELETE,   MainApp::OnDelete)
+    EVT_MENU        (MENU_READDATA, MainApp::OnReadData)
     EVT_BUTTON      (CTL_LOAD_PDF,  MainApp::OnLoadPdf)
     EVT_COMBOBOX    (CTL_PAGE,      MainApp::OnPageSelect)
     EVT_TEXT_ENTER  (CTL_PAGE,      MainApp::OnPageSelect)
@@ -75,11 +76,12 @@ bool MainApp::OnInit() {
     menuEdit->Append(MENU_PASTE, "&Incolla\tCtrl-V", "Incolla nella selezione");
     menuBar->Append(menuEdit, "&Modifica");
 
-    wxMenu *menuBox = new wxMenu;
-    menuBox->Append(MENU_EDITBOX, "Modifica &Opzioni\tCtrl-E", "Modifica il rettangolo selezionato");
-    menuBox->Append(MENU_DELETE, "Cancella selezione\tDel", "Cancella il rettangolo selezionato");
+    wxMenu *menuLayout = new wxMenu;
+    menuLayout->Append(MENU_EDITBOX, "Modifica &Opzioni\tCtrl-E", "Modifica il rettangolo selezionato");
+    menuLayout->Append(MENU_DELETE, "&Cancella Selezione\tDel", "Cancella il rettangolo selezionato");
+    menuLayout->Append(MENU_READDATA, "L&eggi Layout\tCtrl-R", "Test della lettura dei dati");
 
-    menuBar->Append(menuBox, "&Rettangolo");
+    menuBar->Append(menuLayout, "&Layout");
 
     m_frame->SetMenuBar(menuBar);
 
@@ -317,5 +319,33 @@ void MainApp::OnDelete(wxCommandEvent &evt) {
     if (selection >= 0) {
         layout.boxes.erase(layout.boxes.begin() + selection);
         updateLayout();
+    }
+}
+
+void MainApp::OnReadData(wxCommandEvent &evt) {
+    OnSaveFile(evt);
+
+    if (pdf_filename.empty() || layout_filename.empty()) return;
+
+    char cmd_str[FILENAME_MAX];
+    snprintf(cmd_str, FILENAME_MAX, "%s/layout_reader", app_path.c_str());
+
+    char pdf_str[FILENAME_MAX];
+    snprintf(pdf_str, FILENAME_MAX, "%s", pdf_filename.c_str());
+
+    char bolletta_str[FILENAME_MAX];
+    snprintf(bolletta_str, FILENAME_MAX, "%s", layout_filename.c_str());
+
+    char *const args[] = {
+        cmd_str,
+        pdf_str, bolletta_str,
+        nullptr
+    };
+
+    try {
+        std::string output = open_process(args)->read_all();
+        wxMessageBox(output, "Output di layout_reader", wxICON_INFORMATION);
+    } catch (pipe_error &error) {
+        wxMessageBox(error.message, "Errore", wxICON_ERROR);
     }
 }

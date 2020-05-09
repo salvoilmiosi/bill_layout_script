@@ -8,8 +8,8 @@
 enum box_type { 
     BOX_SINGLE,
     BOX_MULTIPLE,
-    BOX_HGRID,
-    BOX_VGRID,
+    BOX_COLUMNS,
+    BOX_ROWS,
 };
 
 struct layout_box : public xpdf::rect {

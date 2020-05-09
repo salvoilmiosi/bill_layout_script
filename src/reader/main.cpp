@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 
         for (auto &box : layout.boxes) {
             std::string text = xpdf::pdf_to_text(app_dir, file_pdf, info, box);
-            res.parse_values(box, text);
+            res.read_box(box, text);
         }
     } catch (pipe_error &error) {
         std::cerr << error.message << std::endl;

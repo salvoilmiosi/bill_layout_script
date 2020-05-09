@@ -18,7 +18,7 @@ enum {
     
     MENU_NEW, MENU_OPEN, MENU_SAVE, MENU_SAVEAS, MENU_CLOSE,
     MENU_UNDO, MENU_REDO, MENU_CUT, MENU_COPY, MENU_PASTE,
-    MENU_EDITBOX, MENU_DELETE,
+    MENU_EDITBOX, MENU_DELETE, MENU_READDATA,
 
     TOOL_NEW, TOOL_OPEN, TOOL_SAVE,
     TOOL_UNDO, TOOL_REDO, TOOL_CUT, TOOL_COPY, TOOL_PASTE,
@@ -57,6 +57,7 @@ private:
     void OnSelectBox    (wxCommandEvent &evt);
     void EditSelectedBox(wxCommandEvent &evt);
     void OnDelete       (wxCommandEvent &evt);
+    void OnReadData     (wxCommandEvent &evt);
 
     DECLARE_EVENT_TABLE()
 
