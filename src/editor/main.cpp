@@ -47,6 +47,7 @@ END_EVENT_TABLE()
 DECLARE_RESOURCE(icon_select_png)
 DECLARE_RESOURCE(icon_newbox_png)
 DECLARE_RESOURCE(icon_deletebox_png)
+DECLARE_RESOURCE(editor_png)
 
 bool MainApp::OnInit() {
     wxImage::AddHandler(new wxPNGHandler);
@@ -124,13 +125,13 @@ bool MainApp::OnInit() {
 
     wxToolBar *toolbar_side = new wxToolBar(m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_VERTICAL);
 
-    auto loadIcon = [](const auto &resource) {
+    auto loadPNG = [](const auto &resource) {
         return wxBitmap::NewFromPNGData(resource.data, resource.len);
     };
 
-    toolbar_side->AddRadioTool(TOOL_SELECT, "Seleziona", loadIcon(GET_RESOURCE(icon_select_png)), wxNullBitmap, "Seleziona");
-    toolbar_side->AddRadioTool(TOOL_NEWBOX, "Nuovo rettangolo", loadIcon(GET_RESOURCE(icon_newbox_png)), wxNullBitmap, "Nuovo rettangolo");
-    toolbar_side->AddRadioTool(TOOL_DELETEBOX, "Cancella rettangolo", loadIcon(GET_RESOURCE(icon_deletebox_png)), wxNullBitmap, "Cancella rettangolo");
+    toolbar_side->AddRadioTool(TOOL_SELECT, "Seleziona", loadPNG(GET_RESOURCE(icon_select_png)), wxNullBitmap, "Seleziona");
+    toolbar_side->AddRadioTool(TOOL_NEWBOX, "Nuovo rettangolo", loadPNG(GET_RESOURCE(icon_newbox_png)), wxNullBitmap, "Nuovo rettangolo");
+    toolbar_side->AddRadioTool(TOOL_DELETEBOX, "Cancella rettangolo", loadPNG(GET_RESOURCE(icon_deletebox_png)), wxNullBitmap, "Cancella rettangolo");
 
     toolbar_side->Realize();
     sizer->Add(toolbar_side, 0, wxEXPAND);
@@ -143,6 +144,14 @@ bool MainApp::OnInit() {
 
     m_splitter->SplitVertically(m_panel_left, m_image, 200);
     m_splitter->SetMinimumPaneSize(100);
+
+    auto loadIcon = [&](const auto &resource) {
+        wxIcon icon;
+        icon.CopyFromBitmap(loadPNG(resource));
+        return icon;
+    };
+
+    m_frame->SetIcon(loadIcon(GET_RESOURCE(editor_png)));
     m_frame->Show();
     return true;
 }
