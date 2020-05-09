@@ -166,6 +166,7 @@ bool MainApp::OnInit() {
 void MainApp::OnNewFile(wxCommandEvent &evt) {
     layout_filename.clear();
     layout.newFile();
+    history.clear();
     updateLayout();
 }
 
@@ -178,6 +179,7 @@ void MainApp::OnOpenFile(wxCommandEvent &evt) {
     try {
         layout_filename = diag.GetPath().ToStdString();
         layout.openFile(layout_filename);
+        history.clear();
         updateLayout();
     } catch (layout_error &error) {
         wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
@@ -214,24 +216,81 @@ void MainApp::OnClose(wxCommandEvent &evt) {
     m_frame->Close();
 }
 
-void MainApp::OnUndo(wxCommandEvent &evt) {
+static constexpr size_t MAX_HISTORY_SIZE = 20;
 
+void MainApp::updateLayout(bool addToHistory) {
+    m_list_boxes->Clear();
+    for (size_t i=0; i<layout.boxes.size(); ++i) {
+        auto &box = layout.boxes[i];
+        m_list_boxes->Append(box.name);
+        if (box.selected) {
+            m_list_boxes->SetSelection(i);
+        }
+    }
+    m_image->paintNow();
+
+    if (addToHistory) {
+        while (!history.empty() && history.end() > currentHistory + 1) {
+            history.pop_back();
+        }
+        history.push_back(layout);
+        if (history.size() > MAX_HISTORY_SIZE) {
+            history.pop_front();
+        }
+        currentHistory = history.end() - 1;
+    }
+}
+
+void MainApp::OnUndo(wxCommandEvent &evt) {
+    if (currentHistory > history.begin()) {
+        --currentHistory;
+        layout = *currentHistory;
+        updateLayout(false);
+    } else {
+        wxBell();
+    }
 }
 
 void MainApp::OnRedo(wxCommandEvent &evt) {
-    
+    if (currentHistory < history.end() - 1) {
+        ++currentHistory;
+        layout = *currentHistory;
+        updateLayout(false);
+    } else {
+        wxBell();
+    }
 }
 
 void MainApp::OnCut(wxCommandEvent &evt) {
-    
+    int selection = m_list_boxes->GetSelection();
+    if (selection >= 0) {
+        clipboard = std::make_unique<layout_box>(layout.boxes[selection]);
+        layout.boxes.erase(layout.boxes.begin() + selection);
+        updateLayout();
+    }
 }
 
 void MainApp::OnCopy(wxCommandEvent &evt) {
-    
+    int selection = m_list_boxes->GetSelection();
+    if (selection >= 0) {
+        clipboard = std::make_unique<layout_box>(layout.boxes[selection]);
+        updateLayout();
+    }
 }
 
 void MainApp::OnPaste(wxCommandEvent &evt) {
-    
+    if (clipboard) {
+        if (clipboard->page != selected_page) {
+            clipboard->page = selected_page;
+        } else {
+            clipboard->x += 10 / m_image->getScaledWidth();
+            clipboard->y += 10 / m_image->getScaledHeight();
+        }
+        layout.boxes.push_back(*clipboard);
+        updateLayout();
+        selectBox(layout.boxes.size() - 1);
+        clipboard = nullptr;
+    }
 }
 
 void MainApp::OnLoadPdf(wxCommandEvent &evt) {
@@ -288,18 +347,6 @@ void MainApp::OnScaleChange(wxCommandEvent &evt) {
 
 void MainApp::OnChangeTool(wxCommandEvent &evt) {
     selected_tool = evt.GetId();
-}
-
-void MainApp::updateLayout() {
-    m_list_boxes->Clear();
-    for (size_t i=0; i<layout.boxes.size(); ++i) {
-        auto &box = layout.boxes[i];
-        m_list_boxes->Append(box.name);
-        if (box.selected) {
-            m_list_boxes->SetSelection(i);
-        }
-    }
-    m_image->paintNow();
 }
 
 void MainApp::OnSelectBox(wxCommandEvent &evt) {

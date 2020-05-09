@@ -107,6 +107,11 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
         if (end_pt != start_pt) {
             switch (app->selected_tool) {
             case TOOL_SELECT:
+                if (selected_box != app->layout.boxes.end()) {
+                    if (start_pt != end_pt) {
+                        app->updateLayout();
+                    }
+                }
                 break;
             case TOOL_NEWBOX:
             {

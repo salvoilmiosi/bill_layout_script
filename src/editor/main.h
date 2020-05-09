@@ -11,7 +11,8 @@
 
 #include "../shared/layout.h"
 
-#include <vector>
+#include <deque>
+#include <memory>
 
 enum {
     FIRST = 10000,
@@ -36,8 +37,9 @@ public:
 
 public:
     void setSelectedPage(int page);
-    void updateLayout();
     void selectBox(int id);
+
+    void updateLayout(bool addToHistory = true);
 
 private:
     void OnNewFile      (wxCommandEvent &evt);
@@ -73,6 +75,10 @@ private:
     wxListBox *m_list_boxes;
 
     layout_bolletta layout;
+    std::deque<layout_bolletta> history;
+    std::deque<layout_bolletta>::iterator currentHistory;
+
+    std::unique_ptr<layout_box> clipboard;
 
 private:
     std::string app_path;
