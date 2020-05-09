@@ -26,19 +26,20 @@ OBJECTS_READER = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_REA
 SOURCES = $(SOURCES_SHARED) $(SOURCES_EDITOR) $(SOURCES_READER)
 OBJECTS = $(OBJECTS_SHARED) $(OBJECTS_EDITOR) $(OBJECTS_READER)
 
-RC_FILES = $(wildcard resources/*.rc)
-RESOURCES =
+IMAGES = $(wildcard resources/*.png)
+
+RESOURCES = $(OBJ_DIR)/images.o
 
 ifeq ($(OS),Windows_NT)
 	BIN_EDITOR := $(BIN_EDITOR).exe
 	BIN_READER := $(BIN_READER).exe
-	RESOURCES := $(patsubst resources/%,$(OBJ_DIR)/%.res,$(basename $(RC_FILES)))
+	RESOURCES += $(patsubst resources/%.rc,$(OBJ_DIR)/%.res,$(wildcard resources/*.rc))
 endif
 
 all: editor reader
 
 clean:
-	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(OBJECTS) $(OBJECTS:.o=.d)
+	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(OBJECTS) $(RESOURCES) $(OBJECTS:.o=.d)
 
 $(shell mkdir -p $(BIN_DIR) >/dev/null)
 
@@ -46,14 +47,20 @@ editor: $(BIN_DIR)/$(BIN_EDITOR)
 $(BIN_DIR)/$(BIN_EDITOR): $(OBJECTS_EDITOR) $(OBJECTS_SHARED) $(RESOURCES)
 	$(CXX) -o $(BIN_DIR)/$(BIN_EDITOR) $(LDFLAGS) $(OBJECTS_EDITOR) $(OBJECTS_SHARED) $(RESOURCES) $(LIBS_EDITOR)
 
+$(OBJ_DIR)/images.o : $(IMAGES)
+	$(LD) -r -b binary -o $@ $^
+
 $(OBJ_DIR)/%.res : resources/%.rc
-	windres $(INCLUDE) -O coff -i $< -o $@
+	windres $(INCLUDE) -O coff -o $@ -i $<
 
 reader: $(BIN_DIR)/$(BIN_READER)
 $(BIN_DIR)/$(BIN_READER): $(OBJECTS_READER) $(OBJECTS_SHARED)
 	$(CXX) -o $(BIN_DIR)/$(BIN_READER) $(LDFLAGS) $(OBJECTS_READER) $(OBJECTS_SHARED) $(LIBS_READER)
 
 DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJ_DIR)/$*.Td
+
+$(OBJ_DIR)/%.o : $(OBJ_DIR)/%.cpp
+	$(CXX) $(CFLAGS) -c $(INCLUDE) -o $@ $<
 
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp $(OBJ_DIR)/%.d

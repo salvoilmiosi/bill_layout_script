@@ -7,6 +7,7 @@
 
 #include "pdf_to_image.h"
 #include "box_dialog.h"
+#include "resources.h"
 
 wxIMPLEMENT_APP(MainApp);
 
@@ -39,6 +40,10 @@ BEGIN_EVENT_TABLE(MainApp, wxApp)
     EVT_LISTBOX     (CTL_LIST_BOXES,MainApp::OnSelectBox)
     EVT_LISTBOX_DCLICK (CTL_LIST_BOXES, MainApp::EditSelectedBox)
 END_EVENT_TABLE()
+
+DECLARE_RESOURCE(icon_select_png)
+DECLARE_RESOURCE(icon_newbox_png)
+DECLARE_RESOURCE(icon_deletebox_png)
 
 bool MainApp::OnInit() {
     wxInitAllImageHandlers();
@@ -109,18 +114,13 @@ bool MainApp::OnInit() {
 
     wxToolBar *toolbar_side = new wxToolBar(m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_VERTICAL);
 
-    auto loadIcon = [](const char *name) {
-        wxBitmap icon(name, wxBITMAP_TYPE_PNG_RESOURCE);
-        if (icon.IsOk()) {
-            return icon;
-        } else {
-            return wxArtProvider::GetBitmap(wxART_MISSING_IMAGE);
-        }
+    auto loadIcon = [](const auto &resource) {
+        return wxBitmap::NewFromPNGData(resource.data, resource.len);
     };
 
-    toolbar_side->AddRadioTool(TOOL_SELECT, "Seleziona", loadIcon("IDT_SELECT"), wxNullBitmap, "Seleziona");
-    toolbar_side->AddRadioTool(TOOL_NEWBOX, "Nuovo rettangolo", loadIcon("IDT_NEWBOX"), wxNullBitmap, "Nuovo rettangolo");
-    toolbar_side->AddRadioTool(TOOL_DELETEBOX, "Cancella rettangolo", loadIcon("IDT_DELETEBOX"), wxNullBitmap, "Cancella rettangolo");
+    toolbar_side->AddRadioTool(TOOL_SELECT, "Seleziona", loadIcon(GET_RESOURCE(icon_select_png)), wxNullBitmap, "Seleziona");
+    toolbar_side->AddRadioTool(TOOL_NEWBOX, "Nuovo rettangolo", loadIcon(GET_RESOURCE(icon_newbox_png)), wxNullBitmap, "Nuovo rettangolo");
+    toolbar_side->AddRadioTool(TOOL_DELETEBOX, "Cancella rettangolo", loadIcon(GET_RESOURCE(icon_deletebox_png)), wxNullBitmap, "Cancella rettangolo");
 
     toolbar_side->Realize();
     sizer->Add(toolbar_side, 0, wxEXPAND);

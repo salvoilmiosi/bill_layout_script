@@ -1,5 +1,3 @@
-#include "wx/msw/wx.rc"
+IDI_ICON1 ICON "editor.ico"
 
-IDT_SELECT RCDATA "select_32.png"
-IDT_NEWBOX RCDATA "newbox_32.png"
-IDT_DELETEBOX RCDATA "deletebox_32.png"
+#include "wx/msw/wx.rc"
