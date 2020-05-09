@@ -11,11 +11,34 @@ std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ") {
 }
 
 void parse_values(const layout_box &box, const std::string &text) {
-    auto print_value = [](const std::string &name, const std::string &value) {
-        if (name.substr(0, 4) == "skip") {
+    auto isNumber = [](char c) {
+        return c >= '0' && c <= '9';
+    };
+
+    auto print_value = [&](const std::string &name, const std::string &value) {
+        switch (name.at(0)) {
+        case '#':
+            // skip
             return;
+        case '%':
+            // treat as number
+            std::cout << name.substr(1) << " = ";
+            for (size_t i=0; i<value.size(); ++i) {
+                if (isNumber(value.at(i))) {
+                    std::cout << value.at(i);
+                } else if (value.at(i) == ',') {
+                    std::cout << '.';
+                } else if (value.at(i) == '.' && (i + 3 >= value.size() || !isNumber(value.at(i + 3)))) {
+                    std::cout << '.';
+                }
+            }
+            std::cout << std::endl;
+            break;
+        default:
+            // treat as string
+            std::cout << name << " = " << value << std::endl;
+            break;
         }
-        std::cout << name << " = " << value << std::endl;
     };
     std::istringstream iss_names(box.parse_string);
     std::istringstream iss_values(text);

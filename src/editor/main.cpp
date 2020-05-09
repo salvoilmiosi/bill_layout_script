@@ -138,6 +138,7 @@ bool MainApp::OnInit() {
 }
 
 void MainApp::OnNewFile(wxCommandEvent &evt) {
+    layout_filename.clear();
     layout.newFile();
     updateLayout();
 }

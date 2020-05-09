@@ -4,6 +4,7 @@
 #include <wx/button.h>
 #include <wx/statline.h>
 #include <wx/stattext.h>
+#include <wx/msgdlg.h>
 
 box_dialog::box_dialog(wxWindow *parent, layout_box &box) :
     wxDialog(parent, wxID_ANY, "Opzioni rettangolo", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), box(box)
@@ -24,7 +25,7 @@ box_dialog::box_dialog(wxWindow *parent, layout_box &box) :
     m_box_name = new wxTextCtrl(this, wxID_ANY, box.name);
     addLabelAndCtrl("Nome:", m_box_name);
 
-    static const wxString box_types[] = {"Singolo elemento", "Tanti elementi", "Griglia per colonna", "Griglia per riga"};
+    static const wxString box_types[] = {"Singolo elemento", "Elementi multipli", "Griglia per colonna", "Griglia per riga"};
     m_box_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, std::size(box_types), box_types);
     m_box_type->SetSelection(box.type);
     addLabelAndCtrl("Tipo:", m_box_type);
@@ -43,6 +44,9 @@ box_dialog::box_dialog(wxWindow *parent, layout_box &box) :
     wxButton *cancelButton = new wxButton(this, wxID_CANCEL, "Annulla");
     okCancelSizer->Add(cancelButton, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
+    wxButton *helpButton = new wxButton(this, wxID_HELP, "Aiuto");
+    okCancelSizer->Add(helpButton, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
     sizer->Add(okCancelSizer, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
 
     SetSizerAndFit(sizer);
@@ -50,6 +54,7 @@ box_dialog::box_dialog(wxWindow *parent, layout_box &box) :
 
 BEGIN_EVENT_TABLE(box_dialog, wxDialog)
     EVT_BUTTON(wxID_OK, box_dialog::OnOK)
+    EVT_BUTTON(wxID_HELP, box_dialog::OnClickHelp)
 END_EVENT_TABLE()
 
 bool box_dialog::validateData() {
@@ -67,4 +72,13 @@ void box_dialog::OnOK(wxCommandEvent &evt) {
     } else {
         wxBell();
     }
+}
+
+void box_dialog::OnClickHelp(wxCommandEvent &evt) {
+    wxMessageBox(
+        "Inserire nel campo elementi gli identificatori dei vari elementi nel rettangolo, separati da spazi.\n"
+        "Ogni identificatore deve essere una stringa unica e non deve iniziare per numero.\n"
+        "I valori numerici sono identificati da un %, per esempio %totale_fattura\n"
+        "I valori da saltare sono identificati da un #, per esempio #unita",
+        "Aiuto elementi", wxICON_INFORMATION);
 }

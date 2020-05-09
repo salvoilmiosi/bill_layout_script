@@ -15,6 +15,7 @@ private:
     bool validateData();
 
     void OnOK(wxCommandEvent &evt);
+    void OnClickHelp(wxCommandEvent &evt);
 
 private:
     layout_box &box;
