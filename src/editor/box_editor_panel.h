@@ -3,11 +3,15 @@
 
 #include "image_panel.h"
 
-#include "../shared/layout.h"
+#include "editor.h"
 
 class box_editor_panel : public wxImagePanel {
 public:
-    box_editor_panel(wxWindow *parent, class MainApp *app);
+    box_editor_panel(wxWindow *parent, class frame_editor *app);
+
+    void setSelectedTool(int tool) {
+        selected_tool = tool;
+    }
 
 protected:
     bool render(wxDC &dc, bool clear = false) override;
@@ -17,12 +21,14 @@ protected:
     void OnMouseMove(wxMouseEvent &evt);
 
 private:
-    class MainApp *app;
+    class frame_editor *app;
 
     wxPoint start_pt, end_pt;
     std::vector<layout_box>::iterator selected_box;
     float startx, starty;
     bool mouseIsDown = false;
+
+    int selected_tool = TOOL_SELECT;
 
 private:
     DECLARE_EVENT_TABLE()

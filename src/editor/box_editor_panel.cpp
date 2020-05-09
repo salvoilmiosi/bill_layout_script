@@ -1,6 +1,5 @@
 #include "box_editor_panel.h"
 
-#include "main.h"
 #include "box_dialog.h"
 
 BEGIN_EVENT_TABLE(box_editor_panel, wxImagePanel)
@@ -10,7 +9,7 @@ BEGIN_EVENT_TABLE(box_editor_panel, wxImagePanel)
     EVT_MOTION(box_editor_panel::OnMouseMove)
 END_EVENT_TABLE()
 
-box_editor_panel::box_editor_panel(wxWindow *parent, MainApp *app) : wxImagePanel(parent), app(app) {
+box_editor_panel::box_editor_panel(wxWindow *parent, frame_editor *app) : wxImagePanel(parent), app(app) {
 
 }
 
@@ -36,7 +35,7 @@ bool box_editor_panel::render(wxDC &dc, bool clear) {
     if (wxImagePanel::render(dc, clear)) {
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         for (auto &box : app->layout.boxes) {
-            if (box.page == app->selected_page) {
+            if (box.page == app->getSelectedPage()) {
                 if (box.selected) {
                     dc.SetPen(*wxBLACK_DASHED_PEN);
                 } else {
@@ -46,7 +45,7 @@ bool box_editor_panel::render(wxDC &dc, bool clear) {
             }
         }
 
-        switch (app->selected_tool) {
+        switch (selected_tool) {
         case TOOL_SELECT:
             break;
         case TOOL_NEWBOX:
@@ -67,9 +66,9 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
     float xx = (evt.GetX() + getScrollX()) / getScaledWidth();
     float yy = (evt.GetY() + getScrollY()) / getScaledHeight();
     if (getImage() && !mouseIsDown) {
-        switch (app->selected_tool) {
+        switch (selected_tool) {
         case TOOL_SELECT:
-            selected_box = app->layout.getBoxAt(xx, yy, app->selected_page);
+            selected_box = app->layout.getBoxAt(xx, yy, app->getSelectedPage());
             if (selected_box != app->layout.boxes.end()) {
                 startx = selected_box->x;
                 starty = selected_box->y;
@@ -86,7 +85,7 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
             break;
         case TOOL_DELETEBOX:
         {
-            auto it = app->layout.getBoxAt(xx, yy, app->selected_page);
+            auto it = app->layout.getBoxAt(xx, yy, app->getSelectedPage());
             if (it != app->layout.boxes.end()) {
                 app->layout.boxes.erase(it);
                 app->updateLayout();
@@ -105,7 +104,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
 
         end_pt = evt.GetPosition();
         if (end_pt != start_pt) {
-            switch (app->selected_tool) {
+            switch (selected_tool) {
             case TOOL_SELECT:
                 if (selected_box != app->layout.boxes.end()) {
                     if (start_pt != end_pt) {
@@ -121,7 +120,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 box.y = (rect.y + getScrollY()) / getScaledHeight();
                 box.w = rect.width / getScaledWidth();
                 box.h = rect.height / getScaledHeight();
-                box.page = app->selected_page;
+                box.page = app->getSelectedPage();
 
                 box_dialog diag(this, box);
                 if (diag.ShowModal() == wxID_OK) {
@@ -142,7 +141,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
 }
 
 void box_editor_panel::OnDoubleClick(wxMouseEvent &evt) {
-    switch (app->selected_tool) {
+    switch (selected_tool) {
     case TOOL_SELECT:
         if (selected_box != app->layout.boxes.end()) {
             box_dialog diag(this, *selected_box);
@@ -160,7 +159,7 @@ void box_editor_panel::OnDoubleClick(wxMouseEvent &evt) {
 void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {
     if (mouseIsDown) {
         end_pt = evt.GetPosition();
-        switch (app->selected_tool) {
+        switch (selected_tool) {
         case TOOL_SELECT:
         {
             float dx = (end_pt.x - start_pt.x) / getScaledWidth();

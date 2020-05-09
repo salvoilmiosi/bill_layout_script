@@ -1,13 +1,11 @@
-#ifndef __MAIN_H__
-#define __MAIN_H__
+#ifndef __EDITOR_H__
+#define __EDITOR_H__
 
 #include <wx/wxprec.h>
 
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
 #endif
-
-#include "box_editor_panel.h"
 
 #include "../shared/layout.h"
 
@@ -31,22 +29,28 @@ enum {
     CTL_LIST_BOXES,
 };
 
-class MainApp : public wxApp {
+class frame_editor : public wxFrame {
 public:
-    virtual bool OnInit() override;
+    frame_editor();
 
-public:
+    int getSelectedPage() {
+        return selected_page;
+    }
     void setSelectedPage(int page);
     void selectBox(int id);
 
     void updateLayout(bool addToHistory = true);
+    bool save(bool saveAs = false);
+    bool saveIfModified();
+
+    layout_bolletta layout;
 
 private:
     void OnNewFile      (wxCommandEvent &evt);
     void OnOpenFile     (wxCommandEvent &evt);
     void OnSaveFile     (wxCommandEvent &evt);
     void OnSaveFileAs   (wxCommandEvent &evt);
-    void OnClose        (wxCommandEvent &evt);
+    void OnMenuClose    (wxCommandEvent &evt);
     void OnUndo         (wxCommandEvent &evt);
     void OnRedo         (wxCommandEvent &evt);
     void OnCut          (wxCommandEvent &evt);
@@ -62,33 +66,31 @@ private:
     void OnReadData     (wxCommandEvent &evt);
     void OnMoveUp       (wxCommandEvent &evt);
     void OnMoveDown     (wxCommandEvent &evt);
+    void OnFrameClose   (wxCloseEvent &evt);
 
     DECLARE_EVENT_TABLE()
 
 private:
-    wxFrame *m_frame;
-    box_editor_panel *m_image;
+    class box_editor_panel *m_image;
 
     wxComboBox *m_page;
     wxSlider *m_scale;
 
     wxListBox *m_list_boxes;
 
-    layout_bolletta layout;
     std::deque<layout_bolletta> history;
     std::deque<layout_bolletta>::iterator currentHistory;
+    bool modified = false;
 
     std::unique_ptr<layout_box> clipboard;
 
 private:
-    std::string app_path;
     xpdf::pdf_info info;
     std::string layout_filename{};
     std::string pdf_filename{};
-    int selected_tool = TOOL_SELECT;
     int selected_page = 0;
-
-    friend class box_editor_panel;
 };
+
+const std::string &get_app_path();
 
 #endif
