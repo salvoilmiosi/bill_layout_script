@@ -13,7 +13,7 @@ struct rwops {
     int write_all(const std::string &buffer);
 };
 
-std::unique_ptr<rwops> open_process(const std::string &cmd, const std::string &args, const std::string &cwd = "");
+std::unique_ptr<rwops> open_process(char *const args[]);
 
 struct pipe_error {
     const char *message;

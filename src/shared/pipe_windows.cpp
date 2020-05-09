@@ -22,28 +22,20 @@ private:
     HANDLE pipe_stdin[2], pipe_stdout[2];
 };
 
-windows_process_rwops::windows_process_rwops(const std::string &cmd, const std::string &args, const std::string &cwd) {
+windows_process_rwops::windows_process_rwops(const char *path, const char *const args[]) {
     SECURITY_ATTRIBUTES attrs;
 
     attrs.nLength = sizeof(SECURITY_ATTRIBUTES);
     attrs.bInheritHandle = true;
     attrs.lpSecurityDescriptor = nullptr;
 
-    if (!CreatePipe(&pipe_stdout[PIPE_READ], &pipe_stdout[PIPE_WRITE], &attrs, 0)) {
-        throw pipe_error("Error creating child pipe");
-    }
+    if (!CreatePipe(&pipe_stdout[PIPE_READ], &pipe_stdout[PIPE_WRITE], &attrs, 0)
+        || !SetHandleInformation(pipe_stdout[PIPE_READ], HANDLE_FLAG_INHERIT, 0))
+        throw pipe_error("Error creating stdout pipe");
 
-    if (!SetHandleInformation(pipe_stdout[PIPE_READ], HANDLE_FLAG_INHERIT, 0)) {
-        throw pipe_error("Error setting child pipe handle information");
-    }
-
-    if (!CreatePipe(&pipe_stdin[PIPE_READ], &pipe_stdin[PIPE_WRITE], &attrs, 0)) {
-        throw pipe_error("Error creating parent pipe");
-    }
-
-    if (!SetHandleInformation(pipe_stdin[PIPE_WRITE], HANDLE_FLAG_INHERIT, 0)) {
-        throw pipe_error("Error setting parent pipe handle information");
-    }
+    if (!CreatePipe(&pipe_stdin[PIPE_READ], &pipe_stdin[PIPE_WRITE], &attrs, 0)
+        || !SetHandleInformation(pipe_stdin[PIPE_WRITE], HANDLE_FLAG_INHERIT, 0))
+        throw pipe_error("Error creating stdin pipe");
 
     STARTUPINFOA start_info;
 
@@ -92,8 +84,8 @@ void windows_process_rwops::close() {
     CloseHandle(pipe_stdin[PIPE_READ]);
 }
 
-std::unique_ptr<rwops> open_process(const std::string &cmd, const std::string &args, const std::string &cwd) {
-    return std::make_unique<windows_process_rwops>(cmd, args, cwd);
+std::unique_ptr<rwops> open_process(const char *path, const char *const args[]) {
+    return std::make_unique<windows_process_rwops>(path, args);
 }
 
 #endif

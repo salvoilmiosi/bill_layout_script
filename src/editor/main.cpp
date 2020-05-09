@@ -94,7 +94,7 @@ bool MainApp::OnInit() {
     wxButton *btn_load_pdf = new wxButton(toolbar_top, CTL_LOAD_PDF, "Carica PDF", wxDefaultPosition, wxSize(100, -1));
     toolbar_top->AddControl(btn_load_pdf, "Carica un file PDF");
 
-    m_page = new wxComboBox(toolbar_top, CTL_PAGE, "Pagina", wxDefaultPosition, wxSize(70, -1));
+    m_page = new wxComboBox(toolbar_top, CTL_PAGE, "Pagina", wxDefaultPosition, wxSize(100, -1));
     toolbar_top->AddControl(m_page, "Pagina");
 
     m_scale = new wxSlider(toolbar_top, CTL_SCALE, 50, 1, 100, wxDefaultPosition, wxSize(200, -1));
@@ -109,9 +109,18 @@ bool MainApp::OnInit() {
 
     wxToolBar *toolbar_side = new wxToolBar(m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_VERTICAL);
 
-    toolbar_side->AddRadioTool(TOOL_SELECT, "Seleziona", wxBitmap("IDT_SELECT", wxBITMAP_TYPE_PNG_RESOURCE), wxNullBitmap, "Seleziona");
-    toolbar_side->AddRadioTool(TOOL_NEWBOX, "Nuovo rettangolo", wxBitmap("IDT_NEWBOX", wxBITMAP_TYPE_PNG_RESOURCE), wxNullBitmap, "Nuovo rettangolo");
-    toolbar_side->AddRadioTool(TOOL_DELETEBOX, "Cancella rettangolo", wxBitmap("IDT_DELETEBOX", wxBITMAP_TYPE_PNG_RESOURCE), wxNullBitmap, "Cancella rettangolo");
+    auto loadIcon = [](const char *name) {
+        wxBitmap icon(name, wxBITMAP_TYPE_PNG_RESOURCE);
+        if (icon.IsOk()) {
+            return icon;
+        } else {
+            return wxArtProvider::GetBitmap(wxART_MISSING_IMAGE);
+        }
+    };
+
+    toolbar_side->AddRadioTool(TOOL_SELECT, "Seleziona", loadIcon("IDT_SELECT"), wxNullBitmap, "Seleziona");
+    toolbar_side->AddRadioTool(TOOL_NEWBOX, "Nuovo rettangolo", loadIcon("IDT_NEWBOX"), wxNullBitmap, "Nuovo rettangolo");
+    toolbar_side->AddRadioTool(TOOL_DELETEBOX, "Cancella rettangolo", loadIcon("IDT_DELETEBOX"), wxNullBitmap, "Cancella rettangolo");
 
     toolbar_side->Realize();
     sizer->Add(toolbar_side, 0, wxEXPAND);
@@ -211,10 +220,9 @@ void MainApp::OnLoadPdf(wxCommandEvent &evt) {
         for (int i=1; i<=info.num_pages; ++i) {
             m_page->Append(wxString::Format("%i", i));
         }
+        m_page->SetSelection(0);
         selected_page = 1;
         m_image->setImage(xpdf::pdf_to_image(app_path, pdf_filename, 1));
-        m_page->Fit();
-        m_page->SetSelection(0);
     } catch (const pipe_error &error) {
         wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
     }

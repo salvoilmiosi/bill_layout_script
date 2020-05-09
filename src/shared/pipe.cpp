@@ -1,6 +1,6 @@
 #include "pipe.h"
 
-#ifdef HAVE_UNISTD_H
+#ifdef __linux__
 #include <unistd.h>
 
 #define PIPE_READ 0
@@ -8,7 +8,7 @@
 
 class unix_process_rwops : public rwops {
 public:
-    unix_process_rwops(const std::string &cmd, const std::string &args, const std::string &cwd);
+    unix_process_rwops(char *const args[]);
     ~unix_process_rwops();
 
 public:
@@ -21,8 +21,56 @@ private:
     int child_pid;
 };
 
-std::unique_ptr<rwops> open_process(const std::string &cmd, const std::string &args, const std::string &cwd) {
-    return std::make_unique<unix_process_rwops>(cmd, args, cwd);
+unix_process_rwops::unix_process_rwops(char *const args[]) {
+    if (pipe(pipe_stdout) < 0)
+        throw pipe_error("Error creating stdout pipe");
+
+    if (pipe(pipe_stdin) < 0) {
+        ::close(pipe_stdout[PIPE_READ]);
+        ::close(pipe_stdout[PIPE_WRITE]);
+
+        throw pipe_error("Error creating stdin pipe");
+    }
+
+    child_pid = fork();
+    if (child_pid == 0) {
+        if (dup2(pipe_stdin[PIPE_READ], STDIN_FILENO) == -1) exit(errno);
+        if (dup2(pipe_stdout[PIPE_WRITE], STDOUT_FILENO) == -1) exit(errno);
+        if (dup2(pipe_stdout[PIPE_WRITE], STDERR_FILENO) == -1) exit(errno);
+
+        ::close(pipe_stdin[PIPE_READ]);
+        ::close(pipe_stdin[PIPE_WRITE]);
+        ::close(pipe_stdout[PIPE_READ]);
+        ::close(pipe_stdout[PIPE_WRITE]);
+
+        int result = execv(args[0], args);
+
+        exit(result);
+    } else {
+        ::close(pipe_stdout[PIPE_WRITE]);
+        ::close(pipe_stdin[PIPE_READ]);
+    }
+}
+
+unix_process_rwops::~unix_process_rwops() {
+    close();
+}
+
+int unix_process_rwops::read(size_t bytes, void *buffer) {
+    return ::read(pipe_stdout[PIPE_READ], buffer, bytes);
+}
+
+int unix_process_rwops::write(size_t bytes, const void *buffer) {
+    return ::write(pipe_stdin[PIPE_WRITE], buffer, bytes);
+}
+
+void unix_process_rwops::close() {
+    ::close(pipe_stdout[PIPE_READ]);
+    ::close(pipe_stdin[PIPE_WRITE]);
+}
+
+std::unique_ptr<rwops> open_process(char *const args[]) {
+    return std::make_unique<unix_process_rwops>(args);
 }
 
 #endif

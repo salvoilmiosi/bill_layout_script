@@ -8,7 +8,7 @@
 namespace xpdf {
 
 struct pdf_info {
-    int num_pages;
+    int num_pages = 0;
     float width;
     float height;
 };

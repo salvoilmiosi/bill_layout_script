@@ -1,14 +1,30 @@
 #include "pdf_to_image.h"
 
+#include <cstdio>
+
 namespace xpdf {
 
 wxImage pdf_to_image(const std::string &app_dir, const std::string &pdf, int page) {
-    std::string args;
-    args += "-f " + std::to_string(page) + " ";
-    args += "-l " + std::to_string(page) + " ";
-    args += "\"" + pdf + "\" \"" + app_dir + "/temp\"";
+    char cmd_str[FILENAME_MAX];
+    snprintf(cmd_str, FILENAME_MAX, "%s/xpdf/pdftopng", app_dir.c_str());
+    
+    char page_str[16];
+    snprintf(page_str, 16, "%d", page);
 
-    std::string output = open_process(app_dir + "/xpdf/pdftopng.exe", args)->read_all();
+    char pdf_str[FILENAME_MAX];
+    snprintf(pdf_str, FILENAME_MAX, "%s", pdf.c_str());
+
+    char temp_str[FILENAME_MAX];
+    snprintf(temp_str, FILENAME_MAX, "%s/temp", app_dir.c_str());
+
+    char *const args[] = {
+        cmd_str,
+        "-f", page_str,  "-l", page_str,
+        pdf_str, temp_str,
+        nullptr
+    };
+
+    std::string output = open_process(args)->read_all();
 
     char base_filename[32];
     snprintf(base_filename, 32, "temp-%06d.png", page);
