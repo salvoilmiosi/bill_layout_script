@@ -160,6 +160,7 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
 
 void frame_editor::OnNewFile(wxCommandEvent &evt) {
     if (saveIfModified()) {
+        modified = false;
         layout_filename.clear();
         layout.clear();
         history.clear();
