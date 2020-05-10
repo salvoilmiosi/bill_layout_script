@@ -11,45 +11,38 @@
 #include "resources.h"
 
 BEGIN_EVENT_TABLE(frame_editor, wxFrame)
-    EVT_MENU        (MENU_NEW,      frame_editor::OnNewFile)
-    EVT_TOOL        (TOOL_NEW,      frame_editor::OnNewFile)
-    EVT_MENU        (MENU_OPEN,     frame_editor::OnOpenFile)
-    EVT_TOOL        (TOOL_OPEN,     frame_editor::OnOpenFile)
-    EVT_MENU        (MENU_SAVE,     frame_editor::OnSaveFile)
-    EVT_TOOL        (TOOL_SAVE,     frame_editor::OnSaveFile)
-    EVT_MENU        (MENU_SAVEAS,   frame_editor::OnSaveFileAs)
-    EVT_MENU        (MENU_CLOSE,    frame_editor::OnMenuClose)
-    EVT_MENU        (MENU_UNDO,     frame_editor::OnUndo)
-    EVT_TOOL        (TOOL_UNDO,     frame_editor::OnUndo)
-    EVT_MENU        (MENU_REDO,     frame_editor::OnRedo)
-    EVT_TOOL        (TOOL_REDO,     frame_editor::OnRedo)
-    EVT_MENU        (MENU_CUT,      frame_editor::OnCut)
-    EVT_TOOL        (TOOL_CUT,      frame_editor::OnCut)
-    EVT_MENU        (MENU_COPY,     frame_editor::OnCopy)
-    EVT_TOOL        (TOOL_COPY,     frame_editor::OnCopy)
-    EVT_MENU        (MENU_PASTE,    frame_editor::OnPaste)
-    EVT_TOOL        (TOOL_PASTE,    frame_editor::OnPaste)
-    EVT_MENU        (MENU_EDITBOX,  frame_editor::EditSelectedBox)
-    EVT_MENU        (MENU_DELETE,   frame_editor::OnDelete)
-    EVT_MENU        (MENU_READDATA, frame_editor::OnReadData)
-    EVT_BUTTON      (CTL_LOAD_PDF,  frame_editor::OnLoadPdf)
-    EVT_COMBOBOX    (CTL_PAGE,      frame_editor::OnPageSelect)
-    EVT_TEXT_ENTER  (CTL_PAGE,      frame_editor::OnPageSelect)
-    EVT_SLIDER      (CTL_SCALE,     frame_editor::OnScaleChange)
-    EVT_TOOL        (TOOL_SELECT,   frame_editor::OnChangeTool)
-    EVT_TOOL        (TOOL_NEWBOX,   frame_editor::OnChangeTool)
-    EVT_TOOL        (TOOL_DELETEBOX,frame_editor::OnChangeTool)
-    EVT_TOOL        (TOOL_MOVEUP,   frame_editor::OnMoveUp)
-    EVT_TOOL        (TOOL_MOVEDOWN, frame_editor::OnMoveDown)
-    EVT_LISTBOX     (CTL_LIST_BOXES,frame_editor::OnSelectBox)
-    EVT_LISTBOX_DCLICK (CTL_LIST_BOXES, frame_editor::EditSelectedBox)
-    EVT_CLOSE       (frame_editor::OnFrameClose)
+    EVT_MENU (MENU_NEW, OnNewFile)
+    EVT_MENU (MENU_OPEN, OnOpenFile)
+    EVT_MENU (MENU_SAVE, OnSaveFile)
+    EVT_MENU (MENU_SAVEAS, OnSaveFileAs)
+    EVT_MENU (MENU_CLOSE, OnMenuClose)
+    EVT_MENU (MENU_UNDO, OnUndo)
+    EVT_MENU (MENU_REDO, OnRedo)
+    EVT_MENU (MENU_CUT, OnCut)
+    EVT_MENU (MENU_COPY, OnCopy)
+    EVT_MENU (MENU_PASTE, OnPaste)
+    EVT_MENU (MENU_LOAD_PDF, OnLoadPdf)
+    EVT_MENU (MENU_EDITBOX, EditSelectedBox)
+    EVT_MENU (MENU_DELETE, OnDelete)
+    EVT_MENU (MENU_READDATA, OnReadData)
+    EVT_BUTTON (CTL_LOAD_PDF, OnLoadPdf)
+    EVT_COMBOBOX (CTL_PAGE, OnPageSelect)
+    EVT_TEXT_ENTER (CTL_PAGE, OnPageSelect)
+    EVT_SLIDER (CTL_SCALE, OnScaleChange)
+    EVT_TOOL (TOOL_SELECT, OnChangeTool)
+    EVT_TOOL (TOOL_NEWBOX, OnChangeTool)
+    EVT_TOOL (TOOL_DELETEBOX, OnChangeTool)
+    EVT_TOOL (TOOL_MOVEUP, OnMoveUp)
+    EVT_TOOL (TOOL_MOVEDOWN, OnMoveDown)
+    EVT_LISTBOX (CTL_LIST_BOXES, OnSelectBox)
+    EVT_LISTBOX_DCLICK (CTL_LIST_BOXES, EditSelectedBox)
+    EVT_CLOSE (OnFrameClose)
 END_EVENT_TABLE()
 
-DECLARE_RESOURCE(icon_select_png)
-DECLARE_RESOURCE(icon_newbox_png)
-DECLARE_RESOURCE(icon_deletebox_png)
-DECLARE_RESOURCE(editor_png)
+DECLARE_RESOURCE(tool_select_png)
+DECLARE_RESOURCE(tool_newbox_png)
+DECLARE_RESOURCE(tool_deletebox_png)
+DECLARE_RESOURCE(icon_editor_png)
 
 const std::string &get_app_path() {
     static wxFileName f{wxStandardPaths::Get().GetExecutablePath()};
@@ -79,6 +72,7 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     menuBar->Append(menuEdit, "&Modifica");
 
     wxMenu *menuLayout = new wxMenu;
+    menuLayout->Append(MENU_LOAD_PDF, "Carica &PDF\tCtrl-L", "Carica un file PDF");
     menuLayout->Append(MENU_EDITBOX, "Modifica &Opzioni\tCtrl-E", "Modifica il rettangolo selezionato");
     menuLayout->Append(MENU_DELETE, "&Cancella Selezione\tDel", "Cancella il rettangolo selezionato");
     menuLayout->Append(MENU_READDATA, "L&eggi Layout\tCtrl-R", "Test della lettura dei dati");
@@ -89,20 +83,20 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
 
     wxToolBar *toolbar_top = CreateToolBar();
 
-    toolbar_top->AddTool(TOOL_NEW, "Nuovo", wxArtProvider::GetBitmap(wxART_NEW), "Nuovo");
-    toolbar_top->AddTool(TOOL_OPEN, "Apri", wxArtProvider::GetBitmap(wxART_FILE_OPEN), "Apri");
-    toolbar_top->AddTool(TOOL_SAVE, "Salva", wxArtProvider::GetBitmap(wxART_FILE_SAVE), "Salva");
+    toolbar_top->AddTool(MENU_NEW, "Nuovo", wxArtProvider::GetBitmap(wxART_NEW), "Nuovo");
+    toolbar_top->AddTool(MENU_OPEN, "Apri", wxArtProvider::GetBitmap(wxART_FILE_OPEN), "Apri");
+    toolbar_top->AddTool(MENU_SAVE, "Salva", wxArtProvider::GetBitmap(wxART_FILE_SAVE), "Salva");
 
     toolbar_top->AddSeparator();
 
-    toolbar_top->AddTool(TOOL_UNDO, "Annulla", wxArtProvider::GetBitmap(wxART_UNDO), "Annulla");
-    toolbar_top->AddTool(TOOL_REDO, "Ripeti", wxArtProvider::GetBitmap(wxART_REDO), "Ripeti");
+    toolbar_top->AddTool(MENU_UNDO, "Annulla", wxArtProvider::GetBitmap(wxART_UNDO), "Annulla");
+    toolbar_top->AddTool(MENU_REDO, "Ripeti", wxArtProvider::GetBitmap(wxART_REDO), "Ripeti");
 
     toolbar_top->AddSeparator();
 
-    toolbar_top->AddTool(TOOL_CUT, "Taglia", wxArtProvider::GetBitmap(wxART_CUT), "Taglia");
-    toolbar_top->AddTool(TOOL_COPY, "Copia", wxArtProvider::GetBitmap(wxART_COPY), "Copia");
-    toolbar_top->AddTool(TOOL_PASTE, "Incolla", wxArtProvider::GetBitmap(wxART_PASTE), "Incolla");
+    toolbar_top->AddTool(MENU_CUT, "Taglia", wxArtProvider::GetBitmap(wxART_CUT), "Taglia");
+    toolbar_top->AddTool(MENU_COPY, "Copia", wxArtProvider::GetBitmap(wxART_COPY), "Copia");
+    toolbar_top->AddTool(MENU_PASTE, "Incolla", wxArtProvider::GetBitmap(wxART_PASTE), "Incolla");
 
     toolbar_top->AddSeparator();
 
@@ -130,9 +124,9 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
         return wxBitmap::NewFromPNGData(resource.data, resource.len);
     };
 
-    toolbar_side->AddRadioTool(TOOL_SELECT, "Seleziona", loadPNG(GET_RESOURCE(icon_select_png)), wxNullBitmap, "Seleziona");
-    toolbar_side->AddRadioTool(TOOL_NEWBOX, "Nuovo rettangolo", loadPNG(GET_RESOURCE(icon_newbox_png)), wxNullBitmap, "Nuovo rettangolo");
-    toolbar_side->AddRadioTool(TOOL_DELETEBOX, "Cancella rettangolo", loadPNG(GET_RESOURCE(icon_deletebox_png)), wxNullBitmap, "Cancella rettangolo");
+    toolbar_side->AddRadioTool(TOOL_SELECT, "Seleziona", loadPNG(GET_RESOURCE(tool_select_png)), wxNullBitmap, "Seleziona");
+    toolbar_side->AddRadioTool(TOOL_NEWBOX, "Nuovo rettangolo", loadPNG(GET_RESOURCE(tool_newbox_png)), wxNullBitmap, "Nuovo rettangolo");
+    toolbar_side->AddRadioTool(TOOL_DELETEBOX, "Cancella rettangolo", loadPNG(GET_RESOURCE(tool_deletebox_png)), wxNullBitmap, "Cancella rettangolo");
 
     toolbar_side->AddSeparator();
 
@@ -157,7 +151,7 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
         return icon;
     };
 
-    SetIcon(loadIcon(GET_RESOURCE(editor_png)));
+    SetIcon(loadIcon(GET_RESOURCE(icon_editor_png)));
     Show();
 }
 
@@ -320,25 +314,20 @@ void frame_editor::OnLoadPdf(wxCommandEvent &evt) {
     if (diag.ShowModal() == wxID_CANCEL)
         return;
 
-    try {
-        pdf_filename = diag.GetPath().ToStdString();
-        info = xpdf::pdf_get_info(get_app_path(), pdf_filename);
-        m_page->Clear();
-        for (int i=1; i<=info.num_pages; ++i) {
-            m_page->Append(wxString::Format("%i", i));
-        }
-        m_page->SetSelection(0);
-        selected_page = 1;
-        m_image->setImage(xpdf::pdf_to_image(get_app_path(), pdf_filename, 1));
-    } catch (const pipe_error &error) {
-        wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
+    pdf_filename = diag.GetPath().ToStdString();
+    info = xpdf::pdf_get_info(get_app_path(), pdf_filename);
+    m_page->Clear();
+    for (int i=1; i<=info.num_pages; ++i) {
+        m_page->Append(wxString::Format("%i", i));
     }
+    setSelectedPage(1, true);
 }
 
-void frame_editor::setSelectedPage(int page) {
-    if (page == selected_page) return;
+void frame_editor::setSelectedPage(int page, bool force) {
+    if (!force && page == selected_page) return;
+    if (pdf_filename.empty()) return;
 
-    m_page->SetValue(std::to_string(page));
+    m_page->SetSelection(page - 1);
     try {
         selected_page = page;
         m_image->setImage(xpdf::pdf_to_image(get_app_path(), pdf_filename, page));

@@ -17,10 +17,7 @@ enum {
     
     MENU_NEW, MENU_OPEN, MENU_SAVE, MENU_SAVEAS, MENU_CLOSE,
     MENU_UNDO, MENU_REDO, MENU_CUT, MENU_COPY, MENU_PASTE,
-    MENU_EDITBOX, MENU_DELETE, MENU_READDATA,
-
-    TOOL_NEW, TOOL_OPEN, TOOL_SAVE,
-    TOOL_UNDO, TOOL_REDO, TOOL_CUT, TOOL_COPY, TOOL_PASTE,
+    MENU_LOAD_PDF, MENU_EDITBOX, MENU_DELETE, MENU_READDATA,
 
     CTL_LOAD_PDF, CTL_PAGE, CTL_SCALE,
 
@@ -36,7 +33,7 @@ public:
     int getSelectedPage() {
         return selected_page;
     }
-    void setSelectedPage(int page);
+    void setSelectedPage(int page, bool force = false);
     void selectBox(int id);
 
     void updateLayout(bool addToHistory = true);
