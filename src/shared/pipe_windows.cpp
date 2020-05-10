@@ -14,7 +14,8 @@ public:
 public:
     virtual int read(size_t bytes, void *buffer) override;
     virtual int write(size_t bytes, const void *buffer) override;
-    virtual void close() override;
+    virtual void close_stdin() override;
+    virtual void close_stdout() override;
 
 private:
     HANDLE pipe_stdin[2], pipe_stdout[2];
@@ -80,7 +81,8 @@ windows_process_rwops::windows_process_rwops(char *const args[]) {
 }
 
 windows_process_rwops::~windows_process_rwops() {
-    close();
+    close_stdin();
+    close_stdout();
 }
 
 int windows_process_rwops::read(size_t bytes, void *buffer) {
@@ -97,11 +99,14 @@ int windows_process_rwops::write(size_t bytes, const void *buffer) {
     return bytes_written;
 }
 
-void windows_process_rwops::close() {
-    CloseHandle(pipe_stdout[PIPE_READ]);
-    CloseHandle(pipe_stdout[PIPE_WRITE]);
+void windows_process_rwops::close_stdin() {
     CloseHandle(pipe_stdin[PIPE_READ]);
     CloseHandle(pipe_stdin[PIPE_WRITE]);
+}
+
+void windows_process_rwops::close_stdout() {
+    CloseHandle(pipe_stdout[PIPE_READ]);
+    CloseHandle(pipe_stdout[PIPE_WRITE]);
 }
 
 std::unique_ptr<rwops> open_process(char *const args[]) {

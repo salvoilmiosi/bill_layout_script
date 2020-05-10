@@ -1,6 +1,6 @@
 #include "layout.h"
 
-#include "binary_io.h"
+#include <json/json.h>
 
 constexpr uint32_t MAGIC = 0xb011e77a;
 constexpr uint32_t VERSION = 0x00000000;
@@ -18,87 +18,63 @@ std::vector<layout_box>::iterator layout_bolletta::getBoxAt(float x, float y, in
     return boxes.end();
 }
 
-void layout_bolletta::newFile() {
-    boxes.clear();
-}
+std::ostream &operator << (std::ostream &out, const layout_bolletta &obj) {
+    Json::Value root = Json::objectValue;
+    Json::Value &layout = root["layout"]  = Json::objectValue;
+    layout["version"] = VERSION;
+    Json::Value &json_boxes = layout["boxes"] = Json::arrayValue;
 
-void layout_bolletta::saveFile(const std::string &filename) const {
-    std::ofstream ofs(filename, std::ios::binary | std::ios::out);
+    for (auto &box : obj.boxes) {
+        Json::Value json_box = Json::objectValue;
 
-    if (ofs.bad()) throw layout_error("Impossibile aprire il file");
+        json_box["name"] = box.name;
+        json_box["type"] = box.type;
+        json_box["parse_string"] = box.parse_string;
+        json_box["x"] = box.x;
+        json_box["y"] = box.y;
+        json_box["w"] = box.w;
+        json_box["h"] = box.h;
+        json_box["page"] = box.page;
 
-    ofs << *this;
-
-    ofs.close();
-}
-
-void layout_bolletta::saveRwops(rwops &ops) const {
-    binary_io ofs(ops);
-
-    ofs.writeInt(MAGIC);
-    ofs.writeInt(VERSION);
-    ofs.writeShort(boxes.size());
-
-    for (auto &box : boxes) {
-        ofs.writeString(box.name);
-        ofs.writeByte(box.type);
-        ofs.writeString(box.parse_string);
-        ofs.writeFloat(box.x);
-        ofs.writeFloat(box.y);
-        ofs.writeFloat(box.w);
-        ofs.writeFloat(box.h);
-        ofs.writeByte(box.page);
+        json_boxes.append(json_box);
     }
+
+    return out << root;
 }
 
-void layout_bolletta::openFile(const std::string &filename) {
-    std::ifstream ifs(filename, std::ios::binary | std::ios::in);
+std::istream &operator >> (std::istream &in, layout_bolletta &obj) {
+    Json::Value root;
 
-    if (ifs.bad()) throw layout_error("Impossibile aprire il file");
+    in >> root;
 
-    ifs >> *this;
+    Json::Value &layout = root["layout"];
 
-    ifs.close();
-}
+    int version = layout["version"].asInt();
 
-void layout_bolletta::openRwops(rwops &ops) {
-    binary_io ifs(ops);
-
-    uint32_t magic = ifs.readInt();
-    if (magic != MAGIC) throw layout_error("Tipo di file invalido");
-    uint32_t version = ifs.readInt();
-    switch (version) {
+    switch(version) {
     case 0x00000000:
     {
-        uint16_t num_boxes = ifs.readShort();
-        boxes.clear();
-        for (size_t i=0; i<num_boxes; ++i) {
+        Json::Value &json_boxes = layout["boxes"];
+        for (Json::Value::iterator it=json_boxes.begin(); it!=json_boxes.end(); ++it) {
+            Json::Value &json_box = *it;
             layout_box box;
-            box.name = ifs.readString();
-            box.type = static_cast<box_type>(ifs.readByte());
-            box.parse_string = ifs.readString();
-            box.x = ifs.readFloat();
-            box.y = ifs.readFloat();
-            box.w = ifs.readFloat();
-            box.h = ifs.readFloat();
-            box.page = ifs.readByte();
-            boxes.push_back(box);
+            box.name = json_box["name"].asString();
+            box.type = static_cast<box_type>(json_box["type"].asInt());
+            box.parse_string = json_box["parse_string"].asString();
+            box.x = json_box["x"].asFloat();
+            box.y = json_box["y"].asFloat();
+            box.w = json_box["w"].asFloat();
+            box.h = json_box["h"].asFloat();
+            box.page = json_box["page"].asInt();
+
+            obj.boxes.push_back(box);
         }
+
         break;
     }
     default:
         throw layout_error("Versione non supportata");
     }
-}
 
-std::ostream &operator << (std::ostream &out, const layout_bolletta &obj) {
-    ostream_rwops ops(out);
-    obj.saveRwops(ops);
-    return out;
-}
-
-std::istream &operator >> (std::istream &in, layout_bolletta &obj) {
-    istream_rwops ops(in);
-    obj.openRwops(ops);
     return in;
 }

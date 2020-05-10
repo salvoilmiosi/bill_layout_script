@@ -1,5 +1,8 @@
 #include "editor.h"
 
+#include <fstream>
+#include <sstream>
+
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/artprov.h>
@@ -158,7 +161,7 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
 void frame_editor::OnNewFile(wxCommandEvent &evt) {
     if (saveIfModified()) {
         layout_filename.clear();
-        layout.newFile();
+        layout.clear();
         history.clear();
         updateLayout();
     }
@@ -172,7 +175,10 @@ void frame_editor::OnOpenFile(wxCommandEvent &evt) {
 
     try {
         layout_filename = diag.GetPath().ToStdString();
-        layout.openFile(layout_filename);
+        std::ifstream ifs(layout_filename);
+        layout.clear();
+        ifs >> layout;
+        ifs.close();
         history.clear();
         updateLayout();
     } catch (layout_error &error) {
@@ -190,7 +196,9 @@ bool frame_editor::save(bool saveAs) {
         layout_filename = diag.GetPath().ToStdString();
     }
     try {
-        layout.saveFile(layout_filename);
+        std::ofstream ofs(layout_filename);
+        ofs << layout;
+        ofs.close();
         modified = false;
     } catch (layout_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);
@@ -412,7 +420,11 @@ void frame_editor::OnReadData(wxCommandEvent &evt) {
 
     try {
         auto pipe = open_process(args);
-        layout.saveRwops(*pipe);
+        std::ostringstream oss;
+        oss << layout;
+        std::string str = oss.str();
+        pipe->write_all(str);
+        pipe->close_stdin();
         std::string output = pipe->read_all();
         wxMessageBox(output, "Output di layout_reader", wxICON_INFORMATION);
     } catch (pipe_error &error) {

@@ -30,13 +30,9 @@ public:
     layout_bolletta();
     std::vector<layout_box>::iterator getBoxAt(float x, float y, int page);
 
-    void newFile();
-
-    void saveFile(const std::string &filename) const;
-    void openFile(const std::string &filename);
-
-    void saveRwops(rwops &ops) const;
-    void openRwops(rwops &ops);
+    void clear() {
+        boxes.clear();
+    }
 
 public:
     std::vector<layout_box> boxes;

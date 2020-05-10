@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include "parser.h"
 #include "../shared/xpdf.h"
@@ -18,10 +19,11 @@ int main(int argc, char **argv) {
     parser result;
     try {
         if (strcmp(file_bolletta,"-")==0) {
-            istream_rwops ops(std::cin);
-            layout.openRwops(ops);
+            std::cin >> layout;
         } else {
-            layout.openFile(file_bolletta);
+            std::ifstream ifs(file_bolletta);
+            ifs >> layout;
+            ifs.close();
         }
     } catch (layout_error &error) {
         std::cerr << error.message << std::endl;
