@@ -20,8 +20,9 @@ std::vector<layout_box>::iterator layout_bolletta::getBoxAt(float x, float y, in
 
 std::ostream &operator << (std::ostream &out, const layout_bolletta &obj) {
     Json::Value root = Json::objectValue;
+    root["version"] = VERSION;
+    
     Json::Value &layout = root["layout"]  = Json::objectValue;
-    layout["version"] = VERSION;
     layout["pdf_filename"] = obj.pdf_filename;
 
     Json::Value &json_boxes = layout["boxes"] = Json::arrayValue;
@@ -48,14 +49,12 @@ std::istream &operator >> (std::istream &in, layout_bolletta &obj) {
     Json::Value root;
 
     in >> root;
-
-    Json::Value &layout = root["layout"];
-
-    int version = layout["version"].asInt();
+    int version = root["version"].asInt();
 
     switch(version) {
     case 0x00000001:
     {
+        Json::Value &layout = root["layout"];
         obj.pdf_filename = layout["pdf_filename"].asString();
         Json::Value &json_boxes = layout["boxes"];
         for (Json::Value::iterator it=json_boxes.begin(); it!=json_boxes.end(); ++it) {
