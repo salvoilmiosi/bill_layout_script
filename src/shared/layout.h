@@ -4,6 +4,7 @@
 #include "xpdf.h"
 
 #include <vector>
+#include <string>
 
 enum box_type { 
     BOX_SINGLE,
@@ -36,6 +37,8 @@ public:
 
 public:
     std::vector<layout_box> boxes;
+
+    std::string pdf_filename{};
 };
 
 std::ostream &operator << (std::ostream &out, const layout_bolletta &obj);

@@ -36,6 +36,7 @@ public:
     void setSelectedPage(int page, bool force = false);
     void selectBox(int id);
 
+    void loadPdf(const std::string &pdf_filename);
     void updateLayout(bool addToHistory = true);
     bool save(bool saveAs = false);
     bool saveIfModified();
@@ -84,7 +85,6 @@ private:
 private:
     xpdf::pdf_info info;
     std::string layout_filename{};
-    std::string pdf_filename{};
     int selected_page = 0;
 };
 

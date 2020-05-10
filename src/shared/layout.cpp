@@ -3,7 +3,7 @@
 #include <json/json.h>
 
 constexpr uint32_t MAGIC = 0xb011e77a;
-constexpr uint32_t VERSION = 0x00000000;
+constexpr uint32_t VERSION = 0x00000001;
 
 layout_bolletta::layout_bolletta() {
 
@@ -22,6 +22,8 @@ std::ostream &operator << (std::ostream &out, const layout_bolletta &obj) {
     Json::Value root = Json::objectValue;
     Json::Value &layout = root["layout"]  = Json::objectValue;
     layout["version"] = VERSION;
+    layout["pdf_filename"] = obj.pdf_filename;
+
     Json::Value &json_boxes = layout["boxes"] = Json::arrayValue;
 
     for (auto &box : obj.boxes) {
@@ -52,8 +54,9 @@ std::istream &operator >> (std::istream &in, layout_bolletta &obj) {
     int version = layout["version"].asInt();
 
     switch(version) {
-    case 0x00000000:
+    case 0x00000001:
     {
+        obj.pdf_filename = layout["pdf_filename"].asString();
         Json::Value &json_boxes = layout["boxes"];
         for (Json::Value::iterator it=json_boxes.begin(); it!=json_boxes.end(); ++it) {
             Json::Value &json_box = *it;
@@ -69,7 +72,6 @@ std::istream &operator >> (std::istream &in, layout_bolletta &obj) {
 
             obj.boxes.push_back(box);
         }
-
         break;
     }
     default:

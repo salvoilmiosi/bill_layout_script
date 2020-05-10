@@ -52,8 +52,19 @@
 				"w" : 0.10931899398565292,
 				"x" : 0.86648744344711304,
 				"y" : 0.54478651285171509
+			},
+			{
+				"h" : 0.012327036820352077,
+				"name" : "Potenza",
+				"page" : 2,
+				"parse_string" : "$avg(%potenza,3)",
+				"type" : 3,
+				"w" : 0.13840453326702118,
+				"x" : 0.77702701091766357,
+				"y" : 0.17488983273506165
 			}
 		],
-		"version" : 0
+		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\italpower.pdf",
+		"version" : 1
 	}
 }

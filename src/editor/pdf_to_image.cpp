@@ -17,7 +17,7 @@ wxImage pdf_to_image(const std::string &app_dir, const std::string &pdf, int pag
     char temp_str[FILENAME_MAX];
     snprintf(temp_str, FILENAME_MAX, "%s/temp", app_dir.c_str());
 
-    char *const args[] = {
+    const char *args[] = {
         cmd_str,
         "-f", page_str,  "-l", page_str,
         pdf_str, temp_str,

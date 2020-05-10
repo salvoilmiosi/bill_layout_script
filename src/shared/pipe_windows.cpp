@@ -8,7 +8,7 @@
 
 class windows_process_rwops : public rwops {
 public:
-    windows_process_rwops(char *const args[]);
+    windows_process_rwops(const char *args[]);
     ~windows_process_rwops();
 
 public:
@@ -21,7 +21,7 @@ private:
     HANDLE pipe_stdin[2], pipe_stdout[2];
 };
 
-windows_process_rwops::windows_process_rwops(char *const args[]) {
+windows_process_rwops::windows_process_rwops(const char *args[]) {
     SECURITY_ATTRIBUTES attrs;
     ZeroMemory(&attrs, sizeof(SECURITY_ATTRIBUTES));
 
@@ -47,12 +47,12 @@ windows_process_rwops::windows_process_rwops(char *const args[]) {
     start_info.dwFlags |= STARTF_USESTDHANDLES;
 
     char cmdline[1024] = "";
-    for (char *const *cmd = args; *cmd != nullptr; ++cmd) {
+    for (const char **cmd = args; *cmd != nullptr; ++cmd) {
         if (cmd != args) {
             strcat(cmdline, " ");
         }
         strcat(cmdline, "\"");
-        for (char *c = *cmd; *c != '\0'; ++c) {
+        for (const char *c = *cmd; *c != '\0'; ++c) {
             switch (*c) {
             case '\\':
                 strcat(cmdline, "\\");
@@ -109,7 +109,7 @@ void windows_process_rwops::close_stdout() {
     CloseHandle(pipe_stdout[PIPE_WRITE]);
 }
 
-std::unique_ptr<rwops> open_process(char *const args[]) {
+std::unique_ptr<rwops> open_process(const char *args[]) {
     return std::make_unique<windows_process_rwops>(args);
 }
 

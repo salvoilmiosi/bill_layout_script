@@ -40,6 +40,9 @@ int main(int argc, char **argv) {
     } catch (pipe_error &error) {
         std::cerr << error.message << std::endl;
         return 2;
+    } catch (parsing_error &error) {
+        std::cerr << error.message << std::endl;
+        return 3;
     }
 
     std::cout << result << std::endl;

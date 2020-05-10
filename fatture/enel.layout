@@ -57,7 +57,7 @@
 				"h" : 0.017737235873937607,
 				"name" : "Spesa trasporto gestione",
 				"page" : 1,
-				"parse_string" : "%trasporto_gestione",
+				"parse_string" : "$add(%trasporto_gestione)",
 				"type" : 0,
 				"w" : 0.10573476552963257,
 				"x" : 0.18189963698387146,
@@ -67,7 +67,7 @@
 				"h" : 0.019637653604149818,
 				"name" : "Oneri di sistema",
 				"page" : 1,
-				"parse_string" : "%trasporto_gestione",
+				"parse_string" : "$add(%trasporto_gestione)",
 				"type" : 0,
 				"w" : 0.10215053707361221,
 				"x" : 0.42741936445236206,
@@ -114,6 +114,7 @@
 				"y" : 0.72152543067932129
 			}
 		],
-		"version" : 0
+		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\enel1.pdf",
+		"version" : 1
 	}
 }

@@ -174,16 +174,20 @@ void frame_editor::OnOpenFile(wxCommandEvent &evt) {
     if (diag.ShowModal() == wxID_CANCEL)
         return;
 
-    try {
-        layout_filename = diag.GetPath().ToStdString();
-        std::ifstream ifs(layout_filename);
-        layout.clear();
-        ifs >> layout;
-        ifs.close();
-        history.clear();
-        updateLayout();
-    } catch (layout_error &error) {
-        wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
+    layout_filename = diag.GetPath().ToStdString();
+    if (saveIfModified()) {
+        modified = false;
+        try {
+            std::ifstream ifs(layout_filename);
+            layout.clear();
+            ifs >> layout;
+            ifs.close();
+            history.clear();
+            loadPdf(layout.pdf_filename);
+            updateLayout();
+        } catch (layout_error &error) {
+            wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
+        }
     }
 }
 
@@ -317,14 +321,9 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
     }
 }
 
-void frame_editor::OnLoadPdf(wxCommandEvent &evt) {
-    wxFileDialog diag(this, "Apri PDF", wxEmptyString, wxEmptyString, "File PDF (*.pdf)|*.pdf|Tutti i file (*.*)|*.*");
-
-    if (diag.ShowModal() == wxID_CANCEL)
-        return;
-
-    pdf_filename = diag.GetPath().ToStdString();
-    info = xpdf::pdf_get_info(get_app_path(), pdf_filename);
+void frame_editor::loadPdf(const std::string &pdf_filename) {
+    layout.pdf_filename = pdf_filename;
+    info = xpdf::pdf_get_info(get_app_path(), layout.pdf_filename);
     m_page->Clear();
     for (int i=1; i<=info.num_pages; ++i) {
         m_page->Append(wxString::Format("%i", i));
@@ -332,21 +331,31 @@ void frame_editor::OnLoadPdf(wxCommandEvent &evt) {
     setSelectedPage(1, true);
 }
 
+void frame_editor::OnLoadPdf(wxCommandEvent &evt) {
+    wxFileDialog diag(this, "Apri PDF", wxEmptyString, wxEmptyString, "File PDF (*.pdf)|*.pdf|Tutti i file (*.*)|*.*");
+
+    if (diag.ShowModal() == wxID_CANCEL)
+        return;
+
+    loadPdf(diag.GetPath().ToStdString());
+    updateLayout();
+}
+
 void frame_editor::setSelectedPage(int page, bool force) {
     if (!force && page == selected_page) return;
-    if (pdf_filename.empty()) return;
+    if (layout.pdf_filename.empty()) return;
 
     m_page->SetSelection(page - 1);
     try {
         selected_page = page;
-        m_image->setImage(xpdf::pdf_to_image(get_app_path(), pdf_filename, page));
+        m_image->setImage(xpdf::pdf_to_image(get_app_path(), layout.pdf_filename, page));
     } catch (const pipe_error &error) {
         wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
     }
 }
 
 void frame_editor::OnPageSelect(wxCommandEvent &evt) {
-    if (pdf_filename.empty()) return;
+    if (layout.pdf_filename.empty()) return;
 
     try {
         int page = std::stoi(m_page->GetValue().ToStdString());
@@ -405,15 +414,15 @@ void frame_editor::OnDelete(wxCommandEvent &evt) {
 }
 
 void frame_editor::OnReadData(wxCommandEvent &evt) {
-    if (pdf_filename.empty()) return;
+    if (layout.pdf_filename.empty()) return;
 
     char cmd_str[FILENAME_MAX];
     snprintf(cmd_str, FILENAME_MAX, "%s/layout_reader", get_app_path().c_str());
 
     char pdf_str[FILENAME_MAX];
-    snprintf(pdf_str, FILENAME_MAX, "%s", pdf_filename.c_str());
+    snprintf(pdf_str, FILENAME_MAX, "%s", layout.pdf_filename.c_str());
 
-    char *const args[] = {
+    const char *args[] = {
         cmd_str,
         pdf_str, "-",
         nullptr
@@ -423,8 +432,7 @@ void frame_editor::OnReadData(wxCommandEvent &evt) {
         auto pipe = open_process(args);
         std::ostringstream oss;
         oss << layout;
-        std::string str = oss.str();
-        pipe->write_all(str);
+        pipe->write_all(oss.str());
         pipe->close_stdin();
         std::string output = pipe->read_all();
         wxMessageBox(output, "Output di layout_reader", wxICON_INFORMATION);

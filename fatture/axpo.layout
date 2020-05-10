@@ -37,7 +37,7 @@
 				"h" : 0.035873062908649445,
 				"name" : "Totale fattura",
 				"page" : 1,
-				"parse_string" : "totale_fattura",
+				"parse_string" : "%totale_fattura",
 				"type" : 0,
 				"w" : 0.32801741361618042,
 				"x" : 0.61888366937637329,
@@ -47,7 +47,7 @@
 				"h" : 0.061496678739786148,
 				"name" : "Dettaglio costi",
 				"page" : 1,
-				"parse_string" : "%spesa_materia_energia\n%trasporto_gestione\n%trasporto_gestione",
+				"parse_string" : "%spesa_materia_energia\n$add(%trasporto_gestione)\n$add(%trasporto_gestione)",
 				"type" : 1,
 				"w" : 0.0897064208984375,
 				"x" : 0.40050745010375977,
@@ -68,7 +68,7 @@
 				"name" : "Energia reattiva",
 				"page" : 2,
 				"parse_string" : "%energia_reattiva",
-				"type" : 0,
+				"type" : 3,
 				"w" : 0.1395433098077774,
 				"x" : 0.67596954107284546,
 				"y" : 0.32349815964698792
@@ -94,6 +94,7 @@
 				"y" : 0.7969086766242981
 			}
 		],
-		"version" : 0
+		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\axpo.pdf",
+		"version" : 1
 	}
 }

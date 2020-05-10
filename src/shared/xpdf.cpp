@@ -26,7 +26,7 @@ std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, cons
     char pdf_str[FILENAME_MAX];
     snprintf(pdf_str, FILENAME_MAX, "%s", pdf.c_str());
 
-    char *const args[] = {
+    const char *args[] = {
         cmd_str,
         "-f", page_str, "-l", page_str,
         "-marginl", marginl, "-marginr", marginr,
@@ -50,7 +50,7 @@ pdf_info pdf_get_info(const std::string &app_dir, const std::string &pdf) {
     char pdf_str[FILENAME_MAX];
     snprintf(pdf_str, FILENAME_MAX, "%s", pdf.c_str());
 
-    char *const args[] = {
+    const char *args[] = {
         cmd_str,
         pdf_str, nullptr
     };

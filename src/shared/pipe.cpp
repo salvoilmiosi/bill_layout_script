@@ -8,7 +8,7 @@
 
 class unix_process_rwops : public rwops {
 public:
-    unix_process_rwops(char *const args[]);
+    unix_process_rwops(const char *args[]);
     ~unix_process_rwops();
 
 public:
@@ -22,7 +22,7 @@ private:
     int child_pid;
 };
 
-unix_process_rwops::unix_process_rwops(char *const args[]) {
+unix_process_rwops::unix_process_rwops(const char *args[]) {
     if (pipe(pipe_stdout) < 0)
         throw pipe_error("Error creating stdout pipe");
 
@@ -44,7 +44,7 @@ unix_process_rwops::unix_process_rwops(char *const args[]) {
         ::close(pipe_stdout[PIPE_READ]);
         ::close(pipe_stdout[PIPE_WRITE]);
 
-        int result = execv(args[0], args);
+        int result = execv(args[0], (char *const*)args);
 
         exit(result);
     } else {
@@ -73,7 +73,7 @@ void unix_process_rwops::close_stdout() {
     ::close(pipe_stdout[PIPE_READ]);
 }
 
-std::unique_ptr<rwops> open_process(char *const args[]) {
+std::unique_ptr<rwops> open_process(const char *args[]) {
     return std::make_unique<unix_process_rwops>(args);
 }
 
