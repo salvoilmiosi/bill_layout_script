@@ -17,13 +17,12 @@ public:
     virtual void close() override;
 
 private:
-    PROCESS_INFORMATION proc_info;
-
     HANDLE pipe_stdin[2], pipe_stdout[2];
 };
 
 windows_process_rwops::windows_process_rwops(char *const args[]) {
     SECURITY_ATTRIBUTES attrs;
+    ZeroMemory(&attrs, sizeof(SECURITY_ATTRIBUTES));
 
     attrs.nLength = sizeof(SECURITY_ATTRIBUTES);
     attrs.bInheritHandle = true;
@@ -38,8 +37,6 @@ windows_process_rwops::windows_process_rwops(char *const args[]) {
         throw pipe_error("Error creating stdin pipe");
 
     STARTUPINFOA start_info;
-
-    ZeroMemory(&proc_info, sizeof(PROCESS_INFORMATION));
     ZeroMemory(&start_info, sizeof(STARTUPINFOA));
 
     start_info.cb = sizeof(STARTUPINFOA);
@@ -67,6 +64,9 @@ windows_process_rwops::windows_process_rwops(char *const args[]) {
         }
         strcat(cmdline, "\"");
     }
+
+    PROCESS_INFORMATION proc_info;
+    ZeroMemory(&proc_info, sizeof(PROCESS_INFORMATION));
 
     if (!CreateProcessA(nullptr, cmdline, nullptr, nullptr, true,
             CREATE_NO_WINDOW, nullptr, nullptr, &start_info, &proc_info)) {
@@ -99,7 +99,9 @@ int windows_process_rwops::write(size_t bytes, const void *buffer) {
 
 void windows_process_rwops::close() {
     CloseHandle(pipe_stdout[PIPE_READ]);
+    CloseHandle(pipe_stdout[PIPE_WRITE]);
     CloseHandle(pipe_stdin[PIPE_READ]);
+    CloseHandle(pipe_stdin[PIPE_WRITE]);
 }
 
 std::unique_ptr<rwops> open_process(char *const args[]) {

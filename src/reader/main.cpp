@@ -17,7 +17,12 @@ int main(int argc, char **argv) {
     layout_bolletta layout;
     parser result;
     try {
-        layout.openFile(file_bolletta);
+        if (strcmp(file_bolletta,"-")==0) {
+            istream_rwops ops(std::cin);
+            layout.openRwops(ops);
+        } else {
+            layout.openFile(file_bolletta);
+        }
     } catch (layout_error &error) {
         std::cerr << error.message << std::endl;
         return 1;

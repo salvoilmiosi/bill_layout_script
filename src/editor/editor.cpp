@@ -396,9 +396,7 @@ void frame_editor::OnDelete(wxCommandEvent &evt) {
 }
 
 void frame_editor::OnReadData(wxCommandEvent &evt) {
-    OnSaveFile(evt);
-
-    if (pdf_filename.empty() || layout_filename.empty()) return;
+    if (pdf_filename.empty()) return;
 
     char cmd_str[FILENAME_MAX];
     snprintf(cmd_str, FILENAME_MAX, "%s/layout_reader", get_app_path().c_str());
@@ -406,17 +404,16 @@ void frame_editor::OnReadData(wxCommandEvent &evt) {
     char pdf_str[FILENAME_MAX];
     snprintf(pdf_str, FILENAME_MAX, "%s", pdf_filename.c_str());
 
-    char bolletta_str[FILENAME_MAX];
-    snprintf(bolletta_str, FILENAME_MAX, "%s", layout_filename.c_str());
-
     char *const args[] = {
         cmd_str,
-        pdf_str, bolletta_str,
+        pdf_str, "-",
         nullptr
     };
 
     try {
-        std::string output = open_process(args)->read_all();
+        auto pipe = open_process(args);
+        layout.saveRwops(*pipe);
+        std::string output = pipe->read_all();
         wxMessageBox(output, "Output di layout_reader", wxICON_INFORMATION);
     } catch (pipe_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);
