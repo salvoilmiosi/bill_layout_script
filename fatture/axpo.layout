@@ -1,0 +1,99 @@
+{
+	"layout" : 
+	{
+		"boxes" : 
+		[
+			{
+				"h" : 0.020498892292380333,
+				"name" : "Ragione sociale",
+				"page" : 1,
+				"parse_string" : "ragione_sociale",
+				"type" : 0,
+				"w" : 0.49383836984634399,
+				"x" : 0.49474447965621948,
+				"y" : 0.20050479471683502
+			},
+			{
+				"h" : 0.04291955754160881,
+				"name" : "Sede legale",
+				"page" : 1,
+				"parse_string" : "sede_legale",
+				"type" : 0,
+				"w" : 0.49202612042427063,
+				"x" : 0.49655672907829285,
+				"y" : 0.22036309540271759
+			},
+			{
+				"h" : 0.021139483898878098,
+				"name" : "Periodo fattura",
+				"page" : 1,
+				"parse_string" : "$date(data_fattura)",
+				"type" : 0,
+				"w" : 0.090612545609474182,
+				"x" : 0.1495106965303421,
+				"y" : 0.23253431916236877
+			},
+			{
+				"h" : 0.035873062908649445,
+				"name" : "Totale fattura",
+				"page" : 1,
+				"parse_string" : "totale_fattura",
+				"type" : 0,
+				"w" : 0.32801741361618042,
+				"x" : 0.61888366937637329,
+				"y" : 0.35104352235794067
+			},
+			{
+				"h" : 0.061496678739786148,
+				"name" : "Dettaglio costi",
+				"page" : 1,
+				"parse_string" : "%spesa_materia_energia\n%trasporto_gestione\n%trasporto_gestione",
+				"type" : 1,
+				"w" : 0.0897064208984375,
+				"x" : 0.40050745010375977,
+				"y" : 0.68927526473999023
+			},
+			{
+				"h" : 0.014733579009771347,
+				"name" : "Energia attiva",
+				"page" : 2,
+				"parse_string" : "%energia_attiva",
+				"type" : 3,
+				"w" : 0.16129033267498016,
+				"x" : 0.19753533601760864,
+				"y" : 0.32093578577041626
+			},
+			{
+				"h" : 0.012811807915568352,
+				"name" : "Energia reattiva",
+				"page" : 2,
+				"parse_string" : "%energia_reattiva",
+				"type" : 0,
+				"w" : 0.1395433098077774,
+				"x" : 0.67596954107284546,
+				"y" : 0.32349815964698792
+			},
+			{
+				"h" : 0.016655350103974342,
+				"name" : "Potenza",
+				"page" : 2,
+				"parse_string" : "%potenza",
+				"type" : 0,
+				"w" : 0.14044943451881409,
+				"x" : 0.42044219374656677,
+				"y" : 0.14925755560398102
+			},
+			{
+				"h" : 0.016470290720462799,
+				"name" : "Imponibile",
+				"page" : 1,
+				"parse_string" : "%imponibile",
+				"type" : 0,
+				"w" : 0.10125447809696198,
+				"x" : 0.26433691382408142,
+				"y" : 0.7969086766242981
+			}
+		],
+		"version" : 0
+	}
+}
