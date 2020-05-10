@@ -2,15 +2,15 @@
 
 #include <cstring>
 
-void binary_ofstream::writeData(const void *data, int length) {
-	write(reinterpret_cast<const char *>(data), length);
+void binary_io::writeData(const void *data, int length) {
+	ops.write(length, data);
 }
 
-void binary_ofstream::writeByte(uint8_t num) {
+void binary_io::writeByte(uint8_t num) {
     writeData(&num, 1);
 }
 
-void binary_ofstream::writeShort(uint16_t num) {
+void binary_io::writeShort(uint16_t num) {
 	uint8_t str[2];
 	str[0] = (num & 0xff00) >> (8 * 1);
 	str[1] = (num & 0x00ff) >> (8 * 0);
@@ -18,7 +18,7 @@ void binary_ofstream::writeShort(uint16_t num) {
 	writeData(str, 2);
 }
 
-void binary_ofstream::writeInt(uint32_t num) {
+void binary_io::writeInt(uint32_t num) {
 	uint8_t str[4];
 	str[0] = (num & 0xff000000) >> (8 * 3);
 	str[1] = (num & 0x00ff0000) >> (8 * 2);
@@ -28,7 +28,7 @@ void binary_ofstream::writeInt(uint32_t num) {
 	writeData(str, 4);
 }
 
-void binary_ofstream::writeLong(uint64_t num) {
+void binary_io::writeLong(uint64_t num) {
 	uint8_t str[8];
 	str[0] = (num & 0xff00000000000000ll) >> (8 * 7);
 	str[1] = (num & 0x00ff000000000000ll) >> (8 * 6);
@@ -42,7 +42,7 @@ void binary_ofstream::writeLong(uint64_t num) {
 	writeData(str, 8);
 }
 
-void binary_ofstream::writeString(const std::string &str) {
+void binary_io::writeString(const std::string &str) {
 	int len = (int)str.size();
 	if (len <= 0) {
 		writeInt(0xffffffff);
@@ -52,15 +52,17 @@ void binary_ofstream::writeString(const std::string &str) {
 	}
 }
 
-void binary_ifstream::readData(void *out, int length) {
-	read(reinterpret_cast<char *>(out), length);
+void binary_io::readData(void *out, int length) {
+	ops.read(length, out);
 }
 
-uint8_t binary_ifstream::readByte() {
-	return get();
+uint8_t binary_io::readByte() {
+	uint8_t data;
+	readData(&data, 1);
+	return data;
 }
 
-uint16_t binary_ifstream::readShort() {
+uint16_t binary_io::readShort() {
 	uint8_t data[2];
 	readData(data, 2);
     return
@@ -68,7 +70,7 @@ uint16_t binary_ifstream::readShort() {
         (data[1]      & 0x00ff);
 }
 
-uint32_t binary_ifstream::readInt() {
+uint32_t binary_io::readInt() {
 	uint8_t data[4];
 	readData(data, 4);
     return
@@ -78,7 +80,7 @@ uint32_t binary_ifstream::readInt() {
         (data[3] << (8 * 0) & 0x000000ff);
 }
 
-uint64_t binary_ifstream::readLong() {
+uint64_t binary_io::readLong() {
     char data[8];
 	readData(data, 8);
         
@@ -93,7 +95,7 @@ uint64_t binary_ifstream::readLong() {
         ((uint64_t) data[7] << (8 * 0) & 0x00000000000000ffll);
 }
 
-std::string binary_ifstream::readString() {
+std::string binary_io::readString() {
     uint32_t length = readInt();
 	std::string out;
     if (length != 0xffffffff) {
@@ -166,22 +168,22 @@ static long double unpack754(uint64_t i, unsigned bits, unsigned expbits)
 	return result;
 }
 
-float binary_ifstream::readFloat() {
+float binary_io::readFloat() {
 	uint32_t i = readInt();
 	return unpack754_32(i);
 }
 
-double binary_ifstream::readDouble() {
+double binary_io::readDouble() {
 	uint64_t i = readLong();
 	return unpack754_64(i);
 }
 
-void binary_ofstream::writeFloat(float num) {
+void binary_io::writeFloat(float num) {
 	uint32_t i = pack754_32(num);
 	writeInt(i);
 }
 
-void binary_ofstream::writeDouble(double num) {
+void binary_io::writeDouble(double num) {
 	uint64_t i = pack754_64(num);
 	writeLong(i);
 }

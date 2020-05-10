@@ -31,11 +31,18 @@ public:
     std::vector<layout_box>::iterator getBoxAt(float x, float y, int page);
 
     void newFile();
-    void saveFile(const std::string &filename);
+
+    void saveFile(const std::string &filename) const;
     void openFile(const std::string &filename);
+
+    void saveRwops(rwops &ops) const;
+    void openRwops(rwops &ops);
 
 public:
     std::vector<layout_box> boxes;
 };
+
+std::ostream &operator << (std::ostream &out, const layout_bolletta &obj);
+std::istream &operator >> (std::istream &in, layout_bolletta &obj);
 
 #endif

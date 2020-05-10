@@ -4,8 +4,41 @@
 #include <fstream>
 #include <string>
 
-struct binary_ofstream : public std::ofstream {
-    binary_ofstream(const std::string &filename) : std::ofstream(filename, std::ios::binary | std::ios::out) {}
+struct rwops {
+    virtual int read(size_t bytes, void *buffer) { return 0; }
+    virtual int write(size_t bytes, const void *buffer) { return 0; }
+    virtual void close() { }
+
+    std::string read_all();
+    int write_all(const std::string &buffer);
+};
+
+struct istream_rwops : public rwops {
+    std::istream &stream;
+
+    istream_rwops(std::istream &stream) : stream(stream) {}
+
+    int read(size_t bytes, void *buffer) override {
+        stream.read(static_cast<char *>(buffer), bytes);
+        return bytes;
+    }
+};
+
+struct ostream_rwops : public rwops {
+    std::ostream &stream;
+
+    ostream_rwops(std::ostream &stream) : stream(stream) {}
+
+    int write(size_t bytes, const void *buffer) override {
+        stream.write(static_cast<const char *>(buffer), bytes);
+        return bytes;
+    }
+};
+
+struct binary_io {
+    rwops &ops;
+
+    binary_io(rwops &ops) : ops(ops) {}
 
     void writeData(const void *data, int length);
 
@@ -16,10 +49,6 @@ struct binary_ofstream : public std::ofstream {
     void writeFloat(float num);
     void writeDouble(double num);
     void writeString(const std::string &str);
-};
-
-struct binary_ifstream : public std::ifstream {
-    binary_ifstream(const std::string &filename) : std::ifstream(filename, std::ios::binary | std::ios::in) {}
 
     void readData(void *out, int length);
 

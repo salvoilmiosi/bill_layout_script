@@ -22,11 +22,18 @@ void layout_bolletta::newFile() {
     boxes.clear();
 }
 
-
-void layout_bolletta::saveFile(const std::string &filename) {
-    binary_ofstream ofs(filename);
+void layout_bolletta::saveFile(const std::string &filename) const {
+    std::ofstream ofs(filename, std::ios::binary | std::ios::out);
 
     if (ofs.bad()) throw layout_error("Impossibile aprire il file");
+
+    ofs << *this;
+
+    ofs.close();
+}
+
+void layout_bolletta::saveRwops(rwops &ops) const {
+    binary_io ofs(ops);
 
     ofs.writeInt(MAGIC);
     ofs.writeInt(VERSION);
@@ -42,14 +49,20 @@ void layout_bolletta::saveFile(const std::string &filename) {
         ofs.writeFloat(box.h);
         ofs.writeByte(box.page);
     }
-
-    ofs.close();
 }
 
 void layout_bolletta::openFile(const std::string &filename) {
-    binary_ifstream ifs(filename);
+    std::ifstream ifs(filename, std::ios::binary | std::ios::in);
 
     if (ifs.bad()) throw layout_error("Impossibile aprire il file");
+
+    ifs >> *this;
+
+    ifs.close();
+}
+
+void layout_bolletta::openRwops(rwops &ops) {
+    binary_io ifs(ops);
 
     uint32_t magic = ifs.readInt();
     if (magic != MAGIC) throw layout_error("Tipo di file invalido");
@@ -76,4 +89,16 @@ void layout_bolletta::openFile(const std::string &filename) {
     default:
         throw layout_error("Versione non supportata");
     }
+}
+
+std::ostream &operator << (std::ostream &out, const layout_bolletta &obj) {
+    ostream_rwops ops(out);
+    obj.saveRwops(ops);
+    return out;
+}
+
+std::istream &operator >> (std::istream &in, layout_bolletta &obj) {
+    istream_rwops ops(in);
+    obj.openRwops(ops);
+    return in;
 }

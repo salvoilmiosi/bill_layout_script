@@ -4,14 +4,7 @@
 #include <string>
 #include <memory>
 
-struct rwops {
-    virtual int read(size_t bytes, void *buffer) { return 0; }
-    virtual int write(size_t bytes, const void *buffer) { return 0; }
-    virtual void close() { }
-
-    std::string read_all();
-    int write_all(const std::string &buffer);
-};
+#include "binary_io.h"
 
 std::unique_ptr<rwops> open_process(char *const args[]);
 
