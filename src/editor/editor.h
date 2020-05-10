@@ -36,6 +36,7 @@ public:
     void setSelectedPage(int page, bool force = false);
     void selectBox(int id);
 
+    void openFile(const std::string &filename);
     void loadPdf(const std::string &pdf_filename);
     void updateLayout(bool addToHistory = true);
     bool save(bool saveAs = false);

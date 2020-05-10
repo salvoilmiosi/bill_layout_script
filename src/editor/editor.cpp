@@ -168,26 +168,30 @@ void frame_editor::OnNewFile(wxCommandEvent &evt) {
     }
 }
 
+void frame_editor::openFile(const std::string &filename) {
+    try {
+        layout_filename = filename;
+        std::ifstream ifs(layout_filename);
+        layout.clear();
+        ifs >> layout;
+        ifs.close();
+        history.clear();
+        loadPdf(layout.pdf_filename);
+        updateLayout();
+    } catch (layout_error &error) {
+        wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
+    }
+}
+
 void frame_editor::OnOpenFile(wxCommandEvent &evt) {
     wxFileDialog diag(this, "Apri Layout Bolletta", wxEmptyString, wxEmptyString, "File layout (*.layout)|*.layout|Tutti i file (*.*)|*.*");
 
     if (diag.ShowModal() == wxID_CANCEL)
         return;
 
-    layout_filename = diag.GetPath().ToStdString();
     if (saveIfModified()) {
         modified = false;
-        try {
-            std::ifstream ifs(layout_filename);
-            layout.clear();
-            ifs >> layout;
-            ifs.close();
-            history.clear();
-            loadPdf(layout.pdf_filename);
-            updateLayout();
-        } catch (layout_error &error) {
-            wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
-        }
+        openFile(diag.GetPath().ToStdString());
     }
 }
 
