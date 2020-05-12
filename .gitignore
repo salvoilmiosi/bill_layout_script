@@ -1,8 +1,10 @@
 .vscode/*
 bin/*
 obj/*
+fatture/*
 *.exe
 *.o
 *.d
 *.res
 *.pdf
+*.csv

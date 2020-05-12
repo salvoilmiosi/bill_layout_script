@@ -1,20 +1,26 @@
 #include "parser.h"
 
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <algorithm>
 #include <string_view>
+#include <regex>
 
 #include <json/json.h>
-
-var_value::var_value() {}
 
 var_value& var_value::operator = (const var_value &other) {
     if (other.m_type != m_type && m_type != VALUE_UNDEFINED) {
         throw parsing_error(std::string("Can't set a ") + TYPES[other.m_type] + " to a " + TYPES[m_type], "");
     }
     m_type = other.m_type;
-    m_value = other.m_value;
+    if (other.m_type == VALUE_NUMBER && m_type != VALUE_UNDEFINED) {
+        std::stringstream stream;
+        stream << std::fixed << std::setprecision(std::min(precision(), other.precision())) << other.asNumber();
+        m_value = stream.str();
+    } else {
+        m_value = other.m_value;
+    }
     return *this;
 }
 
@@ -31,6 +37,18 @@ bool var_value::operator == (const var_value &other) const {
 
 bool var_value::operator != (const var_value &other) const {
     return !(*this == other);
+}
+
+int var_value::precision() const {
+    if (m_type == VALUE_NUMBER) {
+        int dot_pos = m_value.find_last_of('.');
+        if (dot_pos >= 0) {
+            return m_value.size() - dot_pos - 1;
+        } else {
+            return 0;
+        }
+    }
+    return 0;
 }
 
 const std::string &var_value::asString() const {
@@ -56,6 +74,16 @@ value_type var_value::type() const {
     return m_type;
 }
 
+static std::vector<std::string> read_lines(const std::string &str) {
+    std::istringstream iss(str);
+    std::string token;
+    std::vector<std::string> out;
+    while (std::getline(iss, token)) {
+        out.push_back(token);
+    }
+    return out;
+};
+
 static std::vector<std::string> tokenize(const std::string &str) {
     std::istringstream iss(str);
     std::string token;
@@ -78,12 +106,14 @@ static std::string implode(const std::vector<std::string> &vec, const std::strin
 };
 
 void parser::read_box(const layout_box &box, const std::string &text) {
-    std::vector<std::string> names = tokenize(box.parse_string);
+    std::vector<std::string> names = read_lines(box.parse_string);
     std::vector<std::string> values = tokenize(text);
 
     switch(box.type) {
     case BOX_SINGLE:
-        add_entry(names[0], implode(values));
+        for (auto &name : names) {
+            add_entry(name, implode(values));
+        }
         break;
     case BOX_MULTIPLE:
         for (size_t i = 0; i < names.size() && i < values.size(); ++i) {
@@ -117,11 +147,11 @@ const std::vector<var_value> &parser::get_value(const std::string &name) {
     }
 }
 
-var_value parser::evaluate(std::string_view value) {
+var_value parser::evaluate(const std::string &value) {
     switch(value.at(0)) {
-    case '%':
+    case '&':
     {
-        auto it = m_values.find(std::string(value.substr(1)));
+        auto it = m_values.find(value.substr(1));
         if (it == m_values.end()) return 0;
         if (it->second.empty()) return 0;
 
@@ -130,24 +160,28 @@ var_value parser::evaluate(std::string_view value) {
     case '$':
         return parse_function(value);
     default:
-        return std::string(value);
+        return value;
     }
 }
 
 struct function_tokens {
-    std::string_view name;
-    std::vector<std::string_view> args;
+    const std::string &value;
 
-    function_tokens(std::string_view value);
+    std::string name;
+    std::vector<std::string> args;
+
+    function_tokens(const std::string &value);
+
+    bool is(const char *funcname, size_t argc = 1) const;
 };
 
-function_tokens::function_tokens(std::string_view value) {
+function_tokens::function_tokens(const std::string &value) : value(value) {
     int brace_start = value.find_first_of('(');
-    if (brace_start < 0) throw parsing_error("Expected (", std::string(value));
+    if (brace_start < 0) throw parsing_error("Expected (", value);
     int brace_end = value.find_last_of(')');
-    if (brace_end < 0) throw parsing_error("Expected )", std::string(value));
+    if (brace_end < 0) throw parsing_error("Expected )", value);
     name = value.substr(1, brace_start - 1);
-    std::string_view arg_string = value.substr(brace_start + 1, brace_end - brace_start - 1);
+    const std::string &arg_string = value.substr(brace_start + 1, brace_end - brace_start - 1);
     int arg_start = 0, arg_end;
     int bracecount = 0;
     for (size_t i=0; i<arg_string.size(); ++i) {
@@ -157,7 +191,7 @@ function_tokens::function_tokens(std::string_view value) {
             break;
         case ')':
             --bracecount;
-            if (bracecount < 0) throw parsing_error("Extra )", std::string(value));
+            if (bracecount < 0) throw parsing_error("Extra )", value);
             break;
         case ',':
             if (bracecount == 0) {
@@ -173,80 +207,114 @@ function_tokens::function_tokens(std::string_view value) {
     args.push_back(arg_string.substr(arg_start));
 }
 
-var_value parser::parse_function(std::string_view value) {
-    function_tokens tokens(value);
-    if (tokens.name == "not") {
-        if (evaluate(tokens.args[0]) == 0) {
-            return 1;
-        }
-        return 0;
-    } else {
-        return 0;
+bool function_tokens::is(const char *funcname, size_t argc) const {
+    if (name == funcname) {
+        if (args.size() == argc) return true;
+        throw parsing_error(std::string("La funzione ") + funcname + " richiede " + std::to_string(argc) + " argomenti", value);
     }
+    return false;
 }
 
-var_value parser::parse_number(std::string_view value) {
+var_value parser::parse_function(const std::string &value) {
+    function_tokens tokens(value);
+    if (tokens.is("not")) {
+        return evaluate(tokens.args[0]) == 0;
+    } else if (tokens.is("eq", 2)) {
+        return evaluate(tokens.args[0]) == evaluate(tokens.args[1]);
+    } else if (tokens.is("neq", 2)) {
+        return evaluate(tokens.args[0]) != evaluate(tokens.args[1]);
+    } else if (tokens.is("and", 2)) {
+        return (evaluate(tokens.args[0]) != 0) && (evaluate(tokens.args[1]) != 0);
+    } else if (tokens.is("or", 2)) {
+        return (evaluate(tokens.args[0]) != 0) || (evaluate(tokens.args[1]) != 0);
+    }
+    return 0;
+}
+
+var_value parser::parse_number(const std::string &value) {
     std::string out;
     for (size_t i=0; i<value.size(); ++i) {
         if (std::isdigit(value.at(i))) {
             out += value.at(i);
         } else if (value.at(i) == ',') { // si assume formato italiano
             out += '.';
+        } else if (value.at(i) == '-') {
+            out += '-';
         }
     }
     return var_value(out, VALUE_NUMBER);
 }
 
-void parser::top_function(std::string_view name, std::string_view value) {
-    function_tokens tokens(name);
-    if (tokens.name == "date") { // $date(identificatore) -- legge le date
-        // TODO parsing date
-        add_entry(tokens.args[0], value);
-    } else if (tokens.name == "if") { // $if(condizione,identificatore) -- attiva il blocco se la condizione e' verificato
-        if (tokens.args.size() != 2) throw parsing_error("La funzione if ha due argomenti", std::string(name));
-        if (evaluate(tokens.args[0]) != 0) {
-            add_entry(tokens.args[1], value);
-        }
-    } else if (tokens.name == "add") { // $add(%identificatore) -- calcola la somma di tutti gli oggetti del blocco
-        if (tokens.args[0].at(0) != '%') throw parsing_error("Un identificatore numerico deve iniziare con %", std::string(name));
-        auto &val = m_values[std::string(tokens.args[0].substr(1))];
-        auto new_val = parse_number(value);
-        if (val.empty()) val.push_back(new_val);
-        else val[0] = val[0].asNumber() + new_val.asNumber();
-    } else if (tokens.name == "avg") { // $avg(%identificatore,N) -- calcola la media del blocco tra N oggetti (aggiunge valore/N)
-        if (tokens.args.size() != 2) throw parsing_error("La funzione avg ha due argomenti", std::string(name));
-        if (tokens.args[0].at(0) != '%') throw parsing_error("Un identificatore numerico deve iniziare con %", std::string(name));
-        try {
-            auto new_val = parse_number(value).asNumber() / std::stof(std::string(tokens.args[1]));
-            auto &val = m_values[std::string(tokens.args[0].substr(1))];
-            if (val.empty()) val.push_back(new_val);
-            else val[0] = val[0].asNumber() + new_val;
-        } catch (std::invalid_argument &) {
-            throw parsing_error("Il secondo argomento di avg deve essere un numero", std::string(name));
-        }
-    } else if (tokens.name == "max") { // $max(%identificatore) -- calcola il valore massimo
-        if (tokens.args[0].at(0) != '%') throw parsing_error("Un identificatore numerico deve iniziare con %", std::string(name));
-        auto new_val = parse_number(value);
-        auto &val = m_values[std::string(tokens.args[0].substr(1))];
-        if (val.empty()) val.push_back(new_val);
-        else if(val[0].asNumber() < new_val.asNumber()) val[0] = new_val;
-    } else if (tokens.name == "min") { // $min(%identificatore) -- calcola il valore minimo
-        if (name.at(0) != '%') throw parsing_error("Un identificatore numerico deve iniziare con %", std::string(name));
-        auto new_val = parse_number(value);
-        auto &val = m_values[std::string(tokens.args[0].substr(1))];
-        if (val.empty()) val.push_back(new_val);
-        else if(val[0].asNumber() > new_val.asNumber()) val[0] = new_val;
+static std::string string_replace_occurrences(std::string str, const std::string &from, const std::string &to) {
+    size_t index = 0;
+    while (true) {
+        index = str.find(from, index);
+        if (index == std::string::npos) break;
+
+        str.replace(index, to.size(), to);
+        index += to.size();
+    }
+    return str;
+}
+
+void parser::search_value(const std::string &regex, const std::string &name, const std::string &value) {
+    std::regex expression(string_replace_occurrences(regex, "$NUMBER", "([0-9\\.,\\-]+)"), std::regex_constants::icase);
+    std::smatch match;
+    if (std::regex_search(value, match, expression)) {
+        add_entry(name, match.str());
     }
 }
 
-void parser::add_entry(std::string_view name, std::string_view value) {
+void parser::top_function(const std::string &name, const std::string &value) {
+    function_tokens tokens(name);
+    if (tokens.is("date", 1)) { // $date(identificatore) -- legge le date
+        // TODO parsing date
+        add_entry(tokens.args[0], value);
+    } else if (tokens.is("if", 2)) { // $if(condizione,identificatore) -- attiva il blocco se la condizione e' verificata
+        if (evaluate(tokens.args[0]) != 0) {
+            add_entry(tokens.args[1], value);
+        }
+    } else if (tokens.is("add", 1)) { // $add(%identificatore) -- calcola la somma di tutti gli oggetti del blocco
+        if (tokens.args[0].at(0) != '%') throw parsing_error("La funzione add richiede un identificatore numerico", name);
+        auto &val = m_values[tokens.args[0].substr(1)];
+        auto new_val = parse_number(value);
+        if (val.empty()) val.push_back(new_val);
+        else val[0] = val[0].asNumber() + new_val.asNumber();
+    } else if (tokens.is("avg", 2)) { // $avg(%identificatore,N) -- calcola la media del blocco tra N oggetti (aggiunge valore/N)
+        if (tokens.args[0].at(0) != '%') throw parsing_error("La funzione avg richiede un identificatore numerico", name);
+        try {
+            auto new_val = parse_number(value).asNumber() / std::stof(tokens.args[1]);
+            auto &val = m_values[tokens.args[0].substr(1)];
+            if (val.empty()) val.push_back(new_val);
+            else val[0] = val[0].asNumber() + new_val;
+        } catch (std::invalid_argument &) {
+            throw parsing_error("Il secondo argomento di avg deve essere un numero", name);
+        }
+    } else if (tokens.is("max", 2)) { // $max(%identificatore) -- calcola il valore massimo
+        if (tokens.args[0].at(0) != '%') throw parsing_error("La funzione max richiede un identificatore numerico", name);
+        auto new_val = parse_number(value);
+        auto &val = m_values[tokens.args[0].substr(1)];
+        if (val.empty()) val.push_back(new_val);
+        else if(val[0].asNumber() < new_val.asNumber()) val[0] = new_val;
+    } else if (tokens.is("min", 2)) { // $min(%identificatore) -- calcola il valore minimo
+        if (name.at(0) != '%') throw parsing_error("La funzione min richiede un identificatore numerico", name);
+        auto new_val = parse_number(value);
+        auto &val = m_values[tokens.args[0].substr(1)];
+        if (val.empty()) val.push_back(new_val);
+        else if(val[0].asNumber() > new_val.asNumber()) val[0] = new_val;
+    } else if (tokens.is("search", 2)) { // $search(regex,identificatore) -- Cerca $NUMBER in valore e lo assegna a identificatore
+        search_value(tokens.args[0], tokens.args[1], value);
+    }
+}
+
+void parser::add_entry(const std::string &name, const std::string &value) {
     switch (name.at(0)) {
     case '#':
         // skip
         break;
     case '%':
         // treat as number
-        m_values[std::string(name.substr(1))].push_back(parse_number(value));
+        m_values[name.substr(1)].push_back(parse_number(value));
         break;
     case '$':
         // treat as function
@@ -254,7 +322,7 @@ void parser::add_entry(std::string_view name, std::string_view value) {
         break;
     default:
         // treat as string
-        m_values[std::string(name)].emplace_back(value, VALUE_STRING);
+        m_values[name].emplace_back(value, VALUE_STRING);
         break;
     }
 }

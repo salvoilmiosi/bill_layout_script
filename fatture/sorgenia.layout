@@ -27,7 +27,7 @@
 				"h" : 0.033574052155017853,
 				"name" : "P.IVA / Codice Fiscale",
 				"page" : 1,
-				"parse_string" : "partita_iva codice_fiscale",
+				"parse_string" : "partita_iva\ncodice_fiscale",
 				"type" : 1,
 				"w" : 0.24641576409339905,
 				"x" : 0.22401434183120728,

@@ -31,8 +31,6 @@ class var_value {
 public:
     var_value();
     var_value(const std::string &value, value_type type = VALUE_STRING) : m_value(value), m_type(type) {}
-    
-    var_value(const std::string_view &value, value_type type = VALUE_STRING) : var_value(std::string(value), type) {}
     var_value(float value) : var_value(std::to_string(value), VALUE_NUMBER) {}
 
     var_value &operator = (const var_value &other);
@@ -41,6 +39,7 @@ public:
 
     const std::string &asString() const;
     float asNumber() const;
+    int precision() const;
 
     value_type type() const;
 
@@ -57,12 +56,13 @@ public:
     friend std::ostream & operator << (std::ostream &out, const parser &res);
 
 private:
-    class var_value evaluate(std::string_view value);
-    class var_value parse_function(std::string_view value);
-    class var_value parse_number(std::string_view value);
+    var_value evaluate(const std::string &value);
+    var_value parse_function(const std::string &value);
+    var_value parse_number(const std::string &value);
 
-    void top_function(std::string_view name, std::string_view value);
-    void add_entry(std::string_view name, std::string_view value);
+    void search_value(const std::string &regex, const std::string &name, const std::string &value);
+    void top_function(const std::string &name, const std::string &value);
+    void add_entry(const std::string &name, const std::string &value);
 
 private:
     std::map<std::string, std::vector<var_value>> m_values;

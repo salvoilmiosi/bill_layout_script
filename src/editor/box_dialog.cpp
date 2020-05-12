@@ -76,7 +76,7 @@ void box_dialog::OnOK(wxCommandEvent &evt) {
 
 void box_dialog::OnClickHelp(wxCommandEvent &evt) {
     wxMessageBox(
-        "Inserire nel campo elementi gli identificatori dei vari elementi nel rettangolo, separati da spazi.\n"
+        "Inserire nel campo elementi gli identificatori dei vari elementi nel rettangolo, uno per riga.\n"
         "Ogni identificatore deve essere una stringa unica e non deve iniziare per numero.\n"
         "I valori numerici sono identificati da un %, per esempio %totale_fattura\n"
         "I valori da saltare sono identificati da un #, per esempio #unita",

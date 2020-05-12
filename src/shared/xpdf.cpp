@@ -31,7 +31,7 @@ std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, cons
         "-f", page_str, "-l", page_str,
         "-marginl", marginl, "-marginr", marginr,
         "-margint", margint, "-marginb", marginb,
-        "-simple",
+        "-raw",
         pdf_str, "-",
         nullptr
     };
