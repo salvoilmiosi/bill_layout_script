@@ -8,11 +8,13 @@ BIN_DIR = bin
 
 BIN_EDITOR = layout_editor
 BIN_READER = layout_reader
+BIN_BATCH = layout_batch
 
 INCLUDE = `wx-config --cflags`
 
 LIBS_EDITOR = `wx-config --libs` -ljsoncpp
 LIBS_READER = -ljsoncpp
+LIBS_BATCH = -ljsoncpp
 
 SOURCES_SHARED = $(wildcard $(SRC_DIR)/shared/*.cpp $(SRC_DIR)/shared/**/*.cpp)
 OBJECTS_SHARED = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_SHARED)))
@@ -23,8 +25,11 @@ OBJECTS_EDITOR = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_EDI
 SOURCES_READER = $(wildcard $(SRC_DIR)/reader/*.cpp $(SRC_DIR)/reader/**/*.cpp)
 OBJECTS_READER = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_READER)))
 
-SOURCES = $(SOURCES_SHARED) $(SOURCES_EDITOR) $(SOURCES_READER)
-OBJECTS = $(OBJECTS_SHARED) $(OBJECTS_EDITOR) $(OBJECTS_READER)
+SOURCES_BATCH = $(wildcard $(SRC_DIR)/batch/*.cpp $(SRC_DIR)/batch/**/*.cpp)
+OBJECTS_BATCH = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_BATCH)))
+
+SOURCES = $(SOURCES_SHARED) $(SOURCES_EDITOR) $(SOURCES_READER) $(SOURCES_BATCH)
+OBJECTS = $(OBJECTS_SHARED) $(OBJECTS_EDITOR) $(OBJECTS_READER) $(OBJECTS_BATCH)
 
 IMAGES = $(wildcard resources/*.png)
 
@@ -33,13 +38,14 @@ RESOURCES = $(OBJ_DIR)/images.o
 ifeq ($(OS),Windows_NT)
 	BIN_EDITOR := $(BIN_EDITOR).exe
 	BIN_READER := $(BIN_READER).exe
+	BIN_BATCH := $(BIN_BATCH).exe
 	RESOURCES += $(patsubst resources/%.rc,$(OBJ_DIR)/%.res,$(wildcard resources/*.rc))
 endif
 
-all: editor reader
+all: editor reader batch
 
 clean:
-	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(OBJECTS) $(RESOURCES) $(OBJECTS:.o=.d)
+	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(BIN_DIR)/$(BIN_BATCH) $(OBJECTS) $(RESOURCES) $(OBJECTS:.o=.d)
 
 $(shell mkdir -p $(BIN_DIR) >/dev/null)
 
@@ -51,11 +57,15 @@ $(OBJ_DIR)/images.o : $(IMAGES)
 	$(LD) -r -b binary -o $@ $^
 
 $(OBJ_DIR)/%.res : resources/%.rc
-	windres $(INCLUDE) -O coff -o $@ -i $<
+	windres $(INCLUDE) -O coff -o $@ -i $< 
 
 reader: $(BIN_DIR)/$(BIN_READER)
 $(BIN_DIR)/$(BIN_READER): $(OBJECTS_READER) $(OBJECTS_SHARED)
 	$(CXX) -o $(BIN_DIR)/$(BIN_READER) $(LDFLAGS) $(OBJECTS_READER) $(OBJECTS_SHARED) $(LIBS_READER)
+
+batch: $(BIN_DIR)/$(BIN_BATCH)
+$(BIN_DIR)/$(BIN_BATCH): $(OBJECTS_BATCH) $(OBJECTS_SHARED)
+	$(CXX) -o $(BIN_DIR)/$(BIN_BATCH) $(LDFLAGS) $(OBJECTS_BATCH) $(OBJECTS_SHARED) $(LIBS_BATCH)
 
 DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJ_DIR)/$*.Td
 
