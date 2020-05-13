@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
 
     parser result;
     bool whole_file_script = false;
+    bool find_file_layout = false;
 
     if (argc >= 4 && argv[3][0] == '-') {
         for (char *c = argv[3] + 1; *c!='\0'; ++c) {
@@ -33,6 +34,9 @@ int main(int argc, char **argv) {
                 break;
             case 'w':
                 whole_file_script = true;
+                break;
+            case 'c':
+                find_file_layout = true;
                 break;
             default:
                 std::cerr << "Opzione sconosciuta: " << *c << std::endl;
@@ -46,15 +50,30 @@ int main(int argc, char **argv) {
         in = new std::ifstream(file_layout);
         if (in->bad()) {
             std::cerr << "Impossibile aprire il file " << file_layout << " in input" << std::endl;
+            delete in;
             return 1;
         }
     }
 
     try {
-        if (whole_file_script) {
+        if (whole_file_script || find_file_layout) {
             std::string text = xpdf::pdf_whole_file_to_text(app_dir, file_pdf);
             result.read_script(*in, text);
-        } else {
+        }
+        if (find_file_layout) {
+            if (auto *ifs = dynamic_cast<std::ifstream *>(in)) {
+                ifs->close();
+                delete ifs;
+            }
+            file_layout = file_layout.substr(0, file_layout.find_last_of("\\/") + 1) + result.get_file_layout();
+            in = new std::ifstream(file_layout);
+            if (in->bad()) {
+                std::cerr << "Impossibile aprire il file " << file_layout << " in input" << std::endl;
+                delete in;
+                return 1;
+            }
+        }
+        if (!whole_file_script) {
             layout_bolletta layout;
             *in >> layout;
 
@@ -75,7 +94,7 @@ int main(int argc, char **argv) {
         std::cerr << error.message << '\n' << error.line << std::endl;
         return 3;
     }
-        
+    
     if (auto *ifs = dynamic_cast<std::ifstream *>(in)) {
         ifs->close();
         delete ifs;

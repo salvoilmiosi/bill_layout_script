@@ -20,6 +20,7 @@ class parser {
 public:
     void read_box(const layout_box &box, const std::string &text);
     void read_script(std::istream &stream, const std::string &text);
+    std::string get_file_layout();
 
     friend std::ostream & operator << (std::ostream &out, const parser &res);
 

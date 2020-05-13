@@ -64,6 +64,15 @@ void parser::read_script(std::istream &stream, const std::string &text) {
     }
 }
 
+std::string parser::get_file_layout() {
+    auto &obj = m_values["layout"];
+    if (obj.empty()) {
+        return "";
+    } else {
+        return obj.at(0).str();
+    }
+}
+
 struct function_parser {
     const std::string &script;
 
