@@ -25,10 +25,10 @@ box_dialog::box_dialog(wxWindow *parent, layout_box &box) :
     m_box_name = new wxTextCtrl(this, wxID_ANY, box.name);
     addLabelAndCtrl("Nome:", m_box_name);
 
-    static const wxString box_types[] = {"Singolo elemento", "Elementi multipli", "Colonne", "Righe"};
+    static const wxString box_types[] = {"Singolo elemento", "Elementi multipli", "Elementi per colonna", "Elementi per riga"};
     m_box_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, std::size(box_types), box_types);
     m_box_type->SetSelection(box.type);
-    addLabelAndCtrl("Tipo:", m_box_type);
+    addLabelAndCtrl("Metodo lettura:", m_box_type);
 
     m_box_script = new wxTextCtrl(this, wxID_ANY, box.script, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
     addLabelAndCtrl("Script:", m_box_script, 1);
@@ -79,6 +79,7 @@ void box_dialog::OnClickHelp(wxCommandEvent &evt) {
         "Inserire nel campo script gli identificatori dei vari elementi nel rettangolo, uno per riga.\n"
         "Ogni identificatore deve essere una stringa unica e non deve iniziare per numero.\n"
         "I valori numerici sono identificati da un %, per esempio %totale_fattura\n"
-        "I valori da saltare sono identificati da un #, per esempio #unita",
+        "I valori da saltare sono identificati da un #, per esempio #unita\n"
+        "Consultare la documentazione per funzioni avanzate",
         "Aiuto elementi", wxICON_INFORMATION);
 }

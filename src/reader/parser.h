@@ -9,6 +9,13 @@
 #include "../shared/layout.h"
 #include "variable.h"
 
+struct parsing_error {
+    const std::string message;
+    const std::string line;
+
+    parsing_error(const std::string &message, const std::string &line = "") : message(message), line(line) {}
+};
+
 class parser {
 public:
     void read_box(const layout_box &box, const std::string &text);
@@ -18,9 +25,7 @@ public:
     bool debug = false;
 
 private:
-    variable evaluate(const std::string &script);
-
-    void add_entry(const std::string &script, const std::string &value);
+    variable evaluate(const std::string &script, const std::string &value);
 
 private:
     std::map<std::string, std::vector<variable>> m_values;

@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
         std::cerr << error.message << std::endl;
         return 2;
     } catch (parsing_error &error) {
-        std::cerr << error.message << std::endl;
+        std::cerr << error.message << '\n' << error.line << std::endl;
         return 3;
     }
 

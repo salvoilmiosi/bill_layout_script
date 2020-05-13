@@ -3,43 +3,54 @@
 
 #include <string>
 
-struct parsing_error {
-    const std::string message;
-    const std::string line;
-
-    parsing_error(const std::string &message, const std::string &line) : message(message), line(line) {}
-};
-
-static constexpr const char *TYPES[] = {
-    "undefined",
-    "string",
-    "number",
-};
+#include "decimal.h"
 
 enum value_type {
     VALUE_UNDEFINED,
     VALUE_STRING,
     VALUE_NUMBER,
 };
+
+using fixed_point = dec::decimal6;
+
 class variable {
 public:
-    variable();
+    variable() {}
     variable(const std::string &value, value_type type = VALUE_STRING) : m_value(value), m_type(type) {}
-    variable(float value) : variable(std::to_string(value), VALUE_NUMBER) {}
+    variable(fixed_point value) : m_value(dec::toString(value)), m_type(VALUE_NUMBER) {}
 
-    variable &operator = (const variable &other);
+    template<typename T>
+    variable(T value) : m_value(std::to_string(value)), m_type(VALUE_NUMBER) {}
+
+    value_type type() const {
+        return m_type;
+    }
+
+    const std::string &str() const {
+        return m_value;
+    }
+
+    fixed_point number() const {
+        return fixed_point(m_value);
+    }
+
+    bool empty() const {
+        return m_value.empty();
+    }
+
     bool operator == (const variable &other) const;
     bool operator != (const variable &other) const;
+    bool operator < (const variable &other) const;
+    bool operator > (const variable &other) const;
 
-    const std::string &asString() const;
-    float asNumber() const;
-    int precision() const;
-
-    value_type type() const;
+    variable operator + (const variable &other) const;
+    variable operator - (const variable &other) const;
+    variable operator * (const variable &other) const;
+    variable operator / (const variable &other) const;
 
 private:
     std::string m_value{};
-    value_type m_type = VALUE_UNDEFINED;
+    value_type m_type{VALUE_UNDEFINED};
 };
 
 #endif

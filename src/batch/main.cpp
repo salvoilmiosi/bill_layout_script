@@ -29,10 +29,11 @@ void read_file(std::ostream &out, const std::string &app_dir, const std::string 
         auto &json_values = json_output["values"];
         out << pdf << COMMA;
         out << json_values["numero_fattura"][0].asString() << COMMA;
+        out << json_values["codice_pod"][0].asString() << COMMA;
         out << json_values["numero_cliente"][0].asString() << COMMA;
         out << json_values["ragione_sociale"][0].asString() << COMMA;
         out << json_values["totale_fattura"][0].asString() << COMMA;
-        out << json_values["data_fattura"][0].asString() << COMMA;
+        out << json_values["periodo"][0].asString() << COMMA;
         out << json_values["spesa_materia_energia"][0].asString() << COMMA;
         out << json_values["trasporto_gestione"][0].asString() << COMMA;
         out << json_values["oneri"][0].asString() << COMMA;
@@ -87,8 +88,9 @@ int main(int argc, char **argv) {
         }
     }
 
-    *out << "Nome file" << COMMA << "Numero fattura" << COMMA << "Numero cliente" << COMMA << "Ragione sociale" << COMMA << "Totale fattura" << COMMA << "Periodo fattura" << COMMA << 
-        "Spesa materia energia" << COMMA << "Trasporto gestione" << COMMA << "Oneri di sistema" << COMMA << "F1" << COMMA << "F2" << COMMA << "F3" << COMMA <<
+    *out << "Nome file" << COMMA << "Numero Fattura" << COMMA << "Codice POD" << COMMA << "Numero cliente" << COMMA << "Ragione sociale" << COMMA <<
+        "Totale fattura" << COMMA << "Periodo fattura" << COMMA <<  "Spesa materia energia" << COMMA << "Trasporto gestione" << COMMA <<
+        "Oneri di sistema" << COMMA << "F1" << COMMA << "F2" << COMMA << "F3" << COMMA <<
         "R1" << COMMA << "R2" << COMMA << "R3" << COMMA << "Potenza" << COMMA << "Imponibile" << std::endl;
 
     for (auto &p : fs::recursive_directory_iterator(input_directory)) {
