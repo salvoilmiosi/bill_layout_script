@@ -178,9 +178,6 @@ static std::string string_replace(std::string str, const std::string &from, cons
 
 void parser::add_entry(const std::string &script, const std::string &value) {
     switch(script.at(0)) {
-    case '%':
-        m_values[script.substr(1)].push_back(parse_number(value));
-        break;
     case '$':
     {
         function_parser function(script);
@@ -231,6 +228,9 @@ void parser::add_entry(const std::string &script, const std::string &value) {
         }
         break;
     }
+    case '%':
+        m_values[script.substr(1)].push_back(parse_number(value));
+        break;
     default:
         m_values[script].emplace_back(value, VALUE_STRING);
     }

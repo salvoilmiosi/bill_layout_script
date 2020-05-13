@@ -18,7 +18,7 @@ public:
     bool debug = false;
 
 private:
-    variable evaluate(const std::string &value);
+    variable evaluate(const std::string &script);
 
     void add_entry(const std::string &script, const std::string &value);
 
