@@ -13,16 +13,12 @@ int main(int argc, char **argv) {
 
     std::string app_dir = argv[0];
     app_dir = app_dir.substr(0, app_dir.find_last_of("\\/"));
-    const char *file_pdf = argv[1];
-    const char *file_layout = argv[2];
+
+    std::string file_pdf = argv[1];
+    std::string file_layout = argv[2];
 
     if (!std::filesystem::exists(file_pdf)) {
         std::cerr << "Il file " << file_pdf << " non esiste";
-        return 1;
-    }
-
-    if (!std::filesystem::exists(file_layout)) {
-        std::cerr << "Il file " << file_layout << " non esiste";
         return 1;
     }
 
@@ -44,21 +40,23 @@ int main(int argc, char **argv) {
         }
     }
 
+    std::istream *in = &std::cin;
+    
+    if (file_layout != "-") {
+        in = new std::ifstream(file_layout);
+        if (in->bad()) {
+            std::cerr << "Impossibile aprire il file " << file_layout << " in input" << std::endl;
+            return 1;
+        }
+    }
+
     try {
         if (whole_file_script) {
-            std::ifstream ifs(file_layout);
             std::string text = xpdf::pdf_whole_file_to_text(app_dir, file_pdf);
-            result.read_script(ifs, text);
-            ifs.close();
+            result.read_script(*in, text);
         } else {
             layout_bolletta layout;
-            if (strcmp(file_layout,"-")==0) {
-                std::cin >> layout;
-            } else {
-                std::ifstream ifs(file_layout);
-                ifs >> layout;
-                ifs.close();
-            }
+            *in >> layout;
 
             xpdf::pdf_info info = xpdf::pdf_get_info(app_dir, file_pdf);
 
@@ -76,6 +74,11 @@ int main(int argc, char **argv) {
     } catch (parsing_error &error) {
         std::cerr << error.message << '\n' << error.line << std::endl;
         return 3;
+    }
+        
+    if (auto *ifs = dynamic_cast<std::ifstream *>(in)) {
+        ifs->close();
+        delete ifs;
     }
 
     std::cout << result << std::endl;

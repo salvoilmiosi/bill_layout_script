@@ -111,11 +111,9 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    std::unique_ptr<std::ostream> out;
-    if (output_file == "-") {
-        out.reset(&std::cout);
-    } else {
-        out.reset(new std::ofstream(output_file));
+    std::ostream *out = &std::cout;
+    if (output_file != "-") {
+        out = new std::ofstream(output_file);
         if (out->bad()) {
             std::cerr << "Impossibile aprire il file " << output_file << " in output" << std::endl;
             return 1;
@@ -148,7 +146,10 @@ int main(int argc, char **argv) {
         }
     }
 
-    out->flush();
+    if (auto *ofs = dynamic_cast<std::ofstream *>(out)) {
+        ofs->close();
+        delete ofs;
+    }
 
     return 0;
 }
