@@ -39,8 +39,12 @@ int main(int argc, char **argv) {
         xpdf::pdf_info info = xpdf::pdf_get_info(app_dir, file_pdf);
 
         for (auto &box : layout.boxes) {
-            std::string text = xpdf::pdf_to_text(app_dir, file_pdf, info, box);
-            result.read_box(box, text);
+            if (box.type == BOX_WHOLE_FILE) {
+                result.read_box(box, xpdf::pdf_whole_file_to_text(app_dir, file_pdf));
+            } else {
+                std::string text = xpdf::pdf_to_text(app_dir, file_pdf, info, box);
+                result.read_box(box, text);
+            }
         }
     } catch (pipe_error &error) {
         std::cerr << error.message << std::endl;

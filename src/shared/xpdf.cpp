@@ -23,16 +23,31 @@ std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, cons
     snprintf(margint, 16, "%f", info.height * in_rect.y);
     snprintf(marginb, 16, "%f", info.height * (1.f - in_rect.y - in_rect.h));
 
-    char pdf_str[FILENAME_MAX];
-    snprintf(pdf_str, FILENAME_MAX, "%s", pdf.c_str());
-
     const char *args[] = {
         cmd_str,
         "-f", page_str, "-l", page_str,
         "-marginl", marginl, "-marginr", marginr,
         "-margint", margint, "-marginb", marginb,
         "-raw",
-        pdf_str, "-",
+        pdf.c_str(), "-",
+        nullptr
+    };
+
+    return open_process(args)->read_all();
+}
+
+std::string pdf_whole_file_to_text(const std::string &app_dir, const std::string &pdf) {
+    if (!std::filesystem::exists(pdf)) {
+        throw pipe_error("Il file non esiste");
+    }
+
+    char cmd_str[FILENAME_MAX];
+    snprintf(cmd_str, FILENAME_MAX, "%s/xpdf/pdftotext", app_dir.c_str());
+
+    const char *args[] = {
+        cmd_str,
+        "-raw",
+        pdf.c_str(), "-",
         nullptr
     };
 
@@ -47,12 +62,9 @@ pdf_info pdf_get_info(const std::string &app_dir, const std::string &pdf) {
     char cmd_str[FILENAME_MAX];
     snprintf(cmd_str, FILENAME_MAX, "%s/xpdf/pdfinfo", app_dir.c_str());
 
-    char pdf_str[FILENAME_MAX];
-    snprintf(pdf_str, FILENAME_MAX, "%s", pdf.c_str());
-
     const char *args[] = {
         cmd_str,
-        pdf_str, nullptr
+        pdf.c_str(), nullptr
     };
 
     std::string output = open_process(args)->read_all();

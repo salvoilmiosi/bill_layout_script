@@ -21,6 +21,8 @@ struct rect {
 
 std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, const pdf_info &info, const rect &in_rect);
 
+std::string pdf_whole_file_to_text(const std::string &app_dir, const std::string &pdf);
+
 pdf_info pdf_get_info(const std::string &app_dir, const std::string &pdf);
 
 }

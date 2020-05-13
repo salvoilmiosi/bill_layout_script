@@ -6,10 +6,39 @@
 
 #include <json/json.h>
 #include "../shared/pipe.h"
+#include "../shared/utils.h"
 
 namespace fs = std::filesystem;
 
 static constexpr char COMMA = ';';
+
+std::string get_file_layout(const std::string &app_dir, const std::string &pdf, const std::string &controllo) {
+    static std::string layout_dir = controllo.substr(0, controllo.find_last_of("\\/"));
+
+    char cmd_str[FILENAME_MAX];
+    snprintf(cmd_str, FILENAME_MAX, "%s/layout_reader", app_dir.c_str());
+
+    const char *args[] = {
+        cmd_str,
+        pdf.c_str(), controllo.c_str(),
+        nullptr
+    };
+
+    std::string output = open_process(args)->read_all();
+    std::istringstream iss(output);
+
+    Json::Value json_output;
+    if (iss >> json_output) {
+        auto &json_values = json_output["values"];
+        for (Json::ValueConstIterator it = json_values.begin(); it != json_values.end(); ++it) {
+            auto &obj = *it;
+            std::string layout_filename = obj[0].asString();
+            return layout_dir + '/' + layout_filename;
+        }
+    }
+
+    return "";
+}
 
 void read_file(std::ostream &out, const std::string &app_dir, const std::string &pdf, const std::string &layout) {
     char cmd_str[FILENAME_MAX];
@@ -56,7 +85,7 @@ void read_file(std::ostream &out, const std::string &app_dir, const std::string 
 
 int main(int argc, char **argv) {
     if (argc < 4) {
-        std::cout << "Utilizzo: layout_batch input_directory file.layout output" << std::endl;
+        std::cout << "Utilizzo: layout_batch input_directory controllo.layout output" << std::endl;
         return 0;
     }
 
@@ -64,7 +93,7 @@ int main(int argc, char **argv) {
     app_dir = app_dir.substr(0, app_dir.find_last_of("\\/"));
 
     std::string input_directory = argv[1];
-    std::string input_layout = argv[2];
+    std::string controllo_layout = argv[2];
     std::string output_file = argv[3];
 
     if (!fs::exists(input_directory)) {
@@ -72,8 +101,8 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    if (!fs::exists(input_layout)) {
-        std::cerr << "Il file di layout " << input_layout << " non esiste" << std::endl;
+    if (!fs::exists(controllo_layout)) {
+        std::cerr << "Il file di layout " << controllo_layout << " non esiste" << std::endl;
         return 1;
     }
 
@@ -95,11 +124,15 @@ int main(int argc, char **argv) {
 
     for (auto &p : fs::recursive_directory_iterator(input_directory)) {
         if (p.is_regular_file()) {
-            std::string ext = p.path().extension().string();
-            std::transform(ext.begin(), ext.end(), ext.begin(),
-                [](unsigned char c) { return std::tolower(c); });
+            std::string ext = string_tolower(p.path().extension().string());
             if (ext == ".pdf") {
-                read_file(*out, app_dir, p.path().string(), input_layout);
+                std::string pdf_file = p.path().string();
+                std::string file_layout = get_file_layout(app_dir, pdf_file, controllo_layout);
+                if (file_layout.empty()) {
+                    *out << pdf_file << COMMA << "Impossibile trovare il layout per questo file" << std::endl;
+                } else {
+                    read_file(*out, app_dir, pdf_file, file_layout);
+                }
             }
         }
     }

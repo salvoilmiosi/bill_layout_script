@@ -34,6 +34,14 @@ std::string implode(const std::vector<std::string> &vec, const std::string &sepa
     return out;
 };
 
+std::string string_tolower(std::string str) {
+    std::transform(str.begin(), str.end(), str.begin(),
+        [](unsigned char c) {
+            return std::tolower(c);
+        });
+    return str;
+}
+
 int string_replace(std::string &str, const std::string &from, const std::string &to) {
     size_t index = 0;
     int count = 0;
@@ -76,8 +84,7 @@ std::string parse_date(std::string format, const std::string &value) {
         std::string year = match.str(2);
 
         if (is_month_str) {
-            std::transform(month.begin(), month.end(), month.begin(),
-                [](unsigned char c) { return std::tolower(c); });
+            string_tolower(month);
             for (size_t i=0; i<std::size(MONTHS); ++i) {
                 if (month.find(MONTHS[i]) != std::string::npos) {
                     if (i < 9) {

@@ -25,7 +25,7 @@ box_dialog::box_dialog(wxWindow *parent, layout_box &box) :
     m_box_name = new wxTextCtrl(this, wxID_ANY, box.name);
     addLabelAndCtrl("Nome:", m_box_name);
 
-    static const wxString box_types[] = {"Singolo elemento", "Elementi multipli", "Elementi per colonna", "Elementi per riga"};
+    static const wxString box_types[] = {"Singolo elemento", "Elementi multipli", "Elementi per colonna", "Elementi per riga", "Intero file"};
     m_box_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, std::size(box_types), box_types);
     m_box_type->SetSelection(box.type);
     addLabelAndCtrl("Metodo lettura:", m_box_type);

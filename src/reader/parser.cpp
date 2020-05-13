@@ -2,7 +2,7 @@
 
 #include <json/json.h>
 
-#include "utils.h"
+#include "../shared/utils.h"
 
 void parser::read_box(const layout_box &box, const std::string &text) {
     auto add_value = [&](const std::string &name, const variable &value) {
@@ -51,6 +51,11 @@ void parser::read_box(const layout_box &box, const std::string &text) {
             if (i / row_len < scripts.size()) {
                 add_entry(scripts[i / row_len], values[i]);
             }
+        }
+        break;
+    case BOX_WHOLE_FILE:
+        for (auto &script : scripts) {
+            add_entry(script, text);
         }
         break;
     }

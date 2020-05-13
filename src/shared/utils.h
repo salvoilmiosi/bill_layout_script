@@ -17,6 +17,9 @@ std::string implode(const std::vector<std::string> &vec, const std::string &sepa
 // sostituisce tutte le occorrenze di una stringa in un'altra, restituisce il numero di valori trovati
 int string_replace(std::string &str, const std::string &from, const std::string &to);
 
+// restituisce una copia in minuscolo della stringa di input
+std::string string_tolower(std::string str);
+
 // converte un numero dal formato italiano al formato universale (trasforma virgole in punti)
 std::string parse_number(const std::string &value);
 
