@@ -3,28 +3,28 @@
 
 #include <string>
 
-#include "pipe.h"
-
-namespace xpdf {
-
 struct pdf_info {
     int num_pages = 0;
     float width;
     float height;
 };
 
-struct rect {
+struct pdf_rect {
     float x, y;
     float w, h;
     int page;
 };
 
-std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, const pdf_info &info, const rect &in_rect);
+struct xpdf_error {
+    const std::string message;
+
+    xpdf_error(const std::string &message) : message(message) {}
+};
+
+std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, const pdf_info &info, const pdf_rect &in_rect);
 
 std::string pdf_whole_file_to_text(const std::string &app_dir, const std::string &pdf);
 
 pdf_info pdf_get_info(const std::string &app_dir, const std::string &pdf);
-
-}
 
 #endif // __XPDF_H__

@@ -84,7 +84,7 @@ private:
     std::unique_ptr<layout_box> clipboard;
 
 private:
-    xpdf::pdf_info info;
+    pdf_info info;
     std::string layout_filename{};
     int selected_page = 0;
 };

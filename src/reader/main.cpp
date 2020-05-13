@@ -6,11 +6,6 @@
 #include "../shared/xpdf.h"
 
 int main(int argc, char **argv) {
-    if (argc < 3) {
-        std::cout << "Utilizzo: layout_reader file.pdf file.bls [-options]" << std::endl;
-        return 0;
-    }
-
     std::string app_dir = argv[0];
     app_dir = app_dir.substr(0, app_dir.find_last_of("\\/"));
 
@@ -22,7 +17,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    parser result;
+    bool debug = false;
     bool find_file_layout = false;
     std::string layout_dir;
 
@@ -30,7 +25,7 @@ int main(int argc, char **argv) {
         for (char *c = argv[3] + 1; *c!='\0'; ++c) {
             switch(*c) {
             case 'd':
-                result.debug = true;
+                debug = true;
                 break;
             case 'f':
                 find_file_layout = true;
@@ -48,6 +43,8 @@ int main(int argc, char **argv) {
         }
     }
 
+    parser result;
+    result.debug = debug;
     std::istream *in = &std::cin;
     
     if (file_layout != "-") {
@@ -61,7 +58,7 @@ int main(int argc, char **argv) {
 
     try {
         if (find_file_layout) {
-            std::string text = xpdf::pdf_whole_file_to_text(app_dir, file_pdf);
+            std::string text = pdf_whole_file_to_text(app_dir, file_pdf);
             result.read_script(*in, text);
             if (auto *ifs = dynamic_cast<std::ifstream *>(in)) {
                 ifs->close();
@@ -78,20 +75,20 @@ int main(int argc, char **argv) {
         layout_bolletta layout;
         *in >> layout;
 
-        xpdf::pdf_info info = xpdf::pdf_get_info(app_dir, file_pdf);
+        pdf_info info = pdf_get_info(app_dir, file_pdf);
 
         for (auto &box : layout.boxes) {
-            std::string text = xpdf::pdf_to_text(app_dir, file_pdf, info, box);
+            std::string text = pdf_to_text(app_dir, file_pdf, info, box);
             result.read_box(box, text);
         }
-    } catch (layout_error &error) {
+    } catch (const layout_error &error) {
         std::cerr << error.message << std::endl;
         return 1;
-    } catch (pipe_error &error) {
+    } catch (const xpdf_error &error) {
         std::cerr << error.message << std::endl;
         return 2;
-    } catch (parsing_error &error) {
-        std::cerr << error.message << '\n' << error.line << std::endl;
+    } catch (const parsing_error &error) {
+        std::cerr << error.message << ": " << error.line << std::endl;
         return 3;
     }
     

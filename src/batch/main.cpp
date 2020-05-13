@@ -30,8 +30,8 @@ void read_file(std::ostream &out, const std::string &app_dir, const std::string 
     std::string output = proc->read_all();
     std::istringstream iss(output);
 
-    Json::Value json_output;
     try {
+        Json::Value json_output;
         iss >> json_output;
 
         auto &json_values = json_output["values"];
@@ -59,7 +59,7 @@ void read_file(std::ostream &out, const std::string &app_dir, const std::string 
         }
 
         out << std::endl;
-    } catch(const std::exception &error) {
+    } catch (const std::exception &error) {
         out << pdf << COMMA << "Impossibile leggere questo file" << std::endl;
     }
 }
@@ -111,11 +111,7 @@ int main(int argc, char **argv) {
             std::string ext = string_tolower(p.path().extension().string());
             if (ext == ".pdf") {
                 std::string pdf_file = p.path().string();
-                try {
-                    read_file(*out, app_dir, pdf_file, layout_string, layout_dir);
-                } catch (pipe_error &error) {
-                    *out << pdf_file << COMMA << error.message << std::endl;
-                }
+                read_file(*out, app_dir, pdf_file, layout_string, layout_dir);
             }
         }
     }

@@ -4,11 +4,11 @@
 #include <filesystem>
 #include <cstdio>
 
-namespace xpdf {
+#include "pipe.h"
 
-std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, const pdf_info &info, const rect &in_rect) {
+std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, const pdf_info &info, const pdf_rect &in_rect) {
     if (!std::filesystem::exists(pdf)) {
-        throw pipe_error("Il file non esiste");
+        throw xpdf_error(std::string("File \"") + pdf + "\" does not exist");
     }
 
     char cmd_str[FILENAME_MAX];
@@ -38,7 +38,7 @@ std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, cons
 
 std::string pdf_whole_file_to_text(const std::string &app_dir, const std::string &pdf) {
     if (!std::filesystem::exists(pdf)) {
-        throw pipe_error("Il file non esiste");
+        throw xpdf_error("File \"" + pdf + "\" does not exist");
     }
 
     char cmd_str[FILENAME_MAX];
@@ -56,7 +56,7 @@ std::string pdf_whole_file_to_text(const std::string &app_dir, const std::string
 
 pdf_info pdf_get_info(const std::string &app_dir, const std::string &pdf) {
     if (!std::filesystem::exists(pdf)) {
-        throw pipe_error("Il file non esiste");
+        throw xpdf_error("File \"" + pdf + "\" does not exist");
     }
 
     char cmd_str[FILENAME_MAX];
@@ -93,6 +93,4 @@ pdf_info pdf_get_info(const std::string &app_dir, const std::string &pdf) {
     }
 
     return ret;
-}
-
 }

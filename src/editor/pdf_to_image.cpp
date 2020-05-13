@@ -1,10 +1,13 @@
 #include "pdf_to_image.h"
 
-#include <cstdio>
+#include <filesystem>
 
-namespace xpdf {
+#include "../shared/pipe.h"
 
 wxImage pdf_to_image(const std::string &app_dir, const std::string &pdf, int page) {
+    if (!wxFileExists(pdf)) {
+        throw xpdf_error(std::string("File \"") + pdf + "\" does not exist");
+    }
     char cmd_str[FILENAME_MAX];
     snprintf(cmd_str, FILENAME_MAX, "%s/xpdf/pdftopng", app_dir.c_str());
     
@@ -41,7 +44,5 @@ wxImage pdf_to_image(const std::string &app_dir, const std::string &pdf, int pag
             return img;
         }
     }
-    throw pipe_error("Could not open image");
-}
-
+    throw xpdf_error("Could not open image");
 }

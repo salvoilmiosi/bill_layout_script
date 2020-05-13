@@ -13,6 +13,8 @@
 #include "box_dialog.h"
 #include "resources.h"
 
+#include "../shared/pipe.h"
+
 BEGIN_EVENT_TABLE(frame_editor, wxFrame)
     EVT_MENU (MENU_NEW, OnNewFile)
     EVT_MENU (MENU_OPEN, OnOpenFile)
@@ -183,7 +185,7 @@ void frame_editor::openFile(const std::string &filename) {
             loadPdf(layout.pdf_filename);
         }
         updateLayout();
-    } catch (layout_error &error) {
+    } catch (const layout_error &error) {
         wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
     }
 }
@@ -214,7 +216,7 @@ bool frame_editor::save(bool saveAs) {
         ofs << layout;
         ofs.close();
         modified = false;
-    } catch (layout_error &error) {
+    } catch (const layout_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);
         return false;
     }
@@ -332,14 +334,14 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
 
 void frame_editor::loadPdf(const std::string &pdf_filename) {
     try {
-        info = xpdf::pdf_get_info(get_app_path(), pdf_filename);
+        info = pdf_get_info(get_app_path(), pdf_filename);
         layout.pdf_filename = pdf_filename;
         m_page->Clear();
         for (int i=1; i<=info.num_pages; ++i) {
             m_page->Append(wxString::Format("%i", i));
         }
         setSelectedPage(1, true);
-    } catch (pipe_error &error) {
+    } catch (const xpdf_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);
     }
 }
@@ -361,8 +363,8 @@ void frame_editor::setSelectedPage(int page, bool force) {
     m_page->SetSelection(page - 1);
     try {
         selected_page = page;
-        m_image->setImage(xpdf::pdf_to_image(get_app_path(), layout.pdf_filename, page));
-    } catch (const pipe_error &error) {
+        m_image->setImage(pdf_to_image(get_app_path(), layout.pdf_filename, page));
+    } catch (const xpdf_error &error) {
         wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
     }
 }
@@ -377,7 +379,7 @@ void frame_editor::OnPageSelect(wxCommandEvent &evt) {
         } else {
             setSelectedPage(page);
         }
-    } catch(const std::invalid_argument &error) {
+    } catch (const std::invalid_argument &error) {
         wxBell();
     }
 }
@@ -449,7 +451,7 @@ void frame_editor::OnReadData(wxCommandEvent &evt) {
         pipe->close_stdin();
         std::string output = pipe->read_all();
         wxMessageBox(output, "Output di layout_reader", wxICON_INFORMATION);
-    } catch (pipe_error &error) {
+    } catch (const pipe_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);
     }
 }

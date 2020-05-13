@@ -17,9 +17,9 @@ struct rwops {
 std::unique_ptr<rwops> open_process(const char *args[]);
 
 struct pipe_error {
-    const char *message;
+    const std::string message;
 
-    pipe_error(const char *message) : message(message) {}
+    pipe_error(const std::string &message) : message(message) {}
 };
 
 #endif // __PIPE_H__

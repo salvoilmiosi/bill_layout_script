@@ -13,7 +13,7 @@ enum box_type {
     BOX_ROWS,
 };
 
-struct layout_box : public xpdf::rect {
+struct layout_box : public pdf_rect {
     bool selected = false;
     std::string name = "";
     std::string script = "";

@@ -91,10 +91,10 @@ struct function_parser {
 };
 
 function_parser::function_parser(const std::string &script) : script(script) {
-    int brace_start = script.find_first_of('(');
-    if (brace_start < 0) throw parsing_error("Expected (", script);
-    int brace_end = script.find_last_of(')');
-    if (brace_end < 0) throw parsing_error("Expected )", script);
+    size_t brace_start = script.find_first_of('(');
+    if (brace_start == std::string::npos) throw parsing_error("Previsto '('", script);
+    size_t brace_end = script.find_last_of(')');
+    if (brace_end  == std::string::npos) throw parsing_error("Previsto ')'", script);
     name = script.substr(1, brace_start - 1);
     const std::string &arg_string = script.substr(brace_start + 1, brace_end - brace_start - 1);
     int arg_start = 0, arg_end;
@@ -106,7 +106,7 @@ function_parser::function_parser(const std::string &script) : script(script) {
             break;
         case ')':
             --bracecount;
-            if (bracecount < 0) throw parsing_error("Extra )", script);
+            if (bracecount < 0) throw parsing_error("')' non previsto", script);
             break;
         case ',':
             if (bracecount == 0) {
@@ -182,7 +182,7 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
     case '%':
         return evaluate(script.substr(1), value).number();
     case '@':
-        if (script.size() > 1) throw parsing_error("@ must be alone", script);
+        if (script.size() > 1) throw parsing_error("Valore non previsto dopo '@'", script);
         return value;
     default:
         return script;
