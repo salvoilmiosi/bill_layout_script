@@ -62,6 +62,8 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     menuFile->Append(MENU_SAVE, "&Salva\tCtrl-S", "Salva il Layout");
     menuFile->Append(MENU_SAVEAS, "Sa&lva con nome...\tCtrl-Shift-S", "Salva il Layout con nome...");
     menuFile->AppendSeparator();
+    menuFile->Append(MENU_LOAD_PDF, "Carica &PDF\tCtrl-L", "Carica un file PDF");
+    menuFile->AppendSeparator();
     menuFile->Append(MENU_CLOSE, "&Chiudi\tCtrl-W", "Chiudi la finestra");
     menuBar->Append(menuFile, "&File");
 
@@ -72,12 +74,13 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     menuEdit->Append(MENU_CUT, "&Taglia\tCtrl-X", "Taglia la selezione");
     menuEdit->Append(MENU_COPY, "&Copia\tCtrl-C", "Copia la selezione");
     menuEdit->Append(MENU_PASTE, "&Incolla\tCtrl-V", "Incolla nella selezione");
+    menuEdit->AppendSeparator();
+    menuEdit->Append(MENU_DELETE, "&Cancella Selezione\tDel", "Cancella il rettangolo selezionato");
     menuBar->Append(menuEdit, "&Modifica");
 
     wxMenu *menuLayout = new wxMenu;
-    menuLayout->Append(MENU_LOAD_PDF, "Carica &PDF\tCtrl-L", "Carica un file PDF");
     menuLayout->Append(MENU_EDITBOX, "Modifica &Opzioni\tCtrl-E", "Modifica il rettangolo selezionato");
-    menuLayout->Append(MENU_DELETE, "&Cancella Selezione\tDel", "Cancella il rettangolo selezionato");
+    menuLayout->AppendSeparator();
     menuLayout->Append(MENU_READDATA, "L&eggi Layout\tCtrl-R", "Test della lettura dei dati");
 
     menuBar->Append(menuLayout, "&Layout");
@@ -176,7 +179,9 @@ void frame_editor::openFile(const std::string &filename) {
         ifs >> layout;
         ifs.close();
         history.clear();
-        loadPdf(layout.pdf_filename);
+        if (wxFileExists(layout.pdf_filename)) {
+            loadPdf(layout.pdf_filename);
+        }
         updateLayout();
     } catch (layout_error &error) {
         wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
@@ -184,7 +189,7 @@ void frame_editor::openFile(const std::string &filename) {
 }
 
 void frame_editor::OnOpenFile(wxCommandEvent &evt) {
-    wxFileDialog diag(this, "Apri Layout Bolletta", wxEmptyString, wxEmptyString, "File layout (*.layout)|*.layout|Tutti i file (*.*)|*.*");
+    wxFileDialog diag(this, "Apri Layout Bolletta", wxEmptyString, wxEmptyString, "File layout (*.bls)|*.bls|Tutti i file (*.*)|*.*");
 
     if (diag.ShowModal() == wxID_CANCEL)
         return;
@@ -197,7 +202,7 @@ void frame_editor::OnOpenFile(wxCommandEvent &evt) {
 
 bool frame_editor::save(bool saveAs) {
     if (layout_filename.empty() || saveAs) {
-        wxFileDialog diag(this, "Salva Layout Bolletta", wxEmptyString, layout_filename, "File layout (*.layout)|*.layout|Tutti i file (*.*)|*.*", wxFD_SAVE);
+        wxFileDialog diag(this, "Salva Layout Bolletta", wxEmptyString, layout_filename, "File layout (*.bls)|*.bls|Tutti i file (*.*)|*.*", wxFD_SAVE);
 
         if (diag.ShowModal() == wxID_CANCEL)
             return false;

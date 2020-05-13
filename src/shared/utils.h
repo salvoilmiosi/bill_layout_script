@@ -6,6 +6,7 @@
 #include <sstream>
 
 // divide una stringa nelle sue righe
+std::vector<std::string> read_lines(std::istream &stream);
 std::vector<std::string> read_lines(const std::string &str);
 
 // divide una stringa con separatore spazio

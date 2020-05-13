@@ -19,12 +19,15 @@ struct parsing_error {
 class parser {
 public:
     void read_box(const layout_box &box, const std::string &text);
+    void read_script(std::istream &stream, const std::string &text);
 
     friend std::ostream & operator << (std::ostream &out, const parser &res);
 
     bool debug = false;
 
 private:
+    void add_value(const std::string &name, const variable &value);
+    void add_entry(const std::string &script, const std::string &value);
     variable evaluate(const std::string &script, const std::string &value);
 
 private:

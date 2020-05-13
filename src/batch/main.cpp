@@ -21,6 +21,7 @@ std::string get_file_layout(const std::string &app_dir, const std::string &pdf, 
     const char *args[] = {
         cmd_str,
         pdf.c_str(), controllo.c_str(),
+        "-w",
         nullptr
     };
 
@@ -63,8 +64,8 @@ void read_file(std::ostream &out, const std::string &app_dir, const std::string 
         out << json_values["codice_pod"][0].asString() << COMMA;
         out << json_values["numero_cliente"][0].asString() << COMMA;
         out << json_values["ragione_sociale"][0].asString() << COMMA;
-        out << json_values["totale_fattura"][0].asString() << COMMA;
         out << json_values["periodo"][0].asString() << COMMA;
+        out << json_values["totale_fattura"][0].asString() << COMMA;
         out << json_values["spesa_materia_energia"][0].asString() << COMMA;
         out << json_values["trasporto_gestione"][0].asString() << COMMA;
         out << json_values["oneri"][0].asString() << COMMA;
@@ -82,14 +83,14 @@ void read_file(std::ostream &out, const std::string &app_dir, const std::string 
         }
 
         out << std::endl;
-    } catch(...) {
-        out << pdf << COMMA << output << std::endl;
+    } catch(const std::exception &error) {
+        out << pdf << COMMA << "Impossibile leggere questo file" << std::endl;
     }
 }
 
 int main(int argc, char **argv) {
     if (argc < 4) {
-        std::cout << "Utilizzo: layout_batch input_directory controllo.layout output" << std::endl;
+        std::cout << "Utilizzo: layout_batch input_directory controllo.bls output" << std::endl;
         return 0;
     }
 
@@ -135,6 +136,8 @@ int main(int argc, char **argv) {
                     std::string file_layout = get_file_layout(app_dir, pdf_file, controllo_layout);
                     if (file_layout.empty()) {
                         *out << pdf_file << COMMA << "Impossibile trovare il layout per questo file" << std::endl;
+                    } else if (!fs::exists(file_layout)) {
+                        *out << pdf_file << COMMA << "Il file di layout " << file_layout << " non esiste" << std::endl;
                     } else {
                         read_file(*out, app_dir, pdf_file, file_layout);
                     }

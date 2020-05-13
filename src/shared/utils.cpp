@@ -3,14 +3,18 @@
 #include <regex>
 #include <algorithm>
 
-std::vector<std::string> read_lines(const std::string &str) {
-    std::istringstream iss(str);
+std::vector<std::string> read_lines(std::istream &stream) {
     std::string token;
     std::vector<std::string> out;
-    while (std::getline(iss, token)) {
+    while (std::getline(stream, token)) {
         out.push_back(token);
     }
     return out;
+};
+
+std::vector<std::string> read_lines(const std::string &str) {
+    std::istringstream iss(str);
+    return read_lines(iss);
 };
 
 std::vector<std::string> tokenize(const std::string &str) {

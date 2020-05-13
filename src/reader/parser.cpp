@@ -4,27 +4,27 @@
 
 #include "../shared/utils.h"
 
+void parser::add_value(const std::string &name, const variable &value) {
+    if (name.empty() || value.empty()) return;
+    if (name.at(0) == '%') {
+        m_values[name.substr(1)].push_back(parse_number(value.str()));
+    } else {
+        m_values[name].push_back(value);
+    }
+}
+
+void parser::add_entry(const std::string &script, const std::string &value) {
+    size_t equals = script.find_first_of('=');
+    if (equals == std::string::npos) {
+        add_value(script, value);
+    } else if (equals > 0) {
+        add_value(script.substr(0, equals), evaluate(script.substr(equals + 1), value));
+    } else {
+        throw parsing_error("Identificatore vuoto", script);
+    }
+};
+
 void parser::read_box(const layout_box &box, const std::string &text) {
-    auto add_value = [&](const std::string &name, const variable &value) {
-        if (name.empty() || value.empty()) return;
-        if (name.at(0) == '%') {
-            m_values[name.substr(1)].push_back(parse_number(value.str()));
-        } else {
-            m_values[name].push_back(value);
-        }
-    };
-
-    auto add_entry = [&](const std::string &script, const std::string &value) {
-        size_t equals = script.find_first_of('=');
-        if (equals == std::string::npos) {
-            add_value(script, value);
-        } else if (equals > 0) {
-            add_value(script.substr(0, equals), evaluate(script.substr(equals + 1), value));
-        } else {
-            throw parsing_error("Identificatore vuoto", script);
-        }
-    };
-
     std::vector<std::string> scripts = read_lines(box.script);
     std::vector<std::string> values = tokenize(text);
 
@@ -53,11 +53,14 @@ void parser::read_box(const layout_box &box, const std::string &text) {
             }
         }
         break;
-    case BOX_WHOLE_FILE:
-        for (auto &script : scripts) {
-            add_entry(script, text);
-        }
-        break;
+    }
+}
+
+void parser::read_script(std::istream &stream, const std::string &text) {
+    std::vector<std::string> scripts = read_lines(stream);
+
+    for (auto &script : scripts) {
+        add_entry(script, text);
     }
 }
 

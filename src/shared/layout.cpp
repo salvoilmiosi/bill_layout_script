@@ -48,33 +48,37 @@ std::ostream &operator << (std::ostream &out, const layout_bolletta &obj) {
 std::istream &operator >> (std::istream &in, layout_bolletta &obj) {
     Json::Value root;
 
-    in >> root;
-    int version = root["version"].asInt();
+    try {
+        in >> root;
+        int version = root["version"].asInt();
 
-    switch(version) {
-    case 0x00000001:
-    {
-        Json::Value &layout = root["layout"];
-        obj.pdf_filename = layout["pdf_filename"].asString();
-        Json::Value &json_boxes = layout["boxes"];
-        for (Json::Value::iterator it=json_boxes.begin(); it!=json_boxes.end(); ++it) {
-            Json::Value &json_box = *it;
-            layout_box box;
-            box.name = json_box["name"].asString();
-            box.type = static_cast<box_type>(json_box["type"].asInt());
-            box.script = json_box["script"].asString();
-            box.x = json_box["x"].asFloat();
-            box.y = json_box["y"].asFloat();
-            box.w = json_box["w"].asFloat();
-            box.h = json_box["h"].asFloat();
-            box.page = json_box["page"].asInt();
+        switch(version) {
+        case 0x00000001:
+        {
+            Json::Value &layout = root["layout"];
+            obj.pdf_filename = layout["pdf_filename"].asString();
+            Json::Value &json_boxes = layout["boxes"];
+            for (Json::Value::iterator it=json_boxes.begin(); it!=json_boxes.end(); ++it) {
+                Json::Value &json_box = *it;
+                layout_box box;
+                box.name = json_box["name"].asString();
+                box.type = static_cast<box_type>(json_box["type"].asInt());
+                box.script = json_box["script"].asString();
+                box.x = json_box["x"].asFloat();
+                box.y = json_box["y"].asFloat();
+                box.w = json_box["w"].asFloat();
+                box.h = json_box["h"].asFloat();
+                box.page = json_box["page"].asInt();
 
-            obj.boxes.push_back(box);
+                obj.boxes.push_back(box);
+            }
+            break;
         }
-        break;
-    }
-    default:
-        throw layout_error("Versione non supportata");
+        default:
+            throw layout_error("Versione non supportata");
+        }
+    } catch (const std::exception &error) {
+        throw layout_error("Impossibile leggere questo file");
     }
 
     return in;

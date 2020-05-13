@@ -11,7 +11,6 @@ enum box_type {
     BOX_MULTIPLE,
     BOX_COLUMNS,
     BOX_ROWS,
-    BOX_WHOLE_FILE,
 };
 
 struct layout_box : public xpdf::rect {
