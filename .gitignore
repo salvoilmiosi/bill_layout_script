@@ -9,3 +9,5 @@ fatture/*
 *.pdf
 *.csv
 *.xlsx
+*.txt
+*.bls

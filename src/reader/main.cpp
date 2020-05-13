@@ -23,8 +23,8 @@ int main(int argc, char **argv) {
     }
 
     parser result;
-    bool whole_file_script = false;
     bool find_file_layout = false;
+    std::string layout_dir;
 
     if (argc >= 4 && argv[3][0] == '-') {
         for (char *c = argv[3] + 1; *c!='\0'; ++c) {
@@ -32,14 +32,18 @@ int main(int argc, char **argv) {
             case 'd':
                 result.debug = true;
                 break;
-            case 'w':
-                whole_file_script = true;
-                break;
-            case 'c':
+            case 'f':
                 find_file_layout = true;
+                if (argc >= 5) {
+                    layout_dir = argv[4];
+                } else {
+                    std::cerr << "-f richiede directory dei file di layout" << std::endl;
+                    return 1;
+                }
                 break;
             default:
                 std::cerr << "Opzione sconosciuta: " << *c << std::endl;
+                return 1;
             }
         }
     }
@@ -56,16 +60,14 @@ int main(int argc, char **argv) {
     }
 
     try {
-        if (whole_file_script || find_file_layout) {
+        if (find_file_layout) {
             std::string text = xpdf::pdf_whole_file_to_text(app_dir, file_pdf);
             result.read_script(*in, text);
-        }
-        if (find_file_layout) {
             if (auto *ifs = dynamic_cast<std::ifstream *>(in)) {
                 ifs->close();
                 delete ifs;
             }
-            file_layout = file_layout.substr(0, file_layout.find_last_of("\\/") + 1) + result.get_file_layout();
+            file_layout = layout_dir + '/' + result.get_file_layout();
             in = new std::ifstream(file_layout);
             if (in->bad()) {
                 std::cerr << "Impossibile aprire il file " << file_layout << " in input" << std::endl;
@@ -73,16 +75,14 @@ int main(int argc, char **argv) {
                 return 1;
             }
         }
-        if (!whole_file_script) {
-            layout_bolletta layout;
-            *in >> layout;
+        layout_bolletta layout;
+        *in >> layout;
 
-            xpdf::pdf_info info = xpdf::pdf_get_info(app_dir, file_pdf);
+        xpdf::pdf_info info = xpdf::pdf_get_info(app_dir, file_pdf);
 
-            for (auto &box : layout.boxes) {
-                std::string text = xpdf::pdf_to_text(app_dir, file_pdf, info, box);
-                result.read_box(box, text);
-            }
+        for (auto &box : layout.boxes) {
+            std::string text = xpdf::pdf_to_text(app_dir, file_pdf, info, box);
+            result.read_box(box, text);
         }
     } catch (layout_error &error) {
         std::cerr << error.message << std::endl;

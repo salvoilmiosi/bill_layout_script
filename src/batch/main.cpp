@@ -12,46 +12,22 @@ namespace fs = std::filesystem;
 
 static constexpr char COMMA = ';';
 
-std::string get_file_layout(const std::string &app_dir, const std::string &pdf, const std::string &controllo) {
-    static std::string layout_dir = controllo.substr(0, controllo.find_last_of("\\/"));
-
+void read_file(std::ostream &out, const std::string &app_dir, const std::string &pdf, const std::string &layout_script, const std::string &layout_dir) {
     char cmd_str[FILENAME_MAX];
     snprintf(cmd_str, FILENAME_MAX, "%s/layout_reader", app_dir.c_str());
 
     const char *args[] = {
         cmd_str,
-        pdf.c_str(), controllo.c_str(),
-        "-w",
+        pdf.c_str(), "-",
+        "-f", layout_dir.c_str(),
         nullptr
     };
 
-    std::string output = open_process(args)->read_all();
-    std::istringstream iss(output);
+    auto proc = open_process(args);
+    proc->write_all(layout_script);
+    proc->close_stdin();
 
-    Json::Value json_output;
-    if (iss >> json_output) {
-        auto &json_values = json_output["values"];
-        for (Json::ValueConstIterator it = json_values.begin(); it != json_values.end(); ++it) {
-            auto &obj = *it;
-            std::string layout_filename = obj[0].asString();
-            return layout_dir + '/' + layout_filename;
-        }
-    }
-
-    return "";
-}
-
-void read_file(std::ostream &out, const std::string &app_dir, const std::string &pdf, const std::string &layout) {
-    char cmd_str[FILENAME_MAX];
-    snprintf(cmd_str, FILENAME_MAX, "%s/layout_reader", app_dir.c_str());
-
-    const char *args[] = {
-        cmd_str,
-        pdf.c_str(), layout.c_str(),
-        nullptr
-    };
-
-    std::string output = open_process(args)->read_all();
+    std::string output = proc->read_all();
     std::istringstream iss(output);
 
     Json::Value json_output;
@@ -98,16 +74,21 @@ int main(int argc, char **argv) {
     app_dir = app_dir.substr(0, app_dir.find_last_of("\\/"));
 
     std::string input_directory = argv[1];
-    std::string controllo_layout = argv[2];
+    std::string file_layout = argv[2];
     std::string output_file = argv[3];
+
+    std::string layout_dir = file_layout.substr(0, file_layout.find_last_of("\\/"));
 
     if (!fs::exists(input_directory)) {
         std::cerr << "La directory " << input_directory << " non esiste" << std::endl;
         return 1;
     }
 
-    if (!fs::exists(controllo_layout)) {
-        std::cerr << "Il file di layout " << controllo_layout << " non esiste" << std::endl;
+    std::ifstream ifs(file_layout);
+    std::string layout_string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+
+    if (ifs.bad()) {
+        std::cerr << "Il file di layout " << file_layout << " non esiste" << std::endl;
         return 1;
     }
 
@@ -131,14 +112,7 @@ int main(int argc, char **argv) {
             if (ext == ".pdf") {
                 std::string pdf_file = p.path().string();
                 try {
-                    std::string file_layout = get_file_layout(app_dir, pdf_file, controllo_layout);
-                    if (file_layout.empty()) {
-                        *out << pdf_file << COMMA << "Impossibile trovare il layout per questo file" << std::endl;
-                    } else if (!fs::exists(file_layout)) {
-                        *out << pdf_file << COMMA << "Il file di layout " << file_layout << " non esiste" << std::endl;
-                    } else {
-                        read_file(*out, app_dir, pdf_file, file_layout);
-                    }
+                    read_file(*out, app_dir, pdf_file, layout_string, layout_dir);
                 } catch (pipe_error &error) {
                     *out << pdf_file << COMMA << error.message << std::endl;
                 }
