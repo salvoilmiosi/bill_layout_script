@@ -16,7 +16,7 @@ enum box_type {
 struct layout_box : public xpdf::rect {
     bool selected = false;
     std::string name = "";
-    std::string parse_string = "";
+    std::string script = "";
     box_type type = BOX_SINGLE;
 };
 

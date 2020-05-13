@@ -327,8 +327,8 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
 
 void frame_editor::loadPdf(const std::string &pdf_filename) {
     try {
+        info = xpdf::pdf_get_info(get_app_path(), pdf_filename);
         layout.pdf_filename = pdf_filename;
-        info = xpdf::pdf_get_info(get_app_path(), layout.pdf_filename);
         m_page->Clear();
         for (int i=1; i<=info.num_pages; ++i) {
             m_page->Append(wxString::Format("%i", i));
@@ -432,7 +432,7 @@ void frame_editor::OnReadData(wxCommandEvent &evt) {
 
     const char *args[] = {
         cmd_str,
-        pdf_str, "-",
+        pdf_str, "-", "-d",
         nullptr
     };
 

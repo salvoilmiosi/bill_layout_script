@@ -32,7 +32,7 @@ std::ostream &operator << (std::ostream &out, const layout_bolletta &obj) {
 
         json_box["name"] = box.name;
         json_box["type"] = box.type;
-        json_box["parse_string"] = box.parse_string;
+        json_box["script"] = box.script;
         json_box["x"] = box.x;
         json_box["y"] = box.y;
         json_box["w"] = box.w;
@@ -62,7 +62,7 @@ std::istream &operator >> (std::istream &in, layout_bolletta &obj) {
             layout_box box;
             box.name = json_box["name"].asString();
             box.type = static_cast<box_type>(json_box["type"].asInt());
-            box.parse_string = json_box["parse_string"].asString();
+            box.script = json_box["script"].asString();
             box.x = json_box["x"].asFloat();
             box.y = json_box["y"].asFloat();
             box.w = json_box["w"].asFloat();

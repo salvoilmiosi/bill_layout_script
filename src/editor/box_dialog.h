@@ -21,7 +21,7 @@ private:
     layout_box &box;
 
     wxTextCtrl *m_box_name;
-    wxTextCtrl *m_box_parser;
+    wxTextCtrl *m_box_script;
     wxChoice *m_box_type;
 
     DECLARE_EVENT_TABLE()

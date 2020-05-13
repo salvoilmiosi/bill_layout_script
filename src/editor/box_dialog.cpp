@@ -30,8 +30,8 @@ box_dialog::box_dialog(wxWindow *parent, layout_box &box) :
     m_box_type->SetSelection(box.type);
     addLabelAndCtrl("Tipo:", m_box_type);
 
-    m_box_parser = new wxTextCtrl(this, wxID_ANY, box.parse_string, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
-    addLabelAndCtrl("Elementi:", m_box_parser, 1);
+    m_box_script = new wxTextCtrl(this, wxID_ANY, box.script, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+    addLabelAndCtrl("Script:", m_box_script, 1);
 
     wxStaticLine *line = new wxStaticLine(this, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
     sizer->Add(line, 0, wxGROW | wxALL, 5);
@@ -59,7 +59,7 @@ END_EVENT_TABLE()
 
 bool box_dialog::validateData() {
     if (m_box_name->GetValue().IsEmpty()) return false;
-    if (m_box_parser->GetValue().IsEmpty()) return false;
+    if (m_box_script->GetValue().IsEmpty()) return false;
     return true;
 }
 
@@ -67,7 +67,7 @@ void box_dialog::OnOK(wxCommandEvent &evt) {
     if (validateData()) {
         box.name = m_box_name->GetValue();
         box.type = static_cast<box_type>(m_box_type->GetSelection());
-        box.parse_string = m_box_parser->GetValue();
+        box.script = m_box_script->GetValue();
         evt.Skip();
     } else {
         wxBell();
@@ -76,7 +76,7 @@ void box_dialog::OnOK(wxCommandEvent &evt) {
 
 void box_dialog::OnClickHelp(wxCommandEvent &evt) {
     wxMessageBox(
-        "Inserire nel campo elementi gli identificatori dei vari elementi nel rettangolo, uno per riga.\n"
+        "Inserire nel campo script gli identificatori dei vari elementi nel rettangolo, uno per riga.\n"
         "Ogni identificatore deve essere una stringa unica e non deve iniziare per numero.\n"
         "I valori numerici sono identificati da un %, per esempio %totale_fattura\n"
         "I valori da saltare sono identificati da un #, per esempio #unita",

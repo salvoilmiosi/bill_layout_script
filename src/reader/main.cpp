@@ -17,6 +17,11 @@ int main(int argc, char **argv) {
 
     layout_bolletta layout;
     parser result;
+
+    if (argc >= 4 && strcmp(argv[3],"-d") == 0) {
+        result.debug = true;
+    }
+
     try {
         if (strcmp(file_bolletta,"-")==0) {
             std::cin >> layout;
