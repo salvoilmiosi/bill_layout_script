@@ -54,7 +54,9 @@ void read_file(std::ostream &out, const std::string &app_dir, const std::string 
     std::istringstream iss(output);
 
     Json::Value json_output;
-    if (iss >> json_output) {
+    try {
+        iss >> json_output;
+
         auto &json_values = json_output["values"];
         out << pdf << COMMA;
         out << json_values["numero_fattura"][0].asString() << COMMA;
@@ -80,6 +82,8 @@ void read_file(std::ostream &out, const std::string &app_dir, const std::string 
         }
 
         out << std::endl;
+    } catch(...) {
+        out << pdf << COMMA << output << std::endl;
     }
 }
 
@@ -127,11 +131,15 @@ int main(int argc, char **argv) {
             std::string ext = string_tolower(p.path().extension().string());
             if (ext == ".pdf") {
                 std::string pdf_file = p.path().string();
-                std::string file_layout = get_file_layout(app_dir, pdf_file, controllo_layout);
-                if (file_layout.empty()) {
-                    *out << pdf_file << COMMA << "Impossibile trovare il layout per questo file" << std::endl;
-                } else {
-                    read_file(*out, app_dir, pdf_file, file_layout);
+                try {
+                    std::string file_layout = get_file_layout(app_dir, pdf_file, controllo_layout);
+                    if (file_layout.empty()) {
+                        *out << pdf_file << COMMA << "Impossibile trovare il layout per questo file" << std::endl;
+                    } else {
+                        read_file(*out, app_dir, pdf_file, file_layout);
+                    }
+                } catch (pipe_error &error) {
+                    *out << pdf_file << COMMA << error.message << std::endl;
                 }
             }
         }
