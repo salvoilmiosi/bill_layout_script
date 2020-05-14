@@ -32,7 +32,7 @@ private:
     variable evaluate(const std::string &script, const std::string &value);
 
 private:
-    std::map<std::string, std::vector<variable>> m_values;
+    std::map<std::string, variable> m_values;
 };
 
 #endif

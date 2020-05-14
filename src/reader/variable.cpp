@@ -39,5 +39,5 @@ variable variable::operator * (const variable &other) const {
 }
 
 variable variable::operator / (const variable &other) const {
-    return number() * other.number();
+    return number() / other.number();
 }

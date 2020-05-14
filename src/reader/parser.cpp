@@ -7,9 +7,9 @@
 void parser::add_value(const std::string &name, const variable &value) {
     if (name.empty() || value.empty()) return;
     if (name.at(0) == '%') {
-        m_values[name.substr(1)].push_back(parse_number(value.str()));
+        m_values[name.substr(1)] = parse_number(value.str());
     } else {
-        m_values[name].push_back(value);
+        m_values[name] = value;
     }
 }
 
@@ -69,7 +69,7 @@ std::string parser::get_file_layout() {
     if (obj.empty()) {
         return "";
     } else {
-        return obj.at(0).str();
+        return obj.str();
     }
 }
 
@@ -96,30 +96,62 @@ function_parser::function_parser(const std::string &script) : script(script) {
     size_t brace_end = script.find_last_of(')');
     if (brace_end  == std::string::npos) throw parsing_error("Previsto ')'", script);
     name = script.substr(1, brace_start - 1);
-    const std::string &arg_string = script.substr(brace_start + 1, brace_end - brace_start - 1);
-    int arg_start = 0, arg_end;
+
+    std::string reading_arg;
     int bracecount = 0;
-    for (size_t i=0; i<arg_string.size(); ++i) {
-        switch(arg_string[i]) {
-        case '(':
-            ++bracecount;
-            break;
-        case ')':
-            --bracecount;
-            if (bracecount < 0) throw parsing_error("')' non previsto", script);
-            break;
-        case ',':
-            if (bracecount == 0) {
-                arg_end = i;
-                args.push_back(arg_string.substr(arg_start, arg_end - arg_start));
-                arg_start = arg_end + 1;
+    bool string_flag = false;
+    bool escape_flag = false;
+    for (size_t i = brace_start; i <= brace_end; ++i) {
+        if (string_flag) {
+            if (escape_flag) {
+                reading_arg += script[i];
+                escape_flag = false;
+            } else switch(script[i]) {
+            case '"':
+                string_flag = false;
+                break;
+            case '\\':
+                escape_flag = true;
+                break;
+            default:
+                reading_arg += script[i];
             }
-            break;
-        default:
-            break;
+        } else {
+            switch(script[i]) {
+            case '"':
+                string_flag = true;
+                break;
+            case '(':
+                ++bracecount;
+                if (bracecount != 1) {
+                    reading_arg += '(';
+                }
+                break;
+            case ')':
+                --bracecount;
+                if (bracecount == 0) {
+                    args.push_back(reading_arg);
+                    if (i < brace_end) {
+                        throw parsing_error("Valori non previsti dopo ')'", script);
+                    }
+                } else {
+                    reading_arg += ')';
+                }
+                break;
+            case ',':
+                if (bracecount == 1) {
+                    args.push_back(reading_arg);
+                    reading_arg.clear();
+                } else {
+                    reading_arg += ',';
+                }
+                break;
+            default:
+                reading_arg += script[i];
+                break;
+            }
         }
     }
-    args.push_back(arg_string.substr(arg_start));
 }
 
 variable parser::evaluate(const std::string &script, const std::string &value) {
@@ -129,18 +161,18 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
         auto it = m_values.find(script.substr(1));
         if (it == m_values.end()) break;
 
-        return it->second[0];
+        return it->second;
     }
     case '$':
     {
         function_parser function(script);
 
         if (function.is("search", 2)) {
-            return search_regex(function.args[0], evaluate(function.args[1], value).str());
+            return search_regex(evaluate(function.args[0], value).str(), evaluate(function.args[1], value).str());
         } else if (function.is("num")) {
             return variable(parse_number(evaluate(function.args[0], value).str()), VALUE_NUMBER);
         } else if (function.is("date", 2)) {
-            return parse_date(function.args[0], evaluate(function.args[1], value).str());
+            return parse_date(evaluate(function.args[0], value).str(), evaluate(function.args[1], value).str());
         } else if (function.is("if", 2)) {
             if (evaluate(function.args[0], value) != 0) return evaluate(function.args[1], value);
         } else if (function.is("ifnot", 2)) {
@@ -198,10 +230,7 @@ std::ostream & operator << (std::ostream &out, const parser &res) {
 
     for (auto &pair : res.m_values) {
         if(!res.debug && pair.first.at(0) == '#') continue;
-        auto &array = values[pair.first] = Json::arrayValue;
-        for (auto &value : pair.second) {
-            array.append(value.str());
-        }
+        values[pair.first] = pair.second.str();
     }
 
     return out << root << std::endl;

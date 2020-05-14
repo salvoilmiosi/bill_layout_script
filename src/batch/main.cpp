@@ -36,23 +36,23 @@ void read_file(std::ostream &out, const std::string &app_dir, const std::string 
 
         auto &json_values = json_output["values"];
         out << pdf << COMMA;
-        out << json_values["numero_fattura"][0].asString() << COMMA;
-        out << json_values["codice_pod"][0].asString() << COMMA;
-        out << json_values["numero_cliente"][0].asString() << COMMA;
-        out << json_values["ragione_sociale"][0].asString() << COMMA;
-        out << json_values["periodo"][0].asString() << COMMA;
-        out << json_values["totale_fattura"][0].asString() << COMMA;
-        out << json_values["spesa_materia_energia"][0].asString() << COMMA;
-        out << json_values["trasporto_gestione"][0].asString() << COMMA;
-        out << json_values["oneri"][0].asString() << COMMA;
-        out << json_values["energia_attiva"][0].asString() << COMMA;
-        out << json_values["energia_attiva"][1].asString() << COMMA;
-        out << json_values["energia_attiva"][2].asString() << COMMA;
-        out << json_values["energia_reattiva"][0].asString() << COMMA;
-        out << json_values["energia_reattiva"][1].asString() << COMMA;
-        out << json_values["energia_reattiva"][2].asString() << COMMA;
-        out << json_values["potenza"][0].asString() << COMMA;
-        out << json_values["imponibile"][0].asString();
+        out << json_values["numero_fattura"].asString() << COMMA;
+        out << json_values["codice_pod"].asString() << COMMA;
+        out << json_values["numero_cliente"].asString() << COMMA;
+        out << json_values["ragione_sociale"].asString() << COMMA;
+        out << json_values["periodo"].asString() << COMMA;
+        out << json_values["totale_fattura"].asString() << COMMA;
+        out << json_values["spesa_materia_energia"].asString() << COMMA;
+        out << json_values["trasporto_gestione"].asString() << COMMA;
+        out << json_values["oneri"].asString() << COMMA;
+        out << json_values["energia_attiva_f1"].asString() << COMMA;
+        out << json_values["energia_attiva_f2"].asString() << COMMA;
+        out << json_values["energia_attiva_f3"].asString() << COMMA;
+        out << json_values["energia_reattiva_r1"].asString() << COMMA;
+        out << json_values["energia_reattiva_r2"].asString() << COMMA;
+        out << json_values["energia_reattiva_r3"].asString() << COMMA;
+        out << json_values["potenza"].asString() << COMMA;
+        out << json_values["imponibile"].asString();
 
         if (json_values["ricalcoli"]) {
             out << COMMA << "CONGUAGLIO";
@@ -66,7 +66,7 @@ void read_file(std::ostream &out, const std::string &app_dir, const std::string 
 
 int main(int argc, char **argv) {
     if (argc < 4) {
-        std::cout << "Utilizzo: layout_batch input_directory controllo.bls output" << std::endl;
+        std::cout << "Utilizzo: layout_batch input_directory controllo.txt output" << std::endl;
         return 0;
     }
 
