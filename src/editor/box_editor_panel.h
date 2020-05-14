@@ -14,7 +14,7 @@ public:
     }
 
 protected:
-    bool render(wxDC &dc, bool clear = false) override;
+    bool render(wxDC &dc) override;
     void OnMouseDown(wxMouseEvent &evt);
     void OnMouseUp(wxMouseEvent &evt);
     void OnDoubleClick(wxMouseEvent &evt);

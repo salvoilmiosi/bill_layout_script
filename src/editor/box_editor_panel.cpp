@@ -22,7 +22,7 @@ static auto make_rect = [](wxPoint start_pt, wxPoint end_pt) {
     return rect;
 };
 
-bool box_editor_panel::render(wxDC &dc, bool clear) {
+bool box_editor_panel::render(wxDC &dc) {
     auto make_layout_rect = [&](auto &box) {
         wxRect rect;
         rect.x = box.x * getScaledWidth() - getScrollX();
@@ -32,7 +32,7 @@ bool box_editor_panel::render(wxDC &dc, bool clear) {
         return rect;
     };
 
-    if (wxImagePanel::render(dc, clear)) {
+    if (wxImagePanel::render(dc)) {
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         for (auto &box : app->layout.boxes) {
             if (box.page == app->getSelectedPage()) {
@@ -89,7 +89,7 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
             if (it != app->layout.boxes.end()) {
                 app->layout.boxes.erase(it);
                 app->updateLayout();
-                paintNow();
+                Refresh();
             }
             break;
         }
@@ -122,7 +122,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 box.h = rect.height / getScaledHeight();
                 box.page = app->getSelectedPage();
 
-                box_dialog diag(this, box);
+                box_dialog diag(app, box);
                 if (diag.ShowModal() == wxID_OK) {
                     app->layout.boxes.push_back(box);
                     app->updateLayout();
@@ -135,7 +135,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
             }
         }
 
-        paintNow(true);
+        Refresh();
     }
     evt.Skip();
 }
@@ -144,7 +144,7 @@ void box_editor_panel::OnDoubleClick(wxMouseEvent &evt) {
     switch (selected_tool) {
     case TOOL_SELECT:
         if (selected_box != app->layout.boxes.end()) {
-            box_dialog diag(this, *selected_box);
+            box_dialog diag(app, *selected_box);
             if (diag.ShowModal() == wxID_OK) {
                 app->updateLayout();
             }
@@ -173,7 +173,7 @@ void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {
         case TOOL_DELETEBOX:
             break;
         }
-        paintNow();
+        Refresh();
         if (evt.Leaving()) {
             OnMouseUp(evt);
         }

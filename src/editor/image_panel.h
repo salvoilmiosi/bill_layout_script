@@ -14,9 +14,7 @@ public:
     }
     void setImage(const wxImage &new_image);
 
-    void paintNow(bool clear = false);
-
-    void rescale(float factor);
+    void rescale(float factor, wxImageResizeQuality quality = wxIMAGE_QUALITY_NORMAL);
 
     int getScrollX() {
         return scrollx;
@@ -33,9 +31,9 @@ public:
     float getScaledHeight() {
         return scaled_height;
     }
-    
+
 protected:
-    virtual bool render(wxDC &dc, bool clear = false);
+    virtual bool render(wxDC &dc);
 
 private:
     virtual void OnPaint(wxPaintEvent &evt);
