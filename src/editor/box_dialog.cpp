@@ -6,32 +6,58 @@
 #include <wx/stattext.h>
 #include <wx/msgdlg.h>
 
-box_dialog::box_dialog(wxWindow *parent, layout_box &box) :
-    wxDialog(parent, wxID_ANY, "Opzioni rettangolo", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), box(box)
+#include "editor.h"
+#include "../shared/xpdf.h"
+#include "../shared/utils.h"
+
+enum {
+    BUTTON_TEST = 10001,
+};
+
+template<typename ... Ts>
+static void add_to(wxSizer *sizer, wxWindow *first, Ts * ... others) {
+    sizer->Add(first, 1, wxEXPAND | wxLEFT, 5);
+    if constexpr (sizeof...(others)>0) {
+        add_to(sizer, others ... );
+    }
+}
+
+box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
+    wxDialog(parent, wxID_ANY, "Opzioni rettangolo", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), box(box), app(parent)
 {
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
-    auto addLabelAndCtrl = [&](const wxString &labelText, wxWindow *ctrl, int proportion = 0) {
+    auto addLabelAndCtrl = [&](const wxString &labelText, int vprop, wxWindow *ctrl, auto* ... others) {
         wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
 
         wxStaticText *label = new wxStaticText(this, wxID_ANY, labelText, wxDefaultPosition, wxSize(60, -1), wxALIGN_RIGHT);
         hsizer->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-        hsizer->Add(ctrl, 1, wxEXPAND | wxLEFT, 5);
+        add_to(hsizer, ctrl, others ...);
 
-        sizer->Add(hsizer, proportion, wxEXPAND | wxALL, 5);
+        sizer->Add(hsizer, vprop, wxEXPAND | wxALL, 5);
     };
     
     m_box_name = new wxTextCtrl(this, wxID_ANY, box.name);
-    addLabelAndCtrl("Nome:", m_box_name);
+    m_box_name->SetValidator(wxTextValidator(wxFILTER_EMPTY));
+    addLabelAndCtrl("Nome:", 0, m_box_name);
 
     static const wxString box_types[] = {"Singolo elemento", "Elementi multipli", "Elementi per colonna", "Elementi per riga"};
     m_box_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, std::size(box_types), box_types);
+    m_box_type->SetToolTip("Specifica l'ordine in cui gli elementi vengono letti");
     m_box_type->SetSelection(box.type);
-    addLabelAndCtrl("Metodo lettura:", m_box_type);
 
-    m_box_script = new wxTextCtrl(this, wxID_ANY, box.script, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
-    addLabelAndCtrl("Script:", m_box_script, 1);
+    static const wxString box_modes[] = {"Lettura grezza", "Lettura incolonnata", "Lettura in tabella"};
+    m_box_mode = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, std::size(box_modes), box_modes);
+    m_box_mode->SetToolTip("Specifica il metodo di lettura");
+    m_box_mode->SetSelection(box.mode);
+
+    wxButton *testButton = new wxButton(this, BUTTON_TEST, "Leggi contenuto");
+    addLabelAndCtrl("Opzioni:", 0, m_box_type, m_box_mode, testButton);
+
+    m_box_script = new wxTextCtrl(this, wxID_ANY, box.script, wxDefaultPosition, wxSize(400, 200), wxTE_MULTILINE | wxTE_DONTWRAP);
+    m_box_name->SetValidator(wxTextValidator(wxFILTER_EMPTY));
+    addLabelAndCtrl("Script:", 1, m_box_script);
 
     wxStaticLine *line = new wxStaticLine(this, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
     sizer->Add(line, 0, wxGROW | wxALL, 5);
@@ -55,22 +81,16 @@ box_dialog::box_dialog(wxWindow *parent, layout_box &box) :
 BEGIN_EVENT_TABLE(box_dialog, wxDialog)
     EVT_BUTTON(wxID_OK, box_dialog::OnOK)
     EVT_BUTTON(wxID_HELP, box_dialog::OnClickHelp)
+    EVT_BUTTON(BUTTON_TEST, box_dialog::OnClickTest)
 END_EVENT_TABLE()
 
-bool box_dialog::validateData() {
-    if (m_box_name->GetValue().IsEmpty()) return false;
-    if (m_box_script->GetValue().IsEmpty()) return false;
-    return true;
-}
-
 void box_dialog::OnOK(wxCommandEvent &evt) {
-    if (validateData()) {
+    if (Validate()) {
         box.name = m_box_name->GetValue();
         box.type = static_cast<box_type>(m_box_type->GetSelection());
+        box.mode = static_cast<read_mode>(m_box_mode->GetSelection());
         box.script = m_box_script->GetValue();
         evt.Skip();
-    } else {
-        wxBell();
     }
 }
 
@@ -82,4 +102,15 @@ void box_dialog::OnClickHelp(wxCommandEvent &evt) {
         "I valori da saltare sono identificati da un #, per esempio #unita\n"
         "Consultare la documentazione per funzioni avanzate",
         "Aiuto elementi", wxICON_INFORMATION);
+}
+
+void box_dialog::OnClickTest(wxCommandEvent &evt) {
+    try {
+        auto copy(box);
+        copy.mode = static_cast<read_mode>(m_box_mode->GetSelection());
+        std::string text = pdf_to_text(get_app_path(), app->layout.pdf_filename, app->getPdfInfo(), copy);
+        wxMessageBox(implode(tokenize(text)), "Testo letto", wxICON_INFORMATION);
+    } catch (const xpdf_error &error) {
+        wxMessageBox(error.message, "Errore", wxICON_ERROR);
+    }
 }

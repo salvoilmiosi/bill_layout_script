@@ -9,20 +9,23 @@
 
 class box_dialog : public wxDialog {
 public:
-    box_dialog(wxWindow *parent, layout_box &box);
+    box_dialog(class frame_editor *parent, layout_box &box);
 
 private:
     bool validateData();
 
     void OnOK(wxCommandEvent &evt);
     void OnClickHelp(wxCommandEvent &evt);
+    void OnClickTest(wxCommandEvent &evt);
 
 private:
     layout_box &box;
+    class frame_editor *app;
 
     wxTextCtrl *m_box_name;
     wxTextCtrl *m_box_script;
     wxChoice *m_box_type;
+    wxChoice *m_box_mode;
 
     DECLARE_EVENT_TABLE()
 };

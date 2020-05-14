@@ -33,7 +33,8 @@ BEGIN_EVENT_TABLE(frame_editor, wxFrame)
     EVT_BUTTON (CTL_LOAD_PDF, OnLoadPdf)
     EVT_COMBOBOX (CTL_PAGE, OnPageSelect)
     EVT_TEXT_ENTER (CTL_PAGE, OnPageSelect)
-    EVT_SLIDER (CTL_SCALE, OnScaleChange)
+    EVT_COMMAND_SCROLL_THUMBTRACK (CTL_SCALE, OnScaleChange)
+    EVT_COMMAND_SCROLL_CHANGED (CTL_SCALE, OnScaleChangeFinal)
     EVT_TOOL (TOOL_SELECT, OnChangeTool)
     EVT_TOOL (TOOL_NEWBOX, OnChangeTool)
     EVT_TOOL (TOOL_DELETEBOX, OnChangeTool)
@@ -262,7 +263,7 @@ void frame_editor::updateLayout(bool addToHistory) {
             m_list_boxes->SetSelection(i);
         }
     }
-    m_image->paintNow();
+    m_image->Refresh();
 
     if (!history.empty()) {
         modified = true;
@@ -384,8 +385,12 @@ void frame_editor::OnPageSelect(wxCommandEvent &evt) {
     }
 }
 
-void frame_editor::OnScaleChange(wxCommandEvent &evt) {
+void frame_editor::OnScaleChange(wxScrollEvent &evt) {
     m_image->rescale(m_scale->GetValue() / 100.f);
+}
+
+void frame_editor::OnScaleChangeFinal(wxScrollEvent &evt) {
+    m_image->rescale(m_scale->GetValue() / 100.f, wxIMAGE_QUALITY_HIGH);
 }
 
 void frame_editor::OnChangeTool(wxCommandEvent &evt) {
@@ -405,7 +410,7 @@ void frame_editor::selectBox(int selection) {
     if (selection >= 0 && selection < (int) layout.boxes.size()) {
         setSelectedPage(layout.boxes[selection].page);
     }
-    m_image->paintNow();
+    m_image->Refresh();
 }
 
 void frame_editor::EditSelectedBox(wxCommandEvent &evt) {

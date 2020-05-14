@@ -6,6 +6,8 @@
 
 #include "pipe.h"
 
+static constexpr const char *modes[] = {"-raw", "-simple", "-table"};
+
 std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, const pdf_info &info, const pdf_rect &in_rect) {
     if (!std::filesystem::exists(pdf)) {
         throw xpdf_error(std::string("File \"") + pdf + "\" does not exist");
@@ -28,7 +30,7 @@ std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, cons
         "-f", page_str, "-l", page_str,
         "-marginl", marginl, "-marginr", marginr,
         "-margint", margint, "-marginb", marginb,
-        "-raw",
+        modes[in_rect.mode],
         pdf.c_str(), "-",
         nullptr
     };

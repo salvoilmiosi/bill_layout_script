@@ -83,14 +83,13 @@ std::string parse_date(std::string format, const std::string &value) {
     string_replace(format, "YEAR", "([0-9]{4})");
     std::regex expression(format);
     std::smatch match;
-    if (std::regex_match(value, match, expression)) {
+    if (std::regex_search(value, match, expression)) {
         std::string month = match.str(1);
         std::string year = match.str(2);
 
         if (is_month_str) {
-            string_tolower(month);
             for (size_t i=0; i<std::size(MONTHS); ++i) {
-                if (month.find(MONTHS[i]) != std::string::npos) {
+                if (string_tolower(month).find(MONTHS[i]) != std::string::npos) {
                     if (i < 9) {
                         month = std::string("0") + std::to_string(i + 1);
                     } else {

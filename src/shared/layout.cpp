@@ -38,6 +38,7 @@ std::ostream &operator << (std::ostream &out, const layout_bolletta &obj) {
         json_box["w"] = box.w;
         json_box["h"] = box.h;
         json_box["page"] = box.page;
+        json_box["mode"] = box.mode;
 
         json_boxes.append(json_box);
     }
@@ -69,6 +70,7 @@ std::istream &operator >> (std::istream &in, layout_bolletta &obj) {
                 box.w = json_box["w"].asFloat();
                 box.h = json_box["h"].asFloat();
                 box.page = json_box["page"].asInt();
+                box.mode = static_cast<read_mode>(json_box["mode"].asInt());
 
                 obj.boxes.push_back(box);
             }

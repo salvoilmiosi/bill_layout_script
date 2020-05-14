@@ -9,10 +9,17 @@ struct pdf_info {
     float height;
 };
 
+enum read_mode {
+    MODE_RAW,
+    MODE_SIMPLE,
+    MODE_TABLE,
+};
+
 struct pdf_rect {
     float x, y;
     float w, h;
     int page;
+    read_mode mode;
 };
 
 struct xpdf_error {

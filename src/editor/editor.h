@@ -42,6 +42,10 @@ public:
     bool save(bool saveAs = false);
     bool saveIfModified();
 
+    const pdf_info &getPdfInfo() {
+        return info;
+    }
+
     layout_bolletta layout;
 
 private:
@@ -57,7 +61,8 @@ private:
     void OnPaste        (wxCommandEvent &evt);
     void OnLoadPdf      (wxCommandEvent &evt);
     void OnPageSelect   (wxCommandEvent &evt);
-    void OnScaleChange  (wxCommandEvent &evt);
+    void OnScaleChange  (wxScrollEvent &evt);
+    void OnScaleChangeFinal (wxScrollEvent &evt);
     void OnChangeTool   (wxCommandEvent &evt);
     void OnSelectBox    (wxCommandEvent &evt);
     void EditSelectedBox(wxCommandEvent &evt);
