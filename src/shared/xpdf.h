@@ -19,7 +19,7 @@ struct pdf_rect {
     float x, y;
     float w, h;
     int page;
-    read_mode mode;
+    read_mode mode = MODE_RAW;
 };
 
 struct xpdf_error {

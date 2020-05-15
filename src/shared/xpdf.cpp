@@ -7,7 +7,7 @@
 #include "pipe.h"
 #include "utils.h"
 
-static constexpr const char *modes[] = {"-raw", "-simple", "-table"};
+static const char *modes[] = {"-raw", "-simple", "-table"};
 
 std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, const pdf_info &info, const pdf_rect &in_rect) {
     if (!std::filesystem::exists(pdf)) {

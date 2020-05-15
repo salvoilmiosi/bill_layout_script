@@ -1,6 +1,7 @@
 #include "pdf_to_image.h"
 
 #include <filesystem>
+#include <iostream>
 
 #include "../shared/pipe.h"
 
@@ -28,6 +29,7 @@ wxImage pdf_to_image(const std::string &app_dir, const std::string &pdf, int pag
     };
 
     std::string output = open_process(args)->read_all();
+    std::cout << output << std::endl;
 
     char base_filename[32];
     snprintf(base_filename, 32, "temp-%06d.png", page);

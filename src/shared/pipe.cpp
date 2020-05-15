@@ -46,7 +46,7 @@ unix_process_rwops::unix_process_rwops(const char *args[]) {
         ::close(pipe_stdout[PIPE_READ]);
         ::close(pipe_stdout[PIPE_WRITE]);
 
-        int result = execv(args[0], (char *const*)args);
+        int result = execv(args[0], const_cast<char *const*>(args));
 
         exit(result);
     } else {
@@ -56,7 +56,8 @@ unix_process_rwops::unix_process_rwops(const char *args[]) {
 }
 
 unix_process_rwops::~unix_process_rwops() {
-    close();
+    close_stdin();
+    close_stdout();
 }
 
 int unix_process_rwops::read(size_t bytes, void *buffer) {
