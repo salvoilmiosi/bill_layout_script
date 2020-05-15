@@ -1,0 +1,4 @@
+layout=$if($contains(@,Axpo Italia SpA),axpo.bls)
+layout=$if($contains(@,Enel Energia),enel.bls)
+layout=$if($contains(@,ITALPOWER ENERGIA),italpower.bls)
+layout=$if($contains(@,Sorgenia S.p.A),sorgenia.bls)

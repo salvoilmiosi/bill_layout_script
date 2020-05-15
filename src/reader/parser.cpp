@@ -185,19 +185,19 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
         } else if (function.is("date", 2)) {
             return parse_date(evaluate(function.args[0], value).str(), evaluate(function.args[1], value).str());
         } else if (function.is("if", 2)) {
-            if (evaluate(function.args[0], value) != 0) return evaluate(function.args[1], value);
+            if (evaluate(function.args[0], value)) return evaluate(function.args[1], value);
         } else if (function.is("ifnot", 2)) {
-            if (evaluate(function.args[0], value) == 0) return evaluate(function.args[1], value);
+            if (!evaluate(function.args[0], value)) return evaluate(function.args[1], value);
         } else if (function.is("not")) {
-            return evaluate(function.args[0], value) == 0;
+            return !evaluate(function.args[0], value);
         } else if (function.is("eq", 2)) {
             return evaluate(function.args[0], value) == evaluate(function.args[1], value);
         } else if (function.is("neq", 2)) {
             return evaluate(function.args[0], value) != evaluate(function.args[1], value);
         } else if (function.is("and", 2)) {
-            return (evaluate(function.args[0], value) != 0) && (evaluate(function.args[1], value) != 0);
+            return evaluate(function.args[0], value) && evaluate(function.args[1], value);
         } else if (function.is("or", 2)) {
-            return (evaluate(function.args[0], value) != 0) || (evaluate(function.args[1], value) != 0);
+            return evaluate(function.args[0], value) || evaluate(function.args[1], value);
         } else if (function.is("contains", 2)) {
             return evaluate(function.args[0], value).str().find(evaluate(function.args[1], value).str()) != std::string::npos;
         } else if (function.is("add", 2)) {

@@ -3,6 +3,17 @@
 #include <iomanip>
 #include <sstream>
 
+variable::operator bool() const {
+    switch(m_type) {
+    case VALUE_STRING:
+        return !m_value.empty();
+    case VALUE_NUMBER:
+        return number() != fixed_point(0);
+    default:
+        return false;
+    }
+}
+
 bool variable::operator == (const variable &other) const {
     switch(other.m_type) {
     case VALUE_STRING:

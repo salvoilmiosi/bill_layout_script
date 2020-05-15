@@ -1,0 +1,153 @@
+{
+	"layout" : 
+	{
+		"boxes" : 
+		[
+			{
+				"h" : 0.15829364955425262,
+				"mode" : 0,
+				"name" : "Sintesi valori",
+				"page" : 1,
+				"script" : "%spesa_materia_energia=$search(Spesa per l'energia \\(.\\) $NUMBER,@)\n%trasporto_gestione=$search(Spesa per il trasporto dell'energia elettrica e la gestione del contatore \\(.\\) $NUMBER,@)\n%oneri=$search(Spesa oneri di sistema \\(.\\) $NUMBER,@)\n%ricalcoli=$search(Ricalcoli \\(.\\) $NUMBER,@)\nconguaglio=$if(&ricalcoli,1)",
+				"type" : 0,
+				"w" : 0.44876658916473389,
+				"x" : 0.075901329517364502,
+				"y" : 0.491649329662323
+			},
+			{
+				"h" : 0.16947562992572784,
+				"mode" : 0,
+				"name" : "Imponibile",
+				"page" : 1,
+				"script" : "%imponibile=$search(imponibile di euro $NUMBER,@)",
+				"type" : 0,
+				"w" : 0.61533361673355103,
+				"x" : 0.043979227542877197,
+				"y" : 0.67284953594207764
+			},
+			{
+				"h" : 0.035925712436437607,
+				"mode" : 0,
+				"name" : "Totale Fattura",
+				"page" : 1,
+				"script" : "%totale_fattura",
+				"type" : 0,
+				"w" : 0.21763145923614502,
+				"x" : 0.51906633377075195,
+				"y" : 0.36861985921859741
+			},
+			{
+				"h" : 0.021086830645799637,
+				"mode" : 0,
+				"name" : "Numero cliente",
+				"page" : 1,
+				"script" : "numero_cliente",
+				"type" : 0,
+				"w" : 0.20437471568584442,
+				"x" : 0.054131682962179184,
+				"y" : 0.35300916433334351
+			},
+			{
+				"h" : 0.017962856218218803,
+				"mode" : 0,
+				"name" : "Codice POD",
+				"page" : 1,
+				"script" : "codice_pod",
+				"type" : 0,
+				"w" : 0.20768891274929047,
+				"x" : 0.055236410349607468,
+				"y" : 0.39127784967422485
+			},
+			{
+				"h" : 0.012495899572968483,
+				"mode" : 0,
+				"name" : "Numero fattura",
+				"page" : 1,
+				"script" : "numero_fattura",
+				"type" : 0,
+				"w" : 0.15355722606182098,
+				"x" : 0.34577992558479309,
+				"y" : 0.38737288117408752
+			},
+			{
+				"h" : 0.031239748001098633,
+				"mode" : 0,
+				"name" : "Ragione sociale",
+				"page" : 1,
+				"script" : "ragione_sociale",
+				"type" : 0,
+				"w" : 0.39770215749740601,
+				"x" : 0.50154662132263184,
+				"y" : 0.18353351950645447
+			},
+			{
+				"h" : 0.014693954028189182,
+				"mode" : 0,
+				"name" : "Etichetta energia attiva",
+				"page" : 2,
+				"script" : "#label_attiva=$if($eq(@,Consumo rilevato),1)",
+				"type" : 0,
+				"w" : 0.15713335573673248,
+				"x" : 0.22520256042480469,
+				"y" : 0.089927002787590027
+			},
+			{
+				"h" : 0.059695485979318619,
+				"mode" : 0,
+				"name" : "Energia attiva",
+				"page" : 2,
+				"script" : "%energia_attiva+=$if(&#label_attiva,@)",
+				"type" : 2,
+				"w" : 0.092030361294746399,
+				"x" : 0.29032257199287415,
+				"y" : 0.11469581723213196
+			},
+			{
+				"h" : 0.014693954028189182,
+				"mode" : 0,
+				"name" : "Etichetta energia reattiva",
+				"page" : 2,
+				"script" : "#label_reattiva=$if($eq(@,Consumo rilevato reattiva),1)",
+				"type" : 0,
+				"w" : 0.15713335573673248,
+				"x" : 0.39158627390861511,
+				"y" : 0.089927002787590027
+			},
+			{
+				"h" : 0.059695485979318619,
+				"mode" : 0,
+				"name" : "Energia reattiva",
+				"page" : 2,
+				"script" : "%energia_reattiva+=$if(&#label_reattiva,@)",
+				"type" : 2,
+				"w" : 0.092030361294746399,
+				"x" : 0.4563567042350769,
+				"y" : 0.11536654829978943
+			},
+			{
+				"h" : 0.020122073590755463,
+				"mode" : 0,
+				"name" : "Periodo",
+				"page" : 1,
+				"script" : "periodo=$date(MON\\. YEAR,@)",
+				"type" : 0,
+				"w" : 0.22106261551380157,
+				"x" : 0.2798861563205719,
+				"y" : 0.43061238527297974
+			},
+			{
+				"h" : 0.037628278136253357,
+				"mode" : 0,
+				"name" : "Potenza",
+				"page" : 2,
+				"script" : "%potenza=$search(Potenza fatturata kW $NUMBER,@)",
+				"type" : 0,
+				"w" : 0.16129031777381897,
+				"x" : 0.21935483813285828,
+				"y" : 0.2428734302520752
+			}
+		],
+		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\enel1.pdf"
+	},
+	"version" : 1
+}

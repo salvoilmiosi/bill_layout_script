@@ -38,6 +38,8 @@ public:
         return m_value.empty();
     }
 
+    operator bool() const;
+
     bool operator == (const variable &other) const;
     bool operator != (const variable &other) const;
     bool operator < (const variable &other) const;

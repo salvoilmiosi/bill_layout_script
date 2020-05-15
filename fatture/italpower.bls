@@ -1,0 +1,109 @@
+{
+	"layout" : 
+	{
+		"boxes" : 
+		[
+			{
+				"h" : 0.037628278136253357,
+				"mode" : 0,
+				"name" : "Periodo",
+				"page" : 1,
+				"script" : "periodo=$date(MONTH YEAR$,@)\nconguaglio=$if($search(([a-zA-Z]+ [0-9]{4} [a-zA-Z]+ [0-9]{4})$,@),1)",
+				"type" : 0,
+				"w" : 0.96612900495529175,
+				"x" : 0.014413177967071533,
+				"y" : 0.26376184821128845
+			},
+			{
+				"h" : 0.025845685973763466,
+				"mode" : 0,
+				"name" : "Numero fattura",
+				"page" : 1,
+				"script" : "numero_fattura",
+				"type" : 0,
+				"w" : 0.17204301059246063,
+				"x" : 0.13978494703769684,
+				"y" : 0.31090840697288513
+			},
+			{
+				"h" : 0.2596382200717926,
+				"mode" : 0,
+				"name" : "Sintesi valori pre maggio 2019",
+				"page" : 1,
+				"script" : "%spesa_materia_energia=$search(Servizi di Vendita $NUMBER,@)\n%trasporto_gestione=$search(Servizi di Rete $NUMBER,@)\n%imponibile=$search(Imponibile $NUMBER,@)\n%totale_fattura=$search(Totale Fattura $NUMBER,@)",
+				"type" : 0,
+				"w" : 0.33129903674125671,
+				"x" : 0.33238881826400757,
+				"y" : 0.3058646023273468
+			},
+			{
+				"h" : 0.27987974882125854,
+				"mode" : 0,
+				"name" : "Sintesi valori",
+				"page" : 1,
+				"script" : "%spesa_materia_energia=$search(Spesa per la materia energia $NUMBER,@)\n%trasporto_gestione=$search(\"Spesa per il trasporto, gestione contatore e oneri di sistema $NUMBER\",@)\n%imponibile=$search(Imponibile $NUMBER,@)\n%totale_fattura=$search(Totale Fattura $NUMBER,@)",
+				"type" : 0,
+				"w" : 0.48387095332145691,
+				"x" : 0.50219941139221191,
+				"y" : 0.3014754056930542
+			},
+			{
+				"h" : 0.012752804905176163,
+				"mode" : 0,
+				"name" : "Energia attiva",
+				"page" : 2,
+				"script" : "%energia_attiva+",
+				"type" : 3,
+				"w" : 0.22389644384384155,
+				"x" : 0.69715625047683716,
+				"y" : 0.13728019595146179
+			},
+			{
+				"h" : 0.012752804905176163,
+				"mode" : 0,
+				"name" : "Energia reattiva",
+				"page" : 2,
+				"script" : "%energia_reattiva+",
+				"type" : 3,
+				"w" : 0.22389644384384155,
+				"x" : 0.69927853345870972,
+				"y" : 0.18604092299938202
+			},
+			{
+				"h" : 0.013502970337867737,
+				"mode" : 0,
+				"name" : "Potenza",
+				"page" : 2,
+				"script" : "%potenza\npotenza=$max(&potenza,$num(@))\npotenza=$max(&potenza,$num(@))",
+				"type" : 1,
+				"w" : 0.22283531725406647,
+				"x" : 0.69927847385406494,
+				"y" : 0.17328812181949615
+			},
+			{
+				"h" : 0.25766709446907043,
+				"mode" : 0,
+				"name" : "Dati cliente",
+				"page" : 1,
+				"script" : "numero_cliente=$search(Codice cliente (.+)\\n,@)\nragione_sociale=$search(Ragione sociale (.+)\\n,@)",
+				"type" : 0,
+				"w" : 0.98031002283096313,
+				"x" : 0.016757436096668243,
+				"y" : 0.57456797361373901
+			},
+			{
+				"h" : 0.020524514839053154,
+				"mode" : 0,
+				"name" : "Codice POD",
+				"page" : 2,
+				"script" : "codice_pod",
+				"type" : 0,
+				"w" : 0.29516127705574036,
+				"x" : 0.20483870804309845,
+				"y" : 0.12314709275960922
+			}
+		],
+		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\italpower\\2019\\09. Settembre 2019.pdf"
+	},
+	"version" : 1
+}

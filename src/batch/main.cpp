@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
     }
 
     *out << "Nome file" << COMMA << "Numero Fattura" << COMMA << "Codice POD" << COMMA << "Numero cliente" << COMMA << "Ragione sociale" << COMMA <<
-        "Totale fattura" << COMMA << "Periodo fattura" << COMMA <<  "Spesa materia energia" << COMMA << "Trasporto gestione" << COMMA <<
+        "Periodo fattura" << COMMA << "Totale fattura" << COMMA <<  "Spesa materia energia" << COMMA << "Trasporto gestione" << COMMA <<
         "Oneri di sistema" << COMMA << "F1" << COMMA << "F2" << COMMA << "F3" << COMMA <<
         "R1" << COMMA << "R2" << COMMA << "R3" << COMMA << "Potenza" << COMMA << "Imponibile" << std::endl;
 
