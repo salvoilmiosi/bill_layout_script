@@ -19,7 +19,10 @@ std::string implode(const std::vector<std::string> &vec, const std::string &sepa
 int string_replace(std::string &str, const std::string &from, const std::string &to);
 
 // restituisce una copia in minuscolo della stringa di input
-std::string string_tolower(std::string str);
+std::string &string_tolower(std::string &str);
+
+// elimina gli spazi in eccesso
+std::string &string_trim(std::string &str);
 
 // converte un numero dal formato italiano al formato universale (trasforma virgole in punti)
 std::string parse_number(const std::string &value);

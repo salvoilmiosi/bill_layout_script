@@ -1,5 +1,7 @@
 #include "pipe.h"
 
+#include <algorithm>
+
 #ifdef __linux__
 #include <unistd.h>
 

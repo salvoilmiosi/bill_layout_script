@@ -25,6 +25,10 @@ static void add_to(wxSizer *sizer, wxWindow *first, Ts * ... others) {
 box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     wxDialog(parent, wxID_ANY, "Opzioni rettangolo", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), box(box), app(parent)
 {
+    wxBoxSizer *top_level = new wxBoxSizer(wxVERTICAL);
+
+    wxBoxSizer *hsplit = new wxBoxSizer(wxHORIZONTAL);
+
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
     auto addLabelAndCtrl = [&](const wxString &labelText, int vprop, wxWindow *ctrl, auto* ... others) {
@@ -55,12 +59,21 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     wxButton *testButton = new wxButton(this, BUTTON_TEST, "Leggi contenuto");
     addLabelAndCtrl("Opzioni:", 0, m_box_type, m_box_mode, testButton);
 
-    m_box_script = new wxTextCtrl(this, wxID_ANY, box.script, wxDefaultPosition, wxSize(400, 200), wxTE_MULTILINE | wxTE_DONTWRAP);
+    m_box_script = new wxTextCtrl(this, wxID_ANY, box.script, wxDefaultPosition, wxSize(300, 200), wxTE_MULTILINE | wxTE_DONTWRAP);
     m_box_name->SetValidator(wxTextValidator(wxFILTER_EMPTY));
     addLabelAndCtrl("Script:", 1, m_box_script);
 
+    hsplit->Add(sizer, 1, wxEXPAND | wxALL, 5);
+
+    reader_output = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(300, -1), wxTE_MULTILINE);
+    reader_output->SetEditable(false);
+    
+    hsplit->Add(reader_output, 1, wxEXPAND | wxALL, 5);
+
+    top_level->Add(hsplit, 1, wxEXPAND | wxALL, 5);
+
     wxStaticLine *line = new wxStaticLine(this, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-    sizer->Add(line, 0, wxGROW | wxALL, 5);
+    top_level->Add(line, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *okCancelSizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -73,9 +86,9 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     wxButton *helpButton = new wxButton(this, wxID_HELP, "Aiuto");
     okCancelSizer->Add(helpButton, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    sizer->Add(okCancelSizer, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
+    top_level->Add(okCancelSizer, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
 
-    SetSizerAndFit(sizer);
+    SetSizerAndFit(top_level);
 }
 
 BEGIN_EVENT_TABLE(box_dialog, wxDialog)
@@ -95,21 +108,23 @@ void box_dialog::OnOK(wxCommandEvent &evt) {
 }
 
 void box_dialog::OnClickHelp(wxCommandEvent &evt) {
-    wxMessageBox(
+    reader_output->SetValue(
         "Inserire nel campo script gli identificatori dei vari elementi nel rettangolo, uno per riga.\n"
         "Ogni identificatore deve essere una stringa unica e non deve iniziare per numero.\n"
         "I valori numerici sono identificati da un %, per esempio %totale_fattura\n"
         "I valori da saltare sono identificati da un #, per esempio #unita\n"
-        "Consultare la documentazione per funzioni avanzate",
-        "Aiuto elementi", wxICON_INFORMATION);
+        "Consultare la documentazione per funzioni avanzate");
 }
+
+#include <json/json.h>
 
 void box_dialog::OnClickTest(wxCommandEvent &evt) {
     try {
         auto copy(box);
         copy.mode = static_cast<read_mode>(m_box_mode->GetSelection());
         std::string text = pdf_to_text(get_app_path(), app->layout.pdf_filename, app->getPdfInfo(), copy);
-        wxMessageBox(implode(tokenize(text)), "Testo letto", wxICON_INFORMATION);
+        Json::Value value = text;
+        reader_output->SetValue(value.toStyledString());
     } catch (const xpdf_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);
     }

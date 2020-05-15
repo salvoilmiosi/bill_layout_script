@@ -5,6 +5,7 @@
 #include <cstdio>
 
 #include "pipe.h"
+#include "utils.h"
 
 static constexpr const char *modes[] = {"-raw", "-simple", "-table"};
 
@@ -35,7 +36,8 @@ std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, cons
         nullptr
     };
 
-    return open_process(args)->read_all();
+    std::string out = open_process(args)->read_all();
+    return string_trim(out);
 }
 
 std::string pdf_whole_file_to_text(const std::string &app_dir, const std::string &pdf) {
@@ -53,7 +55,8 @@ std::string pdf_whole_file_to_text(const std::string &app_dir, const std::string
         nullptr
     };
 
-    return open_process(args)->read_all();
+    std::string out = open_process(args)->read_all();
+    return string_trim(out);
 }
 
 pdf_info pdf_get_info(const std::string &app_dir, const std::string &pdf) {

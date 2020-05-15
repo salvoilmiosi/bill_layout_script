@@ -36,25 +36,25 @@ void read_file(std::ostream &out, const std::string &app_dir, const std::string 
 
         auto &json_values = json_output["values"];
         out << pdf << COMMA;
-        out << json_values["numero_fattura"].asString() << COMMA;
-        out << json_values["codice_pod"].asString() << COMMA;
-        out << json_values["numero_cliente"].asString() << COMMA;
-        out << json_values["ragione_sociale"].asString() << COMMA;
-        out << json_values["periodo"].asString() << COMMA;
-        out << json_values["totale_fattura"].asString() << COMMA;
-        out << json_values["spesa_materia_energia"].asString() << COMMA;
-        out << json_values["trasporto_gestione"].asString() << COMMA;
-        out << json_values["oneri"].asString() << COMMA;
-        out << json_values["energia_attiva_f1"].asString() << COMMA;
-        out << json_values["energia_attiva_f2"].asString() << COMMA;
-        out << json_values["energia_attiva_f3"].asString() << COMMA;
-        out << json_values["energia_reattiva_r1"].asString() << COMMA;
-        out << json_values["energia_reattiva_r2"].asString() << COMMA;
-        out << json_values["energia_reattiva_r3"].asString() << COMMA;
-        out << json_values["potenza"].asString() << COMMA;
-        out << json_values["imponibile"].asString();
+        out << json_values["numero_fattura"][0].asString() << COMMA;
+        out << json_values["codice_pod"][0].asString() << COMMA;
+        out << json_values["numero_cliente"][0].asString() << COMMA;
+        out << json_values["ragione_sociale"][0].asString() << COMMA;
+        out << json_values["periodo"][0].asString() << COMMA;
+        out << json_values["totale_fattura"][0].asString() << COMMA;
+        out << json_values["spesa_materia_energia"][0].asString() << COMMA;
+        out << json_values["trasporto_gestione"][0].asString() << COMMA;
+        out << json_values["oneri"][0].asString() << COMMA;
+        out << json_values["energia_attiva"][0].asString() << COMMA;
+        out << json_values["energia_attiva"][1].asString() << COMMA;
+        out << json_values["energia_attiva"][2].asString() << COMMA;
+        out << json_values["energia_reattiva"][0].asString() << COMMA;
+        out << json_values["energia_reattiva"][1].asString() << COMMA;
+        out << json_values["energia_reattiva"][2].asString() << COMMA;
+        out << json_values["potenza"][0].asString() << COMMA;
+        out << json_values["imponibile"][0].asString();
 
-        if (json_values["ricalcoli"]) {
+        if (json_values["conguaglio"]) {
             out << COMMA << "CONGUAGLIO";
         }
 
@@ -108,7 +108,8 @@ int main(int argc, char **argv) {
 
     for (auto &p : fs::recursive_directory_iterator(input_directory)) {
         if (p.is_regular_file()) {
-            std::string ext = string_tolower(p.path().extension().string());
+            std::string ext = p.path().extension().string();
+            string_tolower(ext);
             if (ext == ".pdf") {
                 std::string pdf_file = p.path().string();
                 read_file(*out, app_dir, pdf_file, layout_string, layout_dir);

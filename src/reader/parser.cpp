@@ -6,10 +6,18 @@
 
 void parser::add_value(const std::string &name, const variable &value) {
     if (name.empty() || value.empty()) return;
-    if (name.at(0) == '%') {
-        m_values[name.substr(1)] = parse_number(value.str());
+    if (name.at(name.size()-1) == '+') {
+        if (name.at(0) == '%') {
+            m_values[name.substr(1, name.size()-2)].emplace_back(parse_number(value.str()), VALUE_NUMBER);
+        } else {
+            m_values[name.substr(0, name.size()-1)].push_back(value);
+        }
     } else {
-        m_values[name] = value;
+        if (name.at(0) == '%') {
+            m_values[name.substr(1)] = {variable(parse_number(value.str()), VALUE_NUMBER)};
+        } else {
+            m_values[name] = {value};
+        }
     }
 }
 
@@ -26,33 +34,36 @@ void parser::add_entry(const std::string &script, const std::string &value) {
 
 void parser::read_box(const layout_box &box, const std::string &text) {
     std::vector<std::string> scripts = read_lines(box.script);
-    std::vector<std::string> values = tokenize(text);
 
-    switch(box.type) {
-    case BOX_SINGLE:
+    if (box.type == BOX_SINGLE) {
         for (auto &script : scripts) {
-            add_entry(script, implode(values));
+            add_entry(script, text);
         }
-        break;
-    case BOX_MULTIPLE:
-        for (size_t i = 0; i < scripts.size() && i < values.size(); ++i) {
-            add_entry(scripts[i], values[i]);
-        }
-        break;
-    case BOX_COLUMNS:
-        for (size_t i = 0; i < values.size();++i) {
-            add_entry(scripts[i % scripts.size()], values[i]);
-        }
-        break;
-    case BOX_ROWS:
-        for (size_t i = 0; i < values.size();++i) {
-            int row_len = values.size() / scripts.size();
-            if (row_len < 1) row_len = 1;
-            if (i / row_len < scripts.size()) {
-                add_entry(scripts[i / row_len], values[i]);
+    } else {
+        std::vector<std::string> values = tokenize(text);
+        switch(box.type) {
+        case BOX_SINGLE:
+            break;
+        case BOX_MULTIPLE:
+            for (size_t i = 0; i < scripts.size() && i < values.size(); ++i) {
+                add_entry(scripts[i], values[i]);
             }
+            break;
+        case BOX_COLUMNS:
+            for (size_t i = 0; i < values.size();++i) {
+                add_entry(scripts[i % scripts.size()], values[i]);
+            }
+            break;
+        case BOX_ROWS:
+            for (size_t i = 0; i < values.size();++i) {
+                int row_len = values.size() / scripts.size();
+                if (row_len < 1) row_len = 1;
+                if (i / row_len < scripts.size()) {
+                    add_entry(scripts[i / row_len], values[i]);
+                }
+            }
+            break;
         }
-        break;
     }
 }
 
@@ -69,7 +80,7 @@ std::string parser::get_file_layout() {
     if (obj.empty()) {
         return "";
     } else {
-        return obj.str();
+        return obj.at(0).str();
     }
 }
 
@@ -161,7 +172,7 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
         auto it = m_values.find(script.substr(1));
         if (it == m_values.end()) break;
 
-        return it->second;
+        return it->second[0];
     }
     case '$':
     {
@@ -214,8 +225,7 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
     case '%':
         return evaluate(script.substr(1), value).number();
     case '@':
-        if (script.size() > 1) throw parsing_error("Valore non previsto dopo '@'", script);
-        return value;
+        return value + script.substr(1);
     default:
         return script;
     }
@@ -230,7 +240,10 @@ std::ostream & operator << (std::ostream &out, const parser &res) {
 
     for (auto &pair : res.m_values) {
         if(!res.debug && pair.first.at(0) == '#') continue;
-        values[pair.first] = pair.second.str();
+        auto &json_arr = values[pair.first] = Json::arrayValue;
+        for (auto &val : pair.second) {
+            json_arr.append(val.str());
+        }
     }
 
     return out << root << std::endl;

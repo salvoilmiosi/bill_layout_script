@@ -38,11 +38,18 @@ std::string implode(const std::vector<std::string> &vec, const std::string &sepa
     return out;
 };
 
-std::string string_tolower(std::string str) {
+std::string &string_tolower(std::string &str) {
     std::transform(str.begin(), str.end(), str.begin(),
         [](unsigned char c) {
             return std::tolower(c);
         });
+    return str;
+}
+
+std::string &string_trim(std::string &str) {
+    string_replace(str, "\r\n", "\n");
+    str.erase(0, str.find_first_not_of("\t\n\v\f\r "));
+    str.erase(str.find_last_not_of("\t\n\v\f\r ") + 1);
     return str;
 }
 
@@ -87,9 +94,11 @@ std::string parse_date(std::string format, const std::string &value) {
         std::string month = match.str(1);
         std::string year = match.str(2);
 
+        string_tolower(month);
+
         if (is_month_str) {
             for (size_t i=0; i<std::size(MONTHS); ++i) {
-                if (string_tolower(month).find(MONTHS[i]) != std::string::npos) {
+                if (month.find(MONTHS[i]) != std::string::npos) {
                     if (i < 9) {
                         month = std::string("0") + std::to_string(i + 1);
                     } else {
@@ -107,8 +116,9 @@ std::string parse_date(std::string format, const std::string &value) {
 }
 
 std::string search_regex(std::string format, const std::string &value) {
+    string_replace(format, " ", "[ \\t\\r\\n\\v\\f]+");
     string_replace(format, "$NUMBER", "([0-9\\.,\\-]+)");
-    std::regex expression(format, std::regex_constants::icase);
+    std::regex expression(format, std::regex::icase);
     std::smatch match;
     if (std::regex_search(value, match, expression)) {
         return match.str(1);

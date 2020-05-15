@@ -57,7 +57,7 @@ $(OBJ_DIR)/images.o : $(IMAGES)
 	$(LD) -r -b binary -o $@ $^
 
 $(OBJ_DIR)/%.res : resources/%.rc
-	windres $(INCLUDE) -O coff -o $@ -i $< 
+	windres -I/mingw64/lib/wx/include/msw-unicode-3.0 -I/mingw64/include/wx-3.0 -O coff -o $@ -i $< 
 
 reader: $(BIN_DIR)/$(BIN_READER)
 $(BIN_DIR)/$(BIN_READER): $(OBJECTS_READER) $(OBJECTS_SHARED)
