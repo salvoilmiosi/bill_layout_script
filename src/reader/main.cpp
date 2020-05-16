@@ -6,6 +6,11 @@
 #include "../shared/xpdf.h"
 
 int main(int argc, char **argv) {
+    if (argc < 4) {
+        std::cerr << "Utilizzo: layout_reader file.pdf file.bls/[file.txt -f dir_layout]" << std::endl;
+        return 0;
+    }
+
     std::string app_dir = argv[0];
     app_dir = app_dir.substr(0, app_dir.find_last_of("\\/"));
 

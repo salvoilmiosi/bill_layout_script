@@ -75,7 +75,7 @@
 				"name" : "Potenza",
 				"page" : 2,
 				"script" : "%potenza\npotenza=$max(&potenza,$num(@))\npotenza=$max(&potenza,$num(@))",
-				"type" : 1,
+				"type" : 3,
 				"w" : 0.22283531725406647,
 				"x" : 0.69927847385406494,
 				"y" : 0.17328812181949615
@@ -103,7 +103,7 @@
 				"y" : 0.12314709275960922
 			}
 		],
-		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\italpower\\2019\\09. Settembre 2019.pdf"
+		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\italpower.pdf"
 	},
 	"version" : 1
 }

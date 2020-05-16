@@ -6,6 +6,8 @@
 #include <wx/stattext.h>
 #include <wx/msgdlg.h>
 
+#include <json/json.h>
+
 #include "editor.h"
 #include "../shared/xpdf.h"
 #include "../shared/utils.h"
@@ -119,8 +121,6 @@ void box_dialog::OnClickHelp(wxCommandEvent &evt) {
         "I valori da saltare sono identificati da un #, per esempio #unita\n"
         "Consultare la documentazione per funzioni avanzate");
 }
-
-#include <json/json.h>
 
 void box_dialog::OnClickTest(wxCommandEvent &evt) {
     try {
