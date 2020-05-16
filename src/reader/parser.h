@@ -16,9 +16,14 @@ struct parsing_error {
     parsing_error(const std::string &message, const std::string &line = "") : message(message), line(line) {}
 };
 
+struct spacer {
+    float w, h;
+    spacer(float w, float h) : w(w), h(h) {}
+};
+
 class parser {
 public:
-    void read_box(const layout_box &box, const std::string &text);
+    void read_box(const std::string &app_dir, const std::string &file_pdf, const pdf_info &info, const layout_box &box);
     void read_script(std::istream &stream, const std::string &text);
     std::string get_file_layout();
 
@@ -29,10 +34,12 @@ public:
 private:
     void add_value(const std::string &name, const variable &value);
     void add_entry(const std::string &script, const std::string &value);
+    void add_spacer(const std::string &script, const std::string &value, const spacer &size);
     variable evaluate(const std::string &script, const std::string &value);
 
 private:
     std::map<std::string, std::vector<variable>> m_values;
+    std::map<std::string, spacer> m_spacers;
 };
 
 #endif

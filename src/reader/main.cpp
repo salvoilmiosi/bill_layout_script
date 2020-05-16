@@ -78,8 +78,7 @@ int main(int argc, char **argv) {
         pdf_info info = pdf_get_info(app_dir, file_pdf);
 
         for (auto &box : layout.boxes) {
-            std::string text = pdf_to_text(app_dir, file_pdf, info, box);
-            result.read_box(box, text);
+            result.read_box(app_dir, file_pdf, info, box);
         }
     } catch (const layout_error &error) {
         std::cerr << error.message << std::endl;

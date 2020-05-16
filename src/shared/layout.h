@@ -11,12 +11,14 @@ enum box_type {
     BOX_MULTIPLE,
     BOX_COLUMNS,
     BOX_ROWS,
+    BOX_SPACER,
 };
 
 struct layout_box : public pdf_rect {
     bool selected = false;
     std::string name = "";
     std::string script = "";
+    std::string spacers = "";
     box_type type = BOX_SINGLE;
 };
 

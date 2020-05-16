@@ -32,38 +32,75 @@ void parser::add_entry(const std::string &script, const std::string &value) {
     }
 };
 
-void parser::read_box(const layout_box &box, const std::string &text) {
-    std::vector<std::string> scripts = read_lines(box.script);
+void parser::add_spacer(const std::string &script, const std::string &value, const spacer &size) {
+    size_t equals = script.find_first_of('=');
+    if (equals == std::string::npos) {
+        throw parsing_error("Errore di sintassi", script);
+    } else if (equals > 0) {
+        if (evaluate(script.substr(equals + 1), value)) {
+            m_spacers.emplace(script.substr(0, equals), size);
+        }
+    } else {
+        throw parsing_error("Identificatore vuoto", script);
+    }
+}
 
-    if (box.type == BOX_SINGLE) {
+void parser::read_box(const std::string &app_dir, const std::string &file_pdf, const pdf_info &info, const layout_box &box) {
+    pdf_rect box_moved = box;
+    for (auto &name : tokenize(box.spacers)) {
+        if (name.size() <= 2 || name.at(name.size()-2) != '.') {
+            throw parsing_error("Identificatore spaziatore incorretto", name);
+        }
+        auto it = m_spacers.find(name.substr(0, name.size()-2));
+        if (it == m_spacers.end()) continue;
+        switch (name.at(name.size()-1)) {
+        case 'x':
+        case 'X':
+        case 'w':
+        case 'W':
+            box_moved.x += it->second.w;
+            break;
+        case 'y':
+        case 'Y':
+        case 'h':
+        case 'H':
+            box_moved.y += it->second.h;
+            break;
+        }
+    }
+    std::string text = pdf_to_text(app_dir, file_pdf, info, box_moved);
+    std::vector<std::string> scripts = read_lines(box.script);
+    std::vector<std::string> values = tokenize(text);
+    switch(box.type) {
+    case BOX_SINGLE:
         for (auto &script : scripts) {
             add_entry(script, text);
         }
-    } else {
-        std::vector<std::string> values = tokenize(text);
-        switch(box.type) {
-        case BOX_SINGLE:
-            break;
-        case BOX_MULTIPLE:
-            for (size_t i = 0; i < scripts.size() && i < values.size(); ++i) {
-                add_entry(scripts[i], values[i]);
-            }
-            break;
-        case BOX_COLUMNS:
-            for (size_t i = 0; i < values.size();++i) {
-                add_entry(scripts[i % scripts.size()], values[i]);
-            }
-            break;
-        case BOX_ROWS:
-            for (size_t i = 0; i < values.size();++i) {
-                int row_len = values.size() / scripts.size();
-                if (row_len < 1) row_len = 1;
-                if (i / row_len < scripts.size()) {
-                    add_entry(scripts[i / row_len], values[i]);
-                }
-            }
-            break;
+        break;
+    case BOX_MULTIPLE:
+        for (size_t i = 0; i < scripts.size() && i < values.size(); ++i) {
+            add_entry(scripts[i], values[i]);
         }
+        break;
+    case BOX_COLUMNS:
+        for (size_t i = 0; i < values.size();++i) {
+            add_entry(scripts[i % scripts.size()], values[i]);
+        }
+        break;
+    case BOX_ROWS:
+        for (size_t i = 0; i < values.size();++i) {
+            int row_len = values.size() / scripts.size();
+            if (row_len < 1) row_len = 1;
+            if (i / row_len < scripts.size()) {
+                add_entry(scripts[i / row_len], values[i]);
+            }
+        }
+        break;
+    case BOX_SPACER:
+        for (auto &script : scripts) {
+            add_spacer(script, text, spacer(box.w, box.h));
+        }
+        break;
     }
 }
 
