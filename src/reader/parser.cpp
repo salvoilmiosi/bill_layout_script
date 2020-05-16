@@ -66,6 +66,8 @@ void parser::read_box(const std::string &app_dir, const std::string &file_pdf, c
         case 'H':
             box_moved.y += it->second.h;
             break;
+        default:
+            throw parsing_error("Identificatore spaziatore incorretto", name);
         }
     }
     std::string text = pdf_to_text(app_dir, file_pdf, info, box_moved);
