@@ -88,6 +88,7 @@ std::string parse_date(std::string format, const std::string &value) {
     string_replace(format, "MM", "([0-9]{2})");
     bool is_month_str = string_replace(format, "MONTH", "([a-zA-Z]+)") || string_replace(format, "MON", "([a-zA-Z]{3})");
     string_replace(format, "YEAR", "([0-9]{4})");
+    string_replace(format, "YYYY", "([0-9]{4})");
     std::regex expression(format);
     std::smatch match;
     if (std::regex_search(value, match, expression)) {

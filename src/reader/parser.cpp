@@ -51,20 +51,23 @@ void parser::read_box(const std::string &app_dir, const std::string &file_pdf, c
         if (name.size() <= 2 || name.at(name.size()-2) != '.') {
             throw parsing_error("Identificatore spaziatore incorretto", name);
         }
-        auto it = m_spacers.find(name.substr(0, name.size()-2));
+        bool negative = name.at(0) == '-';
+        auto it = m_spacers.find(negative ? name.substr(1, name.size()-3) : name.substr(0, name.size()-2));
         if (it == m_spacers.end()) continue;
         switch (name.at(name.size()-1)) {
         case 'x':
         case 'X':
         case 'w':
         case 'W':
-            box_moved.x += it->second.w;
+            if (negative) box_moved.x -= it->second.w;
+            else box_moved.x += it->second.w;
             break;
         case 'y':
         case 'Y':
         case 'h':
         case 'H':
-            box_moved.y += it->second.h;
+            if (negative) box_moved.y -= it->second.h;
+            else box_moved.y += it->second.h;
             break;
         default:
             throw parsing_error("Identificatore spaziatore incorretto", name);

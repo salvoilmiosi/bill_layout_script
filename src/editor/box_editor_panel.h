@@ -24,7 +24,8 @@ private:
     class frame_editor *app;
 
     wxPoint start_pt, end_pt;
-    std::vector<layout_box>::iterator selected_box;
+    box_reference selected_box;
+    char resize_node = 0;
     float startx, starty;
     bool mouseIsDown = false;
 

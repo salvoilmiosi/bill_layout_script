@@ -16,34 +16,9 @@ public:
 
     void rescale(float factor, wxImageResizeQuality quality = wxIMAGE_QUALITY_NORMAL);
 
-    int getScrollX() {
-        return scrollx;
-    }
-
-    int getScrollY() {
-        return scrolly;
-    }
-
-    float getScaledWidth() {
-        return scaled_width;
-    }
-
-    float getScaledHeight() {
-        return scaled_height;
-    }
-
 protected:
     virtual bool render(wxDC &dc);
-
-private:
-    virtual void OnPaint(wxPaintEvent &evt);
     
-    DECLARE_EVENT_TABLE()
-
-private:
-    wxImage *image = nullptr;
-    wxImage scaled_image;
-
     int scrollx = 0;
     int scrolly = 0;
 
@@ -51,6 +26,14 @@ private:
     float scaled_height;
 
     float scale = 0.5f;
+
+private:
+    wxImage *image = nullptr;
+    wxImage scaled_image;
+    
+    void OnPaint(wxPaintEvent &evt);
+    
+    DECLARE_EVENT_TABLE()
 };
 
 #endif

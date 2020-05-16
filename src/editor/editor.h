@@ -21,7 +21,7 @@ enum {
 
     CTL_LOAD_PDF, CTL_PAGE, CTL_SCALE,
 
-    TOOL_SELECT, TOOL_NEWBOX, TOOL_DELETEBOX, TOOL_MOVEUP, TOOL_MOVEDOWN,
+    TOOL_SELECT, TOOL_NEWBOX, TOOL_DELETEBOX, TOOL_RESIZE, TOOL_MOVEUP, TOOL_MOVEDOWN,
     
     CTL_LIST_BOXES,
 };
@@ -46,7 +46,7 @@ public:
         return info;
     }
 
-    layout_bolletta layout;
+    bill_layout_script layout;
 
 private:
     void OnNewFile      (wxCommandEvent &evt);
@@ -82,8 +82,8 @@ private:
 
     wxListBox *m_list_boxes;
 
-    std::deque<layout_bolletta> history;
-    std::deque<layout_bolletta>::iterator currentHistory;
+    std::deque<bill_layout_script> history;
+    std::deque<bill_layout_script>::iterator currentHistory;
     bool modified = false;
 
     std::unique_ptr<layout_box> clipboard;

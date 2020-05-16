@@ -4,12 +4,13 @@
 
 constexpr uint32_t MAGIC = 0xb011e77a;
 constexpr uint32_t VERSION = 0x00000001;
+constexpr float RESIZE_TOLERANCE = 10.f;
 
-layout_bolletta::layout_bolletta() {
+bill_layout_script::bill_layout_script() {
 
 }
 
-std::vector<layout_box>::iterator layout_bolletta::getBoxAt(float x, float y, int page) {
+box_reference bill_layout_script::getBoxAt(float x, float y, int page) {
     for (auto it = boxes.begin(); it != boxes.end(); ++it) {
         if (x > it->x && x < it->x + it->w && y > it->y && y < it->y + it->h && it->page == page) {
             return it;
@@ -18,7 +19,31 @@ std::vector<layout_box>::iterator layout_bolletta::getBoxAt(float x, float y, in
     return boxes.end();
 }
 
-std::ostream &operator << (std::ostream &out, const layout_bolletta &obj) {
+std::pair<box_reference, int> bill_layout_script::getBoxResizeNode(float x, float y, int page, std::pair<float, float> scale) {
+    float nw = RESIZE_TOLERANCE / scale.first;
+    float nh = RESIZE_TOLERANCE / scale.second;
+    for (auto it = boxes.begin(); it != boxes.end(); ++it) {
+        if (x > it->x - nw && x < it->x + it->w + nw && y > it->y - nh && y < it->y + it->h + nh && it->page == page) {
+            int node = 0;
+            if (x > it->x - nw && x < it->x + nw) {
+                node |= RESIZE_LEFT;
+            }
+            if (x > it->x + it->w - nw && x < it->x + it->w + nw) {
+                node |= RESIZE_RIGHT;
+            }
+            if (y > it->y - nh && y < it->y + nh) {
+                node |= RESIZE_TOP;
+            }
+            if (y > it->y + it->h - nh && y < it->y + it->h + nh) {
+                node |= RESIZE_BOTTOM;
+            }
+            return std::make_pair(it, node);
+        }
+    }
+    return std::make_pair(boxes.end(), 0);
+}
+
+std::ostream &operator << (std::ostream &out, const bill_layout_script &obj) {
     Json::Value root = Json::objectValue;
     root["version"] = VERSION;
     
@@ -47,7 +72,7 @@ std::ostream &operator << (std::ostream &out, const layout_bolletta &obj) {
     return out << root;
 }
 
-std::istream &operator >> (std::istream &in, layout_bolletta &obj) {
+std::istream &operator >> (std::istream &in, bill_layout_script &obj) {
     Json::Value root;
 
     try {

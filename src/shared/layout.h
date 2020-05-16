@@ -14,6 +14,11 @@ enum box_type {
     BOX_SPACER,
 };
 
+#define RESIZE_TOP      1 << 0
+#define RESIZE_BOTTOM   1 << 1
+#define RESIZE_LEFT     1 << 2
+#define RESIZE_RIGHT    1 << 4
+
 struct layout_box : public pdf_rect {
     bool selected = false;
     std::string name = "";
@@ -28,10 +33,13 @@ struct layout_error {
     layout_error(const char *message) : message(message) {}
 };
 
-class layout_bolletta {
+using box_reference = std::vector<layout_box>::iterator;
+
+class bill_layout_script {
 public:
-    layout_bolletta();
-    std::vector<layout_box>::iterator getBoxAt(float x, float y, int page);
+    bill_layout_script();
+    box_reference getBoxAt(float x, float y, int page);
+    std::pair<box_reference, int> getBoxResizeNode(float x, float y, int page, std::pair<float, float> scale);
 
     void clear() {
         boxes.clear();
@@ -43,7 +51,7 @@ public:
     std::string pdf_filename{};
 };
 
-std::ostream &operator << (std::ostream &out, const layout_bolletta &obj);
-std::istream &operator >> (std::istream &in, layout_bolletta &obj);
+std::ostream &operator << (std::ostream &out, const bill_layout_script &obj);
+std::istream &operator >> (std::istream &in, bill_layout_script &obj);
 
 #endif

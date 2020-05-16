@@ -38,6 +38,7 @@ BEGIN_EVENT_TABLE(frame_editor, wxFrame)
     EVT_TOOL (TOOL_SELECT, frame_editor::OnChangeTool)
     EVT_TOOL (TOOL_NEWBOX, frame_editor::OnChangeTool)
     EVT_TOOL (TOOL_DELETEBOX, frame_editor::OnChangeTool)
+    EVT_TOOL (TOOL_RESIZE, frame_editor::OnChangeTool)
     EVT_TOOL (TOOL_MOVEUP, frame_editor::OnMoveUp)
     EVT_TOOL (TOOL_MOVEDOWN, frame_editor::OnMoveDown)
     EVT_LISTBOX (CTL_LIST_BOXES, frame_editor::OnSelectBox)
@@ -48,6 +49,7 @@ END_EVENT_TABLE()
 DECLARE_RESOURCE(tool_select_png)
 DECLARE_RESOURCE(tool_newbox_png)
 DECLARE_RESOURCE(tool_deletebox_png)
+DECLARE_RESOURCE(tool_resize_png)
 DECLARE_RESOURCE(icon_editor_png)
 
 const std::string &get_app_path() {
@@ -136,6 +138,7 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     toolbar_side->AddRadioTool(TOOL_SELECT, "Seleziona", loadPNG(GET_RESOURCE(tool_select_png)), wxNullBitmap, "Seleziona");
     toolbar_side->AddRadioTool(TOOL_NEWBOX, "Nuovo rettangolo", loadPNG(GET_RESOURCE(tool_newbox_png)), wxNullBitmap, "Nuovo rettangolo");
     toolbar_side->AddRadioTool(TOOL_DELETEBOX, "Cancella rettangolo", loadPNG(GET_RESOURCE(tool_deletebox_png)), wxNullBitmap, "Cancella rettangolo");
+    toolbar_side->AddRadioTool(TOOL_RESIZE, "Ridimensiona rettangolo", loadPNG(GET_RESOURCE(tool_resize_png)), wxNullBitmap, "Ridimensiona rettangolo");
 
     toolbar_side->AddSeparator();
 
@@ -322,10 +325,8 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
     if (clipboard) {
         if (clipboard->page != selected_page) {
             clipboard->page = selected_page;
-        } else {
-            clipboard->x += 10 / m_image->getScaledWidth();
-            clipboard->y += 10 / m_image->getScaledHeight();
         }
+         
         layout.boxes.push_back(*clipboard);
         updateLayout();
         selectBox(layout.boxes.size() - 1);

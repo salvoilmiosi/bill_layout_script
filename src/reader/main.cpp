@@ -6,7 +6,7 @@
 #include "../shared/xpdf.h"
 
 int main(int argc, char **argv) {
-    if (argc < 4) {
+    if (argc < 3) {
         std::cerr << "Utilizzo: layout_reader file.pdf file.bls/[file.txt -f dir_layout]" << std::endl;
         return 0;
     }
@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
                 return 1;
             }
         }
-        layout_bolletta layout;
+        bill_layout_script layout;
         *in >> layout;
 
         pdf_info info = pdf_get_info(app_dir, file_pdf);
