@@ -84,13 +84,13 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    std::ifstream ifs(file_layout);
-    std::string layout_string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-
-    if (ifs.bad()) {
+    if (!fs::exists(file_layout)) {
         std::cerr << "Il file di layout " << file_layout << " non esiste" << std::endl;
         return 1;
     }
+
+    std::ifstream ifs(file_layout);
+    std::string layout_string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 
     std::ostream *out = &std::cout;
     if (output_file != "-") {

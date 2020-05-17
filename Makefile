@@ -1,5 +1,5 @@
 CXX = g++
-CFLAGS = -g -Wall --std=c++17
+CXXFLAGS = -g -Wall --std=c++17
 LDFLAGS = 
 
 SRC_DIR = src
@@ -10,7 +10,7 @@ BIN_EDITOR = layout_editor
 BIN_READER = layout_reader
 BIN_BATCH = layout_batch
 
-INCLUDE = `wx-config --cflags`
+INCLUDE = `wx-config --cxxflags`
 
 LIBS_EDITOR = `wx-config --libs` -ljsoncpp
 LIBS_READER = -ljsoncpp
@@ -57,7 +57,7 @@ $(OBJ_DIR)/images.o : $(IMAGES)
 	$(LD) -r -b binary -o $@ $^
 
 $(OBJ_DIR)/%.res : resources/%.rc
-	windres -I/mingw64/lib/wx/include/msw-unicode-3.0 -I/mingw64/include/wx-3.0 -O coff -o $@ -i $< 
+	`wx-config --rescomp` -O coff -o $@ -i $< 
 
 reader: $(BIN_DIR)/$(BIN_READER)
 $(BIN_DIR)/$(BIN_READER): $(OBJECTS_READER) $(OBJECTS_SHARED)
@@ -69,13 +69,10 @@ $(BIN_DIR)/$(BIN_BATCH): $(OBJECTS_BATCH) $(OBJECTS_SHARED)
 
 DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJ_DIR)/$*.Td
 
-$(OBJ_DIR)/%.o : $(OBJ_DIR)/%.cpp
-	$(CXX) $(CFLAGS) -c $(INCLUDE) -o $@ $<
-
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp $(OBJ_DIR)/%.d
 	@mkdir -p $(dir $@)
-	$(CXX) $(DEPFLAGS) $(CFLAGS) -c $(INCLUDE) -o $@ $<
+	$(CXX) $(DEPFLAGS) $(CXXFLAGS) -c $(INCLUDE) -o $@ $<
 	@mv -f $(OBJ_DIR)/$*.Td $(OBJ_DIR)/$*.d && touch $@
 
 $(OBJ_DIR)/%.d: ;

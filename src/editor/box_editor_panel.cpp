@@ -7,6 +7,8 @@ BEGIN_EVENT_TABLE(box_editor_panel, wxImagePanel)
     EVT_LEFT_UP(box_editor_panel::OnMouseUp)
     EVT_LEFT_DCLICK(box_editor_panel::OnDoubleClick)
     EVT_MOTION(box_editor_panel::OnMouseMove)
+    EVT_KEY_DOWN(box_editor_panel::OnKeyDown)
+    EVT_KEY_UP(box_editor_panel::OnKeyUp)
 END_EVENT_TABLE()
 
 box_editor_panel::box_editor_panel(wxWindow *parent, frame_editor *app) : wxImagePanel(parent), app(app) {
@@ -91,7 +93,7 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
         }
         case TOOL_RESIZE:
         {
-            auto node = app->layout.getBoxResizeNode(xx, yy, app->getSelectedPage(), std::make_pair(scaled_width, scaled_height));
+            auto node = app->layout.getBoxResizeNode(xx, yy, app->getSelectedPage(), scaled_width, scaled_height);
             selected_box = node.first;
             if (selected_box != app->layout.boxes.end()) {
                 resize_node = node.second;
@@ -218,4 +220,28 @@ void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {
         }
     }
     evt.Skip();
+}
+
+void box_editor_panel::OnKeyDown(wxKeyEvent &evt) {
+    constexpr float MOVE_AMT = 5.f;
+    if (selected_box != app->layout.boxes.end()) {
+        switch (evt.GetKeyCode()) {
+            case WXK_LEFT: selected_box->x -= MOVE_AMT / scaled_width; Refresh(); break;
+            case WXK_RIGHT: selected_box->x += MOVE_AMT / scaled_width; Refresh(); break;
+            case WXK_UP: selected_box->y -= MOVE_AMT / scaled_height; Refresh(); break;
+            case WXK_DOWN: selected_box->y += MOVE_AMT / scaled_height; Refresh(); break;
+        }
+    }
+}
+
+void box_editor_panel::OnKeyUp(wxKeyEvent &evt) {
+    if (selected_box != app->layout.boxes.end()) {
+        switch (evt.GetKeyCode()) {
+        case WXK_LEFT:
+        case WXK_RIGHT:
+        case WXK_UP:
+        case WXK_DOWN:
+            app->updateLayout();
+        }
+    }
 }

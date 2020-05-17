@@ -39,7 +39,7 @@ class bill_layout_script {
 public:
     bill_layout_script();
     box_reference getBoxAt(float x, float y, int page);
-    std::pair<box_reference, int> getBoxResizeNode(float x, float y, int page, std::pair<float, float> scale);
+    std::pair<box_reference, int> getBoxResizeNode(float x, float y, int page, float scalex, float scaley);
 
     void clear() {
         boxes.clear();

@@ -84,7 +84,7 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     menuBar->Append(menuEdit, "&Modifica");
 
     wxMenu *menuLayout = new wxMenu;
-    menuLayout->Append(MENU_EDITBOX, "Modifica &Opzioni\tCtrl-E", "Modifica il rettangolo selezionato");
+    menuLayout->Append(MENU_EDITBOX, "Modifica &Opzioni\tEnter", "Modifica il rettangolo selezionato");
     menuLayout->AppendSeparator();
     menuLayout->Append(MENU_READDATA, "L&eggi Layout\tCtrl-R", "Test della lettura dei dati");
 
@@ -108,8 +108,6 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     toolbar_top->AddTool(MENU_CUT, "Taglia", wxArtProvider::GetBitmap(wxART_CUT), "Taglia");
     toolbar_top->AddTool(MENU_COPY, "Copia", wxArtProvider::GetBitmap(wxART_COPY), "Copia");
     toolbar_top->AddTool(MENU_PASTE, "Incolla", wxArtProvider::GetBitmap(wxART_PASTE), "Incolla");
-
-    toolbar_top->AddSeparator();
 
     toolbar_top->AddStretchableSpace();
 
@@ -410,6 +408,7 @@ void frame_editor::selectBox(int selection) {
     }
     if (selection >= 0 && selection < (int) layout.boxes.size()) {
         setSelectedPage(layout.boxes[selection].page);
+        m_image->setSelectedBox(layout.boxes.begin() + selection);
     }
     m_image->Refresh();
 }

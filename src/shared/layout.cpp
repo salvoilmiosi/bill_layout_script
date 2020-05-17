@@ -4,7 +4,7 @@
 
 constexpr uint32_t MAGIC = 0xb011e77a;
 constexpr uint32_t VERSION = 0x00000001;
-constexpr float RESIZE_TOLERANCE = 10.f;
+constexpr float RESIZE_TOLERANCE = 8.f;
 
 bill_layout_script::bill_layout_script() {
 
@@ -19,9 +19,9 @@ box_reference bill_layout_script::getBoxAt(float x, float y, int page) {
     return boxes.end();
 }
 
-std::pair<box_reference, int> bill_layout_script::getBoxResizeNode(float x, float y, int page, std::pair<float, float> scale) {
-    float nw = RESIZE_TOLERANCE / scale.first;
-    float nh = RESIZE_TOLERANCE / scale.second;
+std::pair<box_reference, int> bill_layout_script::getBoxResizeNode(float x, float y, int page, float scalex, float scaley) {
+    float nw = RESIZE_TOLERANCE / scalex;
+    float nh = RESIZE_TOLERANCE / scaley;
     for (auto it = boxes.begin(); it != boxes.end(); ++it) {
         if (x > it->x - nw && x < it->x + it->w + nw && y > it->y - nh && y < it->y + it->h + nh && it->page == page) {
             int node = 0;

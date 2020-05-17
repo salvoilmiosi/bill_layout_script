@@ -13,12 +13,18 @@ public:
         selected_tool = tool;
     }
 
+    void setSelectedBox(box_reference box) {
+        selected_box = box;
+    }
+
 protected:
     bool render(wxDC &dc) override;
     void OnMouseDown(wxMouseEvent &evt);
     void OnMouseUp(wxMouseEvent &evt);
     void OnDoubleClick(wxMouseEvent &evt);
     void OnMouseMove(wxMouseEvent &evt);
+    void OnKeyDown(wxKeyEvent &evt);
+    void OnKeyUp(wxKeyEvent &evt);
 
 private:
     class frame_editor *app;
