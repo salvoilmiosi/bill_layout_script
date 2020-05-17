@@ -11,6 +11,7 @@
 #include "box_editor_panel.h"
 #include "pdf_to_image.h"
 #include "box_dialog.h"
+#include "output_dialog.h"
 #include "resources.h"
 
 #include "../shared/pipe.h"
@@ -436,26 +437,9 @@ void frame_editor::OnDelete(wxCommandEvent &evt) {
 void frame_editor::OnReadData(wxCommandEvent &evt) {
     if (layout.pdf_filename.empty()) return;
 
-    char cmd_str[FILENAME_MAX];
-    snprintf(cmd_str, FILENAME_MAX, "%s/layout_reader", get_app_path().c_str());
-
-    char pdf_str[FILENAME_MAX];
-    snprintf(pdf_str, FILENAME_MAX, "%s", layout.pdf_filename.c_str());
-
-    const char *args[] = {
-        cmd_str,
-        pdf_str, "-", "-d",
-        nullptr
-    };
-
     try {
-        auto pipe = open_process(args);
-        std::ostringstream oss;
-        oss << layout;
-        pipe->write_all(oss.str());
-        pipe->close_stdin();
-        std::string output = pipe->read_all();
-        wxMessageBox(output, "Output di layout_reader", wxICON_INFORMATION);
+        auto *diag = new output_dialog(this, layout);
+        diag->Show();
     } catch (const pipe_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);
     }
