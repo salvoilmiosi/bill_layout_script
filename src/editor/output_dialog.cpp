@@ -14,12 +14,9 @@ output_dialog::output_dialog(wxWindow *parent, const bill_layout_script &layout)
     char cmd_str[FILENAME_MAX];
     snprintf(cmd_str, FILENAME_MAX, "%s/layout_reader", get_app_path().c_str());
 
-    char pdf_str[FILENAME_MAX];
-    snprintf(pdf_str, FILENAME_MAX, "%s", layout.pdf_filename.c_str());
-
     const char *args[] = {
         cmd_str,
-        pdf_str, "-",
+        layout.pdf_filename.c_str(), "-",
         nullptr
     };
 
