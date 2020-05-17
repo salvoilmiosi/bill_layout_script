@@ -48,7 +48,7 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     m_box_name->SetValidator(wxTextValidator(wxFILTER_EMPTY));
     addLabelAndCtrl("Nome:", 0, m_box_name);
 
-    static const wxString box_types[] = {"Singolo elemento", "Elementi multipli", "Elementi per colonna", "Elementi per riga", "Spaziatore"};
+    static const wxString box_types[] = {"Singolo elemento", "Elementi multipli", "Elementi per colonna", "Elementi per riga", "Spaziatore", "Intero file"};
     m_box_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, std::size(box_types), box_types);
     m_box_type->SetToolTip("Specifica l'ordine in cui gli elementi vengono letti");
     m_box_type->SetSelection(box.type);

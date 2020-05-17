@@ -1,0 +1,94 @@
+{
+	"layout" : 
+	{
+		"boxes" : 
+		[
+			{
+				"h" : 0.033067274838685989,
+				"mode" : 0,
+				"name" : "Numero fattura",
+				"page" : 1,
+				"script" : "numero_fattura=$search(Fattura N. ([0-9]+),@)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.47258064150810242,
+				"x" : 0.035483870655298233,
+				"y" : 0.18015962839126587
+			},
+			{
+				"h" : 0.031927023082971573,
+				"mode" : 0,
+				"name" : "Periodo",
+				"page" : 1,
+				"script" : "periodo=$date(MONTH YEAR,@)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.20483870804309845,
+				"x" : 0.035483870655298233,
+				"y" : 0.23147092759609222
+			},
+			{
+				"h" : 0.03990878164768219,
+				"mode" : 0,
+				"name" : "Totale",
+				"page" : 1,
+				"script" : "%totale_fattura",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.25645160675048828,
+				"x" : 0.24354839324951172,
+				"y" : 0.25997719168663025
+			},
+			{
+				"h" : 0.15495717525482178,
+				"mode" : 0,
+				"name" : "Sintesi dati",
+				"page" : 1,
+				"script" : "%spesa_materia_energia=$search(Corrispettivi energia $NUMBER,@)\n%spesa_materia_energia=$search(Spese per l'energia $NUMBER,@)\n%trasporto_gestione=$search(Trasporto $NUMBER,@)\n%trasporto_gestione=$search(\"Spesa per trasporto, gestione contatore e oneri di sistema $NUMBER\",@)\n%imponibile=$search(Imponibile IVA IVA 22% $NUMBER,@)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.42907363176345825,
+				"x" : 0.066170394420623779,
+				"y" : 0.32745665311813354
+			},
+			{
+				"h" : 0.019735110923647881,
+				"mode" : 0,
+				"name" : "Energia attiva",
+				"page" : 2,
+				"script" : "%energia_attiva+",
+				"spacers" : "",
+				"type" : 3,
+				"w" : 0.24296940863132477,
+				"x" : 0.25020679831504822,
+				"y" : 0.26459667086601257
+			},
+			{
+				"h" : 0.25948017835617065,
+				"mode" : 0,
+				"name" : "Dati fornitura",
+				"page" : 1,
+				"script" : "codice_pod=$search(POD (.+)\\n,@)\n%potenza=$search(Potenza Impegnata $NUMBER,@)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.421836256980896,
+				"x" : 0.067204304039478302,
+				"y" : 0.65856796503067017
+			},
+			{
+				"h" : 0.055550683289766312,
+				"mode" : 0,
+				"name" : "Ragione sociale",
+				"page" : 1,
+				"script" : "ragione_sociale",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.41356495022773743,
+				"x" : 0.54383790493011475,
+				"y" : 0.165190190076828
+			}
+		],
+		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\axpo\\2019\\01. Gennaio 2019.pdf"
+	},
+	"version" : 1
+}

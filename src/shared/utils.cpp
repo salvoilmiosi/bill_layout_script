@@ -116,13 +116,13 @@ std::string parse_date(std::string format, const std::string &value) {
     }
 }
 
-std::string search_regex(std::string format, const std::string &value) {
+std::string search_regex(std::string format, const std::string &value, int index) {
     string_replace(format, " ", "[ \\t\\r\\n\\v\\f]+");
     string_replace(format, "$NUMBER", "([0-9\\.,\\-]+)");
     std::regex expression(format, std::regex::icase);
     std::smatch match;
     if (std::regex_search(value, match, expression)) {
-        return match.str(1);
+        return match.str(index);
     } else {
         return "";
     }

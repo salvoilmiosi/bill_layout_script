@@ -73,39 +73,49 @@ void parser::read_box(const std::string &app_dir, const std::string &file_pdf, c
             throw parsing_error("Identificatore spaziatore incorretto", name);
         }
     }
-    std::string text = pdf_to_text(app_dir, file_pdf, info, box_moved);
     std::vector<std::string> scripts = read_lines(box.script);
-    std::vector<std::string> values = tokenize(text);
-    switch(box.type) {
-    case BOX_SINGLE:
+    if (box.type == BOX_WHOLE_FILE) {
+        std::string text = pdf_whole_file_to_text(app_dir, file_pdf);
         for (auto &script : scripts) {
             add_entry(script, text);
         }
-        break;
-    case BOX_MULTIPLE:
-        for (size_t i = 0; i < scripts.size() && i < values.size(); ++i) {
-            add_entry(scripts[i], values[i]);
-        }
-        break;
-    case BOX_COLUMNS:
-        for (size_t i = 0; i < values.size();++i) {
-            add_entry(scripts[i % scripts.size()], values[i]);
-        }
-        break;
-    case BOX_ROWS:
-        for (size_t i = 0; i < values.size();++i) {
-            int row_len = values.size() / scripts.size();
-            if (row_len < 1) row_len = 1;
-            if (i / row_len < scripts.size()) {
-                add_entry(scripts[i / row_len], values[i]);
+    } else {
+        std::string text = pdf_to_text(app_dir, file_pdf, info, box_moved);
+        if (box.type == BOX_SINGLE) {
+            for (auto &script : scripts) {
+                add_entry(script, text);
+            }
+        } else {
+            std::vector<std::string> values = tokenize(text);
+            switch(box.type) {
+            case BOX_MULTIPLE:
+                for (size_t i = 0; i < scripts.size() && i < values.size(); ++i) {
+                    add_entry(scripts[i], values[i]);
+                }
+                break;
+            case BOX_COLUMNS:
+                for (size_t i = 0; i < values.size();++i) {
+                    add_entry(scripts[i % scripts.size()], values[i]);
+                }
+                break;
+            case BOX_ROWS:
+                for (size_t i = 0; i < values.size();++i) {
+                    int row_len = values.size() / scripts.size();
+                    if (row_len < 1) row_len = 1;
+                    if (i / row_len < scripts.size()) {
+                        add_entry(scripts[i / row_len], values[i]);
+                    }
+                }
+                break;
+            case BOX_SPACER:
+                for (auto &script : scripts) {
+                    add_spacer(script, text, spacer(box.w, box.h));
+                }
+                break;
+            default:
+                break;
             }
         }
-        break;
-    case BOX_SPACER:
-        for (auto &script : scripts) {
-            add_spacer(script, text, spacer(box.w, box.h));
-        }
-        break;
     }
 }
 
@@ -137,6 +147,14 @@ struct function_parser {
     bool is(const char *funcname, size_t argc = 1) const {
         if (name == funcname) {
             if (args.size() == argc) return true;
+            throw parsing_error(std::string("La funzione ") + funcname + " richiede " + std::to_string(argc) + " argomenti", script);
+        }
+        return false;
+    }
+
+    bool isleast(const char *funcname, size_t argc = 1) const {
+        if (name == funcname) {
+            if (args.size() >= argc) return true;
             throw parsing_error(std::string("La funzione ") + funcname + " richiede " + std::to_string(argc) + " argomenti", script);
         }
         return false;
@@ -220,8 +238,9 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
     {
         function_parser function(script);
 
-        if (function.is("search", 2)) {
-            return search_regex(evaluate(function.args[0], value).str(), evaluate(function.args[1], value).str());
+        if (function.isleast("search", 2)) {
+            return search_regex(evaluate(function.args[0], value).str(), evaluate(function.args[1], value).str(),
+                function.args.size() >= 3 ? evaluate(function.args[2], value).number().getAsInteger() : 1);
         } else if (function.is("num")) {
             return variable(parse_number(evaluate(function.args[0], value).str()), VALUE_NUMBER);
         } else if (function.is("date", 2)) {

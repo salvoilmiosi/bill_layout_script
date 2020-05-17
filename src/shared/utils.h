@@ -31,6 +31,6 @@ std::string parse_number(const std::string &value);
 std::string parse_date(std::string format, const std::string &value);
 
 // cerca $NUMBER in str e ritorna il valore trovato
-std::string search_regex(std::string format, const std::string &value);
+std::string search_regex(std::string format, const std::string &value, int index);
 
 #endif

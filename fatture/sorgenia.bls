@@ -4,6 +4,18 @@
 		"boxes" : 
 		[
 			{
+				"h" : 0.019764348864555359,
+				"mode" : 0,
+				"name" : "Numero cliente",
+				"page" : 1,
+				"script" : "numero_cliente",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.16989247500896454,
+				"x" : 0.66666668653488159,
+				"y" : 0.037248194217681885
+			},
+			{
 				"h" : 0.028506269678473473,
 				"mode" : 0,
 				"name" : "Ragione sociale",
@@ -44,7 +56,7 @@
 				"mode" : 0,
 				"name" : "Totale spesa",
 				"page" : 1,
-				"script" : "%totale_spesa",
+				"script" : "%totale_fattura",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.36794355511665344,
@@ -68,7 +80,7 @@
 				"mode" : 1,
 				"name" : "Sintesi valori",
 				"page" : 1,
-				"script" : "%spesa_materia_energia=$search(SPESA PER LA MATERIA ENERGIA $NUMBER,@)\n%trasporto_gestione=$search(\"SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA $NUMBER\",@)",
+				"script" : "%spesa_materia_energia=$search(SPESA PER LA MATERIA ENERGIA $NUMBER,@)\n%spesa_materia_energia=$search(SPESA PER L'ENERGIA ELETTRICA $NUMBER,@)\n%trasporto_gestione=$search(\"SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA $NUMBER\",@)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.58770161867141724,
@@ -76,40 +88,28 @@
 				"y" : 0.56798744201660156
 			},
 			{
-				"h" : 0.095496006309986115,
-				"mode" : 0,
-				"name" : "Blocco Altre partite",
-				"page" : 2,
-				"script" : "altre_partite=$contains(@,ALTRE PARTITE)",
-				"spacers" : "",
-				"type" : 4,
-				"w" : 0.90725809335708618,
-				"x" : 0.046370968222618103,
-				"y" : 0.38412198424339294
-			},
-			{
-				"h" : 0.014253134839236736,
+				"h" : 0.40723252296447754,
 				"mode" : 1,
 				"name" : "Energia attiva",
 				"page" : 2,
-				"script" : "%energia_attiva+",
-				"spacers" : "altre_partite.y",
-				"type" : 3,
+				"script" : "%energia_attiva+=$search(CONSUMI DEL PERIODO \\(kWh\\) F1 F2 F3 $NUMBER $NUMBER $NUMBER,@,1)\n%energia_attiva+=$search(CONSUMI DEL PERIODO \\(kWh\\) F1 F2 F3 $NUMBER $NUMBER $NUMBER,@,2)\n%energia_attiva+=$search(CONSUMI DEL PERIODO \\(kWh\\) F1 F2 F3 $NUMBER $NUMBER $NUMBER,@,3)",
+				"spacers" : "",
+				"type" : 0,
 				"w" : 0.19758065044879913,
 				"x" : 0.20967741310596466,
-				"y" : 0.55444693565368652
+				"y" : 0.51436591148376465
 			},
 			{
-				"h" : 0.014253134839236736,
+				"h" : 0.31356897950172424,
 				"mode" : 1,
 				"name" : "Energia reattiva",
 				"page" : 2,
-				"script" : "%energia_reattiva+",
-				"spacers" : "altre_partite.y",
-				"type" : 3,
-				"w" : 0.15524193644523621,
-				"x" : 0.13608871400356293,
-				"y" : 0.64566701650619507
+				"script" : "%energia_reattiva+=$search(ENERGIA REATTIVA DEL PERIODO \\(kVARh\\) F1 F2 F3 TOTALE $NUMBER $NUMBER $NUMBER,@,1)\n%energia_reattiva+=$search(ENERGIA REATTIVA DEL PERIODO \\(kVARh\\) F1 F2 F3 TOTALE $NUMBER $NUMBER $NUMBER,@,2)\n%energia_reattiva+=$search(ENERGIA REATTIVA DEL PERIODO \\(kVARh\\) F1 F2 F3 TOTALE $NUMBER $NUMBER $NUMBER,@,3)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.2341311126947403,
+				"x" : 0.1313735693693161,
+				"y" : 0.60598814487457275
 			},
 			{
 				"h" : 0.06629364937543869,
@@ -124,19 +124,19 @@
 				"y" : 0.07690063863992691
 			},
 			{
-				"h" : 0.99087798595428467,
+				"h" : 0.021664798259735107,
 				"mode" : 0,
 				"name" : "Imponibile",
-				"page" : 4,
+				"page" : 1,
 				"script" : "%imponibile=$search(BASE IMPONIBILE Totale fornitura $NUMBER,@)",
 				"spacers" : "",
-				"type" : 0,
-				"w" : 0.98709678649902344,
-				"x" : 0.004838709719479084,
-				"y" : 0.0045610032975673676
+				"type" : 5,
+				"w" : 0.029032230377197266,
+				"x" : 0.27258068323135376,
+				"y" : 0.4389965832233429
 			}
 		],
-		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\sorgenia3.pdf"
+		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\Sorgenia\\2019\\584\\ndc fattura V01190436894 feb 2019.pdf"
 	},
 	"version" : 1
 }

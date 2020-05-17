@@ -12,6 +12,7 @@ enum box_type {
     BOX_COLUMNS,
     BOX_ROWS,
     BOX_SPACER,
+    BOX_WHOLE_FILE,
 };
 
 #define RESIZE_TOP      1 << 0

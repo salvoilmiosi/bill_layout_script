@@ -4,28 +4,16 @@
 		"boxes" : 
 		[
 			{
-				"h" : 0.017492484301328659,
+				"h" : 0.35137078166007996,
 				"mode" : 0,
-				"name" : "Codice POD",
+				"name" : "Dati bolletta",
 				"page" : 1,
-				"script" : "codice_pod",
+				"script" : "numero_fattura=$search(N\\. fattura ([0-9]+),@)\nperiodo=$date(PERIODO\\nDD\\.MM\\.YYYY,@)\ncodice_pod=$search(CODICE POD (.+)\\n,@)\nnumero_cliente=$search(CODICE CLIENTE (.+)\\n,@)",
 				"spacers" : "",
 				"type" : 0,
-				"w" : 0.1173020601272583,
-				"x" : 0.13929618895053864,
-				"y" : 0.30449879169464111
-			},
-			{
-				"h" : 0.017492484301328659,
-				"mode" : 0,
-				"name" : "Numero Cliente",
-				"page" : 1,
-				"script" : "numero_cliente",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.090725809335708618,
-				"x" : 0.16495601832866669,
-				"y" : 0.32782211899757385
+				"w" : 0.22615706920623779,
+				"x" : 0.031556800007820129,
+				"y" : 0.09791284054517746
 			},
 			{
 				"h" : 0.050533842295408249,
@@ -47,12 +35,12 @@
 				"script" : "%totale_fattura",
 				"spacers" : "",
 				"type" : 0,
-				"w" : 0.26118037104606628,
-				"x" : 0.68731677532196045,
+				"w" : 0.33489269018173218,
+				"x" : 0.61360448598861694,
 				"y" : 0.34790608286857605
 			},
 			{
-				"h" : 0.13216543197631836,
+				"h" : 0.20686757564544678,
 				"mode" : 0,
 				"name" : "Sintesi costi",
 				"page" : 1,
@@ -64,19 +52,7 @@
 				"y" : 0.68674200773239136
 			},
 			{
-				"h" : 0.018140355125069618,
-				"mode" : 0,
-				"name" : "Periodo",
-				"page" : 1,
-				"script" : "periodo=$date(DD\\.MM\\.YEAR,@)",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.20894429087638855,
-				"x" : 0.045821115374565125,
-				"y" : 0.23712034523487091
-			},
-			{
-				"h" : 0.013605265878140926,
+				"h" : 0.013323605060577393,
 				"mode" : 0,
 				"name" : "Energia attiva",
 				"page" : 2,
@@ -85,19 +61,31 @@
 				"type" : 3,
 				"w" : 0.17228740453720093,
 				"x" : 0.19061584770679474,
-				"y" : 0.32134342193603516
+				"y" : 0.32162508368492126
 			},
 			{
-				"h" : 0.014253135770559311,
+				"h" : 0.035069495439529419,
 				"mode" : 0,
 				"name" : "Energia reattiva",
 				"page" : 2,
-				"script" : "%energia_reattiva",
+				"script" : "%energia_reattiva=$search(Energia Reattiva Misurata kVarh $NUMBER,@)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.22177420556545258,
 				"x" : 0.66532260179519653,
-				"y" : 0.32199129462242126
+				"y" : 0.30117493867874146
+			},
+			{
+				"h" : 0.033463884145021439,
+				"mode" : 0,
+				"name" : "Energia reattiva 2",
+				"page" : 2,
+				"script" : "%energia_reattiva=$search(Energia Reattiva Misurata kVarh $NUMBER,@)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.11132538318634033,
+				"x" : 0.36553293466567993,
+				"y" : 0.30179464817047119
 			},
 			{
 				"h" : 0.014901005662977695,
@@ -110,21 +98,9 @@
 				"w" : 0.1594574898481369,
 				"x" : 0.25201612710952759,
 				"y" : 0.18982584774494171
-			},
-			{
-				"h" : 0.028886355459690094,
-				"mode" : 0,
-				"name" : "Numero fattura",
-				"page" : 1,
-				"script" : "numero_fattura=$search(N\\. fattura $NUMBER,@)",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.20967741310596466,
-				"x" : 0.04516129195690155,
-				"y" : 0.19308248162269592
 			}
 		],
-		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\axpo.pdf"
+		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\axpo\\2019\\112019.pdf"
 	},
 	"version" : 1
 }
