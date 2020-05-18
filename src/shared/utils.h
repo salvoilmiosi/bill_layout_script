@@ -28,7 +28,7 @@ std::string &string_trim(std::string &str);
 std::string parse_number(const std::string &value);
 
 // converte i vari formati di data in un formato universale (dd/mm/aaaa)
-std::string parse_date(std::string format, const std::string &value);
+std::string parse_date(const std::string &format, const std::string &value, int index);
 
 // cerca $NUMBER in str e ritorna il valore trovato
 std::string search_regex(std::string format, const std::string &value, int index);

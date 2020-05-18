@@ -243,8 +243,9 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
                 function.args.size() >= 3 ? evaluate(function.args[2], value).number().getAsInteger() : 1);
         } else if (function.is("num")) {
             return variable(parse_number(evaluate(function.args[0], value).str()), VALUE_NUMBER);
-        } else if (function.is("date", 2)) {
-            return parse_date(evaluate(function.args[0], value).str(), evaluate(function.args[1], value).str());
+        } else if (function.isleast("date", 2)) {
+            return parse_date(evaluate(function.args[0], value).str(), evaluate(function.args[1], value).str(),
+                function.args.size() >= 3 ? evaluate(function.args[2], value).number().getAsInteger() : 1);
         } else if (function.is("if", 2)) {
             if (evaluate(function.args[0], value)) return evaluate(function.args[1], value);
         } else if (function.is("ifnot", 2)) {
@@ -277,14 +278,14 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
             return std::max(evaluate(function.args[0], value), evaluate(function.args[1], value));
         } else if (function.is("min", 2)) {
             return std::min(evaluate(function.args[0], value), evaluate(function.args[1], value));
+        } else if (function.is("cat", 2)) {
+            return evaluate(function.args[0], value).str() + evaluate(function.args[1], value).str();
         } else {
             throw parsing_error("Funzione non riconosciuta: " + function.name, script);
         }
 
         break;
     }
-    case '%':
-        return evaluate(script.substr(1), value).number();
     case '@':
         return value + script.substr(1);
     default:

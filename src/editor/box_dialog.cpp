@@ -67,7 +67,7 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     m_box_script = new wxTextCtrl(this, wxID_ANY, box.script, wxDefaultPosition, wxSize(300, 200), wxTE_MULTILINE | wxTE_DONTWRAP);
     addLabelAndCtrl("Script:", 1, m_box_script);
 
-    hsplit->Add(sizer, 1, wxEXPAND | wxALL, 5);
+    hsplit->Add(sizer, 2, wxEXPAND | wxALL, 5);
 
     reader_output = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(300, -1), wxTE_MULTILINE);
     reader_output->SetEditable(false);
