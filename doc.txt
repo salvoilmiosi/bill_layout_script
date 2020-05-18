@@ -1,0 +1,45 @@
+documentazione bls
+
+funzioni:
+
+$cat(a,b) -- concatena stringhe a,b
+$contains(valore,contenuto) -- 1 se contenuto trovato in valore
+$search(regex,valore[,index]) -- cerca il gruppo di regex n. index in valore
+$num(valore) -- trasforma i numeri dal formato italiano a quello informatico (trasforma le virgole in punti e taglia i punti delle migliaia)
+$date(regex,valore[,index]) -- come search, ma cerca DD, MM, MON, MONTH, YYYY, YEAR e lo mette in output come yyyy-mm-dd
+$if(condizione,valore) -- mette in output valore solo se condizione e' vera (vedere conversione valori)
+$ifnot(condizione,valore) -- come $if($not(condizione),valore)
+
+operatori logici (come bool, vedere conversione valori)
+
+$not(a) -- not a
+$eq(a,b) -- 1 se a uguale a b
+$neq(a,b) -- 1 se a diverso da b
+$and(a,b) -- a and b
+$or(a,b) -- a or b
+
+operatori numerici (come number, vedere conversione valori)
+
+$add(a,b) -- a + b
+$sub(a,b) -- a - b
+$mul(a,b) -- a * b
+$div(a,b) -- a / b
+$gt(a,b) -- a > b
+$lt(a,b) -- a < b
+$max(a,b) -- max(a,b)
+$min(a,b) -- min(a,b)
+
+conversione valori:
+
+il programma lavora solo su valori stringa, per operare su numeri esegue conversioni sul posto
+i numeri sono a precisione fissa (numeri decimali con 6 cifre dopo la virgola)
+
+caratteri speciali:
+" - indica che l'intero elemento deve essere trattato come stringa e quindi non parsato
+& - indica un riferimento a una variabile
+@ - indica il valore letto dentro il rettangolo
+
+nome=valore -- assegna alla variabile nome il valore
+nome+=valore -- tratta la variabile come array
+
+%nome -- assegna il valore $num(valore)
