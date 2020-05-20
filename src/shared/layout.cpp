@@ -11,10 +11,14 @@ bill_layout_script::bill_layout_script() {
 }
 
 box_reference bill_layout_script::getBoxAt(float x, float y, int page) {
+    auto check_box = [&](layout_box &box) {
+        return (x > box.x && x < box.x + box.w && y > box.y && y < box.y + box.h && box.page == page);
+    };
     for (auto it = boxes.begin(); it != boxes.end(); ++it) {
-        if (x > it->x && x < it->x + it->w && y > it->y && y < it->y + it->h && it->page == page) {
-            return it;
-        }
+        if (it->selected && check_box(*it)) return it;
+    }
+    for (auto it = boxes.begin(); it != boxes.end(); ++it) {
+        if (check_box(*it)) return it;
     }
     return boxes.end();
 }
@@ -22,23 +26,36 @@ box_reference bill_layout_script::getBoxAt(float x, float y, int page) {
 std::pair<box_reference, int> bill_layout_script::getBoxResizeNode(float x, float y, int page, float scalex, float scaley) {
     float nw = RESIZE_TOLERANCE / scalex;
     float nh = RESIZE_TOLERANCE / scaley;
-    for (auto it = boxes.begin(); it != boxes.end(); ++it) {
-        if (x > it->x - nw && x < it->x + it->w + nw && y > it->y - nh && y < it->y + it->h + nh && it->page == page) {
+    auto check_box = [&](box_reference it) {
+        if (it->page == page) {
             int node = 0;
-            if (x > it->x - nw && x < it->x + nw) {
-                node |= RESIZE_LEFT;
+            if (y > it->y - nh && y < it->y + it->h + nh) {
+                if (x > it->x - nw && x < it->x + nw) {
+                    node |= RESIZE_LEFT;
+                } else if (x > it->x + it->w - nw && x < it->x + it->w + nw) {
+                    node |= RESIZE_RIGHT;
+                }
             }
-            if (x > it->x + it->w - nw && x < it->x + it->w + nw) {
-                node |= RESIZE_RIGHT;
-            }
-            if (y > it->y - nh && y < it->y + nh) {
-                node |= RESIZE_TOP;
-            }
-            if (y > it->y + it->h - nh && y < it->y + it->h + nh) {
-                node |= RESIZE_BOTTOM;
+            if (x > it->x - nw && x < it->x + it->w + nw) {
+                if (y > it->y - nh && y < it->y + nh) {
+                    node |= RESIZE_TOP;
+                } else if (y > it->y + it->h - nh && y < it->y + it->h + nh) {
+                    node |= RESIZE_BOTTOM;
+                }
             }
             return std::make_pair(it, node);
         }
+        return std::make_pair(boxes.end(), 0);
+    };
+    for (auto it = boxes.begin(); it != boxes.end(); ++it) {
+        if (it->selected) {
+            auto res = check_box(it);
+            if (res.second) return res;
+        }
+    }
+    for (auto it = boxes.begin(); it != boxes.end(); ++it) {
+        auto res = check_box(it);
+        if (res.second) return res;
     }
     return std::make_pair(boxes.end(), 0);
 }

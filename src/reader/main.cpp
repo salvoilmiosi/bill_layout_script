@@ -50,13 +50,13 @@ int main(int argc, char **argv) {
 
     parser result;
     result.debug = debug;
-    std::istream *in = &std::cin;
+
+    std::unique_ptr<std::ifstream> ifs;
     
     if (file_layout != "-") {
-        in = new std::ifstream(file_layout);
-        if (in->bad()) {
+        ifs = std::make_unique<std::ifstream>(file_layout);
+        if (ifs->bad()) {
             std::cerr << "Impossibile aprire il file " << file_layout << " in input" << std::endl;
-            delete in;
             return 1;
         }
     }
@@ -64,21 +64,26 @@ int main(int argc, char **argv) {
     try {
         if (find_file_layout) {
             std::string text = pdf_whole_file_to_text(app_dir, file_pdf);
-            result.read_script(*in, text);
-            if (auto *ifs = dynamic_cast<std::ifstream *>(in)) {
+            if (ifs) {
+                result.read_script(*ifs, text);
                 ifs->close();
-                delete ifs;
+            } else {
+                result.read_script(std::cin, text);
             }
-            file_layout = layout_dir + '/' + result.get_file_layout();
-            in = new std::ifstream(file_layout);
-            if (in->bad()) {
+            file_layout = layout_dir + '/' + result.get_variable("layout").str();
+            ifs = std::make_unique<std::ifstream>(file_layout);
+            if (ifs->bad()) {
                 std::cerr << "Impossibile aprire il file " << file_layout << " in input" << std::endl;
-                delete in;
                 return 1;
             }
         }
         bill_layout_script layout;
-        *in >> layout;
+        if (ifs) {
+            *ifs >> layout;
+            ifs->close();
+        } else {
+            std::cin >> layout;
+        }
 
         pdf_info info = pdf_get_info(app_dir, file_pdf);
 
@@ -94,11 +99,6 @@ int main(int argc, char **argv) {
     } catch (const parsing_error &error) {
         std::cerr << error.message << ": " << error.line << std::endl;
         return 3;
-    }
-    
-    if (auto *ifs = dynamic_cast<std::ifstream *>(in)) {
-        ifs->close();
-        delete ifs;
     }
 
     std::cout << result << std::endl;

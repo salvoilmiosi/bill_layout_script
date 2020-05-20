@@ -95,7 +95,7 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
         {
             auto node = app->layout.getBoxResizeNode(xx, yy, app->getSelectedPage(), scaled_width, scaled_height);
             selected_box = node.first;
-            if (selected_box != app->layout.boxes.end()) {
+            if (node.second) {
                 resize_node = node.second;
                 app->selectBox(selected_box - app->layout.boxes.begin());
                 mouseIsDown = true;
@@ -158,6 +158,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                         app->updateLayout();
                     }
                 }
+                OnMouseMove(evt); // changes cursor
                 break;
             }
         }
@@ -182,6 +183,8 @@ void box_editor_panel::OnDoubleClick(wxMouseEvent &evt) {
 }
 
 void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {
+    float xx = (evt.GetX() + scrollx) / scaled_width;
+    float yy = (evt.GetY() + scrolly) / scaled_height;
     if (mouseIsDown) {
         end_pt = evt.GetPosition();
         switch (selected_tool) {
@@ -195,8 +198,6 @@ void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {
         }
         case TOOL_RESIZE:
         {
-            float xx = (evt.GetX() + scrollx) / scaled_width;
-            float yy = (evt.GetY() + scrolly) / scaled_height;
             if (resize_node & RESIZE_TOP) {
                 selected_box->h = selected_box->y + selected_box->h - yy;
                 selected_box->y = yy;
@@ -217,6 +218,32 @@ void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {
         Refresh();
         if (evt.Leaving()) {
             OnMouseUp(evt);
+        }
+    } else {
+        switch (selected_tool) {
+        case TOOL_RESIZE:
+            auto node = app->layout.getBoxResizeNode(xx, yy, app->getSelectedPage(), scaled_width, scaled_height);
+            switch (node.second) {
+            case RESIZE_LEFT:
+            case RESIZE_RIGHT:
+                SetCursor(wxStockCursor::wxCURSOR_SIZEWE);
+                break;
+            case RESIZE_TOP:
+            case RESIZE_BOTTOM:
+                SetCursor(wxStockCursor::wxCURSOR_SIZENS);
+                break;
+            case RESIZE_LEFT | RESIZE_TOP:
+            case RESIZE_RIGHT | RESIZE_BOTTOM:
+                SetCursor(wxStockCursor::wxCURSOR_SIZENWSE);
+                break;
+            case RESIZE_RIGHT | RESIZE_TOP:
+            case RESIZE_LEFT | RESIZE_BOTTOM:
+                SetCursor(wxStockCursor::wxCURSOR_SIZENESW);
+                break;
+            default:
+                SetCursor(*wxSTANDARD_CURSOR);
+                break;
+            }
         }
     }
     evt.Skip();

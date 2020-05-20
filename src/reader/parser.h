@@ -25,7 +25,7 @@ class parser {
 public:
     void read_box(const std::string &app_dir, const std::string &file_pdf, const pdf_info &info, const layout_box &box);
     void read_script(std::istream &stream, const std::string &text);
-    std::string get_file_layout();
+    const variable &get_variable(const std::string &name, size_t index = 0) const;
 
     friend std::ostream & operator << (std::ostream &out, const parser &res);
 

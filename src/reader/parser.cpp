@@ -127,12 +127,13 @@ void parser::read_script(std::istream &stream, const std::string &text) {
     }
 }
 
-std::string parser::get_file_layout() {
-    auto &obj = m_values["layout"];
-    if (obj.empty()) {
-        return "";
+const variable &parser::get_variable(const std::string &name, size_t index) const {
+    static const variable VAR_EMPTY;
+    auto it = m_values.find(name);
+    if (it == m_values.end() || it->second.size() <= index) {
+        return VAR_EMPTY;
     } else {
-        return obj.at(0).str();
+        return it->second.at(index);
     }
 }
 
@@ -227,13 +228,6 @@ function_parser::function_parser(const std::string &script) : script(script) {
 
 variable parser::evaluate(const std::string &script, const std::string &value) {
     if (!script.empty()) switch(script.at(0)) {
-    case '&':
-    {
-        auto it = m_values.find(script.substr(1));
-        if (it == m_values.end()) break;
-
-        return it->second[0];
-    }
     case '$':
     {
         function_parser function(script);
@@ -246,6 +240,10 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
         } else if (function.isleast("date", 2)) {
             return parse_date(evaluate(function.args[0], value).str(), evaluate(function.args[1], value).str(),
                 function.args.size() >= 3 ? evaluate(function.args[2], value).number().getAsInteger() : 1);
+        } else if (function.is("month_begin", 1)) {
+            return evaluate(function.args[0], value).str() + "-01";
+        } else if (function.is("month_end", 1)) {
+            return date_month_end(evaluate(function.args[0], value).str());
         } else if (function.is("if", 2)) {
             if (evaluate(function.args[0], value)) return evaluate(function.args[1], value);
         } else if (function.is("ifnot", 2)) {
@@ -286,6 +284,8 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
 
         break;
     }
+    case '&':
+        return get_variable(script.substr(1));
     case '@':
         return value + script.substr(1);
     default:

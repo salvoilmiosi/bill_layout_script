@@ -103,6 +103,7 @@ std::string parse_date(const std::string &format, const std::string &value, int 
     string_replace(month, "YEAR", "[0-9]{4}");
     string_replace(month, "YYYY", "[0-9]{4}");
     month = search_regex(month, value, index);
+    month = string_tolower(month);
     for (size_t i=0; i<std::size(MONTHS); ++i) {
         if (month.find(MONTHS[i]) != std::string::npos) {
             if (i < 9) {
@@ -125,6 +126,22 @@ std::string parse_date(const std::string &format, const std::string &value, int 
     year = search_regex(year, value, index);
 
     return day.empty() ? year + "-" + month : year + "-" + month + "-" + day;
+}
+
+std::string date_month_end(const std::string &value) {
+    size_t dash = value.find_first_of('-');
+    if (dash == std::string::npos) {
+        return "";
+    }
+    int year = std::stoi(value.substr(0, dash));
+    int month = std::stoi(value.substr(dash + 1)) - 1;
+    std::string day;
+
+    if (month == 0 || month == 2 || month == 4 || month == 6 || month == 7 || month == 9 || month == 11) day = "-31";
+    else if (month == 3 || month == 5 || month == 8 || month == 10) day = "-30";
+    else day = (year % 4 == 0 && year % 400 != 0) ? "-29" : "-28";
+
+    return value + day;
 }
 
 std::string search_regex(std::string format, const std::string &value, int index) {
