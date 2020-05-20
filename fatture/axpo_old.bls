@@ -8,7 +8,7 @@
 				"mode" : 0,
 				"name" : "Numero fattura",
 				"page" : 1,
-				"script" : "numero_fattura=$search(Fattura N. ([0-9]+),@)",
+				"script" : "numero_fattura=$search(Fattura N. ([0-9]+),@)\ndata_fattura=$date(del DD\\.MM\\.YYYY,@)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.47258064150810242,
@@ -20,7 +20,7 @@
 				"mode" : 0,
 				"name" : "Periodo",
 				"page" : 1,
-				"script" : "periodo=$date(MONTH YEAR,@)",
+				"script" : "#periodo=$date(MONTH YEAR,@)\ndata_inizio=$month_begin(&#periodo)\ndata_fine=$month_end(&#periodo)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.20483870804309845,
@@ -52,18 +52,6 @@
 				"y" : 0.32745665311813354
 			},
 			{
-				"h" : 0.019735110923647881,
-				"mode" : 0,
-				"name" : "Energia attiva",
-				"page" : 2,
-				"script" : "%energia_attiva+",
-				"spacers" : "",
-				"type" : 3,
-				"w" : 0.24296940863132477,
-				"x" : 0.25020679831504822,
-				"y" : 0.26459667086601257
-			},
-			{
 				"h" : 0.25948017835617065,
 				"mode" : 0,
 				"name" : "Dati fornitura",
@@ -76,16 +64,40 @@
 				"y" : 0.65856796503067017
 			},
 			{
-				"h" : 0.055550683289766312,
+				"h" : 0.015727594494819641,
 				"mode" : 0,
 				"name" : "Ragione sociale",
 				"page" : 1,
 				"script" : "ragione_sociale",
 				"spacers" : "",
 				"type" : 0,
-				"w" : 0.41356495022773743,
-				"x" : 0.54383790493011475,
-				"y" : 0.165190190076828
+				"w" : 0.46440485119819641,
+				"x" : 0.037078231573104858,
+				"y" : 0.13237395882606506
+			},
+			{
+				"h" : 0.023565188050270081,
+				"mode" : 0,
+				"name" : "Numero cliente",
+				"page" : 1,
+				"script" : "numero_cliente",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.26314422488212585,
+				"x" : 0.22357626259326935,
+				"y" : 0.10946407914161682
+			},
+			{
+				"h" : 0.10969501733779907,
+				"mode" : 0,
+				"name" : "Prezzo Energia",
+				"page" : 3,
+				"script" : "%energia_attiva+=$search(Prezzo Energia F1 $NUMBER,@)\n%energia_attiva+=$search(Prezzo Energia F2 $NUMBER,@)\n%energia_attiva+=$search(Prezzo Energia F3 $NUMBER,@)\n%prezzo_energia+=$search(Prezzo Energia F1 $NUMBER kWh $NUMBER,@,2)\n%prezzo_energia+=$search(Prezzo Energia F2 $NUMBER kWh $NUMBER,@,2)\n%prezzo_energia+=$search(Prezzo Energia F3 $NUMBER kWh $NUMBER,@,2)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.89730501174926758,
+				"x" : 0.044916290789842606,
+				"y" : 0.33341512084007263
 			}
 		],
 		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\axpo\\2019\\01. Gennaio 2019.pdf"

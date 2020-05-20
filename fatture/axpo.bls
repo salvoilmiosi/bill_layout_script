@@ -8,7 +8,7 @@
 				"mode" : 0,
 				"name" : "Dati bolletta",
 				"page" : 1,
-				"script" : "numero_fattura=$search(N\\. fattura ([0-9]+),@)\nperiodo=$date(PERIODO\\nDD\\.MM\\.YYYY,@)\ncodice_pod=$search(CODICE POD (.+)\\n,@)\nnumero_cliente=$search(CODICE CLIENTE (.+)\\n,@)",
+				"script" : "numero_fattura=$search(N\\. fattura ([0-9]+),@)\ndata_emissione=$date(N\\. fattura [0-9]+ del DD\\.MM\\.YYYY,@)\ndata_inizio=$date(PERIODO DD\\.MM\\.YYYY - DD\\.MM\\.YYYY,@,1)\ndata_fine=$date(PERIODO DD\\.MM\\.YYYY - DD\\.MM\\.YYYY,@,2)\ncodice_pod=$search(CODICE POD (.+)\\n,@)\nnumero_cliente=$search(CODICE CLIENTE (.+)\\n,@)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.22615706920623779,
@@ -40,52 +40,28 @@
 				"y" : 0.34790608286857605
 			},
 			{
+				"h" : 0.026225769892334938,
+				"mode" : 0,
+				"name" : "Data scadenza",
+				"page" : 1,
+				"script" : "data_scadenza=$date(DD\\.MM\\.YYYY,@)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.38387095928192139,
+				"x" : 0.58064514398574829,
+				"y" : 0.38882553577423096
+			},
+			{
 				"h" : 0.20686757564544678,
 				"mode" : 0,
 				"name" : "Sintesi costi",
 				"page" : 1,
-				"script" : "%spesa_materia_energia=$search(SPESA PER LA MATERIA ENERGIA $NUMBER,@)\n%trasporto_gestione=$search(SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE $NUMBER,@)\n%oneri=$search(SPESA PER ONERI DI SISTEMA $NUMBER,@)\n%imponibile=$search(imponibile di $NUMBER,@)",
+				"script" : "%spesa_materia_energia=$search(SPESA PER LA MATERIA ENERGIA $NUMBER,@)\n%trasporto=$search(SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE $NUMBER,@)\n%oneri=$search(SPESA PER ONERI DI SISTEMA $NUMBER,@)\n%imponibile=$search(imponibile di $NUMBER,@)\niva=$div($search(Importo IVA $NUMBER,@),100)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.438966304063797,
 				"x" : 0.047653961926698685,
 				"y" : 0.68674200773239136
-			},
-			{
-				"h" : 0.013323605060577393,
-				"mode" : 0,
-				"name" : "Energia attiva",
-				"page" : 2,
-				"script" : "%energia_attiva+",
-				"spacers" : "",
-				"type" : 3,
-				"w" : 0.17228740453720093,
-				"x" : 0.19061584770679474,
-				"y" : 0.32162508368492126
-			},
-			{
-				"h" : 0.035069495439529419,
-				"mode" : 0,
-				"name" : "Energia reattiva",
-				"page" : 2,
-				"script" : "%energia_reattiva=$search(Energia Reattiva Misurata kVarh $NUMBER,@)",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.22177420556545258,
-				"x" : 0.66532260179519653,
-				"y" : 0.30117493867874146
-			},
-			{
-				"h" : 0.033463884145021439,
-				"mode" : 0,
-				"name" : "Energia reattiva 2",
-				"page" : 2,
-				"script" : "%energia_reattiva=$search(Energia Reattiva Misurata kVarh $NUMBER,@)",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.11132538318634033,
-				"x" : 0.36553293466567993,
-				"y" : 0.30179464817047119
 			},
 			{
 				"h" : 0.014901005662977695,
@@ -98,9 +74,69 @@
 				"w" : 0.1594574898481369,
 				"x" : 0.25201612710952759,
 				"y" : 0.18982584774494171
+			},
+			{
+				"h" : 0.037740699946880341,
+				"mode" : 0,
+				"name" : "Spaziatore consumi",
+				"page" : 2,
+				"script" : "spaziatore_consumi=$not($contains(@,Consumi))",
+				"spacers" : "",
+				"type" : 4,
+				"w" : 0.31008633971214294,
+				"x" : 0.18741482496261597,
+				"y" : 0.29951661825180054
+			},
+			{
+				"h" : 0.033826082944869995,
+				"mode" : 0,
+				"name" : "Energia attiva",
+				"page" : 2,
+				"script" : "%energia_attiva+=$search(Consumi fatturati kWh F1 F2 F3 $NUMBER $NUMBER $NUMBER,@,1)\n%energia_attiva+=$search(Consumi fatturati kWh F1 F2 F3 $NUMBER $NUMBER $NUMBER,@,2)\n%energia_attiva+=$search(Consumi fatturati kWh F1 F2 F3 $NUMBER $NUMBER $NUMBER,@,3)",
+				"spacers" : "spaziatore_consumi.x",
+				"type" : 0,
+				"w" : 0.17228740453720093,
+				"x" : 0.19061581790447235,
+				"y" : 0.3003196120262146
+			},
+			{
+				"h" : 0.033463884145021439,
+				"mode" : 0,
+				"name" : "Energia reattiva",
+				"page" : 2,
+				"script" : "%energia_reattiva=$search(Energia Reattiva Misurata kVarh $NUMBER,@)",
+				"spacers" : "spaziatore_consumi.x",
+				"type" : 0,
+				"w" : 0.11132538318634033,
+				"x" : 0.36553293466567993,
+				"y" : 0.30179464817047119
+			},
+			{
+				"h" : 0.018243968486785889,
+				"mode" : 0,
+				"name" : "Imposta erariale (?)",
+				"page" : 2,
+				"script" : "#%imp_erariale",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.080645173788070679,
+				"x" : 0.41774192452430725,
+				"y" : 0.70695555210113525
+			},
+			{
+				"h" : 0.047376621514558792,
+				"mode" : 0,
+				"name" : "Prezzo Energia",
+				"page" : 3,
+				"script" : "#label_prezzo_energia=$if($contains(@,Prezzo Energia),1)\n%prezzo_energia+=$if(#label_prezzo_energia,$search(F1 Euro/kWh $NUMBER,@))\n%prezzo_energia+=$if(#label_prezzo_energia,$search(F2 Euro/kWh $NUMBER,@))\n%prezzo_energia+=$if(#label_prezzo_energia,$search(F3 Euro/kWh $NUMBER,@))",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.5815538763999939,
+				"x" : 0.044298049062490463,
+				"y" : 0.29710763692855835
 			}
 		],
-		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\axpo\\2019\\112019.pdf"
+		"pdf_filename" : "D:\\dev\\layout bolletta\\fatture\\axpo\\2020\\012020 (2).pdf"
 	},
 	"version" : 1
 }
