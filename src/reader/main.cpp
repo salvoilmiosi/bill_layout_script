@@ -6,94 +6,101 @@
 #include "../shared/xpdf.h"
 
 int main(int argc, char **argv) {
-    if (argc < 3) {
-        std::cerr << "Utilizzo: layout_reader file.pdf file.bls/[file.txt -f dir_layout]" << std::endl;
-        return 0;
-    }
-
     std::string app_dir = argv[0];
     app_dir = app_dir.substr(0, app_dir.find_last_of("\\/"));
 
-    std::string file_pdf = argv[1];
-    std::string file_layout = argv[2];
+    enum {
+        FLAG_NONE,
+        FLAG_PDF,
+        FLAG_LAYOUT_DIR,
+        FLAG_MODE,
+    } options_flag = FLAG_NONE;
 
-    if (!std::filesystem::exists(file_pdf)) {
-        std::cerr << "Il file " << file_pdf << " non esiste";
+    parser result;
+    std::string input_file;
+    std::string file_pdf;
+    std::string layout_dir;
+    bool exec_script = false;
+    bool in_file_layout = true;
+
+    read_mode mode = MODE_RAW;
+
+    for (++argv; argc > 1; --argc, ++argv) {
+        switch (options_flag) {
+        case FLAG_NONE:
+            if (strcmp(*argv, "-p") == 0) options_flag = FLAG_PDF;
+            else if (strcmp(*argv, "-l") == 0) options_flag = FLAG_LAYOUT_DIR;
+            else if (strcmp(*argv, "-m") == 0) options_flag = FLAG_MODE;
+            else if (strcmp(*argv, "-s") == 0) exec_script = true;
+            else if (strcmp(*argv, "-d") == 0) result.debug = true;
+            else input_file = *argv;
+            break;
+        case FLAG_PDF:
+            file_pdf = *argv;
+            options_flag = FLAG_NONE;
+            break;
+        case FLAG_LAYOUT_DIR:
+            layout_dir = *argv;
+            options_flag = FLAG_NONE;
+            break;
+        case FLAG_MODE:
+            if (strcmp(*argv, "raw") == 0) mode = MODE_RAW;
+            else if (strcmp(*argv, "simple") == 0) mode = MODE_SIMPLE;
+            else if (strcmp(*argv, "table") == 0) mode = MODE_TABLE;
+            options_flag = FLAG_NONE;
+            break;
+        }
+    }
+
+    if (file_pdf.empty()) {
+        std::cerr << "Specificare il file pdf di input" << std::endl;
+        return 1;
+    } else if (!std::filesystem::exists(file_pdf)) {
+        std::cerr << "Impossibile aprire il file pdf " << file_pdf << std::endl;
         return 1;
     }
 
-    bool debug = false;
-    bool only_script = false;
-    bool find_file_layout = false;
-    bool read_simple = false;
-    std::string layout_dir;
-
-    if (argc >= 4 && argv[3][0] == '-') {
-        for (char *c = argv[3] + 1; *c!='\0'; ++c) {
-            switch(*c) {
-            case 'i':
-                read_simple = true;
-                break;
-            case 'd':
-                debug = true;
-                break;
-            case 's':
-                only_script = true;
-                break;
-            case 'f':
-                find_file_layout = true;
-                if (argc >= 5) {
-                    layout_dir = argv[4];
-                } else {
-                    std::cerr << "-f richiede directory dei file di layout" << std::endl;
-                    return 1;
-                }
-                break;
-            default:
-                std::cerr << "Opzione sconosciuta: " << *c << std::endl;
-                return 1;
-            }
-        }
-    }
-
-    parser result;
-    result.debug = debug;
-
     std::unique_ptr<std::ifstream> ifs;
-    
-    if (file_layout != "-") {
-        ifs = std::make_unique<std::ifstream>(file_layout);
-        if (ifs->bad()) {
-            std::cerr << "Impossibile aprire il file " << file_layout << " in input" << std::endl;
+
+    if (input_file.empty()) {
+        std::cerr << "Specificare un file di input, o - per stdin" << std::endl;
+        return 1;
+    } else if (input_file != "-") {
+        if (!std::filesystem::exists(input_file)) {
+            std::cerr << "Impossibile aprire il file layout " << input_file << std::endl;
             return 1;
         }
+        ifs = std::make_unique<std::ifstream>(input_file);
     }
 
     try {
-        if (only_script) {
-            std::string text = pdf_whole_file_to_text(file_pdf, read_simple ? MODE_SIMPLE : MODE_RAW);
+        if (exec_script) {
+            std::string text = pdf_whole_file_to_text(file_pdf, mode);
             if (ifs) {
                 result.read_script(*ifs, text);
                 ifs->close();
             } else {
                 result.read_script(std::cin, text);
             }
-        } else {
-            if (find_file_layout) {
-                std::string text = pdf_whole_file_to_text(file_pdf, read_simple ? MODE_SIMPLE : MODE_RAW);
-                if (ifs) {
-                    result.read_script(*ifs, text);
-                    ifs->close();
-                } else {
-                    result.read_script(std::cin, text);
-                }
-                file_layout = layout_dir + '/' + result.get_variable("layout").str();
-                ifs = std::make_unique<std::ifstream>(file_layout);
-                if (ifs->bad()) {
-                    std::cerr << "Impossibile aprire il file " << file_layout << " in input" << std::endl;
-                    return 1;
-                }
+            in_file_layout = false;
+        }
+        if (!layout_dir.empty()) {
+            std::string text = pdf_whole_file_to_text(file_pdf, mode);
+            if (ifs) {
+                result.read_script(*ifs, text);
+                ifs->close();
+            } else {
+                result.read_script(std::cin, text);
             }
+            input_file = layout_dir + '/' + result.get_variable("layout").str();
+            if (!std::filesystem::exists(input_file)) {
+                std::cerr << "Impossibile aprire il file layout " << input_file << std::endl;
+                return 1;
+            }
+            ifs = std::make_unique<std::ifstream>(input_file);
+            in_file_layout = true;
+        }
+        if (in_file_layout) {
             bill_layout_script layout;
             if (ifs) {
                 *ifs >> layout;

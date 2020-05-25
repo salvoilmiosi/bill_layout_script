@@ -6,7 +6,7 @@ from pathlib import Path
 
 def read_file(out, app_dir, pdf_file, layout_string, layout_dir):
 
-    args = [app_dir + 'bin/layout_reader', pdf_file, '-', '-f', layout_dir]
+    args = [app_dir + 'bin/layout_reader', '-p', pdf_file, '-l', layout_dir, '-s', '-']
     proc = subprocess.run(args, input=layout_string, capture_output=True, text=True)
 
     def write_value(name, index=0):
@@ -16,7 +16,7 @@ def read_file(out, app_dir, pdf_file, layout_string, layout_dir):
             pass
         out.write(';')
 
-    out.write('{0};'.format(pdf_file))
+    out.write(str(pdf_file) + ';')
     try:
         json_output = json.loads(proc.stdout)
         json_values = json_output['values']
@@ -40,7 +40,7 @@ def read_file(out, app_dir, pdf_file, layout_string, layout_dir):
         if 'conguaglio' in json_values: out.write('CONGUAGLIO')
         out.write('\n')
     except:
-        out.write('{0};Impossibile leggere questo file\n'.format(pdf_file))
+        out.write(str(pdf_file) + ';Impossibile leggere questo file\n')
     
     out.flush()
 

@@ -16,7 +16,7 @@ output_dialog::output_dialog(wxWindow *parent, const bill_layout_script &layout)
 
     const char *args[] = {
         cmd_str,
-        layout.pdf_filename.c_str(), "-",
+        "-p", layout.pdf_filename.c_str(), "-",
         nullptr
     };
 
