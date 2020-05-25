@@ -4,7 +4,7 @@ import json
 from os import path
 from pathlib import Path
 
-def read_file(file_out, app_dir, pdf_file, layout_string, layout_dir):
+def read_file(out, app_dir, pdf_file, layout_string, layout_dir):
 
     args = [app_dir + 'bin/layout_reader', pdf_file, '-', '-f', layout_dir]
     proc = subprocess.run(args, input=layout_string, capture_output=True, text=True)
@@ -12,14 +12,14 @@ def read_file(file_out, app_dir, pdf_file, layout_string, layout_dir):
     def write_value(name, index=0):
         try:
             out.write(json_values[name][index])
-        except:
+        except (KeyError, IndexError):
             pass
         out.write(';')
 
+    out.write('{0};'.format(pdf_file))
     try:
         json_output = json.loads(proc.stdout)
         json_values = json_output['values']
-        out.write('{0};'.format(pdf_file))
         write_value('numero_fattura')
         write_value('codice_pod')
         write_value('numero_cliente')
