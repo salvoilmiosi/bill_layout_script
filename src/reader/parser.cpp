@@ -45,7 +45,7 @@ void parser::add_spacer(const std::string &script, const std::string &value, con
     }
 }
 
-void parser::read_box(const std::string &app_dir, const std::string &file_pdf, const pdf_info &info, const layout_box &box) {
+void parser::read_box(const std::string &file_pdf, const pdf_info &info, const layout_box &box) {
     pdf_rect box_moved = box;
     for (auto &name : tokenize(box.spacers)) {
         if (name.size() <= 2 || name.at(name.size()-2) != '.') {
@@ -75,12 +75,12 @@ void parser::read_box(const std::string &app_dir, const std::string &file_pdf, c
     }
     std::vector<std::string> scripts = read_lines(box.script);
     if (box.type == BOX_WHOLE_FILE) {
-        std::string text = pdf_whole_file_to_text(app_dir, file_pdf);
+        std::string text = pdf_whole_file_to_text(file_pdf);
         for (auto &script : scripts) {
             add_entry(script, text);
         }
     } else {
-        std::string text = pdf_to_text(app_dir, file_pdf, info, box_moved);
+        std::string text = pdf_to_text(file_pdf, info, box_moved);
         if (box.type == BOX_SINGLE) {
             for (auto &script : scripts) {
                 add_entry(script, text);

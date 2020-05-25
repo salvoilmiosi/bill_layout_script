@@ -335,7 +335,7 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
 
 void frame_editor::loadPdf(const std::string &pdf_filename) {
     try {
-        info = pdf_get_info(get_app_path(), pdf_filename);
+        info = pdf_get_info(pdf_filename);
         layout.pdf_filename = pdf_filename;
         m_page->Clear();
         for (int i=1; i<=info.num_pages; ++i) {
@@ -364,7 +364,7 @@ void frame_editor::setSelectedPage(int page, bool force) {
     m_page->SetSelection(page - 1);
     try {
         selected_page = page;
-        m_image->setImage(pdf_to_image(get_app_path(), layout.pdf_filename, page));
+        m_image->setImage(pdf_to_image(layout.pdf_filename, page));
     } catch (const xpdf_error &error) {
         wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
     }

@@ -9,13 +9,10 @@
 
 static const char *modes[] = {"-raw", "-simple", "-table"};
 
-std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, const pdf_info &info, const pdf_rect &in_rect) {
+std::string pdf_to_text(const std::string &pdf, const pdf_info &info, const pdf_rect &in_rect) {
     if (!std::filesystem::exists(pdf)) {
         throw xpdf_error(std::string("File \"") + pdf + "\" does not exist");
     }
-
-    char cmd_str[FILENAME_MAX];
-    snprintf(cmd_str, FILENAME_MAX, "%s/xpdf/pdftotext", app_dir.c_str());
 
     char page_str[16];
     snprintf(page_str, 16, "%d", in_rect.page);
@@ -27,7 +24,7 @@ std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, cons
     snprintf(marginb, 16, "%f", info.height * (1.f - in_rect.y - in_rect.h));
 
     const char *args[] = {
-        cmd_str,
+        "pdftotext",
         "-f", page_str, "-l", page_str,
         "-marginl", marginl, "-marginr", marginr,
         "-margint", margint, "-marginb", marginb,
@@ -40,16 +37,13 @@ std::string pdf_to_text(const std::string &app_dir, const std::string &pdf, cons
     return string_trim(out);
 }
 
-std::string pdf_whole_file_to_text(const std::string &app_dir, const std::string &pdf) {
+std::string pdf_whole_file_to_text(const std::string &pdf) {
     if (!std::filesystem::exists(pdf)) {
         throw xpdf_error("File \"" + pdf + "\" does not exist");
     }
 
-    char cmd_str[FILENAME_MAX];
-    snprintf(cmd_str, FILENAME_MAX, "%s/xpdf/pdftotext", app_dir.c_str());
-
     const char *args[] = {
-        cmd_str,
+        "pdftotext",
         "-raw",
         pdf.c_str(), "-",
         nullptr
@@ -59,17 +53,13 @@ std::string pdf_whole_file_to_text(const std::string &app_dir, const std::string
     return string_trim(out);
 }
 
-pdf_info pdf_get_info(const std::string &app_dir, const std::string &pdf) {
+pdf_info pdf_get_info(const std::string &pdf) {
     if (!std::filesystem::exists(pdf)) {
         throw xpdf_error("File \"" + pdf + "\" does not exist");
     }
 
-    char cmd_str[FILENAME_MAX];
-    snprintf(cmd_str, FILENAME_MAX, "%s/xpdf/pdfinfo", app_dir.c_str());
-
     const char *args[] = {
-        cmd_str,
-        pdf.c_str(), nullptr
+        "pdfinfo", pdf.c_str(), nullptr
     };
 
     std::string output = open_process(args)->read_all();

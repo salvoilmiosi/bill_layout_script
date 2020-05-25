@@ -23,7 +23,7 @@ struct spacer {
 
 class parser {
 public:
-    void read_box(const std::string &app_dir, const std::string &file_pdf, const pdf_info &info, const layout_box &box);
+    void read_box(const std::string &file_pdf, const pdf_info &info, const layout_box &box);
     void read_script(std::istream &stream, const std::string &text);
     const variable &get_variable(const std::string &name, size_t index = 0) const;
 
