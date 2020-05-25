@@ -23,14 +23,22 @@ int main(int argc, char **argv) {
     }
 
     bool debug = false;
+    bool only_script = false;
     bool find_file_layout = false;
+    bool read_simple = false;
     std::string layout_dir;
 
     if (argc >= 4 && argv[3][0] == '-') {
         for (char *c = argv[3] + 1; *c!='\0'; ++c) {
             switch(*c) {
+            case 'i':
+                read_simple = true;
+                break;
             case 'd':
                 debug = true;
+                break;
+            case 's':
+                only_script = true;
                 break;
             case 'f':
                 find_file_layout = true;
@@ -62,33 +70,43 @@ int main(int argc, char **argv) {
     }
 
     try {
-        if (find_file_layout) {
-            std::string text = pdf_whole_file_to_text(file_pdf);
+        if (only_script) {
+            std::string text = pdf_whole_file_to_text(file_pdf, read_simple ? MODE_SIMPLE : MODE_RAW);
             if (ifs) {
                 result.read_script(*ifs, text);
                 ifs->close();
             } else {
                 result.read_script(std::cin, text);
             }
-            file_layout = layout_dir + '/' + result.get_variable("layout").str();
-            ifs = std::make_unique<std::ifstream>(file_layout);
-            if (ifs->bad()) {
-                std::cerr << "Impossibile aprire il file " << file_layout << " in input" << std::endl;
-                return 1;
-            }
-        }
-        bill_layout_script layout;
-        if (ifs) {
-            *ifs >> layout;
-            ifs->close();
         } else {
-            std::cin >> layout;
-        }
+            if (find_file_layout) {
+                std::string text = pdf_whole_file_to_text(file_pdf, read_simple ? MODE_SIMPLE : MODE_RAW);
+                if (ifs) {
+                    result.read_script(*ifs, text);
+                    ifs->close();
+                } else {
+                    result.read_script(std::cin, text);
+                }
+                file_layout = layout_dir + '/' + result.get_variable("layout").str();
+                ifs = std::make_unique<std::ifstream>(file_layout);
+                if (ifs->bad()) {
+                    std::cerr << "Impossibile aprire il file " << file_layout << " in input" << std::endl;
+                    return 1;
+                }
+            }
+            bill_layout_script layout;
+            if (ifs) {
+                *ifs >> layout;
+                ifs->close();
+            } else {
+                std::cin >> layout;
+            }
 
-        pdf_info info = pdf_get_info(file_pdf);
+            pdf_info info = pdf_get_info(file_pdf);
 
-        for (auto &box : layout.boxes) {
-            result.read_box(file_pdf, info, box);
+            for (auto &box : layout.boxes) {
+                result.read_box(file_pdf, info, box);
+            }
         }
     } catch (const layout_error &error) {
         std::cerr << error.message << std::endl;

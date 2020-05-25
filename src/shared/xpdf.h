@@ -30,7 +30,7 @@ struct xpdf_error {
 
 std::string pdf_to_text(const std::string &pdf, const pdf_info &info, const pdf_rect &in_rect);
 
-std::string pdf_whole_file_to_text(const std::string &pdf);
+std::string pdf_whole_file_to_text(const std::string &pdf, read_mode mode = MODE_RAW);
 
 pdf_info pdf_get_info(const std::string &pdf);
 

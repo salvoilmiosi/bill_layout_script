@@ -37,14 +37,14 @@ std::string pdf_to_text(const std::string &pdf, const pdf_info &info, const pdf_
     return string_trim(out);
 }
 
-std::string pdf_whole_file_to_text(const std::string &pdf) {
+std::string pdf_whole_file_to_text(const std::string &pdf, read_mode mode) {
     if (!std::filesystem::exists(pdf)) {
         throw xpdf_error("File \"" + pdf + "\" does not exist");
     }
 
     const char *args[] = {
         "pdftotext",
-        "-raw",
+        modes[mode],
         pdf.c_str(), "-",
         nullptr
     };
