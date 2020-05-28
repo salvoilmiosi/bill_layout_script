@@ -3,6 +3,8 @@ bin/*
 obj/*
 fatture/*
 *.exe
+*.dll
+*.so
 *.o
 *.d
 *.res
