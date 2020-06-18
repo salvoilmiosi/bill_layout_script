@@ -9,7 +9,7 @@
 
 class output_dialog : public wxDialog {
 public:
-    output_dialog(wxWindow *parent, const bill_layout_script &layout);
+    output_dialog(wxWindow *parent, const bill_layout_script &layout, const std::string &pdf_filename);
 
 private:
     wxListCtrl *m_list_ctrl;

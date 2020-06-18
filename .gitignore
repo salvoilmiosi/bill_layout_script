@@ -2,6 +2,7 @@
 bin/*
 obj/*
 fatture/*
+script/*
 *.exe
 *.dll
 *.so

@@ -276,8 +276,12 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
             return std::max(evaluate(function.args[0], value), evaluate(function.args[1], value));
         } else if (function.is("min", 2)) {
             return std::min(evaluate(function.args[0], value), evaluate(function.args[1], value));
-        } else if (function.is("cat", 2)) {
-            return evaluate(function.args[0], value).str() + evaluate(function.args[1], value).str();
+        } else if (function.isleast("cat")) {
+            std::string var;
+            for (auto &arg : function.args) {
+                var += evaluate(arg, value).str();
+            }
+            return var;
         } else {
             throw parsing_error("Funzione non riconosciuta: " + function.name, script);
         }

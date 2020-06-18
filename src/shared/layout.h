@@ -48,8 +48,6 @@ public:
 
 public:
     std::vector<layout_box> boxes;
-
-    std::string pdf_filename{};
 };
 
 std::ostream &operator << (std::ostream &out, const bill_layout_script &obj);

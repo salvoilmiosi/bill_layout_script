@@ -8,7 +8,7 @@
 
 #include "editor.h"
 
-output_dialog::output_dialog(wxWindow *parent, const bill_layout_script &layout) :
+output_dialog::output_dialog(wxWindow *parent, const bill_layout_script &layout, const std::string &pdf_filename) :
     wxDialog(parent, wxID_ANY, "Lettura dati", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     char cmd_str[FILENAME_MAX];
@@ -16,7 +16,7 @@ output_dialog::output_dialog(wxWindow *parent, const bill_layout_script &layout)
 
     const char *args[] = {
         cmd_str,
-        "-p", layout.pdf_filename.c_str(), "-",
+        "-p", pdf_filename.c_str(), "-",
         nullptr
     };
 

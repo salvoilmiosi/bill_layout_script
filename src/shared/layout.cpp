@@ -65,7 +65,6 @@ std::ostream &operator << (std::ostream &out, const bill_layout_script &obj) {
     root["version"] = VERSION;
     
     Json::Value &layout = root["layout"]  = Json::objectValue;
-    layout["pdf_filename"] = obj.pdf_filename;
 
     Json::Value &json_boxes = layout["boxes"] = Json::arrayValue;
 
@@ -100,7 +99,6 @@ std::istream &operator >> (std::istream &in, bill_layout_script &obj) {
         case 0x00000001:
         {
             Json::Value &layout = root["layout"];
-            obj.pdf_filename = layout["pdf_filename"].asString();
             Json::Value &json_boxes = layout["boxes"];
             for (Json::Value::iterator it=json_boxes.begin(); it!=json_boxes.end(); ++it) {
                 Json::Value &json_box = *it;

@@ -46,6 +46,10 @@ public:
         return info;
     }
 
+    const std::string &getPdfFilename() {
+        return pdf_filename;
+    }
+
     bill_layout_script layout;
 
 private:
@@ -91,6 +95,7 @@ private:
 private:
     pdf_info info;
     std::string layout_filename{};
+    std::string pdf_filename{};
     int selected_page = 0;
 };
 

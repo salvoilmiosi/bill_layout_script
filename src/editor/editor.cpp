@@ -184,8 +184,8 @@ void frame_editor::openFile(const std::string &filename) {
         ifs >> layout;
         ifs.close();
         history.clear();
-        if (wxFileExists(layout.pdf_filename)) {
-            loadPdf(layout.pdf_filename);
+        if (wxFileExists(pdf_filename)) {
+            loadPdf(pdf_filename);
         }
         updateLayout();
     } catch (const layout_error &error) {
@@ -333,10 +333,10 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
     }
 }
 
-void frame_editor::loadPdf(const std::string &pdf_filename) {
+void frame_editor::loadPdf(const std::string &filename) {
     try {
-        info = pdf_get_info(pdf_filename);
-        layout.pdf_filename = pdf_filename;
+        info = pdf_get_info(filename);
+        pdf_filename = filename;
         m_page->Clear();
         for (int i=1; i<=info.num_pages; ++i) {
             m_page->Append(wxString::Format("%i", i));
@@ -354,24 +354,24 @@ void frame_editor::OnLoadPdf(wxCommandEvent &evt) {
         return;
 
     loadPdf(diag.GetPath().ToStdString());
-    updateLayout();
+    updateLayout(false);
 }
 
 void frame_editor::setSelectedPage(int page, bool force) {
     if (!force && page == selected_page) return;
-    if (layout.pdf_filename.empty()) return;
+    if (pdf_filename.empty()) return;
 
     m_page->SetSelection(page - 1);
     try {
         selected_page = page;
-        m_image->setImage(pdf_to_image(layout.pdf_filename, page));
+        m_image->setImage(pdf_to_image(pdf_filename, page));
     } catch (const xpdf_error &error) {
         wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
     }
 }
 
 void frame_editor::OnPageSelect(wxCommandEvent &evt) {
-    if (layout.pdf_filename.empty()) return;
+    if (pdf_filename.empty()) return;
 
     try {
         int page = std::stoi(m_page->GetValue().ToStdString());
@@ -435,10 +435,10 @@ void frame_editor::OnDelete(wxCommandEvent &evt) {
 }
 
 void frame_editor::OnReadData(wxCommandEvent &evt) {
-    if (layout.pdf_filename.empty()) return;
+    if (pdf_filename.empty()) return;
 
     try {
-        auto *diag = new output_dialog(this, layout);
+        auto *diag = new output_dialog(this, layout, pdf_filename);
         diag->Show();
     } catch (const pipe_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);

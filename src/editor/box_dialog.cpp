@@ -125,7 +125,7 @@ void box_dialog::OnClickTest(wxCommandEvent &evt) {
     try {
         auto copy(box);
         copy.mode = static_cast<read_mode>(m_box_mode->GetSelection());
-        std::string text = pdf_to_text(app->layout.pdf_filename, app->getPdfInfo(), copy);
+        std::string text = pdf_to_text(app->getPdfFilename(), app->getPdfInfo(), copy);
         Json::Value value = text;
         reader_output->SetValue(value.toStyledString());
     } catch (const xpdf_error &error) {
