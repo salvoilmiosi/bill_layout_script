@@ -5,6 +5,7 @@
 #include "../shared/utils.h"
 
 parser::variable_page &parser::get_variable_page() {
+    size_t reading_page_num = m_globals["PAGE_NUM"].number().getAsInteger();
     if (m_values.size() <= reading_page_num) {
         return m_values.emplace_back();
     } else {
@@ -15,7 +16,9 @@ parser::variable_page &parser::get_variable_page() {
 void parser::add_value(const std::string &name, const variable &value) {
     if (name.empty() || value.empty()) return;
 
-    if (name.at(name.size()-1) == '+') {
+    if (name.at(0) == '*') {
+        m_globals[name.substr(1)] = value;
+    } else if (name.at(name.size()-1) == '+') {
         if (name.at(0) == '%') {
             get_variable_page()[name.substr(1, name.size()-2)].emplace_back(parse_number(value.str()), VALUE_NUMBER);
         } else {
@@ -35,12 +38,7 @@ void parser::add_entry(const std::string &script, const std::string &value) {
     if (equals == std::string::npos) {
         add_value(script, value);
     } else if (equals > 0) {
-        std::string id = script.substr(0, equals);
-        if (id == "OUTPUT_PAGE") {
-            reading_page_num = evaluate(script.substr(equals + 1), value).number().getAsInteger();
-        } else {
-            add_value(id, evaluate(script.substr(equals + 1), value));
-        }
+        add_value(script.substr(0, equals), evaluate(script.substr(equals + 1), value));
     } else {
         throw parsing_error("Identificatore vuoto", script);
     }
@@ -170,7 +168,9 @@ void parser::read_box(const std::string &file_pdf, const pdf_info &info, const l
                 }
                 break;
             case BOX_CONDITIONAL_JUMP:
-                exec_conditional_jump(box.script, text);
+                for (auto &script : scripts) {
+                    exec_conditional_jump(script, text);
+                }
                 break;
             default:
                 break;
@@ -189,6 +189,10 @@ void parser::read_script(std::istream &stream, const std::string &text) {
 
 const variable &parser::get_variable(const std::string &name, size_t index) const {
     static const variable VAR_EMPTY;
+    size_t reading_page_num = 0;
+    if (auto it = m_globals.find("PAGE_NUM"); it != m_globals.end()) {
+        reading_page_num = it->second.number().getAsInteger();
+    }
     if (m_values.size() <= reading_page_num) {
         return VAR_EMPTY;
     }

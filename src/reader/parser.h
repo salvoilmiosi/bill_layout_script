@@ -46,10 +46,10 @@ private:
 private:
     size_t program_counter = 0;
     bool jumped = false;
-    size_t reading_page_num = 0;
     std::vector<variable_page> m_values;
     std::map<std::string, spacer> m_spacers;
     std::map<std::string, size_t> goto_labels;
+    std::map<std::string, variable> m_globals;
 };
 
 #endif
