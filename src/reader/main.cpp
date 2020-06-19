@@ -109,11 +109,7 @@ int main(int argc, char **argv) {
                 std::cin >> layout;
             }
 
-            pdf_info info = pdf_get_info(file_pdf);
-
-            for (auto &box : layout.boxes) {
-                result.read_box(file_pdf, info, box);
-            }
+            result.read_layout(file_pdf, layout);
         }
     } catch (const layout_error &error) {
         std::cerr << error.message << std::endl;

@@ -48,7 +48,7 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     m_box_name->SetValidator(wxTextValidator(wxFILTER_EMPTY));
     addLabelAndCtrl("Nome:", 0, m_box_name);
 
-    static const wxString box_types[] = {"Singolo elemento", "Elementi multipli", "Elementi per colonna", "Elementi per riga", "Spaziatore", "Intero file"};
+    static const wxString box_types[] = {"Singolo elemento", "Elementi multipli", "Elementi per colonna", "Elementi per riga", "Spaziatore", "Intero file", "Jump Condizionale"};
     m_box_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, std::size(box_types), box_types);
     m_box_type->SetToolTip("Specifica l'ordine in cui gli elementi vengono letti");
     m_box_type->SetSelection(box.type);
@@ -63,6 +63,9 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
 
     m_box_spacers = new wxTextCtrl(this, wxID_ANY, box.spacers);
     addLabelAndCtrl("Spaziatori:", 0, m_box_spacers);
+
+    m_box_goto_label = new wxTextCtrl(this, wxID_ANY, box.goto_label);
+    addLabelAndCtrl("Etichetta goto:", 0, m_box_goto_label);
 
     m_box_script = new wxTextCtrl(this, wxID_ANY, box.script, wxDefaultPosition, wxSize(300, 200), wxTE_MULTILINE | wxTE_DONTWRAP);
     addLabelAndCtrl("Script:", 1, m_box_script);
@@ -107,6 +110,7 @@ void box_dialog::OnOK(wxCommandEvent &evt) {
         box.type = static_cast<box_type>(m_box_type->GetSelection());
         box.mode = static_cast<read_mode>(m_box_mode->GetSelection());
         box.spacers = m_box_spacers->GetValue();
+        box.goto_label = m_box_goto_label->GetValue();
         box.script = m_box_script->GetValue();
         evt.Skip();
     }

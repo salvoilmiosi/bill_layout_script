@@ -75,6 +75,7 @@ std::ostream &operator << (std::ostream &out, const bill_layout_script &obj) {
         json_box["type"] = box.type;
         json_box["spacers"] = box.spacers;
         json_box["script"] = box.script;
+        json_box["goto_label"] = box.goto_label;
         json_box["x"] = box.x;
         json_box["y"] = box.y;
         json_box["w"] = box.w;
@@ -107,6 +108,7 @@ std::istream &operator >> (std::istream &in, bill_layout_script &obj) {
                 box.type = static_cast<box_type>(json_box["type"].asInt());
                 box.spacers = json_box["spacers"].asString();
                 box.script = json_box["script"].asString();
+                box.goto_label = json_box["goto_label"].asString();
                 box.x = json_box["x"].asFloat();
                 box.y = json_box["y"].asFloat();
                 box.w = json_box["w"].asFloat();

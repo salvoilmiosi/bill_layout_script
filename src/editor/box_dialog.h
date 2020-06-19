@@ -24,6 +24,7 @@ private:
 
     wxTextCtrl *m_box_name;
     wxTextCtrl *m_box_spacers;
+    wxTextCtrl *m_box_goto_label;
     wxTextCtrl *m_box_script;
     wxTextCtrl *reader_output;
     wxChoice *m_box_type;

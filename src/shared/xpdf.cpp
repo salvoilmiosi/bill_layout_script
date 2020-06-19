@@ -14,6 +14,10 @@ std::string pdf_to_text(const std::string &pdf, const pdf_info &info, const pdf_
         throw xpdf_error(std::string("File \"") + pdf + "\" does not exist");
     }
 
+    if (in_rect.page >= info.num_pages) {
+        return "";
+    }
+
     char page_str[16];
     snprintf(page_str, 16, "%d", in_rect.page);
 

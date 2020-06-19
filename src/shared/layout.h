@@ -13,6 +13,7 @@ enum box_type {
     BOX_ROWS,
     BOX_SPACER,
     BOX_WHOLE_FILE,
+    BOX_CONDITIONAL_JUMP,
 };
 
 #define RESIZE_TOP      1 << 0
@@ -25,6 +26,7 @@ struct layout_box : public pdf_rect {
     std::string name = "";
     std::string script = "";
     std::string spacers = "";
+    std::string goto_label = "";
     box_type type = BOX_SINGLE;
 };
 

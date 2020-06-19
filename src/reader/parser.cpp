@@ -4,19 +4,28 @@
 
 #include "../shared/utils.h"
 
+parser::variable_page &parser::get_variable_page() {
+    if (m_values.size() <= reading_page_num) {
+        return m_values.emplace_back();
+    } else {
+        return m_values[reading_page_num];
+    }
+}
+
 void parser::add_value(const std::string &name, const variable &value) {
     if (name.empty() || value.empty()) return;
+
     if (name.at(name.size()-1) == '+') {
         if (name.at(0) == '%') {
-            m_values[name.substr(1, name.size()-2)].emplace_back(parse_number(value.str()), VALUE_NUMBER);
+            get_variable_page()[name.substr(1, name.size()-2)].emplace_back(parse_number(value.str()), VALUE_NUMBER);
         } else {
-            m_values[name.substr(0, name.size()-1)].push_back(value);
+            get_variable_page()[name.substr(0, name.size()-1)].push_back(value);
         }
     } else {
         if (name.at(0) == '%') {
-            m_values[name.substr(1)] = {variable(parse_number(value.str()), VALUE_NUMBER)};
+            get_variable_page()[name.substr(1)] = {variable(parse_number(value.str()), VALUE_NUMBER)};
         } else {
-            m_values[name] = {value};
+            get_variable_page()[name] = {value};
         }
     }
 }
@@ -26,22 +35,65 @@ void parser::add_entry(const std::string &script, const std::string &value) {
     if (equals == std::string::npos) {
         add_value(script, value);
     } else if (equals > 0) {
-        add_value(script.substr(0, equals), evaluate(script.substr(equals + 1), value));
+        std::string id = script.substr(0, equals);
+        if (id == "OUTPUT_PAGE") {
+            reading_page_num = evaluate(script.substr(equals + 1), value).number().getAsInteger();
+        } else {
+            add_value(id, evaluate(script.substr(equals + 1), value));
+        }
     } else {
         throw parsing_error("Identificatore vuoto", script);
     }
 };
 
-void parser::add_spacer(const std::string &script, const std::string &value, const spacer &size) {
+void parser::add_spacer(const std::string &script, const std::string &value, spacer size) {
     size_t equals = script.find_first_of('=');
     if (equals == std::string::npos) {
         throw parsing_error("Errore di sintassi", script);
     } else if (equals > 0) {
-        if (evaluate(script.substr(equals + 1), value)) {
-            m_spacers.emplace(script.substr(0, equals), size);
+        auto calc = evaluate(script.substr(equals + 1), value);
+        if (calc) {
+            size.pageoffset = calc.number().getAsInteger();
+            m_spacers[script.substr(0, equals)] = size;
         }
     } else {
         throw parsing_error("Identificatore vuoto", script);
+    }
+}
+
+void parser::exec_conditional_jump(const std::string &script, const std::string &value) {
+    size_t equals = script.find_first_of('=');
+    if (equals == std::string::npos) {
+        throw parsing_error("Errore di sintassi", script);
+    } else if (equals > 0) {
+        std::string label = script.substr(0, equals);
+        auto it = goto_labels.find(label);
+        if (it == goto_labels.end()) {
+            throw parsing_error("Impossibile trovare etichetta goto", script);
+        } else if (evaluate(script.substr(equals + 1), value)) {
+            program_counter = it->second;
+            jumped = true;
+        }
+    } else {
+        throw parsing_error("Identificatore vuoto", script);
+    }
+}
+
+void parser::read_layout(const std::string &file_pdf, const bill_layout_script &layout) {
+    for (size_t i=0; i<layout.boxes.size(); ++i) {
+        if (!layout.boxes[i].goto_label.empty()) {
+            goto_labels[layout.boxes[i].goto_label] = i;
+        }
+    }
+    pdf_info info = pdf_get_info(file_pdf);
+    program_counter = 0;
+    while (program_counter < layout.boxes.size()) {
+        read_box(file_pdf, info, layout.boxes[program_counter]);
+        if (jumped) {
+            jumped = false;
+        } else {
+            ++program_counter;
+        }
     }
 }
 
@@ -68,6 +120,11 @@ void parser::read_box(const std::string &file_pdf, const pdf_info &info, const l
         case 'H':
             if (negative) box_moved.y -= it->second.h;
             else box_moved.y += it->second.h;
+            break;
+        case 'p':
+        case 'P':
+            if (negative) box_moved.page -= it->second.pageoffset;
+            else box_moved.page += it->second.pageoffset;
             break;
         default:
             throw parsing_error("Identificatore spaziatore incorretto", name);
@@ -112,6 +169,9 @@ void parser::read_box(const std::string &file_pdf, const pdf_info &info, const l
                     add_spacer(script, text, spacer(box.w, box.h));
                 }
                 break;
+            case BOX_CONDITIONAL_JUMP:
+                exec_conditional_jump(box.script, text);
+                break;
             default:
                 break;
             }
@@ -129,8 +189,13 @@ void parser::read_script(std::istream &stream, const std::string &text) {
 
 const variable &parser::get_variable(const std::string &name, size_t index) const {
     static const variable VAR_EMPTY;
-    auto it = m_values.find(name);
-    if (it == m_values.end() || it->second.size() <= index) {
+    if (m_values.size() <= reading_page_num) {
+        return VAR_EMPTY;
+    }
+    auto &page = m_values[reading_page_num];
+    auto it = page.find(name);
+    
+    if (it == page.end() || it->second.size() <= index) {
         return VAR_EMPTY;
     } else {
         return it->second.at(index);
@@ -292,6 +357,8 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
         return get_variable(script.substr(1));
     case '@':
         return value + script.substr(1);
+    case '~':
+        return m_spacers[script.substr(1)].pageoffset;
     default:
         return script;
     }
@@ -302,13 +369,16 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
 std::ostream & operator << (std::ostream &out, const parser &res) {
     Json::Value root = Json::objectValue;
 
-    Json::Value &values = root["values"] = Json::objectValue;
+    Json::Value &values = root["values"] = Json::arrayValue;
 
-    for (auto &pair : res.m_values) {
-        if(!res.debug && pair.first.at(0) == '#') continue;
-        auto &json_arr = values[pair.first] = Json::arrayValue;
-        for (auto &val : pair.second) {
-            json_arr.append(val.str());
+    for (auto &page : res.m_values) {
+        auto &page_values = values.append(Json::objectValue);
+        for (auto &pair : page) {
+            if(!res.debug && pair.first.at(0) == '#') continue;
+            auto &json_arr = page_values[pair.first] = Json::arrayValue;
+            for (auto &val : pair.second) {
+                json_arr.append(val.str());
+            }
         }
     }
 

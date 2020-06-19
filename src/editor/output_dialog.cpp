@@ -48,7 +48,7 @@ output_dialog::output_dialog(wxWindow *parent, const bill_layout_script &layout,
 }
 
 void output_dialog::addItems(const Json::Value &output) {
-    auto &json_values = output["values"];
+    auto &json_values = output["values"][0];
     
     size_t max_lines = 0;
 
