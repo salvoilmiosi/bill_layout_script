@@ -8,14 +8,22 @@
 
 #include "editor.h"
 
+enum {
+    CTL_OUTPUT_PAGE
+};
+
+BEGIN_EVENT_TABLE(output_dialog, wxDialog)
+    EVT_COMBOBOX (CTL_OUTPUT_PAGE, output_dialog::OnPageSelect)
+    EVT_TEXT_ENTER (CTL_OUTPUT_PAGE, output_dialog::OnPageSelect)
+END_EVENT_TABLE()
+
 output_dialog::output_dialog(wxWindow *parent, const bill_layout_script &layout, const std::string &pdf_filename) :
     wxDialog(parent, wxID_ANY, "Lettura dati", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-    char cmd_str[FILENAME_MAX];
-    snprintf(cmd_str, FILENAME_MAX, "%s/layout_reader", get_app_path().c_str());
+    std::string cmd_str = get_app_path() + "/layout_reader";
 
     const char *args[] = {
-        cmd_str,
+        cmd_str.c_str(),
         "-p", pdf_filename.c_str(), "-",
         nullptr
     };
@@ -29,15 +37,23 @@ output_dialog::output_dialog(wxWindow *parent, const bill_layout_script &layout,
     Json::Value json_output;
     try {
         iss >> json_output;
+        json_values = json_output["values"];
     } catch(const std::exception &error) {
-        throw pipe_error("Impossibile leggere l'output");
+        throw pipe_error("Impossibile leggere l'output: " + iss.str());
     }
 
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
+    m_page = new wxComboBox(this, CTL_OUTPUT_PAGE, "Pagina", wxDefaultPosition, wxDefaultSize);
+    for (int i=1; i <= (int)json_values.size(); ++i) {
+        m_page->Append(wxString::Format("%i", i));
+    }
+
+    sizer->Add(m_page, 0, wxEXPAND | wxALL, 5);
+
     m_list_ctrl = new wxListCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(500, 100), wxLC_REPORT);
 
-    addItems(json_output);
+    updateItems(0);
 
     sizer->Add(m_list_ctrl, 1, wxEXPAND | wxALL, 5);
 
@@ -47,14 +63,32 @@ output_dialog::output_dialog(wxWindow *parent, const bill_layout_script &layout,
     SetSizerAndFit(sizer);
 }
 
-void output_dialog::addItems(const Json::Value &output) {
-    auto &json_values = output["values"][0];
+
+void output_dialog::OnPageSelect(wxCommandEvent &evt) {
+    try {
+        updateItems(std::stoi(m_page->GetValue().ToStdString()) - 1);
+    } catch (const std::invalid_argument &error) {
+        wxBell();
+    }
+}
+
+void output_dialog::updateItems(int selected_page) {
+    if (selected_page >= (int)json_values.size() || selected_page < 0) {
+        wxBell();
+        return;
+    }
+
+    m_page->SetSelection(selected_page);
+
+    auto &json_object = json_values[selected_page];
     
     size_t max_lines = 0;
 
-    for (Json::ValueConstIterator it = json_values.begin(); it != json_values.end(); ++it) {
+    m_list_ctrl->ClearAll();
+
+    for (Json::ValueConstIterator it = json_object.begin(); it != json_object.end(); ++it) {
         wxListItem col;
-        col.SetId(it - json_values.begin());
+        col.SetId(it - json_object.begin());
         col.SetText(it.name());
         m_list_ctrl->InsertColumn(col.GetId(), col);
 
@@ -66,7 +100,7 @@ void output_dialog::addItems(const Json::Value &output) {
         item.SetId(index);
         m_list_ctrl->InsertItem(item);
         size_t col = 0;
-        for (auto &value : json_values) {
+        for (auto &value : json_object) {
             m_list_ctrl->SetItem(index, col, value[Json::Value::ArrayIndex(index)].asString());
             ++col;
         }
