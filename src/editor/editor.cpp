@@ -31,6 +31,7 @@ BEGIN_EVENT_TABLE(frame_editor, wxFrame)
     EVT_MENU (MENU_EDITBOX, frame_editor::EditSelectedBox)
     EVT_MENU (MENU_DELETE, frame_editor::OnDelete)
     EVT_MENU (MENU_READDATA, frame_editor::OnReadData)
+    EVT_BUTTON(CTL_AUTO_LAYOUT, frame_editor::OnAutoLayout)
     EVT_BUTTON (CTL_LOAD_PDF, frame_editor::OnLoadPdf)
     EVT_COMBOBOX (CTL_PAGE, frame_editor::OnPageSelect)
     EVT_TEXT_ENTER (CTL_PAGE, frame_editor::OnPageSelect)
@@ -114,6 +115,9 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
 
     wxButton *btn_load_pdf = new wxButton(toolbar_top, CTL_LOAD_PDF, "Carica PDF", wxDefaultPosition, wxSize(100, -1));
     toolbar_top->AddControl(btn_load_pdf, "Carica un file PDF");
+
+    wxButton *btn_auto_layout = new wxButton(toolbar_top, CTL_AUTO_LAYOUT, "Auto carica layout", wxDefaultPosition, wxSize(150, -1));
+    toolbar_top->AddControl(btn_auto_layout, "Determina il layout di questo file automaticamente");
 
     m_page = new wxComboBox(toolbar_top, CTL_PAGE, "Pagina", wxDefaultPosition, wxSize(100, -1));
     toolbar_top->AddControl(m_page, "Pagina");
@@ -267,11 +271,10 @@ void frame_editor::updateLayout(bool addToHistory) {
     }
     m_image->Refresh();
 
-    if (!history.empty()) {
-        modified = true;
-    }
-
     if (addToHistory) {
+        if (!history.empty()) {
+            modified = true;
+        }
         while (!history.empty() && history.end() > currentHistory + 1) {
             history.pop_back();
         }
@@ -344,6 +347,50 @@ void frame_editor::loadPdf(const std::string &filename) {
         setSelectedPage(1, true);
     } catch (const xpdf_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);
+    }
+}
+
+void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
+    if (pdf_filename.empty()) {
+        wxBell();
+        return;
+    }
+
+    if (control_script_filename.empty()) {
+        wxFileDialog diag(this, "Apri script di controllo", wxEmptyString, wxEmptyString, "File TXT (*.txt)|*.txt|Tutti i file (*.*)|*.*");
+
+        if (diag.ShowModal() == wxID_CANCEL)
+            return;
+        
+        control_script_filename = diag.GetPath().ToStdString();
+    }
+    
+    std::string cmd_str = get_app_path() + "/layout_reader";
+    std::string layout_path = control_script_filename.substr(0, control_script_filename.find_last_of("\\/"));
+
+    const char *args[] = {
+        cmd_str.c_str(),
+        "-p", pdf_filename.c_str(),
+        "-s", control_script_filename.c_str(),
+        "-l", layout_path.c_str(),
+        nullptr
+    };
+
+    std::istringstream iss(open_process(args)->read_all());
+
+    Json::Value json_output;
+    try {
+        iss >> json_output;
+
+        std::string output_layout = json_output["values"][0]["layout"][0].asString();
+        if (output_layout.empty()) {
+            wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
+        } else if (saveIfModified()) {
+            modified = false;
+            openFile(layout_path + '/' + output_layout);
+        }
+    } catch (std::exception &error) {
+        wxMessageBox("Impossibile leggere l'output: " + iss.str(), "Errore", wxOK | wxICON_ERROR);
     }
 }
 

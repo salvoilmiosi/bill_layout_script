@@ -19,7 +19,7 @@ enum {
     MENU_UNDO, MENU_REDO, MENU_CUT, MENU_COPY, MENU_PASTE,
     MENU_LOAD_PDF, MENU_EDITBOX, MENU_DELETE, MENU_READDATA,
 
-    CTL_LOAD_PDF, CTL_PAGE, CTL_SCALE,
+    CTL_LOAD_PDF, CTL_AUTO_LAYOUT, CTL_PAGE, CTL_SCALE,
 
     TOOL_SELECT, TOOL_NEWBOX, TOOL_DELETEBOX, TOOL_RESIZE, TOOL_MOVEUP, TOOL_MOVEDOWN,
     
@@ -63,6 +63,7 @@ private:
     void OnCut          (wxCommandEvent &evt);
     void OnCopy         (wxCommandEvent &evt);
     void OnPaste        (wxCommandEvent &evt);
+    void OnAutoLayout   (wxCommandEvent &evt);
     void OnLoadPdf      (wxCommandEvent &evt);
     void OnPageSelect   (wxCommandEvent &evt);
     void OnScaleChange  (wxScrollEvent &evt);
@@ -96,6 +97,7 @@ private:
     pdf_info info;
     std::string layout_filename{};
     std::string pdf_filename{};
+    std::string control_script_filename{};
     int selected_page = 0;
 };
 
