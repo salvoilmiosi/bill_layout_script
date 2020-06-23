@@ -92,13 +92,16 @@ int main(int argc, char **argv) {
             } else {
                 result.read_script(std::cin, text);
             }
-            input_file = layout_dir + '/' + result.get_variable("layout").str();
-            if (!std::filesystem::exists(input_file)) {
-                std::cerr << "Impossibile aprire il file layout " << input_file << std::endl;
-                return 1;
+            auto layout_path = result.get_variable("layout");
+            if (!layout_path.empty()) {
+                input_file = layout_dir + '/' + layout_path.str();
+                if (!std::filesystem::exists(input_file)) {
+                    std::cerr << "Impossibile aprire il file layout " << input_file << std::endl;
+                    return 1;
+                }
+                ifs = std::make_unique<std::ifstream>(input_file);
+                in_file_layout = true;
             }
-            ifs = std::make_unique<std::ifstream>(input_file);
-            in_file_layout = true;
         }
         if (in_file_layout) {
             bill_layout_script layout;
