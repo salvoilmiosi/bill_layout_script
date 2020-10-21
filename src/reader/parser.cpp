@@ -359,6 +359,15 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
                 }
             }
             break;
+        case hash("do"):
+            if (function.is(1)) {
+                variable ret;
+                for (auto &arg : function.args) {
+                    ret = evaluate(arg, value);
+                }
+                return ret;
+            }
+            break;
         case hash("if"):
             if (function.is(2, 3)) {
                 if (evaluate(function.args[0], value)) return evaluate(function.args[1], value);
