@@ -35,4 +35,7 @@ std::string date_month_end(const std::string &value);
 // cerca $NUMBER in str e ritorna il valore trovato
 std::string search_regex(std::string format, const std::string &value, int index);
 
+// trasforma ogni carattere di spazio in " "
+std::string nospace(std::string input);
+
 #endif

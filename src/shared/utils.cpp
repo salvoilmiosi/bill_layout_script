@@ -155,3 +155,12 @@ std::string search_regex(std::string format, const std::string &value, int index
         return "";
     }
 }
+
+std::string nospace(std::string input) {
+    string_replace(input, "\t", " ");
+    string_replace(input, "\r", " ");
+    string_replace(input, "\n", " ");
+    string_replace(input, "\v", " ");
+    string_replace(input, "\f", " ");
+    return input;
+}
