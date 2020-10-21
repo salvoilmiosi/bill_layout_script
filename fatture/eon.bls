@@ -1,0 +1,126 @@
+{
+	"layout" : 
+	{
+		"boxes" : 
+		[
+			{
+				"goto_label" : "",
+				"h" : 0.023227332159876823,
+				"mode" : 0,
+				"name" : "Data fattura",
+				"page" : 1,
+				"script" : "data_emissione=$date(DD/MM/YYYY,@)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.27479091286659241,
+				"x" : 0.138888880610466,
+				"y" : 0.28295111656188965
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.042101569473743439,
+				"mode" : 0,
+				"name" : "Periodo",
+				"page" : 1,
+				"script" : "mese_fattura=$date(consumi di MONTH YYYY,@)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.93052107095718384,
+				"x" : 0.038461539894342422,
+				"y" : 0.30435928702354431
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.026394695043563843,
+				"mode" : 0,
+				"name" : "Numero fattura",
+				"page" : 1,
+				"script" : "numero_fattura",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.11051373183727264,
+				"x" : 0.23596175014972687,
+				"y" : 0.35052153468132019
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.024559250101447105,
+				"mode" : 0,
+				"name" : "Scadenza",
+				"page" : 1,
+				"script" : "scadenza=$date(DD/MM/YYYY,@)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.15756823122501373,
+				"x" : 0.79032260179519653,
+				"y" : 0.3499692976474762
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.017983973026275635,
+				"mode" : 0,
+				"name" : "Ragione Sociale",
+				"page" : 1,
+				"script" : "ragione_sociale",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.25166952610015869,
+				"x" : 0.21239387989044189,
+				"y" : 0.44511792063713074
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.27306008338928223,
+				"mode" : 0,
+				"name" : "Dati della Fornitura",
+				"page" : 2,
+				"script" : "#indirizzo=$search(Indirizzo fornitura (.+)\\n,@)\n#citta=$search(Indirizzo fornitura .+\\n(.+)\\n,@)\nindirizzo_fornitura=$cat(&#indirizzo, ,&#citta)\ncodice_pod=$search(POD \\(punto di prelievo\\) (.+)\\n,@)\n%potenza=$search(Potenza disponibile (.+)\\n,@)\ntipologia=$search(Tipologia di contratto (.+)\\n,@)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.53338992595672607,
+				"x" : 0.045274477452039719,
+				"y" : 0.028006162494421005
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.1330292671918869,
+				"mode" : 0,
+				"name" : "Riepilogo corrispettivi",
+				"page" : 2,
+				"script" : "%spesa_materia_energia=$search(Spesa energia (.+)\\n,@)\n%trasporto_gestione=$search(Trasporto e Gestione del Contatore (.+)\\n,@)\n%oneri=$search(Oneri di Sistema (.+)\\n,@)\n%totale_fornitura=$search(Totale Fornitura (.+)$,@)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.37917375564575195,
+				"x" : 0.58007925748825073,
+				"y" : 0.028006162494421005
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.13121934235095978,
+				"mode" : 0,
+				"name" : "Dettaglio Letture",
+				"page" : 2,
+				"script" : "%energia_attiva+=$search(Consumi fatturati \\(kWh\\) $NUMBER $NUMBER $NUMBER $NUMBER,@,2)\n%energia_attiva+=$search(Consumi fatturati \\(kWh\\) $NUMBER $NUMBER $NUMBER $NUMBER,@,3)\n%energia_attiva+=$search(Consumi fatturati \\(kWh\\) $NUMBER $NUMBER $NUMBER $NUMBER,@,4)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.92933946847915649,
+				"x" : 0.038402456790208817,
+				"y" : 0.30678176879882812
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.054533734917640686,
+				"mode" : 0,
+				"name" : "Prezzi Energia",
+				"page" : 2,
+				"script" : "%prezzo_energia+\n%prezzo_energia+\n%perdite_rete",
+				"spacers" : "",
+				"type" : 1,
+				"w" : 0.098176717758178711,
+				"x" : 0.59373539686203003,
+				"y" : 0.77669262886047363
+			}
+		]
+	},
+	"version" : 1
+}

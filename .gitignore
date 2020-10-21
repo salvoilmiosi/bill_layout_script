@@ -1,7 +1,6 @@
 .vscode/*
 bin/*
 obj/*
-fatture/*
 script/*
 *.exe
 *.dll
@@ -12,5 +11,3 @@ script/*
 *.pdf
 *.csv
 *.xlsx
-*.txt
-*.bls
