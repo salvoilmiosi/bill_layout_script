@@ -357,12 +357,13 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     }
 
     if (control_script_filename.empty()) {
-        wxFileDialog diag(this, "Apri script di controllo", wxEmptyString, wxEmptyString, "File TXT (*.txt)|*.txt|Tutti i file (*.*)|*.*");
+        control_script_filename = get_app_path() + "/../fatture/controllo.txt";
+        // wxFileDialog diag(this, "Apri script di controllo", wxEmptyString, wxEmptyString, "File TXT (*.txt)|*.txt|Tutti i file (*.*)|*.*");
 
-        if (diag.ShowModal() == wxID_CANCEL)
-            return;
+        // if (diag.ShowModal() == wxID_CANCEL)
+        //     return;
         
-        control_script_filename = diag.GetPath().ToStdString();
+        // control_script_filename = diag.GetPath().ToStdString();
     }
     
     std::string cmd_str = get_app_path() + "/layout_reader";
@@ -372,7 +373,6 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
         cmd_str.c_str(),
         "-p", pdf_filename.c_str(),
         "-s", control_script_filename.c_str(),
-        "-l", layout_path.c_str(),
         nullptr
     };
 
