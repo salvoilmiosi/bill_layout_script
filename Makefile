@@ -13,7 +13,7 @@ BIN_SHARED = layout_shared.so
 INCLUDE = `wx-config --cxxflags`
 
 LIBS_EDITOR = `wx-config --libs` -ljsoncpp
-LIBS_READER = -ljsoncpp
+LIBS_READER = -ljsoncpp -lfmt
 LIBS_SHARED = -ljsoncpp
 
 SOURCES_SHARED = $(wildcard $(SRC_DIR)/shared/*.cpp $(SRC_DIR)/shared/**/*.cpp)

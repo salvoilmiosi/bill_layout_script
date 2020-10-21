@@ -1,7 +1,7 @@
 #include "parser.h"
 
 #include <json/json.h>
-#include <functional>
+#include <fmt/core.h>
 
 #include "../shared/utils.h"
 
@@ -63,12 +63,12 @@ void parser::add_spacer(const std::string &script, const std::string &value, spa
 void parser::exec_conditional_jump(const std::string &script, const std::string &value) {
     size_t equals = script.find_first_of('=');
     if (equals == std::string::npos) {
-        throw parsing_error("Errore di sintassi", script);
+        throw parsing_error("Previsto '='", script);
     } else if (equals > 0) {
         std::string label = script.substr(0, equals);
         auto it = goto_labels.find(label);
         if (it == goto_labels.end()) {
-            throw parsing_error("Impossibile trovare etichetta goto", script);
+            throw parsing_error("Impossibile trovare etichetta", script);
         } else if (evaluate(script.substr(equals + 1), value)) {
             program_counter = it->second;
             jumped = true;
@@ -207,7 +207,7 @@ void parser::read_script(std::istream &stream, const std::string &text) {
     }
 }
 
-const variable &parser::get_variable(const std::string &name, size_t index) const {
+const variable &parser::get_variable(const std::string &name) const {
     static const variable VAR_EMPTY;
     size_t reading_page_num = 0;
     if (auto it = m_globals.find("PAGE_NUM"); it != m_globals.end()) {
@@ -217,7 +217,19 @@ const variable &parser::get_variable(const std::string &name, size_t index) cons
         return VAR_EMPTY;
     }
     auto &page = m_values[reading_page_num];
-    auto it = page.find(name);
+    size_t open_bracket = name.find('[');
+    size_t index = 0;
+    if (open_bracket != std::string::npos) {
+        size_t end_bracket = name.find(']', open_bracket + 1);
+        if (end_bracket == std::string::npos) {
+            throw parsing_error("Richiesto ']'", name);
+        } else try {
+            index = std::stoi(name.substr(open_bracket + 1, end_bracket - open_bracket - 1));
+        } catch (std::invalid_argument &) {
+            throw parsing_error("Indice non valido", name);
+        }
+    }
+    auto it = page.find(name.substr(0, open_bracket));
     
     if (it == page.end() || it->second.size() <= index) {
         return VAR_EMPTY;
@@ -238,14 +250,11 @@ struct function_parser {
         if (args.size() >= min_args && args.size() <= max_args) {
             return true;
         } else if (min_args == max_args) {
-            throw parsing_error(std::string("La funzione ") + name + " richiede " +
-                std::to_string(min_args) + " argomenti", script);
+            throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", name, min_args), script);
         } else if (max_args != (size_t) -1) {
-            throw parsing_error(std::string("La funzione ") + name + " richiede tra " +
-                std::to_string(min_args) + " e " + std::to_string(max_args) + " argomenti", script);
+            throw parsing_error(fmt::format("La funzione {0} richiede tra {1} e {2} argomenti", name, min_args, max_args), script);
         } else {
-            throw parsing_error(std::string("La funzione ") + name + " richiede minimo " +
-                std::to_string(min_args) + " argomenti", script);
+            throw parsing_error(fmt::format("La funzione {0} richiede minimo {1} argomenti", name, min_args), script);
         }
         return false;
     }
@@ -322,25 +331,18 @@ function_parser::function_parser(const std::string &script) : script(script) {
     }
 }
 
-template<class>struct hasher;
-template<>
-struct hasher<std::string> {
-    std::size_t constexpr operator() (char const *input)const {
-        return *input ?
-        static_cast<unsigned int>(*input) + 33 * (*this)(input + 1) : 5381;
+struct hasher {
+    size_t constexpr operator() (char const *input)const {
+        return *input ? static_cast<unsigned int>(*input) + 33 * (*this)(input + 1) : 5381;
     }
     
-    std::size_t operator()( const std::string& str ) const {
+    size_t operator() (const std::string& str) const {
         return (*this)(str.c_str());
     }
 };
-template<typename T>
-std::size_t constexpr hash(T&& t) {
-    return hasher< typename std::decay<T>::type >()(std::forward<T>(t));
-}
 
-std::size_t constexpr operator "" _hash(const char* s,size_t) {
-    return hasher<std::string>()(s);
+template<typename T> size_t constexpr hash(T&& t) {
+    return hasher{}(std::forward<T>(t));
 }
 
 variable parser::evaluate(const std::string &script, const std::string &value) {
@@ -350,101 +352,101 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
         function_parser function(script);
 
         switch(hash(function.name)) {
-        case "search"_hash:
+        case hash("search"):
             if (function.is(2, 3)) {
                 return search_regex(evaluate(function.args[0], value).str(), evaluate(function.args[1], value).str(),
                     function.args.size() >= 3 ? evaluate(function.args[2], value).number().getAsInteger() : 1);
             }
             break;
-        case "nospace"_hash:
+        case hash("nospace"):
             if (function.is(1, 1)) return nospace(evaluate(function.args[0], value).str());
             break;
-        case "num"_hash:
+        case hash("num"):
             if (function.is(1, 1)) return variable(parse_number(evaluate(function.args[0], value).str()), VALUE_NUMBER);
             break;
-        case "date"_hash:
+        case hash("date"):
             if (function.is(2, 3))
                 return parse_date(evaluate(function.args[0], value).str(), evaluate(function.args[1], value).str(),
                     function.args.size() >= 3 ? evaluate(function.args[2], value).number().getAsInteger() : 1);
             break;
-        case "month_begin"_hash:
+        case hash("month_begin"):
             if (function.is(1, 1)) return evaluate(function.args[0], value).str() + "-01";
             break;
-        case "month_end"_hash:
+        case hash("month_end"):
             if (function.is(1, 1)) return date_month_end(evaluate(function.args[0], value).str());
             break;
-        case "coalesce"_hash:
+        case hash("coalesce"):
             if (function.is(1)) {
                 for (auto &arg : function.args) {
                     if (auto var = evaluate(arg, value)) return var;
                 }
             }
             break;
-        case "if"_hash:
+        case hash("if"):
             if (function.is(2, 3)) {
                 if (evaluate(function.args[0], value)) return evaluate(function.args[1], value);
                 else if (function.args.size() >= 3) return evaluate(function.args[2], value);
             }
             break;
-        case "ifnot"_hash:
+        case hash("ifnot"):
             if (function.is(2, 3)) {
                 if (!evaluate(function.args[0], value)) return evaluate(function.args[1], value);
                 else if (function.args.size() >= 3) return evaluate(function.args[2], value);
             }
             break;
-        case "not"_hash:
+        case hash("not"):
             if (function.is(1, 1)) return !evaluate(function.args[0], value);
             break;
-        case "eq"_hash:
+        case hash("eq"):
             if (function.is(2, 2)) return evaluate(function.args[0], value) == evaluate(function.args[1], value);
             break;
-        case "neq"_hash:
+        case hash("neq"):
             if (function.is(2, 2)) return evaluate(function.args[0], value) != evaluate(function.args[1], value);
             break;
-        case "and"_hash:
+        case hash("and"):
             if (function.is(2, 2)) return evaluate(function.args[0], value) && evaluate(function.args[1], value);
             break;
-        case "or"_hash:
+        case hash("or"):
             if (function.is(2, 2)) return evaluate(function.args[0], value) || evaluate(function.args[1], value);
             break;
-        case "contains"_hash:
+        case hash("contains"):
             if (function.is(2, 2)) return evaluate(function.args[0], value).str().find(evaluate(function.args[1], value).str()) != std::string::npos;
             break;
-        case "add"_hash:
+        case hash("add"):
             if (function.is(2, 2)) return evaluate(function.args[0], value) + evaluate(function.args[1], value);
             break;
-        case "sub"_hash:
+        case hash("sub"):
             if (function.is(2, 2)) return evaluate(function.args[0], value) - evaluate(function.args[1], value);
             break;
-        case "mul"_hash:
+        case hash("mul"):
             if (function.is(2, 2)) return evaluate(function.args[0], value) * evaluate(function.args[1], value);
             break;
-        case "div"_hash:
+        case hash("div"):
             if (function.is(2, 2)) return evaluate(function.args[0], value) / evaluate(function.args[1], value);
             break;
-        case "gt"_hash:
+        case hash("gt"):
             if (function.is(2, 2)) return evaluate(function.args[0], value) > evaluate(function.args[0], value);
             break;
-        case "geq"_hash:
+        case hash("geq"):
             if (function.is(2, 2)) return evaluate(function.args[0], value) >= evaluate(function.args[0], value);
             break;
-        case "lt"_hash:
+        case hash("lt"):
             if (function.is(2, 2)) return evaluate(function.args[0], value) < evaluate(function.args[1], value);
             break;
-        case "leq"_hash:
+        case hash("leq"):
             if (function.is(2, 2)) return evaluate(function.args[0], value) <= evaluate(function.args[1], value);
             break;
-        case "max"_hash:
+        case hash("max"):
             if (function.is(2, 2)) return std::max(evaluate(function.args[0], value), evaluate(function.args[1], value));
             break;
-        case "min"_hash:
+        case hash("min"):
             if (function.is(2, 2)) return std::min(evaluate(function.args[0], value), evaluate(function.args[1], value));
             break;
-        case "int"_hash:
+        case hash("int"):
             if (function.is(1, 1)) return variable(std::to_string(evaluate(function.args[0], value).number().getAsInteger()), VALUE_NUMBER);
             // converte da stringa a fixed_point a int a stringa ...
             break;
-        case "cat"_hash:
+        case hash("cat"):
             if (function.is(1)) {
                 std::string var;
                 for (auto &arg : function.args) {
@@ -453,11 +455,11 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
                 return var;
             }
             break;
-        case "error"_hash:
+        case hash("error"):
             if (function.is(1, 1)) throw layout_error(function.args[0].c_str());
             break;
         default:
-            throw parsing_error("Funzione non riconosciuta: " + function.name, script);
+            throw parsing_error(fmt::format("Funzione non riconosciuta: {0}", function.name), script);
         }
 
         break;
@@ -465,7 +467,8 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
     case '&':
         return get_variable(script.substr(1));
     case '@':
-        return value + script.substr(1);
+        if (script.size() > 1) throw parsing_error("'@' deve stare da solo", script);
+        return value;
     case '~':
         return m_spacers[script.substr(1)].pageoffset;
     default:

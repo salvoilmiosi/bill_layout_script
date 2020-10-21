@@ -28,7 +28,7 @@ public:
     void read_layout(const std::string &file_pdf, const bill_layout_script &layout);
     void read_box(const std::string &file_pdf, const pdf_info &info, const layout_box &box);
     void read_script(std::istream &stream, const std::string &text);
-    const variable &get_variable(const std::string &name, size_t index = 0) const;
+    const variable &get_variable(const std::string &name) const;
 
     friend std::ostream & operator << (std::ostream &out, const parser &res);
 

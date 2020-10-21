@@ -11,3 +11,5 @@ Il programma è stato scritto in C++17 con le seguenti librerie:
 [Xpdf](https://www.xpdfreader.com/)
 
 [jsoncpp](https://github.com/open-source-parsers/jsoncpp)
+
+[fmt](https://fmt.dev/latest/index.html)
