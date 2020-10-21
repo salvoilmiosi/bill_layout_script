@@ -18,7 +18,6 @@ struct parsing_error {
 
 struct spacer {
     float w = 0, h = 0;
-    int pageoffset = 0;
     spacer() {}
     spacer(float w, float h) : w(w), h(h) {}
 };
@@ -26,7 +25,7 @@ struct spacer {
 class parser {
 public:
     void read_layout(const std::string &file_pdf, const bill_layout_script &layout);
-    void read_box(const std::string &file_pdf, const pdf_info &info, const layout_box &box);
+    void read_box(const std::string &file_pdf, const pdf_info &info, layout_box box);
     void read_script(std::istream &stream, const std::string &text);
     const variable &get_variable(const std::string &name) const;
 
@@ -39,8 +38,7 @@ private:
     variable_page &get_variable_page();
     void add_value(const std::string &name, const variable &value);
     void add_entry(const std::string &script, const std::string &value);
-    void add_spacer(const std::string &script, const std::string &value, spacer size);
-    void exec_conditional_jump(const std::string &script, const std::string &value);
+    void add_spacer(const std::string &script, const std::string &value, const spacer &size);
     variable evaluate(const std::string &script, const std::string &value);
 
 private:

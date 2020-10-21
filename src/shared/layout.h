@@ -13,7 +13,6 @@ enum box_type {
     BOX_ROWS,
     BOX_SPACER,
     BOX_WHOLE_FILE,
-    BOX_CONDITIONAL_JUMP,
 };
 
 #define RESIZE_TOP      1 << 0

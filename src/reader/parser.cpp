@@ -35,43 +35,28 @@ void parser::add_value(const std::string &name, const variable &value) {
 }
 
 void parser::add_entry(const std::string &script, const std::string &value) {
-    size_t equals = script.find_first_of('=');
-    if (equals == std::string::npos) {
-        add_value(script, value);
-    } else if (equals > 0) {
-        add_value(script.substr(0, equals), evaluate(script.substr(equals + 1), value));
+    if (script.at(0) == '$') {
+        evaluate(script, value);
     } else {
-        throw parsing_error("Identificatore vuoto", script);
+        size_t equals = script.find_first_of('=');
+        if (equals == std::string::npos) {
+            add_value(script, value);
+        } else if (equals > 0) {
+            add_value(script.substr(0, equals), evaluate(script.substr(equals + 1), value));
+        } else {
+            throw parsing_error("Identificatore vuoto", script);
+        }
     }
 };
 
-void parser::add_spacer(const std::string &script, const std::string &value, spacer size) {
-    size_t equals = script.find_first_of('=');
-    if (equals == std::string::npos) {
-        throw parsing_error("Errore di sintassi", script);
-    } else if (equals > 0) {
-        auto calc = evaluate(script.substr(equals + 1), value);
-        if (calc) {
-            size.pageoffset = calc.number().getAsInteger();
-            m_spacers[script.substr(0, equals)] = size;
-        }
-    } else {
-        throw parsing_error("Identificatore vuoto", script);
-    }
-}
-
-void parser::exec_conditional_jump(const std::string &script, const std::string &value) {
+void parser::add_spacer(const std::string &script, const std::string &value, const spacer &size) {
     size_t equals = script.find_first_of('=');
     if (equals == std::string::npos) {
         throw parsing_error("Previsto '='", script);
     } else if (equals > 0) {
-        std::string label = script.substr(0, equals);
-        auto it = goto_labels.find(label);
-        if (it == goto_labels.end()) {
-            throw parsing_error("Impossibile trovare etichetta", script);
-        } else if (evaluate(script.substr(equals + 1), value)) {
-            program_counter = it->second;
-            jumped = true;
+        auto calc = evaluate(script.substr(equals + 1), value);
+        if (calc) {
+            m_spacers[script.substr(0, equals)] = size;
         }
     } else {
         throw parsing_error("Identificatore vuoto", script);
@@ -96,37 +81,37 @@ void parser::read_layout(const std::string &file_pdf, const bill_layout_script &
     }
 }
 
-void parser::read_box(const std::string &file_pdf, const pdf_info &info, const layout_box &box) {
-    pdf_rect box_moved = box;
+void parser::read_box(const std::string &file_pdf, const pdf_info &info, layout_box box) {
     for (auto &name : tokenize(box.spacers)) {
-        if (name.size() <= 2 || name.at(name.size()-2) != '.') {
-            throw parsing_error("Identificatore spaziatore incorretto", name);
-        }
-        bool negative = name.at(0) == '-';
-        auto it = m_spacers.find(negative ? name.substr(1, name.size()-3) : name.substr(0, name.size()-2));
-        if (it == m_spacers.end()) continue;
-        switch (name.at(name.size()-1)) {
-        case 'x':
-        case 'X':
-        case 'w':
-        case 'W':
-            if (negative) box_moved.x -= it->second.w;
-            else box_moved.x += it->second.w;
-            break;
-        case 'y':
-        case 'Y':
-        case 'h':
-        case 'H':
-            if (negative) box_moved.y -= it->second.h;
-            else box_moved.y += it->second.h;
-            break;
-        case 'p':
-        case 'P':
-            if (negative) box_moved.page -= it->second.pageoffset;
-            else box_moved.page += it->second.pageoffset;
-            break;
-        default:
-            throw parsing_error("Identificatore spaziatore incorretto", name);
+        if (name.at(0) == '*') {
+            if (auto it = m_globals.find(name.substr(1)); it != m_globals.end()) {
+                box.page += it->second.number().getAsInteger();
+            }
+        } else {
+            if (name.size() <= 2 || name.at(name.size()-2) != '.') {
+                throw parsing_error("Identificatore spaziatore incorretto", name);
+            }
+            bool negative = name.at(0) == '-';
+            auto it = m_spacers.find(negative ? name.substr(1, name.size()-3) : name.substr(0, name.size()-2));
+            if (it == m_spacers.end()) continue;
+            switch (name.at(name.size()-1)) {
+            case 'x':
+            case 'X':
+            case 'w':
+            case 'W':
+                if (negative) box.x -= it->second.w;
+                else box.x += it->second.w;
+                break;
+            case 'y':
+            case 'Y':
+            case 'h':
+            case 'H':
+                if (negative) box.y -= it->second.h;
+                else box.y += it->second.h;
+                break;
+            default:
+                throw parsing_error("Identificatore spaziatore incorretto", name);
+            }
         }
     }
     std::vector<std::string> scripts = read_lines(box.script);
@@ -141,7 +126,7 @@ void parser::read_box(const std::string &file_pdf, const pdf_info &info, const l
     }
     case BOX_SINGLE:
     {
-        std::string text = pdf_to_text(file_pdf, info, box_moved);
+        std::string text = pdf_to_text(file_pdf, info, box);
         for (auto &script : scripts) {
             add_entry(script, text);
         }
@@ -149,7 +134,7 @@ void parser::read_box(const std::string &file_pdf, const pdf_info &info, const l
     }
     case BOX_MULTIPLE:
     {
-        std::string text = pdf_to_text(file_pdf, info, box_moved);
+        std::string text = pdf_to_text(file_pdf, info, box);
         std::vector<std::string> values = tokenize(text);
         for (size_t i = 0; i < scripts.size() && i < values.size(); ++i) {
             add_entry(scripts[i], values[i]);
@@ -158,7 +143,7 @@ void parser::read_box(const std::string &file_pdf, const pdf_info &info, const l
     }
     case BOX_COLUMNS:
     {
-        std::string text = pdf_to_text(file_pdf, info, box_moved);
+        std::string text = pdf_to_text(file_pdf, info, box);
         std::vector<std::string> values = tokenize(text);
         for (size_t i = 0; i < values.size();++i) {
             add_entry(scripts[i % scripts.size()], values[i]);
@@ -167,7 +152,7 @@ void parser::read_box(const std::string &file_pdf, const pdf_info &info, const l
     }
     case BOX_ROWS:
     {
-        std::string text = pdf_to_text(file_pdf, info, box_moved);
+        std::string text = pdf_to_text(file_pdf, info, box);
         std::vector<std::string> values = tokenize(text);
         for (size_t i = 0; i < values.size();++i) {
             int row_len = values.size() / scripts.size();
@@ -180,17 +165,9 @@ void parser::read_box(const std::string &file_pdf, const pdf_info &info, const l
     }
     case BOX_SPACER:
     {
-        std::string text = pdf_to_text(file_pdf, info, box_moved);
+        std::string text = pdf_to_text(file_pdf, info, box);
         for (auto &script : scripts) {
             add_spacer(script, text, spacer(box.w, box.h));
-        }
-        break;
-    }
-    case BOX_CONDITIONAL_JUMP:
-    {
-        std::string text = pdf_to_text(file_pdf, info, box_moved);
-        for (auto &script : scripts) {
-            exec_conditional_jump(script, text);
         }
         break;
     }
@@ -458,19 +435,45 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
         case hash("error"):
             if (function.is(1, 1)) throw layout_error(function.args[0].c_str());
             break;
+        case hash("goto"):
+            if (function.is(1, 1)) {
+                if (function.args[0].at(0) == '%') {
+                    try {
+                        program_counter = std::stoi(function.args[0].substr(1));
+                        jumped = true;
+                    } catch (std::invalid_argument &) {
+                        throw parsing_error("Indirizzo goto invalido", script);
+                    }
+                } else {
+                    auto it = goto_labels.find(function.args[0]);
+                    if (it == goto_labels.end()) {
+                        throw parsing_error("Impossibile trovare etichetta", script);
+                    } else {
+                        program_counter = it->second;
+                        jumped = true;
+                    }
+                }
+            }
+            break;
         default:
             throw parsing_error(fmt::format("Funzione non riconosciuta: {0}", function.name), script);
         }
 
         break;
     }
+    case '%':
+        return variable(script.substr(1), VALUE_NUMBER);
+        break;
     case '&':
         return get_variable(script.substr(1));
     case '@':
         if (script.size() > 1) throw parsing_error("'@' deve stare da solo", script);
         return value;
-    case '~':
-        return m_spacers[script.substr(1)].pageoffset;
+    case '*':
+        if (auto it = m_globals.find(script.substr(1)); it != m_globals.end()) {
+            return it->second;
+        }
+        break;
     default:
         return script;
     }
