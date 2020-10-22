@@ -100,7 +100,7 @@
 				"mode" : 0,
 				"name" : "Pagina successiva",
 				"page" : 3,
-				"script" : "*PAGE_NUM=$if($contains(@,Dettaglio consumi),$add(*PAGE_NUM,%1),%0)\n$if(*PAGE_NUM,$goto(%0))",
+				"script" : "$if($contains(@,Dettaglio consumi),$do($inc(*PAGE_NUM),$goto(%0)))",
 				"spacers" : "*PAGE_NUM",
 				"w" : 0.96129035949707031,
 				"whole_file" : false,

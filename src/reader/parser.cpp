@@ -14,39 +14,43 @@ parser::variable_page &parser::get_variable_page() {
     }
 }
 
-void parser::add_value(const std::string &name, const variable &value) {
-    if (name.empty() || value.empty()) return;
+variable parser::add_value(const std::string &name, const variable &value) {
+    if (name.empty() || value.empty()) return variable();
 
     if (name.at(0) == '*') {
-        m_globals[name.substr(1)] = value;
+        return m_globals[name.substr(1)] = value;
     } else if (name.at(name.size()-1) == '+') {
         if (name.at(0) == '%') {
-            get_variable_page()[name.substr(1, name.size()-2)].emplace_back(parse_number(value.str()), VALUE_NUMBER);
+            return get_variable_page()[name.substr(1, name.size()-2)].emplace_back(parse_number(value.str()), VALUE_NUMBER);
         } else {
-            get_variable_page()[name.substr(0, name.size()-1)].push_back(value);
+            return get_variable_page()[name.substr(0, name.size()-1)].emplace_back(value);
         }
     } else {
         if (name.at(0) == '%') {
-            get_variable_page()[name.substr(1)] = {variable(parse_number(value.str()), VALUE_NUMBER)};
+            variable var(parse_number(value.str()), VALUE_NUMBER);
+            get_variable_page()[name.substr(1)] = {var};
+            return var;
         } else {
             get_variable_page()[name] = {value};
+            return value;
         }
     }
 }
 
-void parser::execute_line(const std::string &script, const box_content &content) {
+variable parser::execute_line(const std::string &script, const box_content &content) {
     if (script.at(0) == '$') {
-        evaluate(script, content);
+        return evaluate(script, content);
     } else {
         size_t equals = script.find_first_of('=');
         if (equals == std::string::npos) {
-            add_value(script, content.text);
+            return add_value(script, content.text);
         } else if (equals > 0) {
-            add_value(script.substr(0, equals), evaluate(script.substr(equals + 1), content));
+            return add_value(script.substr(0, equals), evaluate(script.substr(equals + 1), content));
         } else {
             throw parsing_error("Identificatore vuoto", script);
         }
     }
+    return variable();
 };
 
 void parser::read_layout(const std::string &file_pdf, const bill_layout_script &layout) {
@@ -123,6 +127,13 @@ void parser::read_script(std::istream &stream, const std::string &text) {
 
 const variable &parser::get_variable(const std::string &name) const {
     static const variable VAR_EMPTY;
+    if (name.at(0) == '*') {
+        if (auto it = m_globals.find(name.substr(1)); it != m_globals.end()) {
+            return it->second;
+        } else {
+            return VAR_EMPTY;
+        }
+    }
     size_t reading_page_num = 0;
     if (auto it = m_globals.find("PAGE_NUM"); it != m_globals.end()) {
         reading_page_num = it->second.number().getAsInteger();
@@ -315,6 +326,11 @@ variable parser::evaluate(const std::string &script, const box_content &content)
                 else if (function.args.size() >= 3) return evaluate(function.args[2], content);
             }
             break;
+        case hash("while"):
+            if (function.is(2, 2)) {
+                while (evaluate(function.args[0], content)) evaluate(function.args[1], content);
+            }
+            break;
         case hash("not"):
             if (function.is(1, 1)) return !evaluate(function.args[0], content);
             break;
@@ -332,6 +348,16 @@ variable parser::evaluate(const std::string &script, const box_content &content)
             break;
         case hash("contains"):
             if (function.is(2, 2)) return evaluate(function.args[0], content).str().find(evaluate(function.args[1], content).str()) != std::string::npos;
+            break;
+        case hash("inc"):
+            if (function.is(1, 2)) {
+                return add_value(function.args[0], get_variable(function.args[0]) + (function.args.size() >= 2 ? evaluate(function.args[1], content) : variable(1)));
+            }
+            break;
+        case hash("dec"):
+            if (function.is(1, 2)) {
+                return add_value(function.args[0], get_variable(function.args[0]) - (function.args.size() >= 2 ? evaluate(function.args[1], content) : variable(1)));
+            }
             break;
         case hash("add"):
             if (function.is(2, 2)) return evaluate(function.args[0], content) + evaluate(function.args[1], content);
@@ -425,14 +451,11 @@ variable parser::evaluate(const std::string &script, const box_content &content)
         break;
     case '&':
         return get_variable(script.substr(1));
-    case '@':
-        if (script.size() > 1) throw parsing_error("'@' deve stare da solo", script);
-        return variable(content.text);
     case '*':
-        if (auto it = m_globals.find(script.substr(1)); it != m_globals.end()) {
-            return it->second;
-        }
-        break;
+        return get_variable(script);
+    case '@':
+        if (script.size() > 1) throw parsing_error("Valore inatteso dopo '@'", script);
+        return variable(content.text);
     default:
         return script;
     }
