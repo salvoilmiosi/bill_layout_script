@@ -22,6 +22,15 @@ struct spacer {
     spacer(float w, float h) : w(w), h(h) {}
 };
 
+struct box_content : public layout_box {
+    std::string text;
+
+    box_content() {}
+    box_content(const layout_box &from) : layout_box(from) {}
+    box_content(const std::string &text) : text(text) {}
+    box_content(const layout_box &from, const std::string &text) : layout_box(from), text(text) {}
+};
+
 class parser {
 public:
     void read_layout(const std::string &file_pdf, const bill_layout_script &layout);
@@ -37,9 +46,8 @@ private:
     using variable_page = std::map<std::string, std::vector<variable>>;
     variable_page &get_variable_page();
     void add_value(const std::string &name, const variable &value);
-    void add_entry(const std::string &script, const std::string &value);
-    void add_spacer(const std::string &script, const std::string &value, const spacer &size);
-    variable evaluate(const std::string &script, const std::string &value);
+    void execute_line(const std::string &script, const box_content &content);
+    variable evaluate(const std::string &script, const box_content &content);
 
 private:
     size_t program_counter = 0;

@@ -34,34 +34,20 @@ void parser::add_value(const std::string &name, const variable &value) {
     }
 }
 
-void parser::add_entry(const std::string &script, const std::string &value) {
+void parser::execute_line(const std::string &script, const box_content &content) {
     if (script.at(0) == '$') {
-        evaluate(script, value);
+        evaluate(script, content);
     } else {
         size_t equals = script.find_first_of('=');
         if (equals == std::string::npos) {
-            add_value(script, value);
+            add_value(script, content.text);
         } else if (equals > 0) {
-            add_value(script.substr(0, equals), evaluate(script.substr(equals + 1), value));
+            add_value(script.substr(0, equals), evaluate(script.substr(equals + 1), content));
         } else {
             throw parsing_error("Identificatore vuoto", script);
         }
     }
 };
-
-void parser::add_spacer(const std::string &script, const std::string &value, const spacer &size) {
-    size_t equals = script.find_first_of('=');
-    if (equals == std::string::npos) {
-        throw parsing_error("Previsto '='", script);
-    } else if (equals > 0) {
-        auto calc = evaluate(script.substr(equals + 1), value);
-        if (calc) {
-            m_spacers[script.substr(0, equals)] = size;
-        }
-    } else {
-        throw parsing_error("Identificatore vuoto", script);
-    }
-}
 
 void parser::read_layout(const std::string &file_pdf, const bill_layout_script &layout) {
     for (size_t i=0; i<layout.boxes.size(); ++i) {
@@ -115,72 +101,23 @@ void parser::read_box(const std::string &file_pdf, const pdf_info &info, layout_
         }
     }
     std::vector<std::string> scripts = read_lines(box.script);
-    switch (box.type) {
-    case BOX_WHOLE_FILE:
-    {
-        std::string text = pdf_whole_file_to_text(file_pdf);
-        for (auto &script : scripts) {
-            add_entry(script, text);
-        }
-        break;
+    box_content content(box);
+    if (box.whole_file) {
+        content.text = pdf_whole_file_to_text(file_pdf);
+    } else {
+        content.text = pdf_to_text(file_pdf, info, box);
     }
-    case BOX_SINGLE:
-    {
-        std::string text = pdf_to_text(file_pdf, info, box);
-        for (auto &script : scripts) {
-            add_entry(script, text);
-        }
-        break;
-    }
-    case BOX_MULTIPLE:
-    {
-        std::string text = pdf_to_text(file_pdf, info, box);
-        std::vector<std::string> values = tokenize(text);
-        for (size_t i = 0; i < scripts.size() && i < values.size(); ++i) {
-            add_entry(scripts[i], values[i]);
-        }
-        break;
-    }
-    case BOX_COLUMNS:
-    {
-        std::string text = pdf_to_text(file_pdf, info, box);
-        std::vector<std::string> values = tokenize(text);
-        for (size_t i = 0; i < values.size();++i) {
-            add_entry(scripts[i % scripts.size()], values[i]);
-        }
-        break;
-    }
-    case BOX_ROWS:
-    {
-        std::string text = pdf_to_text(file_pdf, info, box);
-        std::vector<std::string> values = tokenize(text);
-        for (size_t i = 0; i < values.size();++i) {
-            int row_len = values.size() / scripts.size();
-            if (row_len < 1) row_len = 1;
-            if (i / row_len < scripts.size()) {
-                add_entry(scripts[i / row_len], values[i]);
-            }
-        }
-        break;
-    }
-    case BOX_SPACER:
-    {
-        std::string text = pdf_to_text(file_pdf, info, box);
-        for (auto &script : scripts) {
-            add_spacer(script, text, spacer(box.w, box.h));
-        }
-        break;
-    }
-    default:
-        break;
+    for (auto &script : scripts) {
+        execute_line(script, content);
     }
 }
 
 void parser::read_script(std::istream &stream, const std::string &text) {
     std::vector<std::string> scripts = read_lines(stream);
 
+    box_content content(text);
     for (auto &script : scripts) {
-        add_entry(script, text);
+        execute_line(script, content);
     }
 }
 
@@ -322,7 +259,7 @@ template<typename T> size_t constexpr hash(T&& t) {
     return hasher{}(std::forward<T>(t));
 }
 
-variable parser::evaluate(const std::string &script, const std::string &value) {
+variable parser::evaluate(const std::string &script, const box_content &content) {
     if (!script.empty()) switch(script.at(0)) {
     case '$':
     {
@@ -331,112 +268,110 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
         switch(hash(function.name)) {
         case hash("search"):
             if (function.is(2, 3)) {
-                return search_regex(evaluate(function.args[0], value).str(), evaluate(function.args[1], value).str(),
-                    function.args.size() >= 3 ? evaluate(function.args[2], value).number().getAsInteger() : 1);
+                return search_regex(evaluate(function.args[0], content).str(), evaluate(function.args[1], content).str(),
+                    function.args.size() >= 3 ? evaluate(function.args[2], content).number().getAsInteger() : 1);
             }
             break;
         case hash("nospace"):
-            if (function.is(1, 1)) return nospace(evaluate(function.args[0], value).str());
+            if (function.is(1, 1)) return nospace(evaluate(function.args[0], content).str());
             break;
         case hash("num"):
-            if (function.is(1, 1)) return variable(parse_number(evaluate(function.args[0], value).str()), VALUE_NUMBER);
+            if (function.is(1, 1)) return variable(parse_number(evaluate(function.args[0], content).str()), VALUE_NUMBER);
             break;
         case hash("date"):
             if (function.is(2, 3))
-                return parse_date(evaluate(function.args[0], value).str(), evaluate(function.args[1], value).str(),
-                    function.args.size() >= 3 ? evaluate(function.args[2], value).number().getAsInteger() : 1);
+                return parse_date(evaluate(function.args[0], content).str(), evaluate(function.args[1], content).str(),
+                    function.args.size() >= 3 ? evaluate(function.args[2], content).number().getAsInteger() : 1);
             break;
         case hash("month_begin"):
-            if (function.is(1, 1)) return evaluate(function.args[0], value).str() + "-01";
+            if (function.is(1, 1)) return evaluate(function.args[0], content).str() + "-01";
             break;
         case hash("month_end"):
-            if (function.is(1, 1)) return date_month_end(evaluate(function.args[0], value).str());
+            if (function.is(1, 1)) return date_month_end(evaluate(function.args[0], content).str());
             break;
         case hash("coalesce"):
             if (function.is(1)) {
                 for (auto &arg : function.args) {
-                    if (auto var = evaluate(arg, value)) return var;
+                    if (auto var = evaluate(arg, content)) return var;
                 }
             }
             break;
         case hash("do"):
             if (function.is(1)) {
-                variable ret;
                 for (auto &arg : function.args) {
-                    ret = evaluate(arg, value);
+                    execute_line(arg, content);
                 }
-                return ret;
             }
             break;
         case hash("if"):
             if (function.is(2, 3)) {
-                if (evaluate(function.args[0], value)) return evaluate(function.args[1], value);
-                else if (function.args.size() >= 3) return evaluate(function.args[2], value);
+                if (evaluate(function.args[0], content)) return evaluate(function.args[1], content);
+                else if (function.args.size() >= 3) return evaluate(function.args[2], content);
             }
             break;
         case hash("ifnot"):
             if (function.is(2, 3)) {
-                if (!evaluate(function.args[0], value)) return evaluate(function.args[1], value);
-                else if (function.args.size() >= 3) return evaluate(function.args[2], value);
+                if (!evaluate(function.args[0], content)) return evaluate(function.args[1], content);
+                else if (function.args.size() >= 3) return evaluate(function.args[2], content);
             }
             break;
         case hash("not"):
-            if (function.is(1, 1)) return !evaluate(function.args[0], value);
+            if (function.is(1, 1)) return !evaluate(function.args[0], content);
             break;
         case hash("eq"):
-            if (function.is(2, 2)) return evaluate(function.args[0], value) == evaluate(function.args[1], value);
+            if (function.is(2, 2)) return evaluate(function.args[0], content) == evaluate(function.args[1], content);
             break;
         case hash("neq"):
-            if (function.is(2, 2)) return evaluate(function.args[0], value) != evaluate(function.args[1], value);
+            if (function.is(2, 2)) return evaluate(function.args[0], content) != evaluate(function.args[1], content);
             break;
         case hash("and"):
-            if (function.is(2, 2)) return evaluate(function.args[0], value) && evaluate(function.args[1], value);
+            if (function.is(2, 2)) return evaluate(function.args[0], content) && evaluate(function.args[1], content);
             break;
         case hash("or"):
-            if (function.is(2, 2)) return evaluate(function.args[0], value) || evaluate(function.args[1], value);
+            if (function.is(2, 2)) return evaluate(function.args[0], content) || evaluate(function.args[1], content);
             break;
         case hash("contains"):
-            if (function.is(2, 2)) return evaluate(function.args[0], value).str().find(evaluate(function.args[1], value).str()) != std::string::npos;
+            if (function.is(2, 2)) return evaluate(function.args[0], content).str().find(evaluate(function.args[1], content).str()) != std::string::npos;
             break;
         case hash("add"):
-            if (function.is(2, 2)) return evaluate(function.args[0], value) + evaluate(function.args[1], value);
+            if (function.is(2, 2)) return evaluate(function.args[0], content) + evaluate(function.args[1], content);
             break;
         case hash("sub"):
-            if (function.is(2, 2)) return evaluate(function.args[0], value) - evaluate(function.args[1], value);
+            if (function.is(2, 2)) return evaluate(function.args[0], content) - evaluate(function.args[1], content);
             break;
         case hash("mul"):
-            if (function.is(2, 2)) return evaluate(function.args[0], value) * evaluate(function.args[1], value);
+            if (function.is(2, 2)) return evaluate(function.args[0], content) * evaluate(function.args[1], content);
             break;
         case hash("div"):
-            if (function.is(2, 2)) return evaluate(function.args[0], value) / evaluate(function.args[1], value);
+            if (function.is(2, 2)) return evaluate(function.args[0], content) / evaluate(function.args[1], content);
             break;
         case hash("gt"):
-            if (function.is(2, 2)) return evaluate(function.args[0], value) > evaluate(function.args[0], value);
+            if (function.is(2, 2)) return evaluate(function.args[0], content) > evaluate(function.args[0], content);
             break;
         case hash("geq"):
-            if (function.is(2, 2)) return evaluate(function.args[0], value) >= evaluate(function.args[0], value);
+            if (function.is(2, 2)) return evaluate(function.args[0], content) >= evaluate(function.args[0], content);
             break;
         case hash("lt"):
-            if (function.is(2, 2)) return evaluate(function.args[0], value) < evaluate(function.args[1], value);
+            if (function.is(2, 2)) return evaluate(function.args[0], content) < evaluate(function.args[1], content);
             break;
         case hash("leq"):
-            if (function.is(2, 2)) return evaluate(function.args[0], value) <= evaluate(function.args[1], value);
+            if (function.is(2, 2)) return evaluate(function.args[0], content) <= evaluate(function.args[1], content);
             break;
         case hash("max"):
-            if (function.is(2, 2)) return std::max(evaluate(function.args[0], value), evaluate(function.args[1], value));
+            if (function.is(2, 2)) return std::max(evaluate(function.args[0], content), evaluate(function.args[1], content));
             break;
         case hash("min"):
-            if (function.is(2, 2)) return std::min(evaluate(function.args[0], value), evaluate(function.args[1], value));
+            if (function.is(2, 2)) return std::min(evaluate(function.args[0], content), evaluate(function.args[1], content));
             break;
         case hash("int"):
-            if (function.is(1, 1)) return variable(std::to_string(evaluate(function.args[0], value).number().getAsInteger()), VALUE_NUMBER);
+            if (function.is(1, 1)) return variable(std::to_string(evaluate(function.args[0], content).number().getAsInteger()), VALUE_NUMBER);
             // converte da stringa a fixed_point a int a stringa ...
             break;
         case hash("cat"):
             if (function.is(1)) {
                 std::string var;
                 for (auto &arg : function.args) {
-                    var += evaluate(arg, value).str();
+                    var += evaluate(arg, content).str();
                 }
                 return var;
             }
@@ -464,6 +399,21 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
                 }
             }
             break;
+        case hash("addspacer"):
+            if (function.is(1, 1)) {
+                m_spacers[function.args[0]] = spacer(content.w, content.h);
+            }
+            break;
+        case hash("tokens"):
+            if (function.is(2)) {
+                auto tokens = tokenize(evaluate(function.args[0], content).str());
+                auto con_token = content;
+                for (size_t i=1; i<function.args.size(); ++i) {
+                    con_token.text = tokens[(i-1) % tokens.size()];
+                    execute_line(function.args[i], con_token);
+                }
+            }
+            break;
         default:
             throw parsing_error(fmt::format("Funzione non riconosciuta: {0}", function.name), script);
         }
@@ -477,7 +427,7 @@ variable parser::evaluate(const std::string &script, const std::string &value) {
         return get_variable(script.substr(1));
     case '@':
         if (script.size() > 1) throw parsing_error("'@' deve stare da solo", script);
-        return value;
+        return variable(content.text);
     case '*':
         if (auto it = m_globals.find(script.substr(1)); it != m_globals.end()) {
             return it->second;

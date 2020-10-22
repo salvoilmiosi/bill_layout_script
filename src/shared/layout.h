@@ -6,15 +6,6 @@
 #include <vector>
 #include <string>
 
-enum box_type { 
-    BOX_SINGLE,
-    BOX_MULTIPLE,
-    BOX_COLUMNS,
-    BOX_ROWS,
-    BOX_SPACER,
-    BOX_WHOLE_FILE,
-};
-
 #define RESIZE_TOP      1 << 0
 #define RESIZE_BOTTOM   1 << 1
 #define RESIZE_LEFT     1 << 2
@@ -26,7 +17,7 @@ struct layout_box : public pdf_rect {
     std::string script = "";
     std::string spacers = "";
     std::string goto_label = "";
-    box_type type = BOX_SINGLE;
+    bool whole_file = false;
 };
 
 struct layout_error {
