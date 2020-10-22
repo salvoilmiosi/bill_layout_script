@@ -51,6 +51,7 @@ private:
 
 private:
     size_t program_counter = 0;
+    size_t return_address = -1;
     bool jumped = false;
     std::vector<variable_page> m_values;
     std::map<std::string, spacer> m_spacers;

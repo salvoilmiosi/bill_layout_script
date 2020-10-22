@@ -409,6 +409,7 @@ variable parser::evaluate(const std::string &script, const box_content &content)
             if (function.is(1, 1)) {
                 if (function.args[0].at(0) == '%') {
                     try {
+                        return_address = program_counter;
                         program_counter = std::stoi(function.args[0].substr(1));
                         jumped = true;
                     } catch (std::invalid_argument &) {
@@ -419,9 +420,21 @@ variable parser::evaluate(const std::string &script, const box_content &content)
                     if (it == goto_labels.end()) {
                         throw parsing_error("Impossibile trovare etichetta", script);
                     } else {
+                        return_address = program_counter;
                         program_counter = it->second;
                         jumped = true;
                     }
+                }
+            }
+            break;
+        case hash("return"):
+            if (function.is(1, 1)) {
+                if (return_address >= 0) {
+                    program_counter = return_address + 1;
+                    return_address = -1;
+                    jumped = true;
+                } else {
+                    throw parsing_error("Indirizzo return invalido", script);
                 }
             }
             break;
