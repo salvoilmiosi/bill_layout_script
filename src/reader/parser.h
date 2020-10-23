@@ -44,7 +44,6 @@ public:
 
 private:
     using variable_page = std::map<std::string, std::vector<variable>>;
-    variable_page &get_variable_page();
     variable add_value(const std::string &name, const variable &value);
     variable execute_line(const std::string &script, const box_content &content);
     variable evaluate(const std::string &script, const box_content &content);

@@ -5,34 +5,35 @@
 
 #include "../shared/utils.h"
 
-parser::variable_page &parser::get_variable_page() {
-    size_t reading_page_num = m_globals["PAGE_NUM"].number().getAsInteger();
-    if (m_values.size() <= reading_page_num) {
-        return m_values.emplace_back();
-    } else {
-        return m_values[reading_page_num];
-    }
-}
-
 variable parser::add_value(const std::string &name, const variable &value) {
     if (name.empty() || value.empty()) return variable();
 
     if (name.at(0) == '*') {
         return m_globals[name.substr(1)] = value;
-    } else if (name.at(name.size()-1) == '+') {
-        if (name.at(0) == '%') {
-            return get_variable_page()[name.substr(1, name.size()-2)].emplace_back(parse_number(value.str()), VALUE_NUMBER);
-        } else {
-            return get_variable_page()[name.substr(0, name.size()-1)].emplace_back(value);
-        }
     } else {
-        if (name.at(0) == '%') {
-            variable var(parse_number(value.str()), VALUE_NUMBER);
-            get_variable_page()[name.substr(1)] = {var};
-            return var;
+        size_t reading_page_num = m_globals["PAGE_NUM"].number().getAsInteger();
+        while (m_values.size() <= reading_page_num) {
+            m_values.emplace_back();
+        }
+
+        auto &page = m_values[reading_page_num];
+
+        if (name.at(name.size()-1) == '+') {
+            if (name.at(0) == '%') {
+                return page[name.substr(1, name.size()-2)].emplace_back(parse_number(value.str()), VALUE_NUMBER);
+            } else {
+                return page[name.substr(0, name.size()-1)].emplace_back(std::move(value));
+            }
         } else {
-            get_variable_page()[name] = {value};
-            return value;
+            if (name.at(0) == '%') {
+                auto &var = page[name.substr(1)];
+                var.clear();
+                return var.emplace_back(parse_number(value.str()), VALUE_NUMBER);
+            } else {
+                auto &var = page[name];
+                var.clear();
+                return var.emplace_back(std::move(value));
+            }
         }
     }
 }
@@ -447,8 +448,8 @@ variable parser::evaluate(const std::string &script, const box_content &content)
             if (function.is(2)) {
                 auto tokens = tokenize(evaluate(function.args[0], content).str());
                 auto con_token = content;
-                for (size_t i=1; i<function.args.size(); ++i) {
-                    con_token.text = tokens[(i-1) % tokens.size()];
+                for (size_t i=1; i < function.args.size() && i <= tokens.size(); ++i) {
+                    con_token.text = tokens[i-1];
                     execute_line(function.args[i], con_token);
                 }
             }
