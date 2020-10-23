@@ -258,7 +258,7 @@ function_parser::function_parser(const std::string &script) : script(script) {
 }
 
 struct hasher {
-    size_t constexpr operator() (char const *input)const {
+    size_t constexpr operator() (char const *input) const {
         return *input ? static_cast<unsigned int>(*input) + 33 * (*this)(input + 1) : 5381;
     }
     
@@ -462,7 +462,6 @@ variable parser::evaluate(const std::string &script, const box_content &content)
     }
     case '%':
         return variable(script.substr(1), VALUE_NUMBER);
-        break;
     case '&':
         return get_variable(script.substr(1));
     case '*':

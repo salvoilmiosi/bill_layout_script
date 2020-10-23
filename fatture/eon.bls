@@ -12,7 +12,6 @@
 				"script" : "data_emissione=$date(DD/MM/YYYY,@)",
 				"spacers" : "",
 				"w" : 0.27479091286659241,
-				"whole_file" : false,
 				"x" : 0.138888880610466,
 				"y" : 0.28295111656188965
 			},
@@ -25,7 +24,6 @@
 				"script" : "mese_fattura=$date(consumi di MONTH YYYY,@)",
 				"spacers" : "",
 				"w" : 0.93052107095718384,
-				"whole_file" : false,
 				"x" : 0.038461539894342422,
 				"y" : 0.30435928702354431
 			},
@@ -38,7 +36,6 @@
 				"script" : "numero_fattura",
 				"spacers" : "",
 				"w" : 0.11051373183727264,
-				"whole_file" : false,
 				"x" : 0.23596175014972687,
 				"y" : 0.35052153468132019
 			},
@@ -51,7 +48,6 @@
 				"script" : "scadenza=$date(DD/MM/YYYY,@)",
 				"spacers" : "",
 				"w" : 0.15756823122501373,
-				"whole_file" : false,
 				"x" : 0.79032260179519653,
 				"y" : 0.3499692976474762
 			},
@@ -64,7 +60,6 @@
 				"script" : "ragione_sociale",
 				"spacers" : "",
 				"w" : 0.25166952610015869,
-				"whole_file" : false,
 				"x" : 0.21239387989044189,
 				"y" : 0.44511792063713074
 			},
@@ -77,7 +72,6 @@
 				"script" : "#indirizzo=$search(Indirizzo fornitura (.+)\\n,@)\n#citta=$search(Indirizzo fornitura .+\\n(.+)\\n,@)\nindirizzo_fornitura=$cat(&#indirizzo, ,&#citta)\ncodice_pod=$search(POD \\(punto di prelievo\\) (.+)\\n,@)\n%potenza=$search(Potenza disponibile (.+)\\n,@)\ntipologia=$search(Tipologia di contratto (.+)\\n,@)",
 				"spacers" : "",
 				"w" : 0.53338992595672607,
-				"whole_file" : false,
 				"x" : 0.045274477452039719,
 				"y" : 0.028006162494421005
 			},
@@ -90,7 +84,6 @@
 				"script" : "%spesa_materia_energia=$search(Spesa energia (.+)\\n,@)\n%trasporto_gestione=$search(Trasporto e Gestione del Contatore (.+)\\n,@)\n%oneri=$search(Oneri di Sistema (.+)\\n,@)\n%totale_fornitura=$search(Totale Fornitura (.+)$,@)",
 				"spacers" : "",
 				"w" : 0.37917375564575195,
-				"whole_file" : false,
 				"x" : 0.58007925748825073,
 				"y" : 0.028006162494421005
 			},
@@ -103,7 +96,6 @@
 				"script" : "%energia_attiva+=$search(Consumi fatturati \\(kWh\\) $NUMBER $NUMBER $NUMBER $NUMBER,@,2)\n%energia_attiva+=$search(Consumi fatturati \\(kWh\\) $NUMBER $NUMBER $NUMBER $NUMBER,@,3)\n%energia_attiva+=$search(Consumi fatturati \\(kWh\\) $NUMBER $NUMBER $NUMBER $NUMBER,@,4)",
 				"spacers" : "",
 				"w" : 0.92933946847915649,
-				"whole_file" : false,
 				"x" : 0.038402456790208817,
 				"y" : 0.30678176879882812
 			},
@@ -116,7 +108,6 @@
 				"script" : "$tokens(@,%prezzo_energia+,%prezzo_energia+,%prezzo_energia+)",
 				"spacers" : "",
 				"w" : 0.098176717758178711,
-				"whole_file" : false,
 				"x" : 0.59373539686203003,
 				"y" : 0.77669262886047363
 			}

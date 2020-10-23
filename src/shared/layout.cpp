@@ -72,7 +72,7 @@ std::ostream &operator << (std::ostream &out, const bill_layout_script &obj) {
         Json::Value json_box = Json::objectValue;
 
         json_box["name"] = box.name;
-        json_box["whole_file"] = box.whole_file;
+        if (box.whole_file) json_box["whole_file"] = true;
         json_box["spacers"] = box.spacers;
         json_box["script"] = box.script;
         json_box["goto_label"] = box.goto_label;

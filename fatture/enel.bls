@@ -12,7 +12,6 @@
 				"script" : "#indirizzo=$search(Forniamo energia in\\n(.+)\\n(.+)\\n,@,1)\n#citta=$search(Forniamo energia in\\n(.+)\\n(.+)\\n,@,2)\nindirizzo_fornitura=$cat(&#indirizzo, ,&#citta)",
 				"spacers" : "",
 				"w" : 0.41827955842018127,
-				"whole_file" : false,
 				"x" : 0.046236559748649597,
 				"y" : 0.17179779708385468
 			},
@@ -25,7 +24,6 @@
 				"script" : "%spesa_materia_energia=$search(Spesa per l'energia \\(.\\) $NUMBER,@)\n%trasporto_gestione=$search(Spesa per il trasporto dell'energia elettrica e la gestione del contatore \\(.\\) $NUMBER,@)\n%oneri=$search(Spesa oneri di sistema \\(.\\) $NUMBER,@)\n%ricalcoli=$search(Ricalcoli \\(.\\) $NUMBER,@)\nconguaglio=$if(&ricalcoli,1)",
 				"spacers" : "",
 				"w" : 0.44876658916473389,
-				"whole_file" : false,
 				"x" : 0.075901329517364502,
 				"y" : 0.491649329662323
 			},
@@ -38,7 +36,6 @@
 				"script" : "iva=$div($search(IVA $NUMBER%,@),100)\n%imponibile=$search(imponibile di euro $NUMBER,@)\n%accise=$search(Accisa sull'energia elettrica.+ $NUMBER,@,1)\n%#accise2=$search(Accisa sull'energia elettrica.+ $NUMBER Accisa sull'energia elettrica.+ $NUMBER,@,2)\naccise=$if(&#accise2,$add(&accise,&#accise2))",
 				"spacers" : "",
 				"w" : 0.6890491247177124,
-				"whole_file" : false,
 				"x" : 0.043979227542877197,
 				"y" : 0.67284953594207764
 			},
@@ -51,7 +48,6 @@
 				"script" : "%totale_fattura",
 				"spacers" : "",
 				"w" : 0.21763145923614502,
-				"whole_file" : false,
 				"x" : 0.51906633377075195,
 				"y" : 0.36861985921859741
 			},
@@ -64,7 +60,6 @@
 				"script" : "data_fattura=$date(DD/MM/YYYY,@)",
 				"spacers" : "",
 				"w" : 0.19443216919898987,
-				"whole_file" : false,
 				"x" : 0.3049049973487854,
 				"y" : 0.39986878633499146
 			},
@@ -77,7 +72,6 @@
 				"script" : "data_scadenza=$date(DD/MM/YYYY,@)",
 				"spacers" : "",
 				"w" : 0.074016794562339783,
-				"whole_file" : false,
 				"x" : 0.66283690929412842,
 				"y" : 0.40455475449562073
 			},
@@ -90,7 +84,6 @@
 				"script" : "numero_cliente",
 				"spacers" : "",
 				"w" : 0.20437471568584442,
-				"whole_file" : false,
 				"x" : 0.054131682962179184,
 				"y" : 0.35300916433334351
 			},
@@ -103,7 +96,6 @@
 				"script" : "codice_pod",
 				"spacers" : "",
 				"w" : 0.20768891274929047,
-				"whole_file" : false,
 				"x" : 0.055236410349607468,
 				"y" : 0.39127784967422485
 			},
@@ -116,7 +108,6 @@
 				"script" : "numero_fattura",
 				"spacers" : "",
 				"w" : 0.15355722606182098,
-				"whole_file" : false,
 				"x" : 0.34577992558479309,
 				"y" : 0.38737288117408752
 			},
@@ -129,7 +120,6 @@
 				"script" : "ragione_sociale",
 				"spacers" : "",
 				"w" : 0.39770215749740601,
-				"whole_file" : false,
 				"x" : 0.50154662132263184,
 				"y" : 0.18353351950645447
 			},
@@ -142,7 +132,6 @@
 				"script" : "%energia_reattiva+=$search(F1 $NUMBER,@)\n%energia_reattiva+=$search(F2 $NUMBER,@)\n%energia_reattiva+=$search(F3 $NUMBER,@)",
 				"spacers" : "",
 				"w" : 0.15973564982414246,
-				"whole_file" : false,
 				"x" : 0.38865140080451965,
 				"y" : 0.11536654829978943
 			},
@@ -155,7 +144,6 @@
 				"script" : "%energia_attiva+=$search(Picco $NUMBER,@)\n%energia_attiva+=$search(Fuori picco $NUMBER,@)",
 				"spacers" : "",
 				"w" : 0.1510496586561203,
-				"whole_file" : false,
 				"x" : 0.55811572074890137,
 				"y" : 0.1113101989030838
 			},
@@ -168,7 +156,6 @@
 				"script" : "mese_fattura=$date(MON\\. YEAR,@)",
 				"spacers" : "",
 				"w" : 0.22106261551380157,
-				"whole_file" : false,
 				"x" : 0.2798861563205719,
 				"y" : 0.43061238527297974
 			},
@@ -181,7 +168,6 @@
 				"script" : "%potenza=$search(Potenza fatturata kW $NUMBER,@)",
 				"spacers" : "",
 				"w" : 0.16129031777381897,
-				"whole_file" : false,
 				"x" : 0.21838320791721344,
 				"y" : 0.2428734302520752
 			},
@@ -194,7 +180,6 @@
 				"script" : "%prezzo_energia+=$search(Energia fascia F1 .+kWh $NUMBER,@)\n%prezzo_energia+=$search(Energia fascia F2 .+kWh $NUMBER,@)\n%prezzo_energia+=$search(Energia fascia F3 .+kWh $NUMBER,@)\n%prezzo_energia+=$search(Energia picco .+kWh $NUMBER,@)\n%prezzo_energia+=$search(Energia fuori picco .+kWh $NUMBER,@)\n%inf_75=$search(Energia Reattiva entro il 75%.+ $NUMBER\\n,@)\n%sup_75=$search(Energia Reattiva oltre il 75%.+ $NUMBER\\n,@)",
 				"spacers" : "",
 				"w" : 0.7119903564453125,
-				"whole_file" : false,
 				"x" : 0.046957939863204956,
 				"y" : 0.24609211087226868
 			}

@@ -12,7 +12,6 @@
 				"script" : "numero_cliente=$search(Codice Cliente: (.+)\\n,@)\nnumero_fattura=$search(fattura n\\. ([0-9]+) ,@)\ndata_fattura=$date(fattura n\\. [0-9]+ del DD/MM/YYYY,@)\ndata_inizio=$date(Periodo DD/MM/YYYY - DD/MM/YYYY,@,1)\ndata_fine=$date(Periodo DD/MM/YYYY - DD/MM/YYYY,@,2)\nmese_fattura=$date(YYYY-MM,&data_fine)",
 				"spacers" : "",
 				"w" : 0.47476586699485779,
-				"whole_file" : false,
 				"x" : 0.51248699426651001,
 				"y" : 0.027586715295910835
 			},
@@ -25,7 +24,6 @@
 				"script" : "%totale_fattura",
 				"spacers" : "",
 				"w" : 0.33298647403717041,
-				"whole_file" : false,
 				"x" : 0.11056191474199295,
 				"y" : 0.36230552196502686
 			},
@@ -38,7 +36,6 @@
 				"script" : "data_scadenza=$date(DD/MM/YYYY,@)",
 				"spacers" : "",
 				"w" : 0.33387097716331482,
-				"whole_file" : false,
 				"x" : 0.11290322244167328,
 				"y" : 0.42075255513191223
 			},
@@ -51,7 +48,6 @@
 				"script" : "ragione_sociale=$search(^(.+)\\n(.+)\\n(.+)\\n(.+)$,@,1)\n#indirizzo=$search(^(.+)\\n(.+)\\n(.+)\\n(.+)$,@,2)\n#citta=$search(^(.+)\\n(.+)\\n(.+)\\n(.+)$,@,3)\nindirizzo_fornitura=$cat(&#indirizzo, ,&#citta)",
 				"spacers" : "",
 				"w" : 0.34859523177146912,
-				"whole_file" : false,
 				"x" : 0.10535900294780731,
 				"y" : 0.22069372236728668
 			},
@@ -64,7 +60,6 @@
 				"script" : "%spesa_materia_energia=$search(Spesa per la materia Energia $NUMBER\\n,@)\n%trasporto_gestione=$search(Servizi di rete $NUMBER\\n,@)\n%oneri=$search(Spesa per oneri di sistema $NUMBER\\n,@)",
 				"spacers" : "",
 				"w" : 0.46956297755241394,
-				"whole_file" : false,
 				"x" : 0.51768994331359863,
 				"y" : 0.34023615717887878
 			},
@@ -77,7 +72,6 @@
 				"script" : "iva=$div($search(IVA (.+)%,@),100)\n%imponibile=$search(IVA .+% $NUMBER,@)",
 				"spacers" : "",
 				"w" : 0.47476586699485779,
-				"whole_file" : false,
 				"x" : 0.51638919115066528,
 				"y" : 0.57012546062469482
 			},
@@ -90,7 +84,6 @@
 				"script" : "codice_pod=$search(Codice punto di erogazione \\(POD\\): ([a-zA-Z0-9]+),@)\n%energia_attiva+=$search(Energia Attiva kWh $NUMBER $NUMBER $NUMBER,@,1)\n%energia_attiva+=$search(Energia Attiva kWh $NUMBER $NUMBER $NUMBER,@,2)\n%energia_attiva+=$search(Energia Attiva kWh $NUMBER $NUMBER $NUMBER,@,3)\n%energia_reattiva+=$search(Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER,@,1)\n%energia_reattiva+=$search(Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER,@,2)\n%energia_reattiva+=$search(Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER,@,3)\n%potenza+=$search(Potenza kW $NUMBER $NUMBER $NUMBER,@,1)\n%potenza+=$search(Potenza kW $NUMBER $NUMBER $NUMBER,@,2)\n%potenza+=$search(Potenza kW $NUMBER $NUMBER $NUMBER,@,3)",
 				"spacers" : "spacer_bollette_insolute.y",
 				"w" : 0.90420329570770264,
-				"whole_file" : false,
 				"x" : 0.068426191806793213,
 				"y" : 0.024463564157485962
 			},
@@ -103,7 +96,6 @@
 				"script" : "%accisa=$search(Imposta erariale di consumo.+ $NUMBER\\n,@)",
 				"spacers" : "spacer_altre_partite.y",
 				"w" : 0.7807917594909668,
-				"whole_file" : false,
 				"x" : 0.068426191806793213,
 				"y" : 0.012957395985722542
 			}

@@ -68,6 +68,7 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     addLabelAndCtrl("Etichetta goto:", 0, m_box_goto_label);
 
     m_box_script = new wxTextCtrl(this, wxID_ANY, box.script, wxDefaultPosition, wxSize(300, 200), wxTE_MULTILINE | wxTE_DONTWRAP);
+    m_box_script->SetFont(wxFont(10, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
     addLabelAndCtrl("Script:", 1, m_box_script);
 
     hsplit->Add(sizer, 2, wxEXPAND | wxALL, 5);

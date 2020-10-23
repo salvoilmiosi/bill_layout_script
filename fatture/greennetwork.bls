@@ -12,7 +12,6 @@
 				"script" : "numero_fattura=$search(Fattura n\\. (.+) ,@)\ndata_fattura=$date(DD/MM/YYYY,@)",
 				"spacers" : "",
 				"w" : 0.30806452035903931,
-				"whole_file" : false,
 				"x" : 0.093548387289047241,
 				"y" : 0.11060433089733124
 			},
@@ -25,7 +24,6 @@
 				"script" : "conguaglio=$if($not($contains(@,non)),1)",
 				"spacers" : "",
 				"w" : 0.45905709266662598,
-				"whole_file" : false,
 				"x" : 0.038254756480455399,
 				"y" : 0.20392948389053345
 			},
@@ -38,7 +36,6 @@
 				"script" : "mese_fattura=$date(Fattura di MONTH YEAR,@)\ndata_scadenza=$date(scadenza DD MONTH YEAR,@)",
 				"spacers" : "",
 				"w" : 0.24503722786903381,
-				"whole_file" : false,
 				"x" : 0.03928866982460022,
 				"y" : 0.16592112183570862
 			},
@@ -51,7 +48,6 @@
 				"script" : "%spesa_materia_energia=$search(Spesa per la materia energia $NUMBER,@)\n%trasporto_gestione=$search(\"Spesa per trasporto, gestione contatore e oneri sistema $NUMBER\",@)\n%totale_fattura=$search(TOTALE DA PAGARE $NUMBER,@)",
 				"spacers" : "",
 				"w" : 0.43968182802200317,
-				"whole_file" : false,
 				"x" : 0.52364116907119751,
 				"y" : 0.2999015748500824
 			},
@@ -64,7 +60,6 @@
 				"script" : "ragione_sociale=$search(Ragione sociale: (.+)\\n,@)",
 				"spacers" : "",
 				"w" : 0.46067166328430176,
-				"whole_file" : false,
 				"x" : 0.041979674249887466,
 				"y" : 0.54357165098190308
 			},
@@ -77,7 +72,6 @@
 				"script" : "indirizzo_fornitura=$search(Le stiamo fornendo energia elettrica in (.+)\\n,@)\nnumero_cliente=$search(Codice cliente: $NUMBER,@)\ncodice_pod=$search(POD: (.+) Tensione,@)\n%potenza_disponibile=$search(Pot\\. Disponibile kW: $NUMBER,@)",
 				"spacers" : "",
 				"w" : 0.54131680727005005,
-				"whole_file" : false,
 				"x" : 0.056341137737035751,
 				"y" : 0.10074818879365921
 			},
@@ -90,7 +84,6 @@
 				"script" : "iva=$div($num(@),100)",
 				"spacers" : "",
 				"w" : 0.11599646508693695,
-				"whole_file" : false,
 				"x" : 0.045293856412172318,
 				"y" : 0.71695220470428467
 			},
@@ -103,7 +96,6 @@
 				"script" : "%imponibile",
 				"spacers" : "",
 				"w" : 0.11599646508693695,
-				"whole_file" : false,
 				"x" : 0.26955369114875793,
 				"y" : 0.71617120504379272
 			},
@@ -116,7 +108,6 @@
 				"script" : "$tokens(@,#,%energia_attiva+,%energia_attiva+,%energia_attiva+,#,%energia_reattiva+,%energia_reattiva+,%energia_reattiva+,%potenza)",
 				"spacers" : "",
 				"w" : 0.62551701068878174,
-				"whole_file" : false,
 				"x" : 0.32568240165710449,
 				"y" : 0.3306727409362793
 			},
@@ -129,7 +120,6 @@
 				"script" : "%accise",
 				"spacers" : "",
 				"w" : 0.125,
-				"whole_file" : false,
 				"x" : 0.69838708639144897,
 				"y" : 0.42132270336151123
 			},
@@ -142,7 +132,6 @@
 				"script" : "$tokens(@,%prezzo_energia+,%prezzo_energia+,%prezzo_energia+,%perdite_rete+,%perdite_rete+,%perdite_rete+)",
 				"spacers" : "",
 				"w" : 0.10208247601985931,
-				"whole_file" : false,
 				"x" : 0.55124539136886597,
 				"y" : 0.1724809855222702
 			}
