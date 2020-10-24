@@ -279,8 +279,9 @@ variable parser::evaluate(const std::string &script, const box_content &content)
 
         switch(hash(function.name)) {
         case hash("search"):
-            if (function.is(2, 3)) {
-                return search_regex(evaluate(function.args[0], content).str(), evaluate(function.args[1], content).str(),
+            if (function.is(1, 3)) {
+                return search_regex(evaluate(function.args[0], content).str(),
+                    function.args.size() >= 2 ? evaluate(function.args[1], content).str() : content.text,
                     function.args.size() >= 3 ? evaluate(function.args[2], content).number().getAsInteger() : 1);
             }
             break;
@@ -291,8 +292,9 @@ variable parser::evaluate(const std::string &script, const box_content &content)
             if (function.is(1, 1)) return variable(parse_number(evaluate(function.args[0], content).str()), VALUE_NUMBER);
             break;
         case hash("date"):
-            if (function.is(2, 3))
-                return parse_date(evaluate(function.args[0], content).str(), evaluate(function.args[1], content).str(),
+            if (function.is(1, 3))
+                return parse_date(evaluate(function.args[0], content).str(),
+                    function.args.size() >= 2 ? evaluate(function.args[1], content).str() : content.text,
                     function.args.size() >= 3 ? evaluate(function.args[2], content).number().getAsInteger() : 1);
             break;
         case hash("month_begin"):
@@ -349,6 +351,18 @@ variable parser::evaluate(const std::string &script, const box_content &content)
             break;
         case hash("contains"):
             if (function.is(2, 2)) return evaluate(function.args[0], content).str().find(evaluate(function.args[1], content).str()) != std::string::npos;
+            break;
+        case hash("strlen"):
+            if (function.is(1, 1)) return evaluate(function.args[0], content).str().size();
+            break;
+        case hash("isempty"):
+            if (function.is(1, 1)) return evaluate(function.args[0], content).str().empty();
+            break;
+        case hash("substr"):
+            if (function.is(2, 3)) {
+                return evaluate(function.args[0], content).str().substr(evaluate(function.args[1], content).number().getAsInteger(),
+                    function.args.size() >= 3 ? evaluate(function.args[2], content).number().getAsInteger() : std::string::npos);
+            }
             break;
         case hash("inc"):
             if (function.is(1, 2)) {
