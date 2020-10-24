@@ -1,0 +1,141 @@
+{
+	"layout" : 
+	{
+		"boxes" : 
+		[
+			{
+				"goto_label" : "",
+				"h" : 0.10718358308076859,
+				"mode" : 0,
+				"name" : "Nome Fornitore",
+				"page" : 1,
+				"script" : "fornitore=Cura",
+				"spacers" : "",
+				"w" : 0.47580644488334656,
+				"x" : 0.020967742428183556,
+				"y" : 0.019384264945983887
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.12630471587181091,
+				"mode" : 0,
+				"name" : "Ragione Sociale",
+				"page" : 1,
+				"script" : "ragione_sociale=$search(RAGIONE SOCIALE:\\n(.+)\\n)",
+				"spacers" : "",
+				"w" : 0.25434243679046631,
+				"x" : 0.038461539894342422,
+				"y" : 0.13507586717605591
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.020904598757624626,
+				"mode" : 0,
+				"name" : "Numero fattura",
+				"page" : 1,
+				"script" : "numero_fattura=$search(Fattura N. (.+) del)\ndata_fattura=$date(DD/MM/YYYY)",
+				"spacers" : "",
+				"w" : 0.34677419066429138,
+				"x" : 0.055107526481151581,
+				"y" : 0.47510451078414917
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.022805016487836838,
+				"mode" : 0,
+				"name" : "Mese fattura",
+				"page" : 1,
+				"script" : "mese_fattura=$date(MONTH YEAR)",
+				"spacers" : "",
+				"w" : 0.23252688348293304,
+				"x" : 0.38575267791748047,
+				"y" : 0.49410870671272278
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.028506271541118622,
+				"mode" : 0,
+				"name" : "Totale fattura",
+				"page" : 1,
+				"script" : "%totale_fattura",
+				"spacers" : "",
+				"w" : 0.28629031777381897,
+				"x" : 0.62903225421905518,
+				"y" : 0.52736598253250122
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.017103763297200203,
+				"mode" : 0,
+				"name" : "Data scadenza",
+				"page" : 1,
+				"script" : "data_scadenza=$date(DD MONTH YEAR)",
+				"spacers" : "",
+				"w" : 0.21370968222618103,
+				"x" : 0.27150538563728333,
+				"y" : 0.54066896438598633
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.1619156152009964,
+				"mode" : 0,
+				"name" : "IVA",
+				"page" : 1,
+				"script" : "iva=$div($search(IVA vendite ([0-9]+)%),100)",
+				"spacers" : "",
+				"w" : 0.91935485601425171,
+				"x" : 0.043548386543989182,
+				"y" : 0.61003422737121582
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.19208841025829315,
+				"mode" : 0,
+				"name" : "Dati fornitura",
+				"page" : 2,
+				"script" : "codice_pod=$search(POD: ([0-9A-Z]+) )\nindirizzo_fornitura=$substr($search(Fornitura: (.+)\\n),$add(1,$strlen(&ragione_sociale)))",
+				"spacers" : "*page_offset *pod_offset",
+				"w" : 0.92555832862854004,
+				"x" : 0.035980150103569031,
+				"y" : 0.17454609274864197
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.074116304516792297,
+				"mode" : 0,
+				"name" : "Valori fattura",
+				"page" : 2,
+				"script" : "$tokens($search(Energia attiva kWh $NUMBER $NUMBER ($NUMBER $NUMBER $NUMBER),@,3),%energia_attiva+,%energia_attiva+,%energia_attiva+)\n$tokens($search(Energia Reattiva kVARh ($NUMBER $NUMBER $NUMBER),@),%energia_reattiva+,%energia_reattiva+,%energia_reattiva+)\n$tokens($search(Potenza prelevata kW ($NUMBER $NUMBER $NUMBER),@),%potenza+,%potenza+,%potenza+)",
+				"spacers" : "*page_offset *pod_offset",
+				"w" : 0.79435485601425171,
+				"x" : 0.051075268536806107,
+				"y" : 0.51026225090026855
+			},
+			{
+				"goto_label" : "dati_costi",
+				"h" : 0.72976052761077881,
+				"mode" : 0,
+				"name" : "Costi energia",
+				"page" : 3,
+				"script" : "%spesa_materia_energia=$search(SPESA PER LA MATERIA PRIMA - ENERGIA $NUMBER)\n%trasporto_gestione=$search(SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE $NUMBER)\n%oneri=$search(SPESA PER ONERI DI SISTEMA $NUMBER)\n%accise=$search(Imposta erariale.+kWh $NUMBER $NUMBER $NUMBER,@,3)\n%prezzo_energia+=$search(Onere per consumo energia kWh $NUMBER $NUMBER,@,2)\n%prezzo_energia+=$search(Onere per consumo energia kWh $NUMBER $NUMBER,@,2)\n%prezzo_energia+=$search(Onere per consumo energia kWh $NUMBER $NUMBER,@,2)\n%inf_75=$search(Onere per servizi di distribuzione - penali en\\. Reattiva F1 33-75% kVARh $NUMBER $NUMBER $NUMBER,@,3)\n$inc(inf_75,$num($search(Onere per servizi di distribuzione - penali en\\. Reattiva F2 33-75% kVARh $NUMBER $NUMBER $NUMBER,@,3)))\n$inc(inf_75,$num($search(Onere per servizi di distribuzione - penali en\\. Reattiva F3 33-75% kVARh $NUMBER $NUMBER $NUMBER,@,3)))\n%sup_75=$search(Onere per servizi di distribuzione - penali en\\. Reattiva F1 > 75% kVARh $NUMBER $NUMBER $NUMBER,@,3)\n$inc(sup_75,$num($search(Onere per servizi di distribuzione - penali en\\. Reattiva F2 > 75% kVARh $NUMBER $NUMBER $NUMBER,@,3)))\n$inc(sup_75,$num($search(Onere per servizi di distribuzione - penali en\\. Reattiva F3 > 75% kVARh $NUMBER $NUMBER $NUMBER,@,3)))\n%imponibile=$search(Totale $NUMBER)",
+				"spacers" : "*page_offset",
+				"w" : 0.88306450843811035,
+				"x" : 0.052150540053844452,
+				"y" : 0.16818699240684509
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.085518822073936462,
+				"mode" : 0,
+				"name" : "==Prossima pagina",
+				"page" : 4,
+				"script" : "*pod_offset=%1\n$inc(*page_offset)\n$ifnot($or($contains(@,RIEPILOGO IMPORTI),$isempty(@)),$if($contains(@,DATI FORNITURA),$do($inc(*PAGE_NUM),$goto(%0)),$goto(dati_costi)))",
+				"spacers" : "*page_offset",
+				"w" : 0.90725803375244141,
+				"x" : 0.044354837387800217,
+				"y" : 0.12542760372161865
+			}
+		]
+	},
+	"version" : 1
+}
