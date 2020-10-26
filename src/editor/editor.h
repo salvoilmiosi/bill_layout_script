@@ -91,8 +91,6 @@ private:
     std::deque<bill_layout_script>::iterator currentHistory;
     bool modified = false;
 
-    std::unique_ptr<layout_box> clipboard;
-
 private:
     pdf_info info;
     std::string layout_filename{};

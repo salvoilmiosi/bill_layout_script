@@ -104,11 +104,11 @@ std::istream &operator >> (std::istream &in, bill_layout_script &obj) {
             for (Json::Value::iterator it=json_boxes.begin(); it!=json_boxes.end(); ++it) {
                 Json::Value &json_box = *it;
                 layout_box box;
-                box.name = json_box["name"].asString();
+                strcpy(box.name, json_box["name"].asCString());
                 box.whole_file = json_box["whole_file"].asBool();
-                box.spacers = json_box["spacers"].asString();
-                box.script = json_box["script"].asString();
-                box.goto_label = json_box["goto_label"].asString();
+                strcpy(box.spacers, json_box["spacers"].asCString());
+                strcpy(box.script, json_box["script"].asCString());
+                strcpy(box.goto_label, json_box["goto_label"].asCString());
                 box.x = json_box["x"].asFloat();
                 box.y = json_box["y"].asFloat();
                 box.w = json_box["w"].asFloat();

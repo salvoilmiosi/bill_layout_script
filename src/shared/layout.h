@@ -4,7 +4,7 @@
 #include "xpdf.h"
 
 #include <vector>
-#include <string>
+#include <cstring>
 
 #define RESIZE_TOP      1 << 0
 #define RESIZE_BOTTOM   1 << 1
@@ -13,11 +13,18 @@
 
 struct layout_box : public pdf_rect {
     bool selected = false;
-    std::string name = "";
-    std::string script = "";
-    std::string spacers = "";
-    std::string goto_label = "";
+    char name[128];
+    char script[10240];
+    char spacers[128];
+    char goto_label[128];
     bool whole_file = false;
+
+    layout_box() {
+        memset(name, 0, sizeof(name));
+        memset(script, 0, sizeof(script));
+        memset(spacers, 0, sizeof(spacers));
+        memset(goto_label, 0, sizeof(goto_label));
+    }
 };
 
 struct layout_error {

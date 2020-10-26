@@ -56,7 +56,7 @@ variable parser::execute_line(const std::string &script, const box_content &cont
 
 void parser::read_layout(const std::string &file_pdf, const bill_layout_script &layout) {
     for (size_t i=0; i<layout.boxes.size(); ++i) {
-        if (!layout.boxes[i].goto_label.empty()) {
+        if (*layout.boxes[i].goto_label) {
             goto_labels[layout.boxes[i].goto_label] = i;
         }
     }

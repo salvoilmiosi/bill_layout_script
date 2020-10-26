@@ -7,6 +7,7 @@
 #include <wx/stdpaths.h>
 #include <wx/artprov.h>
 #include <wx/splitter.h>
+#include <wx/clipbrd.h>
 
 #include "box_editor_panel.h"
 #include "pdf_to_image.h"
@@ -306,33 +307,57 @@ void frame_editor::OnRedo(wxCommandEvent &evt) {
     }
 }
 
+class BoxDataObject : public wxCustomDataObject {
+public:
+    BoxDataObject() : wxCustomDataObject("layout_box") {}
+    
+    BoxDataObject(const layout_box &box) : wxCustomDataObject("layout_box") {
+        SetData(sizeof(box), &box);
+    }
+
+    layout_box GetLayoutBox() const {
+        layout_box ret;
+        memcpy(&ret, GetData(), sizeof(ret));
+        return ret;
+    }
+};
+
 void frame_editor::OnCut(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0) {
-        clipboard = std::make_unique<layout_box>(layout.boxes[selection]);
-        layout.boxes.erase(layout.boxes.begin() + selection);
-        updateLayout();
+        if (wxTheClipboard->Open()) {
+            wxTheClipboard->SetData(new BoxDataObject(layout.boxes[selection]));
+            layout.boxes.erase(layout.boxes.begin() + selection);
+            updateLayout();
+            wxTheClipboard->Close();
+        }
     }
 }
 
 void frame_editor::OnCopy(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0) {
-        clipboard = std::make_unique<layout_box>(layout.boxes[selection]);
-        updateLayout();
+        if (wxTheClipboard->Open()) {
+            wxTheClipboard->SetData(new BoxDataObject(layout.boxes[selection]));
+            wxTheClipboard->Close();
+        }
     }
 }
 
 void frame_editor::OnPaste(wxCommandEvent &evt) {
-    if (clipboard) {
-        if (clipboard->page != selected_page) {
-            clipboard->page = selected_page;
+    if (wxTheClipboard->Open()) {
+        BoxDataObject clip_data;
+        if (wxTheClipboard->GetData(clip_data)) {
+            layout_box clipboard = clip_data.GetLayoutBox();
+            if (clipboard.page != selected_page) {
+                clipboard.page = selected_page;
+            }
+            
+            layout.boxes.push_back(clipboard);
+            updateLayout();
+            selectBox(layout.boxes.size() - 1);
         }
-         
-        layout.boxes.push_back(*clipboard);
-        updateLayout();
-        selectBox(layout.boxes.size() - 1);
-        clipboard = nullptr;
+        wxTheClipboard->Close();
     }
 }
 
