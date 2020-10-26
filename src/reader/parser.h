@@ -34,7 +34,6 @@ struct box_content : public layout_box {
 class parser {
 public:
     void read_layout(const pdf_info &info, const bill_layout_script &layout);
-    void read_box(const pdf_info &info, layout_box box);
     void read_script(std::istream &stream, const std::string &text);
     const variable &get_variable(const std::string &name) const;
 
@@ -43,12 +42,15 @@ public:
     bool debug = false;
 
 private:
-    using variable_page = std::map<std::string, std::vector<variable>>;
-    variable add_value(const std::string &name, const variable &value);
+    void read_box(const pdf_info &info, layout_box box);
+
     variable execute_line(const std::string &script, const box_content &content);
     variable evaluate(const std::string &script, const box_content &content);
+    variable add_value(const std::string &name, const variable &value);
 
 private:
+    using variable_page = std::map<std::string, std::vector<variable>>;
+
     size_t program_counter = 0;
     size_t return_address = -1;
     bool jumped = false;
