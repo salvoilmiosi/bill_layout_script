@@ -17,7 +17,6 @@ struct layout_box : public pdf_rect {
     char script[10240];
     char spacers[128];
     char goto_label[128];
-    bool whole_file = false;
 
     layout_box() {
         memset(name, 0, sizeof(name));

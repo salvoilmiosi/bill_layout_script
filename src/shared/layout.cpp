@@ -72,7 +72,6 @@ std::ostream &operator << (std::ostream &out, const bill_layout_script &obj) {
         Json::Value json_box = Json::objectValue;
 
         json_box["name"] = box.name;
-        if (box.whole_file) json_box["whole_file"] = true;
         json_box["spacers"] = box.spacers;
         json_box["script"] = box.script;
         json_box["goto_label"] = box.goto_label;
@@ -82,6 +81,7 @@ std::ostream &operator << (std::ostream &out, const bill_layout_script &obj) {
         json_box["h"] = box.h;
         json_box["page"] = box.page;
         json_box["mode"] = box.mode;
+        json_box["type"] = box.type;
 
         json_boxes.append(json_box);
     }
@@ -105,7 +105,6 @@ std::istream &operator >> (std::istream &in, bill_layout_script &obj) {
                 Json::Value &json_box = *it;
                 layout_box box;
                 strcpy(box.name, json_box["name"].asCString());
-                box.whole_file = json_box["whole_file"].asBool();
                 strcpy(box.spacers, json_box["spacers"].asCString());
                 strcpy(box.script, json_box["script"].asCString());
                 strcpy(box.goto_label, json_box["goto_label"].asCString());
@@ -115,6 +114,7 @@ std::istream &operator >> (std::istream &in, bill_layout_script &obj) {
                 box.h = json_box["h"].asFloat();
                 box.page = json_box["page"].asInt();
                 box.mode = static_cast<read_mode>(json_box["mode"].asInt());
+                box.type = static_cast<box_type>(json_box["type"].asInt());
 
                 obj.boxes.push_back(box);
             }

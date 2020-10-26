@@ -39,6 +39,8 @@ variable parser::add_value(const std::string &name, const variable &value) {
 }
 
 variable parser::execute_line(const std::string &script, const box_content &content) {
+    if (script.empty()) return variable();
+
     if (script.at(0) == '$') {
         return evaluate(script, content);
     } else {
@@ -54,16 +56,15 @@ variable parser::execute_line(const std::string &script, const box_content &cont
     return variable();
 };
 
-void parser::read_layout(const std::string &file_pdf, const bill_layout_script &layout) {
+void parser::read_layout(const pdf_info &info, const bill_layout_script &layout) {
     for (size_t i=0; i<layout.boxes.size(); ++i) {
         if (*layout.boxes[i].goto_label) {
             goto_labels[layout.boxes[i].goto_label] = i;
         }
     }
-    pdf_info info = pdf_get_info(file_pdf);
     program_counter = 0;
     while (program_counter < layout.boxes.size()) {
-        read_box(file_pdf, info, layout.boxes[program_counter]);
+        read_box(info, layout.boxes[program_counter]);
         if (jumped) {
             jumped = false;
         } else {
@@ -72,7 +73,7 @@ void parser::read_layout(const std::string &file_pdf, const bill_layout_script &
     }
 }
 
-void parser::read_box(const std::string &file_pdf, const pdf_info &info, layout_box box) {
+void parser::read_box(const pdf_info &info, layout_box box) {
     for (auto &name : tokenize(box.spacers)) {
         if (name.at(0) == '*') {
             if (auto it = m_globals.find(name.substr(1)); it != m_globals.end()) {
@@ -107,11 +108,7 @@ void parser::read_box(const std::string &file_pdf, const pdf_info &info, layout_
     }
     std::vector<std::string> scripts = read_lines(box.script);
     box_content content(box);
-    if (box.whole_file) {
-        content.text = pdf_whole_file_to_text(file_pdf);
-    } else {
-        content.text = pdf_to_text(file_pdf, info, box);
-    }
+    content.text = pdf_to_text(info, box);
     for (auto &script : scripts) {
         execute_line(script, content);
     }
@@ -255,20 +252,6 @@ function_parser::function_parser(const std::string &script) : script(script) {
             }
         }
     }
-}
-
-struct hasher {
-    size_t constexpr operator() (char const *input) const {
-        return *input ? static_cast<unsigned int>(*input) + 33 * (*this)(input + 1) : 5381;
-    }
-    
-    size_t operator() (const std::string& str) const {
-        return (*this)(str.c_str());
-    }
-};
-
-template<typename T> size_t constexpr hash(T&& t) {
-    return hasher{}(std::forward<T>(t));
 }
 
 variable parser::evaluate(const std::string &script, const box_content &content) {

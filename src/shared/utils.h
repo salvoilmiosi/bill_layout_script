@@ -38,4 +38,18 @@ std::string search_regex(std::string format, const std::string &value, int index
 // trasforma ogni carattere di spazio in " "
 std::string nospace(std::string input);
 
+struct hasher {
+    size_t constexpr operator() (char const *input) const {
+        return *input ? static_cast<unsigned int>(*input) + 33 * (*this)(input + 1) : 5381;
+    }
+    
+    size_t operator() (const std::string& str) const {
+        return (*this)(str.c_str());
+    }
+};
+
+template<typename T> size_t constexpr hash(T&& t) {
+    return hasher{}(std::forward<T>(t));
+}
+
 #endif

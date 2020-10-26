@@ -4,9 +4,17 @@
 #include <string>
 
 struct pdf_info {
+    std::string filename;
     int num_pages = 0;
     float width;
     float height;
+};
+
+enum box_type {
+    BOX_RECTANGLE,
+    BOX_PAGE,
+    BOX_WHOLE_FILE,
+    BOX_DISABLED,
 };
 
 enum read_mode {
@@ -20,6 +28,7 @@ struct pdf_rect {
     float w, h;
     int page;
     read_mode mode = MODE_RAW;
+    box_type type = BOX_RECTANGLE;
 };
 
 struct xpdf_error {
@@ -28,9 +37,7 @@ struct xpdf_error {
     xpdf_error(const std::string &message) : message(message) {}
 };
 
-std::string pdf_to_text(const std::string &pdf, const pdf_info &info, const pdf_rect &in_rect);
-
-std::string pdf_whole_file_to_text(const std::string &pdf, read_mode mode = MODE_RAW);
+std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect);
 
 pdf_info pdf_get_info(const std::string &pdf);
 

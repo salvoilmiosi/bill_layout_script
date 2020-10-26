@@ -33,8 +33,8 @@ struct box_content : public layout_box {
 
 class parser {
 public:
-    void read_layout(const std::string &file_pdf, const bill_layout_script &layout);
-    void read_box(const std::string &file_pdf, const pdf_info &info, layout_box box);
+    void read_layout(const pdf_info &info, const bill_layout_script &layout);
+    void read_box(const pdf_info &info, layout_box box);
     void read_script(std::istream &stream, const std::string &text);
     const variable &get_variable(const std::string &name) const;
 

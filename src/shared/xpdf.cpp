@@ -9,52 +9,76 @@
 
 static const char *modes[] = {"-raw", "-simple", "-table"};
 
-std::string pdf_to_text(const std::string &pdf, const pdf_info &info, const pdf_rect &in_rect) {
-    if (!std::filesystem::exists(pdf)) {
-        throw xpdf_error(std::string("File \"") + pdf + "\" does not exist");
+std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect) {
+    if (!std::filesystem::exists(info.filename)) {
+        throw xpdf_error(std::string("File \"") + info.filename + "\" does not exist");
     }
 
-    if (in_rect.page >= info.num_pages) {
-        return "";
+    switch (in_rect.type) {
+    case BOX_RECTANGLE:
+    {
+        if (in_rect.page >= info.num_pages) {
+            return "";
+        }
+
+        char page_str[16];
+        snprintf(page_str, 16, "%d", in_rect.page);
+
+        char marginl[16], marginr[16], margint[16], marginb[16];
+        snprintf(marginl, 16, "%f", info.width * in_rect.x);
+        snprintf(marginr, 16, "%f", info.width * (1.f - in_rect.x - in_rect.w));
+        snprintf(margint, 16, "%f", info.height * in_rect.y);
+        snprintf(marginb, 16, "%f", info.height * (1.f - in_rect.y - in_rect.h));
+
+        const char *args[] = {
+            "pdftotext",
+            "-f", page_str, "-l", page_str,
+            "-marginl", marginl, "-marginr", marginr,
+            "-margint", margint, "-marginb", marginb,
+            modes[in_rect.mode],
+            info.filename.c_str(), "-",
+            nullptr
+        };
+
+        std::string out = open_process(args)->read_all();
+        return string_trim(out);
     }
+    case BOX_PAGE:
+    {
+        if (in_rect.page >= info.num_pages) {
+            return "";
+        }
 
-    char page_str[16];
-    snprintf(page_str, 16, "%d", in_rect.page);
+        char page_str[16];
+        snprintf(page_str, 16, "%d", in_rect.page);
 
-    char marginl[16], marginr[16], margint[16], marginb[16];
-    snprintf(marginl, 16, "%f", info.width * in_rect.x);
-    snprintf(marginr, 16, "%f", info.width * (1.f - in_rect.x - in_rect.w));
-    snprintf(margint, 16, "%f", info.height * in_rect.y);
-    snprintf(marginb, 16, "%f", info.height * (1.f - in_rect.y - in_rect.h));
+        const char *args[] = {
+            "pdftotext",
+            "-f", page_str, "-l", page_str,
+            modes[in_rect.mode],
+            info.filename.c_str(), "-",
+            nullptr
+        };
 
-    const char *args[] = {
-        "pdftotext",
-        "-f", page_str, "-l", page_str,
-        "-marginl", marginl, "-marginr", marginr,
-        "-margint", margint, "-marginb", marginb,
-        modes[in_rect.mode],
-        pdf.c_str(), "-",
-        nullptr
-    };
-
-    std::string out = open_process(args)->read_all();
-    return string_trim(out);
-}
-
-std::string pdf_whole_file_to_text(const std::string &pdf, read_mode mode) {
-    if (!std::filesystem::exists(pdf)) {
-        throw xpdf_error("File \"" + pdf + "\" does not exist");
+        std::string out = open_process(args)->read_all();
+        return string_trim(out);
     }
+    case BOX_WHOLE_FILE:
+    {
+        const char *args[] = {
+            "pdftotext",
+            modes[in_rect.mode],
+            info.filename.c_str(), "-",
+            nullptr
+        };
 
-    const char *args[] = {
-        "pdftotext",
-        modes[mode],
-        pdf.c_str(), "-",
-        nullptr
-    };
-
-    std::string out = open_process(args)->read_all();
-    return string_trim(out);
+        std::string out = open_process(args)->read_all();
+        return string_trim(out);
+    }
+    default:
+        break;
+    }
+    return "";
 }
 
 pdf_info pdf_get_info(const std::string &pdf) {
@@ -72,6 +96,7 @@ pdf_info pdf_get_info(const std::string &pdf) {
     std::string line;
 
     pdf_info ret;
+    ret.filename = pdf;
     while (std::getline(iss, line)) {
         size_t colon_pos = line.find_first_of(':');
         std::string token = line.substr(0, colon_pos);

@@ -74,8 +74,12 @@ int main(int argc, char **argv) {
     }
 
     try {
+        pdf_info info = pdf_get_info(file_pdf);
+        layout_box whole_file_box;
+        whole_file_box.mode = mode;
+        whole_file_box.type = BOX_WHOLE_FILE;
         if (exec_script) {
-            std::string text = pdf_whole_file_to_text(file_pdf, mode);
+            std::string text = pdf_to_text(info, whole_file_box);
             if (ifs) {
                 result.read_script(*ifs, text);
                 ifs->close();
@@ -85,7 +89,7 @@ int main(int argc, char **argv) {
             in_file_layout = false;
         }
         if (!layout_dir.empty()) {
-            std::string text = pdf_whole_file_to_text(file_pdf, mode);
+            std::string text = pdf_to_text(info, whole_file_box);
             if (ifs) {
                 result.read_script(*ifs, text);
                 ifs->close();
@@ -112,7 +116,7 @@ int main(int argc, char **argv) {
                 std::cin >> layout;
             }
 
-            result.read_layout(file_pdf, layout);
+            result.read_layout(info, layout);
         }
     } catch (const layout_error &error) {
         std::cerr << error.message << std::endl;
