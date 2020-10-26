@@ -36,7 +36,7 @@
 				"script" : "%imponibile=$search(Imponibile $NUMBER,@)\n%totale_fattura=$search(Totale Fattura $NUMBER)\niva=$max(&iva,$div($search(IVA $NUMBER%),100))",
 				"spacers" : "",
 				"w" : 0.65607798099517822,
-				"x" : 0.32903227210044861,
+				"x" : 0.33064517378807068,
 				"y" : 0.3014754056930542
 			},
 			{
@@ -93,11 +93,11 @@
 				"mode" : 2,
 				"name" : "Prezzi Energia",
 				"page" : 2,
-				"script" : "%spesa_materia_energia=$search(Spesa Materia Prima $NUMBER,@)\n%spesa_materia_energia=$search(Servizi di Vendita $NUMBER,@)\n%trasporto_gestione=$search(\"Trasporto, Gestione Contatore e Oneri di Sistema $NUMBER\",@)\n%trasporto_gestione=$search(Servizi di Rete $NUMBER,@)\n%accise=$search(Imposte.+Euro.+ $NUMBER,@)\n%prezzo_energia+=$search(Energia F1 .+ Euro $NUMBER ,@)\n%prezzo_energia+=$search(Energia F2 .+ Euro $NUMBER ,@)\n%prezzo_energia+=$search(Energia F3 .+ Euro $NUMBER )\n%pcv=$search(PCV .+ Euro $NUMBER )\n%inf_75=$search(reattiva entro 75% .+ Euro $NUMBER $NUMBER,@,2)\n%sup_75=$search(reattiva oltre 75% .+ Euro $NUMBER $NUMBER,@,2)",
+				"script" : "%spesa_materia_energia=$search(Servizi di Vendita $NUMBER)\n%spesa_materia_energia=$search(Spesa Materia Prima $NUMBER)\n%trasporto_gestione=$search(Servizi di Rete $NUMBER)\n%trasporto_gestione=$search(\"Trasporto, Gestione Contatore e Oneri di Sistema $NUMBER\")\n%accise=$search(Imposte.+Euro.+ $NUMBER)\n%prezzo_energia=$search(Energia F1.+ Euro $NUMBER )\n%prezzo_energia+=$search(Energia F2.+ Euro $NUMBER )\n%prezzo_energia+=$search(Energia F3.+ Euro $NUMBER )\n%prezzo_energia=$search(Energia Peak.+ Euro $NUMBER )\n%prezzo_energia+=$search(Energia Off-Peak.+ Euro $NUMBER )\n%pcv=$search(PCV .+ Euro $NUMBER )\n%inf_75=$search(reattiva entro 75% .+ Euro $NUMBER $NUMBER,@,2)\n%sup_75=$search(reattiva oltre 75% .+ Euro $NUMBER $NUMBER,@,2)",
 				"spacers" : "*PAGE_NUM",
 				"w" : 0.97580647468566895,
-				"x" : 0.014516129158437252,
-				"y" : 0.25541618466377258
+				"x" : 0.017741935327649117,
+				"y" : 0.25313571095466614
 			},
 			{
 				"goto_label" : "",
