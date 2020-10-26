@@ -11,6 +11,7 @@
 				"page" : 1,
 				"script" : "fornitore=Lenergia",
 				"spacers" : "",
+				"type" : 3,
 				"w" : 0.34999999403953552,
 				"x" : 0.058064516633749008,
 				"y" : 0.01824401319026947
@@ -23,6 +24,7 @@
 				"page" : 1,
 				"script" : "numero_cliente=$search(Codice Cliente: (.+)\\n,@)\nnumero_fattura=$search(fattura n\\. ([0-9]+) )\ndata_fattura=$date(fattura n\\. [0-9]+ del DD/MM/YYYY)\ndata_inizio=$date(Periodo DD/MM/YYYY - DD/MM/YYYY,@,1)\ndata_fine=$date(Periodo DD/MM/YYYY - DD/MM/YYYY,@,2)\nmese_fattura=$date(YYYY-MM,&data_fine)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.47476586699485779,
 				"x" : 0.51248699426651001,
 				"y" : 0.027586715295910835
@@ -35,6 +37,7 @@
 				"page" : 1,
 				"script" : "%totale_fattura",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.33298647403717041,
 				"x" : 0.11056191474199295,
 				"y" : 0.36230552196502686
@@ -47,6 +50,7 @@
 				"page" : 1,
 				"script" : "data_scadenza=$date(DD/MM/YYYY)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.33387097716331482,
 				"x" : 0.11290322244167328,
 				"y" : 0.42075255513191223
@@ -59,6 +63,7 @@
 				"page" : 1,
 				"script" : "ragione_sociale=$search(^(.+)\\n(.+)\\n(.+)\\n(.+)$,@,1)\n#indirizzo=$search(^(.+)\\n(.+)\\n(.+)\\n(.+)$,@,2)\n#citta=$search(^(.+)\\n(.+)\\n(.+)\\n(.+)$,@,3)\nindirizzo_fornitura=$cat(&#indirizzo, ,&#citta)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.34859523177146912,
 				"x" : 0.10535900294780731,
 				"y" : 0.22069372236728668
@@ -71,6 +76,7 @@
 				"page" : 1,
 				"script" : "%spesa_materia_energia=$search(Spesa per la materia Energia $NUMBER\\n,@)\n%trasporto_gestione=$search(Servizi di rete $NUMBER\\n)\n%oneri=$search(Spesa per oneri di sistema $NUMBER\\n)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.46956297755241394,
 				"x" : 0.51768994331359863,
 				"y" : 0.34023615717887878
@@ -83,33 +89,23 @@
 				"page" : 1,
 				"script" : "iva=$div($search(IVA (.+)%),100)\n%imponibile=$search(IVA .+% $NUMBER)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.47476586699485779,
 				"x" : 0.51638919115066528,
 				"y" : 0.57012546062469482
 			},
 			{
-				"goto_label" : "",
-				"h" : 0.87160086631774902,
+				"goto_label" : "dati_consumi",
+				"h" : 0.91229641437530518,
 				"mode" : 1,
 				"name" : "Consumi Fatturati",
 				"page" : 2,
-				"script" : "codice_pod=$search(Codice punto di erogazione \\(POD\\): ([a-zA-Z0-9]+))\n%energia_attiva+=$search(Energia Attiva kWh $NUMBER $NUMBER $NUMBER,@,1)\n%energia_attiva+=$search(Energia Attiva kWh $NUMBER $NUMBER $NUMBER,@,2)\n%energia_attiva+=$search(Energia Attiva kWh $NUMBER $NUMBER $NUMBER,@,3)\n%energia_reattiva+=$search(Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER,@,1)\n%energia_reattiva+=$search(Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER,@,2)\n%energia_reattiva+=$search(Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER,@,3)\n%potenza+=$search(Potenza kW $NUMBER $NUMBER $NUMBER,@,1)\n%potenza+=$search(Potenza kW $NUMBER $NUMBER $NUMBER,@,2)\n%potenza+=$search(Potenza kW $NUMBER $NUMBER $NUMBER,@,3)",
-				"spacers" : "spacer_bollette_insolute.y",
+				"script" : "codice_pod=$search(Codice punto di erogazione \\(POD\\): ([a-zA-Z0-9]+))\n%energia_attiva+=$search(Energia Attiva kWh $NUMBER $NUMBER $NUMBER,@,1)\n%energia_attiva+=$search(Energia Attiva kWh $NUMBER $NUMBER $NUMBER,@,2)\n%energia_attiva+=$search(Energia Attiva kWh $NUMBER $NUMBER $NUMBER,@,3)\n%energia_reattiva+=$search(Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER,@,1)\n%energia_reattiva+=$search(Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER,@,2)\n%energia_reattiva+=$search(Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER,@,3)\n%potenza+=$search(Potenza kW $NUMBER $NUMBER $NUMBER,@,1)\n%potenza+=$search(Potenza kW $NUMBER $NUMBER $NUMBER,@,2)\n%potenza+=$search(Potenza kW $NUMBER $NUMBER $NUMBER,@,3)\n%accisa=$search(Imposta erariale di consumo.+ $NUMBER\\n)",
+				"spacers" : "",
+				"type" : 1,
 				"w" : 0.90420329570770264,
 				"x" : 0.068426191806793213,
 				"y" : 0.024463564157485962
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.76016724109649658,
-				"mode" : 1,
-				"name" : "Accisa",
-				"page" : 3,
-				"script" : "%accisa=$search(Imposta erariale di consumo.+ $NUMBER\\n)",
-				"spacers" : "spacer_altre_partite.y",
-				"w" : 0.7807917594909668,
-				"x" : 0.068426191806793213,
-				"y" : 0.012957395985722542
 			}
 		]
 	},

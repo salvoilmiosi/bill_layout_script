@@ -11,6 +11,7 @@
 				"page" : 1,
 				"script" : "fornitore=Axpo",
 				"spacers" : "",
+				"type" : 3,
 				"w" : 0.23548386991024017,
 				"x" : 0.020967742428183556,
 				"y" : 0.02166476659476757
@@ -23,6 +24,7 @@
 				"page" : 1,
 				"script" : "ragione_sociale",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.4719575047492981,
 				"x" : 0.51044726371765137,
 				"y" : 0.16909401118755341
@@ -35,6 +37,7 @@
 				"page" : 1,
 				"script" : "%totale_fattura=$search(TOTALE DA PAGARE $NUMBER)\ndata_scadenza=$date(entro il DD\\.MM\\.YYYY)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.3555523157119751,
 				"x" : 0.61501932144165039,
 				"y" : 0.30806779861450195
@@ -47,6 +50,7 @@
 				"page" : 1,
 				"script" : "numero_fattura=$search(N\\. fattura ([0-9]+))\ndata_fattura=$date(N\\. fattura [0-9]+ del DD\\.MM\\.YYYY)\ndata_inizio=$date(PERIODO DD\\.MM\\.YYYY - DD\\.MM\\.YYYY,@,1)\ndata_fine=$date(PERIODO DD\\.MM\\.YYYY - DD\\.MM\\.YYYY,@,2)\nmese_fattura=$date(YYYY-MM,&data_fine)\nnumero_cliente=$search(CODICE CLIENTE (.+)\\n)\ncodice_pod=$search(CODICE POD ([0-9A-Z]+))\nindirizzo_fornitura=$search(FORNIAMO ENERGIA IN (.+) CODICE POD,$nospace(@))\n#multipod=$ifnot(&codice_pod,1)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.22615706920623779,
 				"x" : 0.031556800007820129,
 				"y" : 0.09791284054517746
@@ -59,6 +63,7 @@
 				"page" : 1,
 				"script" : "%spesa_materia_energia=$ifnot(&#multipod,$search(SPESA PER LA MATERIA ENERGIA $NUMBER))\n%trasporto_gestione=$ifnot(&#multipod,$search(SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE $NUMBER))\n%oneri=$ifnot(&#multipod,$search(SPESA PER ONERI DI SISTEMA $NUMBER))\n%imponibile=$search(imponibile di $NUMBER)\niva=$div($search(Importo IVA $NUMBER),100)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.438966304063797,
 				"x" : 0.047653961926698685,
 				"y" : 0.65514415502548218
@@ -71,6 +76,7 @@
 				"page" : 2,
 				"script" : "codice_pod=$search(CODICE POD ([0-9A-Z]+))\nindirizzo_fornitura=$search(FORNIAMO ENERGIA IN (.+),$nospace(@))",
 				"spacers" : "*page_offset *pod_offset",
+				"type" : 0,
 				"w" : 0.22741936147212982,
 				"x" : 0.041935481131076813,
 				"y" : 0.13418805599212646
@@ -83,6 +89,7 @@
 				"page" : 2,
 				"script" : "%spesa_materia_energia=$search(SPESA PER LA MATERIA ENERGIA $NUMBER)\n%trasporto_gestione=$search(SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE $NUMBER)\n%oneri=$search(SPESA PER ONERI DI SISTEMA $NUMBER)\n%accise=$search(IMPOSTE $NUMBER)",
 				"spacers" : "*page_offset  *pod_offset",
+				"type" : 0,
 				"w" : 0.44750732183456421,
 				"x" : 0.031524930149316788,
 				"y" : 0.29368463158607483
@@ -95,6 +102,7 @@
 				"page" : 2,
 				"script" : "$if(&#multipod,$addspacer(spacer_multipod))",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.020967781543731689,
 				"x" : 0.0064515769481658936,
 				"y" : 0.29418471455574036
@@ -107,6 +115,7 @@
 				"page" : 2,
 				"script" : "$ifnot($contains(@,Consumi),$addspacer(spacer_consumi))",
 				"spacers" : "spacer_multipod.y *page_offset *pod_offset",
+				"type" : 0,
 				"w" : 0.31774193048477173,
 				"x" : 0.038709685206413269,
 				"y" : 0.29760545492172241
@@ -119,6 +128,7 @@
 				"page" : 2,
 				"script" : "$tokens($search(Consumi fatturati kWh F1 F2 F3 ($NUMBER $NUMBER $NUMBER)),%energia_attiva+,%energia_attiva+,%energia_attiva+)\nenergia_attiva=$search(Consumi fatturati kWh F0 $NUMBER)",
 				"spacers" : "spacer_multipod.y spacer_consumi.x *page_offset  *pod_offset",
+				"type" : 0,
 				"w" : 0.16713984310626984,
 				"x" : 0.19061581790447235,
 				"y" : 0.3003196120262146
@@ -131,6 +141,7 @@
 				"page" : 2,
 				"script" : "%energia_reattiva=$search(Energia Reattiva Misurata kVarh $NUMBER)",
 				"spacers" : "spacer_multipod.y spacer_consumi.x *page_offset  *pod_offset",
+				"type" : 0,
 				"w" : 0.11996057629585266,
 				"x" : 0.3568977415561676,
 				"y" : 0.30022561550140381
@@ -143,45 +154,36 @@
 				"page" : 2,
 				"script" : "%potenza+=$search(Potenza kW.+ $NUMBER\\n)\n%potenza+=$search(Potenza kW.+ $NUMBER\\n)\n%potenza+=$search(Potenza kW.+ $NUMBER\\n)\n",
 				"spacers" : "spacer_multipod.y *page_offset  *pod_offset",
+				"type" : 0,
 				"w" : 0.83874392509460449,
 				"x" : 0.037417978048324585,
 				"y" : 0.51837271451950073
 			},
 			{
 				"goto_label" : "quadro_dettaglio",
-				"h" : 0.81870013475418091,
+				"h" : 0.80576545000076294,
 				"mode" : 0,
 				"name" : "Prezzo Energia",
 				"page" : 3,
-				"script" : "%prezzo_energia+=$search(Prezzo Energia .+ F1 Euro/kWh $NUMBER .+ F2 Euro/kWh $NUMBER .+ F3 Euro/kWh $NUMBER,@,1)\n%prezzo_energia+=$search(Prezzo Energia .+ F1 Euro/kWh $NUMBER .+ F2 Euro/kWh $NUMBER .+ F3 Euro/kWh $NUMBER,@,2)\n%prezzo_energia+=$search(Prezzo Energia .+ F1 Euro/kWh $NUMBER .+ F2 Euro/kWh $NUMBER .+ F3 Euro/kWh $NUMBER,@,3)",
+				"script" : "%prezzo_energia+=$search(Prezzo Energia .+ F1 Euro/kWh $NUMBER)\n%prezzo_energia+=$search(Prezzo Energia .+ F1.+\\n.+F2 Euro/kWh $NUMBER)\n%prezzo_energia+=$search(Prezzo Energia .+ F1.+\\n.+F2.+\\n.+F3 Euro/kWh $NUMBER)\n\n#row1=$search(Energia Reattiva entro 75%\\n(dal.+)\\n,@)\n#row2=$if(&#row1,$search(Energia Reattiva entro 75%\\n.+\\n(dal.+)\\n,@))\n#row3=$if(&#row2,$search(Energia Reattiva entro 75%\\n.+\\n.+\\n(dal.+)\\n,@))\ninf_75=$add(&inf_75,$num($search(F1 Euro/kVarh $NUMBER $NUMBER $NUMBER,&#row1,3)))\ninf_75=$add(&inf_75,$num($search(F2 Euro/kVarh $NUMBER $NUMBER $NUMBER,&#row2,3)))\ninf_75=$add(&inf_75,$num($search(F3 Euro/kVarh $NUMBER $NUMBER $NUMBER,&#row3,3)))\n#row4=$search(Energia Reattiva oltre 75%\\n(dal.+)\\n,@)\n#row5=$if(&#row4,$search(Energia Reattiva oltre 75%\\n.+\\n(dal.+)\\n))\n#row6=$if(&#row5,$search(Energia Reattiva oltre 75%\\n.+\\n.+\\n(dal.+)\\n))\nsup_75=$add(&sup_75,$num($search(F1 Euro/kVarh $NUMBER $NUMBER $NUMBER,&#row4,3)))\nsup_75=$add(&sup_75,$num($search(F2 Euro/kVarh $NUMBER $NUMBER $NUMBER,&#row5,3)))\nsup_75=$add(&sup_75,$num($search(F3 Euro/kVarh $NUMBER $NUMBER $NUMBER,&#row6,3)))",
 				"spacers" : "*page_offset",
-				"w" : 0.5815538763999939,
+				"type" : 1,
+				"w" : 0.90202254056930542,
 				"x" : 0.044298049062490463,
 				"y" : 0.10376282781362534
 			},
 			{
 				"goto_label" : "",
-				"h" : 0.82444262504577637,
-				"mode" : 0,
-				"name" : "Energia Reattiva 75%",
-				"page" : 3,
-				"script" : "#row1=$search(Energia Reattiva entro 75%\\n(dal.+)\\n,@)\n#row2=$if(&#row1,$search(Energia Reattiva entro 75%\\n.+\\n(dal.+)\\n,@))\n#row3=$if(&#row2,$search(Energia Reattiva entro 75%\\n.+\\n.+\\n(dal.+)\\n,@))\ninf_75=$add(&inf_75,$num($search( $NUMBER$,&#row1)))\ninf_75=$add(&inf_75,$num($search( $NUMBER$,&#row2)))\ninf_75=$add(&inf_75,$num($search( $NUMBER$,&#row3)))\n#row4=$search(Energia Reattiva oltre 75%\\n(dal.+)\\n,@)\n#row5=$if(&#row4,$search(Energia Reattiva oltre 75%\\n.+\\n(dal.+)\\n))\n#row6=$if(&#row5,$search(Energia Reattiva oltre 75%\\n.+\\n.+\\n(dal.+)\\n))\nsup_75=$add(&sup_75,$num($search( $NUMBER$,&#row4)))\nsup_75=$add(&sup_75,$num($search( $NUMBER$,&#row5)))\nsup_75=$add(&sup_75,$num($search( $NUMBER$,&#row6)))",
-				"spacers" : "*page_offset",
-				"w" : 0.8142247200012207,
-				"x" : 0.038534782826900482,
-				"y" : 0.09806157648563385
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.11972634494304657,
+				"h" : 0.034207522869110107,
 				"mode" : 0,
 				"name" : "Controllo prossima pagina",
 				"page" : 4,
 				"script" : "$inc(*page_offset)\n*pod_offset=%1\n$ifnot($isempty(@),$if($contains(@,DATI FORNITURA),$do($inc(*PAGE_NUM),$goto(%0)),$goto(quadro_dettaglio)))",
 				"spacers" : "*page_offset",
-				"w" : 0.92903220653533936,
-				"x" : 0.030645161867141724,
-				"y" : 0.096921324729919434
+				"type" : 1,
+				"w" : 0.048387095332145691,
+				"x" : 0.20806451141834259,
+				"y" : 0.033067278563976288
 			}
 		]
 	},

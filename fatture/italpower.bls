@@ -11,6 +11,7 @@
 				"page" : 1,
 				"script" : "fornitore=Italpower",
 				"spacers" : "",
+				"type" : 3,
 				"w" : 0.35483869910240173,
 				"x" : 0.019354838877916336,
 				"y" : 0.014823260717093945
@@ -23,6 +24,7 @@
 				"page" : 1,
 				"script" : "numero_fattura=$search(Fattura Numero: (.+)\\n)\ndata_fattura=$date(Data Fattura: DD/MM/YYYY)\ndata_scadenza=$date(Scadenza Fattura: DD/MM/YYYY)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.29507052898406982,
 				"x" : 0.016757436096668243,
 				"y" : 0.31090840697288513
@@ -35,6 +37,7 @@
 				"page" : 1,
 				"script" : "%imponibile=$search(Imponibile $NUMBER,@)\n%totale_fattura=$search(Totale Fattura $NUMBER)\niva=$max(&iva,$div($search(IVA $NUMBER%),100))",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.65607798099517822,
 				"x" : 0.33064517378807068,
 				"y" : 0.3014754056930542
@@ -47,6 +50,7 @@
 				"page" : 1,
 				"script" : "numero_cliente=$search(Codice cliente (.+)\\n)\nragione_sociale=$search(Ragione sociale (.+)\\n)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.48646837472915649,
 				"x" : 0.016757436096668243,
 				"y" : 0.58038771152496338
@@ -59,6 +63,7 @@
 				"page" : 2,
 				"script" : "mese_fattura=$date(Dettaglio consumi mese di MONTH YEAR)",
 				"spacers" : "*PAGE_NUM",
+				"type" : 0,
 				"w" : 0.96612900495529175,
 				"x" : 0.020864790305495262,
 				"y" : 0.052815437316894531
@@ -71,6 +76,7 @@
 				"page" : 2,
 				"script" : "codice_pod=$search(Codice POD (.+)\\n)\nindirizzo_fornitura=$search(Indirizzo fornitura (.+) Opzione,$nospace(@))",
 				"spacers" : "*PAGE_NUM",
+				"type" : 0,
 				"w" : 0.48365300893783569,
 				"x" : 0.016346991062164307,
 				"y" : 0.12086658924818039
@@ -83,6 +89,7 @@
 				"page" : 2,
 				"script" : "$tokens($search(Misura ($NUMBER $NUMBER $NUMBER),@),%energia_attiva+,%energia_attiva+,%energia_attiva+)\n$tokens($search(Potenza \\(kW\\) ($NUMBER $NUMBER $NUMBER)),%potenza+,%potenza+,%potenza+)\n$tokens($search(Energia Reattiva \\(kVar\\) ($NUMBER $NUMBER $NUMBER)),%energia_reattiva+,%energia_reattiva+,%energia_reattiva+)",
 				"spacers" : "*PAGE_NUM",
+				"type" : 0,
 				"w" : 0.42495131492614746,
 				"x" : 0.50750839710235596,
 				"y" : 0.1362956166267395
@@ -95,6 +102,7 @@
 				"page" : 2,
 				"script" : "%spesa_materia_energia=$search(Servizi di Vendita $NUMBER)\n%spesa_materia_energia=$search(Spesa Materia Prima $NUMBER)\n%trasporto_gestione=$search(Servizi di Rete $NUMBER)\n%trasporto_gestione=$search(\"Trasporto, Gestione Contatore e Oneri di Sistema $NUMBER\")\n%accise=$search(Imposte.+Euro.+ $NUMBER)\n%prezzo_energia=$search(Energia F1.+ Euro $NUMBER )\n%prezzo_energia+=$search(Energia F2.+ Euro $NUMBER )\n%prezzo_energia+=$search(Energia F3.+ Euro $NUMBER )\n%prezzo_energia=$search(Energia Peak.+ Euro $NUMBER )\n%prezzo_energia+=$search(Energia Off-Peak.+ Euro $NUMBER )\n%pcv=$search(PCV .+ Euro $NUMBER )\n%inf_75=$search(reattiva entro 75% .+ Euro $NUMBER $NUMBER,@,2)\n%sup_75=$search(reattiva oltre 75% .+ Euro $NUMBER $NUMBER,@,2)",
 				"spacers" : "*PAGE_NUM",
+				"type" : 0,
 				"w" : 0.97580647468566895,
 				"x" : 0.017741935327649117,
 				"y" : 0.25313571095466614
@@ -107,6 +115,7 @@
 				"page" : 3,
 				"script" : "$if($contains(@,Dettaglio consumi),$do($inc(*PAGE_NUM),$goto(%0)))",
 				"spacers" : "*PAGE_NUM",
+				"type" : 0,
 				"w" : 0.96129035949707031,
 				"x" : 0.022580645978450775,
 				"y" : 0.055872291326522827

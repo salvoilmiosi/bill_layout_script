@@ -11,6 +11,7 @@
 				"page" : 1,
 				"script" : "fornitore=Servizio Elettrico Nazionale",
 				"spacers" : "",
+				"type" : 3,
 				"w" : 0.40645161271095276,
 				"x" : 0.062903225421905518,
 				"y" : 0.031927023082971573
@@ -23,6 +24,7 @@
 				"page" : 1,
 				"script" : "%spesa_materia_energia=$search(Spesa per la materia energia \\(.\\) $NUMBER,@)\n%trasporto_gestione=$search(Spesa per il trasporto dell'energia elettrica e la gestione del contatore \\(.\\) $NUMBER)\n%oneri=$search(Spesa per Oneri di Sistema \\(.\\) $NUMBER)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.30913978815078735,
 				"x" : 0.048963133245706558,
 				"y" : 0.47035348415374756
@@ -35,6 +37,7 @@
 				"page" : 1,
 				"script" : "%accise=$search(Accisa.+kWh $NUMBER,@)\niva=$div($search(Importo IVA $NUMBER%),100)\n%imponibile=$search(imponibile di euro $NUMBER)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.69124424457550049,
 				"x" : 0.045122887939214706,
 				"y" : 0.69433134794235229
@@ -47,6 +50,7 @@
 				"page" : 1,
 				"script" : "ragione_sociale=$search(^(.+)\\n)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.46082949638366699,
 				"x" : 0.50787252187728882,
 				"y" : 0.20293749868869781
@@ -59,6 +63,7 @@
 				"page" : 1,
 				"script" : "#indirizzo=$search(Forniamo energia in (.+)\\n(.+)\\n,@,1)\n#citta=$search(Forniamo energia in (.+)\\n(.+)\\n,@,2)\nindirizzo_fornitura=$cat(&#indirizzo, ,&#citta)\n%potenza_disponibile=$search(Potenza disponibile $NUMBER)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.45890939235687256,
 				"x" : 0.048963133245706558,
 				"y" : 0.14388880133628845
@@ -71,6 +76,7 @@
 				"page" : 1,
 				"script" : "numero_cliente=$search(CLIENTE\\n(.+)\\n)\ncodice_pod=$search(CODICE POD\\n(.+)\\n)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.23329493403434753,
 				"x" : 0.053763441741466522,
 				"y" : 0.33936038613319397
@@ -83,6 +89,7 @@
 				"page" : 2,
 				"script" : "%energia_attiva+",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.068594731390476227,
 				"x" : 0.18075639009475708,
 				"y" : 0.27785423398017883
@@ -95,6 +102,7 @@
 				"page" : 2,
 				"script" : "%energia_attiva+",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.068594731390476227,
 				"x" : 0.24842417240142822,
 				"y" : 0.27850955724716187
@@ -107,6 +115,7 @@
 				"page" : 2,
 				"script" : "%energia_attiva+",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.068594731390476227,
 				"x" : 0.31516498327255249,
 				"y" : 0.27850955724716187
@@ -119,6 +128,7 @@
 				"page" : 2,
 				"script" : "%energia_reattiva+",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.068594731390476227,
 				"x" : 0.38190579414367676,
 				"y" : 0.27850955724716187
@@ -131,6 +141,7 @@
 				"page" : 2,
 				"script" : "%energia_reattiva+",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.068594731390476227,
 				"x" : 0.44771966338157654,
 				"y" : 0.2771989107131958
@@ -143,6 +154,7 @@
 				"page" : 2,
 				"script" : "%energia_reattiva+",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.068594731390476227,
 				"x" : 0.51446050405502319,
 				"y" : 0.27785423398017883
@@ -155,6 +167,7 @@
 				"page" : 2,
 				"script" : "%potenza+\n%potenza+\n%potenza+",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.068594731390476227,
 				"x" : 0.58120131492614746,
 				"y" : 0.2771989107131958
@@ -167,6 +180,7 @@
 				"page" : 1,
 				"script" : "numero_fattura=$search(N\\. Fattura (.+)\\n)\ndata_fattura=$date(Del DD\\.MM\\.YYYY)\nmese_fattura=$date(MESE MON\\.YYYY$)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.2048572450876236,
 				"x" : 0.2994067370891571,
 				"y" : 0.34207525849342346
@@ -179,6 +193,7 @@
 				"page" : 7,
 				"script" : "$tokens(@,%prezzo_energia+,%prezzo_energia+,%prezzo_energia+)",
 				"spacers" : "",
+				"type" : 0,
 				"w" : 0.075196161866188049,
 				"x" : 0.46207496523857117,
 				"y" : 0.37058153748512268
