@@ -9,7 +9,7 @@
 				"mode" : 0,
 				"name" : "Nome Fornitore",
 				"page" : 1,
-				"script" : "fornitore=Servizio Elettrico Nazionale",
+				"script" : "fornitore=SEN",
 				"spacers" : "",
 				"type" : 3,
 				"w" : 0.40645161271095276,

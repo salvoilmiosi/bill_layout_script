@@ -18,9 +18,12 @@ std::vector<std::string> read_lines(const std::string &str) {
 };
 
 std::vector<std::string> tokenize(const std::string &str) {
+    std::vector<std::string> out;
+    if (str.empty()) {
+        return out;
+    }
     std::istringstream iss(str);
     std::string token;
-    std::vector<std::string> out;
     while (iss >> token) {
         out.push_back(token);
     }
