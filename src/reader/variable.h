@@ -50,6 +50,8 @@ public:
     variable operator * (const variable &other) const;
     variable operator / (const variable &other) const;
 
+    bool debug = false;
+
 private:
     std::string m_value{};
     value_type m_type{VALUE_UNDEFINED};

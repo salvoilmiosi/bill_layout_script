@@ -127,6 +127,9 @@ int main(int argc, char **argv) {
     } catch (const parsing_error &error) {
         std::cerr << error.message << ": " << error.line << std::endl;
         return 3;
+    } catch (const std::exception &error) {
+        std::cerr << error.what();
+        return 4;
     }
 
     std::cout << result << std::endl;

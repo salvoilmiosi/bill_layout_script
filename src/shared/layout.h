@@ -14,7 +14,7 @@
 struct layout_box : public pdf_rect {
     bool selected = false;
     char name[128];
-    char script[10240];
+    char script[1024 * 16];
     char spacers[128];
     char goto_label[128];
 

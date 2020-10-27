@@ -185,8 +185,12 @@ variable parser::evaluate(const std::string &script, const box_content &content)
             break;
         case hash("substr"):
             if (function.is(2, 3)) {
-                return evaluate(function.args[0], content).str().substr(evaluate(function.args[1], content).number().getAsInteger(),
-                    function.args.size() >= 3 ? evaluate(function.args[2], content).number().getAsInteger() : std::string::npos);
+                auto str = evaluate(function.args[0], content).str();
+                size_t pos = evaluate(function.args[1], content).number().getAsInteger();
+                size_t count = function.args.size() >= 3 ? evaluate(function.args[2], content).number().getAsInteger() : std::string::npos;
+                if (pos <= str.size()) {
+                    return str.substr(pos, count);
+                }
             }
             break;
         case hash("inc"):

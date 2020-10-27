@@ -44,9 +44,9 @@ public:
 private:
     void read_box(const pdf_info &info, layout_box box);
 
-    variable execute_line(const std::string &script, const box_content &content);
+    void execute_line(const std::string &script, const box_content &content);
     variable evaluate(const std::string &script, const box_content &content);
-    variable add_value(const std::string &name, const variable &value);
+    variable add_value(std::string_view name, variable value);
 
 private:
     using variable_page = std::map<std::string, std::vector<variable>>;
