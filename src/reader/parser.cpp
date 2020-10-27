@@ -71,26 +71,27 @@ void parser::read_script(std::istream &stream, const std::string &text) {
     }
 }
 
-void parser::execute_line(const std::string &script, const box_content &content) {
-    if (script.empty()) return;
+variable parser::execute_line(const std::string &script, const box_content &content) {
+    if (script.empty()) return variable();
 
     switch (script.front()) {
     case '#':
         break;
     case '$':
-        evaluate(script, content);
+        return evaluate(script, content);
         break;
     default:
         size_t equals = script.find_first_of('=');
         if (equals == std::string::npos) {
-            add_value(script, content.text);
+            return add_value(script, content.text);
         } else if (equals > 0) {
-            add_value(script.substr(0, equals), evaluate(script.substr(equals + 1), content));
+            return add_value(script.substr(0, equals), evaluate(script.substr(equals + 1), content));
         } else {
             throw parsing_error("Identificatore vuoto", script);
         }
         break;
     }
+    return variable();
 };
 
 variable parser::add_value(std::string_view name, variable value) {

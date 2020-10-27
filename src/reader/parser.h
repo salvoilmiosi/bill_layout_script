@@ -44,7 +44,7 @@ public:
 private:
     void read_box(const pdf_info &info, layout_box box);
 
-    void execute_line(const std::string &script, const box_content &content);
+    variable execute_line(const std::string &script, const box_content &content);
     variable evaluate(const std::string &script, const box_content &content);
     variable add_value(std::string_view name, variable value);
 
