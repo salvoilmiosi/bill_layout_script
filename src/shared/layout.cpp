@@ -64,7 +64,7 @@ std::ostream &operator << (std::ostream &out, const bill_layout_script &obj) {
     Json::Value root = Json::objectValue;
     root["version"] = VERSION;
     
-    Json::Value &layout = root["layout"]  = Json::objectValue;
+    Json::Value &layout = root["layout"] = Json::objectValue;
 
     Json::Value &json_boxes = layout["boxes"] = Json::arrayValue;
 

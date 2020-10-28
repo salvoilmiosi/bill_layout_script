@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
             } else {
                 result.read_script(std::cin, text);
             }
-            auto layout_path = result.get_variable("layout");
+            auto layout_path = result.get_global("layout");
             if (!layout_path.empty()) {
                 input_file = layout_dir + '/' + layout_path.str();
                 if (!std::filesystem::exists(input_file)) {

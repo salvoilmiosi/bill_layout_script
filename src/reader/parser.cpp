@@ -83,9 +83,9 @@ variable parser::execute_line(const std::string &script, const box_content &cont
     default:
         size_t equals = script.find_first_of('=');
         if (equals == std::string::npos) {
-            return add_value(script, content.text);
+            return add_value(script, content.text, content);
         } else if (equals > 0) {
-            return add_value(script.substr(0, equals), evaluate(script.substr(equals + 1), content));
+            return add_value(script.substr(0, equals), evaluate(script.substr(equals + 1), content), content);
         } else {
             throw parsing_error("Identificatore vuoto", script);
         }
@@ -94,75 +94,66 @@ variable parser::execute_line(const std::string &script, const box_content &cont
     return variable();
 };
 
-variable parser::add_value(std::string_view name, variable value) {
+variable parser::add_value(std::string_view name, variable value, const box_content &content) {
+    if (name.front() == '%') {
+        value = variable(parse_number(value.str()), VALUE_NUMBER);
+        name.remove_prefix(1);
+    }
+
+    if (name.front() == '_') {
+        value.debug = true;
+        name.remove_prefix(1);
+    }
+
     if (!value.empty()) {
-        if (name.front() == '%') {
-            value = variable(parse_number(value.str()), VALUE_NUMBER);
-            name.remove_prefix(1);
-        }
-
-        if (name.front() == '_') {
-            value.debug = true;
-            name.remove_prefix(1);
-        }
-
-        if (name.front() == '*') {
-            name.remove_prefix(1);
-            m_globals[std::string(name)] = value;
-        } else {
-            size_t reading_page_num = m_globals["PAGE_NUM"].number().getAsInteger();
-            while (m_values.size() <= reading_page_num) {
-                m_values.emplace_back();
-            }
-
-            auto &page = m_values[reading_page_num];
-            if (name.back() == '+') {
-                name.remove_suffix(1);
-                page[std::string(name)].push_back(value);
-            } else {
-                page[std::string(name)] = {value};
-            }
-        }
+        get_variable(name, content) = value;
     }
     return value;
 }
 
-const variable &parser::get_variable(const std::string &name) const {
+const variable &parser::get_global(const std::string &name) const {
     static const variable VAR_EMPTY;
-    if (name.front() == '*') {
-        if (auto it = m_globals.find(name.substr(1)); it != m_globals.end()) {
-            return it->second;
-        } else {
-            return VAR_EMPTY;
-        }
-    }
-    size_t reading_page_num = 0;
-    if (auto it = m_globals.find("PAGE_NUM"); it != m_globals.end()) {
-        reading_page_num = it->second.number().getAsInteger();
-    }
-    if (m_values.size() <= reading_page_num) {
-        return VAR_EMPTY;
-    }
-    auto &page = m_values[reading_page_num];
-    size_t open_bracket = name.find('[');
-    size_t index = 0;
-    if (open_bracket != std::string::npos) {
-        size_t end_bracket = name.find(']', open_bracket + 1);
-        if (end_bracket == std::string::npos) {
-            throw parsing_error("Richiesto ']'", name);
-        } else try {
-            index = std::stoi(name.substr(open_bracket + 1, end_bracket - open_bracket - 1));
-        } catch (std::invalid_argument &) {
-            throw parsing_error("Indice non valido", name);
-        }
-    }
-    auto it = page.find(name.substr(0, open_bracket));
-    
-    if (it == page.end() || it->second.size() <= index) {
+
+    auto it = m_globals.find(name);
+    if (it == m_globals.end()) {
         return VAR_EMPTY;
     } else {
-        return it->second.at(index);
+        return it->second;
     }
+}
+
+variable &parser::get_variable(std::string_view name, const box_content &content) {
+    if (name.front() == '*') {
+        name.remove_prefix(1);
+        return m_globals[std::string(name)];
+    }
+    
+    size_t open_bracket = name.find('[');
+    size_t index = 0;
+    bool append = false;
+    if (open_bracket == std::string::npos) {
+        if (name.back() == '+') {
+            name.remove_suffix(1);
+            append = true;
+        }
+    } else {
+        size_t end_bracket = name.find(']', open_bracket + 1);
+        if (end_bracket == std::string::npos) {
+            throw parsing_error("Richiesto ']'", std::string(name));
+        } else {
+            index = evaluate(std::string(name.substr(open_bracket + 1, end_bracket - open_bracket - 1)), content).number().getAsInteger();
+            name.remove_suffix(name.size() - end_bracket);
+        }
+    }
+    
+    size_t reading_page_num = m_globals["PAGE_NUM"].number().getAsInteger();
+    while (m_values.size() <= reading_page_num) m_values.emplace_back();
+
+    auto &ref = m_values[reading_page_num][std::string(name)];
+    if (append) index = ref.size();
+    while (ref.size() <= index) ref.emplace_back();
+
+    return ref[index];
 }
 
 std::ostream & operator << (std::ostream &out, const parser &res) {
@@ -179,6 +170,12 @@ std::ostream & operator << (std::ostream &out, const parser &res) {
                 json_arr.append(val.str());
             }
         }
+    }
+
+    Json::Value &globals = root["globals"] = Json::objectValue;
+    for (auto &pair : res.m_globals) {
+        if (!res.debug && pair.second.debug) continue;
+        globals[pair.first] = pair.second.str();
     }
 
     return out << root << std::endl;

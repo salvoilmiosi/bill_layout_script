@@ -35,7 +35,7 @@ class parser {
 public:
     void read_layout(const pdf_info &info, const bill_layout_script &layout);
     void read_script(std::istream &stream, const std::string &text);
-    const variable &get_variable(const std::string &name) const;
+    const variable &get_global(const std::string &name) const;
 
     friend std::ostream & operator << (std::ostream &out, const parser &res);
 
@@ -46,7 +46,8 @@ private:
 
     variable execute_line(const std::string &script, const box_content &content);
     variable evaluate(const std::string &script, const box_content &content);
-    variable add_value(std::string_view name, variable value);
+    variable add_value(std::string_view name, variable value, const box_content &content);
+    variable &get_variable(std::string_view name, const box_content &content);
 
 private:
     using variable_page = std::map<std::string, std::vector<variable>>;

@@ -407,7 +407,7 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     try {
         iss >> json_output;
 
-        std::string output_layout = json_output["values"][0]["layout"][0].asString();
+        std::string output_layout = json_output["globals"]["layout"].asString();
         if (output_layout.empty()) {
             wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
         } else if (saveIfModified()) {

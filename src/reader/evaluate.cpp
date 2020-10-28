@@ -195,12 +195,14 @@ variable parser::evaluate(const std::string &script, const box_content &content)
             break;
         case hash("inc"):
             if (function.is(1, 2)) {
-                return add_value(function.args[0], get_variable(function.args[0]) + (function.args.size() >= 2 ? evaluate(function.args[1], content) : variable(1)));
+                auto &var = get_variable(function.args[0], content);
+                return var = var + (function.args.size() >= 2 ? evaluate(function.args[1], content) : variable(1));
             }
             break;
         case hash("dec"):
             if (function.is(1, 2)) {
-                return add_value(function.args[0], get_variable(function.args[0]) - (function.args.size() >= 2 ? evaluate(function.args[1], content) : variable(1)));
+                auto &var = get_variable(function.args[0], content);
+                return var = var - (function.args.size() >= 2 ? evaluate(function.args[1], content) : variable(1));
             }
             break;
         case hash("add"):
@@ -306,9 +308,9 @@ variable parser::evaluate(const std::string &script, const box_content &content)
     case '%':
         return variable(script.substr(1), VALUE_NUMBER);
     case '&':
-        return get_variable(script.substr(1));
+        return get_variable(script.substr(1), content);
     case '*':
-        return get_variable(script);
+        return get_global(script.substr(1));
     case '@':
         if (script.size() > 1) throw parsing_error("Valore inatteso dopo '@'", script);
         return variable(content.text);
