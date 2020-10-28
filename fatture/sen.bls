@@ -61,7 +61,7 @@
 				"mode" : 0,
 				"name" : "Dati Fornitura",
 				"page" : 1,
-				"script" : "_indirizzo=$search(Forniamo energia in (.+)\\n(.+)\\n,@,1)\n#citta=$search(Forniamo energia in (.+)\\n(.+)\\n,@,2)\nindirizzo_fornitura=$cat(&indirizzo, ,&citta)\n%potenza_disponibile=$search(Potenza disponibile $NUMBER)",
+				"script" : "_indirizzo=$search(Forniamo energia in (.+)\\n(.+)\\n,@,1)\n!citta=$search(Forniamo energia in (.+)\\n(.+)\\n,@,2)\nindirizzo_fornitura=$cat(&indirizzo, ,&citta)\n%potenza_disponibile=$search(Potenza disponibile $NUMBER)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.45890939235687256,

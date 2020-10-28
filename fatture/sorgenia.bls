@@ -191,7 +191,7 @@
 				"mode" : 0,
 				"name" : "Prezzo energia",
 				"page" : 4,
-				"script" : "$tokens(%prezzo_energia=$search(Prezzo energia euro/kWh $NUMBER),%prezzo_energia+,%prezzo_energia+,%prezzo_energia+)\n%prezzo_energia=$search(Prezzo Ore Giorno euro/kWh $NUMBER)\n%prezzo_energia+=$search(Prezzo Ore Notte euro/kWh $NUMBER)\n%prezzo_energia=$search(Prezzo Picco euro/kWh $NUMBER)\n%prezzo_energia+=$search(Prezzo Fuori Picco euro/kWh $NUMBER)\n%inf_75=$search(Energia Reattiva tra il [0-9]+% e 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER,@,3)\n%sup_75=$search(Energia Reattiva oltre il 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER,@,3)\n%imponibile=$search(Iva [0-9+% $NUMBER)\niva=$div($search(Iva $NUMBER%),100)",
+				"script" : "$tokens($search(Prezzo energia euro/kWh $NUMBER),%prezzo_energia+,%prezzo_energia+,%prezzo_energia+)\n%prezzo_energia:=$search(Prezzo Ore Giorno euro/kWh $NUMBER)\n%prezzo_energia+=$search(Prezzo Ore Notte euro/kWh $NUMBER)\n%prezzo_energia:=$search(Prezzo Picco euro/kWh $NUMBER)\n%prezzo_energia+=$search(Prezzo Fuori Picco euro/kWh $NUMBER)\n%inf_75=$search(Energia Reattiva tra il [0-9]+% e 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER,@,3)\n%sup_75=$search(Energia Reattiva oltre il 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER,@,3)\n%imponibile=$search(Iva [0-9+% $NUMBER)\niva=$div($search(Iva $NUMBER%),100)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.87893015146255493,

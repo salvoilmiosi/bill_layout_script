@@ -87,7 +87,7 @@
 				"mode" : 0,
 				"name" : "Dati della Fornitura",
 				"page" : 2,
-				"script" : "_indirizzo=$search(Indirizzo fornitura (.+)\\n,@)\n#citta=$search(Indirizzo fornitura .+\\n(.+)\\n,@)\nindirizzo_fornitura=$cat(&indirizzo, ,&citta)\ncodice_pod=$search(POD \\(punto di prelievo\\) (.+)\\n,@)\n%potenza=$search(Potenza disponibile (.+)\\n)\ntipologia=$search(Tipologia di contratto (.+)\\n)",
+				"script" : "!indirizzo=$search(Indirizzo fornitura (.+)\\n,@)\n!citta=$search(Indirizzo fornitura .+\\n(.+)\\n,@)\nindirizzo_fornitura=$cat(&indirizzo, ,&citta)\ncodice_pod=$search(POD \\(punto di prelievo\\) (.+)\\n,@)\n%potenza=$search(Potenza disponibile (.+)\\n)\ntipologia=$search(Tipologia di contratto (.+)\\n)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.53338992595672607,
