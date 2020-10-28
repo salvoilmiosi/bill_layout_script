@@ -100,7 +100,7 @@ variable parser::add_value(std::string_view name, variable value, const box_cont
         name.remove_prefix(1);
     }
 
-    if (name.front() == '_') {
+    if (name.front() == '!') {
         value.debug = true;
         name.remove_prefix(1);
     }
@@ -131,10 +131,17 @@ variable &parser::get_variable(std::string_view name, const box_content &content
     size_t open_bracket = name.find('[');
     size_t index = 0;
     bool append = false;
+    bool clear = false;
     if (open_bracket == std::string::npos) {
-        if (name.back() == '+') {
+        switch (name.back()) {
+        case '+':
             name.remove_suffix(1);
             append = true;
+            break;
+        case ':':
+            name.remove_suffix(1);
+            clear = true;
+            break;
         }
     } else {
         size_t end_bracket = name.find(']', open_bracket + 1);
@@ -145,11 +152,12 @@ variable &parser::get_variable(std::string_view name, const box_content &content
             name.remove_suffix(name.size() - end_bracket);
         }
     }
-    
+
     size_t reading_page_num = m_globals["PAGE_NUM"].number().getAsInteger();
     while (m_values.size() <= reading_page_num) m_values.emplace_back();
 
     auto &ref = m_values[reading_page_num][std::string(name)];
+    if (clear) ref.clear();
     if (append) index = ref.size();
     while (ref.size() <= index) ref.emplace_back();
 
