@@ -13,23 +13,16 @@
 
 struct layout_box : public pdf_rect {
     bool selected = false;
-    char name[128];
-    char script[1024 * 16];
-    char spacers[128];
-    char goto_label[128];
-
-    layout_box() {
-        memset(name, 0, sizeof(name));
-        memset(script, 0, sizeof(script));
-        memset(spacers, 0, sizeof(spacers));
-        memset(goto_label, 0, sizeof(goto_label));
-    }
+    std::string name;
+    std::string script;
+    std::string spacers;
+    std::string goto_label;
 };
 
 struct layout_error {
-    const char *message;
+    std::string message;
 
-    layout_error(const char *message) : message(message) {}
+    layout_error(const std::string &message) : message(message) {}
 };
 
 using box_reference = std::vector<layout_box>::iterator;

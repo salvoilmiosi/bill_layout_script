@@ -311,14 +311,56 @@ class BoxDataObject : public wxCustomDataObject {
 public:
     BoxDataObject() : wxCustomDataObject("layout_box") {}
     
-    BoxDataObject(const layout_box &box) : wxCustomDataObject("layout_box") {
-        SetData(sizeof(box), &box);
+    BoxDataObject(const layout_box &box) : BoxDataObject() {
+        wxMemoryBuffer buffer;
+
+        auto add_data = [&](const auto &data) { buffer.AppendData(&data, sizeof(data)); };
+        auto add_string = [&](const std::string &data) { add_data(data.size()); buffer.AppendData(data.data(), data.size()); };
+
+        add_data(box.x);
+        add_data(box.y);
+        add_data(box.w);
+        add_data(box.h);
+        add_data(box.page);
+        add_data(box.mode);
+        add_data(box.type);
+        add_data(box.selected);
+        add_string(box.name);
+        add_string(box.script);
+        add_string(box.spacers);
+        add_string(box.goto_label);
+        
+        SetData(buffer.GetDataLen(), buffer.GetData());
     }
 
     layout_box GetLayoutBox() const {
-        layout_box ret;
-        memcpy(&ret, GetData(), sizeof(ret));
-        return ret;
+        layout_box box;
+
+        char *ptr = (char *) GetData();
+
+        auto get_data = [&](auto &data) { memcpy(&data, ptr, sizeof(data)); ptr += sizeof(data); };
+        auto get_string = [&](std::string &data) {
+            size_t len;
+            get_data(len);
+            data.resize(len);
+            memcpy(data.data(), ptr, len);
+            ptr += len;
+        };
+
+        get_data(box.x);
+        get_data(box.y);
+        get_data(box.w);
+        get_data(box.h);
+        get_data(box.page);
+        get_data(box.mode);
+        get_data(box.type);
+        get_data(box.selected);
+        get_string(box.name);
+        get_string(box.script);
+        get_string(box.spacers);
+        get_string(box.goto_label);
+
+        return box;
     }
 };
 

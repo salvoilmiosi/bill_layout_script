@@ -6,7 +6,7 @@
 
 void parser::read_layout(const pdf_info &info, const bill_layout_script &layout) {
     for (size_t i=0; i<layout.boxes.size(); ++i) {
-        if (*layout.boxes[i].goto_label) {
+        if (!layout.boxes[i].goto_label.empty()) {
             goto_labels[layout.boxes[i].goto_label] = i;
         }
     }
@@ -79,7 +79,6 @@ variable parser::execute_line(const std::string &script, const box_content &cont
         break;
     case '$':
         return evaluate(script, content);
-        break;
     default:
         size_t equals = script.find_first_of('=');
         if (equals == std::string::npos) {

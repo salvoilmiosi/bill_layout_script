@@ -107,12 +107,12 @@ END_EVENT_TABLE()
 
 void box_dialog::OnOK(wxCommandEvent &evt) {
     if (Validate()) {
-        strcpy(box.name, m_box_name->GetValue().c_str());
+        box.name = m_box_name->GetValue();
         box.type = static_cast<box_type>(m_box_type->GetSelection());
         box.mode = static_cast<read_mode>(m_box_mode->GetSelection());
-        strcpy(box.spacers, m_box_spacers->GetValue().c_str());
-        strcpy(box.goto_label, m_box_goto_label->GetValue().c_str());
-        strcpy(box.script, m_box_script->GetValue().c_str());
+        box.spacers = m_box_spacers->GetValue();
+        box.goto_label = m_box_goto_label->GetValue();
+        box.script = m_box_script->GetValue();
         evt.Skip();
     }
 }
