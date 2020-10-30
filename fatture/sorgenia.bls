@@ -5,9 +5,22 @@
 		[
 			{
 				"goto_label" : "",
+				"h" : 0.062275242060422897,
+				"mode" : 0,
+				"name" : "Convalida Layout",
+				"page" : 1,
+				"script" : "$if(%0,$error(Layout Invalido))",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.13771712779998779,
+				"x" : 0.54466503858566284,
+				"y" : 0.13946142792701721
+			},
+			{
+				"goto_label" : "",
 				"h" : 0.083238311111927032,
 				"mode" : 0,
-				"name" : "Nome fornitore",
+				"name" : "Nome Fornitore",
 				"page" : 1,
 				"script" : "fornitore=Sorgenia",
 				"spacers" : "",

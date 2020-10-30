@@ -9,9 +9,9 @@
 				"mode" : 0,
 				"name" : "Nome Fornitore",
 				"page" : 1,
-				"script" : "fornitore=Cura",
+				"script" : "$ifnot($contains(@,CURA GAS & POWER S\\.p\\.A\\.),$error(Layout invalido))\nfornitore=Cura",
 				"spacers" : "",
-				"type" : 3,
+				"type" : 0,
 				"w" : 0.47580644488334656,
 				"x" : 0.020967742428183556,
 				"y" : 0.019384264945983887

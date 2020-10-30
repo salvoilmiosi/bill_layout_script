@@ -5,14 +5,27 @@
 		[
 			{
 				"goto_label" : "",
-				"h" : 0.087799318134784698,
+				"h" : 0.066842295229434967,
+				"mode" : 0,
+				"name" : "Convalida Layout",
+				"page" : 1,
+				"script" : "$ifnot($contains(@,Bolletta Energia Elettrica),$error(Layout invalido))",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.41156843304634094,
+				"x" : 0.53948837518692017,
+				"y" : 0.023591397330164909
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.061848785728216171,
 				"mode" : 0,
 				"name" : "Nome Fornitore",
 				"page" : 1,
 				"script" : "fornitore=Axpo",
 				"spacers" : "",
 				"type" : 3,
-				"w" : 0.48870968818664551,
+				"w" : 0.1927141547203064,
 				"x" : 0.024193547666072845,
 				"y" : 0.014823260717093945
 			},
