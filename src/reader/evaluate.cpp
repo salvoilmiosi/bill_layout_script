@@ -112,7 +112,7 @@ variable parser::evaluate(const std::string &script, const box_content &content)
             if (fun_is(1, 3)) {
                 return search_regex(eval(0).str(),
                     function.args.size() >= 2 ? eval(1).str() : content.text,
-                    function.args.size() >= 3 ? eval(2).number().getAsInteger() : 1);
+                    function.args.size() >= 3 ? eval(2).asInt() : 1);
             }
             break;
         case hash("nospace"):
@@ -125,7 +125,7 @@ variable parser::evaluate(const std::string &script, const box_content &content)
             if (fun_is(1, 3))
                 return parse_date(eval(0).str(),
                     function.args.size() >= 2 ? eval(1).str() : content.text,
-                    function.args.size() >= 3 ? eval(2).number().getAsInteger() : 1);
+                    function.args.size() >= 3 ? eval(2).asInt() : 1);
             break;
         case hash("month_begin"):
             if (fun_is(1, 1)) return eval(0).str() + "-01";
@@ -191,8 +191,8 @@ variable parser::evaluate(const std::string &script, const box_content &content)
         case hash("substr"):
             if (fun_is(2, 3)) {
                 auto str = eval(0).str();
-                size_t pos = eval(1).number().getAsInteger();
-                size_t count = function.args.size() >= 3 ? eval(2).number().getAsInteger() : std::string::npos;
+                size_t pos = eval(1).asInt();
+                size_t count = function.args.size() >= 3 ? eval(2).asInt() : std::string::npos;
                 if (pos <= str.size()) {
                     return str.substr(pos, count);
                 }
@@ -200,13 +200,13 @@ variable parser::evaluate(const std::string &script, const box_content &content)
             break;
         case hash("inc"):
             if (fun_is(1, 2)) {
-                auto &var = get_variable(function.args[0], content);
+                auto &var = *get_variable(function.args[0], content);
                 return var = var + (function.args.size() >= 2 ? eval(1) : variable(1));
             }
             break;
         case hash("dec"):
             if (fun_is(1, 2)) {
-                auto &var = get_variable(function.args[0], content);
+                auto &var = *get_variable(function.args[0], content);
                 return var = var - (function.args.size() >= 2 ? eval(1) : variable(1));
             }
             break;
@@ -241,7 +241,7 @@ variable parser::evaluate(const std::string &script, const box_content &content)
             if (fun_is(2, 2)) return std::min(eval(0), eval(1));
             break;
         case hash("int"):
-            if (fun_is(1, 1)) return variable(std::to_string(eval(0).number().getAsInteger()), VALUE_NUMBER);
+            if (fun_is(1, 1)) return variable(std::to_string(eval(0).asInt()), VALUE_NUMBER);
             // converte da stringa a fixed_point a int a stringa ...
             break;
         case hash("cat"):
@@ -304,6 +304,16 @@ variable parser::evaluate(const std::string &script, const box_content &content)
                 }
             }
             break;
+        case hash("lines"):
+            if (fun_is(2, 2)) {
+                auto lines = read_lines(eval(0).str());
+                auto con_token = content;
+                for (auto &line : lines) {
+                    con_token.text = line;
+                    execute_line(function.args[1], con_token);
+                }
+            }
+            break;
         default:
             throw parsing_error(fmt::format("Funzione non riconosciuta: {0}", function.name), script);
         }
@@ -313,7 +323,8 @@ variable parser::evaluate(const std::string &script, const box_content &content)
     case '%':
         return variable(script.substr(1), VALUE_NUMBER);
     case '&':
-        return get_variable(script.substr(1), content);
+        if (auto ref = get_variable(script.substr(1), content); ref.isset()) return *ref;
+        break;
     case '*':
         return get_global(script.substr(1));
     case '@':

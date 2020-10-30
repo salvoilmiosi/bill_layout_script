@@ -25,7 +25,7 @@ void parser::read_box(const pdf_info &info, layout_box box) {
     for (auto &name : tokenize(box.spacers)) {
         if (name.front() == '*') {
             if (auto it = m_globals.find(name.substr(1)); it != m_globals.end()) {
-                box.page += it->second.number().getAsInteger();
+                box.page += it->second.asInt();
             }
         } else {
             if (name.size() <= 2 || name.at(name.size()-2) != '.') {
@@ -36,18 +36,20 @@ void parser::read_box(const pdf_info &info, layout_box box) {
             if (it == m_spacers.end()) continue;
             switch (name.back()) {
             case 'x':
-            case 'X':
-            case 'w':
-            case 'W':
                 if (negative) box.x -= it->second.w;
                 else box.x += it->second.w;
                 break;
+            case 'w':
+                if (negative) box.w -= it->second.w;
+                else box.w += it->second.w;
+                break;
             case 'y':
-            case 'Y':
-            case 'h':
-            case 'H':
                 if (negative) box.y -= it->second.h;
                 else box.y += it->second.h;
+                break;
+            case 'h':
+                if (negative) box.h -= it->second.h;
+                else box.h += it->second.h;
                 break;
             default:
                 throw parsing_error("Identificatore spaziatore incorretto", name);
@@ -105,7 +107,7 @@ variable parser::add_value(std::string_view name, variable value, const box_cont
     }
 
     if (!value.empty()) {
-        get_variable(name, content) = value;
+        *get_variable(name, content) = value;
     }
     return value;
 }
@@ -121,25 +123,64 @@ const variable &parser::get_global(const std::string &name) const {
     }
 }
 
-variable &parser::get_variable(std::string_view name, const box_content &content) {
+variable &variable_ref::operator *() {
+    if (index == INDEX_GLOBAL) {
+        return parent.m_globals[name];
+    }
+
+    while (parent.m_values.size() <= pageidx) parent.m_values.emplace_back();
+
+    auto &var = parent.m_values[pageidx][name];
+    switch (index) {
+    case INDEX_CLEAR:
+        var.clear();
+        index = 0;
+        break;
+    case INDEX_APPEND:
+        index = var.size();
+        break;
+    }
+    while (var.size() <= index) var.emplace_back();
+
+    return var[index];
+}
+
+bool variable_ref::isset() const {
+    if (parent.m_values.size() <= pageidx) return false;
+
+    if (index == INDEX_GLOBAL) {
+        return parent.m_globals.find(name) != parent.m_globals.end();
+    }
+
+    auto &page = parent.m_values[pageidx];
+    auto it = page.find(name);
+    if (it == page.end()) return false;
+
+    if (index < 0 || index >= it->second.size()) return false;
+
+    return true;
+}
+
+variable_ref parser::get_variable(std::string_view name, const box_content &content) {
+    variable_ref ref(*this);
+
     if (name.front() == '*') {
         name.remove_prefix(1);
-        return m_globals[std::string(name)];
+        ref.name = name;
+        ref.index = variable_ref::INDEX_GLOBAL;
+        return ref;
     }
-    
+
     size_t open_bracket = name.find('[');
-    size_t index = 0;
-    bool append = false;
-    bool clear = false;
     if (open_bracket == std::string::npos) {
         switch (name.back()) {
         case '+':
             name.remove_suffix(1);
-            append = true;
+            ref.index = variable_ref::INDEX_APPEND;
             break;
         case ':':
             name.remove_suffix(1);
-            clear = true;
+            ref.index = variable_ref::INDEX_CLEAR;
             break;
         }
     } else {
@@ -147,20 +188,15 @@ variable &parser::get_variable(std::string_view name, const box_content &content
         if (end_bracket == std::string::npos) {
             throw parsing_error("Richiesto ']'", std::string(name));
         } else {
-            index = evaluate(std::string(name.substr(open_bracket + 1, end_bracket - open_bracket - 1)), content).number().getAsInteger();
-            name.remove_suffix(name.size() - end_bracket);
+            ref.index = evaluate(std::string(name.substr(open_bracket + 1, end_bracket - open_bracket - 1)), content).asInt();
+            name.remove_suffix(name.size() - open_bracket);
         }
     }
 
-    size_t reading_page_num = m_globals["PAGE_NUM"].number().getAsInteger();
-    while (m_values.size() <= reading_page_num) m_values.emplace_back();
+    ref.pageidx = get_global("PAGE_NUM").asInt();
+    ref.name = name;
 
-    auto &ref = m_values[reading_page_num][std::string(name)];
-    if (clear) ref.clear();
-    if (append) index = ref.size();
-    while (ref.size() <= index) ref.emplace_back();
-
-    return ref[index];
+    return ref;
 }
 
 std::ostream & operator << (std::ostream &out, const parser &res) {

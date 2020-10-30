@@ -31,6 +31,25 @@ struct box_content : public layout_box {
     box_content(const layout_box &from, const std::string &text) : layout_box(from), text(text) {}
 };
 
+class variable_ref {
+private:
+    class parser &parent;
+
+public:
+    static const size_t INDEX_APPEND = -1;
+    static const size_t INDEX_CLEAR = -2;
+    static const size_t INDEX_GLOBAL = -3;
+
+    variable_ref(class parser &parent) : parent(parent) {};
+
+    size_t pageidx = 0;
+    std::string name;
+    size_t index = 0;
+
+    bool isset() const;
+    variable &operator *();
+};
+
 class parser {
 public:
     void read_layout(const pdf_info &info, const bill_layout_script &layout);
@@ -47,7 +66,8 @@ private:
     variable execute_line(const std::string &script, const box_content &content);
     variable evaluate(const std::string &script, const box_content &content);
     variable add_value(std::string_view name, variable value, const box_content &content);
-    variable &get_variable(std::string_view name, const box_content &content);
+    
+    variable_ref get_variable(std::string_view name, const box_content &content);
 
 private:
     using variable_page = std::map<std::string, std::vector<variable>>;
@@ -59,6 +79,8 @@ private:
     std::map<std::string, spacer> m_spacers;
     std::map<std::string, size_t> goto_labels;
     std::map<std::string, variable> m_globals;
+
+    friend class variable_ref;
 };
 
 #endif

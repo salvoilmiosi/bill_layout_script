@@ -17,7 +17,13 @@ class variable {
 public:
     variable() {}
     variable(const std::string &value, value_type type = VALUE_STRING) : m_value(value), m_type(type) {}
-    variable(fixed_point value) : m_value(dec::toString(value)), m_type(VALUE_NUMBER) {}
+    variable(fixed_point value) : m_type(VALUE_NUMBER) {
+        if (value.getAsDouble() == value.getAsInteger()) {
+            m_value = std::to_string(value.getAsInteger());
+        } else {
+            m_value = dec::toString(value);
+        }
+    }
 
     template<typename T>
     variable(T value) : m_value(std::to_string(value)), m_type(VALUE_NUMBER) {}
@@ -32,6 +38,10 @@ public:
 
     fixed_point number() const {
         return fixed_point(m_value);
+    }
+
+    int asInt() const {
+        return number().getAsInteger();
     }
 
     bool empty() const {

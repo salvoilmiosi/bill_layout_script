@@ -1,8 +1,5 @@
 #include "variable.h"
 
-#include <iomanip>
-#include <sstream>
-
 variable::operator bool() const {
     switch(m_type) {
     case VALUE_STRING:
