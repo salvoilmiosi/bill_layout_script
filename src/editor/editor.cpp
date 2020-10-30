@@ -7,13 +7,13 @@
 #include <wx/stdpaths.h>
 #include <wx/artprov.h>
 #include <wx/splitter.h>
-#include <wx/clipbrd.h>
 
 #include "box_editor_panel.h"
 #include "pdf_to_image.h"
 #include "box_dialog.h"
 #include "output_dialog.h"
 #include "resources.h"
+#include "clipboard.h"
 
 #include "../shared/pipe.h"
 
@@ -307,99 +307,30 @@ void frame_editor::OnRedo(wxCommandEvent &evt) {
     }
 }
 
-class BoxDataObject : public wxCustomDataObject {
-public:
-    BoxDataObject() : wxCustomDataObject("layout_box") {}
-    
-    BoxDataObject(const layout_box &box) : BoxDataObject() {
-        wxMemoryBuffer buffer;
-
-        auto add_data = [&](const auto &data) { buffer.AppendData(&data, sizeof(data)); };
-        auto add_string = [&](const std::string &data) { add_data(data.size()); buffer.AppendData(data.data(), data.size()); };
-
-        add_data(box.x);
-        add_data(box.y);
-        add_data(box.w);
-        add_data(box.h);
-        add_data(box.page);
-        add_data(box.mode);
-        add_data(box.type);
-        add_data(box.selected);
-        add_string(box.name);
-        add_string(box.script);
-        add_string(box.spacers);
-        add_string(box.goto_label);
-        
-        SetData(buffer.GetDataLen(), buffer.GetData());
-    }
-
-    layout_box GetLayoutBox() const {
-        layout_box box;
-
-        char *ptr = (char *) GetData();
-
-        auto get_data = [&](auto &data) { memcpy(&data, ptr, sizeof(data)); ptr += sizeof(data); };
-        auto get_string = [&](std::string &data) {
-            size_t len;
-            get_data(len);
-            data.resize(len);
-            memcpy(data.data(), ptr, len);
-            ptr += len;
-        };
-
-        get_data(box.x);
-        get_data(box.y);
-        get_data(box.w);
-        get_data(box.h);
-        get_data(box.page);
-        get_data(box.mode);
-        get_data(box.type);
-        get_data(box.selected);
-        get_string(box.name);
-        get_string(box.script);
-        get_string(box.spacers);
-        get_string(box.goto_label);
-
-        return box;
-    }
-};
-
 void frame_editor::OnCut(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0) {
-        if (wxTheClipboard->Open()) {
-            wxTheClipboard->SetData(new BoxDataObject(layout.boxes[selection]));
-            layout.boxes.erase(layout.boxes.begin() + selection);
-            updateLayout();
-            wxTheClipboard->Close();
-        }
+    if (selection >= 0 && SetClipboard(layout.boxes[selection])) {
+        layout.boxes.erase(layout.boxes.begin() + selection);
+        updateLayout();
     }
 }
 
 void frame_editor::OnCopy(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0) {
-        if (wxTheClipboard->Open()) {
-            wxTheClipboard->SetData(new BoxDataObject(layout.boxes[selection]));
-            wxTheClipboard->Close();
-        }
+        SetClipboard(layout.boxes[selection]);
     }
 }
 
 void frame_editor::OnPaste(wxCommandEvent &evt) {
-    if (wxTheClipboard->Open()) {
-        BoxDataObject clip_data;
-        if (wxTheClipboard->GetData(clip_data)) {
-            layout_box clipboard = clip_data.GetLayoutBox();
-            if (clipboard.page != selected_page) {
-                clipboard.page = selected_page;
-            }
-            
-            layout.boxes.push_back(clipboard);
-            updateLayout();
-            selectBox(layout.boxes.size() - 1);
+    if (layout_box clipboard; GetClipboard(clipboard)) {
+        if (clipboard.page != selected_page) {
+            clipboard.page = selected_page;
         }
-        wxTheClipboard->Close();
+        
+        layout.boxes.push_back(clipboard);
+        updateLayout();
+        selectBox(layout.boxes.size() - 1);
     }
 }
 
@@ -424,13 +355,16 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     }
 
     if (control_script_filename.empty()) {
-        control_script_filename = get_app_path() + "/../fatture/controllo.txt";
-        // wxFileDialog diag(this, "Apri script di controllo", wxEmptyString, wxEmptyString, "File TXT (*.txt)|*.txt|Tutti i file (*.*)|*.*");
+#ifdef SCRIPT_CONTROLLO
+        control_script_filename = get_app_path() + SCRIPT_CONTROLLO;
+#else
+        wxFileDialog diag(this, "Apri script di controllo", wxEmptyString, wxEmptyString, "File TXT (*.txt)|*.txt|Tutti i file (*.*)|*.*");
 
-        // if (diag.ShowModal() == wxID_CANCEL)
-        //     return;
+        if (diag.ShowModal() == wxID_CANCEL)
+            return;
         
-        // control_script_filename = diag.GetPath().ToStdString();
+        control_script_filename = diag.GetPath().ToStdString();
+#endif
     }
     
     std::string cmd_str = get_app_path() + "/layout_reader";

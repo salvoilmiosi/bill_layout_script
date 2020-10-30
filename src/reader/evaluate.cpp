@@ -3,40 +3,23 @@
 
 #include <fmt/core.h>
 
-struct function_parser {
-    const std::string &script;
-
+struct tokens {
     std::string name;
     std::vector<std::string> args;
-
-    function_parser(const std::string &script);
-
-    bool is(size_t min_args, size_t max_args = -1) const {
-        if (args.size() >= min_args && args.size() <= max_args) {
-            return true;
-        } else if (min_args == max_args) {
-            throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", name, min_args), script);
-        } else if (max_args != (size_t) -1) {
-            throw parsing_error(fmt::format("La funzione {0} richiede tra {1} e {2} argomenti", name, min_args, max_args), script);
-        } else {
-            throw parsing_error(fmt::format("La funzione {0} richiede minimo {1} argomenti", name, min_args), script);
-        }
-        return false;
-    }
 };
 
-function_parser::function_parser(const std::string &script) : script(script) {
+tokens parse_function(const std::string &script) {
+    tokens ret;
+    
     size_t brace_start = script.find_first_of('(');
     if (brace_start == std::string::npos) throw parsing_error("Previsto '('", script);
-    size_t brace_end = script.find_last_of(')');
-    if (brace_end  == std::string::npos) throw parsing_error("Previsto ')'", script);
-    name = script.substr(1, brace_start - 1);
+    ret.name = script.substr(1, brace_start - 1);
 
     std::string reading_arg;
     int bracecount = 0;
     bool string_flag = false;
     bool escape_flag = false;
-    for (size_t i = brace_start; i <= brace_end; ++i) {
+    for (size_t i = brace_start; i < script.size(); ++i) {
         if (string_flag) {
             if (escape_flag) {
                 switch(script[i]) {
@@ -72,175 +55,197 @@ function_parser::function_parser(const std::string &script) : script(script) {
             case ')':
                 --bracecount;
                 if (bracecount == 0) {
-                    args.push_back(reading_arg);
-                    if (i < brace_end) {
-                        throw parsing_error("Valori non previsti dopo ')'", script);
-                    }
-                } else {
+                    ret.args.push_back(reading_arg);
+                } else if (bracecount > 0) {
                     reading_arg += ')';
+                } else {
+                    throw parsing_error("Valori non previsti dopo ')'", script);
                 }
                 break;
             case ',':
                 if (bracecount == 1) {
-                    args.push_back(reading_arg);
+                    ret.args.push_back(reading_arg);
                     reading_arg.clear();
                 } else {
                     reading_arg += ',';
                 }
                 break;
             default:
+                if (bracecount == 0) {
+                    throw parsing_error("Valori non previsti dopo ')'", script);
+                }
                 reading_arg += script[i];
                 break;
             }
         }
     }
+    if (bracecount > 0) {
+        throw parsing_error("Previsto ')'", script);
+    }
+
+    return ret;
 }
 
 variable parser::evaluate(const std::string &script, const box_content &content) {
-    if (!script.empty()) switch(script.at(0)) {
+    if (!script.empty()) switch(script.front()) {
     case '$':
     {
-        function_parser function(script);
+        auto function = parse_function(script);
+
+        auto eval = [&](int i){ return evaluate(function.args[i], content); };
+
+        auto fun_is = [&](size_t min_args, size_t max_args = -1) {
+            if (function.args.size() >= min_args && function.args.size() <= max_args) {
+                return true;
+            } else if (min_args == max_args) {
+                throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", function.name, min_args), script);
+            } else if (max_args != (size_t) -1) {
+                throw parsing_error(fmt::format("La funzione {0} richiede tra {1} e {2} argomenti", function.name, min_args, max_args), script);
+            } else {
+                throw parsing_error(fmt::format("La funzione {0} richiede minimo {1} argomenti", function.name, min_args), script);
+            }
+            return false;
+        };
 
         switch(hash(function.name)) {
         case hash("search"):
-            if (function.is(1, 3)) {
-                return search_regex(evaluate(function.args[0], content).str(),
-                    function.args.size() >= 2 ? evaluate(function.args[1], content).str() : content.text,
-                    function.args.size() >= 3 ? evaluate(function.args[2], content).number().getAsInteger() : 1);
+            if (fun_is(1, 3)) {
+                return search_regex(eval(0).str(),
+                    function.args.size() >= 2 ? eval(1).str() : content.text,
+                    function.args.size() >= 3 ? eval(2).number().getAsInteger() : 1);
             }
             break;
         case hash("nospace"):
-            if (function.is(1, 1)) return nospace(evaluate(function.args[0], content).str());
+            if (fun_is(1, 1)) return nospace(eval(0).str());
             break;
         case hash("num"):
-            if (function.is(1, 1)) return variable(parse_number(evaluate(function.args[0], content).str()), VALUE_NUMBER);
+            if (fun_is(1, 1)) return variable(parse_number(eval(0).str()), VALUE_NUMBER);
             break;
         case hash("date"):
-            if (function.is(1, 3))
-                return parse_date(evaluate(function.args[0], content).str(),
-                    function.args.size() >= 2 ? evaluate(function.args[1], content).str() : content.text,
-                    function.args.size() >= 3 ? evaluate(function.args[2], content).number().getAsInteger() : 1);
+            if (fun_is(1, 3))
+                return parse_date(eval(0).str(),
+                    function.args.size() >= 2 ? eval(1).str() : content.text,
+                    function.args.size() >= 3 ? eval(2).number().getAsInteger() : 1);
             break;
         case hash("month_begin"):
-            if (function.is(1, 1)) return evaluate(function.args[0], content).str() + "-01";
+            if (fun_is(1, 1)) return eval(0).str() + "-01";
             break;
         case hash("month_end"):
-            if (function.is(1, 1)) return date_month_end(evaluate(function.args[0], content).str());
+            if (fun_is(1, 1)) return date_month_end(eval(0).str());
             break;
         case hash("coalesce"):
-            if (function.is(1)) {
+            if (fun_is(1)) {
                 for (auto &arg : function.args) {
                     if (auto var = evaluate(arg, content)) return var;
                 }
             }
             break;
         case hash("do"):
-            if (function.is(1)) {
+            if (fun_is(1)) {
                 for (auto &arg : function.args) {
                     execute_line(arg, content);
                 }
             }
             break;
         case hash("if"):
-            if (function.is(2, 3)) {
-                if (evaluate(function.args[0], content)) return evaluate(function.args[1], content);
-                else if (function.args.size() >= 3) return evaluate(function.args[2], content);
+            if (fun_is(2, 3)) {
+                if (eval(0)) return eval(1);
+                else if (function.args.size() >= 3) return eval(2);
             }
             break;
         case hash("ifnot"):
-            if (function.is(2, 3)) {
-                if (!evaluate(function.args[0], content)) return evaluate(function.args[1], content);
-                else if (function.args.size() >= 3) return evaluate(function.args[2], content);
+            if (fun_is(2, 3)) {
+                if (!eval(0)) return eval(1);
+                else if (function.args.size() >= 3) return eval(2);
             }
             break;
         case hash("while"):
-            if (function.is(2, 2)) {
-                while (evaluate(function.args[0], content)) evaluate(function.args[1], content);
+            if (fun_is(2, 2)) {
+                while (eval(0)) eval(1);
             }
             break;
         case hash("not"):
-            if (function.is(1, 1)) return !evaluate(function.args[0], content);
+            if (fun_is(1, 1)) return !eval(0);
             break;
         case hash("eq"):
-            if (function.is(2, 2)) return evaluate(function.args[0], content) == evaluate(function.args[1], content);
+            if (fun_is(2, 2)) return eval(0) == eval(1);
             break;
         case hash("neq"):
-            if (function.is(2, 2)) return evaluate(function.args[0], content) != evaluate(function.args[1], content);
+            if (fun_is(2, 2)) return eval(0) != eval(1);
             break;
         case hash("and"):
-            if (function.is(2, 2)) return evaluate(function.args[0], content) && evaluate(function.args[1], content);
+            if (fun_is(2, 2)) return eval(0) && eval(1);
             break;
         case hash("or"):
-            if (function.is(2, 2)) return evaluate(function.args[0], content) || evaluate(function.args[1], content);
+            if (fun_is(2, 2)) return eval(0) || eval(1);
             break;
         case hash("contains"):
-            if (function.is(2, 2)) return evaluate(function.args[0], content).str().find(evaluate(function.args[1], content).str()) != std::string::npos;
+            if (fun_is(2, 2)) return eval(0).str().find(eval(1).str()) != std::string::npos;
             break;
         case hash("strlen"):
-            if (function.is(1, 1)) return evaluate(function.args[0], content).str().size();
+            if (fun_is(1, 1)) return eval(0).str().size();
             break;
         case hash("isempty"):
-            if (function.is(1, 1)) return evaluate(function.args[0], content).str().empty();
+            if (fun_is(1, 1)) return eval(0).str().empty();
             break;
         case hash("substr"):
-            if (function.is(2, 3)) {
-                auto str = evaluate(function.args[0], content).str();
-                size_t pos = evaluate(function.args[1], content).number().getAsInteger();
-                size_t count = function.args.size() >= 3 ? evaluate(function.args[2], content).number().getAsInteger() : std::string::npos;
+            if (fun_is(2, 3)) {
+                auto str = eval(0).str();
+                size_t pos = eval(1).number().getAsInteger();
+                size_t count = function.args.size() >= 3 ? eval(2).number().getAsInteger() : std::string::npos;
                 if (pos <= str.size()) {
                     return str.substr(pos, count);
                 }
             }
             break;
         case hash("inc"):
-            if (function.is(1, 2)) {
+            if (fun_is(1, 2)) {
                 auto &var = get_variable(function.args[0], content);
-                return var = var + (function.args.size() >= 2 ? evaluate(function.args[1], content) : variable(1));
+                return var = var + (function.args.size() >= 2 ? eval(1) : variable(1));
             }
             break;
         case hash("dec"):
-            if (function.is(1, 2)) {
+            if (fun_is(1, 2)) {
                 auto &var = get_variable(function.args[0], content);
-                return var = var - (function.args.size() >= 2 ? evaluate(function.args[1], content) : variable(1));
+                return var = var - (function.args.size() >= 2 ? eval(1) : variable(1));
             }
             break;
         case hash("add"):
-            if (function.is(2, 2)) return evaluate(function.args[0], content) + evaluate(function.args[1], content);
+            if (fun_is(2, 2)) return eval(0) + eval(1);
             break;
         case hash("sub"):
-            if (function.is(2, 2)) return evaluate(function.args[0], content) - evaluate(function.args[1], content);
+            if (fun_is(2, 2)) return eval(0) - eval(1);
             break;
         case hash("mul"):
-            if (function.is(2, 2)) return evaluate(function.args[0], content) * evaluate(function.args[1], content);
+            if (fun_is(2, 2)) return eval(0) * eval(1);
             break;
         case hash("div"):
-            if (function.is(2, 2)) return evaluate(function.args[0], content) / evaluate(function.args[1], content);
+            if (fun_is(2, 2)) return eval(0) / eval(1);
             break;
         case hash("gt"):
-            if (function.is(2, 2)) return evaluate(function.args[0], content) > evaluate(function.args[0], content);
+            if (fun_is(2, 2)) return eval(0) > eval(0);
             break;
         case hash("geq"):
-            if (function.is(2, 2)) return evaluate(function.args[0], content) >= evaluate(function.args[0], content);
+            if (fun_is(2, 2)) return eval(0) >= eval(0);
             break;
         case hash("lt"):
-            if (function.is(2, 2)) return evaluate(function.args[0], content) < evaluate(function.args[1], content);
+            if (fun_is(2, 2)) return eval(0) < eval(1);
             break;
         case hash("leq"):
-            if (function.is(2, 2)) return evaluate(function.args[0], content) <= evaluate(function.args[1], content);
+            if (fun_is(2, 2)) return eval(0) <= eval(1);
             break;
         case hash("max"):
-            if (function.is(2, 2)) return std::max(evaluate(function.args[0], content), evaluate(function.args[1], content));
+            if (fun_is(2, 2)) return std::max(eval(0), eval(1));
             break;
         case hash("min"):
-            if (function.is(2, 2)) return std::min(evaluate(function.args[0], content), evaluate(function.args[1], content));
+            if (fun_is(2, 2)) return std::min(eval(0), eval(1));
             break;
         case hash("int"):
-            if (function.is(1, 1)) return variable(std::to_string(evaluate(function.args[0], content).number().getAsInteger()), VALUE_NUMBER);
+            if (fun_is(1, 1)) return variable(std::to_string(eval(0).number().getAsInteger()), VALUE_NUMBER);
             // converte da stringa a fixed_point a int a stringa ...
             break;
         case hash("cat"):
-            if (function.is(1)) {
+            if (fun_is(1)) {
                 std::string var;
                 for (auto &arg : function.args) {
                     var += evaluate(arg, content).str();
@@ -249,11 +254,11 @@ variable parser::evaluate(const std::string &script, const box_content &content)
             }
             break;
         case hash("error"):
-            if (function.is(1, 1)) throw layout_error(function.args[0].c_str());
+            if (fun_is(1, 1)) throw layout_error(function.args[0].c_str());
             break;
         case hash("goto"):
-            if (function.is(1, 1)) {
-                if (function.args[0].at(0) == '%') {
+            if (fun_is(1, 1)) {
+                if (function.args[0].front() == '%') {
                     try {
                         return_address = program_counter;
                         program_counter = std::stoi(function.args[0].substr(1));
@@ -274,7 +279,7 @@ variable parser::evaluate(const std::string &script, const box_content &content)
             }
             break;
         case hash("return"):
-            if (function.is(1, 1)) {
+            if (fun_is(1, 1)) {
                 if (return_address >= 0) {
                     program_counter = return_address + 1;
                     return_address = -1;
@@ -285,13 +290,13 @@ variable parser::evaluate(const std::string &script, const box_content &content)
             }
             break;
         case hash("addspacer"):
-            if (function.is(1, 1)) {
+            if (fun_is(1, 1)) {
                 m_spacers[function.args[0]] = spacer(content.w, content.h);
             }
             break;
         case hash("tokens"):
-            if (function.is(2)) {
-                auto tokens = tokenize(evaluate(function.args[0], content).str());
+            if (fun_is(2)) {
+                auto tokens = tokenize(eval(0).str());
                 auto con_token = content;
                 for (size_t i=1; i < function.args.size() && i <= tokens.size(); ++i) {
                     con_token.text = tokens[i-1];
