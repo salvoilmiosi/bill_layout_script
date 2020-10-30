@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -g -Wall --std=c++17 -DSCRIPT_CONTROLLO=\"/../fatture/controllo.txt\"
+CXXFLAGS = -g -Wall --std=c++17
 LDFLAGS = 
 
 SRC_DIR = src

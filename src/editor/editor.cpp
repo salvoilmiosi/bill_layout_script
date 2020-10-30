@@ -7,6 +7,7 @@
 #include <wx/stdpaths.h>
 #include <wx/artprov.h>
 #include <wx/splitter.h>
+#include <wx/config.h>
 
 #include "box_editor_panel.h"
 #include "pdf_to_image.h"
@@ -32,6 +33,7 @@ BEGIN_EVENT_TABLE(frame_editor, wxFrame)
     EVT_MENU (MENU_EDITBOX, frame_editor::EditSelectedBox)
     EVT_MENU (MENU_DELETE, frame_editor::OnDelete)
     EVT_MENU (MENU_READDATA, frame_editor::OnReadData)
+    EVT_MENU (MENU_EDITCONTROL, frame_editor::OpenControlScript)
     EVT_BUTTON(CTL_AUTO_LAYOUT, frame_editor::OnAutoLayout)
     EVT_BUTTON (CTL_LOAD_PDF, frame_editor::OnLoadPdf)
     EVT_COMBOBOX (CTL_PAGE, frame_editor::OnPageSelect)
@@ -90,6 +92,7 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     menuLayout->Append(MENU_EDITBOX, "Modifica &Opzioni\tEnter", "Modifica il rettangolo selezionato");
     menuLayout->AppendSeparator();
     menuLayout->Append(MENU_READDATA, "L&eggi Layout\tCtrl-R", "Test della lettura dei dati");
+    menuLayout->Append(MENU_EDITCONTROL, "Modifica script di &controllo\tCtrl-L", "Modifica script di controllo");
 
     menuBar->Append(menuLayout, "&Layout");
 
@@ -181,7 +184,7 @@ void frame_editor::OnNewFile(wxCommandEvent &evt) {
     }
 }
 
-void frame_editor::openFile(const std::string &filename) {
+void frame_editor::openFile(const wxString &filename) {
     try {
         layout_filename = filename;
         std::ifstream ifs(layout_filename);
@@ -334,9 +337,9 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
     }
 }
 
-void frame_editor::loadPdf(const std::string &filename) {
+void frame_editor::loadPdf(const wxString &filename) {
     try {
-        info = pdf_get_info(filename);
+        info = pdf_get_info(filename.ToStdString());
         pdf_filename = filename;
         m_page->Clear();
         for (int i=1; i<=info.num_pages; ++i) {
@@ -348,27 +351,35 @@ void frame_editor::loadPdf(const std::string &filename) {
     }
 }
 
+wxString frame_editor::getControlScript() {
+    wxFileDialog diag(this, "Apri script di controllo", wxEmptyString, wxEmptyString, "File TXT (*.txt)|*.txt|Tutti i file (*.*)|*.*");
+
+    if (diag.ShowModal() == wxID_CANCEL)
+        return wxString();
+    
+    wxString filename = diag.GetPath().ToStdString();
+    wxConfig::Get()->Write("control_script_filename", filename);
+    return filename;
+}
+
+void frame_editor::OpenControlScript(wxCommandEvent &evt) {
+    getControlScript();
+}
+
 void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     if (pdf_filename.empty()) {
         wxBell();
         return;
     }
 
+    wxString control_script_filename;
+    wxConfig::Get()->Read("control_script_filename", &control_script_filename);
     if (control_script_filename.empty()) {
-#ifdef SCRIPT_CONTROLLO
-        control_script_filename = get_app_path() + SCRIPT_CONTROLLO;
-#else
-        wxFileDialog diag(this, "Apri script di controllo", wxEmptyString, wxEmptyString, "File TXT (*.txt)|*.txt|Tutti i file (*.*)|*.*");
-
-        if (diag.ShowModal() == wxID_CANCEL)
-            return;
-        
-        control_script_filename = diag.GetPath().ToStdString();
-#endif
+        control_script_filename = getControlScript();
     }
     
-    std::string cmd_str = get_app_path() + "/layout_reader";
-    std::string layout_path = control_script_filename.substr(0, control_script_filename.find_last_of("\\/"));
+    wxString cmd_str = get_app_path() + "/layout_reader";
+    wxString layout_path = control_script_filename.substr(0, control_script_filename.find_last_of("\\/"));
 
     const char *args[] = {
         cmd_str.c_str(),

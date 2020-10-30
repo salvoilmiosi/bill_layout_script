@@ -17,7 +17,7 @@ enum {
     
     MENU_NEW, MENU_OPEN, MENU_SAVE, MENU_SAVEAS, MENU_CLOSE,
     MENU_UNDO, MENU_REDO, MENU_CUT, MENU_COPY, MENU_PASTE,
-    MENU_LOAD_PDF, MENU_EDITBOX, MENU_DELETE, MENU_READDATA,
+    MENU_LOAD_PDF, MENU_EDITBOX, MENU_DELETE, MENU_READDATA, MENU_EDITCONTROL,
 
     CTL_LOAD_PDF, CTL_AUTO_LAYOUT, CTL_PAGE, CTL_SCALE,
 
@@ -36,11 +36,12 @@ public:
     void setSelectedPage(int page, bool force = false);
     void selectBox(int id);
 
-    void openFile(const std::string &filename);
-    void loadPdf(const std::string &pdf_filename);
+    void openFile(const wxString &filename);
+    void loadPdf(const wxString &pdf_filename);
     void updateLayout(bool addToHistory = true);
     bool save(bool saveAs = false);
     bool saveIfModified();
+    wxString getControlScript();
 
     const pdf_info &getPdfInfo() {
         return info;
@@ -63,6 +64,7 @@ private:
     void OnCut          (wxCommandEvent &evt);
     void OnCopy         (wxCommandEvent &evt);
     void OnPaste        (wxCommandEvent &evt);
+    void OpenControlScript (wxCommandEvent &evt);
     void OnAutoLayout   (wxCommandEvent &evt);
     void OnLoadPdf      (wxCommandEvent &evt);
     void OnPageSelect   (wxCommandEvent &evt);
@@ -95,7 +97,6 @@ private:
     pdf_info info;
     std::string layout_filename{};
     std::string pdf_filename{};
-    std::string control_script_filename{};
     int selected_page = 0;
 };
 
