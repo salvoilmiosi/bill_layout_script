@@ -30,6 +30,8 @@ BEGIN_EVENT_TABLE(frame_editor, wxFrame)
     EVT_MENU (MENU_COPY, frame_editor::OnCopy)
     EVT_MENU (MENU_PASTE, frame_editor::OnPaste)
     EVT_MENU (MENU_LOAD_PDF, frame_editor::OnLoadPdf)
+    EVT_MENU_RANGE (MENU_OPEN_RECENT, MENU_OPEN_RECENT_END, frame_editor::OnOpenRecent)
+    EVT_MENU_RANGE (MENU_OPEN_PDF_RECENT, MENU_OPEN_PDF_RECENT_END, frame_editor::OnOpenRecentPdf)
     EVT_MENU (MENU_EDITBOX, frame_editor::EditSelectedBox)
     EVT_MENU (MENU_DELETE, frame_editor::OnDelete)
     EVT_MENU (MENU_READDATA, frame_editor::OnReadData)
@@ -65,14 +67,20 @@ const std::string &get_app_path() {
 
 frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxDefaultPosition, wxSize(900, 700)) {
     wxMenuBar *menuBar = new wxMenuBar();
+    
+    m_recent = new wxMenu;
+    m_recent_pdfs = new wxMenu;
+    updateRecentFiles();
 
     wxMenu *menuFile = new wxMenu;
     menuFile->Append(MENU_NEW, "&Nuovo\tCtrl-N", "Crea un Nuovo Layout");
     menuFile->Append(MENU_OPEN, "&Apri...\tCtrl-O", "Apri un Layout");
+    menuFile->AppendSubMenu(m_recent, "Apri &Recenti");
     menuFile->Append(MENU_SAVE, "&Salva\tCtrl-S", "Salva il Layout");
     menuFile->Append(MENU_SAVEAS, "Sa&lva con nome...\tCtrl-Shift-S", "Salva il Layout con nome...");
     menuFile->AppendSeparator();
     menuFile->Append(MENU_LOAD_PDF, "Carica &PDF\tCtrl-L", "Carica un file PDF");
+    menuFile->AppendSubMenu(m_recent_pdfs, "PDF Recenti...");
     menuFile->AppendSeparator();
     menuFile->Append(MENU_CLOSE, "&Chiudi\tCtrl-W", "Chiudi la finestra");
     menuBar->Append(menuFile, "&File");
@@ -90,9 +98,8 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
 
     wxMenu *menuLayout = new wxMenu;
     menuLayout->Append(MENU_EDITBOX, "Modifica &Opzioni\tEnter", "Modifica il rettangolo selezionato");
-    menuLayout->AppendSeparator();
     menuLayout->Append(MENU_READDATA, "L&eggi Layout\tCtrl-R", "Test della lettura dei dati");
-    menuLayout->Append(MENU_EDITCONTROL, "Modifica script di &controllo\tCtrl-L", "Modifica script di controllo");
+    menuLayout->Append(MENU_EDITCONTROL, "Modifica script di &controllo\tCtrl-L");
 
     menuBar->Append(menuLayout, "&Layout");
 
@@ -172,6 +179,8 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
 
     SetIcon(loadIcon(GET_RESOURCE(icon_editor_png)));
     Show();
+
+    currentHistory = history.begin();
 }
 
 void frame_editor::OnNewFile(wxCommandEvent &evt) {
@@ -196,6 +205,16 @@ void frame_editor::openFile(const wxString &filename) {
             loadPdf(pdf_filename);
         }
         updateLayout();
+        
+        static constexpr size_t MAX_RECENT_FILES_HISTORY = 10;
+        if (auto it = std::find(recentFiles.begin(), recentFiles.end(), layout_filename); it != recentFiles.end()) {
+            recentFiles.erase(it);
+        }
+        recentFiles.push_front(layout_filename);
+        if (recentFiles.size() > MAX_RECENT_FILES_HISTORY) {
+            recentFiles.pop_back();
+        }
+        updateRecentFiles(true);
     } catch (const layout_error &error) {
         wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
     }
@@ -211,6 +230,17 @@ void frame_editor::OnOpenFile(wxCommandEvent &evt) {
         modified = false;
         openFile(diag.GetPath().ToStdString());
     }
+}
+
+void frame_editor::OnOpenRecent(wxCommandEvent &evt) {
+    if (saveIfModified()) {
+        modified = false;
+        openFile(recentFiles[evt.GetId() - MENU_OPEN_RECENT]);
+    }
+}
+
+void frame_editor::OnOpenRecentPdf(wxCommandEvent &evt) {
+    loadPdf(recentPdfs[evt.GetId() - MENU_OPEN_PDF_RECENT]);
 }
 
 bool frame_editor::save(bool saveAs) {
@@ -290,6 +320,48 @@ void frame_editor::updateLayout(bool addToHistory) {
     }
 }
 
+void frame_editor::updateRecentFiles(bool save) {
+    if (save) {
+        wxConfig::Get()->DeleteGroup("RecentFiles");
+        wxConfig::Get()->SetPath("/RecentFiles");
+        for (size_t i=0; i<recentFiles.size(); ++i) {
+            wxConfig::Get()->Write(wxString::Format("%lld", i), recentFiles[i]);
+        }
+        wxConfig::Get()->DeleteGroup("RecentPdfs");
+        wxConfig::Get()->SetPath("/RecentPdfs");
+        for (size_t i=0; i<recentPdfs.size(); ++i) {
+            wxConfig::Get()->Write(wxString::Format("%lld", i), recentPdfs[i]);
+        }
+        wxConfig::Get()->SetPath("/");
+    } else {
+        recentFiles.clear();
+        wxConfig::Get()->SetPath("/RecentFiles");
+        size_t len = wxConfig::Get()->GetNumberOfEntries();
+        for (size_t i=0; i<len; ++i) {
+            recentFiles.push_back(wxConfig::Get()->Read(wxString::Format("%lld", i)));
+        }
+        recentPdfs.clear();
+        wxConfig::Get()->SetPath("/RecentPdfs");
+        len = wxConfig::Get()->GetNumberOfEntries();
+        for (size_t i=0; i<len; ++i) {
+            recentPdfs.push_back(wxConfig::Get()->Read(wxString::Format("%lld", i)));
+        }
+        wxConfig::Get()->SetPath("/");
+    }
+    for (size_t i=0; i<m_recent->GetMenuItemCount(); ++i) {
+        m_recent->Delete(MENU_OPEN_RECENT + i);
+    }
+    for (size_t i=0; i<recentFiles.size(); ++i) {
+        m_recent->Append(MENU_OPEN_RECENT + i, recentFiles[i]);
+    }
+    for (size_t i=0; i<m_recent_pdfs->GetMenuItemCount(); ++i) {
+        m_recent_pdfs->Delete(MENU_OPEN_PDF_RECENT + i);
+    }
+    for (size_t i=0; i<recentPdfs.size(); ++i) {
+        m_recent_pdfs->Append(MENU_OPEN_PDF_RECENT + i, recentPdfs[i]);
+    }
+}
+
 void frame_editor::OnUndo(wxCommandEvent &evt) {
     if (currentHistory > history.begin()) {
         --currentHistory;
@@ -346,6 +418,16 @@ void frame_editor::loadPdf(const wxString &filename) {
             m_page->Append(wxString::Format("%i", i));
         }
         setSelectedPage(1, true);
+        
+        static constexpr size_t MAX_RECENT_PDFS_HISTORY = 10;
+        if (auto it = std::find(recentPdfs.begin(), recentPdfs.end(), pdf_filename); it != recentPdfs.end()) {
+            recentPdfs.erase(it);
+        }
+        recentPdfs.push_front(pdf_filename);
+        if (recentPdfs.size() > MAX_RECENT_PDFS_HISTORY) {
+            recentPdfs.pop_back();
+        }
+        updateRecentFiles(true);
     } catch (const xpdf_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);
     }
@@ -358,7 +440,7 @@ wxString frame_editor::getControlScript() {
         return wxString();
     
     wxString filename = diag.GetPath().ToStdString();
-    wxConfig::Get()->Write("control_script_filename", filename);
+    wxConfig::Get()->Write("ControlScriptFilename", filename);
     return filename;
 }
 
@@ -372,8 +454,7 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
         return;
     }
 
-    wxString control_script_filename;
-    wxConfig::Get()->Read("control_script_filename", &control_script_filename);
+    wxString control_script_filename = wxConfig::Get()->Read("ControlScriptFilename");
     if (control_script_filename.empty()) {
         control_script_filename = getControlScript();
     }

@@ -19,6 +19,12 @@ enum {
     MENU_UNDO, MENU_REDO, MENU_CUT, MENU_COPY, MENU_PASTE,
     MENU_LOAD_PDF, MENU_EDITBOX, MENU_DELETE, MENU_READDATA, MENU_EDITCONTROL,
 
+    MENU_OPEN_RECENT,
+    MENU_OPEN_RECENT_END = MENU_OPEN_RECENT + 20,
+    
+    MENU_OPEN_PDF_RECENT,
+    MENU_OPEN_PDF_RECENT_END = MENU_OPEN_PDF_RECENT + 20,
+
     CTL_LOAD_PDF, CTL_AUTO_LAYOUT, CTL_PAGE, CTL_SCALE,
 
     TOOL_SELECT, TOOL_NEWBOX, TOOL_DELETEBOX, TOOL_RESIZE, TOOL_MOVEUP, TOOL_MOVEDOWN,
@@ -36,6 +42,8 @@ public:
     void setSelectedPage(int page, bool force = false);
     void selectBox(int id);
 
+    void updateRecentFiles(bool save = false);
+    
     void openFile(const wxString &filename);
     void loadPdf(const wxString &pdf_filename);
     void updateLayout(bool addToHistory = true);
@@ -59,6 +67,8 @@ private:
     void OnSaveFile     (wxCommandEvent &evt);
     void OnSaveFileAs   (wxCommandEvent &evt);
     void OnMenuClose    (wxCommandEvent &evt);
+    void OnOpenRecent   (wxCommandEvent &evt);
+    void OnOpenRecentPdf (wxCommandEvent &evt);
     void OnUndo         (wxCommandEvent &evt);
     void OnRedo         (wxCommandEvent &evt);
     void OnCut          (wxCommandEvent &evt);
@@ -84,6 +94,9 @@ private:
 private:
     class box_editor_panel *m_image;
 
+    wxMenu *m_recent;
+    wxMenu *m_recent_pdfs;
+
     wxComboBox *m_page;
     wxSlider *m_scale;
 
@@ -91,6 +104,10 @@ private:
 
     std::deque<bill_layout_script> history;
     std::deque<bill_layout_script>::iterator currentHistory;
+
+    std::deque<wxString> recentFiles;
+    std::deque<wxString> recentPdfs;
+
     bool modified = false;
 
 private:
