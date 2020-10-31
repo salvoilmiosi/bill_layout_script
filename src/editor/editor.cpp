@@ -196,7 +196,7 @@ void frame_editor::OnNewFile(wxCommandEvent &evt) {
 void frame_editor::openFile(const wxString &filename) {
     try {
         layout_filename = filename;
-        std::ifstream ifs(layout_filename);
+        std::ifstream ifs(layout_filename.ToStdString());
         layout.clear();
         ifs >> layout;
         ifs.close();
@@ -253,7 +253,7 @@ bool frame_editor::save(bool saveAs) {
         layout_filename = diag.GetPath().ToStdString();
     }
     try {
-        std::ofstream ofs(layout_filename);
+        std::ofstream ofs(layout_filename.ToStdString());
         ofs << layout;
         ofs.close();
         modified = false;
@@ -348,13 +348,15 @@ void frame_editor::updateRecentFiles(bool save) {
         }
         wxConfig::Get()->SetPath("/");
     }
-    for (size_t i=0; i<m_recent->GetMenuItemCount(); ++i) {
+    size_t len = m_recent->GetMenuItemCount();
+    for (size_t i=0; i<len; ++i) {
         m_recent->Delete(MENU_OPEN_RECENT + i);
     }
     for (size_t i=0; i<recentFiles.size(); ++i) {
         m_recent->Append(MENU_OPEN_RECENT + i, recentFiles[i]);
     }
-    for (size_t i=0; i<m_recent_pdfs->GetMenuItemCount(); ++i) {
+    len = m_recent_pdfs->GetMenuItemCount();
+    for (size_t i=0; i<len; ++i) {
         m_recent_pdfs->Delete(MENU_OPEN_PDF_RECENT + i);
     }
     for (size_t i=0; i<recentPdfs.size(); ++i) {
@@ -480,7 +482,7 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
             wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
         } else if (saveIfModified()) {
             modified = false;
-            openFile(layout_path + '/' + output_layout);
+            openFile(layout_path + wxFileName::GetPathSeparator() + output_layout);
         }
     } catch (std::exception &error) {
         wxMessageBox("Impossibile leggere l'output: " + iss.str(), "Errore", wxOK | wxICON_ERROR);
@@ -504,7 +506,7 @@ void frame_editor::setSelectedPage(int page, bool force) {
     m_page->SetSelection(page - 1);
     try {
         selected_page = page;
-        m_image->setImage(pdf_to_image(pdf_filename, page));
+        m_image->setImage(pdf_to_image(pdf_filename.ToStdString(), page));
     } catch (const xpdf_error &error) {
         wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
     }
@@ -578,7 +580,7 @@ void frame_editor::OnReadData(wxCommandEvent &evt) {
     if (pdf_filename.empty()) return;
 
     try {
-        auto *diag = new output_dialog(this, layout, pdf_filename);
+        auto *diag = new output_dialog(this, layout, pdf_filename.ToStdString());
         diag->Show();
     } catch (const pipe_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);

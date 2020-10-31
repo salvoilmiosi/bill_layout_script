@@ -55,7 +55,7 @@ public:
         return info;
     }
 
-    const std::string &getPdfFilename() {
+    const wxString &getPdfFilename() {
         return pdf_filename;
     }
 
@@ -112,8 +112,8 @@ private:
 
 private:
     pdf_info info;
-    std::string layout_filename{};
-    std::string pdf_filename{};
+    wxString layout_filename;
+    wxString pdf_filename;
     int selected_page = 0;
 };
 
