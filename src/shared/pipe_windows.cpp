@@ -46,30 +46,31 @@ windows_process_rwops::windows_process_rwops(const char *args[]) {
     start_info.hStdOutput = pipe_stdout[PIPE_WRITE];
     start_info.dwFlags |= STARTF_USESTDHANDLES;
 
-    char cmdline[1024] = "";
+    std::string cmdline;
     for (const char **cmd = args; *cmd != nullptr; ++cmd) {
         if (cmd != args) {
-            strcat(cmdline, " ");
+            cmdline += ' ';
         }
-        strcat(cmdline, "\"");
+        cmdline += '\"';
         for (const char *c = *cmd; *c != '\0'; ++c) {
             switch (*c) {
             case '\\':
-                strcat(cmdline, "\\");
+                cmdline += '\\';
+                // fall through
             default:
-                strncat(cmdline, c, 1);
+                cmdline += *c;
             }
         }
         if (cmd == args) {
-            strcat(cmdline, ".exe");
+            cmdline += ".exe";
         }
-        strcat(cmdline, "\"");
+        cmdline += '\"';
     }
 
     PROCESS_INFORMATION proc_info;
     ZeroMemory(&proc_info, sizeof(PROCESS_INFORMATION));
 
-    if (!CreateProcessA(nullptr, cmdline, nullptr, nullptr, true,
+    if (!CreateProcessA(nullptr, cmdline.data(), nullptr, nullptr, true,
             CREATE_NO_WINDOW, nullptr, nullptr, &start_info, &proc_info)) {
         throw pipe_error("Could not open child process");
     } else {
