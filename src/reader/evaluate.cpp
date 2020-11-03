@@ -108,20 +108,20 @@ variable parser::evaluate(const std::string &script, const box_content &content)
         };
 
         switch(hash(function.name)) {
-        case hash("search"):
+        case hash("search"): // $search(regex,[contenuto,index])
             if (fun_is(1, 3)) {
                 return search_regex(eval(0).str(),
                     function.args.size() >= 2 ? eval(1).str() : content.text,
                     function.args.size() >= 3 ? eval(2).asInt() : 1);
             }
             break;
-        case hash("nospace"):
+        case hash("nospace"): // converte qualsiasi spazio in ' '
             if (fun_is(1, 1)) return nospace(eval(0).str());
             break;
-        case hash("num"):
+        case hash("num"): // parsa il formato numerico italiano
             if (fun_is(1, 1)) return variable(parse_number(eval(0).str()), VALUE_NUMBER);
             break;
-        case hash("date"):
+        case hash("date"): // $date(regex[,contenuto,index]) -- come search ma cerca le date
             if (fun_is(1, 3))
                 return parse_date(eval(0).str(),
                     function.args.size() >= 2 ? eval(1).str() : content.text,
@@ -147,22 +147,39 @@ variable parser::evaluate(const std::string &script, const box_content &content)
                 }
             }
             break;
-        case hash("if"):
+        case hash("if"): // $if(cond,then[,else])
             if (fun_is(2, 3)) {
                 if (eval(0)) return eval(1);
                 else if (function.args.size() >= 3) return eval(2);
             }
             break;
-        case hash("ifnot"):
+        case hash("ifnot"): // $ifnot(cond,then[,else])
             if (fun_is(2, 3)) {
                 if (!eval(0)) return eval(1);
                 else if (function.args.size() >= 3) return eval(2);
             }
             break;
-        case hash("while"):
+        case hash("while"): // $while(cond,line)
             if (fun_is(2, 2)) {
                 while (eval(0)) eval(1);
             }
+            break;
+        case hash("for"): // $for(idx,range,line)
+            if (fun_is(3, 3)) {
+                auto idx = get_variable(function.args[0], content);
+                size_t len = eval(1).asInt();
+                for (size_t i=0; i<len; ++i) {
+                    *idx = i;
+                    eval(2);
+                }
+                idx.clear();
+            }
+            break;
+        case hash("clear"):
+            if (fun_is(1, 1)) get_variable(function.args[0], content).clear();
+            break;
+        case hash("size"):
+            if (fun_is(1, 1)) return get_variable(function.args[0], content).size();
             break;
         case hash("not"):
             if (fun_is(1, 1)) return !eval(0);
@@ -201,13 +218,17 @@ variable parser::evaluate(const std::string &script, const box_content &content)
         case hash("inc"):
             if (fun_is(1, 2)) {
                 auto &var = *get_variable(function.args[0], content);
-                return var = var + (function.args.size() >= 2 ? eval(1) : variable(1));
+                auto inc = function.args.size() >= 2 ? eval(1) : variable(1);
+                if (inc) return var = var + inc;
+                else return var;
             }
             break;
         case hash("dec"):
             if (fun_is(1, 2)) {
                 auto &var = *get_variable(function.args[0], content);
-                return var = var - (function.args.size() >= 2 ? eval(1) : variable(1));
+                auto inc = function.args.size() >= 2 ? eval(1) : variable(1);
+                if (inc) return var = var - inc;
+                else return var;
             }
             break;
         case hash("add"):

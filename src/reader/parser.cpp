@@ -145,6 +145,29 @@ variable &variable_ref::operator *() {
     return var[index];
 }
 
+void variable_ref::clear() {
+    if (parent.m_values.size() <= pageidx) return;
+
+    if (index == INDEX_GLOBAL) {
+        parent.m_globals.erase(name);
+    } else {
+        parent.m_values[pageidx].erase(name);
+    }
+}
+
+size_t variable_ref::size() const {
+    if (parent.m_values.size() <= pageidx) return 0;
+
+    if (index == INDEX_GLOBAL) {
+        return parent.m_globals.find(name) != parent.m_globals.end();
+    }
+
+    auto &page = parent.m_values[pageidx];
+    auto it = page.find(name);
+    if (it == page.end()) return 0;
+    return it->second.size();
+}
+
 bool variable_ref::isset() const {
     if (parent.m_values.size() <= pageidx) return false;
 

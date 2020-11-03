@@ -46,6 +46,8 @@ public:
     std::string name;
     size_t index = 0;
 
+    void clear();
+    size_t size() const;
     bool isset() const;
     variable &operator *();
 };
