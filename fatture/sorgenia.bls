@@ -40,7 +40,7 @@
 				"type" : 0,
 				"w" : 0.46489563584327698,
 				"x" : 0.48481974005699158,
-				"y" : 0.011402508243918419
+				"y" : 0.010436194017529488
 			},
 			{
 				"goto_label" : "",
@@ -152,7 +152,7 @@
 				"mode" : 2,
 				"name" : "Sintesi valori",
 				"page" : 1,
-				"script" : "%spesa_materia_energia=$search(SPESA PER LA MATERIA ENERGIA $NUMBER,@)\n%spesa_materia_energia=$search(SPESA PER L'ENERGIA ELETTRICA $NUMBER,@)\n%trasporto_gestione=$search(\"SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA $NUMBER\",@)\n%accise=$search(IVA E IMPOSTE.+ $NUMBER)",
+				"script" : "%spesa_materia_energia=$search(SPESA PER LA MATERIA ENERGIA $NUMBER)\n%spesa_materia_energia=$search(SPESA PER L'ENERGIA ELETTRICA $NUMBER)\n%trasporto_gestione=$search(\"SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA $NUMBER\")\n%accise=$search(IVA E IMPOSTE.+ $NUMBER)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.58770161867141724,
@@ -191,7 +191,7 @@
 				"mode" : 2,
 				"name" : "Potenza",
 				"page" : 3,
-				"script" : "#### Inserisci 3 volte lo stesso valore potenza\n$tokens($search(POTENZA FATTURATA kW .+ $NUMBER\\n\\n),%potenza+,%potenza+,%potenza+)",
+				"script" : "#### Inserisci 3 volte lo stesso valore potenza\n%potenza:=$search(POTENZA FATTURATA kW.+ $NUMBER\\n\\n)\npotenza+=&potenza\npotenza+=&potenza",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.91720432043075562,
@@ -204,12 +204,12 @@
 				"mode" : 0,
 				"name" : "Prezzo energia",
 				"page" : 4,
-				"script" : "$tokens($search(Prezzo energia euro/kWh $NUMBER),%prezzo_energia+,%prezzo_energia+,%prezzo_energia+)\n%prezzo_energia:=$search(Prezzo Ore Giorno euro/kWh $NUMBER)\n%prezzo_energia+=$search(Prezzo Ore Notte euro/kWh $NUMBER)\n%prezzo_energia:=$search(Prezzo Picco euro/kWh $NUMBER)\n%prezzo_energia+=$search(Prezzo Fuori Picco euro/kWh $NUMBER)\n%inf_75=$search(Energia Reattiva tra il [0-9]+% e 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER,@,3)\n%sup_75=$search(Energia Reattiva oltre il 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER,@,3)\n%imponibile=$search(Iva [0-9+% $NUMBER)\niva=$div($search(Iva $NUMBER%),100)",
+				"script" : "%prezzo_energia:=$search(Prezzo energia euro/kWh $NUMBER)\nprezzo_energia+=&prezzo_energia\nprezzo_energia+=&prezzo_energia\n%prezzo_energia:=$search(Prezzo Ore Giorno euro/kWh $NUMBER)\n%prezzo_energia+=$search(Prezzo Ore Notte euro/kWh $NUMBER)\n%prezzo_energia:=$search(Prezzo Picco euro/kWh $NUMBER)\n%prezzo_energia+=$search(Prezzo Fuori Picco euro/kWh $NUMBER)\n%inf_75=$search(Energia Reattiva tra il [0-9]+% e 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER,@,3)\n%sup_75=$search(Energia Reattiva oltre il 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER,@,3)\n%cts=$search(Corrispettivo Tariffario Specifico dal [0-9]+/[0-9]+/[0-9]+ al [0-9]+/[0-9]+/[0-9]+ $NUMBER)\n%imponibile=$search(TOTALE IVA Iva [0-9]+% $NUMBER)\niva=$div($search(TOTALE IVA Iva $NUMBER%),100)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.87893015146255493,
 				"x" : 0.061249487102031708,
-				"y" : 0.12124186009168625
+				"y" : 0.12027554214000702
 			}
 		]
 	},
