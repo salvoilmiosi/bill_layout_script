@@ -95,6 +95,7 @@ std::string parse_date(const std::string &format, const std::string &value, int 
     string_replace(day, "MON", "[a-zA-Z]{3}");
     string_replace(day, "YEAR", "[0-9]{4}");
     string_replace(day, "YYYY", "[0-9]{4}");
+    string_replace(day, "YY", "[0-9]{2}");
     day = search_regex(day, value, index);
 
     std::string month = format;
@@ -105,6 +106,7 @@ std::string parse_date(const std::string &format, const std::string &value, int 
     string_replace(month, "MON", "([a-zA-Z]{3})");
     string_replace(month, "YEAR", "[0-9]{4}");
     string_replace(month, "YYYY", "[0-9]{4}");
+    string_replace(month, "YY", "[0-9]{2}");
     month = search_regex(month, value, index);
     month = string_tolower(month);
     for (size_t i=0; i<std::size(MONTHS); ++i) {
@@ -126,7 +128,19 @@ std::string parse_date(const std::string &format, const std::string &value, int 
     string_replace(year, "MON", "[a-zA-Z]{3}");
     string_replace(year, "YEAR", "([0-9]{4})");
     string_replace(year, "YYYY", "([0-9]{4})");
+    string_replace(year, "YY", "([0-9]{2})");
     year = search_regex(year, value, index);
+
+    try {
+        int yy = std::stoi(year);
+        if (yy < 100) {
+            if (yy > 90) {
+                year = "19" + year;
+            } else {
+                year = "20" + year;
+            }
+        }
+    } catch (std::invalid_argument &) {}
 
     return day.empty() ? year + "-" + month : year + "-" + month + "-" + day;
 }

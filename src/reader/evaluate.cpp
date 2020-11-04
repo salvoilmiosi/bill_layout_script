@@ -188,6 +188,9 @@ variable parser::evaluate(const std::string &script, const box_content &content)
         case hash("size"):
             if (fun_is(1, 1)) return get_variable(function.args[0], content).size();
             break;
+        case hash("isset"):
+            if (fun_is(1, 1)) return get_variable(function.args[0], content).isset();
+            break;
         case hash("not"):
             if (fun_is(1, 1)) return !eval(0);
             break;
