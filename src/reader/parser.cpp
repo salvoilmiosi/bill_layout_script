@@ -60,22 +60,21 @@ void parser::read_box(const pdf_info &info, layout_box box) {
 }
 
 void parser::execute_script(const box_content &content) {
-    std::vector<std::string> scripts;
-
     size_t start = 0;
     size_t end = 0;
     while (end != std::string::npos) {
-        if (content.script[start] == '#') {
-            end = content.script.find('\n', start);
-        } else {
-            end = content.script.find(';', start);
-            scripts.push_back(string_trim(nospace(content.script.substr(start, end - start))));
+        switch (content.script[start]) {
+        case '#':
+            end = content.script.find('\n', start + 1);
+            break;
+        case '\n':
+            ++end;
+            break;
+        default:
+            end = content.script.find(';', start + 1);
+            execute_line(string_trim(nospace(content.script.substr(start, end - start))), content);
         }
         start = end + 1;
-    }
-
-    for (auto &script : scripts) {
-        execute_line(script, content);
     }
 }
 
@@ -230,15 +229,15 @@ variable_ref parser::get_variable(std::string_view name, const box_content &cont
     return ref;
 }
 
-std::ostream & operator << (std::ostream &out, const parser &res) {
+std::ostream &parser::print_output(std::ostream &out, bool debug) {
     Json::Value root = Json::objectValue;
 
     Json::Value &values = root["values"] = Json::arrayValue;
 
-    for (auto &page : res.m_values) {
+    for (auto &page : m_values) {
         auto &page_values = values.append(Json::objectValue);
         for (auto &pair : page) {
-            if(!res.debug && pair.second.front().debug) continue;
+            if(!debug && pair.second.front().debug) continue;
             auto &json_arr = page_values[pair.first] = Json::arrayValue;
             for (auto &val : pair.second) {
                 json_arr.append(val.str());
@@ -247,8 +246,8 @@ std::ostream & operator << (std::ostream &out, const parser &res) {
     }
 
     Json::Value &globals = root["globals"] = Json::objectValue;
-    for (auto &pair : res.m_globals) {
-        if (!res.debug && pair.second.debug) continue;
+    for (auto &pair : m_globals) {
+        if (!debug && pair.second.debug) continue;
         globals[pair.first] = pair.second.str();
     }
 

@@ -165,7 +165,7 @@
 				"mode" : 1,
 				"name" : "Energia attiva",
 				"page" : 2,
-				"script" : "### Il rettangolo e' alto perche' il layout shifta verticalmente.\n###\n### Lo script legge tutte le righe sotto \"consumi del periodo\",\n### le archivia nella variabile lines_consumi e poi prende il penultimo valore\n###\n$lines($search(CONSUMI DEL PERIODO \\(kWh\\) F1 F2 F3 ((.+\\n)+),$cat(@,\"\\n\")),\n  !lines_consumi+);\n$tokens(&lines_consumi[$sub($size(lines_consumi),2)],\n  %energia_attiva+,%energia_attiva+,%energia_attiva+);\n$clear(lines_consumi)",
+				"script" : "### Il rettangolo e' alto perche' il layout shifta verticalmente.\n\n### Lo script legge tutte le righe sotto \"consumi del periodo\",\n### le archivia nella variabile lines_consumi e poi prende il penultimo valore\n\n$lines($search(CONSUMI DEL PERIODO \\(kWh\\) F1 F2 F3 ((.+\\n)+),$cat(@,\"\\n\")),\n  !lines_consumi+);\n$tokens(&lines_consumi[$sub($size(lines_consumi),2)],\n  %energia_attiva+,%energia_attiva+,%energia_attiva+);\n$clear(lines_consumi)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.19758065044879913,

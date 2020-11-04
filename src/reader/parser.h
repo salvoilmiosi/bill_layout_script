@@ -55,15 +55,12 @@ public:
 class parser {
 public:
     void read_layout(const pdf_info &info, const bill_layout_script &layout);
-    void execute_script(const box_content &content);
     const variable &get_global(const std::string &name) const;
-
-    friend std::ostream & operator << (std::ostream &out, const parser &res);
-
-    bool debug = false;
+    std::ostream &print_output(std::ostream &out, bool debug = false);
 
 private:
     void read_box(const pdf_info &info, layout_box box);
+    void execute_script(const box_content &content);
 
     variable execute_line(const std::string &script, const box_content &content);
     variable evaluate(const std::string &script, const box_content &content);

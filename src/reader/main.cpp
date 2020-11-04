@@ -21,6 +21,7 @@ int main(int argc, char **argv) {
     std::filesystem::path layout_dir;
     bool exec_script = false;
     bool in_file_layout = true;
+    bool debug = false;
 
     for (++argv; argc > 1; --argc, ++argv) {
         switch (options_flag) {
@@ -28,7 +29,7 @@ int main(int argc, char **argv) {
             if (strcmp(*argv, "-p") == 0) options_flag = FLAG_PDF;
             else if (strcmp(*argv, "-l") == 0) options_flag = FLAG_LAYOUT_DIR;
             else if (strcmp(*argv, "-s") == 0) exec_script = true;
-            else if (strcmp(*argv, "-d") == 0) result.debug = true;
+            else if (strcmp(*argv, "-d") == 0) debug = true;
             else input_file = *argv;
             break;
         case FLAG_PDF:
@@ -117,7 +118,7 @@ int main(int argc, char **argv) {
         return 4;
     }
 
-    std::cout << result << std::endl;
+    result.print_output(std::cout, debug) << std::endl;
 
     return 0;
 }
