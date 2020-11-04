@@ -97,7 +97,9 @@ variable parser::execute_line(const std::string &script, const box_content &cont
 
 variable parser::add_value(std::string_view name, variable value, const box_content &content) {
     if (name.front() == '%') {
-        value = variable(parse_number(value.str()), VALUE_NUMBER);
+        if (value.type() != VALUE_NUMBER) {
+            value = variable(parse_number(value.str()), VALUE_NUMBER);
+        }
         name.remove_prefix(1);
     }
 
