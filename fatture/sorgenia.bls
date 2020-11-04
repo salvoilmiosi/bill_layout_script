@@ -11,7 +11,7 @@
 				"page" : 1,
 				"script" : "$if(%0,$error(Layout Invalido))",
 				"spacers" : "",
-				"type" : 0,
+				"type" : 3,
 				"w" : 0.13771712779998779,
 				"x" : 0.54466503858566284,
 				"y" : 0.13946142792701721
@@ -152,7 +152,7 @@
 				"mode" : 2,
 				"name" : "Sintesi valori",
 				"page" : 1,
-				"script" : "%spesa_materia_energia=$search(SPESA PER LA MATERIA ENERGIA $NUMBER);\n%spesa_materia_energia=$search(SPESA PER L'ENERGIA ELETTRICA $NUMBER);\n%trasporto_gestione=$search(\"SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA $NUMBER\");\n%accise=$search(IVA E IMPOSTE.+ $NUMBER)",
+				"script" : "%spesa_materia_energia=$search(SPESA PER LA MATERIA ENERGIA $NUMBER);\n%spesa_materia_energia=$search(SPESA PER L'ENERGIA ELETTRICA $NUMBER);\n%trasporto_gestione=$search(\"SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA $NUMBER\");",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.58770161867141724,
@@ -165,12 +165,12 @@
 				"mode" : 1,
 				"name" : "Energia attiva",
 				"page" : 2,
-				"script" : "### Il rettangolo e' alto perche' il layout shifta verticalmente\n%energia_attiva+=$search(CONSUMI DEL PERIODO \\(kWh\\) F1 F2 F3 $NUMBER $NUMBER $NUMBER,@,1);\n%energia_attiva+=$search(CONSUMI DEL PERIODO \\(kWh\\) F1 F2 F3 $NUMBER $NUMBER $NUMBER,@,2);\n%energia_attiva+=$search(CONSUMI DEL PERIODO \\(kWh\\) F1 F2 F3 $NUMBER $NUMBER $NUMBER,@,3)",
+				"script" : "### Il rettangolo e' alto perche' il layout shifta verticalmente.\n###\n### Lo script legge tutte le righe sotto \"consumi del periodo\",\n### le archivia nella variabile lines_consumi e poi prende il penultimo valore\n###\n$lines($search(CONSUMI DEL PERIODO \\(kWh\\) F1 F2 F3 ((.+\\n)+),$cat(@,\"\\n\")),\n  !lines_consumi+);\n$tokens(&lines_consumi[$sub($size(lines_consumi),2)],\n  %energia_attiva+,%energia_attiva+,%energia_attiva+);\n$clear(lines_consumi)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.19758065044879913,
-				"x" : 0.20967741310596466,
-				"y" : 0.51436591148376465
+				"x" : 0.21129031479358673,
+				"y" : 0.51550614833831787
 			},
 			{
 				"goto_label" : "",
@@ -195,7 +195,7 @@
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.91720432043075562,
-				"x" : 0.040860213339328766,
+				"x" : 0.04238181933760643,
 				"y" : 0.076776891946792603
 			},
 			{
@@ -204,7 +204,7 @@
 				"mode" : 0,
 				"name" : "Prezzo energia",
 				"page" : 4,
-				"script" : "%prezzo_energia[0]=$search(Prezzo energia euro/kWh $NUMBER);\n%prezzo_energia[0]=$search(Prezzo Ore Giorno euro/kWh $NUMBER);\n%prezzo_energia[0]=$search(Prezzo Picco euro/kWh $NUMBER);\n%prezzo_energia[1]=&prezzo_energia[0];\n%prezzo_energia[2]=&prezzo_energia[0];\n%prezzo_energia[2]=$search(Prezzo Ore Notte euro/kWh $NUMBER);\n%prezzo_energia[2]=$search(Prezzo Fuori Picco euro/kWh $NUMBER);\n;\n%inf_75=$search(Energia Reattiva tra il [0-9]+% e 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER,@,3);\n%sup_75=$search(Energia Reattiva oltre il 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER,@,3);\n%cts=$search(Corrispettivo Tariffario Specifico dal [0-9]+/[0-9]+/[0-9]+ al [0-9]+/[0-9]+/[0-9]+ $NUMBER);\n%imponibile=$search(BASE IMPONIBILE Totale fornitura $NUMBER);\n%imponibile=$search(TOTALE IVA Iva [0-9]+% $NUMBER);\n%iva=$div($search(TOTALE IVA Iva $NUMBER%),100)",
+				"script" : "$for(i,3,%prezzo_energia[&i]=$search(Prezzo energia euro/kWh $NUMBER));\n%prezzo_energia[0]=$search(Prezzo F1 euro/kWh $NUMBER);\n%prezzo_energia[1]=$search(Prezzo F2 euro/kWh $NUMBER);\n%prezzo_energia[2]=$search(Prezzo F3 euro/kWh $NUMBER);\n%prezzo_energia[0]=$search(Prezzo Ore Giorno euro/kWh $NUMBER);\n%prezzo_energia[1]=$search(Prezzo Ore Notte euro/kWh $NUMBER);\n%prezzo_energia[0]=$search(Prezzo Picco euro/kWh $NUMBER);\n%prezzo_energia[1]=$search(Prezzo Fuori Picco euro/kWh $NUMBER);\n%inf_75=$search(Energia Reattiva tra il [0-9]+% e 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER,@,3);\n%sup_75=$search(Energia Reattiva oltre il 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER,@,3);\n%cts=$search(Corrispettivo Tariffario Specifico dal [0-9]+/[0-9]+/[0-9]+ al [0-9]+/[0-9]+/[0-9]+ $NUMBER);\n%imponibile=$search(BASE IMPONIBILE Totale fornitura $NUMBER);\n%imponibile=$search(TOTALE IVA Iva [0-9]+% $NUMBER);\n%iva=$div($search(TOTALE IVA Iva $NUMBER%),100)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.87893015146255493,
