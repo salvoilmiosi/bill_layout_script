@@ -72,7 +72,7 @@ void parser::execute_script(const box_content &content) {
             break;
         default:
             end = content.script.find(';', start + 1);
-            execute_line(string_trim(nospace(content.script.substr(start, end - start))), content);
+            execute_line(string_trim(content.script.substr(start, end - start)), content);
         }
         start = end + 1;
     }

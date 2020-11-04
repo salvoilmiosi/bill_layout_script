@@ -70,11 +70,13 @@ tokens parse_function(const std::string &script) {
                     reading_arg += ',';
                 }
                 break;
+            case '\n':
+            case '\t':
             case ' ':
                 if (reading_arg.empty()) {
                     break;
                 } else if (bracecount > 0) {
-                    reading_arg += script[i];
+                    reading_arg += ' ';
                 }
                 break;
             default:
@@ -115,7 +117,7 @@ variable parser::evaluate(const std::string &script, const box_content &content)
         };
 
         switch(hash(function.name)) {
-        case hash("search"): // $search(regex,[contenuto,index])
+        case hash("search"): // $search(regex[,contenuto,index])
             if (fun_is(1, 3)) {
                 return search_regex(eval(0).str(),
                     function.args.size() >= 2 ? eval(1).str() : content.text,
