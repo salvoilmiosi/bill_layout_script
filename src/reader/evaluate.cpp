@@ -70,6 +70,13 @@ tokens parse_function(const std::string &script) {
                     reading_arg += ',';
                 }
                 break;
+            case ' ':
+                if (reading_arg.empty()) {
+                    break;
+                } else if (bracecount > 0) {
+                    reading_arg += script[i];
+                }
+                break;
             default:
                 if (bracecount == 0) {
                     throw parsing_error("Valori non previsti dopo ')'", script);

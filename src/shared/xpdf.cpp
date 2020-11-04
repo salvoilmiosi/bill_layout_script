@@ -40,8 +40,7 @@ std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect) {
             nullptr
         };
 
-        std::string out = open_process(args)->read_all();
-        return string_trim(out);
+        return string_trim(open_process(args)->read_all());
     }
     case BOX_PAGE:
     {
@@ -60,8 +59,7 @@ std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect) {
             nullptr
         };
 
-        std::string out = open_process(args)->read_all();
-        return string_trim(out);
+        return string_trim(open_process(args)->read_all());
     }
     case BOX_WHOLE_FILE:
     {
@@ -72,8 +70,7 @@ std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect) {
             nullptr
         };
 
-        std::string out = open_process(args)->read_all();
-        return string_trim(out);
+        return string_trim(open_process(args)->read_all());
     }
     default:
         break;

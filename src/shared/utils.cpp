@@ -49,7 +49,7 @@ std::string &string_tolower(std::string &str) {
     return str;
 }
 
-std::string &string_trim(std::string &str) {
+std::string string_trim(std::string str) {
     string_replace(str, "\r\n", "\n");
     str.erase(0, str.find_first_not_of("\t\n\v\f\r "));
     str.erase(str.find_last_not_of("\t\n\v\f\r ") + 1);

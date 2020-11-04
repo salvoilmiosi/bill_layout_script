@@ -56,18 +56,24 @@ void parser::read_box(const pdf_info &info, layout_box box) {
             }
         }
     }
-    std::vector<std::string> scripts = read_lines(box.script);
-    box_content content(box);
-    content.text = pdf_to_text(info, box);
-    for (auto &script : scripts) {
-        execute_line(script, content);
-    }
+    execute_script(box_content(box, pdf_to_text(info, box)));
 }
 
-void parser::read_script(std::istream &stream, const std::string &text) {
-    std::vector<std::string> scripts = read_lines(stream);
+void parser::execute_script(const box_content &content) {
+    std::vector<std::string> scripts;
 
-    box_content content(text);
+    size_t start = 0;
+    size_t end = 0;
+    while (end != std::string::npos) {
+        if (content.script[start] == '#') {
+            end = content.script.find('\n', start);
+        } else {
+            end = content.script.find(';', start);
+            scripts.push_back(string_trim(nospace(content.script.substr(start, end - start))));
+        }
+        start = end + 1;
+    }
+
     for (auto &script : scripts) {
         execute_line(script, content);
     }
