@@ -41,6 +41,8 @@ public:
         return current == script.end();
     }
 
+    std::string getLocation(const token &tok);
+
 private:
     std::string_view script;
 

@@ -33,7 +33,7 @@ void reader::read_box(const pdf_info &info, layout_box box) {
             }
         } else {
             if (name.size() <= 2 || name.at(name.size()-2) != '.') {
-                throw parsing_error("Identificatore spaziatore incorretto", name);
+                throw parsing_error("Identificatore spaziatore incorretto", box.spacers);
             }
             bool negative = name.front() == '-';
             auto it = m_spacers.find(negative ? name.substr(1, name.size()-3) : name.substr(0, name.size()-2));
@@ -56,7 +56,7 @@ void reader::read_box(const pdf_info &info, layout_box box) {
                 else box.h += it->second.h;
                 break;
             default:
-                throw parsing_error("Identificatore spaziatore incorretto", name);
+                throw parsing_error("Identificatore spaziatore incorretto", box.spacers);
             }
         }
     }
@@ -72,6 +72,10 @@ variable reader::add_value(variable_ref ref, variable value) {
         value = variable(parse_number(value.str()), VALUE_NUMBER);
     }
 
+    if (ref.flags & variable_ref::FLAGS_DEBUG) {
+        value.debug = true;
+    }
+
     if (!value.empty()) {
         *ref = value;
     }
@@ -85,7 +89,7 @@ variable reader::exec_line(tokenizer &tokens, const box_content &content) {
         auto var = exec_function(tokens, content);
         tokens.nextToken(next);
         if (next.type != TOK_END_OF_FILE && next.type != TOK_END_EXPR) {
-            throw parsing_error("Token imprevisto", std::string(next.value));
+            throw parsing_error("Token imprevisto", tokens.getLocation(next));
         }
         return var;
     } else {
@@ -97,7 +101,7 @@ variable reader::exec_line(tokenizer &tokens, const box_content &content) {
             auto var = evaluate(tokens, content);
             tokens.nextToken(next);
             if (next.type != TOK_END_OF_FILE && next.type != TOK_END_EXPR) {
-                throw parsing_error("Token imprevisto", std::string(next.value));
+                throw parsing_error("Token imprevisto", tokens.getLocation(next));
             }
             add_value(ref, var);
             return var;
@@ -106,7 +110,7 @@ variable reader::exec_line(tokenizer &tokens, const box_content &content) {
         case TOK_END_OF_FILE:
             return add_value(ref, content.text);
         default:
-            throw parsing_error("Token imprevisto", std::string(next.value));
+            throw parsing_error("Token imprevisto", tokens.getLocation(next));
         }
     }
     return variable();
@@ -128,7 +132,7 @@ variable reader::evaluate(tokenizer &tokens, const box_content &content) {
         tokens.advance(next);
         return content.text;
     default:
-        throw parsing_error("Token imprevisto", std::string(next.value));
+        throw parsing_error("Token imprevisto", tokens.getLocation(next));
     }
     return variable();
 }
@@ -145,20 +149,21 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content) {
     token next;
     tokens.nextToken(next);
     if (next.type != TOK_FUNCTION) {
-        throw parsing_error("Previsto '$'", std::string(next.value));
+        throw parsing_error("Previsto '$'", tokens.getLocation(next));
     }
 
     tokens.nextToken(next);
     if (next.type != TOK_IDENTIFIER) {
-        throw parsing_error("Previsto identificatore", std::string(next.value));
+        throw parsing_error("Previsto identificatore", tokens.getLocation(next));
     }
 
+    token fun_opening = next;
     std::string fun_name = std::string(next.value);
     arg_list args;
 
     tokens.nextToken(next);
     if (next.type != TOK_BRACE_BEGIN) {
-        throw parsing_error("Previsto '('", std::string(next.value));
+        throw parsing_error("Previsto '('", tokens.getLocation(next));
     }
 
     bool in_fun_loop = true;
@@ -172,7 +177,7 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content) {
             in_fun_loop=false;
             break;
         default:
-            throw parsing_error("Token imprevisto", std::string(next.value));
+            throw parsing_error("Token imprevisto", tokens.getLocation(next));
         }
     }
 
@@ -189,6 +194,10 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content) {
         }}},
         {"contains", {2, 2, [&](const arg_list &args) {
             return args[0].str().find(args[1].str()) != std::string::npos;
+        }}},
+        {"error", {1, 1, [&](const arg_list &args) {
+            throw parsing_error(args[0].str(), tokens.getLocation(fun_opening));
+            return variable();
         }}}
     };
 
@@ -197,14 +206,14 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content) {
         if (args.size() >= it->second.min_args && args.size() <= it->second.max_args) {
             return it->second.handler(args);
         } else if (it->second.min_args == it->second.max_args) {
-            throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", fun_name, it->second.min_args), std::string(next.value));
+            throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", fun_name, it->second.min_args), tokens.getLocation(fun_opening));
         } else if (it->second.max_args != (size_t) -1) {
-            throw parsing_error(fmt::format("La funzione {0} richiede tra {1} e {2} argomenti", fun_name, it->second.min_args, it->second.max_args), std::string(next.value));
+            throw parsing_error(fmt::format("La funzione {0} richiede tra {1} e {2} argomenti", fun_name, it->second.min_args, it->second.max_args), tokens.getLocation(fun_opening));
         } else {
-            throw parsing_error(fmt::format("La funzione {0} richiede minimo {1} argomenti", fun_name, it->second.min_args), std::string(next.value));
+            throw parsing_error(fmt::format("La funzione {0} richiede minimo {1} argomenti", fun_name, it->second.min_args), tokens.getLocation(fun_opening));
         }
     } else {
-        throw parsing_error(fmt::format("Funzione non riconosciuta: {0}", fun_name), std::string(next.value));
+        throw parsing_error(fmt::format("Funzione non riconosciuta: {0}", fun_name), tokens.getLocation(fun_opening));
     }
 
     return variable();
@@ -230,7 +239,7 @@ variable_ref reader::get_variable(tokenizer &tokens, const box_content &content)
     }
 out_of_loop:
     if (next.type != TOK_IDENTIFIER) {
-        throw parsing_error("Richiesto identificatore", std::string(next.value));
+        throw parsing_error("Richiesto identificatore", tokens.getLocation(next));
     }
     ref.name = next.value;
     if (ref.flags & variable_ref::FLAGS_GLOBAL) {
@@ -244,7 +253,7 @@ out_of_loop:
         tokens.advance(next);
         tokens.nextToken(next);
         if (next.type != TOK_BRACKET_END) {
-            throw parsing_error("Richiesto ']'", std::string(next.value));
+            throw parsing_error("Richiesto ']'", tokens.getLocation(next));
         }
         break;
     case TOK_APPEND:

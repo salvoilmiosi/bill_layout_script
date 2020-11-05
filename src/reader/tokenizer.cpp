@@ -1,5 +1,8 @@
 #include "tokenizer.h"
 
+#include <fmt/format.h>
+#include "../shared/utils.h"
+
 tokenizer::tokenizer(const std::string_view &_script) : script(_script) {
     current = script.begin();
 }
@@ -119,6 +122,30 @@ bool tokenizer::nextToken(token &out, bool advance) {
 
 void tokenizer::advance(const token &tok) {
     current += tok.value.size();
+}
+
+std::string tokenizer::getLocation(const token &tok) {
+    size_t numline = 1;
+    size_t loc = 0;
+    bool found = false;
+    std::string line;
+    for (const char *c = script.begin(); c < script.end(); ++c) {
+        line += *c;
+        if (c == tok.value) {
+            found = true;
+        }
+        if (!found) {
+            ++loc;
+            if (*c == '\n') {
+                ++numline;
+                loc = 0;
+                line.clear();
+            }
+        } else if (*c == '\n') {
+            break;
+        }
+    }
+    return fmt::format("{0} at Ln {1}, Col {2}", line, numline, loc);
 }
 
 bool tokenizer::readIdentifier() {

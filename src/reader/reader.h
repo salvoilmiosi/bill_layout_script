@@ -14,7 +14,7 @@ struct parsing_error {
     const std::string message;
     const std::string line;
 
-    parsing_error(const std::string &message, const std::string &line = "") : message(message), line(line) {}
+    parsing_error(const std::string &message, const std::string &line) : message(message), line(line) {}
 };
 
 struct spacer {
