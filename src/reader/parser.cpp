@@ -251,5 +251,5 @@ std::ostream &parser::print_output(std::ostream &out, bool debug) {
         globals[pair.first] = pair.second.str();
     }
 
-    return out << root << std::endl;
+    return out << root;
 }

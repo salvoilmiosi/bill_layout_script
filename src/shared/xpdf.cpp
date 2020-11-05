@@ -1,8 +1,7 @@
 #include "xpdf.h"
 
-#include <sstream>
 #include <filesystem>
-#include <cstdio>
+#include <regex>
 
 #include "pipe.h"
 #include "utils.h"
@@ -21,20 +20,17 @@ std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect) {
             return "";
         }
 
-        char page_str[16];
-        snprintf(page_str, 16, "%d", in_rect.page);
-
-        char marginl[16], marginr[16], margint[16], marginb[16];
-        snprintf(marginl, 16, "%f", info.width * in_rect.x);
-        snprintf(marginr, 16, "%f", info.width * (1.f - in_rect.x - in_rect.w));
-        snprintf(margint, 16, "%f", info.height * in_rect.y);
-        snprintf(marginb, 16, "%f", info.height * (1.f - in_rect.y - in_rect.h));
+        auto page_str = std::to_string(in_rect.page);
+        auto marginl = std::to_string(info.width * in_rect.x);
+        auto marginr = std::to_string(info.width * (1.f - in_rect.x - in_rect.w));
+        auto margint = std::to_string(info.height * in_rect.y);
+        auto marginb = std::to_string(info.height * (1.f - in_rect.y - in_rect.h));
 
         const char *args[] = {
             "pdftotext",
-            "-f", page_str, "-l", page_str,
-            "-marginl", marginl, "-marginr", marginr,
-            "-margint", margint, "-marginb", marginb,
+            "-f", page_str.c_str(), "-l", page_str.c_str(),
+            "-marginl", marginl.c_str(), "-marginr", marginr.c_str(),
+            "-margint", margint.c_str(), "-marginb", marginb.c_str(),
             modes[in_rect.mode],
             info.filename.c_str(), "-",
             nullptr
@@ -48,12 +44,11 @@ std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect) {
             return "";
         }
 
-        char page_str[16];
-        snprintf(page_str, 16, "%d", in_rect.page);
+        auto page_str = std::to_string(in_rect.page);
 
         const char *args[] = {
             "pdftotext",
-            "-f", page_str, "-l", page_str,
+            "-f", page_str.c_str(), "-l", page_str.c_str(),
             modes[in_rect.mode],
             info.filename.c_str(), "-",
             nullptr
@@ -88,29 +83,18 @@ pdf_info pdf_get_info(const std::string &pdf) {
     };
 
     std::string output = open_process(args)->read_all();
-    std::istringstream iss(output);
 
-    std::string line;
+    std::smatch match;
 
     pdf_info ret;
     ret.filename = pdf;
-    while (std::getline(iss, line)) {
-        size_t colon_pos = line.find_first_of(':');
-        std::string token = line.substr(0, colon_pos);
-        if (token == "Pages") {
-            size_t start_pos = line.find_first_not_of(' ', colon_pos + 1);
-            token = line.substr(start_pos);
-            ret.num_pages = std::stoi(token);
-        } else if (token == "Page size") {
-            size_t start_pos = line.find_first_not_of(' ', colon_pos + 1);
-            size_t end_pos = line.find_first_of(' ', start_pos);
-            token = line.substr(start_pos, end_pos);
-            ret.width = std::stof(token);
-            start_pos = end_pos + 3;
-            end_pos = line.find_first_of(' ', start_pos);
-            token = line.substr(start_pos, end_pos);
-            ret.height = std::stof(token);
-        }
+    
+    if (std::regex_search(output, match, std::regex("Pages: +([0-9]+)"))) {
+        ret.num_pages = std::stoi(match.str(1));
+    }
+    if (std::regex_search(output, match, std::regex("Page size: +([0-9\\.]+) x ([0-9\\.]+)"))) {
+        ret.width = std::stof(match.str(1));
+        ret.height = std::stof(match.str(2));
     }
 
     return ret;

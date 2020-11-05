@@ -8,13 +8,11 @@ BIN_DIR = bin
 
 BIN_EDITOR = layout_editor
 BIN_READER = layout_reader
-BIN_SHARED = layout_shared.so
 
-INCLUDE = `wx-config --cxxflags`
+INCLUDE = `wx-config --cxxflags` `pkg-config --cflags jsoncpp fmt`
 
-LIBS_EDITOR = `wx-config --libs` -ljsoncpp
-LIBS_READER = -ljsoncpp -lfmt
-LIBS_SHARED = -ljsoncpp
+LIBS_EDITOR = `wx-config --libs` `pkg-config --libs jsoncpp`
+LIBS_READER = `pkg-config --libs jsoncpp fmt`
 
 SOURCES_SHARED = $(wildcard $(SRC_DIR)/shared/*.cpp $(SRC_DIR)/shared/**/*.cpp)
 OBJECTS_SHARED = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_SHARED)))
@@ -35,20 +33,19 @@ RESOURCES = $(OBJ_DIR)/images.o
 ifeq ($(OS),Windows_NT)
 	BIN_EDITOR := $(BIN_EDITOR).exe
 	BIN_READER := $(BIN_READER).exe
-	BIN_SHARED := $(BIN_SHARED:.so=.dll)
 	RESOURCES += $(patsubst resources/%.rc,$(OBJ_DIR)/%.res,$(wildcard resources/*.rc))
 endif
 
-all: shared editor reader
+all: editor reader
 
 clean:
-	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(BIN_DIR)/$(BIN_SHARED) $(OBJECTS) $(RESOURCES) $(OBJECTS:.o=.d)
+	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(OBJECTS) $(RESOURCES) $(OBJECTS:.o=.d)
 
 $(shell mkdir -p $(BIN_DIR) >/dev/null)
 
 editor: $(BIN_DIR)/$(BIN_EDITOR)
-$(BIN_DIR)/$(BIN_EDITOR): $(OBJECTS_EDITOR) $(BIN_DIR)/$(BIN_SHARED) $(RESOURCES)
-	$(CXX) -o $(BIN_DIR)/$(BIN_EDITOR) $(LDFLAGS) $(OBJECTS_EDITOR) $(BIN_DIR)/$(BIN_SHARED) $(RESOURCES) $(LIBS_EDITOR)
+$(BIN_DIR)/$(BIN_EDITOR): $(OBJECTS_EDITOR) $(OBJECTS_SHARED) $(RESOURCES)
+	$(CXX) -o $(BIN_DIR)/$(BIN_EDITOR) $(LDFLAGS) $(OBJECTS_EDITOR) $(OBJECTS_SHARED) $(RESOURCES) $(LIBS_EDITOR)
 
 $(OBJ_DIR)/images.o : $(IMAGES)
 	$(LD) -r -b binary -o $@ $^
@@ -57,12 +54,8 @@ $(OBJ_DIR)/%.res : resources/%.rc
 	`wx-config --rescomp` -O coff -o $@ -i $< 
 
 reader: $(BIN_DIR)/$(BIN_READER)
-$(BIN_DIR)/$(BIN_READER): $(OBJECTS_READER) $(BIN_DIR)/$(BIN_SHARED)
-	$(CXX) -o $(BIN_DIR)/$(BIN_READER) $(LDFLAGS) $(OBJECTS_READER) $(BIN_DIR)/$(BIN_SHARED) $(LIBS_READER) 
-
-shared: $(BIN_DIR)/$(BIN_SHARED)
-$(BIN_DIR)/$(BIN_SHARED): $(OBJECTS_SHARED)
-	$(CXX) -o $(BIN_DIR)/$(BIN_SHARED) -shared $(LDFLAGS) $(OBJECTS_SHARED) $(LIBS_SHARED)
+$(BIN_DIR)/$(BIN_READER): $(OBJECTS_READER) $(OBJECTS_SHARED)
+	$(CXX) -o $(BIN_DIR)/$(BIN_READER) $(LDFLAGS) $(OBJECTS_READER) $(OBJECTS_SHARED) $(LIBS_READER) 
 
 DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJ_DIR)/$*.Td
 

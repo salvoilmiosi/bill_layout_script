@@ -10,12 +10,11 @@ wxImage pdf_to_image(const std::string &pdf, int page) {
         throw xpdf_error(std::string("File \"") + pdf + "\" does not exist");
     }
     
-    char page_str[16];
-    snprintf(page_str, 16, "%d", page);
+    auto page_str = std::to_string(page);
 
     const char *args[] = {
         "pdftopng",
-        "-f", page_str,  "-l", page_str,
+        "-f", page_str.c_str(),  "-l", page_str.c_str(),
         pdf.c_str(), "temp",
         nullptr
     };

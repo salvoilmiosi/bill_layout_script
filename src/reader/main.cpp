@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
         return 4;
     }
 
-    result.print_output(std::cout, debug) << std::endl;
+    result.print_output(std::cout, debug);
 
     return 0;
 }

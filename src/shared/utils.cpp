@@ -41,7 +41,7 @@ std::string implode(const std::vector<std::string> &vec, const std::string &sepa
     return out;
 };
 
-std::string &string_tolower(std::string &str) {
+std::string string_tolower(std::string str) {
     std::transform(str.begin(), str.end(), str.begin(),
         [](unsigned char c) {
             return std::tolower(c);
@@ -107,8 +107,7 @@ std::string parse_date(const std::string &format, const std::string &value, int 
     string_replace(month, "YEAR", "[0-9]{4}");
     string_replace(month, "YYYY", "[0-9]{4}");
     string_replace(month, "YY", "[0-9]{2}");
-    month = search_regex(month, value, index);
-    month = string_tolower(month);
+    month = string_tolower(search_regex(month, value, index));
     for (size_t i=0; i<std::size(MONTHS); ++i) {
         if (month.find(MONTHS[i]) != std::string::npos) {
             if (i < 9) {
@@ -142,7 +141,13 @@ std::string parse_date(const std::string &format, const std::string &value, int 
         }
     } catch (std::invalid_argument &) {}
 
-    return day.empty() ? year + "-" + month : year + "-" + month + "-" + day;
+    if (year.empty() || month.empty()) {
+        return "";
+    } else if (day.empty()) {
+        return year + "-" + month;
+    } else {
+        return year + "-" + month + "-" + day;
+    }
 }
 
 std::string date_month_end(const std::string &value) {
