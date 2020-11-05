@@ -9,7 +9,7 @@
 				"mode" : 0,
 				"name" : "Identifica layout",
 				"page" : 1,
-				"script" : "*layout=$if($contains(@,Axpo Italia SpA),$if($contains(@,C/O MILANO CENTRO),axpo_old.bls,axpo.bls));\n*layout=$if($contains(@,Enel Energia),enel.bls);\n*layout=$if($contains(@,ITALPOWER ENERGIA),italpower.bls);\n*layout=$if($contains(@,Sorgenia S.p.A),sorgenia.bls);\n*layout=$if($contains(@,E.ON Energia S.p.A),eon.bls);\n*layout=$if($contains(@,www.lenergia.eu),lenergia.bls);\n*layout=$if($contains(@,Servizio Elettrico Nazionale SpA),sen.bls);\n*layout=$if($contains(@,GREEN NETWORK S.p.A),greennetwork.bls);\n*layout=$if($contains(@,CURA GAS & POWER S.p.A.),cura.bls)",
+				"script" : "*layout=$if($contains(@,\"Axpo Italia SpA\"),$if($contains(@,\"C/O MILANO CENTRO\"),\"axpo_old.bls\",\"axpo.bls\"));\n*layout=$if($contains(@,\"Enel Energia\"),\"enel.bls\");\n*layout=$if($contains(@,\"ITALPOWER ENERGIA\"),\"italpower.bls\");\n*layout=$if($contains(@,\"Sorgenia S.p.A\"),\"sorgenia.bls\");\n*layout=$if($contains(@,\"E.ON Energia S.p.A\"),\"eon.bls\");\n*layout=$if($contains(@,\"www.lenergia.eu\"),\"lenergia.bls\");\n*layout=$if($contains(@,\"Servizio Elettrico Nazionale SpA\"),\"sen.bls\");\n*layout=$if($contains(@,\"GREEN NETWORK S.p.A\"),\"greennetwork.bls\");\n*layout=$if($contains(@,\"CURA GAS & POWER S.p.A.\"),\"cura.bls\")",
 				"spacers" : "",
 				"type" : 2,
 				"w" : 0,
