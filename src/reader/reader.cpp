@@ -2,6 +2,7 @@
 
 #include <json/json.h>
 #include <fmt/format.h>
+#include <iostream>
 #include "../shared/utils.h"
 
 void reader::read_layout(const pdf_info &info, const bill_layout_script &layout) {
@@ -10,14 +11,18 @@ void reader::read_layout(const pdf_info &info, const bill_layout_script &layout)
             goto_labels[layout.boxes[i].goto_label] = i;
         }
     }
-    program_counter = 0;
-    while (program_counter < layout.boxes.size()) {
-        read_box(info, layout.boxes[program_counter]);
-        if (jumped) {
-            jumped = false;
-        } else {
-            ++program_counter;
+    try {
+        program_counter = 0;
+        while (program_counter < layout.boxes.size()) {
+            read_box(info, layout.boxes[program_counter]);
+            if (jumped) {
+                jumped = false;
+            } else {
+                ++program_counter;
+            }
         }
+    } catch (const parsing_error &error) {
+        throw layout_error(fmt::format("In {0}: {1}\n{2}", layout.boxes[program_counter].name, error.message, error.line));
     }
 }
 
@@ -142,7 +147,8 @@ variable reader::evaluate(tokenizer &tokens, const box_content &content, bool ig
 
 variable_ref reader::get_variable(tokenizer &tokens, const box_content &content) {
     variable_ref ref(*this);
-    while (tokens.next()) {
+    bool in_loop = true;
+    while (in_loop && tokens.next()) {
         switch (tokens.current().type) {
         case TOK_GLOBAL:
             ref.flags |= variable_ref::FLAGS_GLOBAL;
@@ -154,10 +160,10 @@ variable_ref reader::get_variable(tokenizer &tokens, const box_content &content)
             ref.flags |= variable_ref::FLAGS_NUMBER;
             break;
         default:
-            goto out_of_loop;
+            in_loop = false;
         }
     }
-out_of_loop:
+
     if (tokens.current().type != TOK_IDENTIFIER) {
         throw parsing_error("Richiesto identificatore", tokens.getLocation(tokens.current()));
     }

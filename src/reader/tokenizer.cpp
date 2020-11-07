@@ -160,7 +160,11 @@ std::string tokenizer::getLocation(const token &tok) {
             break;
         }
     }
-    return fmt::format("{0} at Ln {1}, Col {2}", line, numline, loc);
+    std::string align_num;
+    for (size_t i=1; i<loc; ++i) {
+        align_num += '-';
+    }
+    return fmt::format("{0}: Ln {1}, Col {2}:\n{3}^", line, numline, loc, align_num);
 }
 
 bool tokenizer::readIdentifier() {

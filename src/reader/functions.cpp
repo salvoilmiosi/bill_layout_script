@@ -170,6 +170,19 @@ variable reader::exec_sys_function(tokenizer &tokens, const box_content &content
         auto condition = evaluate(tokens, content, ignore);
         tokens.require(TOK_PAREN_END);
         exec_line(tokens, content, ignore || !condition);
+        tokens.next();
+        token tok_else = tokens.current();
+        bool has_else = false;
+        if (tokens.current().type == TOK_FUNCTION) {
+            tokens.next();
+            if (tokens.current().value == "else") {
+                exec_line(tokens, content, ignore || condition);
+                has_else = true;
+            }
+        }
+        if (!has_else) {
+            tokens.gotoTok(tok_else);
+        }
     } else if (fun_name == "while") {
         tokens.require(TOK_PAREN_BEGIN);
 
@@ -284,7 +297,7 @@ variable reader::exec_sys_function(tokenizer &tokens, const box_content &content
         default:
             throw parsing_error("Token inaspettato", tokens.getLocation(tokens.current()));
         }
-        if (!ignore && amt) *var = *var + amt;
+        if (amt) add_value(var, *var + amt, ignore);
     } else if (fun_name == "dec") {
         tokens.require(TOK_PAREN_BEGIN);
         auto var = get_variable(tokens, content);
@@ -300,7 +313,7 @@ variable reader::exec_sys_function(tokenizer &tokens, const box_content &content
         default:
             throw parsing_error("Token inaspettato", tokens.getLocation(tokens.current()));
         }
-        if (!ignore && amt) *var = *var - amt;
+        if (amt) add_value(var, *var - amt, ignore);
     } else if (fun_name == "isset") {
         tokens.require(TOK_PAREN_BEGIN);
         auto var = get_variable(tokens, content);
@@ -312,9 +325,8 @@ variable reader::exec_sys_function(tokenizer &tokens, const box_content &content
         tokens.require(TOK_PAREN_END);
         return var.size();
     } else if (fun_name == "clear") {
-        tokens.next();
         auto var = get_variable(tokens, content);
-        var.clear();
+        if (!ignore) var.clear();
     } else if (fun_name == "addspacer") {
         tokens.require(TOK_IDENTIFIER);
         if (!ignore) {

@@ -110,13 +110,10 @@ int main(int argc, char **argv) {
         return 1;
     } catch (const xpdf_error &error) {
         std::cerr << error.message << std::endl;
-        return 2;
-    } catch (const parsing_error &error) {
-        std::cerr << error.message << ": " << error.line << std::endl;
-        return 3;
+        return 1;
     } catch (const std::exception &error) {
         std::cerr << error.what();
-        return 4;
+        return 1;
     }
 
     result.print_output(std::cout, debug);
