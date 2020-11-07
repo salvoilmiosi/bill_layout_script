@@ -84,6 +84,51 @@ std::string parse_number(const std::string &value) {
     return out;
 }
 
+std::string parse_string(std::string_view value) {
+    std::string decoded;
+    auto current = value.begin() + 1;
+    auto end = value.end() - 1;
+    while (current != end) {
+        char c = *current++;
+        if (c == '"') break;
+        if (c == '\\') {
+            if (current == end) return "";
+            char escape = *current++;
+            switch (escape) {
+            case '"':
+                decoded += '"';
+                break;
+            case '/':
+                decoded += '/';
+                break;
+            case '\\':
+                decoded += '\\';
+                break;
+            case 'b':
+                decoded += '\b';
+                break;
+            case 'f':
+                decoded += '\f';
+                break;
+            case 'n':
+                decoded += '\n';
+                break;
+            case 'r':
+                decoded += '\r';
+                break;
+            case 't':
+                decoded += '\t';
+                break;
+            default:
+                return std::string();
+            }
+        } else {
+            decoded += c;
+        }
+    }
+    return decoded;
+}
+
 std::string parse_date(const std::string &format, const std::string &value, int index) {
     static const char *MONTHS[] = {"gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"};
 

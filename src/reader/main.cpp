@@ -1,8 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <cstring>
 
-#include "parser.h"
+#include "reader.h"
 #include "../shared/xpdf.h"
 
 int main(int argc, char **argv) {
@@ -15,7 +16,7 @@ int main(int argc, char **argv) {
         FLAG_LAYOUT_DIR,
     } options_flag = FLAG_NONE;
 
-    parser result;
+    reader result;
     std::filesystem::path input_file;
     std::filesystem::path file_pdf;
     std::filesystem::path layout_dir;

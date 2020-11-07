@@ -1,5 +1,5 @@
-#ifndef __PARSER_H__
-#define __PARSER_H__
+#ifndef __READER_H__
+#define __READER_H__
 
 #include <vector>
 #include <map>
@@ -8,13 +8,7 @@
 
 #include "../shared/layout.h"
 #include "variable.h"
-
-struct parsing_error {
-    const std::string message;
-    const std::string line;
-
-    parsing_error(const std::string &message, const std::string &line = "") : message(message), line(line) {}
-};
+#include "tokenizer.h"
 
 struct spacer {
     float w = 0, h = 0;
@@ -31,28 +25,7 @@ struct box_content : public layout_box {
     box_content(const layout_box &from, const std::string &text) : layout_box(from), text(text) {}
 };
 
-class variable_ref {
-private:
-    class parser &parent;
-
-public:
-    static const size_t INDEX_APPEND = -1;
-    static const size_t INDEX_CLEAR = -2;
-    static const size_t INDEX_GLOBAL = -3;
-
-    variable_ref(class parser &parent) : parent(parent) {};
-
-    size_t pageidx = 0;
-    std::string name;
-    size_t index = 0;
-
-    void clear();
-    size_t size() const;
-    bool isset() const;
-    variable &operator *();
-};
-
-class parser {
+class reader {
 public:
     void read_layout(const pdf_info &info, const bill_layout_script &layout);
     const variable &get_global(const std::string &name) const;
@@ -60,19 +33,18 @@ public:
 
 private:
     void read_box(const pdf_info &info, layout_box box);
-    void execute_script(const box_content &content);
-
-    variable execute_line(const std::string &script, const box_content &content);
-    variable evaluate(const std::string &script, const box_content &content);
-    variable add_value(std::string_view name, variable value, const box_content &content);
     
-    variable_ref get_variable(std::string_view name, const box_content &content);
+    variable add_value(variable_ref ref, variable var, bool ignore = false);
+    variable exec_line(tokenizer &tokens, const box_content &content, bool ignore = false);
+    variable evaluate(tokenizer &tokens, const box_content &content, bool ignore = false);
+    variable exec_function(tokenizer &tokens, const box_content &content, bool ignore = false);
+    variable exec_sys_function(tokenizer &tokens, const box_content &content, bool ignore = false);
+    variable_ref get_variable(tokenizer &tokens, const box_content &content);
 
 private:
     using variable_page = std::map<std::string, std::vector<variable>>;
 
     size_t program_counter = 0;
-    size_t return_address = -1;
     bool jumped = false;
     std::vector<variable_page> m_values;
     std::map<std::string, spacer> m_spacers;

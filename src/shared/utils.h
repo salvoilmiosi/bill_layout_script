@@ -27,6 +27,8 @@ std::string string_trim(std::string str);
 // converte un numero dal formato italiano al formato universale (trasforma virgole in punti)
 std::string parse_number(const std::string &value);
 
+std::string parse_string(std::string_view value);
+
 // converte i vari formati di data in un formato universale (dd/mm/aaaa)
 std::string parse_date(const std::string &format, const std::string &value, int index);
 
