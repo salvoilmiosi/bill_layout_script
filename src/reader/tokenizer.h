@@ -11,11 +11,14 @@ enum token_type {
     TOK_STRING,             // "xyz"
     TOK_NUMBER,             // 123
     TOK_FUNCTION,           // $
-    TOK_BRACE_BEGIN,        // (
-    TOK_BRACE_END,          // )
+    TOK_SYS_FUNCTION,       // &
+    TOK_PAREN_BEGIN,        // (
+    TOK_PAREN_END,          // )
     TOK_COMMA,              // ,
     TOK_BRACKET_BEGIN,      // [
     TOK_BRACKET_END,        // ]
+    TOK_BRACE_BEGIN,        // {
+    TOK_BRACE_END,          // }
     TOK_EQUALS,             // =
     TOK_PERCENT,            // %
     TOK_GLOBAL,             // *
@@ -23,7 +26,6 @@ enum token_type {
     TOK_APPEND,             // +
     TOK_CLEAR,              // :
     TOK_CONTENT,            // @
-    TOK_END_EXPR,           // ;
 };
 
 struct token {
@@ -35,10 +37,18 @@ class tokenizer {
 public:
     tokenizer(const std::string_view &script);
 
-    bool nextToken(token &out, bool advance = true);
-    void advance(const token &tok);
+    bool next(bool peek = false);
+    void advance();
+    void gotoTok(const token &tok) {
+        _current = tok.value.begin();
+    }
+
     bool ate() {
-        return current == script.end();
+        return _current == script.end();
+    }
+
+    const token &current() const {
+        return tok;
     }
 
     std::string getLocation(const token &tok);
@@ -46,7 +56,8 @@ public:
 private:
     std::string_view script;
 
-    std::string_view::iterator current;
+    std::string_view::iterator _current;
+    token tok;
 
     char nextChar();
     void skipSpaces();

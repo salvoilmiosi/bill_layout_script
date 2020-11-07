@@ -4,23 +4,23 @@
 #include "../shared/utils.h"
 
 tokenizer::tokenizer(const std::string_view &_script) : script(_script) {
-    current = script.begin();
+    _current = script.begin();
 }
 
 char tokenizer::nextChar() {
-    if (current == script.end())
+    if (_current == script.end())
         return '\0';
-    return *current++;
+    return *_current++;
 }
 
 void tokenizer::skipSpaces() {
-    while (current != script.end()) {
-        switch (*current) {
+    while (_current != script.end()) {
+        switch (*_current) {
         case ' ':
         case '\t':
         case '\r':
         case '\n':
-            ++current;
+            ++_current;
             break;
         default:
             return;
@@ -28,23 +28,26 @@ void tokenizer::skipSpaces() {
     }
 }
 
-bool tokenizer::nextToken(token &out, bool advance) {
+bool tokenizer::next(bool peek) {
     skipSpaces();
     
-    auto start = current;
+    auto start = _current;
 
     char c = nextChar();
     bool ok = true;
 
     switch (c) {
     case '\0':
-        out.type = TOK_END_OF_FILE;
+        tok.type = TOK_END_OF_FILE;
+        break;
+    case '&':
+        tok.type = TOK_SYS_FUNCTION;
         break;
     case '$':
-        out.type = TOK_FUNCTION;
+        tok.type = TOK_FUNCTION;
         break;
     case '"':
-        out.type = TOK_STRING;
+        tok.type = TOK_STRING;
         ok = readString();
         break;
     case '0':
@@ -58,70 +61,73 @@ bool tokenizer::nextToken(token &out, bool advance) {
     case '8':
     case '9':
     case '-':
-        out.type = TOK_NUMBER;
+        tok.type = TOK_NUMBER;
         ok = readNumber();
         break;
     case ',':
-        out.type = TOK_COMMA;
+        tok.type = TOK_COMMA;
         break;
     case '(':
-        out.type = TOK_BRACE_BEGIN;
+        tok.type = TOK_PAREN_BEGIN;
         break;
     case ')':
-        out.type = TOK_BRACE_END;
+        tok.type = TOK_PAREN_END;
         break;
     case '[':
-        out.type = TOK_BRACKET_BEGIN;
+        tok.type = TOK_BRACKET_BEGIN;
         break;
     case ']':
-        out.type = TOK_BRACKET_END;
+        tok.type = TOK_BRACKET_END;
+        break;
+    case '{':
+        tok.type = TOK_BRACE_BEGIN;
+        break;
+    case '}':
+        tok.type = TOK_BRACE_END;
         break;
     case '=':
-        out.type = TOK_EQUALS;
+        tok.type = TOK_EQUALS;
         break;
     case '%':
-        out.type = TOK_PERCENT;
+        tok.type = TOK_PERCENT;
         break;
     case '!':
-        out.type = TOK_DEBUG;
+        tok.type = TOK_DEBUG;
         break;
     case '*':
-        out.type = TOK_GLOBAL;
+        tok.type = TOK_GLOBAL;
         break;
     case '#':
-        out.type = TOK_COMMENT;
+        tok.type = TOK_COMMENT;
         ok = readComment();
         break;
     case '@':
-        out.type = TOK_CONTENT;
+        tok.type = TOK_CONTENT;
         break;
     case '+':
-        out.type = TOK_APPEND;
+        tok.type = TOK_APPEND;
         break;
     case ':':
-        out.type = TOK_CLEAR;
-        break;
-    case ';':
-        out.type = TOK_END_EXPR;
+        tok.type = TOK_CLEAR;
         break;
     default:
-        out.type = TOK_IDENTIFIER;
+        tok.type = TOK_IDENTIFIER;
         ok = readIdentifier();
         break;
     }
 
-    if (!ok) out.type = TOK_ERROR;
-    out.value = std::string_view(start, current - start);
+    if (!ok) tok.type = TOK_ERROR;
+    tok.value = std::string_view(start, _current - start);
 
-    if (!advance) {
-        current = start;
+    if (peek) {
+        _current = start;
     }
 
     return ok;
 }
 
-void tokenizer::advance(const token &tok) {
-    current += tok.value.size();
+void tokenizer::advance() {
+    _current += tok.value.size();
 }
 
 std::string tokenizer::getLocation(const token &tok) {
@@ -149,7 +155,7 @@ std::string tokenizer::getLocation(const token &tok) {
 }
 
 bool tokenizer::readIdentifier() {
-    const char *p = current;
+    const char *p = _current;
     char c = *p;
     if (c >= '0' && c <= '9') {
         return false;
@@ -158,7 +164,7 @@ bool tokenizer::readIdentifier() {
         (c >= 'a' && c <= 'z') ||
         (c >= 'A' && c <= 'Z') ||
         c == '_') {
-        c = (current = p) < script.end() ? *p++ : '\0';
+        c = (_current = p) < script.end() ? *p++ : '\0';
     }
     return true;
 }
@@ -180,10 +186,10 @@ bool tokenizer::readString() {
 }
 
 bool tokenizer::readNumber() {
-    const char *p = current;
+    const char *p = _current;
     char c = *p;
     while ((c >= '0' && c <= '9') || c == '.') {
-        c = (current = p) < script.end() ? *p++ : '\0';
+        c = (_current = p) < script.end() ? *p++ : '\0';
     }
     return true;
 }

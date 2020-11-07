@@ -41,10 +41,11 @@ public:
 private:
     void read_box(const pdf_info &info, layout_box box);
     
-    variable add_value(variable_ref ref, variable var);
-    variable exec_line(tokenizer &tokens, const box_content &content);
-    variable evaluate(tokenizer &tokens, const box_content &content);
-    variable exec_function(tokenizer &tokens, const box_content &content);
+    variable add_value(variable_ref ref, variable var, bool ignore = false);
+    variable exec_line(tokenizer &tokens, const box_content &content, bool ignore = false);
+    variable evaluate(tokenizer &tokens, const box_content &content, bool ignore = false);
+    variable exec_function(tokenizer &tokens, const box_content &content, bool ignore = false);
+    void exec_sys_function(tokenizer &tokens, const box_content &content, bool ignore = false);
     variable_ref get_variable(tokenizer &tokens, const box_content &content);
 
 private:
