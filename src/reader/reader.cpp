@@ -391,18 +391,17 @@ variable reader::exec_sys_function(tokenizer &tokens, const box_content &content
             switch (tokens.current().type) {
             case TOK_IDENTIFIER:
             {
-                auto it = goto_labels.find(std::string(tokens.current().value));
+                std::string label(tokens.current().value);
+                auto it = goto_labels.find(label);
                 if (it == goto_labels.end()) {
-                    throw parsing_error("Impossibile trovare etichetta", tokens.getLocation(tokens.current()));
+                    throw parsing_error(fmt::format("Impossibile trovare etichetta {0}", label), tokens.getLocation(tokens.current()));
                 } else {
-                    return_address = program_counter;
                     program_counter = it->second;
                     jumped = true;
                 }
                 break;
             }
             case TOK_NUMBER:
-                return_address = program_counter;
                 program_counter = variable(tokens.current().value, VALUE_NUMBER).asInt();
                 jumped = true;
                 break;
