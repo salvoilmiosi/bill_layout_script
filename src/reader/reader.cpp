@@ -104,20 +104,19 @@ variable reader::exec_line(tokenizer &tokens, const box_content &content, bool i
     case TOK_FUNCTION:
         return exec_function(tokens, content, ignore);
     case TOK_SYS_FUNCTION:
-        exec_sys_function(tokens, content, ignore);
-        break;
+        return exec_sys_function(tokens, content, ignore);
     default:
     {
         variable_ref ref = get_variable(tokens, content);
-        tokens.next();
+        tokens.next(true);
         switch (tokens.current().type) {
         case TOK_EQUALS:
+            tokens.advance();
             return add_value(ref, evaluate(tokens, content, ignore), ignore);
-        case TOK_BRACE_END:
         case TOK_END_OF_FILE:
-            return add_value(ref, content.text, ignore);
+            break;
         default:
-            throw parsing_error("Token imprevisto", tokens.getLocation(tokens.current()));
+            return add_value(ref, content.text, ignore);
         }
     }
     }
@@ -129,6 +128,8 @@ variable reader::evaluate(tokenizer &tokens, const box_content &content, bool ig
     switch (tokens.current().type) {
     case TOK_FUNCTION:
         return exec_function(tokens, content, ignore);
+    case TOK_SYS_FUNCTION:
+        return exec_sys_function(tokens, content, ignore);
     case TOK_NUMBER:
         tokens.advance();
         return variable(std::string(tokens.current().value), VALUE_NUMBER);
@@ -196,24 +197,13 @@ inline function_handler create_function(Function fun) {
 }
 
 variable reader::exec_function(tokenizer &tokens, const box_content &content, bool ignore) {
-    tokens.next();
-    if (tokens.current().type != TOK_FUNCTION) {
-        throw parsing_error("Previsto '$'", tokens.getLocation(tokens.current()));
-    }
+    tokens.require(TOK_FUNCTION);
+    token fun_opening = tokens.require(TOK_IDENTIFIER);
 
-    tokens.next();
-    if (tokens.current().type != TOK_IDENTIFIER) {
-        throw parsing_error("Previsto identificatore", tokens.getLocation(tokens.current()));
-    }
-
-    token fun_opening = tokens.current();
     std::string fun_name = std::string(tokens.current().value);
     arg_list args;
 
-    tokens.next();
-    if (tokens.current().type != TOK_PAREN_BEGIN) {
-        throw parsing_error("Previsto '('", tokens.getLocation(tokens.current()));
-    }
+    tokens.require(TOK_PAREN_BEGIN);
 
     bool in_fun_loop = true;
     while (in_fun_loop) {
@@ -317,47 +307,24 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content, bo
     return variable();
 }
 
-void reader::exec_sys_function(tokenizer &tokens, const box_content &content, bool ignore) {
-    tokens.next();
-    if (tokens.current().type != TOK_SYS_FUNCTION) {
-        throw parsing_error("Previsto '&'", tokens.getLocation(tokens.current()));
-    }
+variable reader::exec_sys_function(tokenizer &tokens, const box_content &content, bool ignore) {
+    tokens.require(TOK_SYS_FUNCTION);
 
-    tokens.next();
-    if (tokens.current().type != TOK_IDENTIFIER) {
-        throw parsing_error("Previsto identificatore", tokens.getLocation(tokens.current()));
-    }
-
-    token fun_opening = tokens.current();
-    std::string fun_name = std::string(tokens.current().value);
+    token fun_opening = tokens.require(TOK_IDENTIFIER);
+    std::string fun_name = std::string(fun_opening.value);
 
     if (fun_name == "if") {
-        tokens.next();
-        if (tokens.current().type != TOK_PAREN_BEGIN) {
-            throw parsing_error("Previsto '('", tokens.getLocation(tokens.current()));
-        }
-
+        tokens.require(TOK_PAREN_BEGIN);
         auto condition = evaluate(tokens, content, ignore);
-        
-        tokens.next();
-        if (tokens.current().type != TOK_PAREN_END) {
-            throw parsing_error("Previsto ')'", tokens.getLocation(tokens.current()));
-        }
-        
+        tokens.require(TOK_PAREN_END);
         exec_line(tokens, content, ignore || !condition);
     } else if (fun_name == "while") {
-        tokens.next();
-        if (tokens.current().type != TOK_PAREN_BEGIN) {
-            throw parsing_error("Previsto '('", tokens.getLocation(tokens.current()));
-        }
+        tokens.require(TOK_PAREN_BEGIN);
 
         token tok_condition = tokens.current();
         auto condition = evaluate(tokens, content, true);
-        
-        tokens.next();
-        if (tokens.current().type != TOK_PAREN_END) {
-            throw parsing_error("Previsto ')'", tokens.getLocation(tokens.current()));
-        }
+
+        tokens.require(TOK_PAREN_END);
 
         tokens.next(true);
         token tok_begin = tokens.current();
@@ -372,18 +339,28 @@ void reader::exec_sys_function(tokenizer &tokens, const box_content &content, bo
                 break;
             }
         }
+    } else if (fun_name == "for") {
+        tokens.require(TOK_PAREN_BEGIN);
+        auto idx = get_variable(tokens, content);
+        tokens.require(TOK_COMMA);
+        size_t num = evaluate(tokens, content).asInt();
+        tokens.require(TOK_PAREN_END);
+
+        tokens.next(true);
+        token tok_begin = tokens.current();
+
+        for (size_t i=0; i<num; ++i) {
+            *idx = i;
+            tokens.gotoTok(tok_begin);
+            exec_line(tokens, content, ignore);
+        }
+        tokens.gotoTok(tok_begin);
+        exec_line(tokens, content, true);
+        idx.clear();
     } else if (fun_name == "lines") {
-        tokens.next();
-        if (tokens.current().type != TOK_PAREN_BEGIN) {
-            throw parsing_error("Previsto '('", tokens.getLocation(tokens.current()));
-        }
-
+        tokens.require(TOK_PAREN_BEGIN);
         auto str = evaluate(tokens, content, ignore);
-
-        tokens.next();
-        if (tokens.current().type != TOK_PAREN_END) {
-            throw parsing_error("Previsto ')'", tokens.getLocation(tokens.current()));
-        }
+        tokens.require(TOK_PAREN_END);
 
         auto lines = read_lines(str.str());
 
@@ -397,71 +374,105 @@ void reader::exec_sys_function(tokenizer &tokens, const box_content &content, bo
             exec_line(tokens, content_line, ignore);
         }
     } else if (fun_name == "tokens") {
-        tokens.next();
-        if (tokens.current().type != TOK_PAREN_BEGIN) {
-            throw parsing_error("Previsto '('", tokens.getLocation(tokens.current()));
-        }
-
+        tokens.require(TOK_PAREN_BEGIN);
         auto str = evaluate(tokens, content, ignore);
-
-        tokens.next();
-        if (tokens.current().type != TOK_PAREN_END) {
-            throw parsing_error("Previsto ')'", tokens.getLocation(tokens.current()));
-        }
+        tokens.require(TOK_PAREN_END);
 
         auto strtoks = tokenize(str.str());
 
-        tokens.next();
-        if (tokens.current().type != TOK_BRACE_BEGIN) {
-            throw parsing_error("Previsto '{'", tokens.getLocation(tokens.current()));
-        }
+        tokens.require(TOK_BRACE_BEGIN);
 
         box_content content_strtok = content;
-        size_t i = 0;
-        while (true) {
+        for (size_t i=0;; ++i) {
             tokens.next(true);
             if (tokens.current().type == TOK_BRACE_END) {
                 tokens.advance();
                 break;
             }
-            content_strtok.text = i < strtoks.size() ? strtoks[i] : variable();
+            content_strtok.text = i < strtoks.size() ? strtoks[i] : "";
             exec_line(tokens, content_strtok, ignore);
-            ++i;
         }
-    } else if (fun_name == "for") {
+    } else if (fun_name == "goto") {
         tokens.next();
-        if (tokens.current().type != TOK_PAREN_BEGIN) {
-            throw parsing_error("Previsto '('", tokens.getLocation(tokens.current()));
+
+        if (!ignore) {        
+            switch (tokens.current().type) {
+            case TOK_IDENTIFIER:
+            {
+                auto it = goto_labels.find(std::string(tokens.current().value));
+                if (it == goto_labels.end()) {
+                    throw parsing_error("Impossibile trovare etichetta", tokens.getLocation(tokens.current()));
+                } else {
+                    return_address = program_counter;
+                    program_counter = it->second;
+                    jumped = true;
+                }
+                break;
+            }
+            case TOK_NUMBER:
+                return_address = program_counter;
+                program_counter = variable(tokens.current().value, VALUE_NUMBER).asInt();
+                jumped = true;
+                break;
+            default:
+                throw parsing_error("Indirizzo goto invalido", tokens.getLocation(tokens.current()));
+            }
         }
-
-        auto idx = get_variable(tokens, content);
-
+    } else if (fun_name == "inc") {
+        tokens.require(TOK_PAREN_BEGIN);
+        auto var = get_variable(tokens, content);
         tokens.next();
-        if (tokens.current().type != TOK_COMMA) {
-            throw parsing_error("Previsto ','", tokens.getLocation(tokens.current()));
+        variable amt = 1;
+        switch(tokens.current().type) {
+        case TOK_COMMA:
+            amt = evaluate(tokens, content, ignore);
+            tokens.require(TOK_PAREN_END);
+            break;
+        case TOK_PAREN_END:
+            break;
+        default:
+            throw parsing_error("Token inaspettato", tokens.getLocation(tokens.current()));
         }
-
-        size_t num = evaluate(tokens, content).asInt();
-
+        if (!ignore && amt) *var = *var + amt;
+    } else if (fun_name == "dec") {
+        tokens.require(TOK_PAREN_BEGIN);
+        auto var = get_variable(tokens, content);
         tokens.next();
-        if (tokens.current().type != TOK_PAREN_END) {
-            throw parsing_error("Previsto ')'", tokens.getLocation(tokens.current()));
+        variable amt = 1;
+        switch(tokens.current().type) {
+        case TOK_COMMA:
+            amt = evaluate(tokens, content, ignore);
+            tokens.require(TOK_PAREN_END);
+            break;
+        case TOK_PAREN_END:
+            break;
+        default:
+            throw parsing_error("Token inaspettato", tokens.getLocation(tokens.current()));
         }
-
-        tokens.next(true);
-        token tok_begin = tokens.current();
-
-        for (size_t i=0; i<num; ++i) {
-            *idx = i;
-            tokens.gotoTok(tok_begin);
-            exec_line(tokens, content, ignore);
+        if (!ignore && amt) *var = *var - amt;
+    } else if (fun_name == "isset") {
+        tokens.require(TOK_PAREN_BEGIN);
+        auto var = get_variable(tokens, content);
+        tokens.require(TOK_PAREN_END);
+        return var.isset();
+    } else if (fun_name == "size") {
+        tokens.require(TOK_PAREN_BEGIN);
+        auto var = get_variable(tokens, content);
+        tokens.require(TOK_PAREN_END);
+        return var.size();
+    } else if (fun_name == "clear") {
+        tokens.next();
+        auto var = get_variable(tokens, content);
+        var.clear();
+    } else if (fun_name == "addspacer") {
+        tokens.require(TOK_IDENTIFIER);
+        if (!ignore) {
+            m_spacers[std::string(tokens.current().value)] = spacer(content.w, content.h);
         }
-        tokens.gotoTok(tok_begin);
-        exec_line(tokens, content, true);
-        idx.clear();
     } else {
         throw parsing_error(fmt::format("Funzione sistema {0} non riconosciuta", fun_name), tokens.getLocation(fun_opening));
     }
+    return variable();
 }
 
 variable_ref reader::get_variable(tokenizer &tokens, const box_content &content) {
@@ -495,10 +506,7 @@ out_of_loop:
     case TOK_BRACKET_BEGIN:
         tokens.advance();
         ref.index = evaluate(tokens, content).asInt();
-        tokens.next();
-        if (tokens.current().type != TOK_BRACKET_END) {
-            throw parsing_error("Richiesto ']'", tokens.getLocation(tokens.current()));
-        }
+        tokens.require(TOK_BRACKET_END);
         break;
     case TOK_APPEND:
         ref.flags |= variable_ref::FLAGS_APPEND;

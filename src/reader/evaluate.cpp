@@ -1,31 +1,6 @@
 
 #if 0
 
-case hash("clear"):
-    if (fun_is(1, 1)) get_variable(function.args[0], content).clear();
-    break;
-case hash("size"):
-    if (fun_is(1, 1)) return get_variable(function.args[0], content).size();
-    break;
-case hash("isset"):
-    if (fun_is(1, 1)) return get_variable(function.args[0], content).isset();
-    break;
-case hash("inc"):
-    if (fun_is(1, 2)) {
-        auto &var = *get_variable(function.args[0], content);
-        auto inc = function.args.size() >= 2 ? eval(1) : variable(1);
-        if (inc) return var = var + inc;
-        else return var;
-    }
-    break;
-case hash("dec"):
-    if (fun_is(1, 2)) {
-        auto &var = *get_variable(function.args[0], content);
-        auto inc = function.args.size() >= 2 ? eval(1) : variable(1);
-        if (inc) return var = var - inc;
-        else return var;
-    }
-    break;
 case hash("goto"):
     if (fun_is(1, 1)) {
         if (function.args[0].front() == '%') {
@@ -56,21 +31,6 @@ case hash("return"):
             jumped = true;
         } else {
             throw parsing_error("Indirizzo return invalido", script);
-        }
-    }
-    break;
-case hash("addspacer"):
-    if (fun_is(1, 1)) {
-        m_spacers[function.args[0]] = spacer(content.w, content.h);
-    }
-    break;
-case hash("tokens"):
-    if (fun_is(2)) {
-        auto tokens = tokenize(eval(0).str());
-        auto con_token = content;
-        for (size_t i=1; i < function.args.size() && i <= tokens.size(); ++i) {
-            con_token.text = tokens[i-1];
-            execute_line(function.args[i], con_token);
         }
     }
     break;

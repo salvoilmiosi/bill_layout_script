@@ -10,13 +10,6 @@
 #include "variable.h"
 #include "tokenizer.h"
 
-struct parsing_error {
-    const std::string message;
-    const std::string line;
-
-    parsing_error(const std::string &message, const std::string &line) : message(message), line(line) {}
-};
-
 struct spacer {
     float w = 0, h = 0;
     spacer() {}
@@ -45,7 +38,7 @@ private:
     variable exec_line(tokenizer &tokens, const box_content &content, bool ignore = false);
     variable evaluate(tokenizer &tokens, const box_content &content, bool ignore = false);
     variable exec_function(tokenizer &tokens, const box_content &content, bool ignore = false);
-    void exec_sys_function(tokenizer &tokens, const box_content &content, bool ignore = false);
+    variable exec_sys_function(tokenizer &tokens, const box_content &content, bool ignore = false);
     variable_ref get_variable(tokenizer &tokens, const box_content &content);
 
 private:

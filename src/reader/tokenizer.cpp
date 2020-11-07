@@ -126,8 +126,20 @@ bool tokenizer::next(bool peek) {
     return ok;
 }
 
+token tokenizer::require(token_type type) {
+    next();
+    if (current().type != type) {
+        throw parsing_error("Token imprevisto", getLocation(current()));
+    }
+    return current();
+}
+
 void tokenizer::advance() {
     _current += tok.value.size();
+}
+
+void tokenizer::gotoTok(const token &tok) {
+    _current = tok.value.begin();
 }
 
 std::string tokenizer::getLocation(const token &tok) {
@@ -136,7 +148,7 @@ std::string tokenizer::getLocation(const token &tok) {
     bool found = false;
     std::string line;
     for (const char *c = script.begin(); c < script.end(); ++c) {
-        line += *c;
+        if (*c != '\n') line += *c;
         if (c == tok.value.begin()) {
             found = true;
         }

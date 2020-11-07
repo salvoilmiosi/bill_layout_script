@@ -3,6 +3,13 @@
 
 #include <string>
 
+struct parsing_error {
+    const std::string message;
+    const std::string line;
+
+    parsing_error(const std::string &message, const std::string &line) : message(message), line(line) {}
+};
+
 enum token_type {
     TOK_END_OF_FILE = 0,
     TOK_ERROR,
@@ -38,10 +45,10 @@ public:
     tokenizer(const std::string_view &script);
 
     bool next(bool peek = false);
+    token require(token_type type);
+
     void advance();
-    void gotoTok(const token &tok) {
-        _current = tok.value.begin();
-    }
+    void gotoTok(const token &tok);
 
     bool ate() {
         return _current == script.end();
