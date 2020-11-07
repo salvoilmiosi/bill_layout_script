@@ -144,9 +144,10 @@ using function_handler = std::function<variable(const arg_list &)>;
 
 template<typename Function, std::size_t ... Is>
 variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is...>) {
-    auto get_arg = [](const arg_list &args, size_t index) {
+    auto get_arg = [](const arg_list &args, size_t index) -> const variable & {
+        static const variable VAR_NULL;
         if (args.size() <= index) {
-            return variable();
+            return VAR_NULL;
         } else {
             return args[index];
         }
@@ -154,15 +155,21 @@ variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is.
     return fun(get_arg(args, Is)...);
 }
 
+struct invalid_numargs {
+    size_t numargs;
+    size_t minargs;
+    size_t maxargs;
+};
+
+struct scripted_error {
+    const std::string &msg;
+};
+
 template<size_t Minargs, size_t Maxargs, typename Function>
 function_handler create_function(Function fun) {
-    return [=](const arg_list &vars) -> variable {
-        if ((Minargs == Maxargs) && vars.size() != Maxargs) {
-            throw parsing_error(fmt::format("Richiesti {0} argomenti", Maxargs), "");
-        } else if (vars.size() < Minargs) {
-            throw parsing_error(fmt::format("Richiesti almeno {0} argomenti", Minargs), "");
-        } else if (vars.size() > Maxargs) {
-            throw parsing_error(fmt::format("Richiesti al massimo {1} argomenti", Maxargs), "");
+    return [fun](const arg_list &vars) -> variable {
+        if (vars.size() < Minargs || vars.size() > Maxargs) {
+            throw invalid_numargs{vars.size(), Minargs, Maxargs};
         }
         return exec_helper(fun, vars, std::make_index_sequence<Maxargs>{});
     };
@@ -175,7 +182,7 @@ inline function_handler create_function(Function fun) {
 
 template<typename Function>
 inline function_handler create_function(Function fun) {
-    return create_function<0>(fun);
+    return create_function<1>(fun);
 }
 
 variable reader::exec_function(tokenizer &tokens, const box_content &content) {
@@ -215,24 +222,82 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content) {
     }
 
     static const std::map<std::string, function_handler> dispatcher = {
-        {"search", create_function<1, 3>([&](const variable &regex, const variable &str, const variable &index) {
-            return search_regex(regex.str(), str ? str.str() : content.text, index ? index.asInt() : 1);
+        {"eq",      create_function<2>([](const variable &a, const variable &b) { return a == b; })},
+        {"neq",     create_function<2>([](const variable &a, const variable &b) { return a != b; })},
+        {"and",     create_function<2>([](const variable &a, const variable &b) { return a && b; })},
+        {"or",      create_function<2>([](const variable &a, const variable &b) { return a || b; })},
+        {"not",     create_function   ([](const variable &var) { return !var; })},
+        {"add",     create_function<2>([](const variable &a, const variable &b) { return a + b; })},
+        {"sub",     create_function<2>([](const variable &a, const variable &b) { return a - b; })},
+        {"mul",     create_function<2>([](const variable &a, const variable &b) { return a * b; })},
+        {"div",     create_function<2>([](const variable &a, const variable &b) { return a / b; })},
+        {"gt",      create_function<2>([](const variable &a, const variable &b) { return a > b; })},
+        {"lt",      create_function<2>([](const variable &a, const variable &b) { return a < b; })},
+        {"geq",     create_function<2>([](const variable &a, const variable &b) { return a >= b; })},
+        {"leq",     create_function<2>([](const variable &a, const variable &b) { return a <= b; })},
+        {"max",     create_function<2>([](const variable &a, const variable &b) { return std::max(a, b); })},
+        {"min",     create_function<2>([](const variable &a, const variable &b) { return std::min(a, b); })},
+        {"search", create_function<2, 3>([](const variable &regex, const variable &str, const variable &index) {
+            return search_regex(regex.str(), str.str(), index ? index.asInt() : 1);
         })},
-        {"if", create_function<2, 3>([](const variable &expr, const variable &var_if, const variable &var_else) {
-            return expr ? var_if : var_else;
+        {"date", create_function<2, 3>([](const variable &regex, const variable &str, const variable &index) {
+            return parse_date(regex.str(), str.str(), index ? index.asInt() : 1);
         })},
+        {"month_begin", create_function([](const variable &str) { return str.str() + "-01"; })},
+        {"month_end", create_function([](const variable &str) { return date_month_end(str.str()); })},
+        {"nospace", create_function([](const variable &str) { return nospace(str.str()); })},
+        {"num", create_function([](const variable &str) { return parse_number(str.str()); })},
+        {"if", create_function<2, 3>([](const variable &expr, const variable &var_if, const variable &var_else) { return expr ? var_if : var_else; })},
+        {"ifnot", create_function<2, 3>([](const variable &expr, const variable &var_if, const variable &var_else) { return expr ? var_else : var_if; })},
+        {"coalesce", [](const arg_list &args) {
+            for (auto &arg : args) {
+                if (arg) return arg;
+            }
+            return variable();
+        }},
         {"contains", create_function<2>([](const variable &str, const variable &str2) {
             return str.str().find(str2.str()) != std::string::npos;
         })},
-        {"error", create_function<1>([&, fun_opening](const variable &msg) {
-            throw parsing_error(msg.str(), tokens.getLocation(fun_opening));
+        {"substr", create_function<2, 3>([](const variable &str, const variable &pos, const variable &count) {
+            if ((size_t) pos.asInt() < str.str().size()) {
+                return variable(str.str().substr(pos.asInt(), count ? count.asInt() : std::string::npos));
+            }
             return variable();
+        })},
+        {"strlen", create_function([](const variable &str) { return str.str().size(); })},
+        {"isempty", create_function([](const variable &str) { return str.empty(); })},
+        {"strcat", [](const arg_list &args) {
+            std::string var;
+            for (auto &arg : args) {
+                var += arg.str();
+            }
+            return var;
+        }},
+        {"error", create_function([](const variable &msg) {
+            if (msg) throw scripted_error{msg.str()};
+            return variable();
+        })},
+        {"int", create_function([](const variable &str) {
+            return variable(std::to_string(str.asInt()), VALUE_NUMBER);
+            // converte da stringa a fixed_point a int a stringa ...
         })}
     };
 
     auto it = dispatcher.find(fun_name);
     if (it != dispatcher.end()) {
-        return it->second(args);
+        try {
+            return it->second(args);
+        } catch (invalid_numargs &err) {
+            if ((err.minargs == err.maxargs) && err.numargs != err.maxargs) {
+                throw parsing_error(fmt::format("Richiesti {0} argomenti", err.maxargs), tokens.getLocation(fun_opening));
+            } else if (err.numargs < err.minargs) {
+                throw parsing_error(fmt::format("Richiesti almeno {0} argomenti", err.minargs), tokens.getLocation(fun_opening));
+            } else if (err.numargs > err.maxargs) {
+                throw parsing_error(fmt::format("Richiesti al massimo {1} argomenti", err.maxargs), tokens.getLocation(fun_opening));
+            }
+        } catch (scripted_error &err) {
+            throw parsing_error(err.msg, tokens.getLocation(fun_opening));
+        }
     } else {
         throw parsing_error(fmt::format("Funzione non riconosciuta: {0}", fun_name), tokens.getLocation(fun_opening));
     }
