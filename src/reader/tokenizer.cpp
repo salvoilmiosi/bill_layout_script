@@ -126,19 +126,19 @@ void tokenizer::advance(const token &tok) {
 
 std::string tokenizer::getLocation(const token &tok) {
     size_t numline = 1;
-    size_t loc = 0;
+    size_t loc = 1;
     bool found = false;
     std::string line;
     for (const char *c = script.begin(); c < script.end(); ++c) {
         line += *c;
-        if (c == tok.value) {
+        if (c == tok.value.begin()) {
             found = true;
         }
         if (!found) {
             ++loc;
             if (*c == '\n') {
                 ++numline;
-                loc = 0;
+                loc = 1;
                 line.clear();
             }
         } else if (*c == '\n') {

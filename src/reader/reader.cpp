@@ -137,13 +137,46 @@ variable reader::evaluate(tokenizer &tokens, const box_content &content) {
     return variable();
 }
 
-using arg_list = std::vector<variable>;
+#include <utility>
 
-struct function_handler {
-    size_t min_args;
-    size_t max_args;
-    std::function<variable(const arg_list &)> handler;
-};
+using arg_list = std::vector<variable>;
+using function_handler = std::function<variable(const arg_list &)>;
+
+template<typename Function, std::size_t ... Is>
+variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is...>) {
+    auto get_arg = [](const arg_list &args, size_t index) {
+        if (args.size() <= index) {
+            return variable();
+        } else {
+            return args[index];
+        }
+    };
+    return fun(get_arg(args, Is)...);
+}
+
+template<size_t Minargs, size_t Maxargs, typename Function>
+function_handler create_function(Function fun) {
+    return [=](const arg_list &vars) -> variable {
+        if ((Minargs == Maxargs) && vars.size() != Maxargs) {
+            throw parsing_error(fmt::format("Richiesti {0} argomenti", Maxargs), "");
+        } else if (vars.size() < Minargs) {
+            throw parsing_error(fmt::format("Richiesti almeno {0} argomenti", Minargs), "");
+        } else if (vars.size() > Maxargs) {
+            throw parsing_error(fmt::format("Richiesti al massimo {1} argomenti", Maxargs), "");
+        }
+        return exec_helper(fun, vars, std::make_index_sequence<Maxargs>{});
+    };
+}
+
+template<size_t Argnum, typename Function>
+inline function_handler create_function(Function fun) {
+    return create_function<Argnum, Argnum>(fun);
+}
+
+template<typename Function>
+inline function_handler create_function(Function fun) {
+    return create_function<0>(fun);
+}
 
 variable reader::exec_function(tokenizer &tokens, const box_content &content) {
     token next;
@@ -182,36 +215,24 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content) {
     }
 
     static const std::map<std::string, function_handler> dispatcher = {
-        {"search", {1, 3, [&](const arg_list &args) {
-            return search_regex(args[0].str(),
-                args.size() >= 2 ? content.text : args[1].str(),
-                args.size() >= 3 ? args[2].asInt() : 0);
-        }}},
-        {"if", {2, 3, [&](const arg_list &args) {
-            if (args[0]) return args[1];
-            else if (args.size() >= 3) return args[2];
+        {"search", create_function<1, 3>([&](const variable &regex, const variable &str, const variable &index) {
+            return search_regex(regex.str(), str ? str.str() : content.text, index ? index.asInt() : 1);
+        })},
+        {"if", create_function<2, 3>([](const variable &expr, const variable &var_if, const variable &var_else) {
+            return expr ? var_if : var_else;
+        })},
+        {"contains", create_function<2>([](const variable &str, const variable &str2) {
+            return str.str().find(str2.str()) != std::string::npos;
+        })},
+        {"error", create_function<1>([&, fun_opening](const variable &msg) {
+            throw parsing_error(msg.str(), tokens.getLocation(fun_opening));
             return variable();
-        }}},
-        {"contains", {2, 2, [&](const arg_list &args) {
-            return args[0].str().find(args[1].str()) != std::string::npos;
-        }}},
-        {"error", {1, 1, [&](const arg_list &args) {
-            throw parsing_error(args[0].str(), tokens.getLocation(fun_opening));
-            return variable();
-        }}}
+        })}
     };
 
     auto it = dispatcher.find(fun_name);
     if (it != dispatcher.end()) {
-        if (args.size() >= it->second.min_args && args.size() <= it->second.max_args) {
-            return it->second.handler(args);
-        } else if (it->second.min_args == it->second.max_args) {
-            throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", fun_name, it->second.min_args), tokens.getLocation(fun_opening));
-        } else if (it->second.max_args != (size_t) -1) {
-            throw parsing_error(fmt::format("La funzione {0} richiede tra {1} e {2} argomenti", fun_name, it->second.min_args, it->second.max_args), tokens.getLocation(fun_opening));
-        } else {
-            throw parsing_error(fmt::format("La funzione {0} richiede minimo {1} argomenti", fun_name, it->second.min_args), tokens.getLocation(fun_opening));
-        }
+        return it->second(args);
     } else {
         throw parsing_error(fmt::format("Funzione non riconosciuta: {0}", fun_name), tokens.getLocation(fun_opening));
     }
