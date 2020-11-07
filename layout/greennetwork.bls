@@ -35,7 +35,7 @@
 				"mode" : 0,
 				"name" : "Conguaglio",
 				"page" : 1,
-				"script" : "conguaglio=$if($not($contains(@,non)),1)",
+				"script" : "conguaglio=$ifl($not($contains(@,non)),1)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.45905709266662598,

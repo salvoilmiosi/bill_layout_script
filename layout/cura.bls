@@ -139,7 +139,7 @@
 				"mode" : 0,
 				"name" : "==Prossima pagina",
 				"page" : 4,
-				"script" : "*pod_offset=%1\n$inc(*page_offset)\n$ifnot($or($contains(@,RIEPILOGO IMPORTI),$isempty(@)),$if($contains(@,DATI FORNITURA),$do($inc(*PAGE_NUM),$goto(%0)),$goto(dati_costi)))",
+				"script" : "*pod_offset=%1\n$inc(*page_offset)\n$ifnot($or($contains(@,RIEPILOGO IMPORTI),$isempty(@)),$ifl($contains(@,DATI FORNITURA),$do($inc(*PAGE_NUM),$goto(%0)),$goto(dati_costi)))",
 				"spacers" : "*page_offset",
 				"type" : 0,
 				"w" : 0.90725803375244141,

@@ -18,7 +18,6 @@ enum token_type {
     TOK_STRING,             // "xyz"
     TOK_NUMBER,             // 123
     TOK_FUNCTION,           // $
-    TOK_SYS_FUNCTION,       // &
     TOK_PAREN_BEGIN,        // (
     TOK_PAREN_END,          // )
     TOK_COMMA,              // ,

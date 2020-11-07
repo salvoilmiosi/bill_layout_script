@@ -103,8 +103,6 @@ variable reader::exec_line(tokenizer &tokens, const box_content &content, bool i
         break;
     case TOK_FUNCTION:
         return exec_function(tokens, content, ignore);
-    case TOK_SYS_FUNCTION:
-        return exec_sys_function(tokens, content, ignore);
     default:
     {
         variable_ref ref = get_variable(tokens, content);
@@ -128,8 +126,6 @@ variable reader::evaluate(tokenizer &tokens, const box_content &content, bool ig
     switch (tokens.current().type) {
     case TOK_FUNCTION:
         return exec_function(tokens, content, ignore);
-    case TOK_SYS_FUNCTION:
-        return exec_sys_function(tokens, content, ignore);
     case TOK_NUMBER:
         tokens.advance();
         return variable(std::string(tokens.current().value), VALUE_NUMBER);
@@ -139,13 +135,11 @@ variable reader::evaluate(tokenizer &tokens, const box_content &content, bool ig
     case TOK_CONTENT:
         tokens.advance();
         return content.text;
-    case TOK_IDENTIFIER:
+    default:
     {
         auto ref = get_variable(tokens, content);
         return ref.isset() ? *ref : variable();
     }
-    default:
-        throw parsing_error("Token imprevisto", tokens.getLocation(tokens.current()));
     }
     return variable();
 }
@@ -203,23 +197,6 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content, bo
     std::string fun_name = std::string(tokens.current().value);
     arg_list args;
 
-    tokens.require(TOK_PAREN_BEGIN);
-
-    bool in_fun_loop = true;
-    while (in_fun_loop) {
-        args.push_back(evaluate(tokens, content, ignore));
-        tokens.next();
-        switch (tokens.current().type) {
-        case TOK_COMMA:
-            break;
-        case TOK_PAREN_END:
-            in_fun_loop=false;
-            break;
-        default:
-            throw parsing_error("Token imprevisto", tokens.getLocation(tokens.current()));
-        }
-    }
-
     static const std::map<std::string, function_handler> dispatcher = {
         {"eq",      create_function<2>([](const variable &a, const variable &b) { return a == b; })},
         {"neq",     create_function<2>([](const variable &a, const variable &b) { return a != b; })},
@@ -246,8 +223,7 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content, bo
         {"month_end", create_function([](const variable &str) { return date_month_end(str.str()); })},
         {"nospace", create_function([](const variable &str) { return nospace(str.str()); })},
         {"num", create_function([](const variable &str) { return parse_number(str.str()); })},
-        {"if", create_function<2, 3>   ([](const variable &condition, const variable &var_if, const variable &var_else) { return condition ? var_if : var_else; })},
-        {"ifnot", create_function<2, 3>([](const variable &condition, const variable &var_if, const variable &var_else) { return condition ? var_else : var_if; })},
+        {"ifl", create_function<2, 3>   ([](const variable &condition, const variable &var_if, const variable &var_else) { return condition ? var_if : var_else; })},
         {"coalesce", [](const arg_list &args) {
             for (auto &arg : args) {
                 if (arg) return arg;
@@ -285,6 +261,23 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content, bo
 
     auto it = dispatcher.find(fun_name);
     if (it != dispatcher.end()) {
+        tokens.require(TOK_PAREN_BEGIN);
+
+        bool in_fun_loop = true;
+        while (in_fun_loop) {
+            args.push_back(evaluate(tokens, content, ignore));
+            tokens.next();
+            switch (tokens.current().type) {
+            case TOK_COMMA:
+                break;
+            case TOK_PAREN_END:
+                in_fun_loop=false;
+                break;
+            default:
+                throw parsing_error("Token imprevisto", tokens.getLocation(tokens.current()));
+            }
+        }
+
         try {
             if (!ignore) {
                 return it->second(args);
@@ -301,15 +294,14 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content, bo
             throw parsing_error(err.msg, tokens.getLocation(fun_opening));
         }
     } else {
-        throw parsing_error(fmt::format("Funzione {0} non riconosciuta", fun_name), tokens.getLocation(fun_opening));
+        tokens.gotoTok(fun_opening);
+        return exec_sys_function(tokens, content, ignore);
     }
 
     return variable();
 }
 
 variable reader::exec_sys_function(tokenizer &tokens, const box_content &content, bool ignore) {
-    tokens.require(TOK_SYS_FUNCTION);
-
     token fun_opening = tokens.require(TOK_IDENTIFIER);
     std::string fun_name = std::string(fun_opening.value);
 
@@ -470,7 +462,7 @@ variable reader::exec_sys_function(tokenizer &tokens, const box_content &content
             m_spacers[std::string(tokens.current().value)] = spacer(content.w, content.h);
         }
     } else {
-        throw parsing_error(fmt::format("Funzione sistema {0} non riconosciuta", fun_name), tokens.getLocation(fun_opening));
+        throw parsing_error(fmt::format("Funzione {0} non riconosciuta", fun_name), tokens.getLocation(fun_opening));
     }
     return variable();
 }
@@ -497,6 +489,7 @@ out_of_loop:
         throw parsing_error("Richiesto identificatore", tokens.getLocation(tokens.current()));
     }
     ref.name = tokens.current().value;
+    ref.pageidx = get_global("PAGE_NUM").asInt();
     if (ref.flags & variable_ref::FLAGS_GLOBAL) {
         return ref;
     }

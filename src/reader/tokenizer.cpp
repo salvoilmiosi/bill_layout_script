@@ -40,9 +40,6 @@ bool tokenizer::next(bool peek) {
     case '\0':
         tok.type = TOK_END_OF_FILE;
         break;
-    case '&':
-        tok.type = TOK_SYS_FUNCTION;
-        break;
     case '$':
         tok.type = TOK_FUNCTION;
         break;
@@ -169,9 +166,6 @@ std::string tokenizer::getLocation(const token &tok) {
 bool tokenizer::readIdentifier() {
     const char *p = _current;
     char c = *p;
-    if (c >= '0' && c <= '9') {
-        return false;
-    }
     while ((c >= '0' && c <= '9') ||
         (c >= 'a' && c <= 'z') ||
         (c >= 'A' && c <= 'Z') ||
