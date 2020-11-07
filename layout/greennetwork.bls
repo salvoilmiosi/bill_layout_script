@@ -92,7 +92,7 @@
 				"type" : 0,
 				"w" : 0.54131680727005005,
 				"x" : 0.056341137737035751,
-				"y" : 0.10074818879365921
+				"y" : 0.099977746605873108
 			},
 			{
 				"goto_label" : "",
@@ -122,11 +122,11 @@
 			},
 			{
 				"goto_label" : "",
-				"h" : 0.01213344931602478,
+				"h" : 0.050694942474365234,
 				"mode" : 0,
 				"name" : "Riepilogo consumi",
 				"page" : 2,
-				"script" : "$tokens(@,#,%energia_attiva+,%energia_attiva+,%energia_attiva+,#,%energia_reattiva+,%energia_reattiva+,%energia_reattiva+,%potenza)",
+				"script" : "$lines(@,!lines_consumi+);\n$tokens(&lines_consumi[$sub($size(lines_consumi),2)],#,%energia_attiva+,%energia_attiva+,%energia_attiva+,#,%energia_reattiva+,%energia_reattiva+,%energia_reattiva+,%potenza)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.62551701068878174,

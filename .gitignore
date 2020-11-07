@@ -1,7 +1,8 @@
 .vscode/*
 bin/*
 obj/*
-script/*
+*.py
+*.sh
 *.exe
 *.dll
 *.so
