@@ -1,10 +1,10 @@
 #include "reader.h"
 
 #include <json/json.h>
-
-#include <functional>
-
 #include <fmt/format.h>
+
+#include <utility>
+#include <functional>
 
 #include "../shared/utils.h"
 
@@ -85,14 +85,21 @@ variable reader::add_value(variable_ref ref, variable value) {
 variable reader::exec_line(tokenizer &tokens, const box_content &content) {
     token next;
     tokens.nextToken(next, false);
-    if (next.type == TOK_FUNCTION) {
+    switch (next.type) {
+    case TOK_COMMENT:
+        tokens.advance(next);
+        break;
+    case TOK_FUNCTION:
+    {
         auto var = exec_function(tokens, content);
         tokens.nextToken(next);
         if (next.type != TOK_END_OF_FILE && next.type != TOK_END_EXPR) {
             throw parsing_error("Token imprevisto", tokens.getLocation(next));
         }
         return var;
-    } else {
+    }
+    default:
+    {
         variable_ref ref = get_variable(tokens, content);
         tokens.nextToken(next);
         switch (next.type) {
@@ -113,6 +120,7 @@ variable reader::exec_line(tokenizer &tokens, const box_content &content) {
             throw parsing_error("Token imprevisto", tokens.getLocation(next));
         }
     }
+    }
     return variable();
 }
 
@@ -131,13 +139,26 @@ variable reader::evaluate(tokenizer &tokens, const box_content &content) {
     case TOK_CONTENT:
         tokens.advance(next);
         return content.text;
+    case TOK_IDENTIFIER:
+    {
+        auto ref = get_variable(tokens, content);
+        return ref.isset() ? *ref : variable();
+    }
     default:
         throw parsing_error("Token imprevisto", tokens.getLocation(next));
     }
     return variable();
 }
 
-#include <utility>
+struct invalid_numargs {
+    size_t numargs;
+    size_t minargs;
+    size_t maxargs;
+};
+
+struct scripted_error {
+    const std::string &msg;
+};
 
 using arg_list = std::vector<variable>;
 using function_handler = std::function<variable(const arg_list &)>;
@@ -154,16 +175,6 @@ variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is.
     };
     return fun(get_arg(args, Is)...);
 }
-
-struct invalid_numargs {
-    size_t numargs;
-    size_t minargs;
-    size_t maxargs;
-};
-
-struct scripted_error {
-    const std::string &msg;
-};
 
 template<size_t Minargs, size_t Maxargs, typename Function>
 function_handler create_function(Function fun) {
@@ -237,10 +248,10 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content) {
         {"leq",     create_function<2>([](const variable &a, const variable &b) { return a <= b; })},
         {"max",     create_function<2>([](const variable &a, const variable &b) { return std::max(a, b); })},
         {"min",     create_function<2>([](const variable &a, const variable &b) { return std::min(a, b); })},
-        {"search", create_function<2, 3>([](const variable &regex, const variable &str, const variable &index) {
+        {"search", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
             return search_regex(regex.str(), str.str(), index ? index.asInt() : 1);
         })},
-        {"date", create_function<2, 3>([](const variable &regex, const variable &str, const variable &index) {
+        {"date", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
             return parse_date(regex.str(), str.str(), index ? index.asInt() : 1);
         })},
         {"month_begin", create_function([](const variable &str) { return str.str() + "-01"; })},
@@ -252,6 +263,7 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content) {
         {"coalesce", [](const arg_list &args) {
             for (auto &arg : args) {
                 if (arg) return arg;
+
             }
             return variable();
         }},
@@ -299,7 +311,7 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content) {
             throw parsing_error(err.msg, tokens.getLocation(fun_opening));
         }
     } else {
-        throw parsing_error(fmt::format("Funzione non riconosciuta: {0}", fun_name), tokens.getLocation(fun_opening));
+        throw parsing_error(fmt::format("Funzione {0} non riconosciuta", fun_name), tokens.getLocation(fun_opening));
     }
 
     return variable();
@@ -316,7 +328,7 @@ variable_ref reader::get_variable(tokenizer &tokens, const box_content &content)
         case TOK_DEBUG:
             ref.flags |= variable_ref::FLAGS_DEBUG;
             break;
-        case TOK_NUMBER:
+        case TOK_PERCENT:
             ref.flags |= variable_ref::FLAGS_NUMBER;
             break;
         default:
