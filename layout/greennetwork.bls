@@ -126,11 +126,7 @@
 				"mode" : 0,
 				"name" : "Riepilogo consumi",
 				"page" : 2,
-<<<<<<< HEAD:layout/greennetwork.bls
-				"script" : "$lines(@,!lines_consumi+);\n$tokens(&lines_consumi[$sub($size(lines_consumi),2)],#,%energia_attiva+,%energia_attiva+,%energia_attiva+,#,%energia_reattiva+,%energia_reattiva+,%energia_reattiva+,%potenza)",
-=======
 				"script" : "$lines(@,!lines_consumi+)\n$tokens(&lines_consumi[$sub($size(lines_consumi),2)],#,%energia_attiva+,%energia_attiva+,%energia_attiva+,#,%energia_reattiva+,%energia_reattiva+,%energia_reattiva+,%potenza)",
->>>>>>> tokenizer:fatture/greennetwork.bls
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.62551701068878174,
