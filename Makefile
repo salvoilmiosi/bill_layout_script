@@ -28,6 +28,9 @@ OBJECTS_READER = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_REA
 SOURCES_COMPILER = $(wildcard $(SRC_DIR)/compiler/*.cpp $(SRC_DIR)/compiler/**/*.cpp)
 OBJECTS_COMPILER = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_COMPILER)))
 
+LAYOUT_DIR = layout
+LAYOUTS = $(patsubst $(LAYOUT_DIR)/%.bls,$(LAYOUT_DIR)/%.out,$(wildcard $(LAYOUT_DIR)/*.bls))
+
 SOURCES = $(SOURCES_SHARED) $(SOURCES_EDITOR) $(SOURCES_READER) $(SOURCES_COMPILER)
 OBJECTS = $(OBJECTS_SHARED) $(OBJECTS_EDITOR) $(OBJECTS_READER) $(OBJECTS_COMPILER)
 
@@ -44,10 +47,17 @@ endif
 
 all: editor reader compiler
 
+layouts: $(LAYOUTS)
+
 clean:
-	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(OBJECTS) $(RESOURCES) $(OBJECTS:.o=.d)
+	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(BIN_DIR)/$(BIN_COMPILER) $(OBJECTS) $(RESOURCES) $(LAYOUTS) $(OBJECTS:.o=.d)
+
+.PHONY: all clean editor reader compiler layouts
 
 $(shell mkdir -p $(BIN_DIR) >/dev/null)
+
+$(LAYOUT_DIR)/%.out: $(LAYOUT_DIR)/%.bls $(BIN_DIR)/$(BIN_COMPILER)
+	$(BIN_DIR)/$(BIN_COMPILER) -q -o $@ $<
 
 editor: $(BIN_DIR)/$(BIN_EDITOR)
 $(BIN_DIR)/$(BIN_EDITOR): $(OBJECTS_EDITOR) $(OBJECTS_SHARED) $(RESOURCES)
