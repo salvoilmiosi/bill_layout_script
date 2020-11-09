@@ -20,20 +20,35 @@ END_EVENT_TABLE()
 output_dialog::output_dialog(wxWindow *parent, const bill_layout_script &layout, const std::string &pdf_filename) :
     wxDialog(parent, wxID_ANY, "Lettura dati", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-    std::string cmd_str = get_app_path() + "/layout_reader";
+    std::string cmd_str = get_app_path() + "/layout_compiler";
 
-    const char *args[] = {
+    const char *args1[] = {
         cmd_str.c_str(),
-        "-d", "-p", pdf_filename.c_str(), "-",
+        "-", "temp.out",
         nullptr
     };
 
-    auto pipe = open_process(args);
+    auto pipe = open_process(args1);
     std::ostringstream oss;
     oss << layout;
     pipe->write_all(oss.str());
     pipe->close_stdin();
-    std::istringstream iss(pipe->read_all());
+    pipe->read_all();
+    pipe.reset();
+
+    cmd_str = get_app_path() + "/layout_reader";
+
+    const char *args2[] = {
+        cmd_str.c_str(),
+        "-d", "-p", pdf_filename.c_str(),
+        "temp.out",
+        nullptr
+    };
+
+    std::istringstream iss(open_process(args2)->read_all());
+
+    wxRemoveFile("temp.out");
+
     Json::Value json_output;
     try {
         iss >> json_output;

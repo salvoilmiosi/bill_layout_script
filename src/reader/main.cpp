@@ -80,11 +80,12 @@ int main(int argc, char **argv) {
             const auto &layout_path = result.get_global("layout");
             if (!layout_path.empty()) {
                 input_file = layout_dir / layout_path.str();
+                input_file.replace_extension(".out");
                 if (!std::filesystem::exists(input_file)) {
                     std::cerr << "Impossibile aprire il file layout " << input_file << std::endl;
                     return 1;
                 }
-                ifs = std::make_unique<std::ifstream>(input_file);
+                ifs = std::make_unique<std::ifstream>(input_file, std::ifstream::binary | std::ifstream::in);
                 in_file_layout = true;
             }
         }

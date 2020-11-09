@@ -68,7 +68,7 @@ private:
     std::vector<content_view> content_stack;
     size_t index_reg = 0;
     size_t program_counter = 0;
-    bool jumped = true;
+    bool jumped = false;
 };
 
 #endif

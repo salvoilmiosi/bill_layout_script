@@ -436,7 +436,7 @@ void frame_editor::loadPdf(const wxString &filename) {
 }
 
 wxString frame_editor::getControlScript() {
-    wxFileDialog diag(this, "Apri script di controllo", wxEmptyString, wxEmptyString, "File layout (*.bls)|*.bls|Tutti i file (*.*)|*.*");
+    wxFileDialog diag(this, "Apri script di controllo", wxEmptyString, wxEmptyString, "File layout compilati (*.out)|*.out|Tutti i file (*.*)|*.*");
 
     if (diag.ShowModal() == wxID_CANCEL)
         return wxString();
@@ -477,7 +477,7 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     try {
         iss >> json_output;
 
-        std::string output_layout = json_output["globals"]["layout"].asString();
+        std::string output_layout = json_output["globals"]["layout"].asString() + ".bls";
         if (output_layout.empty()) {
             wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
         } else if (saveIfModified()) {

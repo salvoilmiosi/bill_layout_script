@@ -32,7 +32,7 @@ variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is.
 
 template<size_t Minargs, size_t Maxargs, typename Function>
 function_handler create_function(Function fun) {
-    return [&](const arg_list &vars) {
+    return [fun](const arg_list &vars) {
         if (vars.size() < Minargs || vars.size() > Maxargs) {
             throw invalid_numargs{vars.size(), Minargs, Maxargs};
         }
@@ -76,7 +76,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
         {"month_begin", create_function([](const variable &str) { return str.str() + "-01"; })},
         {"month_end", create_function([](const variable &str) { return date_month_end(str.str()); })},
         {"nospace", create_function([](const variable &str) { return nospace(str.str()); })},
-        {"num", create_function([](const variable &str) { return parse_number(str.str()); })},
+        {"num", create_function([](const variable &str) { return str.type() == VALUE_NUMBER ? str : variable(parse_number(str.str()), VALUE_NUMBER); })},
         {"ifl", create_function<2, 3>   ([](const variable &condition, const variable &var_if, const variable &var_else) { return condition ? var_if : var_else; })},
         {"coalesce", [](const arg_list &args) {
             for (auto &arg : args) {

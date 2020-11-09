@@ -39,6 +39,13 @@ struct command_args : public command_args_base {
 };
 
 void reader::read_layout(const pdf_info &info, std::istream &input) {
+    commands.clear();
+    var_stack.clear();
+    content_stack.clear();
+    index_reg = 0;
+    program_counter = 0;
+    jumped = false;
+
     while (!input.eof()) {
         asm_command cmd = readData<asm_command>(input);
         switch(cmd) {
@@ -113,7 +120,6 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
         }
     }
 
-    program_counter = 0;
     while (program_counter < commands.size()) {
         exec_command(info, *commands[program_counter]);
         if (!jumped) {
@@ -157,13 +163,13 @@ void reader::exec_command(const pdf_info &info, const command_args_base &cmd) {
     case APPEND:
         index_reg = get_variable_size(get_string());
         set_variable(get_string(), var_stack.back());
-        var_stack.pop_back();
         index_reg = 0;
+        var_stack.pop_back();
         break;
     case SETVAR:
         set_variable(get_string(), var_stack.back());
-        var_stack.pop_back();
         index_reg = 0;
+        var_stack.pop_back();
         break;
     case PUSHCONTENT: var_stack.push_back(content_stack.back().view_stack.back()); break;
     case PUSHNUM: var_stack.push_back(get_float()); break;
@@ -197,11 +203,13 @@ void reader::exec_command(const pdf_info &info, const command_args_base &cmd) {
     case INCTOP:
         if (var_stack.back()) {
             set_variable(get_string(), get_variable(get_string()) + var_stack.back());
+            index_reg = 0;
         }
         var_stack.pop_back();
         break;
     case INC:
         set_variable(get_string(), get_variable(get_string()) + variable(1));
+        index_reg = 0;
         break;
     case INCGTOP:
         if (var_stack.back()) {
@@ -220,11 +228,13 @@ void reader::exec_command(const pdf_info &info, const command_args_base &cmd) {
     case DECTOP:
         if (var_stack.back()) {
             set_variable(get_string(), get_variable(get_string()) - var_stack.back());
+            index_reg = 0;
         }
         var_stack.pop_back();
         break;
     case DEC:
         set_variable(get_string(), get_variable(get_string()) - variable(1));
+        index_reg = 0;
         break;
     case DECGTOP:
         if (var_stack.back()) {

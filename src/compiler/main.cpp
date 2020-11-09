@@ -16,9 +16,13 @@ int main(int argc, char **argv) {
 
     std::unique_ptr<std::ifstream> ifs;
 
+    if (argc >= 2) input_file = argv[1];
+    
     if (argc >= 3) {
-        input_file = argv[1];
         output_file = argv[2];
+    } else {
+        output_file = input_file;
+        output_file.replace_extension("out");
     }
 
     if (input_file.empty()) {
