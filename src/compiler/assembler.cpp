@@ -148,11 +148,15 @@ assembler::assembler(const std::vector<std::string> &lines) {
         case hash("JTE"):           out_lines.push_back(create_cmd(JTE, getgotoindex(args))); break;
         case hash("INCTOP"):        out_lines.push_back(create_cmd(INCTOP, args)); break;
         case hash("INC"):           out_lines.push_back(create_cmd(INC, args)); break;
+        case hash("INCGTOP"):       out_lines.push_back(create_cmd(INCGTOP, args)); break;
+        case hash("INCG"):          out_lines.push_back(create_cmd(INCG, args)); break;
         case hash("DECTOP"):        out_lines.push_back(create_cmd(DECTOP, args)); break;
         case hash("DEC"):           out_lines.push_back(create_cmd(DEC, args)); break;
+        case hash("DECGTOP"):       out_lines.push_back(create_cmd(DECGTOP, args)); break;
+        case hash("DECG"):          out_lines.push_back(create_cmd(DECG, args)); break;
         case hash("ISSET"):         out_lines.push_back(create_cmd(ISSET, args)); break;
         case hash("SIZE"):          out_lines.push_back(create_cmd(SIZE, args)); break;
-        case hash("NEWCONTENT"):    out_lines.emplace_back(NEWCONTENT); break;
+        case hash("CONTENTVIEW"):    out_lines.emplace_back(CONTENTVIEW); break;
         case hash("NEXTLINE"):      out_lines.emplace_back(NEXTLINE); break;
         case hash("NEXTTOKEN"):     out_lines.emplace_back(NEXTTOKEN); break;
         case hash("POPCONTENT"):    out_lines.emplace_back(POPCONTENT); break;

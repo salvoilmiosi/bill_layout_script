@@ -23,6 +23,22 @@ struct box_spacer {
     float h;
 };
 
+struct content_view {
+    std::string text;
+    std::vector<std::string_view> view_stack;
+
+    content_view(const std::string &_text) : text(_text) {
+        view_stack.emplace_back(text);
+    }
+
+    bool tokenend() {
+        if (view_stack.size() >= 2) {
+            return view_stack.back().begin() == view_stack[view_stack.size()-2].end();
+        }
+        return true;
+    }
+};
+
 class reader {
 public:
     void read_layout(const pdf_info &info, std::istream &input);
@@ -49,10 +65,9 @@ private:
 private:
     std::vector<std::unique_ptr<command_args_base>> commands;
     std::vector<variable> var_stack;
-    std::vector<std::string_view> content_stack;
-    std::string content_text;
-    size_t index_reg;
-    size_t program_counter;
+    std::vector<content_view> content_stack;
+    size_t index_reg = 0;
+    size_t program_counter = 0;
     bool jumped = true;
 };
 

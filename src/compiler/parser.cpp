@@ -4,13 +4,12 @@
 #include <iostream>
 
 void parser::read_layout(const bill_layout_script &layout) {
-    size_t i = 0;
     try {
         for (size_t i=0; i<layout.boxes.size(); ++i) {
             read_box(layout.boxes[i]);
         }
     } catch (const parsing_error &error) {
-        throw layout_error(fmt::format("In {0}: {1}\n{2}", layout.boxes[i].name, error.message, error.line));
+        throw layout_error(fmt::format("In {0}: {1}\n{2}", current_box->name, error.message, error.line));
     }
 }
 
@@ -210,6 +209,23 @@ void parser::exec_function() {
         exec_line();
         output_asm.push_back(fmt::format("JMP {0}", while_label));
         output_asm.push_back(fmt::format("{0}:", endwhile_label));
+    } else if (fun_name == "for") {
+        std::string for_label = fmt::format("__for_{0}", output_asm.size());
+        std::string endfor_label = fmt::format("__endfor_{0}", output_asm.size());
+        tokens.require(TOK_PAREN_BEGIN);
+        auto idx_name = tokens.require(TOK_IDENTIFIER);
+        tokens.require(TOK_COMMA);
+        output_asm.push_back(fmt::format("{0}:", for_label));
+        output_asm.push_back(fmt::format("PUSHVAR {0}", idx_name.value));
+        evaluate();
+        output_asm.push_back("CALL lt,2");
+        output_asm.push_back(fmt::format("JZ {0}", endfor_label));
+        tokens.require(TOK_PAREN_END);
+        exec_line();
+        output_asm.push_back(fmt::format("INC {0}", idx_name.value));
+        output_asm.push_back(fmt::format("JMP {0}", for_label));
+        output_asm.push_back(fmt::format("{0}:", endfor_label));
+        output_asm.push_back(fmt::format("CLEAR {0}", idx_name.value));
     } else if (fun_name == "goto") {
         tokens.next();
    
@@ -218,7 +234,7 @@ void parser::exec_function() {
             output_asm.push_back(fmt::format("JMP {0}", tokens.current().value));
             break;
         case TOK_NUMBER:
-            output_asm.push_back(fmt::format("JMPNUM {0}", tokens.current().value));
+            output_asm.push_back(fmt::format("JMP {0}", tokens.current().value));
             break;
         default:
             throw parsing_error("Indirizzo goto invalido", tokens.getLocation(tokens.current()));
@@ -239,10 +255,21 @@ void parser::exec_function() {
         default:
             throw parsing_error("Token inaspettato", tokens.getLocation(tokens.current()));
         }
-        if (inc_one) {
-            output_asm.push_back(fmt::format("INC {0}", ref.name));
+        if (ref.flags & FLAGS_NUMBER) {
+            output_asm.push_back("CALL num,1");
+        }
+        if (ref.flags & FLAGS_GLOBAL) {
+            if (inc_one) {
+                output_asm.push_back(fmt::format("INCG {0}", ref.name));
+            } else {
+                output_asm.push_back(fmt::format("INCGTOP {0}", ref.name));
+            }
         } else {
-            output_asm.push_back(fmt::format("INCTOP {0}", ref.name));
+            if (inc_one) {
+                output_asm.push_back(fmt::format("INC {0}", ref.name));
+            } else {
+                output_asm.push_back(fmt::format("INCTOP {0}", ref.name));
+            }
         }
     } else if (fun_name == "dec") {
         tokens.require(TOK_PAREN_BEGIN);
@@ -260,10 +287,21 @@ void parser::exec_function() {
         default:
             throw parsing_error("Token inaspettato", tokens.getLocation(tokens.current()));
         }
-        if (inc_one) {
-            output_asm.push_back(fmt::format("DEC {0}", ref.name));
+        if (ref.flags & FLAGS_NUMBER) {
+            output_asm.push_back("CALL num,1");
+        }
+        if (ref.flags & FLAGS_GLOBAL) {
+            if (inc_one) {
+                output_asm.push_back(fmt::format("DECG {0}", ref.name));
+            } else {
+                output_asm.push_back(fmt::format("DECGTOP {0}", ref.name));
+            }
         } else {
-            output_asm.push_back(fmt::format("DECTOP {0}", ref.name));
+            if (inc_one) {
+                output_asm.push_back(fmt::format("DEC {0}", ref.name));
+            } else {
+                output_asm.push_back(fmt::format("DECTOP {0}", ref.name));
+            }
         }
     } else if (fun_name == "isset") {
         tokens.require(TOK_PAREN_BEGIN);
@@ -289,7 +327,7 @@ void parser::exec_function() {
         tokens.require(TOK_PAREN_BEGIN);
         evaluate();
         tokens.require(TOK_PAREN_END);
-        output_asm.push_back("NEWCONTENT");
+        output_asm.push_back("CONTENTVIEW");
 
         tokens.require(TOK_BRACE_BEGIN);
         output_asm.push_back(fmt::format("{0}:", lines_label));
@@ -309,25 +347,22 @@ void parser::exec_function() {
         output_asm.push_back(fmt::format("{0}:", endlines_label));
         output_asm.push_back("POPCONTENT");
     } else if (fun_name == "tokens") {
-        std::string endtokens_label = fmt::format("__endtokens_{0}", output_asm.size());
         tokens.require(TOK_PAREN_BEGIN);
         evaluate();
         tokens.require(TOK_PAREN_END);
-        output_asm.push_back("NEWCONTENT");
+        output_asm.push_back("CONTENTVIEW");
 
         tokens.require(TOK_BRACE_BEGIN);
 
         while (true) {
-            output_asm.push_back("NEXTTOKEN");
-            output_asm.push_back(fmt::format("JTE {0}", endtokens_label));
             tokens.next(true);
             if (tokens.current().type == TOK_BRACE_END) {
                 tokens.advance();
                 break;
             }
+            output_asm.push_back("NEXTTOKEN");
             exec_line();
         }
-        output_asm.push_back(fmt::format("{0}:", endtokens_label));
         output_asm.push_back("POPCONTENT");
     } else {
         int num_args = 0;

@@ -42,20 +42,28 @@ int main(int argc, char **argv) {
         }
 
         result.read_layout(layout);
+
+        std::ofstream ofs(output_file, std::ofstream::binary | std::ofstream::out);
+        for (auto &line : result.get_output_asm()) {
+            std::cout << line;
+            if (line.back() == ':') {
+                std::cout << ' ';
+            } else {
+                std::cout << std::endl;
+            }
+        }
+        assembler(result.get_output_asm()).save_output(ofs);
+        ofs.close();
     } catch (const layout_error &error) {
+        std::cerr << error.message << std::endl;
+        return 1;
+    } catch (const assembly_error &error) {
         std::cerr << error.message << std::endl;
         return 1;
     } catch (const std::exception &error) {
         std::cerr << error.what();
         return 1;
     }
-
-    std::ofstream ofs(output_file, std::ofstream::binary | std::ofstream::out);
-    for (auto &line : result.get_output_asm()) {
-        std::cout << line << std::endl;
-    }
-    assembler(result.get_output_asm()).save_output(ofs);
-    ofs.close();
 
     return 0;
 }
