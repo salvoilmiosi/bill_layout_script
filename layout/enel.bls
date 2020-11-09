@@ -22,7 +22,7 @@
 				"mode" : 0,
 				"name" : "Dati Fornitura",
 				"page" : 1,
-				"script" : "%potenza+=$search(@,\"Potenza contrattualmente impegnata $NUMBER\")\n%potenza+=$search(@,\"Potenza contrattualmente impegnata $NUMBER\")\n%potenza+=$search(@,\"Potenza contrattualmente impegnata $NUMBER\")\nindirizzo_fornitura=$search($nospace(@),\"Forniamo energia in (.+)Denominazione\")",
+				"script" : "%potenza+=$search(@,\"Potenza contrattualmente impegnata $NUMBER\")\n%potenza+=$search(@,\"Potenza contrattualmente impegnata $NUMBER\")\n%potenza+=$search(@,\"Potenza contrattualmente impegnata $NUMBER\")\nindirizzo_fornitura=$search($nospace(@),\"Forniamo energia in (.+) Denominazione\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.41827955842018127,
