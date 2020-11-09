@@ -14,7 +14,7 @@
 struct command_args_base {
     asm_command command;
 
-    command_args_base(asm_command command = NOP) : command(command) {}
+    command_args_base(asm_command command) : command(command) {}
     virtual ~command_args_base() {}
 };
 

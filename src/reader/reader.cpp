@@ -23,11 +23,13 @@ struct command_rdbox : public command_args_base, public layout_box {
 struct command_call : public command_args_base {
     std::string name;
     int numargs;
+    command_call() : command_args_base(CALL) {}
 };
 
 struct command_spacer : public command_args_base {
     std::string name;
     box_spacer spacer;
+    command_spacer() : command_args_base(SPACER) {}
 };
 
 template<typename T>
@@ -37,7 +39,7 @@ struct command_args : public command_args_base {
 };
 
 void reader::read_layout(const pdf_info &info, std::istream &input) {
-    while (!input.ate) {
+    while (!input.eof()) {
         asm_command cmd = readData<asm_command>(input);
         switch(cmd) {
         case RDBOX:
@@ -143,7 +145,9 @@ void reader::exec_command(const pdf_info &info, const command_args_base &cmd) {
         break;
     }
     case SETGLOBAL:
-        m_globals[get_string()] = var_stack.back();
+        if (var_stack.back()) {
+            m_globals[get_string()] = var_stack.back();
+        }
         var_stack.pop_back();
         break;
     case SETDEBUG: var_stack.back().debug = true; break;
@@ -294,10 +298,10 @@ void reader::set_variable(const std::string &name, const variable &value) {
     if (!value) return;
 
     size_t pageidx = get_global("PAGE_NUM");
-    while (m_values.size() < pageidx) m_values.emplace_back();
+    while (m_values.size() <= pageidx) m_values.emplace_back();
     auto page = m_values[pageidx];
     auto var = page[name];
-    while (var.size() < index_reg) var.emplace_back();
+    while (var.size() <= index_reg) var.emplace_back();
     var[index_reg] = value;
 }
 

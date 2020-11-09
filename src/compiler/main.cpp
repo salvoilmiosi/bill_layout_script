@@ -51,6 +51,9 @@ int main(int argc, char **argv) {
     }
 
     std::ofstream ofs(output_file, std::ofstream::binary | std::ofstream::out);
+    for (auto &line : result.get_output_asm()) {
+        std::cout << line << std::endl;
+    }
     assembler(result.get_output_asm()).save_output(ofs);
     ofs.close();
 

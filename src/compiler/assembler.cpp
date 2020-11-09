@@ -116,7 +116,7 @@ assembler::assembler(const std::vector<std::string> &lines) {
             size_t comma = args.find_first_of(',');
             std::string name = args.substr(0, comma);
             int numargs = std::stoi(args.substr(comma + 1));
-            out_lines.push_back(create_cmd(CALL, args, numargs));
+            out_lines.push_back(create_cmd(CALL, name, numargs));
             break;
         }
         case hash("SPACER"):

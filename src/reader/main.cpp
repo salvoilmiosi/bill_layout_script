@@ -92,6 +92,9 @@ int main(int argc, char **argv) {
             result.read_layout(pdf_info, *ifs);
             ifs->close();
         }
+    } catch (assembly_error &error) {
+        std::cerr << error.message;
+        return 1;
     } catch (const std::exception &error) {
         std::cerr << error.what();
         return 1;

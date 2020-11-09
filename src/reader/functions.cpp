@@ -119,7 +119,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
         for (size_t i=0; i<numargs; ++i) {
             vars.push_back(var_stack[var_stack.size()-numargs+i]);
         }
-        var_stack.erase(var_stack.end() - numargs, var_stack.end());
+        var_stack.resize(var_stack.size() - numargs);
         var_stack.push_back(it->second(vars));
     } else {
         throw assembly_error{fmt::format("Funzione sconosciuta: {0}", name)};
