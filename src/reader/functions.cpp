@@ -32,7 +32,7 @@ variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is.
 
 template<size_t Minargs, size_t Maxargs, typename Function>
 function_handler create_function(Function fun) {
-    return [fun](const arg_list &vars) -> variable {
+    return [&](const arg_list &vars) {
         if (vars.size() < Minargs || vars.size() > Maxargs) {
             throw invalid_numargs{vars.size(), Minargs, Maxargs};
         }
@@ -50,14 +50,8 @@ inline function_handler create_function(Function fun) {
     return create_function<1>(fun);
 }
 
-variable reader::exec_function(tokenizer &tokens, const box_content &content, bool ignore) {
-    tokens.require(TOK_FUNCTION);
-    token fun_opening = tokens.require(TOK_IDENTIFIER);
-
-    std::string fun_name = std::string(tokens.current().value);
-    arg_list args;
-
-    static const std::map<std::string, function_handler> dispatcher = {
+void reader::call_function(const std::string &name, size_t numargs) {
+    static const std::map<std::string, function_handler> dispatcher {
         {"eq",      create_function<2>([](const variable &a, const variable &b) { return a == b; })},
         {"neq",     create_function<2>([](const variable &a, const variable &b) { return a != b; })},
         {"and",     create_function<2>([](const variable &a, const variable &b) { return a && b; })},
@@ -119,221 +113,15 @@ variable reader::exec_function(tokenizer &tokens, const box_content &content, bo
         })}
     };
 
-    auto it = dispatcher.find(fun_name);
+    auto it = dispatcher.find(name);
     if (it != dispatcher.end()) {
-        tokens.require(TOK_PAREN_BEGIN);
-
-        bool in_fun_loop = true;
-        while (in_fun_loop) {
-            args.push_back(evaluate(tokens, content, ignore));
-            tokens.next();
-            switch (tokens.current().type) {
-            case TOK_COMMA:
-                break;
-            case TOK_PAREN_END:
-                in_fun_loop=false;
-                break;
-            default:
-                throw parsing_error("Token imprevisto", tokens.getLocation(tokens.current()));
-            }
+        arg_list vars;
+        for (size_t i=0; i<numargs; ++i) {
+            vars.push_back(var_stack[var_stack.size()-numargs+i]);
         }
-
-        try {
-            if (!ignore) {
-                return it->second(args);
-            }
-        } catch (invalid_numargs &err) {
-            if ((err.minargs == err.maxargs) && err.numargs != err.maxargs) {
-                throw parsing_error(fmt::format("Richiesti {0} argomenti", err.maxargs), tokens.getLocation(fun_opening));
-            } else if (err.numargs < err.minargs) {
-                throw parsing_error(fmt::format("Richiesti almeno {0} argomenti", err.minargs), tokens.getLocation(fun_opening));
-            } else if (err.numargs > err.maxargs) {
-                throw parsing_error(fmt::format("Richiesti al massimo {1} argomenti", err.maxargs), tokens.getLocation(fun_opening));
-            }
-        } catch (scripted_error &err) {
-            throw parsing_error(err.msg, tokens.getLocation(fun_opening));
-        }
+        var_stack.erase(var_stack.end() - numargs, var_stack.end());
+        var_stack.push_back(it->second(vars));
     } else {
-        tokens.gotoTok(fun_opening);
-        return exec_sys_function(tokens, content, ignore);
+        throw assembly_error{fmt::format("Funzione sconosciuta: {0}", name)};
     }
-
-    return variable();
-}
-
-variable reader::exec_sys_function(tokenizer &tokens, const box_content &content, bool ignore) {
-    token fun_opening = tokens.require(TOK_IDENTIFIER);
-    std::string fun_name = std::string(fun_opening.value);
-
-    if (fun_name == "if") {
-        tokens.require(TOK_PAREN_BEGIN);
-        auto condition = evaluate(tokens, content, ignore);
-        tokens.require(TOK_PAREN_END);
-        exec_line(tokens, content, ignore || !condition);
-        tokens.next();
-        token tok_else = tokens.current();
-        bool has_else = false;
-        if (tokens.current().type == TOK_FUNCTION) {
-            tokens.next();
-            if (tokens.current().value == "else") {
-                exec_line(tokens, content, ignore || condition);
-                has_else = true;
-            }
-        }
-        if (!has_else) {
-            tokens.gotoTok(tok_else);
-        }
-    } else if (fun_name == "while") {
-        tokens.require(TOK_PAREN_BEGIN);
-
-        token tok_condition = tokens.current();
-        auto condition = evaluate(tokens, content, true);
-
-        tokens.require(TOK_PAREN_END);
-
-        tokens.next(true);
-        token tok_begin = tokens.current();
-        while (true) {
-            tokens.gotoTok(tok_condition);
-            if (evaluate(tokens, content, ignore)) {
-                tokens.gotoTok(tok_begin);
-                exec_line(tokens, content, ignore);
-            } else {
-                tokens.gotoTok(tok_begin);
-                exec_line(tokens, content, true);
-                break;
-            }
-        }
-    } else if (fun_name == "for") {
-        tokens.require(TOK_PAREN_BEGIN);
-        auto idx = get_variable(tokens, content);
-        tokens.require(TOK_COMMA);
-        size_t num = evaluate(tokens, content).asInt();
-        tokens.require(TOK_PAREN_END);
-
-        tokens.next(true);
-        token tok_begin = tokens.current();
-
-        for (size_t i=0; i<num; ++i) {
-            *idx = i;
-            tokens.gotoTok(tok_begin);
-            exec_line(tokens, content, ignore);
-        }
-        tokens.gotoTok(tok_begin);
-        exec_line(tokens, content, true);
-        idx.clear();
-    } else if (fun_name == "lines") {
-        tokens.require(TOK_PAREN_BEGIN);
-        auto str = evaluate(tokens, content, ignore);
-        tokens.require(TOK_PAREN_END);
-
-        auto lines = read_lines(str.str());
-
-        tokens.next(true);
-        token tok_begin = tokens.current();
-
-        box_content content_line = content;
-        for (auto &line : lines) {
-            tokens.gotoTok(tok_begin);
-            content_line.text = line;
-            exec_line(tokens, content_line, ignore);
-        }
-    } else if (fun_name == "tokens") {
-        tokens.require(TOK_PAREN_BEGIN);
-        auto str = evaluate(tokens, content, ignore);
-        tokens.require(TOK_PAREN_END);
-
-        auto strtoks = tokenize(str.str());
-
-        tokens.require(TOK_BRACE_BEGIN);
-
-        box_content content_strtok = content;
-        for (size_t i=0;; ++i) {
-            tokens.next(true);
-            if (tokens.current().type == TOK_BRACE_END) {
-                tokens.advance();
-                break;
-            }
-            content_strtok.text = i < strtoks.size() ? strtoks[i] : "";
-            exec_line(tokens, content_strtok, ignore);
-        }
-    } else if (fun_name == "goto") {
-        tokens.next();
-
-        if (!ignore) {        
-            switch (tokens.current().type) {
-            case TOK_IDENTIFIER:
-            {
-                std::string label(tokens.current().value);
-                auto it = goto_labels.find(label);
-                if (it == goto_labels.end()) {
-                    throw parsing_error(fmt::format("Impossibile trovare etichetta {0}", label), tokens.getLocation(tokens.current()));
-                } else {
-                    program_counter = it->second;
-                    jumped = true;
-                }
-                break;
-            }
-            case TOK_NUMBER:
-                program_counter = variable(tokens.current().value, VALUE_NUMBER).asInt();
-                jumped = true;
-                break;
-            default:
-                throw parsing_error("Indirizzo goto invalido", tokens.getLocation(tokens.current()));
-            }
-        }
-    } else if (fun_name == "inc") {
-        tokens.require(TOK_PAREN_BEGIN);
-        auto var = get_variable(tokens, content);
-        tokens.next();
-        variable amt = 1;
-        switch(tokens.current().type) {
-        case TOK_COMMA:
-            amt = evaluate(tokens, content, ignore);
-            tokens.require(TOK_PAREN_END);
-            break;
-        case TOK_PAREN_END:
-            break;
-        default:
-            throw parsing_error("Token inaspettato", tokens.getLocation(tokens.current()));
-        }
-        if (amt) add_value(var, *var + amt, ignore);
-    } else if (fun_name == "dec") {
-        tokens.require(TOK_PAREN_BEGIN);
-        auto var = get_variable(tokens, content);
-        tokens.next();
-        variable amt = 1;
-        switch(tokens.current().type) {
-        case TOK_COMMA:
-            amt = evaluate(tokens, content, ignore);
-            tokens.require(TOK_PAREN_END);
-            break;
-        case TOK_PAREN_END:
-            break;
-        default:
-            throw parsing_error("Token inaspettato", tokens.getLocation(tokens.current()));
-        }
-        if (amt) add_value(var, *var - amt, ignore);
-    } else if (fun_name == "isset") {
-        tokens.require(TOK_PAREN_BEGIN);
-        auto var = get_variable(tokens, content);
-        tokens.require(TOK_PAREN_END);
-        return var.isset();
-    } else if (fun_name == "size") {
-        tokens.require(TOK_PAREN_BEGIN);
-        auto var = get_variable(tokens, content);
-        tokens.require(TOK_PAREN_END);
-        return var.size();
-    } else if (fun_name == "clear") {
-        auto var = get_variable(tokens, content);
-        if (!ignore) var.clear();
-    } else if (fun_name == "addspacer") {
-        tokens.require(TOK_IDENTIFIER);
-        if (!ignore) {
-            m_spacers[std::string(tokens.current().value)] = spacer(content.w, content.h);
-        }
-    } else {
-        throw parsing_error(fmt::format("Funzione {0} non riconosciuta", fun_name), tokens.getLocation(fun_opening));
-    }
-    return variable();
 }

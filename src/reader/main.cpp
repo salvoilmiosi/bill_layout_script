@@ -4,7 +4,6 @@
 #include <cstring>
 
 #include "reader.h"
-#include "../shared/xpdf.h"
 
 int main(int argc, char **argv) {
     std::string app_dir = argv[0];
@@ -55,31 +54,26 @@ int main(int argc, char **argv) {
     std::unique_ptr<std::ifstream> ifs;
 
     if (input_file.empty()) {
-        std::cerr << "Specificare un file di input, o - per stdin" << std::endl;
+        std::cerr << "Specificare un file di input" << std::endl;
         return 1;
-    } else if (input_file != "-") {
+    } else {
         if (!std::filesystem::exists(input_file)) {
             std::cerr << "Impossibile aprire il file layout " << input_file << std::endl;
             return 1;
         }
-        ifs = std::make_unique<std::ifstream>(input_file);
+        ifs = std::make_unique<std::ifstream>(input_file, std::ifstream::binary | std::ifstream::in);
         if (layout_dir.empty()) {
             layout_dir = input_file.parent_path();
         }
     }
 
     try {
-        pdf_info info = pdf_get_info(file_pdf.string());
-        if (exec_script) {
-            bill_layout_script layout;
-            if (ifs) {
-                *ifs >> layout;
-                ifs->close();
-            } else {
-                std::cin >> layout;
-            }
+        auto pdf_info = pdf_get_info(file_pdf.string());
 
-            result.read_layout(info, layout);
+        if (exec_script) {
+            result.read_layout(pdf_info, *ifs);
+            ifs->close();
+
             in_file_layout = false;
         }
         if (!layout_dir.empty()) {
@@ -95,22 +89,9 @@ int main(int argc, char **argv) {
             }
         }
         if (in_file_layout) {
-            bill_layout_script layout;
-            if (ifs) {
-                *ifs >> layout;
-                ifs->close();
-            } else {
-                std::cin >> layout;
-            }
-
-            result.read_layout(info, layout);
+            result.read_layout(pdf_info, *ifs);
+            ifs->close();
         }
-    } catch (const layout_error &error) {
-        std::cerr << error.message << std::endl;
-        return 1;
-    } catch (const xpdf_error &error) {
-        std::cerr << error.message << std::endl;
-        return 1;
     } catch (const std::exception &error) {
         std::cerr << error.what();
         return 1;

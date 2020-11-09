@@ -3,13 +3,6 @@
 
 #include <string>
 
-struct parsing_error {
-    const std::string message;
-    const std::string line;
-
-    parsing_error(const std::string &message, const std::string &line) : message(message), line(line) {}
-};
-
 enum token_type {
     TOK_END_OF_FILE = 0,
     TOK_ERROR,
@@ -41,6 +34,7 @@ struct token {
 
 class tokenizer {
 public:
+    tokenizer() {}
     tokenizer(const std::string_view &script);
 
     bool next(bool peek = false);

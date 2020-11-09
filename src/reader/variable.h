@@ -68,28 +68,4 @@ private:
     value_type m_type{VALUE_UNDEFINED};
 };
 
-class variable_ref {
-private:
-    class reader &parent;
-
-public:
-    static const uint8_t FLAGS_APPEND = 1 << 0;
-    static const uint8_t FLAGS_CLEAR = 1 << 1;
-    static const uint8_t FLAGS_GLOBAL = 1 << 2;
-    static const uint8_t FLAGS_NUMBER = 1 << 3;
-    static const uint8_t FLAGS_DEBUG = 1 << 4;
-
-    variable_ref(class reader &parent) : parent(parent) {};
-
-    size_t pageidx = 0;
-    std::string name;
-    size_t index = 0;
-    uint8_t flags = 0;
-
-    void clear();
-    size_t size() const;
-    bool isset() const;
-    variable &operator *();
-};
-
 #endif

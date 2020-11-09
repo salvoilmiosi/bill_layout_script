@@ -25,6 +25,13 @@ struct layout_error {
     layout_error(const std::string &message) : message(message) {}
 };
 
+struct parsing_error {
+    const std::string message;
+    const std::string line;
+
+    parsing_error(const std::string &message, const std::string &line) : message(message), line(line) {}
+};
+
 using box_reference = std::vector<layout_box>::iterator;
 
 class bill_layout_script {

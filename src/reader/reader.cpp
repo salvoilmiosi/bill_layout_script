@@ -1,28 +1,226 @@
 #include "reader.h"
 
 #include <json/json.h>
-#include <fmt/format.h>
-#include <iostream>
 #include "../shared/utils.h"
 
-void reader::read_layout(const pdf_info &info, const bill_layout_script &layout) {
-    for (size_t i=0; i<layout.boxes.size(); ++i) {
-        if (!layout.boxes[i].goto_label.empty()) {
-            goto_labels[layout.boxes[i].goto_label] = i;
+template<typename T> T readData(std::istream &input) {
+    T buffer;
+    input.read(reinterpret_cast<char *>(&buffer), sizeof(buffer));
+    return buffer;
+}
+
+template<> std::string readData(std::istream &input) {
+    short len = readData<short>(input);
+    std::string ret(len, '\0');
+    input.read(ret.data(), len);
+    return ret;
+}
+
+struct command_rdbox : public command_args_base, public layout_box {
+    command_rdbox() : command_args_base(RDBOX) {}
+};
+
+struct command_call : public command_args_base {
+    std::string name;
+    int numargs;
+};
+
+struct command_spacer : public command_args_base {
+    std::string name;
+    box_spacer spacer;
+};
+
+template<typename T>
+struct command_args : public command_args_base {
+    T data;
+    command_args(asm_command cmd, const T &data) : command_args_base(cmd), data(data) {}
+};
+
+void reader::read_layout(const pdf_info &info, std::istream &input) {
+    while (!input.ate) {
+        asm_command cmd = readData<asm_command>(input);
+        switch(cmd) {
+        case RDBOX:
+        {
+            auto box = std::make_unique<command_rdbox>();
+            box->x = readData<float>(input);
+            box->y = readData<float>(input);
+            box->w = readData<float>(input);
+            box->h = readData<float>(input);
+            box->page = readData<int>(input);
+            box->mode = readData<read_mode>(input);
+            box->type = readData<box_type>(input);
+            box->spacers = readData<std::string>(input);
+            commands.push_back(std::move(box));
+            break;
+        }
+        case CALL:
+        {
+            auto call = std::make_unique<command_call>();
+            call->name = readData<std::string>(input);
+            call->numargs = readData<int>(input);
+            commands.push_back(std::move(call));
+            break;
+        }
+        case SPACER:
+        {
+            auto spacer = std::make_unique<command_spacer>();
+            spacer->name = readData<std::string>(input);
+            spacer->spacer.w = readData<float>(input);
+            spacer->spacer.h = readData<float>(input);
+            commands.push_back(std::move(spacer));
+            break;
+        }
+        case NOP:
+        case SETDEBUG:
+        case PUSHCONTENT:
+        case SETINDEX:
+        case NEWCONTENT:
+        case NEXTLINE:
+        case NEXTTOKEN:
+        case POPCONTENT:
+            commands.push_back(std::make_unique<command_args_base>(cmd));
+            break;
+        case SETGLOBAL:
+        case CLEAR:
+        case APPEND:
+        case SETVAR:
+        case PUSHSTR:
+        case PUSHGLOBAL:
+        case PUSHVAR:
+        case INCTOP:
+        case INC:
+        case DECTOP:
+        case DEC:
+        case ISSET:
+        case SIZE:
+            commands.push_back(std::make_unique<command_args<std::string>>(cmd, readData<std::string>(input)));
+            break;
+        case PUSHNUM:
+            commands.push_back(std::make_unique<command_args<float>>(cmd, readData<float>(input)));
+            break;
+        case JMP:
+        case JZ:
+        case JTE:
+            commands.push_back(std::make_unique<command_args<int>>(cmd, readData<int>(input)));
+            break;
+        default:
+            throw assembly_error{"Comando sconosciuto"};
         }
     }
-    try {
-        program_counter = 0;
-        while (program_counter < layout.boxes.size()) {
-            read_box(info, layout.boxes[program_counter]);
-            if (jumped) {
-                jumped = false;
-            } else {
-                ++program_counter;
-            }
+
+    program_counter = 0;
+    while (program_counter < commands.size()) {
+        exec_command(info, *commands[program_counter]);
+        if (!jumped) {
+            ++program_counter;
+        } else {
+            jumped = false;
         }
-    } catch (const parsing_error &error) {
-        throw layout_error(fmt::format("In {0}: {1}\n{2}", layout.boxes[program_counter].name, error.message, error.line));
+    }
+}
+
+void reader::exec_command(const pdf_info &info, const command_args_base &cmd) {
+    auto get_string = [&]() {
+        return dynamic_cast<const command_args<std::string> &>(cmd).data;
+    };
+
+    auto get_float = [&]() {
+        return dynamic_cast<const command_args<float> &>(cmd).data;
+    };
+
+    auto get_int = [&]() {
+        return dynamic_cast<const command_args<int> &>(cmd).data;
+    };
+
+    switch(cmd.command) {
+    case NOP: break;
+    case RDBOX: read_box(info, dynamic_cast<const layout_box &>(cmd)); break;
+    case CALL:
+    {
+        auto call = dynamic_cast<const command_call &>(cmd);
+        call_function(call.name, call.numargs);
+        break;
+    }
+    case SETGLOBAL:
+        m_globals[get_string()] = var_stack.back();
+        var_stack.pop_back();
+        break;
+    case SETDEBUG: var_stack.back().debug = true; break;
+    case CLEAR: clear_variable(get_string()); break;
+    case APPEND:
+        index_reg = get_variable_size(get_string());
+        set_variable(get_string(), var_stack.back());
+        var_stack.pop_back();
+        index_reg = 0;
+        break;
+    case SETVAR:
+        set_variable(get_string(), var_stack.back());
+        var_stack.pop_back();
+        index_reg = 0;
+        break;
+    case PUSHCONTENT: var_stack.push_back(content_stack.back()); break;
+    case PUSHNUM: var_stack.push_back(get_float()); break;
+    case PUSHSTR: var_stack.push_back(get_string()); break;
+    case PUSHGLOBAL: var_stack.push_back(m_globals[get_string()]); break;
+    case PUSHVAR:
+        var_stack.push_back(get_variable(get_string()));
+        index_reg = 0;
+    case SETINDEX:
+        index_reg = var_stack.back().asInt();
+        var_stack.pop_back();
+        break;
+    case JMP:
+        program_counter = get_int();
+        jumped = true;
+        break;
+    case JZ:
+        if (!var_stack.back()) {
+            program_counter = get_int();
+            jumped = true;
+        }
+        var_stack.pop_back();
+        break;
+    case JTE:
+        if (content_stack.back().empty()) {
+            program_counter = get_int();
+            jumped = true;
+        }
+        break;
+    case INCTOP:
+        if (var_stack.back()) {
+            set_variable(get_string(), get_variable(get_string()) + var_stack.back());
+        }
+        var_stack.pop_back();
+        break;
+    case INC:
+        set_variable(get_string(), get_variable(get_string()) + variable(1));
+        break;
+    case DECTOP:
+        if (var_stack.back()) {
+            set_variable(get_string(), get_variable(get_string()) - var_stack.back());
+        }
+        var_stack.pop_back();
+        break;
+    case DEC:
+        set_variable(get_string(), get_variable(get_string()) - variable(1));
+        break;
+    case ISSET: var_stack.push_back(get_variable_size(get_string()) > 0); break;
+    case SIZE: var_stack.push_back(get_variable_size(get_string())); break;
+    case NEWCONTENT: content_stack.emplace_back(); break;
+    case NEXTLINE:
+    // TODO
+        break;
+    case NEXTTOKEN:
+    // TODO
+        break;
+    case POPCONTENT: content_stack.pop_back(); break;
+    case SPACER:
+    {
+        auto spacer = dynamic_cast<const command_spacer &>(cmd);
+        m_spacers[spacer.name] = spacer.spacer;
+        break;
+    }
     }
 }
 
@@ -34,7 +232,7 @@ void reader::read_box(const pdf_info &info, layout_box box) {
             }
         } else {
             if (name.size() <= 2 || name.at(name.size()-2) != '.') {
-                throw parsing_error("Identificatore spaziatore incorretto", box.spacers);
+                throw parsing_error("Identificatore spaziatore incorretto", name);
             }
             bool negative = name.front() == '-';
             auto it = m_spacers.find(negative ? name.substr(1, name.size()-3) : name.substr(0, name.size()-2));
@@ -57,152 +255,74 @@ void reader::read_box(const pdf_info &info, layout_box box) {
                 else box.h += it->second.h;
                 break;
             default:
-                throw parsing_error("Identificatore spaziatore incorretto", box.spacers);
+                throw parsing_error("Identificatore spaziatore incorretto", name);
             }
         }
     }
-    tokenizer tokens(box.script);
-    box_content content(box, pdf_to_text(info, box));
-    while (!tokens.ate()) {
-        exec_line(tokens, content);
-    }
-}
 
-variable reader::add_value(variable_ref ref, variable value, bool ignore) {
-    if (ignore) return variable();
-
-    if (ref.flags & variable_ref::FLAGS_NUMBER && value.type() != VALUE_NUMBER) {
-        value = variable(parse_number(value.str()), VALUE_NUMBER);
-    }
-
-    if (ref.flags & variable_ref::FLAGS_DEBUG) {
-        value.debug = true;
-    }
-
-    if (!value.empty()) {
-        *ref = value;
-    }
-    return value;
-}
-
-variable reader::exec_line(tokenizer &tokens, const box_content &content, bool ignore) {
-    tokens.next(true);
-    switch (tokens.current().type) {
-    case TOK_BRACE_BEGIN:
-        tokens.advance();
-        while (true) {
-            tokens.next(true);
-            if (tokens.current().type == TOK_BRACE_END) {
-                tokens.advance();
-                break;
-            }
-            exec_line(tokens, content, ignore);
-        }
-        break;
-    case TOK_COMMENT:
-        tokens.advance();
-        break;
-    case TOK_FUNCTION:
-        return exec_function(tokens, content, ignore);
-    default:
-    {
-        variable_ref ref = get_variable(tokens, content);
-        tokens.next(true);
-        switch (tokens.current().type) {
-        case TOK_EQUALS:
-            tokens.advance();
-            return add_value(ref, evaluate(tokens, content, ignore), ignore);
-        case TOK_END_OF_FILE:
-            break;
-        default:
-            return add_value(ref, content.text, ignore);
-        }
-    }
-    }
-    return variable();
-}
-
-variable reader::evaluate(tokenizer &tokens, const box_content &content, bool ignore) {
-    tokens.next(true);
-    switch (tokens.current().type) {
-    case TOK_FUNCTION:
-        return exec_function(tokens, content, ignore);
-    case TOK_NUMBER:
-        tokens.advance();
-        return variable(std::string(tokens.current().value), VALUE_NUMBER);
-    case TOK_STRING:
-        tokens.advance();
-        return parse_string(tokens.current().value);
-    case TOK_CONTENT:
-        tokens.advance();
-        return content.text;
-    default:
-    {
-        auto ref = get_variable(tokens, content);
-        return ref.isset() ? *ref : variable();
-    }
-    }
-    return variable();
-}
-
-variable_ref reader::get_variable(tokenizer &tokens, const box_content &content) {
-    variable_ref ref(*this);
-    bool in_loop = true;
-    while (in_loop && tokens.next()) {
-        switch (tokens.current().type) {
-        case TOK_GLOBAL:
-            ref.flags |= variable_ref::FLAGS_GLOBAL;
-            break;
-        case TOK_DEBUG:
-            ref.flags |= variable_ref::FLAGS_DEBUG;
-            break;
-        case TOK_PERCENT:
-            ref.flags |= variable_ref::FLAGS_NUMBER;
-            break;
-        default:
-            in_loop = false;
-        }
-    }
-
-    if (tokens.current().type != TOK_IDENTIFIER) {
-        throw parsing_error("Richiesto identificatore", tokens.getLocation(tokens.current()));
-    }
-    ref.name = tokens.current().value;
-    ref.pageidx = get_global("PAGE_NUM").asInt();
-    if (ref.flags & variable_ref::FLAGS_GLOBAL) {
-        return ref;
-    }
-
-    tokens.next(true);
-    switch (tokens.current().type) {
-    case TOK_BRACKET_BEGIN:
-        tokens.advance();
-        ref.index = evaluate(tokens, content).asInt();
-        tokens.require(TOK_BRACKET_END);
-        break;
-    case TOK_APPEND:
-        ref.flags |= variable_ref::FLAGS_APPEND;
-        tokens.advance();
-        break;
-    case TOK_CLEAR:
-        ref.flags |= variable_ref::FLAGS_CLEAR;
-        tokens.advance();
-        break;
-    default:
-        break;
-    }
-
-    return ref;
+    content_stack.clear();
+    content_text = pdf_to_text(info, box);
+    content_stack.push_back(content_text);
 }
 
 const variable &reader::get_global(const std::string &name) const {
-    static const variable VAR_EMPTY;
-
+    static const variable VAR_NULL;
     auto it = m_globals.find(name);
     if (it == m_globals.end()) {
-        return VAR_EMPTY;
+        return VAR_NULL;
     } else {
         return it->second;
+    }
+}
+
+const variable &reader::get_variable(const std::string &name) const {
+    static const variable VAR_NULL;
+    size_t pageidx = get_global("PAGE_NUM");
+    if (m_values.size() <= pageidx) {
+        return VAR_NULL;
+    }
+    auto page = m_values[pageidx];
+    auto it = page.find(name);
+    if (it == page.end() || it->second.size() >= index_reg) {
+        return VAR_NULL;
+    } else {
+        return it->second[index_reg];
+    }
+}
+
+void reader::set_variable(const std::string &name, const variable &value) {
+    if (!value) return;
+
+    size_t pageidx = get_global("PAGE_NUM");
+    while (m_values.size() < pageidx) m_values.emplace_back();
+    auto page = m_values[pageidx];
+    auto var = page[name];
+    while (var.size() < index_reg) var.emplace_back();
+    var[index_reg] = value;
+}
+
+void reader::clear_variable(const std::string &name) {
+    size_t pageidx = get_global("PAGE_NUM");
+    if (pageidx < m_values.size()) {
+        auto page = m_values[pageidx];
+        auto it = page.find(name);
+        if (it != page.end()) {
+            page.erase(it);
+        }
+    }
+}
+
+size_t reader::get_variable_size(const std::string &name) {
+    size_t pageidx = get_global("PAGE_NUM");
+    if (m_values.size() >= pageidx) {
+        return 0;
+    }
+    auto page = m_values[pageidx];
+    auto it = page.find(name);
+    if (it == page.end()) {
+        return 0;
+    } else {
+        return it->second.size();
     }
 }
 
