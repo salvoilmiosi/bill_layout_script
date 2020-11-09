@@ -9,6 +9,7 @@ obj/*
 *.o
 *.d
 *.out
+layout/*.txt
 *.res
 *.pdf
 *.csv

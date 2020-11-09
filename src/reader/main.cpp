@@ -6,9 +6,6 @@
 #include "reader.h"
 
 int main(int argc, char **argv) {
-    std::string app_dir = argv[0];
-    app_dir = app_dir.substr(0, app_dir.find_last_of("\\/"));
-
     enum {
         FLAG_NONE,
         FLAG_PDF,
@@ -93,11 +90,8 @@ int main(int argc, char **argv) {
             result.read_layout(pdf_info, *ifs);
             ifs->close();
         }
-    } catch (assembly_error &error) {
-        std::cerr << error.message;
-        return 1;
-    } catch (const std::exception &error) {
-        std::cerr << error.what();
+    } catch (layout_error &error) {
+        std::cerr << error.message << std::endl;
         return 1;
     }
 

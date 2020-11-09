@@ -7,22 +7,32 @@
 #include "assembler.h"
 
 int main(int argc, char **argv) {
-    std::string app_dir = argv[0];
-    app_dir = app_dir.substr(0, app_dir.find_last_of("\\/"));
-
     parser result;
     std::filesystem::path input_file;
     std::filesystem::path output_file;
+    bool quiet = false;
+    bool debug = false;
 
     std::unique_ptr<std::ifstream> ifs;
-
-    if (argc >= 2) input_file = argv[1];
     
-    if (argc >= 3) {
-        output_file = argv[2];
-    } else {
-        output_file = input_file;
-        output_file.replace_extension("out");
+    enum {
+        FLAG_NONE,
+        FLAG_OUTPUT,
+    } options_flag = FLAG_NONE;
+
+    for (++argv; argc > 1; --argc, ++argv) {
+        switch (options_flag) {
+        case FLAG_NONE:
+            if (strcmp(*argv, "-o") == 0) options_flag = FLAG_OUTPUT;
+            else if (strcmp(*argv, "-q") == 0) quiet = true;
+            else if (strcmp(*argv, "-d") == 0) debug = true;
+            else input_file = *argv;
+            break;
+        case FLAG_OUTPUT:
+            output_file = *argv;
+            options_flag = FLAG_NONE;
+            break;
+        }
     }
 
     if (input_file.empty()) {
@@ -34,6 +44,16 @@ int main(int argc, char **argv) {
             return 1;
         }
         ifs = std::make_unique<std::ifstream>(input_file);
+
+        if (output_file.empty()) {
+            output_file = input_file;
+            output_file.replace_extension("out");
+        }
+    }
+
+    if (!debug && output_file.empty()) {
+        std::cerr << "Specificare un file di output" << std::endl;
+        return 1;
     }
 
     try {
@@ -47,25 +67,27 @@ int main(int argc, char **argv) {
 
         result.read_layout(layout);
 
-        std::ofstream ofs(output_file, std::ofstream::binary | std::ofstream::out);
-        for (auto &line : result.get_output_asm()) {
-            std::cout << line;
-            if (line.back() == ':') {
-                std::cout << ' ';
-            } else {
-                std::cout << std::endl;
+        if (!quiet) {
+            for (auto &line : result.get_output_asm()) {
+                std::cout << line;
+                if (line.back() == ':') {
+                    std::cout << ' ';
+                } else {
+                    std::cout << std::endl;
+                }
             }
         }
-        assembler(result.get_output_asm()).save_output(ofs);
-        ofs.close();
+
+        if (!debug) {
+            std::ofstream ofs(output_file, std::ofstream::binary | std::ofstream::out);
+            assembler(result.get_output_asm()).save_output(ofs);
+            ofs.close();
+        }
     } catch (const layout_error &error) {
         std::cerr << error.message << std::endl;
         return 1;
     } catch (const assembly_error &error) {
         std::cerr << error.message << std::endl;
-        return 1;
-    } catch (const std::exception &error) {
-        std::cerr << error.what();
         return 1;
     }
 

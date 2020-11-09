@@ -18,7 +18,7 @@ public:
     variable() {}
     variable(const std::string &value, value_type type = VALUE_STRING) : m_value(value), m_type(type) {}
     variable(const std::string_view &value, value_type type = VALUE_STRING) : m_value(std::string(value)), m_type(type) {}
-    variable(fixed_point value) : m_type(VALUE_NUMBER) {
+    variable(const fixed_point &value) : m_type(VALUE_NUMBER) {
         if (value.getAsDouble() == value.getAsInteger()) {
             m_value = std::to_string(value.getAsInteger());
         } else {
@@ -26,8 +26,8 @@ public:
         }
     }
 
-    template<typename T>
-    variable(T value) : m_value(std::to_string(value)), m_type(VALUE_NUMBER) {}
+    template<typename T> variable(const T &value) : variable(fixed_point(value)) {}
+    variable(const size_t &value) : variable(int(value)) {}
 
     value_type type() const {
         return m_type;
@@ -49,7 +49,7 @@ public:
         return m_value.empty();
     }
 
-    operator bool() const;
+    bool isTrue() const;
 
     bool operator == (const variable &other) const;
     bool operator != (const variable &other) const;

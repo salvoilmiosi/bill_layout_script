@@ -87,7 +87,7 @@
 				"mode" : 0,
 				"name" : "Sintesi dati",
 				"page" : 1,
-				"script" : "%spesa_materia_energia=$search(@,\"Corrispettivi energia $NUMBER\")\n%spesa_materia_energia=$search(@,\"Spese per l'energia $NUMBER\")\n%trasporto_gestione=$search(@,\"Trasporto $NUMBER\")\n%trasporto_gestione=$search(@,\"Spesa per trasporto, gestione contatore e oneri di sistema $NUMBER\")\n%accise=$search(@,\"Imposte $NUMBER\")\n$inc(%iva, $div($search(@,\"Imponibile IVA IVA $NUMBER%\"),100))\n%imponibile=$search(@,\"Imponibile IVA IVA .+% $NUMBER\")",
+				"script" : "%spesa_materia_energia=$search(@,\"Corrispettivi energia $NUMBER\")\n%spesa_materia_energia=$search(@,\"Spese per l'energia $NUMBER\")\n%trasporto_gestione=$search(@,\"Trasporto $NUMBER\")\n%trasporto_gestione=$search(@,\"Spesa per trasporto, gestione contatore e oneri di sistema $NUMBER\")\n%accise=$search(@,\"Imposte $NUMBER\")\n%iva=$div($search(@,\"Imponibile IVA IVA $NUMBER%\"),100)\n%imponibile=$search(@,\"Imponibile IVA IVA .+% $NUMBER\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.42907363176345825,

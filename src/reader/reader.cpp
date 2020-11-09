@@ -1,6 +1,7 @@
 #include "reader.h"
 
 #include <json/json.h>
+#include <fmt/core.h>
 #include "../shared/utils.h"
 
 template<typename T> T readData(std::istream &input) {
@@ -135,12 +136,12 @@ void reader::exec_command(const pdf_info &info, const command_args_base &cmd) {
         return dynamic_cast<const command_args<std::string> &>(cmd).data;
     };
 
-    auto get_float = [&]() {
-        return dynamic_cast<const command_args<float> &>(cmd).data;
-    };
-
     auto get_int = [&]() {
         return dynamic_cast<const command_args<int> &>(cmd).data;
+    };
+
+    auto get_float = [&]() {
+        return dynamic_cast<const command_args<float> &>(cmd).data;
     };
 
     switch(cmd.command) {
@@ -153,7 +154,7 @@ void reader::exec_command(const pdf_info &info, const command_args_base &cmd) {
         break;
     }
     case SETGLOBAL:
-        if (var_stack.back()) {
+        if (!var_stack.back().empty()) {
             m_globals[get_string()] = var_stack.back();
         }
         var_stack.pop_back();
@@ -172,7 +173,7 @@ void reader::exec_command(const pdf_info &info, const command_args_base &cmd) {
         var_stack.pop_back();
         break;
     case PUSHCONTENT: var_stack.push_back(content_stack.back().view_stack.back()); break;
-    case PUSHNUM: var_stack.push_back(get_float()); break;
+    case PUSHNUM: var_stack.emplace_back(get_float()); break;
     case PUSHSTR: var_stack.push_back(get_string()); break;
     case PUSHGLOBAL: var_stack.push_back(m_globals[get_string()]); break;
     case PUSHVAR:
@@ -188,7 +189,7 @@ void reader::exec_command(const pdf_info &info, const command_args_base &cmd) {
         jumped = true;
         break;
     case JZ:
-        if (!var_stack.back()) {
+        if (!var_stack.back().isTrue()) {
             program_counter = get_int();
             jumped = true;
         }
@@ -201,7 +202,7 @@ void reader::exec_command(const pdf_info &info, const command_args_base &cmd) {
         }
         break;
     case INCTOP:
-        if (var_stack.back()) {
+        if (!var_stack.back().empty()) {
             set_variable(get_string(), get_variable(get_string()) + var_stack.back());
             index_reg = 0;
         }
@@ -212,21 +213,20 @@ void reader::exec_command(const pdf_info &info, const command_args_base &cmd) {
         index_reg = 0;
         break;
     case INCGTOP:
-        if (var_stack.back()) {
+        if (!var_stack.back().empty()) {
             auto &var = m_globals[get_string()];
             var = var + var_stack.back();
         }
         var_stack.pop_back();
         break;
     case INCG:
-        if (var_stack.back()) {
-            auto &var = m_globals[get_string()];
-            var = var + variable(1);
-        }
-        var_stack.pop_back();
+    {
+        auto &var = m_globals[get_string()];
+        var = var + variable(1);
         break;
+    }
     case DECTOP:
-        if (var_stack.back()) {
+        if (!var_stack.back().empty()) {
             set_variable(get_string(), get_variable(get_string()) - var_stack.back());
             index_reg = 0;
         }
@@ -237,19 +237,18 @@ void reader::exec_command(const pdf_info &info, const command_args_base &cmd) {
         index_reg = 0;
         break;
     case DECGTOP:
-        if (var_stack.back()) {
+        if (!var_stack.back().empty()) {
             auto &var = m_globals[get_string()];
             var = var - var_stack.back();
         }
         var_stack.pop_back();
         break;
     case DECG:
-        if (var_stack.back()) {
-            auto &var = m_globals[get_string()];
-            var = var - variable(1);
-        }
-        var_stack.pop_back();
+    {
+        auto &var = m_globals[get_string()];
+        var = var - variable(1);
         break;
+    }
     case ISSET: var_stack.push_back(get_variable_size(get_string()) > 0); break;
     case SIZE: var_stack.push_back(get_variable_size(get_string())); break;
     case CONTENTVIEW:
@@ -296,12 +295,10 @@ void reader::exec_command(const pdf_info &info, const command_args_base &cmd) {
 void reader::read_box(const pdf_info &info, layout_box box) {
     for (auto &name : tokenize(box.spacers)) {
         if (name.front() == '*') {
-            if (auto it = m_globals.find(name.substr(1)); it != m_globals.end()) {
-                box.page += it->second.asInt();
-            }
+            box.page += get_global(name.substr(1)).asInt();
         } else {
             if (name.size() <= 2 || name.at(name.size()-2) != '.') {
-                throw parsing_error("Identificatore spaziatore incorretto", name);
+                throw layout_error(fmt::format("Identificatore spaziatore {0} incorretto", name));
             }
             bool negative = name.front() == '-';
             auto it = m_spacers.find(negative ? name.substr(1, name.size()-3) : name.substr(0, name.size()-2));
@@ -324,7 +321,7 @@ void reader::read_box(const pdf_info &info, layout_box box) {
                 else box.h += it->second.h;
                 break;
             default:
-                throw parsing_error("Identificatore spaziatore incorretto", name);
+                throw layout_error(fmt::format("Identificatore spaziatore {0} incorretto", name));
             }
         }
     }
@@ -345,7 +342,7 @@ const variable &reader::get_global(const std::string &name) const {
 
 const variable &reader::get_variable(const std::string &name) const {
     static const variable VAR_NULL;
-    size_t pageidx = get_global("PAGE_NUM");
+    size_t pageidx = get_global("PAGE_NUM").asInt();
     if (m_values.size() <= pageidx) {
         return VAR_NULL;
     }
@@ -359,9 +356,9 @@ const variable &reader::get_variable(const std::string &name) const {
 }
 
 void reader::set_variable(const std::string &name, const variable &value) {
-    if (!value) return;
+    if (value.empty()) return;
 
-    size_t pageidx = get_global("PAGE_NUM");
+    size_t pageidx = get_global("PAGE_NUM").asInt();
     while (m_values.size() <= pageidx) m_values.emplace_back();
     auto &page = m_values[pageidx];
     auto &var = page[name];
@@ -370,7 +367,7 @@ void reader::set_variable(const std::string &name, const variable &value) {
 }
 
 void reader::clear_variable(const std::string &name) {
-    size_t pageidx = get_global("PAGE_NUM");
+    size_t pageidx = get_global("PAGE_NUM").asInt();
     if (pageidx < m_values.size()) {
         auto &page = m_values[pageidx];
         auto it = page.find(name);
@@ -381,7 +378,7 @@ void reader::clear_variable(const std::string &name) {
 }
 
 size_t reader::get_variable_size(const std::string &name) {
-    size_t pageidx = get_global("PAGE_NUM");
+    size_t pageidx = get_global("PAGE_NUM").asInt();
     if (m_values.size() <= pageidx) {
         return 0;
     }
@@ -402,8 +399,15 @@ std::ostream &reader::print_output(std::ostream &out, bool debug) {
     for (auto &page : m_values) {
         auto &page_values = values.append(Json::objectValue);
         for (auto &pair : page) {
-            if(!debug && pair.second.front().debug) continue;
-            auto &json_arr = page_values[pair.first] = Json::arrayValue;
+            std::string name = pair.first;
+            if (pair.second.front().debug) {
+                if (debug) {
+                    name = "!" + name;
+                } else {
+                    continue;
+                }
+            }
+            auto &json_arr = page_values[name] = Json::arrayValue;
             for (auto &val : pair.second) {
                 json_arr.append(val.str());
             }

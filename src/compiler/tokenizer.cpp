@@ -123,10 +123,34 @@ bool tokenizer::next(bool peek) {
     return ok;
 }
 
+static const char *TOKEN_NAMES[] = {
+    "eof",
+    "errore",
+    "commento",
+    "identificatore",
+    "stringa",
+    "numero",
+    "'$'",
+    "'('",
+    "')'",
+    "','",
+    "'['",
+    "']'",
+    "'{'",
+    "'}'",
+    "'='",
+    "'%'",
+    "'*'",
+    "'!'",
+    "'+'",
+    "':'",
+    "'@'"
+};
+
 token tokenizer::require(token_type type) {
     next();
     if (current().type != type) {
-        throw parsing_error("Token imprevisto", getLocation(current()));
+        throw parsing_error(fmt::format("Imprevisto {0}, richiesto {1}", current().value, TOKEN_NAMES[type]), getLocation(current()));
     }
     return current();
 }

@@ -137,7 +137,7 @@ variable_ref parser::get_variable() {
     }
 
     if (tokens.current().type != TOK_IDENTIFIER) {
-        throw parsing_error("Richiesto identificatore", tokens.getLocation(tokens.current()));
+        throw parsing_error("Token imprevisto", tokens.getLocation(tokens.current()));
     }
     ref.name = tokens.current().value;
     if (ref.flags & FLAGS_GLOBAL) {

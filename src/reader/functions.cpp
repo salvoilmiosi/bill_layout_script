@@ -54,34 +54,33 @@ void reader::call_function(const std::string &name, size_t numargs) {
     static const std::map<std::string, function_handler> dispatcher {
         {"eq",      create_function<2>([](const variable &a, const variable &b) { return a == b; })},
         {"neq",     create_function<2>([](const variable &a, const variable &b) { return a != b; })},
-        {"and",     create_function<2>([](const variable &a, const variable &b) { return a && b; })},
-        {"or",      create_function<2>([](const variable &a, const variable &b) { return a || b; })},
-        {"not",     create_function   ([](const variable &var) { return !var; })},
+        {"and",     create_function<2>([](const variable &a, const variable &b) { return a.isTrue() && b.isTrue(); })},
+        {"or",      create_function<2>([](const variable &a, const variable &b) { return a.isTrue() || b.isTrue(); })},
+        {"not",     create_function   ([](const variable &var) { return !var.isTrue(); })},
         {"add",     create_function<2>([](const variable &a, const variable &b) { return a + b; })},
         {"sub",     create_function<2>([](const variable &a, const variable &b) { return a - b; })},
         {"mul",     create_function<2>([](const variable &a, const variable &b) { return a * b; })},
         {"div",     create_function<2>([](const variable &a, const variable &b) { return a / b; })},
         {"gt",      create_function<2>([](const variable &a, const variable &b) { return a > b; })},
         {"lt",      create_function<2>([](const variable &a, const variable &b) { return a < b; })},
-        {"geq",     create_function<2>([](const variable &a, const variable &b) { return a >= b; })},
-        {"leq",     create_function<2>([](const variable &a, const variable &b) { return a <= b; })},
+        {"geq",     create_function<2>([](const variable &a, const variable &b) { return a > b || a == b; })},
+        {"leq",     create_function<2>([](const variable &a, const variable &b) { return a < b || a == b; })},
         {"max",     create_function<2>([](const variable &a, const variable &b) { return std::max(a, b); })},
         {"min",     create_function<2>([](const variable &a, const variable &b) { return std::min(a, b); })},
         {"search", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
-            return search_regex(regex.str(), str.str(), index ? index.asInt() : 1);
+            return search_regex(regex.str(), str.str(), index.empty() ? 1 : index.asInt());
         })},
         {"date", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
-            return parse_date(regex.str(), str.str(), index ? index.asInt() : 1);
+            return parse_date(regex.str(), str.str(), index.empty() ? 1 : index.asInt());
         })},
         {"month_begin", create_function([](const variable &str) { return str.str() + "-01"; })},
         {"month_end", create_function([](const variable &str) { return date_month_end(str.str()); })},
         {"nospace", create_function([](const variable &str) { return nospace(str.str()); })},
         {"num", create_function([](const variable &str) { return str.type() == VALUE_NUMBER ? str : variable(parse_number(str.str()), VALUE_NUMBER); })},
-        {"ifl", create_function<2, 3>   ([](const variable &condition, const variable &var_if, const variable &var_else) { return condition ? var_if : var_else; })},
+        {"ifl", create_function<2, 3>   ([](const variable &condition, const variable &var_if, const variable &var_else) { return condition.isTrue() ? var_if : var_else; })},
         {"coalesce", [](const arg_list &args) {
             for (auto &arg : args) {
-                if (arg) return arg;
-
+                if (!arg.empty()) return arg;
             }
             return variable();
         }},
@@ -90,7 +89,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
         })},
         {"substr", create_function<2, 3>([](const variable &str, const variable &pos, const variable &count) {
             if ((size_t) pos.asInt() < str.str().size()) {
-                return variable(str.str().substr(pos.asInt(), count ? count.asInt() : std::string::npos));
+                return variable(str.str().substr(pos.asInt(), count.empty() ? std::string::npos : count.asInt()));
             }
             return variable();
         })},
@@ -104,7 +103,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
             return var;
         }},
         {"error", create_function([](const variable &msg) {
-            if (msg) throw scripted_error{msg.str()};
+            throw scripted_error{msg.str()};
             return variable();
         })},
         {"int", create_function([](const variable &str) {
@@ -113,15 +112,23 @@ void reader::call_function(const std::string &name, size_t numargs) {
         })}
     };
 
-    auto it = dispatcher.find(name);
-    if (it != dispatcher.end()) {
-        arg_list vars;
-        for (size_t i=0; i<numargs; ++i) {
-            vars.push_back(var_stack[var_stack.size()-numargs+i]);
+    try {
+        auto it = dispatcher.find(name);
+        if (it != dispatcher.end()) {
+            arg_list vars;
+            for (size_t i=0; i<numargs; ++i) {
+                vars.push_back(var_stack[var_stack.size()-numargs+i]);
+            }
+            var_stack.resize(var_stack.size() - numargs);
+            var_stack.push_back(it->second(vars));
+        } else {
+            throw layout_error(fmt::format("Funzione sconosciuta: {0}", name));
         }
-        var_stack.resize(var_stack.size() - numargs);
-        var_stack.push_back(it->second(vars));
-    } else {
-        throw assembly_error{fmt::format("Funzione sconosciuta: {0}", name)};
+    } catch (invalid_numargs &error) {
+        if (error.minargs == error.maxargs) {
+            throw layout_error(fmt::format("La funzione {0} richiede {1} argomenti", name, error.minargs));
+        } else {
+            throw layout_error(fmt::format("La funzione {0} richiede {1}-{2} argomenti", name, error.minargs, error.maxargs));
+        }
     }
 }

@@ -1,7 +1,7 @@
 #include "variable.h"
 #include "reader.h"
 
-variable::operator bool() const {
+bool variable::isTrue() const {
     switch(m_type) {
     case VALUE_STRING:
         return !m_value.empty();

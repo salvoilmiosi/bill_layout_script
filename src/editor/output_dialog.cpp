@@ -24,7 +24,7 @@ output_dialog::output_dialog(wxWindow *parent, const bill_layout_script &layout,
 
     const char *args1[] = {
         cmd_str.c_str(),
-        "-", "temp.out",
+        "-q", "-", "-o", "temp.out",
         nullptr
     };
 
@@ -33,8 +33,12 @@ output_dialog::output_dialog(wxWindow *parent, const bill_layout_script &layout,
     oss << layout;
     pipe->write_all(oss.str());
     pipe->close_stdin();
-    pipe->read_all();
+    std::string compile_output = pipe->read_all();
     pipe.reset();
+
+    if (!compile_output.empty()) {
+        throw layout_error("Errore nella compilazione:\n" + compile_output);
+    }
 
     cmd_str = get_app_path() + "/layout_reader";
 
@@ -54,7 +58,7 @@ output_dialog::output_dialog(wxWindow *parent, const bill_layout_script &layout,
         iss >> json_output;
         json_values = json_output["values"];
     } catch(const std::exception &error) {
-        throw pipe_error("Impossibile leggere l'output:\n" + iss.str());
+        throw layout_error("Impossibile leggere l'output:\n" + iss.str());
     }
 
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);

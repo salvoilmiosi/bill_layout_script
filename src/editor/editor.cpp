@@ -582,7 +582,7 @@ void frame_editor::OnReadData(wxCommandEvent &evt) {
     try {
         auto *diag = new output_dialog(this, layout, pdf_filename.ToStdString());
         diag->Show();
-    } catch (const pipe_error &error) {
+    } catch (const layout_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);
     }
 }
