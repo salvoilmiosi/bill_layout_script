@@ -58,7 +58,7 @@ output_dialog::output_dialog(wxWindow *parent, const bill_layout_script &layout,
         iss >> json_output;
         json_values = json_output["values"];
     } catch(const std::exception &error) {
-        throw layout_error("Impossibile leggere l'output:\n" + iss.str());
+        throw layout_error("Errore in lettura:\n" + iss.str());
     }
 
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);

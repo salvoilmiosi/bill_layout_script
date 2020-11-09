@@ -137,7 +137,7 @@ variable_ref parser::get_variable() {
     }
 
     if (tokens.current().type != TOK_IDENTIFIER) {
-        throw parsing_error("Token imprevisto", tokens.getLocation(tokens.current()));
+        throw tokens.unexpected_token(TOK_IDENTIFIER);
     }
     ref.name = tokens.current().value;
     if (ref.flags & FLAGS_GLOBAL) {
@@ -237,7 +237,7 @@ void parser::exec_function() {
             output_asm.push_back(fmt::format("JMP {0}", tokens.current().value));
             break;
         default:
-            throw parsing_error("Indirizzo goto invalido", tokens.getLocation(tokens.current()));
+            throw parsing_error{"Indirizzo goto invalido", tokens.getLocation(tokens.current())};
         }
     } else if (fun_name == "inc") {
         tokens.require(TOK_PAREN_BEGIN);
@@ -253,7 +253,7 @@ void parser::exec_function() {
         case TOK_PAREN_END:
             break;
         default:
-            throw parsing_error("Token inaspettato", tokens.getLocation(tokens.current()));
+            throw tokens.unexpected_token(TOK_PAREN_END);
         }
         if (ref.flags & FLAGS_NUMBER) {
             output_asm.push_back("CALL num,1");
@@ -285,7 +285,7 @@ void parser::exec_function() {
         case TOK_PAREN_END:
             break;
         default:
-            throw parsing_error("Token inaspettato", tokens.getLocation(tokens.current()));
+            throw tokens.unexpected_token(TOK_PAREN_END);
         }
         if (ref.flags & FLAGS_NUMBER) {
             output_asm.push_back("CALL num,1");
@@ -379,7 +379,7 @@ void parser::exec_function() {
                 in_fun_loop=false;
                 break;
             default:
-                throw parsing_error("Token imprevisto", tokens.getLocation(tokens.current()));
+                throw tokens.unexpected_token(TOK_PAREN_END);
             }
         }
         output_asm.push_back(fmt::format("CALL {0},{1}", fun_name,num_args));

@@ -2,16 +2,13 @@
 
 #include <functional>
 #include <fmt/format.h>
+#include <regex>
 #include "../shared/utils.h"
 
 struct invalid_numargs {
     size_t numargs;
     size_t minargs;
     size_t maxargs;
-};
-
-struct scripted_error {
-    const std::string &msg;
 };
 
 using arg_list = std::vector<variable>;
@@ -65,13 +62,21 @@ void reader::call_function(const std::string &name, size_t numargs) {
         {"lt",      create_function<2>([](const variable &a, const variable &b) { return a < b; })},
         {"geq",     create_function<2>([](const variable &a, const variable &b) { return a > b || a == b; })},
         {"leq",     create_function<2>([](const variable &a, const variable &b) { return a < b || a == b; })},
-        {"max",     create_function<2>([](const variable &a, const variable &b) { return std::max(a, b); })},
-        {"min",     create_function<2>([](const variable &a, const variable &b) { return std::min(a, b); })},
+        {"max",     create_function<2>([](const variable &a, const variable &b) { return a > b ? a : b; })},
+        {"min",     create_function<2>([](const variable &a, const variable &b) { return a < b ? a : b; })},
         {"search", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
-            return search_regex(regex.str(), str.str(), index.empty() ? 1 : index.asInt());
+            try {
+                return search_regex(regex.str(), str.str(), index.empty() ? 1 : index.asInt());
+            } catch (std::regex_error &error) {
+                throw layout_error(fmt::format("Espressione regolare non valida: {0}", regex.str()));
+            }
         })},
         {"date", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
-            return parse_date(regex.str(), str.str(), index.empty() ? 1 : index.asInt());
+            try {
+                return parse_date(regex.str(), str.str(), index.empty() ? 1 : index.asInt());
+            } catch (std::regex_error &error) {
+                throw layout_error(fmt::format("Espressione regolare non valida: {0}", regex.str()));
+            }
         })},
         {"month_begin", create_function([](const variable &str) { return str.str() + "-01"; })},
         {"month_end", create_function([](const variable &str) { return date_month_end(str.str()); })},
@@ -103,7 +108,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
             return var;
         }},
         {"error", create_function([](const variable &msg) {
-            throw scripted_error{msg.str()};
+            throw layout_error(msg.str());
             return variable();
         })},
         {"int", create_function([](const variable &str) {

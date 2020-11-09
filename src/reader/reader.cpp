@@ -298,7 +298,7 @@ void reader::read_box(const pdf_info &info, layout_box box) {
             box.page += get_global(name.substr(1)).asInt();
         } else {
             if (name.size() <= 2 || name.at(name.size()-2) != '.') {
-                throw layout_error(fmt::format("Identificatore spaziatore {0} incorretto", name));
+                throw layout_error(fmt::format("Spaziatore {0} incorretto", name));
             }
             bool negative = name.front() == '-';
             auto it = m_spacers.find(negative ? name.substr(1, name.size()-3) : name.substr(0, name.size()-2));
@@ -321,7 +321,7 @@ void reader::read_box(const pdf_info &info, layout_box box) {
                 else box.h += it->second.h;
                 break;
             default:
-                throw layout_error(fmt::format("Identificatore spaziatore {0} incorretto", name));
+                throw layout_error(fmt::format("Spaziatore {0} incorretto", name));
             }
         }
     }

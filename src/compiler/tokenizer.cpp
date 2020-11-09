@@ -150,9 +150,13 @@ static const char *TOKEN_NAMES[] = {
 token tokenizer::require(token_type type) {
     next();
     if (current().type != type) {
-        throw parsing_error(fmt::format("Imprevisto '{0}', richiesto {1}", current().value, TOKEN_NAMES[type]), getLocation(current()));
+        throw unexpected_token(type);
     }
     return current();
+}
+
+parsing_error tokenizer::unexpected_token(token_type type) {
+    return parsing_error{fmt::format("Imprevisto '{0}', richiesto {1}", current().value, TOKEN_NAMES[type]), getLocation(current())};
 }
 
 void tokenizer::advance() {

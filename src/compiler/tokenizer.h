@@ -27,6 +27,11 @@ enum token_type {
     TOK_CONTENT,            // @
 };
 
+struct parsing_error {
+    const std::string message;
+    const std::string line;
+};
+
 struct token {
     token_type type;
     std::string_view value;
@@ -39,6 +44,8 @@ public:
 
     bool next(bool peek = false);
     token require(token_type type);
+
+    parsing_error unexpected_token(token_type type);
 
     void advance();
     void gotoTok(const token &tok);
