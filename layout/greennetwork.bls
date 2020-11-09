@@ -122,29 +122,29 @@
 			},
 			{
 				"goto_label" : "",
-				"h" : 0.050694942474365234,
-				"mode" : 0,
+				"h" : 0.1700713038444519,
+				"mode" : 1,
 				"name" : "Riepilogo consumi",
 				"page" : 2,
-				"script" : "$lines(@) { !lines_consumi+ }\n$tokens(lines_consumi[$sub($size(lines_consumi),2)]) {\n  #\n  %energia_attiva+ %energia_attiva+ %energia_attiva+\n  #\n  %energia_reattiva+ %energia_reattiva+ %energia_reattiva+\n  %potenza\n}",
+				"script" : "$lines($search(@,\"(([0-9]{2}/[0-9]{2}/[0-9]{4} [0-9]{2}/[0-9]{2}/[0-9]{4}.+Consumi.+\\n)+)\")) {\n  $tokens($search(@,\"($NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER)\")) {\n    %energia_f0\n    %energia_attiva[0]\n    %energia_attiva[1]\n    %energia_attiva[2]\n    %energia_reattiva_f0\n    %energia_reattiva[0]\n    %energia_reattiva[1]\n    %energia_reattiva[2]\n    $for(i,3) %potenza[i]\n  }\n}",
 				"spacers" : "",
 				"type" : 0,
-				"w" : 0.62551701068878174,
-				"x" : 0.32568240165710449,
-				"y" : 0.3306727409362793
+				"w" : 0.90609282255172729,
+				"x" : 0.046473484486341476,
+				"y" : 0.21838703751564026
 			},
 			{
 				"goto_label" : "",
-				"h" : 0.010832383297383785,
+				"h" : 0.099364727735519409,
 				"mode" : 0,
 				"name" : "Accise",
 				"page" : 2,
-				"script" : "%accise",
+				"script" : "$lines($search($strcat(@,\"\\n\"),\"((.+Erariale.+$NUMBER\\n)+)\")) {\n  %accise=$search(@,\".+ $NUMBER$\")\n}",
 				"spacers" : "",
 				"type" : 0,
-				"w" : 0.125,
-				"x" : 0.69838708639144897,
-				"y" : 0.42132270336151123
+				"w" : 0.78421652317047119,
+				"x" : 0.039170507341623306,
+				"y" : 0.39094316959381104
 			},
 			{
 				"goto_label" : "",

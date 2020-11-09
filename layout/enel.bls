@@ -35,7 +35,7 @@
 				"mode" : 0,
 				"name" : "Sintesi valori",
 				"page" : 1,
-				"script" : "%spesa_materia_energia=$search(@,\"Spesa per l'energia \\\\(.\\\\) $NUMBER\")\n%trasporto_gestione=$search(@,\"Spesa per il trasporto dell'energia elettrica e la gestione del contatore \\\\(.\\\\) $NUMBER\")\n%oneri=$search(@,\"Spesa oneri di sistema \\\\(.\\\\) $NUMBER\")\n%ricalcoli=$search(@,\"Ricalcoli \\\\(.\\\\) $NUMBER\")\nconguaglio=$ifl(ricalcoli,1)",
+				"script" : "%spesa_materia_energia=$search(@,\"Spesa per l'energia \\\\(.\\\\) $NUMBER\")\n%trasporto_gestione=$search(@,\"Spesa per il trasporto dell'energia elettrica e la gestione del contatore \\\\(.\\\\) $NUMBER\")\n%oneri=$search(@,\"Spesa oneri di sistema \\\\(.\\\\) $NUMBER\")\n%ricalcoli=$search(@,\"Ricalcoli \\\\(.\\\\) $NUMBER\")\n$if(ricalcoli) $error(\"Conguaglio\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.44876658916473389,
