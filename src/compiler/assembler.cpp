@@ -44,6 +44,9 @@ assembler::assembler(const std::vector<std::string> &lines) {
                 args[7]);
             break;
         case hash("CALL"):          out_lines.emplace_back(CALL, args[0], std::stoi(args[1])); break;
+        case hash("ERROR"):         out_lines.emplace_back(ERROR); break;
+        case hash("PARSENUM"):      out_lines.emplace_back(PARSENUM); break;
+        case hash("PARSEINT"):      out_lines.emplace_back(PARSEINT); break;
         case hash("EQ"):            out_lines.emplace_back(EQ); break;
         case hash("NEQ"):           out_lines.emplace_back(NEQ); break;
         case hash("AND"):           out_lines.emplace_back(AND); break;

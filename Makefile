@@ -57,7 +57,7 @@ clean:
 $(shell mkdir -p $(BIN_DIR) >/dev/null)
 
 $(LAYOUT_DIR)/%.out: $(LAYOUT_DIR)/%.bls $(BIN_DIR)/$(BIN_COMPILER)
-	$(BIN_DIR)/$(BIN_COMPILER) -q -o $@ $<
+	$(BIN_DIR)/$(BIN_COMPILER) -o $@ $< > $(<:.bls=.txt)
 
 editor: $(BIN_DIR)/$(BIN_EDITOR)
 $(BIN_DIR)/$(BIN_EDITOR): $(OBJECTS_EDITOR) $(OBJECTS_SHARED) $(RESOURCES)

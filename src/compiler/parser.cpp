@@ -25,7 +25,7 @@ void parser::read_box(const layout_box &box) {
 
 void parser::add_value(variable_ref ref) {
     if (ref.flags & FLAGS_NUMBER) {
-        output_asm.push_back("CALL num,1");
+        output_asm.push_back("PARSENUM");
     }
 
     if (ref.flags & FLAGS_GLOBAL) {
@@ -257,7 +257,7 @@ void parser::exec_function() {
             throw tokens.unexpected_token(TOK_PAREN_END);
         }
         if (ref.flags & FLAGS_NUMBER) {
-            output_asm.push_back("CALL num,1");
+            output_asm.push_back("PARSENUM");
         }
         if (ref.flags & FLAGS_GLOBAL) {
             if (inc_one) {
@@ -289,7 +289,7 @@ void parser::exec_function() {
             throw tokens.unexpected_token(TOK_PAREN_END);
         }
         if (ref.flags & FLAGS_NUMBER) {
-            output_asm.push_back("CALL num,1");
+            output_asm.push_back("PARSENUM");
         }
         if (ref.flags & FLAGS_GLOBAL) {
             if (inc_one) {
@@ -384,6 +384,9 @@ void parser::exec_function() {
             }
         }
         switch (hash(fun_name)) {
+        case hash("error"): output_asm.push_back("ERROR"); break;
+        case hash("num"): output_asm.push_back("PARSENUM"); break;
+        case hash("int"): output_asm.push_back("PARSEINT"); break;
         case hash("eq"):  output_asm.push_back("EQ"); break;
         case hash("neq"): output_asm.push_back("NEQ"); break;
         case hash("and"): output_asm.push_back("AND"); break;

@@ -66,7 +66,6 @@ void reader::call_function(const std::string &name, size_t numargs) {
         {"month_begin", create_function([](const variable &str) { return str.str() + "-01"; })},
         {"month_end", create_function([](const variable &str) { return date_month_end(str.str()); })},
         {"nospace", create_function([](const variable &str) { return nospace(str.str()); })},
-        {"num", create_function([](const variable &str) { return str.type() == VALUE_NUMBER ? str : variable(parse_number(str.str()), VALUE_NUMBER); })},
         {"ifl", create_function<2, 3>   ([](const variable &condition, const variable &var_if, const variable &var_else) { return condition.isTrue() ? var_if : var_else; })},
         {"coalesce", [](const arg_list &args) {
             for (auto &arg : args) {
@@ -91,15 +90,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
                 var += arg.str();
             }
             return var;
-        }},
-        {"error", create_function([](const variable &msg) {
-            throw layout_error(msg.str());
-            return variable();
-        })},
-        {"int", create_function([](const variable &str) {
-            return variable(std::to_string(str.asInt()), VALUE_NUMBER);
-            // converte da stringa a fixed_point a int a stringa ...
-        })}
+        }}
     };
 
     try {

@@ -70,6 +70,9 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
             break;
         }
         case NOP:
+        case ERROR:
+        case PARSENUM:
+        case PARSEINT:
         case EQ:
         case NEQ:
         case AND:
@@ -155,6 +158,13 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
         call_function(call->name, call->numargs);
         break;
     }
+    case ERROR: throw layout_error(var_stack.back().str()); break;
+    case PARSENUM:
+        if (var_stack.back().type() != VALUE_NUMBER) {
+            var_stack.back() = variable(parse_number(var_stack.back().str()), VALUE_NUMBER);
+        }
+        break;
+    case PARSEINT: var_stack.back() = variable(std::to_string(var_stack.back().asInt()), VALUE_NUMBER); break;
     case EQ:  exec_operator([](const variable &a, const variable &b) { return a == b; }); break;
     case NEQ: exec_operator([](const variable &a, const variable &b) { return a != b; }); break;
     case AND: exec_operator([](const variable &a, const variable &b) { return a.isTrue() && b.isTrue(); }); break;
