@@ -49,21 +49,6 @@ inline function_handler create_function(Function fun) {
 
 void reader::call_function(const std::string &name, size_t numargs) {
     static const std::map<std::string, function_handler> dispatcher {
-        {"eq",      create_function<2>([](const variable &a, const variable &b) { return a == b; })},
-        {"neq",     create_function<2>([](const variable &a, const variable &b) { return a != b; })},
-        {"and",     create_function<2>([](const variable &a, const variable &b) { return a.isTrue() && b.isTrue(); })},
-        {"or",      create_function<2>([](const variable &a, const variable &b) { return a.isTrue() || b.isTrue(); })},
-        {"not",     create_function   ([](const variable &var) { return !var.isTrue(); })},
-        {"add",     create_function<2>([](const variable &a, const variable &b) { return a + b; })},
-        {"sub",     create_function<2>([](const variable &a, const variable &b) { return a - b; })},
-        {"mul",     create_function<2>([](const variable &a, const variable &b) { return a * b; })},
-        {"div",     create_function<2>([](const variable &a, const variable &b) { return a / b; })},
-        {"gt",      create_function<2>([](const variable &a, const variable &b) { return a > b; })},
-        {"lt",      create_function<2>([](const variable &a, const variable &b) { return a < b; })},
-        {"geq",     create_function<2>([](const variable &a, const variable &b) { return a > b || a == b; })},
-        {"leq",     create_function<2>([](const variable &a, const variable &b) { return a < b || a == b; })},
-        {"max",     create_function<2>([](const variable &a, const variable &b) { return a > b ? a : b; })},
-        {"min",     create_function<2>([](const variable &a, const variable &b) { return a < b ? a : b; })},
         {"search", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
             try {
                 return search_regex(regex.str(), str.str(), index.empty() ? 1 : index.asInt());

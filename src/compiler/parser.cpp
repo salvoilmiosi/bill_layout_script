@@ -2,6 +2,7 @@
 
 #include <fmt/format.h>
 #include <iostream>
+#include "../shared/utils.h"
 
 void parser::read_layout(const bill_layout_script &layout) {
     try {
@@ -218,7 +219,7 @@ void parser::exec_function() {
         output_asm.push_back(fmt::format("{0}:", for_label));
         output_asm.push_back(fmt::format("PUSHVAR {0}", idx_name.value));
         evaluate();
-        output_asm.push_back("CALL lt,2");
+        output_asm.push_back("LT");
         output_asm.push_back(fmt::format("JZ {0}", endfor_label));
         tokens.require(TOK_PAREN_END);
         exec_line();
@@ -382,6 +383,24 @@ void parser::exec_function() {
                 throw tokens.unexpected_token(TOK_PAREN_END);
             }
         }
-        output_asm.push_back(fmt::format("CALL {0},{1}", fun_name,num_args));
+        switch (hash(fun_name)) {
+        case hash("eq"):  output_asm.push_back("EQ"); break;
+        case hash("neq"): output_asm.push_back("NEQ"); break;
+        case hash("and"): output_asm.push_back("AND"); break;
+        case hash("or"):  output_asm.push_back("OR"); break;
+        case hash("not"): output_asm.push_back("NOT"); break;
+        case hash("add"): output_asm.push_back("ADD"); break;
+        case hash("sub"): output_asm.push_back("SUB"); break;
+        case hash("mul"): output_asm.push_back("MUL"); break;
+        case hash("div"): output_asm.push_back("DIV"); break;
+        case hash("gt"):  output_asm.push_back("GT"); break;
+        case hash("lt"):  output_asm.push_back("LT"); break;
+        case hash("geq"): output_asm.push_back("GEQ"); break;
+        case hash("leq"): output_asm.push_back("LEQ"); break;
+        case hash("max"): output_asm.push_back("MAX"); break;
+        case hash("min"): output_asm.push_back("MIN"); break;
+        default:
+            output_asm.push_back(fmt::format("CALL {0},{1}", fun_name,num_args));
+        }
     }
 }

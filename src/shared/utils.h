@@ -12,8 +12,11 @@ std::vector<std::string> read_lines(const std::string &str);
 // divide una stringa con separatore spazio
 std::vector<std::string> tokenize(const std::string &str);
 
+// divide una stringa per separatore
+std::vector<std::string> string_split(const std::string &str, char separator = ',');
+
 // unisce tutte le stringhe in un vettore di stringhe in una
-std::string implode(const std::vector<std::string> &vec, const std::string &separator = " ");
+std::string string_join(const std::vector<std::string> &vec, const std::string &separator = " ");
 
 // sostituisce tutte le occorrenze di una stringa in un'altra, restituisce il numero di valori trovati
 int string_replace(std::string &str, const std::string &from, const std::string &to);

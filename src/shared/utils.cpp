@@ -30,7 +30,22 @@ std::vector<std::string> tokenize(const std::string &str) {
     return out;
 };
 
-std::string implode(const std::vector<std::string> &vec, const std::string &separator) {
+std::vector<std::string> string_split(const std::string &str, char separator) {
+    std::vector<std::string> ret;
+
+    size_t start = 0;
+    size_t end = str.find(separator);
+    while (end != std::string::npos) {
+        ret.push_back(str.substr(start, end-start));
+        start = end + 1;
+        end = str.find(separator, start);
+    }
+    ret.push_back(str.substr(start, end));
+
+    return ret;
+}
+
+std::string string_join(const std::vector<std::string> &vec, const std::string &separator) {
     std::string out;
     for (auto it = vec.begin(); it<vec.end(); ++it) {
         if (it != vec.begin()) {

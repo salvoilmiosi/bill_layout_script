@@ -11,11 +11,13 @@
 #include "../compiler/assembler.h"
 #include "../shared/layout.h"
 
-struct command_args_base {
+struct command_args {
     asm_command command;
 
-    command_args_base(asm_command command) : command(command) {}
-    virtual ~command_args_base() {}
+    std::shared_ptr<void> data;
+
+    command_args(asm_command command = NOP) : command(command) {}
+    command_args(asm_command command, std::shared_ptr<void> data) : command(command), data(data) {}
 };
 
 struct box_spacer {
@@ -48,7 +50,7 @@ public:
     std::ostream &print_output(std::ostream &output, bool debug);
 
 private:
-    void exec_command(const pdf_info &info, const command_args_base &cmd);
+    void exec_command(const pdf_info &info, const command_args &cmd);
     void read_box(const pdf_info &info, layout_box box);
     void call_function(const std::string &name, size_t numargs);
 
@@ -63,7 +65,7 @@ private:
     size_t get_variable_size(const std::string &name);
 
 private:
-    std::vector<std::unique_ptr<command_args_base>> commands;
+    std::vector<command_args> commands;
     std::vector<variable> var_stack;
     std::vector<content_view> content_stack;
     size_t index_reg = 0;
