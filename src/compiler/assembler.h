@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <ostream>
+#include <memory>
 
 enum asm_command {
     NOP,
@@ -56,66 +57,30 @@ enum asm_command {
     NEXTTOKEN,
     POPCONTENT,
     SPACER,
+    HLT=0xffffffff,
 };
 
-class asm_line {
-public:
+struct command_args {
     asm_command command;
-    size_t arg_num = 0;
-    char *args_data = nullptr;
-    size_t args_size = 0;
 
-    asm_line(asm_command cmd = NOP) : command(cmd) {}
+    std::shared_ptr<void> data;
+    size_t datasize = 0;
 
-    template<typename ... Ts> asm_line(asm_command cmd, const Ts &... args);
+    command_args(asm_command command = NOP) : command(command) {}
+    command_args(asm_command command, std::shared_ptr<void> data, size_t datasize = 0) :
+        command(command), data(data), datasize(datasize) {}
 };
 
-template<typename T> constexpr size_t get_size(const T &) {
-    return sizeof(T);
-}
+struct command_call {
+    std::string name;
+    int numargs;
+};
 
-template<> inline size_t get_size<> (const std::string &str) {
-    return sizeof(short) + str.size();
-}
-
-constexpr size_t get_size_all() {
-    return 0;
-}
-
-template<typename T, typename ... Ts>
-constexpr size_t get_size_all(const T &first, const Ts & ... others) {
-    return get_size(first) + get_size_all(others ...);
-}
-
-template<typename T>
-constexpr size_t add_arg(char *out, const T &data) {
-    memcpy(out, &data, sizeof(data));
-    return sizeof(data);
-}
-
-template<> inline size_t add_arg(char *out, const std::string &data) {
-    size_t bytes = add_arg(out, (short) data.size());
-    memcpy(out + bytes, data.data(), data.size());
-    return get_size(data);
-}
-
-constexpr void add_args(char *) {}
-
-template<typename T, typename ... Ts>
-void add_args(char *out, const T &first, const Ts & ... others) {
-    size_t bytes = add_arg(out, first);
-    add_args(out + bytes, others ...);
-}
-
-template<typename ... Ts>
-asm_line::asm_line(asm_command cmd, const Ts &... args) : command(cmd) {
-    arg_num = sizeof...(args);
-    if (arg_num > 0) {
-        args_size = get_size_all(args ...);
-        args_data = new char[args_size];
-        add_args(args_data, args ...);
-    }
-}
+struct command_spacer {
+    std::string name;
+    float w;
+    float h;
+};
 
 struct assembly_error {
     std::string message;
@@ -128,7 +93,7 @@ public:
     void save_output(std::ostream &output);
 
 private:
-    std::vector<asm_line> out_lines;
+    std::vector<command_args> out_lines;
 };
 
 #endif

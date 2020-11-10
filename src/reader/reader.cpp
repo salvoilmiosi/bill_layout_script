@@ -11,21 +11,19 @@ template<typename T> T readData(std::istream &input) {
 }
 
 template<> std::string readData(std::istream &input) {
-    short len = readData<short>(input);
-    std::string ret(len, '\0');
-    input.read(ret.data(), len);
-    return ret;
+    int pos = readData<int>(input);
+    if (pos == 0) {
+        return "";
+    } else {
+        auto retpos = input.tellg();
+        input.seekg(pos);
+        short len = readData<short>(input);
+        std::string ret(len, '\0');
+        input.read(ret.data(), len);
+        input.seekg(retpos);
+        return ret;
+    }
 }
-
-struct command_call {
-    std::string name;
-    int numargs;
-};
-
-struct command_spacer {
-    std::string name;
-    box_spacer spacer;
-};
 
 void reader::read_layout(const pdf_info &info, std::istream &input) {
     commands.clear();
@@ -35,7 +33,9 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
     program_counter = 0;
     jumped = false;
 
-    while (!input.eof()) {
+    bool halt = false;
+
+    while (!halt && !input.eof()) {
         asm_command cmd = readData<asm_command>(input);
         switch(cmd) {
         case RDBOX:
@@ -64,8 +64,8 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
         {
             auto spacer = std::make_shared<command_spacer>();
             spacer->name = readData<std::string>(input);
-            spacer->spacer.w = readData<float>(input);
-            spacer->spacer.h = readData<float>(input);
+            spacer->w = readData<float>(input);
+            spacer->h = readData<float>(input);
             commands.emplace_back(SPACER, spacer);
             break;
         }
@@ -123,6 +123,9 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
         case JZ:
         case JTE:
             commands.emplace_back(cmd, std::make_shared<int>(readData<int>(input)));
+            break;
+        case HLT:
+            halt = true;
             break;
         }
     }
@@ -313,9 +316,12 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     case SPACER:
     {
         auto spacer = std::static_pointer_cast<command_spacer>(cmd.data);
-        m_spacers[spacer->name] = spacer->spacer;
+        m_spacers[spacer->name] = {spacer->w, spacer->h};
         break;
     }
+    case HLT:
+        program_counter = commands.size();
+        break;
     }
 }
 

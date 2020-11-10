@@ -11,15 +11,6 @@
 #include "../compiler/assembler.h"
 #include "../shared/layout.h"
 
-struct command_args {
-    asm_command command;
-
-    std::shared_ptr<void> data;
-
-    command_args(asm_command command = NOP) : command(command) {}
-    command_args(asm_command command, std::shared_ptr<void> data) : command(command), data(data) {}
-};
-
 struct box_spacer {
     float w;
     float h;
