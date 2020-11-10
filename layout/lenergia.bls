@@ -87,7 +87,7 @@
 				"mode" : 0,
 				"name" : "Dettaglio fiscale/IVA",
 				"page" : 1,
-				"script" : "iva=$div($search(@,\"IVA ([0-9]+)%\"),100)\n%imponibile=$search(@,\"IVA [0-9]+% $NUMBER\")",
+				"script" : "iva=$search(@,\"IVA ([0-9]+%)\")\n%imponibile=$search(@,\"IVA [0-9]+% $NUMBER\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.47476586699485779,

@@ -100,7 +100,7 @@
 				"mode" : 0,
 				"name" : "IVA",
 				"page" : 1,
-				"script" : "%iva=$div($num(@),100)",
+				"script" : "%iva $if(iva) iva=$strcat(iva,\"%\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.11599646508693695,
