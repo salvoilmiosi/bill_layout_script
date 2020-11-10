@@ -6,6 +6,8 @@
 #include <ostream>
 #include <memory>
 
+#include "../shared/layout.h"
+
 enum asm_command {
     NOP,
     RDBOX,
@@ -39,6 +41,7 @@ enum asm_command {
     PUSHGLOBAL,
     PUSHVAR,
     SETINDEX,
+    SETINDEXTOP,
     JMP,
     JZ,
     JTE,
@@ -57,18 +60,8 @@ enum asm_command {
     NEXTTOKEN,
     POPCONTENT,
     SPACER,
+    STRDATA,
     HLT=0xffffffff,
-};
-
-struct command_args {
-    asm_command command;
-
-    std::shared_ptr<void> data;
-    size_t datasize = 0;
-
-    command_args(asm_command command = NOP) : command(command) {}
-    command_args(asm_command command, std::shared_ptr<void> data, size_t datasize = 0) :
-        command(command), data(data), datasize(datasize) {}
 };
 
 struct command_call {
@@ -80,6 +73,26 @@ struct command_spacer {
     std::string name;
     float w;
     float h;
+};
+
+template<typename T> struct get_datasize { static constexpr size_t value = sizeof(T); };
+
+template<> struct get_datasize<std::string> { static constexpr size_t value = sizeof(int); };
+template<> struct get_datasize<layout_box> { static constexpr size_t value = sizeof(int) * 8; };
+template<> struct get_datasize<command_call> { static constexpr size_t value = sizeof(int) * 2; };
+template<> struct get_datasize<command_spacer> { static constexpr size_t value = sizeof(int) * 3; };
+
+struct command_args {
+    asm_command command;
+
+    std::shared_ptr<void> data;
+    size_t datasize = 0;
+
+    command_args(asm_command command = NOP) : command(command) {}
+
+    template<typename T>
+    command_args(asm_command command, std::shared_ptr<T> data) :
+        command(command), data(data), datasize(get_datasize<T>::value) {}
 };
 
 struct assembly_error {
@@ -94,6 +107,7 @@ public:
 
 private:
     std::vector<command_args> out_lines;
+    std::vector<std::pair<std::string, int>> out_strings;
 };
 
 #endif

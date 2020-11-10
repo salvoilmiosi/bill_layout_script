@@ -17,6 +17,7 @@ template<> std::string readData(std::istream &input) {
     } else {
         auto retpos = input.tellg();
         input.seekg(pos);
+        input.ignore(sizeof(asm_command));
         short len = readData<short>(input);
         std::string ret(len, '\0');
         input.read(ret.data(), len);
@@ -33,9 +34,7 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
     program_counter = 0;
     jumped = false;
 
-    bool halt = false;
-
-    while (!halt && !input.eof()) {
+    while (!input.eof()) {
         asm_command cmd = readData<asm_command>(input);
         switch(cmd) {
         case RDBOX:
@@ -69,34 +68,7 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
             commands.emplace_back(SPACER, spacer);
             break;
         }
-        case NOP:
         case ERROR:
-        case PARSENUM:
-        case PARSEINT:
-        case EQ:
-        case NEQ:
-        case AND:
-        case OR:
-        case NOT:
-        case ADD:
-        case SUB:
-        case MUL:
-        case DIV:
-        case GT:
-        case LT:
-        case GEQ:
-        case LEQ:
-        case MAX:
-        case MIN:
-        case SETDEBUG:
-        case PUSHCONTENT:
-        case SETINDEX:
-        case CONTENTVIEW:
-        case NEXTLINE:
-        case NEXTTOKEN:
-        case POPCONTENT:
-            commands.emplace_back(cmd);
-            break;
         case SETGLOBAL:
         case CLEAR:
         case APPEND:
@@ -122,11 +94,14 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
         case JMP:
         case JZ:
         case JTE:
+        case SETINDEX:
             commands.emplace_back(cmd, std::make_shared<int>(readData<int>(input)));
             break;
-        case HLT:
-            halt = true;
+        case STRDATA:
+            input.ignore(readData<short>(input));
             break;
+        default:
+            commands.emplace_back(cmd);
         }
     }
 
@@ -161,7 +136,7 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
         call_function(call->name, call->numargs);
         break;
     }
-    case ERROR: throw layout_error(var_stack.back().str()); break;
+    case ERROR: throw layout_error(get_string()); break;
     case PARSENUM:
         if (var_stack.back().type() != VALUE_NUMBER) {
             var_stack.back() = variable(parse_number(var_stack.back().str()), VALUE_NUMBER);
@@ -211,6 +186,9 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
         index_reg = 0;
         break;
     case SETINDEX:
+        index_reg = get_int();
+        break;
+    case SETINDEXTOP:
         index_reg = var_stack.back().asInt();
         var_stack.pop_back();
         break;
@@ -321,6 +299,8 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     }
     case HLT:
         program_counter = commands.size();
+        break;
+    case STRDATA:
         break;
     }
 }

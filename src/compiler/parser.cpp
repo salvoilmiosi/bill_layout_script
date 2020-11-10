@@ -9,6 +9,7 @@ void parser::read_layout(const bill_layout_script &layout) {
         for (size_t i=0; i<layout.boxes.size(); ++i) {
             read_box(layout.boxes[i]);
         }
+        output_asm.push_back("HLT");
     } catch (const parsing_error &error) {
         throw layout_error(fmt::format("In {0}: {1}\n{2}", current_box->name, error.message, error.line));
     }
@@ -149,8 +150,14 @@ variable_ref parser::get_variable() {
     switch (tokens.current().type) {
     case TOK_BRACKET_BEGIN:
         tokens.advance();
-        evaluate();
-        output_asm.push_back("SETINDEX");
+        tokens.next(true);
+        if (tokens.current().type == TOK_NUMBER) {
+            tokens.advance();
+            output_asm.push_back(fmt::format("SETINDEX {0}", tokens.current().value));
+        } else {
+            evaluate();
+            output_asm.push_back("SETINDEXTOP");
+        }
         tokens.require(TOK_BRACKET_END);
         break;
     case TOK_APPEND:
@@ -365,6 +372,12 @@ void parser::exec_function() {
             exec_line();
         }
         output_asm.push_back("POPCONTENT");
+    } else if (fun_name == "error") {
+        tokens.require(TOK_PAREN_BEGIN);
+        auto tok = tokens.require(TOK_STRING);
+        tokens.require(TOK_PAREN_END);
+
+        output_asm.push_back(fmt::format("ERROR {0}", tok.value));
     } else {
         int num_args = 0;
         tokens.require(TOK_PAREN_BEGIN);
@@ -384,7 +397,6 @@ void parser::exec_function() {
             }
         }
         switch (hash(fun_name)) {
-        case hash("error"): output_asm.push_back("ERROR"); break;
         case hash("num"): output_asm.push_back("PARSENUM"); break;
         case hash("int"): output_asm.push_back("PARSEINT"); break;
         case hash("eq"):  output_asm.push_back("EQ"); break;

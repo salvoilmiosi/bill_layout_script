@@ -6,7 +6,6 @@
 #include <map>
 
 #include "../shared/utils.h"
-#include "../shared/layout.h"
 
 assembler::assembler(const std::vector<std::string> &lines) {
     std::map<std::string, int> labels;
@@ -49,7 +48,7 @@ assembler::assembler(const std::vector<std::string> &lines) {
             box->mode = static_cast<read_mode>(std::stoi(args[5]));
             box->type = static_cast<box_type>(std::stoi(args[6]));
             box->spacers = args[7];
-            out_lines.emplace_back(RDBOX, box, sizeof(int) * 8);
+            out_lines.emplace_back(RDBOX, box);
             break;
         }
         case hash("CALL"):
@@ -57,7 +56,7 @@ assembler::assembler(const std::vector<std::string> &lines) {
             auto call = std::make_shared<command_call>();
             call->name = args[0];
             call->numargs = std::stoi(args[1]);
-            out_lines.emplace_back(CALL, call, sizeof(int) * 2);
+            out_lines.emplace_back(CALL, call);
             break;
         }
         case hash("SPACER"):
@@ -66,10 +65,10 @@ assembler::assembler(const std::vector<std::string> &lines) {
             spacer->name = args[0];
             spacer->w = std::stof(args[1]);
             spacer->h = std::stof(args[2]);
-            out_lines.emplace_back(SPACER, spacer, sizeof(int) * 3);
+            out_lines.emplace_back(SPACER, spacer);
             break;
         }
-        case hash("ERROR"):         out_lines.emplace_back(ERROR); break;
+        case hash("ERROR"):         out_lines.emplace_back(ERROR,           std::make_shared<std::string>(arg_str)); break;
         case hash("PARSENUM"):      out_lines.emplace_back(PARSENUM); break;
         case hash("PARSEINT"):      out_lines.emplace_back(PARSEINT); break;
         case hash("EQ"):            out_lines.emplace_back(EQ); break;
@@ -87,30 +86,31 @@ assembler::assembler(const std::vector<std::string> &lines) {
         case hash("LEQ"):           out_lines.emplace_back(LEQ); break;
         case hash("MAX"):           out_lines.emplace_back(MAX); break;
         case hash("MIN"):           out_lines.emplace_back(MIN); break;
-        case hash("SETGLOBAL"):     out_lines.emplace_back(SETGLOBAL, std::make_shared<std::string>(args[0]), sizeof(int)); break;
+        case hash("SETGLOBAL"):     out_lines.emplace_back(SETGLOBAL,       std::make_shared<std::string>(args[0])); break;
         case hash("SETDEBUG"):      out_lines.emplace_back(SETDEBUG); break;
-        case hash("CLEAR"):         out_lines.emplace_back(CLEAR, std::make_shared<std::string>(args[0]), sizeof(int)); break;
-        case hash("APPEND"):        out_lines.emplace_back(APPEND, std::make_shared<std::string>(args[0]), sizeof(int)); break;
-        case hash("SETVAR"):        out_lines.emplace_back(SETVAR, std::make_shared<std::string>(args[0]), sizeof(int)); break;
+        case hash("CLEAR"):         out_lines.emplace_back(CLEAR,           std::make_shared<std::string>(args[0])); break;
+        case hash("APPEND"):        out_lines.emplace_back(APPEND,          std::make_shared<std::string>(args[0])); break;
+        case hash("SETVAR"):        out_lines.emplace_back(SETVAR,          std::make_shared<std::string>(args[0])); break;
         case hash("PUSHCONTENT"):   out_lines.emplace_back(PUSHCONTENT); break;
-        case hash("PUSHNUM"):       out_lines.emplace_back(PUSHNUM, std::make_shared<float>(std::stof(args[0])), sizeof(float)); break;
-        case hash("PUSHSTR"):       out_lines.emplace_back(PUSHSTR, std::make_shared<std::string>(parse_string(arg_str)), sizeof(int)); break;
-        case hash("PUSHGLOBAL"):    out_lines.emplace_back(PUSHGLOBAL, std::make_shared<std::string>(args[0]), sizeof(int)); break;
-        case hash("PUSHVAR"):       out_lines.emplace_back(PUSHVAR, std::make_shared<std::string>(args[0]), sizeof(int)); break;
-        case hash("SETINDEX"):      out_lines.emplace_back(SETINDEX); break;
-        case hash("JMP"):           out_lines.emplace_back(JMP, std::make_shared<int>(getgotoindex(arg_str)), sizeof(int)); break;
-        case hash("JZ"):            out_lines.emplace_back(JZ, std::make_shared<int>(getgotoindex(arg_str)), sizeof(int)); break;
-        case hash("JTE"):           out_lines.emplace_back(JTE, std::make_shared<int>(getgotoindex(arg_str)), sizeof(int)); break;
-        case hash("INCTOP"):        out_lines.emplace_back(INCTOP, std::make_shared<std::string>(args[0]), sizeof(int)); break;
-        case hash("INC"):           out_lines.emplace_back(INC, std::make_shared<std::string>(args[0]), sizeof(int)); break;
-        case hash("INCGTOP"):       out_lines.emplace_back(INCGTOP, std::make_shared<std::string>(args[0]), sizeof(int)); break;
-        case hash("INCG"):          out_lines.emplace_back(INCG, std::make_shared<std::string>(args[0], sizeof(int))); break;
-        case hash("DECTOP"):        out_lines.emplace_back(DECTOP, std::make_shared<std::string>(args[0]), sizeof(int)); break;
-        case hash("DEC"):           out_lines.emplace_back(DEC, std::make_shared<std::string>(args[0]), sizeof(int)); break;
-        case hash("DECGTOP"):       out_lines.emplace_back(DECGTOP, std::make_shared<std::string>(args[0]), sizeof(int)); break;
-        case hash("DECG"):          out_lines.emplace_back(DECG, std::make_shared<std::string>(args[0]), sizeof(int)); break;
-        case hash("ISSET"):         out_lines.emplace_back(ISSET, std::make_shared<std::string>(args[0]), sizeof(int)); break;
-        case hash("SIZE"):          out_lines.emplace_back(SIZE, std::make_shared<std::string>(args[0]), sizeof(int)); break;
+        case hash("PUSHNUM"):       out_lines.emplace_back(PUSHNUM,         std::make_shared<float>(std::stof(args[0]))); break;
+        case hash("PUSHSTR"):       out_lines.emplace_back(PUSHSTR,         std::make_shared<std::string>(parse_string(arg_str))); break;
+        case hash("PUSHGLOBAL"):    out_lines.emplace_back(PUSHGLOBAL,      std::make_shared<std::string>(args[0])); break;
+        case hash("PUSHVAR"):       out_lines.emplace_back(PUSHVAR,         std::make_shared<std::string>(args[0])); break;
+        case hash("SETINDEX"):      out_lines.emplace_back(SETINDEX,        std::make_shared<int>(std::stoi(args[0]))); break;
+        case hash("SETINDEXTOP"):   out_lines.emplace_back(SETINDEXTOP); break;
+        case hash("JMP"):           out_lines.emplace_back(JMP,             std::make_shared<int>(getgotoindex(args[0]))); break;
+        case hash("JZ"):            out_lines.emplace_back(JZ,              std::make_shared<int>(getgotoindex(args[0]))); break;
+        case hash("JTE"):           out_lines.emplace_back(JTE,             std::make_shared<int>(getgotoindex(args[0]))); break;
+        case hash("INCTOP"):        out_lines.emplace_back(INCTOP,          std::make_shared<std::string>(args[0])); break;
+        case hash("INC"):           out_lines.emplace_back(INC,             std::make_shared<std::string>(args[0])); break;
+        case hash("INCGTOP"):       out_lines.emplace_back(INCGTOP,         std::make_shared<std::string>(args[0])); break;
+        case hash("INCG"):          out_lines.emplace_back(INCG,            std::make_shared<std::string>(args[0])); break;
+        case hash("DECTOP"):        out_lines.emplace_back(DECTOP,          std::make_shared<std::string>(args[0])); break;
+        case hash("DEC"):           out_lines.emplace_back(DEC,             std::make_shared<std::string>(args[0])); break;
+        case hash("DECGTOP"):       out_lines.emplace_back(DECGTOP,         std::make_shared<std::string>(args[0])); break;
+        case hash("DECG"):          out_lines.emplace_back(DECG,            std::make_shared<std::string>(args[0])); break;
+        case hash("ISSET"):         out_lines.emplace_back(ISSET,           std::make_shared<std::string>(args[0])); break;
+        case hash("SIZE"):          out_lines.emplace_back(SIZE,            std::make_shared<std::string>(args[0])); break;
         case hash("CONTENTVIEW"):   out_lines.emplace_back(CONTENTVIEW); break;
         case hash("NEXTLINE"):      out_lines.emplace_back(NEXTLINE); break;
         case hash("NEXTTOKEN"):     out_lines.emplace_back(NEXTTOKEN); break;
@@ -123,7 +123,7 @@ assembler::assembler(const std::vector<std::string> &lines) {
 }
 
 void assembler::save_output(std::ostream &output) {
-    int out_size = sizeof(asm_command);
+    int out_size = 0;
 
     for (auto &line : out_lines) {
         out_size += sizeof(asm_command);
@@ -144,14 +144,14 @@ void assembler::save_output(std::ostream &output) {
             if (it == out_strings.end()) {
                 write_data(out_size);
                 out_strings.emplace_back(data, out_size);
-                out_size += data.size() + 2;
+                out_size += data.size() + sizeof(int) + sizeof(short);
             } else {
                 write_data(it->second);
             }
         }
     };
 
-    for (auto &line : out_lines) {
+    for (const auto &line : out_lines) {
         write_data(line.command);
         switch (line.command) {
         case RDBOX:
@@ -182,6 +182,7 @@ void assembler::save_output(std::ostream &output) {
             write_data(spacer->h);
             break;
         }
+        case ERROR:
         case SETGLOBAL:
         case CLEAR:
         case APPEND:
@@ -207,6 +208,7 @@ void assembler::save_output(std::ostream &output) {
         case JMP:
         case JZ:
         case JTE:
+        case SETINDEX:
             write_data(*std::static_pointer_cast<int>(line.data));
             break;
         default:
@@ -214,9 +216,8 @@ void assembler::save_output(std::ostream &output) {
         }
     }
 
-    write_data(HLT);
-
     for (auto &str : out_strings) {
+        write_data(STRDATA);
         write_data((uint16_t) (str.first.size()));
         output.write(str.first.c_str(), str.first.size());
     }
