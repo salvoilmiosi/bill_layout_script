@@ -68,7 +68,7 @@ assembler::assembler(const std::vector<std::string> &lines) {
             out_lines.emplace_back(SPACER, spacer);
             break;
         }
-        case hash("ERROR"):         out_lines.emplace_back(ERROR,           std::make_shared<std::string>(arg_str)); break;
+        case hash("ERROR"):         out_lines.emplace_back(ERROR,           std::make_shared<std::string>(parse_string(arg_str))); break;
         case hash("PARSENUM"):      out_lines.emplace_back(PARSENUM); break;
         case hash("PARSEINT"):      out_lines.emplace_back(PARSEINT); break;
         case hash("EQ"):            out_lines.emplace_back(EQ); break;

@@ -235,8 +235,8 @@ void parser::exec_function() {
         output_asm.push_back(fmt::format("{0}:", endfor_label));
         output_asm.push_back(fmt::format("CLEAR {0}", idx_name.value));
     } else if (fun_name == "goto") {
+        tokens.require(TOK_PAREN_BEGIN);
         tokens.next();
-   
         switch (tokens.current().type) {
         case TOK_IDENTIFIER:
             output_asm.push_back(fmt::format("JMP {0}", tokens.current().value));
@@ -247,6 +247,7 @@ void parser::exec_function() {
         default:
             throw parsing_error{"Indirizzo goto invalido", tokens.getLocation(tokens.current())};
         }
+        tokens.require(TOK_PAREN_END);
     } else if (fun_name == "inc") {
         tokens.require(TOK_PAREN_BEGIN);
         auto ref = get_variable();
@@ -327,8 +328,10 @@ void parser::exec_function() {
         tokens.require(TOK_PAREN_END);
         output_asm.push_back(fmt::format("CLEAR {0}", ref.name));
     } else if (fun_name == "addspacer") {
-        tokens.require(TOK_IDENTIFIER);
-        output_asm.push_back(fmt::format("SPACER {0},{1},{2}", tokens.current().value, current_box->w, current_box->h));
+        tokens.require(TOK_PAREN_BEGIN);
+        auto id = tokens.require(TOK_IDENTIFIER);
+        tokens.require(TOK_PAREN_END);
+        output_asm.push_back(fmt::format("SPACER {0},{1},{2}", id.value, current_box->w, current_box->h));
     } else if (fun_name == "lines") {
         std::string lines_label = fmt::format("__lines_{0}", output_asm.size());
         std::string endlines_label = fmt::format("__endlines_{0}", output_asm.size());
