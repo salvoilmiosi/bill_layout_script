@@ -113,7 +113,7 @@
 				"mode" : 0,
 				"name" : "Pagina successiva",
 				"page" : 3,
-				"script" : "$if($contains(@,\"Dettaglio consumi\")) {\n  $inc(*PAGE_NUM)\n  $goto 0\n}",
+				"script" : "$if($contains(@,\"Dettaglio consumi\")) {\n  $inc(*PAGE_NUM)\n  $goto(0)\n}",
 				"spacers" : "*PAGE_NUM",
 				"type" : 0,
 				"w" : 0.96129035949707031,

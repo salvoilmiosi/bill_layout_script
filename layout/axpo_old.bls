@@ -135,11 +135,11 @@
 			},
 			{
 				"goto_label" : "",
-				"h" : 0.11258172988891602,
+				"h" : 0.22941926121711731,
 				"mode" : 0,
 				"name" : "Corrispettivi energia",
 				"page" : 3,
-				"script" : "%consumo_peak=$search(@,\"Prezzo Energia PEAK $NUMBER\")\n%consumo_offpeak=$search(@,\"Prezzo Energia OFFPEAK $NUMBER\")\n%prezzo_energia+=$search(@,\"Prezzo Energia PEAK $NUMBER kWh $NUMBER\",2)\n%prezzo_energia+=$search(@,\"Prezzo Energia OFFPEAK $NUMBER kWh $NUMBER\",2)\n%energia_attiva+=$search(@,\"Prezzo Energia F1 $NUMBER\")\n%energia_attiva+=$search(@,\"Prezzo Energia F2 $NUMBER\")\n%energia_attiva+=$search(@,\"Prezzo Energia F3 $NUMBER\")\n%prezzo_energia+=$search(@,\"Prezzo Energia F1 $NUMBER kWh $NUMBER\",2)\n%prezzo_energia+=$search(@,\"Prezzo Energia F2 $NUMBER kWh $NUMBER\",2)\n%prezzo_energia+=$search(@,\"Prezzo Energia F3 $NUMBER kWh $NUMBER\",2)\n%perdite_rete+=$search(@,\"Perdite di Sistema F1 $NUMBER kWh $NUMBER\",2)\n%perdite_rete+=$search(@,\"Perdite di Sistema F2 $NUMBER kWh $NUMBER\",2)\n%perdite_rete+=$search(@,\"Perdite di Sistema F3 $NUMBER kWh $NUMBER\",2)",
+				"script" : "%prezzo_energia+=$search(@,\"Prezzo Energia PEAK $NUMBER kWh $NUMBER\",2)\n%prezzo_energia+=$search(@,\"Prezzo Energia OFFPEAK $NUMBER kWh $NUMBER\",2)\n%energia_attiva[0]=$search(@,\"Prezzo Energia F1 $NUMBER\")\n%energia_attiva[1]=$search(@,\"Prezzo Energia F2 $NUMBER\")\n%energia_attiva[2]=$search(@,\"Prezzo Energia F3 $NUMBER\")\n%prezzo_energia[0]=$search(@,\"Prezzo Energia F1 $NUMBER kWh $NUMBER\",2)\n%prezzo_energia[1]=$search(@,\"Prezzo Energia F2 $NUMBER kWh $NUMBER\",2)\n%prezzo_energia[2]=$search(@,\"Prezzo Energia F3 $NUMBER kWh $NUMBER\",2)\n$for(i,3) { %potenza[i]=$search(@,\"Quota Potenza $NUMBER kW\") }",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.90342998504638672,
@@ -148,7 +148,7 @@
 			},
 			{
 				"goto_label" : "",
-				"h" : 0.23749223351478577,
+				"h" : 0.23031535744667053,
 				"mode" : 0,
 				"name" : "Dati fornitura",
 				"page" : 3,
@@ -165,25 +165,12 @@
 				"mode" : 0,
 				"name" : "Accise",
 				"page" : 2,
-				"script" : "%accise=$search(@,\"Totale imposte $NUMBER\")",
+				"script" : "%accise=$search(@,\"Imposta Erariale\\n.+ $NUMBER\\n\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.45967742800712585,
 				"x" : 0.040322579443454742,
 				"y" : 0.72063851356506348
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.062713794410228729,
-				"mode" : 0,
-				"name" : "Consumi",
-				"page" : 2,
-				"script" : "$tokens($search(@,\"Consumi F1 F2 F3 [0-9]+/[0-9]+ ($NUMBER $NUMBER $NUMBER)\",1)) {\n  %energia_attiva+ %energia_attiva+ %energia_attiva+\n}",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.44999998807907104,
-				"x" : 0.49516129493713379,
-				"y" : 0.23033067584037781
 			},
 			{
 				"goto_label" : "",
@@ -197,6 +184,58 @@
 				"w" : 0.80079233646392822,
 				"x" : 0.033955857157707214,
 				"y" : 0.28906360268592834
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.064558319747447968,
+				"mode" : 0,
+				"name" : "Consumi",
+				"page" : 2,
+				"script" : "!consumi=$contains(@,\"Consumi\")",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.43524667620658875,
+				"x" : 0.50047439336776733,
+				"y" : 0.23475752770900726
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.023945271968841553,
+				"mode" : 0,
+				"name" : "F1",
+				"page" : 2,
+				"script" : "$if(consumi) %energia_attiva[0]=$coalesce(@,0)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.079032257199287415,
+				"x" : 0.68320679664611816,
+				"y" : 0.26309612393379211
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.023945271968841553,
+				"mode" : 0,
+				"name" : "F2",
+				"page" : 2,
+				"script" : "$if(consumi) %energia_attiva[1]=$coalesce(@,0)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.079032257199287415,
+				"x" : 0.7650378942489624,
+				"y" : 0.26309612393379211
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.023945271968841553,
+				"mode" : 0,
+				"name" : "F3",
+				"page" : 2,
+				"script" : "$if(consumi) %energia_attiva[2]=$coalesce(@,0)",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.079032257199287415,
+				"x" : 0.84805500507354736,
+				"y" : 0.26309612393379211
 			}
 		]
 	},
