@@ -74,7 +74,7 @@
 				"mode" : 0,
 				"name" : "Sintesi costi",
 				"page" : 1,
-				"script" : "$if($not(*multipod)) {\n\n%spesa_materia_energia=$search(@,\"SPESA PER LA MATERIA ENERGIA $NUMBER\")\n%trasporto_gestione=$search(@,\"SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE $NUMBER\")\n%oneri=$search(@,\"SPESA PER ONERI DI SISTEMA $NUMBER\")\n\n}\n%accise=$search(@,\"IMPOSTE $NUMBER\")\n%imponibile=$search(@,\"imponibile di $NUMBER\")\niva=$search(@,\"Importo IVA ([0-9]+)\")",
+				"script" : "$if($not(*multipod)) {\n\n%spesa_materia_energia=$search(@,\"SPESA PER LA MATERIA ENERGIA $NUMBER\")\n%trasporto_gestione=$search(@,\"SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE $NUMBER\")\n%oneri=$search(@,\"SPESA PER ONERI DI SISTEMA $NUMBER\")\n\n}\n%accise=$search(@,\"IMPOSTE $NUMBER\")\n%imponibile=$search(@,\"imponibile di $NUMBER\")\niva=$search(@,\"Importo IVA ([0-9]+%)\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.438966304063797,
