@@ -20,7 +20,19 @@ void parser::read_box(const layout_box &box) {
 
     tokens = tokenizer(box.script);
     if (!box.goto_label.empty()) output_asm.push_back(fmt::format("{0}:", box.goto_label));
-    output_asm.push_back(fmt::format("RDBOX {0},{1},{2},{3},{4},{5},{6},{7}", box.x, box.y, box.w, box.h, box.page, box.mode, box.type, box.spacers));
+    switch (box.type) {
+    case BOX_DISABLED:
+        break;
+    case BOX_RECTANGLE:
+        output_asm.push_back(fmt::format("RDBOX {0},{1},{2},{3},{4},{5},{6}", box.mode, box.page, box.spacers, box.x, box.y, box.w, box.h));
+        break;
+    case BOX_PAGE:
+        output_asm.push_back(fmt::format("RDPAGE {0},{1},{2}", box.mode, box.page, box.spacers));
+        break;
+    case BOX_WHOLE_FILE:
+        output_asm.push_back(fmt::format("RDFILE {0}", box.mode));
+        break;
+    }
     while (!tokens.ate()) exec_line();
 }
 
@@ -79,7 +91,7 @@ void parser::exec_line() {
             break;
         case TOK_END_OF_FILE:
         default:
-            output_asm.push_back("PUSHCONTENT");
+            output_asm.push_back("COPYCONTENT");
             add_value(ref);
             break;
         }
@@ -103,7 +115,7 @@ void parser::evaluate() {
         break;
     case TOK_CONTENT:
         tokens.advance();
-        output_asm.push_back("PUSHCONTENT");
+        output_asm.push_back("COPYCONTENT");
         break;
     default:
     {
@@ -336,7 +348,7 @@ void parser::exec_function() {
         tokens.require(TOK_PAREN_BEGIN);
         evaluate();
         tokens.require(TOK_PAREN_END);
-        output_asm.push_back("NEXTCONTENT");
+        output_asm.push_back("PUSHCONTENT");
         output_asm.push_back(fmt::format("{0}:", lines_label));
         output_asm.push_back("NEXTLINE");
         output_asm.push_back(fmt::format("JTE {0}", endlines_label));
@@ -348,14 +360,14 @@ void parser::exec_function() {
         tokens.require(TOK_PAREN_BEGIN);
         evaluate();
         tokens.require(TOK_PAREN_END);
-        output_asm.push_back("NEXTCONTENT");
+        output_asm.push_back("PUSHCONTENT");
         exec_line();
         output_asm.push_back("POPCONTENT");
     } else if (fun_name == "tokens") {
         tokens.require(TOK_PAREN_BEGIN);
         evaluate();
         tokens.require(TOK_PAREN_END);
-        output_asm.push_back("NEXTCONTENT");
+        output_asm.push_back("PUSHCONTENT");
 
         tokens.require(TOK_BRACE_BEGIN);
 

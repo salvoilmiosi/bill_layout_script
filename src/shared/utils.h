@@ -3,13 +3,8 @@
 
 #include <vector>
 #include <string>
-#include <sstream>
 
-// divide una stringa nelle sue righe
-std::vector<std::string> read_lines(std::istream &stream);
-std::vector<std::string> read_lines(const std::string &str);
-
-// divide una stringa con separatore spazio
+// divide una stringa per separatori spazio
 std::vector<std::string> tokenize(const std::string &str);
 
 // divide una stringa per separatore
@@ -30,6 +25,7 @@ std::string string_trim(std::string str);
 // converte un numero dal formato italiano al formato universale (trasforma virgole in punti)
 std::string parse_number(const std::string &value);
 
+// parsa una stringa dal format json
 std::string parse_string(std::string_view value);
 
 // converte i vari formati di data in un formato universale (dd/mm/aaaa)
@@ -53,6 +49,7 @@ struct hasher {
     }
 };
 
+// restituisce l'hash di una stringa
 template<typename T> size_t constexpr hash(T&& t) {
     return hasher{}(std::forward<T>(t));
 }

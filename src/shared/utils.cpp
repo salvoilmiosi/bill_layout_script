@@ -3,31 +3,17 @@
 #include <regex>
 #include <algorithm>
 
-std::vector<std::string> read_lines(std::istream &stream) {
-    std::string token;
-    std::vector<std::string> out;
-    while (std::getline(stream, token)) {
-        out.push_back(token);
-    }
-    return out;
-};
-
-std::vector<std::string> read_lines(const std::string &str) {
-    std::istringstream iss(str);
-    return read_lines(iss);
-};
-
 std::vector<std::string> tokenize(const std::string &str) {
-    std::vector<std::string> out;
-    if (str.empty()) {
-        return out;
+    std::vector<std::string> ret;
+
+    size_t start = str.find_first_not_of("\t\n\v\f\r ");
+    while(start != std::string::npos) {
+        size_t end = str.find_first_of("\t\n\v\f\r ", start);
+        ret.push_back(str.substr(start, end - start));
+        start = str.find_first_not_of("\t\n\v\f\r ", end);
     }
-    std::istringstream iss(str);
-    std::string token;
-    while (iss >> token) {
-        out.push_back(token);
-    }
-    return out;
+
+    return ret;
 };
 
 std::vector<std::string> string_split(const std::string &str, char separator) {
@@ -239,10 +225,13 @@ std::string search_regex(std::string format, const std::string &value, int index
 }
 
 std::string nospace(std::string input) {
-    string_replace(input, "\t", " ");
-    string_replace(input, "\r", " ");
-    string_replace(input, "\n", " ");
-    string_replace(input, "\v", " ");
-    string_replace(input, "\f", " ");
+    size_t index = 0;
+    while (true) {
+        index = input.find_first_of("\t\r\n\v\f", index);
+        if (index == std::string::npos) break;
+
+        input.replace(index, 1, " ");
+        ++index;
+    }
     return input;
 }

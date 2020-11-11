@@ -6,11 +6,11 @@
 #include <ostream>
 #include <memory>
 
-#include "../shared/layout.h"
-
 enum asm_command {
     NOP,
     RDBOX,
+    RDPAGE,
+    RDFILE,
     CALL,
     ERROR,
     PARSENUM,
@@ -36,7 +36,7 @@ enum asm_command {
     APPEND,
     SETVAR,
     RESETVAR,
-    PUSHCONTENT,
+    COPYCONTENT,
     PUSHNUM,
     PUSHSTR,
     PUSHGLOBAL,
@@ -56,7 +56,7 @@ enum asm_command {
     DECG,
     ISSET,
     SIZE,
-    NEXTCONTENT,
+    PUSHCONTENT,
     NEXTLINE,
     NEXTTOKEN,
     POPCONTENT,
@@ -79,7 +79,6 @@ struct command_spacer {
 template<typename T> struct get_datasize { static constexpr size_t value = sizeof(T); };
 
 template<> struct get_datasize<std::string> { static constexpr size_t value = sizeof(int); };
-template<> struct get_datasize<layout_box> { static constexpr size_t value = sizeof(int) * 8; };
 template<> struct get_datasize<command_call> { static constexpr size_t value = sizeof(int) * 2; };
 template<> struct get_datasize<command_spacer> { static constexpr size_t value = sizeof(int) * 3; };
 
@@ -92,8 +91,8 @@ struct command_args {
     command_args(asm_command command = NOP) : command(command) {}
 
     template<typename T>
-    command_args(asm_command command, std::shared_ptr<T> data) :
-        command(command), data(data), datasize(get_datasize<T>::value) {}
+    command_args(asm_command command, std::shared_ptr<T> data, size_t datasize = get_datasize<T>::value) :
+        command(command), data(data), datasize(datasize) {}
 };
 
 struct assembly_error {

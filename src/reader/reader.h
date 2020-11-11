@@ -18,18 +18,14 @@ struct box_spacer {
 
 struct content_view {
     std::string text;
-    std::vector<std::string_view> view_stack;
+    size_t token_start = -1;
+    size_t token_end = -1;
 
-    content_view(const std::string &_text) : text(_text) {
-        view_stack.emplace_back(text);
-    }
+    content_view(const std::string &_text) : text(_text) {}
+    
+    void next_token(const std::string &separator);
 
-    bool tokenend() {
-        if (view_stack.size() >= 2) {
-            return view_stack.back().begin() == view_stack[view_stack.size()-2].end();
-        }
-        return true;
-    }
+    std::string_view view() const;
 };
 
 class reader {

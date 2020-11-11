@@ -6,6 +6,7 @@
 #include <map>
 
 #include "../shared/utils.h"
+#include "../shared/layout.h"
 
 assembler::assembler(const std::vector<std::string> &lines) {
     std::map<std::string, int> labels;
@@ -40,15 +41,33 @@ assembler::assembler(const std::vector<std::string> &lines) {
         case hash("RDBOX"):
         {
             auto box = std::make_shared<layout_box>();
-            box->x = std::stof(args[0]);
-            box->y = std::stof(args[1]);
-            box->w = std::stof(args[2]);
-            box->h = std::stof(args[3]);
-            box->page = std::stoi(args[4]),
-            box->mode = static_cast<read_mode>(std::stoi(args[5]));
-            box->type = static_cast<box_type>(std::stoi(args[6]));
-            box->spacers = args[7];
-            out_lines.emplace_back(RDBOX, box);
+            box->type = BOX_RECTANGLE;
+            box->mode = static_cast<read_mode>(std::stoi(args[0]));
+            box->page = std::stoi(args[1]);
+            box->spacers = args[2];
+            box->x = std::stof(args[3]);
+            box->y = std::stof(args[4]);
+            box->w = std::stof(args[5]);
+            box->h = std::stof(args[6]);
+            out_lines.emplace_back(RDBOX, box, sizeof(int) * 7);
+            break;
+        }
+        case hash("RDPAGE"):
+        {
+            auto box = std::make_shared<layout_box>();
+            box->type = BOX_PAGE;
+            box->mode = static_cast<read_mode>(std::stoi(args[0]));
+            box->page = std::stoi(args[1]);
+            box->spacers = args[2];
+            out_lines.emplace_back(RDPAGE, box, sizeof(int) * 3);
+            break;
+        }
+        case hash("RDFILE"):
+        {
+            auto box = std::make_shared<layout_box>();
+            box->type = BOX_WHOLE_FILE;
+            box->mode = static_cast<read_mode>(std::stoi(args[0]));
+            out_lines.emplace_back(RDFILE, box, sizeof(int));
             break;
         }
         case hash("CALL"):
@@ -92,7 +111,7 @@ assembler::assembler(const std::vector<std::string> &lines) {
         case hash("APPEND"):        out_lines.emplace_back(APPEND,          std::make_shared<std::string>(args[0])); break;
         case hash("SETVAR"):        out_lines.emplace_back(SETVAR,          std::make_shared<std::string>(args[0])); break;
         case hash("RESETVAR"):      out_lines.emplace_back(RESETVAR,        std::make_shared<std::string>(args[0])); break;
-        case hash("PUSHCONTENT"):   out_lines.emplace_back(PUSHCONTENT); break;
+        case hash("COPYCONTENT"):   out_lines.emplace_back(COPYCONTENT); break;
         case hash("PUSHNUM"):       out_lines.emplace_back(PUSHNUM,         std::make_shared<float>(std::stof(args[0]))); break;
         case hash("PUSHSTR"):       out_lines.emplace_back(PUSHSTR,         std::make_shared<std::string>(parse_string(arg_str))); break;
         case hash("PUSHGLOBAL"):    out_lines.emplace_back(PUSHGLOBAL,      std::make_shared<std::string>(args[0])); break;
@@ -112,7 +131,7 @@ assembler::assembler(const std::vector<std::string> &lines) {
         case hash("DECG"):          out_lines.emplace_back(DECG,            std::make_shared<std::string>(args[0])); break;
         case hash("ISSET"):         out_lines.emplace_back(ISSET,           std::make_shared<std::string>(args[0])); break;
         case hash("SIZE"):          out_lines.emplace_back(SIZE,            std::make_shared<std::string>(args[0])); break;
-        case hash("NEXTCONTENT"):   out_lines.emplace_back(NEXTCONTENT); break;
+        case hash("PUSHCONTENT"):   out_lines.emplace_back(PUSHCONTENT); break;
         case hash("NEXTLINE"):      out_lines.emplace_back(NEXTLINE); break;
         case hash("NEXTTOKEN"):     out_lines.emplace_back(NEXTTOKEN); break;
         case hash("POPCONTENT"):    out_lines.emplace_back(POPCONTENT); break;
@@ -158,14 +177,27 @@ void assembler::save_output(std::ostream &output) {
         case RDBOX:
         {
             auto box = std::static_pointer_cast<layout_box>(line.data);
+            write_data(box->mode);
+            write_data(box->page);
+            write_string(box->spacers);
             write_data(box->x);
             write_data(box->y);
             write_data(box->w);
             write_data(box->h);
-            write_data(box->page);
+            break;
+        }
+        case RDPAGE:
+        {
+            auto box = std::static_pointer_cast<layout_box>(line.data);
             write_data(box->mode);
-            write_data(box->type);
+            write_data(box->page);
             write_string(box->spacers);
+            break;
+        }
+        case RDFILE:
+        {
+            auto box = std::static_pointer_cast<layout_box>(line.data);
+            write_data(box->mode);
             break;
         }
         case CALL:

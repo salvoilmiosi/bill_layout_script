@@ -40,15 +40,33 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
         case RDBOX:
         {
             auto box = std::make_shared<layout_box>();
+            box->type = BOX_RECTANGLE;
+            box->mode = readData<read_mode>(input);
+            box->page = readData<int>(input);
+            box->spacers = readData<std::string>(input);
             box->x = readData<float>(input);
             box->y = readData<float>(input);
             box->w = readData<float>(input);
             box->h = readData<float>(input);
-            box->page = readData<int>(input);
-            box->mode = readData<read_mode>(input);
-            box->type = readData<box_type>(input);
-            box->spacers = readData<std::string>(input);
             commands.emplace_back(RDBOX, box);
+            break;
+        }
+        case RDPAGE:
+        {
+            auto box = std::make_shared<layout_box>();
+            box->type = BOX_PAGE;
+            box->mode = readData<read_mode>(input);
+            box->page = readData<int>(input);
+            box->spacers = readData<std::string>(input);
+            commands.emplace_back(RDPAGE, box);
+            break;
+        }
+        case RDFILE:
+        {
+            auto box = std::make_shared<layout_box>();
+            box->type = BOX_WHOLE_FILE;
+            box->mode = readData<read_mode>(input);
+            commands.emplace_back(RDFILE, box);
             break;
         }
         case CALL:
@@ -116,6 +134,26 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
     }
 }
 
+void content_view::next_token(const std::string &separator) {
+    if (token_start == (size_t) -1) {
+        token_start = token_end = 0;
+    }
+    token_start = text.find_first_not_of(separator, token_end);
+    if (token_start == std::string::npos) {
+        token_start = token_end = text.size();
+    } else {
+        token_end = text.find_first_of(separator, token_start);
+    }
+}
+
+std::string_view content_view::view() const {
+    if (token_start == (size_t) -1) {
+        return std::string_view(text);
+    } else {
+        return std::string_view(text).substr(token_start, token_end - token_start);
+    }
+}
+
 void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     auto get_string = [&cmd]() { return *std::static_pointer_cast<std::string>(cmd.data); };
     auto get_int = [&cmd]() { return *std::static_pointer_cast<int>(cmd.data); };
@@ -130,7 +168,11 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
 
     switch(cmd.command) {
     case NOP: break;
-    case RDBOX: read_box(info, *std::static_pointer_cast<layout_box>(cmd.data)); break;
+    case RDBOX:
+    case RDPAGE:
+    case RDFILE:
+        read_box(info, *std::static_pointer_cast<layout_box>(cmd.data));
+        break;
     case CALL:
     {
         auto call = std::static_pointer_cast<command_call>(cmd.data);
@@ -183,7 +225,7 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
         index_reg = 0;
         var_stack.pop_back();
         break;
-    case PUSHCONTENT: var_stack.push_back(content_stack.back().view_stack.back()); break;
+    case COPYCONTENT: var_stack.push_back(content_stack.back().view()); break;
     case PUSHNUM: var_stack.emplace_back(get_float()); break;
     case PUSHSTR: var_stack.push_back(get_string()); break;
     case PUSHGLOBAL: var_stack.push_back(m_globals[get_string()]); break;
@@ -210,7 +252,7 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
         var_stack.pop_back();
         break;
     case JTE:
-        if (content_stack.back().tokenend()) {
+        if (content_stack.back().token_start == content_stack.back().text.size()) {
             program_counter = get_int();
             jumped = true;
         }
@@ -265,43 +307,13 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     }
     case ISSET: var_stack.push_back(get_variable_size(get_string()) > 0); break;
     case SIZE: var_stack.push_back(get_variable_size(get_string())); break;
-    case NEXTCONTENT:
+    case PUSHCONTENT:
         content_stack.emplace_back(var_stack.back().str());
         var_stack.pop_back();
         break;
     case POPCONTENT: content_stack.pop_back(); break;
-    case NEXTLINE:
-    {
-        if (content_stack.back().view_stack.size() == 1) {
-            content_stack.back().view_stack.emplace_back(content_stack.back().view_stack.back().begin(), 0);
-        }
-        auto &content = content_stack.back().view_stack[content_stack.back().view_stack.size()-2];
-        auto &view = content_stack.back().view_stack.back();
-        size_t starttok = content.find_first_not_of('\n', view.end() - content.begin());
-        if (starttok == std::string_view::npos) {
-            view = std::string_view(content.end(), 0);
-        } else {
-            size_t endtok = content.find_first_of('\n', starttok);
-            view = content.substr(starttok, endtok - starttok);
-        }
-        break;
-    }
-    case NEXTTOKEN:
-    {
-        if (content_stack.back().view_stack.size() == 1) {
-            content_stack.back().view_stack.emplace_back(content_stack.back().view_stack.back().begin(), 0);
-        }
-        auto &content = content_stack.back().view_stack[content_stack.back().view_stack.size()-2];
-        auto &view = content_stack.back().view_stack.back();
-        size_t starttok = content.find_first_not_of("\t\n\v\f\r ", view.end() - content.begin());
-        if (starttok == std::string_view::npos) {
-            view = std::string_view(content.end(), 0);
-        } else {
-            size_t endtok = content.find_first_of("\t\n\v\f\r ", starttok);
-            view = content.substr(starttok, endtok - starttok);
-        }
-        break;
-    }
+    case NEXTLINE: content_stack.back().next_token("\n"); break;
+    case NEXTTOKEN: content_stack.back().next_token("\t\n\v\f\r "); break;
     case SPACER:
     {
         auto spacer = std::static_pointer_cast<command_spacer>(cmd.data);
