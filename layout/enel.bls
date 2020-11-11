@@ -230,7 +230,7 @@
 				"mode" : 0,
 				"name" : "Prezzo energia",
 				"page" : 5,
-				"script" : "%prezzo_energia+=$search(@,\"Energia fascia F1 .+kWh $NUMBER\")\n%prezzo_energia+=$search(@,\"Energia fascia F2 .+kWh $NUMBER\")\n%prezzo_energia+=$search(@,\"Energia fascia F3 .+kWh $NUMBER\")\n%prezzo_energia+=$search(@,\"Energia picco .+kWh $NUMBER\")\n%prezzo_energia+=$search(@,\"Energia fuori picco .+kWh $NUMBER\")\n%inf_75=$search(@,\"Energia Reattiva entro il 75%.+ $NUMBER\\n\")\n%sup_75=$search(@,\"Energia Reattiva oltre il 75%.+ $NUMBER\\n\")",
+				"script" : "%prezzo_energia+=$search(@,\"Energia fascia F1 .+kWh $NUMBER\")\n%prezzo_energia+=$search(@,\"Energia fascia F2 .+kWh $NUMBER\")\n%prezzo_energia+=$search(@,\"Energia fascia F3 .+kWh $NUMBER\")\n%prezzo_energia+=$search(@,\"Energia picco .+kWh $NUMBER\")\n%prezzo_energia+=$search(@,\"Energia fuori picco .+kWh $NUMBER\")\n%penale_reattiva_inf75=$search(@,\"Energia Reattiva entro il 75%.+ $NUMBER\\n\")\n%penale_reattiva_sup75=$search(@,\"Energia Reattiva oltre il 75%.+ $NUMBER\\n\")",
 				"spacers" : "*offset_2pages",
 				"type" : 0,
 				"w" : 0.7119903564453125,
