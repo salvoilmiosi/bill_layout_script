@@ -73,6 +73,7 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
         case CLEAR:
         case APPEND:
         case SETVAR:
+        case RESETVAR:
         case PUSHSTR:
         case PUSHGLOBAL:
         case PUSHVAR:
@@ -177,6 +178,11 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
         index_reg = 0;
         var_stack.pop_back();
         break;
+    case RESETVAR:
+        reset_variable(get_string(), var_stack.back());
+        index_reg = 0;
+        var_stack.pop_back();
+        break;
     case PUSHCONTENT: var_stack.push_back(content_stack.back().view_stack.back()); break;
     case PUSHNUM: var_stack.emplace_back(get_float()); break;
     case PUSHSTR: var_stack.push_back(get_string()); break;
@@ -259,14 +265,16 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     }
     case ISSET: var_stack.push_back(get_variable_size(get_string()) > 0); break;
     case SIZE: var_stack.push_back(get_variable_size(get_string())); break;
-    case CONTENTVIEW:
+    case NEXTCONTENT:
         content_stack.emplace_back(var_stack.back().str());
-        content_stack.back().view_stack.emplace_back(content_stack.back().view_stack.back().begin(), 0);
         var_stack.pop_back();
         break;
     case POPCONTENT: content_stack.pop_back(); break;
     case NEXTLINE:
     {
+        if (content_stack.back().view_stack.size() == 1) {
+            content_stack.back().view_stack.emplace_back(content_stack.back().view_stack.back().begin(), 0);
+        }
         auto &content = content_stack.back().view_stack[content_stack.back().view_stack.size()-2];
         auto &view = content_stack.back().view_stack.back();
         size_t starttok = content.find_first_not_of('\n', view.end() - content.begin());
@@ -280,6 +288,9 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     }
     case NEXTTOKEN:
     {
+        if (content_stack.back().view_stack.size() == 1) {
+            content_stack.back().view_stack.emplace_back(content_stack.back().view_stack.back().begin(), 0);
+        }
         auto &content = content_stack.back().view_stack[content_stack.back().view_stack.size()-2];
         auto &view = content_stack.back().view_stack.back();
         size_t starttok = content.find_first_not_of("\t\n\v\f\r ", view.end() - content.begin());
@@ -377,6 +388,17 @@ void reader::set_variable(const std::string &name, const variable &value) {
     auto &var = page[name];
     while (var.size() <= index_reg) var.emplace_back();
     var[index_reg] = value;
+}
+
+void reader::reset_variable(const std::string &name, const variable &value) {
+    if (value.empty()) return;
+
+    size_t pageidx = get_global("PAGE_NUM").asInt();
+    while (m_values.size() <= pageidx) m_values.emplace_back();
+    auto &page = m_values[pageidx];
+    auto &var = page[name];
+    var.clear();
+    var.push_back(value);
 }
 
 void reader::clear_variable(const std::string &name) {

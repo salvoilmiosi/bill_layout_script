@@ -91,6 +91,7 @@ assembler::assembler(const std::vector<std::string> &lines) {
         case hash("CLEAR"):         out_lines.emplace_back(CLEAR,           std::make_shared<std::string>(args[0])); break;
         case hash("APPEND"):        out_lines.emplace_back(APPEND,          std::make_shared<std::string>(args[0])); break;
         case hash("SETVAR"):        out_lines.emplace_back(SETVAR,          std::make_shared<std::string>(args[0])); break;
+        case hash("RESETVAR"):      out_lines.emplace_back(RESETVAR,        std::make_shared<std::string>(args[0])); break;
         case hash("PUSHCONTENT"):   out_lines.emplace_back(PUSHCONTENT); break;
         case hash("PUSHNUM"):       out_lines.emplace_back(PUSHNUM,         std::make_shared<float>(std::stof(args[0]))); break;
         case hash("PUSHSTR"):       out_lines.emplace_back(PUSHSTR,         std::make_shared<std::string>(parse_string(arg_str))); break;
@@ -111,7 +112,7 @@ assembler::assembler(const std::vector<std::string> &lines) {
         case hash("DECG"):          out_lines.emplace_back(DECG,            std::make_shared<std::string>(args[0])); break;
         case hash("ISSET"):         out_lines.emplace_back(ISSET,           std::make_shared<std::string>(args[0])); break;
         case hash("SIZE"):          out_lines.emplace_back(SIZE,            std::make_shared<std::string>(args[0])); break;
-        case hash("CONTENTVIEW"):   out_lines.emplace_back(CONTENTVIEW); break;
+        case hash("NEXTCONTENT"):   out_lines.emplace_back(NEXTCONTENT); break;
         case hash("NEXTLINE"):      out_lines.emplace_back(NEXTLINE); break;
         case hash("NEXTTOKEN"):     out_lines.emplace_back(NEXTTOKEN); break;
         case hash("POPCONTENT"):    out_lines.emplace_back(POPCONTENT); break;
@@ -187,6 +188,7 @@ void assembler::save_output(std::ostream &output) {
         case CLEAR:
         case APPEND:
         case SETVAR:
+        case RESETVAR:
         case PUSHSTR:
         case PUSHGLOBAL:
         case PUSHVAR:

@@ -52,6 +52,7 @@ private:
 
     const variable &get_variable(const std::string &name) const;
     void set_variable(const std::string &name, const variable &value);
+    void reset_variable(const std::string &name, const variable &value);
     void clear_variable(const std::string &name);
     size_t get_variable_size(const std::string &name);
 

@@ -38,12 +38,10 @@ void parser::add_value(variable_ref ref) {
         output_asm.push_back("SETDEBUG");
     }
 
-    if (ref.flags & FLAGS_CLEAR) {
-        output_asm.push_back(fmt::format("CLEAR {0}", ref.name));
-    }
-
     if (ref.flags & FLAGS_APPEND) {
         output_asm.push_back(fmt::format("APPEND {0}", ref.name));
+    } else if (ref.flags & FLAGS_CLEAR) {
+        output_asm.push_back(fmt::format("RESETVAR {0}", ref.name));
     } else {
         output_asm.push_back(fmt::format("SETVAR {0}", ref.name));
     }
@@ -338,30 +336,26 @@ void parser::exec_function() {
         tokens.require(TOK_PAREN_BEGIN);
         evaluate();
         tokens.require(TOK_PAREN_END);
-        output_asm.push_back("CONTENTVIEW");
-
-        tokens.require(TOK_BRACE_BEGIN);
+        output_asm.push_back("NEXTCONTENT");
         output_asm.push_back(fmt::format("{0}:", lines_label));
         output_asm.push_back("NEXTLINE");
         output_asm.push_back(fmt::format("JTE {0}", endlines_label));
-
-        while (true) {
-            tokens.next(true);
-            if (tokens.current().type == TOK_BRACE_END) {
-                tokens.advance();
-                break;
-            }
-            exec_line();
-        }
-
+        exec_line();
         output_asm.push_back(fmt::format("JMP {0}", lines_label));
         output_asm.push_back(fmt::format("{0}:", endlines_label));
+        output_asm.push_back("POPCONTENT");
+    } else if (fun_name == "with") {
+        tokens.require(TOK_PAREN_BEGIN);
+        evaluate();
+        tokens.require(TOK_PAREN_END);
+        output_asm.push_back("NEXTCONTENT");
+        exec_line();
         output_asm.push_back("POPCONTENT");
     } else if (fun_name == "tokens") {
         tokens.require(TOK_PAREN_BEGIN);
         evaluate();
         tokens.require(TOK_PAREN_END);
-        output_asm.push_back("CONTENTVIEW");
+        output_asm.push_back("NEXTCONTENT");
 
         tokens.require(TOK_BRACE_BEGIN);
 
