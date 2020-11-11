@@ -9,7 +9,7 @@
 				"mode" : 0,
 				"name" : "Nome Fornitore",
 				"page" : 1,
-				"script" : "fornitore=\"Green Network\"",
+				"script" : "fornitore=\"Green network\"",
 				"spacers" : "",
 				"type" : 3,
 				"w" : 0.51129031181335449,
