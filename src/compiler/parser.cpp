@@ -54,8 +54,10 @@ void parser::add_value(variable_ref ref) {
         output_asm.push_back(fmt::format("APPEND {0}", ref.name));
     } else if (ref.flags & FLAGS_CLEAR) {
         output_asm.push_back(fmt::format("RESETVAR {0}", ref.name));
-    } else {
+    } else if (ref.flags & FLAGS_GETINDEX) {
         output_asm.push_back(fmt::format("SETVAR {0}", ref.name));
+    } else {
+        output_asm.push_back(fmt::format("SETVARIDX {0},{1}", ref.name, ref.index));
     }
 }
 
@@ -122,8 +124,10 @@ void parser::evaluate() {
         auto ref = get_variable();
         if (ref.flags & FLAGS_GLOBAL) {
             output_asm.push_back(fmt::format("PUSHGLOBAL {0}", ref.name));
-        } else {
+        } else if (ref.flags & FLAGS_GETINDEX) {
             output_asm.push_back(fmt::format("PUSHVAR {0}", ref.name));
+        } else {
+            output_asm.push_back(fmt::format("PUSHVARIDX {0},{1}", ref.name, ref.index));
         }
     }
     }
@@ -163,10 +167,10 @@ variable_ref parser::get_variable() {
         tokens.next(true);
         if (tokens.current().type == TOK_NUMBER) {
             tokens.advance();
-            output_asm.push_back(fmt::format("SETINDEX {0}", tokens.current().value));
+            ref.index = std::stoi(std::string(tokens.current().value));
         } else {
             evaluate();
-            output_asm.push_back("SETINDEXTOP");
+            ref.flags |= FLAGS_GETINDEX;
         }
         tokens.require(TOK_BRACKET_END);
         break;
@@ -234,13 +238,13 @@ void parser::exec_function() {
         auto idx_name = tokens.require(TOK_IDENTIFIER);
         tokens.require(TOK_COMMA);
         output_asm.push_back(fmt::format("{0}:", for_label));
-        output_asm.push_back(fmt::format("PUSHVAR {0}", idx_name.value));
+        output_asm.push_back(fmt::format("PUSHVARIDX {0},0", idx_name.value));
         evaluate();
         output_asm.push_back("LT");
         output_asm.push_back(fmt::format("JZ {0}", endfor_label));
         tokens.require(TOK_PAREN_END);
         exec_line();
-        output_asm.push_back(fmt::format("INC {0}", idx_name.value));
+        output_asm.push_back(fmt::format("INCIDX {0},0", idx_name.value));
         output_asm.push_back(fmt::format("JMP {0}", for_label));
         output_asm.push_back(fmt::format("{0}:", endfor_label));
         output_asm.push_back(fmt::format("CLEAR {0}", idx_name.value));
@@ -265,8 +269,14 @@ void parser::exec_function() {
         bool inc_one = true;
         switch(tokens.current().type) {
         case TOK_COMMA:
-            evaluate();
-            inc_one = false;
+            tokens.next(true);
+            if (tokens.current().value == "1") {
+                tokens.advance();
+                inc_one = true;
+            } else {
+                evaluate();
+                inc_one = false;
+            }
             tokens.require(TOK_PAREN_END);
             break;
         case TOK_PAREN_END:
@@ -285,9 +295,17 @@ void parser::exec_function() {
             }
         } else {
             if (inc_one) {
-                output_asm.push_back(fmt::format("INC {0}", ref.name));
+                if (ref.flags & FLAGS_GETINDEX) {
+                    output_asm.push_back(fmt::format("INC {0}", ref.name));
+                } else {
+                    output_asm.push_back(fmt::format("INCIDX {0},{1}", ref.name, ref.index));
+                }
             } else {
-                output_asm.push_back(fmt::format("INCTOP {0}", ref.name));
+                if (ref.flags & FLAGS_GETINDEX) {
+                    output_asm.push_back(fmt::format("INCTOP {0}", ref.name));
+                } else {
+                    output_asm.push_back(fmt::format("INCTOPIDX {0},{1}", ref.name, ref.index));
+                }
             }
         }
     } else if (fun_name == "dec") {
@@ -297,8 +315,14 @@ void parser::exec_function() {
         bool inc_one = true;
         switch(tokens.current().type) {
         case TOK_COMMA:
-            evaluate();
-            inc_one = false;
+            tokens.next(true);
+            if (tokens.current().value == "1") {
+                tokens.advance();
+                inc_one = true;
+            } else {
+                evaluate();
+                inc_one = false;
+            }
             tokens.require(TOK_PAREN_END);
             break;
         case TOK_PAREN_END:
@@ -317,9 +341,17 @@ void parser::exec_function() {
             }
         } else {
             if (inc_one) {
-                output_asm.push_back(fmt::format("DEC {0}", ref.name));
+                if (ref.flags & FLAGS_GETINDEX) {
+                    output_asm.push_back(fmt::format("DEC {0}", ref.name));
+                } else {
+                    output_asm.push_back(fmt::format("DECIDX {0},{1}", ref.name, ref.index));
+                }
             } else {
-                output_asm.push_back(fmt::format("DECTOP {0}", ref.name));
+                if (ref.flags & FLAGS_GETINDEX) {
+                    output_asm.push_back(fmt::format("DECTOP {0}", ref.name));
+                } else {
+                    output_asm.push_back(fmt::format("DECTOPIDX {0},{1}", ref.name, ref.index));
+                }
             }
         }
     } else if (fun_name == "isset") {
@@ -392,6 +424,11 @@ void parser::exec_function() {
         tokens.require(TOK_PAREN_BEGIN);
         bool in_fun_loop = true;
         while (in_fun_loop) {
+            tokens.next(true);
+            if (tokens.current().type == TOK_PAREN_END) {
+                tokens.advance();
+                break;
+            }
             ++num_args;
             evaluate();
             tokens.next();

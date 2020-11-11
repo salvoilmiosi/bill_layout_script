@@ -46,8 +46,8 @@ private:
     std::map<std::string, variable> m_globals;
     std::vector<std::map<std::string, std::vector<variable>>> m_values;
 
-    const variable &get_variable(const std::string &name) const;
-    void set_variable(const std::string &name, const variable &value);
+    const variable &get_variable(const variable_idx &var) const;
+    void set_variable(const variable_idx &var, const variable &value);
     void reset_variable(const std::string &name, const variable &value);
     void clear_variable(const std::string &name);
     size_t get_variable_size(const std::string &name);
@@ -56,7 +56,6 @@ private:
     std::vector<command_args> commands;
     std::vector<variable> var_stack;
     std::vector<content_view> content_stack;
-    size_t index_reg = 0;
     size_t program_counter = 0;
     bool jumped = false;
 };

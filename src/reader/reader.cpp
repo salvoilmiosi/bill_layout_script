@@ -30,7 +30,6 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
     commands.clear();
     var_stack.clear();
     content_stack.clear();
-    index_reg = 0;
     program_counter = 0;
     jumped = false;
 
@@ -86,6 +85,19 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
             commands.emplace_back(SPACER, spacer);
             break;
         }
+        case SETVARIDX:
+        case PUSHVARIDX:
+        case INCTOPIDX:
+        case INCIDX:
+        case DECTOPIDX:
+        case DECIDX:
+        {
+            auto var_idx = std::make_shared<variable_idx>();
+            var_idx->name = readData<std::string>(input);
+            var_idx->index = readData<int>(input);
+            commands.emplace_back(cmd, var_idx);
+            break;
+        }
         case ERROR:
         case SETGLOBAL:
         case CLEAR:
@@ -113,7 +125,6 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
         case JMP:
         case JZ:
         case JTE:
-        case SETINDEX:
             commands.emplace_back(cmd, std::make_shared<int>(readData<int>(input)));
             break;
         case STRDATA:
@@ -158,6 +169,7 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     auto get_string = [&cmd]() { return *std::static_pointer_cast<std::string>(cmd.data); };
     auto get_int = [&cmd]() { return *std::static_pointer_cast<int>(cmd.data); };
     auto get_float = [&cmd]() { return *std::static_pointer_cast<float>(cmd.data); };
+    auto get_variable_idx = [&cmd]() { return *std::static_pointer_cast<variable_idx>(cmd.data); };
 
     auto exec_operator = [&](auto op) {
         auto var = op(var_stack[var_stack.size()-2], var_stack.back());
@@ -210,19 +222,20 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     case SETDEBUG: var_stack.back().debug = true; break;
     case CLEAR: clear_variable(get_string()); break;
     case APPEND:
-        index_reg = get_variable_size(get_string());
-        set_variable(get_string(), var_stack.back());
-        index_reg = 0;
+        set_variable(variable_idx(get_string(), get_variable_size(get_string())), var_stack.back());
         var_stack.pop_back();
         break;
     case SETVAR:
-        set_variable(get_string(), var_stack.back());
-        index_reg = 0;
+        set_variable(variable_idx(get_string(), var_stack[var_stack.size()-2].asInt()), var_stack.back());
+        var_stack.pop_back();
+        var_stack.pop_back();
+        break;
+    case SETVARIDX:
+        set_variable(get_variable_idx(), var_stack.back());
         var_stack.pop_back();
         break;
     case RESETVAR:
         reset_variable(get_string(), var_stack.back());
-        index_reg = 0;
         var_stack.pop_back();
         break;
     case COPYCONTENT: var_stack.push_back(content_stack.back().view()); break;
@@ -230,15 +243,11 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     case PUSHSTR: var_stack.push_back(get_string()); break;
     case PUSHGLOBAL: var_stack.push_back(m_globals[get_string()]); break;
     case PUSHVAR:
-        var_stack.push_back(get_variable(get_string()));
-        index_reg = 0;
-        break;
-    case SETINDEX:
-        index_reg = get_int();
-        break;
-    case SETINDEXTOP:
-        index_reg = var_stack.back().asInt();
+        var_stack.push_back(get_variable(variable_idx(get_string(), var_stack.back().asInt())));
         var_stack.pop_back();
+        break;
+    case PUSHVARIDX:
+        var_stack.push_back(get_variable(get_variable_idx()));
         break;
     case JMP:
         program_counter = get_int();
@@ -259,15 +268,32 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
         break;
     case INCTOP:
         if (!var_stack.back().empty()) {
-            set_variable(get_string(), get_variable(get_string()) + var_stack.back());
-            index_reg = 0;
+            variable_idx var_idx(get_string(), var_stack[var_stack.size()-2].asInt());
+            set_variable(var_idx, get_variable(var_idx) + var_stack.back());
+        }
+        var_stack.pop_back();
+        var_stack.pop_back();
+        break;
+    case INCTOPIDX:
+        if (!var_stack.back().empty()) {
+            variable_idx var_idx = get_variable_idx();
+            set_variable(var_idx, get_variable(var_idx) + var_stack.back());
         }
         var_stack.pop_back();
         break;
     case INC:
-        set_variable(get_string(), get_variable(get_string()) + variable(1));
-        index_reg = 0;
+    {
+        variable_idx var_idx(get_string(), var_stack.back().asInt());
+        set_variable(var_idx, get_variable(var_idx) + variable(1));
+        var_stack.pop_back();
         break;
+    }
+    case INCIDX:
+    {
+        variable_idx var_idx = get_variable_idx();
+        set_variable(var_idx, get_variable(var_idx) + variable(1));
+        break;
+    }
     case INCGTOP:
         if (!var_stack.back().empty()) {
             auto &var = m_globals[get_string()];
@@ -283,15 +309,32 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     }
     case DECTOP:
         if (!var_stack.back().empty()) {
-            set_variable(get_string(), get_variable(get_string()) - var_stack.back());
-            index_reg = 0;
+            variable_idx var_idx(get_string(), var_stack[var_stack.size()-2].asInt());
+            set_variable(var_idx, get_variable(var_idx) - var_stack.back());
+        }
+        var_stack.pop_back();
+        var_stack.pop_back();
+        break;
+    case DECTOPIDX:
+        if (!var_stack.back().empty()) {
+            variable_idx var_idx = get_variable_idx();
+            set_variable(var_idx, get_variable(var_idx) - var_stack.back());
         }
         var_stack.pop_back();
         break;
     case DEC:
-        set_variable(get_string(), get_variable(get_string()) - variable(1));
-        index_reg = 0;
+    {
+        variable_idx var_idx(get_string(), var_stack.back().asInt());
+        set_variable(var_idx, get_variable(var_idx) - variable(1));
+        var_stack.pop_back();
         break;
+    }
+    case DECIDX:
+    {
+        variable_idx var_idx = get_variable_idx();
+        set_variable(var_idx, get_variable(var_idx) - variable(1));
+        break;
+    }
     case DECGTOP:
         if (!var_stack.back().empty()) {
             auto &var = m_globals[get_string()];
@@ -376,30 +419,30 @@ const variable &reader::get_global(const std::string &name) const {
     }
 }
 
-const variable &reader::get_variable(const std::string &name) const {
+const variable &reader::get_variable(const variable_idx &var) const {
     static const variable VAR_NULL;
     size_t pageidx = get_global("PAGE_NUM").asInt();
     if (m_values.size() <= pageidx) {
         return VAR_NULL;
     }
     auto &page = m_values[pageidx];
-    auto it = page.find(name);
-    if (it == page.end() || it->second.size() <= index_reg) {
+    auto it = page.find(var.name);
+    if (it == page.end() || it->second.size() <= (size_t) var.index) {
         return VAR_NULL;
     } else {
-        return it->second[index_reg];
+        return it->second[var.index];
     }
 }
 
-void reader::set_variable(const std::string &name, const variable &value) {
+void reader::set_variable(const variable_idx &ref, const variable &value) {
     if (value.empty()) return;
 
     size_t pageidx = get_global("PAGE_NUM").asInt();
     while (m_values.size() <= pageidx) m_values.emplace_back();
     auto &page = m_values[pageidx];
-    auto &var = page[name];
-    while (var.size() <= index_reg) var.emplace_back();
-    var[index_reg] = value;
+    auto &var = page[ref.name];
+    while (var.size() <= (size_t) ref.index) var.emplace_back();
+    var[ref.index] = value;
 }
 
 void reader::reset_variable(const std::string &name, const variable &value) {

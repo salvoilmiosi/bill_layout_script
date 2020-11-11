@@ -21,10 +21,12 @@ enum variable_flags {
     FLAGS_GLOBAL        = 1 << 2,
     FLAGS_NUMBER        = 1 << 3,
     FLAGS_DEBUG         = 1 << 4,
+    FLAGS_GETINDEX      = 1 << 5,
 };
 
 struct variable_ref {
     std::string name;
+    size_t index = 0;
     uint8_t flags = 0;
 };
 

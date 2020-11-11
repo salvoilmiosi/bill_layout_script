@@ -35,23 +35,27 @@ enum asm_command {
     CLEAR,
     APPEND,
     SETVAR,
+    SETVARIDX,
     RESETVAR,
     COPYCONTENT,
     PUSHNUM,
     PUSHSTR,
     PUSHGLOBAL,
     PUSHVAR,
-    SETINDEX,
-    SETINDEXTOP,
+    PUSHVARIDX,
     JMP,
     JZ,
     JTE,
     INCTOP,
     INC,
+    INCTOPIDX,
+    INCIDX,
     INCGTOP,
     INCG,
     DECTOP,
     DEC,
+    DECTOPIDX,
+    DECIDX,
     DECGTOP,
     DECG,
     ISSET,
@@ -76,11 +80,21 @@ struct command_spacer {
     float h;
 };
 
-template<typename T> struct get_datasize { static constexpr size_t value = sizeof(T); };
+struct variable_idx {
+    std::string name;
+    int index;
+
+    variable_idx() {}
+    variable_idx(const std::string &name, int index) : name(name), index(index) {}
+    variable_idx(const std::string &name, size_t index) : name(name), index(index) {}
+};
+
+template<typename T> struct get_datasize { static constexpr int value = sizeof(T); };
 
 template<> struct get_datasize<std::string> { static constexpr size_t value = sizeof(int); };
 template<> struct get_datasize<command_call> { static constexpr size_t value = sizeof(int) * 2; };
 template<> struct get_datasize<command_spacer> { static constexpr size_t value = sizeof(int) * 3; };
+template<> struct get_datasize<variable_idx> { static constexpr size_t value = sizeof(int) * 2; };
 
 struct command_args {
     asm_command command;

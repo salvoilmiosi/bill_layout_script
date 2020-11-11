@@ -110,23 +110,27 @@ assembler::assembler(const std::vector<std::string> &lines) {
         case hash("CLEAR"):         out_lines.emplace_back(CLEAR,           std::make_shared<std::string>(args[0])); break;
         case hash("APPEND"):        out_lines.emplace_back(APPEND,          std::make_shared<std::string>(args[0])); break;
         case hash("SETVAR"):        out_lines.emplace_back(SETVAR,          std::make_shared<std::string>(args[0])); break;
+        case hash("SETVARIDX"):     out_lines.emplace_back(SETVARIDX,       std::make_shared<variable_idx>(args[0], std::stoi(args[1]))); break;
         case hash("RESETVAR"):      out_lines.emplace_back(RESETVAR,        std::make_shared<std::string>(args[0])); break;
         case hash("COPYCONTENT"):   out_lines.emplace_back(COPYCONTENT); break;
         case hash("PUSHNUM"):       out_lines.emplace_back(PUSHNUM,         std::make_shared<float>(std::stof(args[0]))); break;
         case hash("PUSHSTR"):       out_lines.emplace_back(PUSHSTR,         std::make_shared<std::string>(parse_string(arg_str))); break;
         case hash("PUSHGLOBAL"):    out_lines.emplace_back(PUSHGLOBAL,      std::make_shared<std::string>(args[0])); break;
         case hash("PUSHVAR"):       out_lines.emplace_back(PUSHVAR,         std::make_shared<std::string>(args[0])); break;
-        case hash("SETINDEX"):      out_lines.emplace_back(SETINDEX,        std::make_shared<int>(std::stoi(args[0]))); break;
-        case hash("SETINDEXTOP"):   out_lines.emplace_back(SETINDEXTOP); break;
+        case hash("PUSHVARIDX"):    out_lines.emplace_back(PUSHVARIDX,      std::make_shared<variable_idx>(args[0], std::stoi(args[1]))); break;
         case hash("JMP"):           out_lines.emplace_back(JMP,             std::make_shared<int>(getgotoindex(args[0]))); break;
         case hash("JZ"):            out_lines.emplace_back(JZ,              std::make_shared<int>(getgotoindex(args[0]))); break;
         case hash("JTE"):           out_lines.emplace_back(JTE,             std::make_shared<int>(getgotoindex(args[0]))); break;
         case hash("INCTOP"):        out_lines.emplace_back(INCTOP,          std::make_shared<std::string>(args[0])); break;
         case hash("INC"):           out_lines.emplace_back(INC,             std::make_shared<std::string>(args[0])); break;
+        case hash("INCIDX"):        out_lines.emplace_back(INCIDX,          std::make_shared<variable_idx>(args[0], std::stoi(args[1]))); break;
+        case hash("INCTOPIDX"):     out_lines.emplace_back(INCTOPIDX,       std::make_shared<variable_idx>(args[0], std::stoi(args[1]))); break;
         case hash("INCGTOP"):       out_lines.emplace_back(INCGTOP,         std::make_shared<std::string>(args[0])); break;
         case hash("INCG"):          out_lines.emplace_back(INCG,            std::make_shared<std::string>(args[0])); break;
         case hash("DECTOP"):        out_lines.emplace_back(DECTOP,          std::make_shared<std::string>(args[0])); break;
         case hash("DEC"):           out_lines.emplace_back(DEC,             std::make_shared<std::string>(args[0])); break;
+        case hash("DECIDX"):        out_lines.emplace_back(INCIDX,          std::make_shared<variable_idx>(args[0], std::stoi(args[1]))); break;
+        case hash("DECTOPIDX"):     out_lines.emplace_back(INCTOPIDX,       std::make_shared<variable_idx>(args[0], std::stoi(args[1]))); break;
         case hash("DECGTOP"):       out_lines.emplace_back(DECGTOP,         std::make_shared<std::string>(args[0])); break;
         case hash("DECG"):          out_lines.emplace_back(DECG,            std::make_shared<std::string>(args[0])); break;
         case hash("ISSET"):         out_lines.emplace_back(ISSET,           std::make_shared<std::string>(args[0])); break;
@@ -215,6 +219,18 @@ void assembler::save_output(std::ostream &output) {
             write_data(spacer->h);
             break;
         }
+        case SETVARIDX:
+        case PUSHVARIDX:
+        case INCTOPIDX:
+        case INCIDX:
+        case DECTOPIDX:
+        case DECIDX:
+        {
+            auto var_idx = std::static_pointer_cast<variable_idx>(line.data);
+            write_string(var_idx->name);
+            write_data(var_idx->index);
+            break;
+        }
         case ERROR:
         case SETGLOBAL:
         case CLEAR:
@@ -242,7 +258,6 @@ void assembler::save_output(std::ostream &output) {
         case JMP:
         case JZ:
         case JTE:
-        case SETINDEX:
             write_data(*std::static_pointer_cast<int>(line.data));
             break;
         default:
