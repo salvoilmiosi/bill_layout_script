@@ -48,7 +48,7 @@
 				"mode" : 0,
 				"name" : "Dettaglio Fiscale",
 				"page" : 1,
-				"script" : "%cts=$search(@,\"CORRISPETTIVO TARIFFARIO SPECIFICO.+ $NUMBER\")\niva=$search(@,\"IVA ([0-9]+%)\")\niva=$search(@,\"IVA Scissione Pagamenti ([0-9]+%)\")\n%imponibile=$search(@,\"imponibile di euro $NUMBER\")\n%accise=$search(\"Accisa sull'energia elettrica.+ $NUMBER\",1)\n$inc(%accise,$search(@,\"Accisa sull'energia elettrica.+ $NUMBER Accisa sull'energia elettrica.+ $NUMBER\",2))",
+				"script" : "%cts=$search(@,\"CORRISPETTIVO TARIFFARIO SPECIFICO.+ $NUMBER\")\niva=$search(@,\"IVA (\\\\d+%)\")\niva=$search(@,\"IVA Scissione Pagamenti (\\\\d+%)\")\n%imponibile=$search(@,\"imponibile di euro $NUMBER\")\n%accise=$search(\"Accisa sull'energia elettrica.+ $NUMBER\",1)\n$inc(%accise,$search(@,\"Accisa sull'energia elettrica.+ $NUMBER Accisa sull'energia elettrica.+ $NUMBER\",2))",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.6890491247177124,

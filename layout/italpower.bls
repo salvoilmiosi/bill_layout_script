@@ -35,7 +35,7 @@
 				"mode" : 0,
 				"name" : "Sintesi valori",
 				"page" : 1,
-				"script" : "%imponibile=$search(@,\"Imponibile $NUMBER\")\n%totale_fattura=$search(@,\"Totale Fattura $NUMBER\")\niva=$search(@,\"IVA ([0-9]+%)\")",
+				"script" : "%imponibile=$search(@,\"Imponibile $NUMBER\")\n%totale_fattura=$search(@,\"Totale Fattura $NUMBER\")\niva=$search(@,\"IVA (\\\\d+%)\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.65607798099517822,

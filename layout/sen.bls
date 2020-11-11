@@ -35,7 +35,7 @@
 				"mode" : 0,
 				"name" : "Dettaglio Fiscale",
 				"page" : 1,
-				"script" : "%accise=$search(@,\"Accisa.+kWh $NUMBER\")\niva=$search(@,\"Importo IVA ([0-9]+%)\")\n%imponibile=$search(@,\"imponibile di euro $NUMBER\")",
+				"script" : "%accise=$search(@,\"Accisa.+kWh $NUMBER\")\niva=$search(@,\"Importo IVA (\\\\d+%)\")\n%imponibile=$search(@,\"imponibile di euro $NUMBER\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.69124424457550049,

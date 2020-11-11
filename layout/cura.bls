@@ -87,7 +87,7 @@
 				"mode" : 0,
 				"name" : "IVA",
 				"page" : 1,
-				"script" : "iva=$search(@,\"IVA vendite ([0-9]+%)\")",
+				"script" : "iva=$search(@,\"IVA vendite (\\\\d+%)\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.91935485601425171,

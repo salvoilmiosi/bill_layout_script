@@ -61,7 +61,7 @@
 				"mode" : 0,
 				"name" : "Dati bolletta",
 				"page" : 1,
-				"script" : "numero_fattura=$search(@,\"N\\\\. fattura ([0-9]+)\")\ndata_fattura=$date(@,\"N\\\\. fattura [0-9]+ del DD\\\\.MM\\\\.YYYY\")\ndata_inizio=$date(@,\"PERIODO DD\\\\.MM\\\\.YYYY - DD\\\\.MM\\\\.YYYY\",1)\ndata_fine=$date(@,\"PERIODO DD\\\\.MM\\\\.YYYY - DD\\\\.MM\\\\.YYYY\",2)\nmese_fattura=$date(data_fine,\"YYYY-MM\")\nnumero_cliente=$search(@,\"CODICE CLIENTE (.+)\\n\")\ncodice_pod=$search(@,\"CODICE POD ([0-9A-Z]+)\")\nindirizzo_fornitura=$search($nospace(@),\"FORNIAMO ENERGIA IN (.+) CODICE POD\")\n*multipod=$not(codice_pod)",
+				"script" : "numero_fattura=$search(@,\"N\\\\. fattura (\\\\d+)\")\ndata_fattura=$date(@,\"N\\\\. fattura \\\\d+ del DD\\\\.MM\\\\.YYYY\")\ndata_inizio=$date(@,\"PERIODO DD\\\\.MM\\\\.YYYY - DD\\\\.MM\\\\.YYYY\",1)\ndata_fine=$date(@,\"PERIODO DD\\\\.MM\\\\.YYYY - DD\\\\.MM\\\\.YYYY\",2)\nmese_fattura=$date(data_fine,\"YYYY-MM\")\nnumero_cliente=$search(@,\"CODICE CLIENTE (.+)\\n\")\ncodice_pod=$search(@,\"CODICE POD ([0-9A-Z]+)\")\nindirizzo_fornitura=$search($nospace(@),\"FORNIAMO ENERGIA IN (.+) CODICE POD\")\n*multipod=$not(codice_pod)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.22615706920623779,
@@ -74,7 +74,7 @@
 				"mode" : 0,
 				"name" : "Sintesi costi",
 				"page" : 1,
-				"script" : "$if($not(*multipod)) {\n\n%spesa_materia_energia=$search(@,\"SPESA PER LA MATERIA ENERGIA $NUMBER\")\n%trasporto_gestione=$search(@,\"SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE $NUMBER\")\n%oneri=$search(@,\"SPESA PER ONERI DI SISTEMA $NUMBER\")\n\n}\n%accise=$search(@,\"IMPOSTE $NUMBER\")\n%imponibile=$search(@,\"imponibile di $NUMBER\")\niva=$search(@,\"Importo IVA ([0-9]+%)\")",
+				"script" : "$if($not(*multipod)) {\n\n%spesa_materia_energia=$search(@,\"SPESA PER LA MATERIA ENERGIA $NUMBER\")\n%trasporto_gestione=$search(@,\"SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE $NUMBER\")\n%oneri=$search(@,\"SPESA PER ONERI DI SISTEMA $NUMBER\")\n\n}\n%accise=$search(@,\"IMPOSTE $NUMBER\")\n%imponibile=$search(@,\"imponibile di $NUMBER\")\niva=$search(@,\"Importo IVA (\\\\d+%)\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.438966304063797,
@@ -126,12 +126,12 @@
 				"mode" : 0,
 				"name" : "Consumi",
 				"page" : 2,
-				"script" : "!letture=$contains(@,\"Letture fatturate\")\n!f0=$contains(@,\"F0\")\n!f123=$search(@,\"(F1 F2 F3)\")\n$lines(@) {\n  !line=$ifl($not(letture),\n    $search(@,\"^[0-9]{2}\\\\.[0-9]{2}\\\\.[0-9]{4} - [0-9]{2}\\\\.[0-9]{2}\\\\.[0-9]{4} (.+)$\"),\n    $search(@,\"^[0-9]{2}\\\\.[0-9]{2}\\\\.[0-9]{4} - [0-9]{2}\\\\.[0-9]{2}\\\\.[0-9]{4}.+rilevata (.+)$\")\n  )\n  $if(f0) {\n    $tokens(line) { %energia_attiva %energia_reattiva }\n  } $else {\n    $if(f123) {\n      $tokens(line) { %energia_attiva[0] %energia_attiva[1] %energia_attiva[2] %energia_reattiva }\n    } $else {\n      $tokens(line) { %energia_reattiva }\n    }\n  }\n}",
+				"script" : "!letture=$contains(@,\"Letture fatturate\")\n!f0=$contains(@,\"F0\")\n!f123=$contains(@,\"F1 F2 F3\")\n$lines(@) {\n  $with($ifl(letture,\n    $search(@,\"^\\\\d{2}\\\\.\\\\d{2}\\\\.\\\\d{4} - \\\\d{2}\\\\.\\\\d{2}\\\\.\\\\d{4}.+rilevata (.+)$\"),\n    $search(@,\"^\\\\d{2}\\\\.\\\\d{2}\\\\.\\\\d{4} - \\\\d{2}\\\\.\\\\d{2}\\\\.\\\\d{4} (.+)$\")))\n  {\n    $if(f0) {\n      $tokens(@) {\n        %energia_attiva %energia_reattiva\n      }\n    } $else $if(f123) {\n      $tokens(@) {\n        %energia_attiva[0] %energia_attiva[1] %energia_attiva[2] %energia_reattiva\n      }\n    } $else {\n      %energia_reattiva\n    }\n  }\n}",
 				"spacers" : "spacer_multipod.y *page_offset *pod_offset",
 				"type" : 0,
 				"w" : 0.73690974712371826,
-				"x" : 0.040322579443454742,
-				"y" : 0.3003196120262146
+				"x" : 0.041623309254646301,
+				"y" : 0.30399784445762634
 			},
 			{
 				"goto_label" : "",
@@ -152,12 +152,12 @@
 				"mode" : 0,
 				"name" : "Quadro Dettaglio",
 				"page" : 3,
-				"script" : "%sbilanciamento=$search(@,\"Sbilanciamento .+Euro/kWh $NUMBER\")\n%prezzo_energia+=$search(@,\"Prezzo Energia .+ F1 Euro/kWh $NUMBER\")\n%prezzo_energia+=$search(@,\"Prezzo Energia .+ F1.+\\n.+F2 Euro/kWh $NUMBER\")\n%prezzo_energia+=$search(@,\"Prezzo Energia .+ F1.+\\n.+F2.+\\n.+F3 Euro/kWh $NUMBER\")\n\n%prezzo_energia:=$search(@,\"Prezzo Energia .+ OFFPEAK.+\\n.+PEAK Euro/kWh $NUMBER\")\n%prezzo_energia+=$search(@,\"Prezzo Energia .+ OFFPEAK Euro/kWh $NUMBER\")\n\n$for(i,$size(prezzo_energia)) $inc(prezzo_energia[i],sbilanciamento)\n\n%energia_attiva:=$search(@,\"Prezzo Energia .+ OFFPEAK.+\\n.+PEAK Euro/kWh $NUMBER $NUMBER\",2)\n%energia_attiva+=$search(@,\"Prezzo Energia .+ OFFPEAK Euro/kWh $NUMBER $NUMBER\",2)\n\n!row[0]=$search(@,\"Energia Reattiva entro 75%\\n(dal.+)\\n\")\n!row[1]=$ifl(row[0],$search(@,\"Energia Reattiva entro 75%\\n.+\\n(dal.+)\\n\"))\n!row[2]=$ifl(row[1],$search(@,\"Energia Reattiva entro 75%\\n.+\\n.+\\n(dal.+)\\n\"))\n$inc(%inf_75,$search(row[0],\"F1 Euro/kVarh $NUMBER $NUMBER $NUMBER\",3))\n$inc(%inf_75,$search(row[1],\"F2 Euro/kVarh $NUMBER $NUMBER $NUMBER\",3))\n$inc(%inf_75,$search(row[2],\"F3 Euro/kVarh $NUMBER $NUMBER $NUMBER\",3))\n!row[3]=$search(@,\"Energia Reattiva oltre 75%\\n(dal.+)\\n\")\n!row[4]=$ifl(row4,$search(@,\"Energia Reattiva oltre 75%\\n.+\\n(dal.+)\\n\"))\n!row[5]=$ifl(row5,$search(@,\"Energia Reattiva oltre 75%\\n.+\\n.+\\n(dal.+)\\n\"))\n$inc(%sup_75,$search(row[3],\"F1 Euro/kVarh $NUMBER $NUMBER $NUMBER\",3))\n$inc(%sup_75,$search(row[4],\"F2 Euro/kVarh $NUMBER $NUMBER $NUMBER\",3))\n$inc(%sup_75,$search(row[5],\"F3 Euro/kVarh $NUMBER $NUMBER $NUMBER\",3))\n$clear(row)",
+				"script" : "%sbilanciamento=$search(@,\"Sbilanciamento\\ndal.+Euro/kWh $NUMBER\")\n\n$with($search(@,\"Prezzo Energia\\n((dal.+\\n)+)\")) {\n  %prezzo_energia[0]=$search(@,\"F1 Euro/kWh $NUMBER\")\n  %prezzo_energia[1]=$search(@,\"F2 Euro/kWh $NUMBER\")\n  %prezzo_energia[2]=$search(@,\"F3 Euro/kWh $NUMBER\")\n\n  %prezzo_energia[0]=$search(@,\"PEAK Euro/kWh $NUMBER\")\n  %prezzo_energia[1]=$search(@,\"OFFPEAK Euro/kWh $NUMBER\")\n\n  %energia_attiva[0]=$search(@,\"PEAK Euro/Kwh $NUMBER $NUMBER\",2)\n  %energia_attiva[1]=$search(@,\"OFFPEAK Euro/Kwh $NUMBER $NUMBER\",2)\n}\n\n$with($search(@,\"Energia Reattiva entro 75%\\n((dal.+\\n)+)\")) {\n  $inc(%inf_75,$search(@,\"F1 Euro/kVarh $NUMBER $NUMBER $NUMBER\",3))\n  $inc(%inf_75,$search(@,\"F2 Euro/kVarh $NUMBER $NUMBER $NUMBER\",3))\n  $inc(%inf_75,$search(@,\"F3 Euro/kVarh $NUMBER $NUMBER $NUMBER\",3))\n}\n$with($search(@,\"Energia Reattiva oltre 75%\\n((dal.+\\n)+)\")) {\n  $inc(%sup_75,$search(@,\"F1 Euro/kVarh $NUMBER $NUMBER $NUMBER\",3))\n  $inc(%sup_75,$search(@,\"F2 Euro/kVarh $NUMBER $NUMBER $NUMBER\",3))\n  $inc(%sup_75,$search(@,\"F3 Euro/kVarh $NUMBER $NUMBER $NUMBER\",3))\n}",
 				"spacers" : "*page_offset",
 				"type" : 1,
 				"w" : 0.037482962012290955,
-				"x" : 0.19763745367527008,
-				"y" : 0.040326334536075592
+				"x" : 0.19887815415859222,
+				"y" : 0.038572102785110474
 			},
 			{
 				"goto_label" : "",
@@ -165,12 +165,12 @@
 				"mode" : 0,
 				"name" : "Controllo prossima pagina",
 				"page" : 4,
-				"script" : "$inc(*page_offset)\n*pod_offset=1\n$if($not($isempty(@))) {\n  $if($contains(@,\"DATI FORNITURA\")) {\n    $inc(*PAGE_NUM)\n    $goto(0)\n  } $else {\n    $goto(quadro_dettaglio)\n  }\n}",
+				"script" : "$inc(*page_offset)\n*pod_offset=1\n$if($not($isempty(@))) {\n  $if($contains(@,\"DATI FORNITURA\")) {\n## somma sbilanciamento\n    $for(i,$size(prezzo_energia))\n      $inc(prezzo_energia[i],sbilanciamento)\n    $inc(*PAGE_NUM)\n    $goto(0)\n  } $else {\n    $goto(quadro_dettaglio)\n  }\n}",
 				"spacers" : "*page_offset",
 				"type" : 1,
 				"w" : 0.048387095332145691,
-				"x" : 0.20806451141834259,
-				"y" : 0.033067278563976288
+				"x" : 0.24193547666072845,
+				"y" : 0.037628281861543655
 			}
 		]
 	},
