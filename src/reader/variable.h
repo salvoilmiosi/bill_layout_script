@@ -11,7 +11,7 @@ enum value_type {
     VALUE_NUMBER,
 };
 
-using fixed_point = dec::decimal6;
+using fixed_point = dec::decimal<10>;
 
 class variable {
 public:
