@@ -16,17 +16,17 @@ struct spacer {
 };
 
 enum variable_flags {
-    FLAGS_APPEND        = 1 << 0,
-    FLAGS_CLEAR         = 1 << 1,
-    FLAGS_GLOBAL        = 1 << 2,
-    FLAGS_NUMBER        = 1 << 3,
-    FLAGS_DEBUG         = 1 << 4,
-    FLAGS_GETINDEX      = 1 << 5,
+    VAR_APPEND        = 1 << 0,
+    VAR_CLEAR         = 1 << 1,
+    VAR_GLOBAL        = 1 << 2,
+    VAR_NUMBER        = 1 << 3,
+    VAR_DEBUG         = 1 << 4,
+    VAR_GETINDEX      = 1 << 5,
 };
 
 struct variable_ref {
     std::string name;
-    size_t index = 0;
+    uint8_t index = 0;
     uint8_t flags = 0;
 };
 

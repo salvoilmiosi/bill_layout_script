@@ -47,7 +47,7 @@ inline function_handler create_function(Function fun) {
     return create_function<1>(fun);
 }
 
-void reader::call_function(const std::string &name, size_t numargs) {
+void reader::call_function(const command_call &call) {
     static const std::map<std::string, function_handler> dispatcher {
         {"search", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
             try {
@@ -94,22 +94,22 @@ void reader::call_function(const std::string &name, size_t numargs) {
     };
 
     try {
-        auto it = dispatcher.find(name);
+        auto it = dispatcher.find(call.name);
         if (it != dispatcher.end()) {
             arg_list vars;
-            for (size_t i=0; i<numargs; ++i) {
-                vars.push_back(var_stack[var_stack.size()-numargs+i]);
+            for (size_t i=0; i<call.numargs; ++i) {
+                vars.push_back(var_stack[var_stack.size()-call.numargs+i]);
             }
-            var_stack.resize(var_stack.size() - numargs);
+            var_stack.resize(var_stack.size() - call.numargs);
             var_stack.push_back(it->second(vars));
         } else {
-            throw layout_error(fmt::format("Funzione sconosciuta: {0}", name));
+            throw layout_error(fmt::format("Funzione sconosciuta: {0}", call.name));
         }
     } catch (invalid_numargs &error) {
         if (error.minargs == error.maxargs) {
-            throw layout_error(fmt::format("La funzione {0} richiede {1} argomenti", name, error.minargs));
+            throw layout_error(fmt::format("La funzione {0} richiede {1} argomenti", call.name, error.minargs));
         } else {
-            throw layout_error(fmt::format("La funzione {0} richiede {1}-{2} argomenti", name, error.minargs, error.maxargs));
+            throw layout_error(fmt::format("La funzione {0} richiede {1}-{2} argomenti", call.name, error.minargs, error.maxargs));
         }
     }
 }

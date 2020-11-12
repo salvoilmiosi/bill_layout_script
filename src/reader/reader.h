@@ -39,7 +39,7 @@ public:
 private:
     void exec_command(const pdf_info &info, const command_args &cmd);
     void read_box(const pdf_info &info, layout_box box);
-    void call_function(const std::string &name, size_t numargs);
+    void call_function(const command_call &call);
 
 private:
     std::map<std::string, box_spacer> m_spacers;

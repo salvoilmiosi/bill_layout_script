@@ -11,14 +11,14 @@ template<typename T> T readData(std::istream &input) {
 }
 
 template<> std::string readData(std::istream &input) {
-    int pos = readData<int>(input);
+    uint16_t pos = readData<uint16_t>(input);
     if (pos == 0) {
         return "";
     } else {
         auto retpos = input.tellg();
         input.seekg(pos);
-        input.ignore(sizeof(asm_command));
-        short len = readData<short>(input);
+        input.ignore(sizeof(uint8_t));
+        uint16_t len = readData<uint16_t>(input);
         std::string ret(len, '\0');
         input.read(ret.data(), len);
         input.seekg(retpos);
@@ -34,55 +34,55 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
     jumped = false;
 
     while (!input.eof()) {
-        asm_command cmd = readData<asm_command>(input);
+        asm_command cmd = static_cast<asm_command>(readData<uint8_t>(input));
         switch(cmd) {
         case RDBOX:
         {
-            auto box = std::make_shared<layout_box>();
-            box->type = BOX_RECTANGLE;
-            box->mode = readData<read_mode>(input);
-            box->page = readData<int>(input);
-            box->spacers = readData<std::string>(input);
-            box->x = readData<float>(input);
-            box->y = readData<float>(input);
-            box->w = readData<float>(input);
-            box->h = readData<float>(input);
-            commands.emplace_back(RDBOX, box);
+            layout_box box;
+            box.type = BOX_RECTANGLE;
+            box.mode = static_cast<read_mode>(readData<uint8_t>(input));
+            box.page = readData<uint8_t>(input);
+            box.spacers = readData<std::string>(input);
+            box.x = readData<float>(input);
+            box.y = readData<float>(input);
+            box.w = readData<float>(input);
+            box.h = readData<float>(input);
+            commands.emplace_back(RDBOX, std::move(box));
             break;
         }
         case RDPAGE:
         {
-            auto box = std::make_shared<layout_box>();
-            box->type = BOX_PAGE;
-            box->mode = readData<read_mode>(input);
-            box->page = readData<int>(input);
-            box->spacers = readData<std::string>(input);
-            commands.emplace_back(RDPAGE, box);
+            layout_box box;
+            box.type = BOX_PAGE;
+            box.mode = static_cast<read_mode>(readData<uint8_t>(input));
+            box.page = readData<uint8_t>(input);
+            box.spacers = readData<std::string>(input);
+            commands.emplace_back(RDPAGE, std::move(box));
             break;
         }
         case RDFILE:
         {
-            auto box = std::make_shared<layout_box>();
-            box->type = BOX_WHOLE_FILE;
-            box->mode = readData<read_mode>(input);
-            commands.emplace_back(RDFILE, box);
+            layout_box box;
+            box.type = BOX_WHOLE_FILE;
+            box.mode = static_cast<read_mode>(readData<uint8_t>(input));
+            commands.emplace_back(RDFILE, std::move(box));
             break;
         }
         case CALL:
         {
-            auto call = std::make_shared<command_call>();
-            call->name = readData<std::string>(input);
-            call->numargs = readData<int>(input);
-            commands.emplace_back(CALL, call);
+            command_call call;
+            call.name = readData<std::string>(input);
+            call.numargs = readData<uint8_t>(input);
+            commands.emplace_back(CALL, std::move(call));
             break;
         }
         case SPACER:
         {
-            auto spacer = std::make_shared<command_spacer>();
-            spacer->name = readData<std::string>(input);
-            spacer->w = readData<float>(input);
-            spacer->h = readData<float>(input);
-            commands.emplace_back(SPACER, spacer);
+            command_spacer spacer;
+            spacer.name = readData<std::string>(input);
+            spacer.w = readData<float>(input);
+            spacer.h = readData<float>(input);
+            commands.emplace_back(SPACER, std::move(spacer));
             break;
         }
         case SETVARIDX:
@@ -92,10 +92,10 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
         case DECTOPIDX:
         case DECIDX:
         {
-            auto var_idx = std::make_shared<variable_idx>();
-            var_idx->name = readData<std::string>(input);
-            var_idx->index = readData<int>(input);
-            commands.emplace_back(cmd, var_idx);
+            variable_idx var_idx;
+            var_idx.name = readData<std::string>(input);
+            var_idx.index = readData<uint8_t>(input);
+            commands.emplace_back(cmd, std::move(var_idx));
             break;
         }
         case ERROR:
@@ -117,18 +117,18 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
         case DECTOP:
         case DECG:
         case DECGTOP:
-            commands.emplace_back(cmd, std::make_shared<std::string>(readData<std::string>(input)));
+            commands.emplace_back(cmd, readData<std::string>(input));
             break;
         case PUSHNUM:
-            commands.emplace_back(cmd, std::make_shared<float>(readData<float>(input)));
+            commands.emplace_back(cmd, readData<float>(input));
             break;
         case JMP:
         case JZ:
         case JTE:
-            commands.emplace_back(cmd, std::make_shared<int>(readData<int>(input)));
+            commands.emplace_back(cmd, readData<uint16_t>(input));
             break;
         case STRDATA:
-            input.ignore(readData<short>(input));
+            input.ignore(readData<uint16_t>(input));
             break;
         default:
             commands.emplace_back(cmd);
@@ -166,11 +166,6 @@ std::string_view content_view::view() const {
 }
 
 void reader::exec_command(const pdf_info &info, const command_args &cmd) {
-    auto get_string = [&cmd]() { return *std::static_pointer_cast<std::string>(cmd.data); };
-    auto get_int = [&cmd]() { return *std::static_pointer_cast<int>(cmd.data); };
-    auto get_float = [&cmd]() { return *std::static_pointer_cast<float>(cmd.data); };
-    auto get_variable_idx = [&cmd]() { return *std::static_pointer_cast<variable_idx>(cmd.data); };
-
     auto exec_operator = [&](auto op) {
         auto var = op(var_stack[var_stack.size()-2], var_stack.back());
         var_stack.pop_back();
@@ -183,15 +178,10 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     case RDBOX:
     case RDPAGE:
     case RDFILE:
-        read_box(info, *std::static_pointer_cast<layout_box>(cmd.data));
+        read_box(info, cmd.get<layout_box>());
         break;
-    case CALL:
-    {
-        auto call = std::static_pointer_cast<command_call>(cmd.data);
-        call_function(call->name, call->numargs);
-        break;
-    }
-    case ERROR: throw layout_error(get_string()); break;
+    case CALL: call_function(cmd.get<command_call>()); break;
+    case ERROR: throw layout_error(cmd.get<std::string>()); break;
     case PARSENUM:
         if (var_stack.back().type() != VALUE_NUMBER) {
             var_stack.back() = variable(parse_number(var_stack.back().str()), VALUE_NUMBER);
@@ -215,60 +205,60 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     case MIN: exec_operator([](const variable &a, const variable &b) { return a < b ? a : b; }); break;
     case SETGLOBAL:
         if (!var_stack.back().empty()) {
-            m_globals[get_string()] = var_stack.back();
+            m_globals[cmd.get<std::string>()] = var_stack.back();
         }
         var_stack.pop_back();
         break;
     case SETDEBUG: var_stack.back().debug = true; break;
-    case CLEAR: clear_variable(get_string()); break;
+    case CLEAR: clear_variable(cmd.get<std::string>()); break;
     case APPEND:
-        set_variable(variable_idx(get_string(), get_variable_size(get_string())), var_stack.back());
+        set_variable(variable_idx(cmd.get<std::string>(), get_variable_size(cmd.get<std::string>())), var_stack.back());
         var_stack.pop_back();
         break;
     case SETVAR:
-        set_variable(variable_idx(get_string(), var_stack[var_stack.size()-2].asInt()), var_stack.back());
+        set_variable(variable_idx(cmd.get<std::string>(), var_stack[var_stack.size()-2].asInt()), var_stack.back());
         var_stack.pop_back();
         var_stack.pop_back();
         break;
     case SETVARIDX:
-        set_variable(get_variable_idx(), var_stack.back());
+        set_variable(cmd.get<variable_idx>(), var_stack.back());
         var_stack.pop_back();
         break;
     case RESETVAR:
-        reset_variable(get_string(), var_stack.back());
+        reset_variable(cmd.get<std::string>(), var_stack.back());
         var_stack.pop_back();
         break;
     case COPYCONTENT: var_stack.push_back(content_stack.back().view()); break;
-    case PUSHNUM: var_stack.emplace_back(get_float()); break;
-    case PUSHSTR: var_stack.push_back(get_string()); break;
-    case PUSHGLOBAL: var_stack.push_back(m_globals[get_string()]); break;
+    case PUSHNUM: var_stack.emplace_back(cmd.get<float>()); break;
+    case PUSHSTR: var_stack.push_back(cmd.get<std::string>()); break;
+    case PUSHGLOBAL: var_stack.push_back(m_globals[cmd.get<std::string>()]); break;
     case PUSHVAR:
-        var_stack.push_back(get_variable(variable_idx(get_string(), var_stack.back().asInt())));
+        var_stack.push_back(get_variable(variable_idx(cmd.get<std::string>(), var_stack.back().asInt())));
         var_stack.pop_back();
         break;
     case PUSHVARIDX:
-        var_stack.push_back(get_variable(get_variable_idx()));
+        var_stack.push_back(get_variable(cmd.get<variable_idx>()));
         break;
     case JMP:
-        program_counter = get_int();
+        program_counter = cmd.get<uint16_t>();
         jumped = true;
         break;
     case JZ:
         if (!var_stack.back().isTrue()) {
-            program_counter = get_int();
+            program_counter = cmd.get<uint16_t>();
             jumped = true;
         }
         var_stack.pop_back();
         break;
     case JTE:
         if (content_stack.back().token_start == content_stack.back().text.size()) {
-            program_counter = get_int();
+            program_counter = cmd.get<uint16_t>();
             jumped = true;
         }
         break;
     case INCTOP:
         if (!var_stack.back().empty()) {
-            variable_idx var_idx(get_string(), var_stack[var_stack.size()-2].asInt());
+            variable_idx var_idx(cmd.get<std::string>(), var_stack[var_stack.size()-2].asInt());
             set_variable(var_idx, get_variable(var_idx) + var_stack.back());
         }
         var_stack.pop_back();
@@ -276,40 +266,40 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
         break;
     case INCTOPIDX:
         if (!var_stack.back().empty()) {
-            variable_idx var_idx = get_variable_idx();
+            variable_idx var_idx = cmd.get<variable_idx>();
             set_variable(var_idx, get_variable(var_idx) + var_stack.back());
         }
         var_stack.pop_back();
         break;
     case INC:
     {
-        variable_idx var_idx(get_string(), var_stack.back().asInt());
+        variable_idx var_idx(cmd.get<std::string>(), var_stack.back().asInt());
         set_variable(var_idx, get_variable(var_idx) + variable(1));
         var_stack.pop_back();
         break;
     }
     case INCIDX:
     {
-        variable_idx var_idx = get_variable_idx();
+        variable_idx var_idx = cmd.get<variable_idx>();
         set_variable(var_idx, get_variable(var_idx) + variable(1));
         break;
     }
     case INCGTOP:
         if (!var_stack.back().empty()) {
-            auto &var = m_globals[get_string()];
+            auto &var = m_globals[cmd.get<std::string>()];
             var = var + var_stack.back();
         }
         var_stack.pop_back();
         break;
     case INCG:
     {
-        auto &var = m_globals[get_string()];
+        auto &var = m_globals[cmd.get<std::string>()];
         var = var + variable(1);
         break;
     }
     case DECTOP:
         if (!var_stack.back().empty()) {
-            variable_idx var_idx(get_string(), var_stack[var_stack.size()-2].asInt());
+            variable_idx var_idx(cmd.get<std::string>(), var_stack[var_stack.size()-2].asInt());
             set_variable(var_idx, get_variable(var_idx) - var_stack.back());
         }
         var_stack.pop_back();
@@ -317,39 +307,39 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
         break;
     case DECTOPIDX:
         if (!var_stack.back().empty()) {
-            variable_idx var_idx = get_variable_idx();
+            variable_idx var_idx = cmd.get<variable_idx>();
             set_variable(var_idx, get_variable(var_idx) - var_stack.back());
         }
         var_stack.pop_back();
         break;
     case DEC:
     {
-        variable_idx var_idx(get_string(), var_stack.back().asInt());
+        variable_idx var_idx(cmd.get<std::string>(), var_stack.back().asInt());
         set_variable(var_idx, get_variable(var_idx) - variable(1));
         var_stack.pop_back();
         break;
     }
     case DECIDX:
     {
-        variable_idx var_idx = get_variable_idx();
+        variable_idx var_idx = cmd.get<variable_idx>();
         set_variable(var_idx, get_variable(var_idx) - variable(1));
         break;
     }
     case DECGTOP:
         if (!var_stack.back().empty()) {
-            auto &var = m_globals[get_string()];
+            auto &var = m_globals[cmd.get<std::string>()];
             var = var - var_stack.back();
         }
         var_stack.pop_back();
         break;
     case DECG:
     {
-        auto &var = m_globals[get_string()];
+        auto &var = m_globals[cmd.get<std::string>()];
         var = var - variable(1);
         break;
     }
-    case ISSET: var_stack.push_back(get_variable_size(get_string()) > 0); break;
-    case SIZE: var_stack.push_back(get_variable_size(get_string())); break;
+    case ISSET: var_stack.push_back(get_variable_size(cmd.get<std::string>()) > 0); break;
+    case SIZE: var_stack.push_back(get_variable_size(cmd.get<std::string>())); break;
     case PUSHCONTENT:
         content_stack.emplace_back(var_stack.back().str());
         var_stack.pop_back();
@@ -359,8 +349,8 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     case NEXTTOKEN: content_stack.back().next_token("\t\n\v\f\r "); break;
     case SPACER:
     {
-        auto spacer = std::static_pointer_cast<command_spacer>(cmd.data);
-        m_spacers[spacer->name] = {spacer->w, spacer->h};
+        const auto &spacer = cmd.get<command_spacer>();
+        m_spacers[spacer.name] = {spacer.w, spacer.h};
         break;
     }
     case HLT:
@@ -427,7 +417,7 @@ const variable &reader::get_variable(const variable_idx &var) const {
     }
     auto &page = m_values[pageidx];
     auto it = page.find(var.name);
-    if (it == page.end() || it->second.size() <= (size_t) var.index) {
+    if (it == page.end() || it->second.size() <= var.index) {
         return VAR_NULL;
     } else {
         return it->second[var.index];
@@ -441,7 +431,7 @@ void reader::set_variable(const variable_idx &ref, const variable &value) {
     while (m_values.size() <= pageidx) m_values.emplace_back();
     auto &page = m_values[pageidx];
     auto &var = page[ref.name];
-    while (var.size() <= (size_t) ref.index) var.emplace_back();
+    while (var.size() <= ref.index) var.emplace_back();
     var[ref.index] = value;
 }
 

@@ -66,12 +66,12 @@ enum asm_command {
     POPCONTENT,
     SPACER,
     STRDATA,
-    HLT=0xffffffff,
+    HLT=0xff,
 };
 
 struct command_call {
     std::string name;
-    int numargs;
+    uint8_t numargs;
 };
 
 struct command_spacer {
@@ -82,31 +82,34 @@ struct command_spacer {
 
 struct variable_idx {
     std::string name;
-    int index;
+    uint8_t index;
 
     variable_idx() {}
-    variable_idx(const std::string &name, int index) : name(name), index(index) {}
-    variable_idx(const std::string &name, size_t index) : name(name), index(index) {}
+    variable_idx(const std::string &name, uint8_t index) : name(name), index(index) {}
 };
 
 template<typename T> struct get_datasize { static constexpr int value = sizeof(T); };
 
-template<> struct get_datasize<std::string> { static constexpr size_t value = sizeof(int); };
-template<> struct get_datasize<command_call> { static constexpr size_t value = sizeof(int) * 2; };
-template<> struct get_datasize<command_spacer> { static constexpr size_t value = sizeof(int) * 3; };
-template<> struct get_datasize<variable_idx> { static constexpr size_t value = sizeof(int) * 2; };
+template<> struct get_datasize<std::string> { static constexpr size_t value = 2; };
+template<> struct get_datasize<command_call> { static constexpr size_t value = 3; };
+template<> struct get_datasize<command_spacer> { static constexpr size_t value = 11; };
+template<> struct get_datasize<variable_idx> { static constexpr size_t value = 3; };
 
 struct command_args {
-    asm_command command;
+    const asm_command command;
 
-    std::shared_ptr<void> data;
-    size_t datasize = 0;
+    const std::shared_ptr<void> data;
+    const size_t datasize = 0;
 
     command_args(asm_command command = NOP) : command(command) {}
 
     template<typename T>
-    command_args(asm_command command, std::shared_ptr<T> data, size_t datasize = get_datasize<T>::value) :
-        command(command), data(data), datasize(datasize) {}
+    command_args(asm_command command, const T& data, size_t datasize = get_datasize<T>::value) :
+        command(command), data(std::make_shared<T>(data)), datasize(datasize) {}
+    
+    template<typename T> const T &get() const {
+        return *std::static_pointer_cast<T>(data);
+    }
 };
 
 struct assembly_error {
@@ -115,8 +118,7 @@ struct assembly_error {
 
 class assembler {
 public:
-    assembler(const std::vector<std::string> &lines);
-
+    void read_lines(const std::vector<std::string> &lines);
     void save_output(std::ostream &output);
 
 private:

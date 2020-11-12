@@ -37,24 +37,24 @@ void parser::read_box(const layout_box &box) {
 }
 
 void parser::add_value(variable_ref ref) {
-    if (ref.flags & FLAGS_NUMBER) {
+    if (ref.flags & VAR_NUMBER) {
         output_asm.push_back("PARSENUM");
     }
 
-    if (ref.flags & FLAGS_GLOBAL) {
+    if (ref.flags & VAR_GLOBAL) {
         output_asm.push_back(fmt::format("SETGLOBAL {0}", ref.name));
         return;
     }
 
-    if (ref.flags & FLAGS_DEBUG) {
+    if (ref.flags & VAR_DEBUG) {
         output_asm.push_back("SETDEBUG");
     }
 
-    if (ref.flags & FLAGS_APPEND) {
+    if (ref.flags & VAR_APPEND) {
         output_asm.push_back(fmt::format("APPEND {0}", ref.name));
-    } else if (ref.flags & FLAGS_CLEAR) {
+    } else if (ref.flags & VAR_CLEAR) {
         output_asm.push_back(fmt::format("RESETVAR {0}", ref.name));
-    } else if (ref.flags & FLAGS_GETINDEX) {
+    } else if (ref.flags & VAR_GETINDEX) {
         output_asm.push_back(fmt::format("SETVAR {0}", ref.name));
     } else {
         output_asm.push_back(fmt::format("SETVARIDX {0},{1}", ref.name, ref.index));
@@ -122,9 +122,9 @@ void parser::evaluate() {
     default:
     {
         auto ref = get_variable();
-        if (ref.flags & FLAGS_GLOBAL) {
+        if (ref.flags & VAR_GLOBAL) {
             output_asm.push_back(fmt::format("PUSHGLOBAL {0}", ref.name));
-        } else if (ref.flags & FLAGS_GETINDEX) {
+        } else if (ref.flags & VAR_GETINDEX) {
             output_asm.push_back(fmt::format("PUSHVAR {0}", ref.name));
         } else {
             output_asm.push_back(fmt::format("PUSHVARIDX {0},{1}", ref.name, ref.index));
@@ -139,13 +139,13 @@ variable_ref parser::get_variable() {
     while (in_loop && tokens.next()) {
         switch (tokens.current().type) {
         case TOK_GLOBAL:
-            ref.flags |= FLAGS_GLOBAL;
+            ref.flags |= VAR_GLOBAL;
             break;
         case TOK_DEBUG:
-            ref.flags |= FLAGS_DEBUG;
+            ref.flags |= VAR_DEBUG;
             break;
         case TOK_PERCENT:
-            ref.flags |= FLAGS_NUMBER;
+            ref.flags |= VAR_NUMBER;
             break;
         default:
             in_loop = false;
@@ -156,7 +156,7 @@ variable_ref parser::get_variable() {
         throw tokens.unexpected_token(TOK_IDENTIFIER);
     }
     ref.name = tokens.current().value;
-    if (ref.flags & FLAGS_GLOBAL) {
+    if (ref.flags & VAR_GLOBAL) {
         return ref;
     }
 
@@ -170,16 +170,16 @@ variable_ref parser::get_variable() {
             ref.index = std::stoi(std::string(tokens.current().value));
         } else {
             evaluate();
-            ref.flags |= FLAGS_GETINDEX;
+            ref.flags |= VAR_GETINDEX;
         }
         tokens.require(TOK_BRACKET_END);
         break;
     case TOK_APPEND:
-        ref.flags |= FLAGS_APPEND;
+        ref.flags |= VAR_APPEND;
         tokens.advance();
         break;
     case TOK_CLEAR:
-        ref.flags |= FLAGS_CLEAR;
+        ref.flags |= VAR_CLEAR;
         tokens.advance();
         break;
     default:
@@ -284,10 +284,10 @@ void parser::exec_function() {
         default:
             throw tokens.unexpected_token(TOK_PAREN_END);
         }
-        if (ref.flags & FLAGS_NUMBER) {
+        if (ref.flags & VAR_NUMBER) {
             output_asm.push_back("PARSENUM");
         }
-        if (ref.flags & FLAGS_GLOBAL) {
+        if (ref.flags & VAR_GLOBAL) {
             if (inc_one) {
                 output_asm.push_back(fmt::format("INCG {0}", ref.name));
             } else {
@@ -295,13 +295,13 @@ void parser::exec_function() {
             }
         } else {
             if (inc_one) {
-                if (ref.flags & FLAGS_GETINDEX) {
+                if (ref.flags & VAR_GETINDEX) {
                     output_asm.push_back(fmt::format("INC {0}", ref.name));
                 } else {
                     output_asm.push_back(fmt::format("INCIDX {0},{1}", ref.name, ref.index));
                 }
             } else {
-                if (ref.flags & FLAGS_GETINDEX) {
+                if (ref.flags & VAR_GETINDEX) {
                     output_asm.push_back(fmt::format("INCTOP {0}", ref.name));
                 } else {
                     output_asm.push_back(fmt::format("INCTOPIDX {0},{1}", ref.name, ref.index));
@@ -330,10 +330,10 @@ void parser::exec_function() {
         default:
             throw tokens.unexpected_token(TOK_PAREN_END);
         }
-        if (ref.flags & FLAGS_NUMBER) {
+        if (ref.flags & VAR_NUMBER) {
             output_asm.push_back("PARSENUM");
         }
-        if (ref.flags & FLAGS_GLOBAL) {
+        if (ref.flags & VAR_GLOBAL) {
             if (inc_one) {
                 output_asm.push_back(fmt::format("DECG {0}", ref.name));
             } else {
@@ -341,13 +341,13 @@ void parser::exec_function() {
             }
         } else {
             if (inc_one) {
-                if (ref.flags & FLAGS_GETINDEX) {
+                if (ref.flags & VAR_GETINDEX) {
                     output_asm.push_back(fmt::format("DEC {0}", ref.name));
                 } else {
                     output_asm.push_back(fmt::format("DECIDX {0},{1}", ref.name, ref.index));
                 }
             } else {
-                if (ref.flags & FLAGS_GETINDEX) {
+                if (ref.flags & VAR_GETINDEX) {
                     output_asm.push_back(fmt::format("DECTOP {0}", ref.name));
                 } else {
                     output_asm.push_back(fmt::format("DECTOPIDX {0},{1}", ref.name, ref.index));
