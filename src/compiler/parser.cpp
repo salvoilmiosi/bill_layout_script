@@ -193,7 +193,7 @@ void parser::exec_function() {
     tokens.require(TOK_FUNCTION);
     tokens.require(TOK_IDENTIFIER);
     std::string fun_name = std::string(tokens.current().value);
-    
+
     if (fun_name == "if") {
         std::string else_label = fmt::format("__else_{0}", output_asm.size());
         std::string endif_label = fmt::format("__endif_{0}", output_asm.size());
@@ -419,6 +419,10 @@ void parser::exec_function() {
         tokens.require(TOK_PAREN_END);
 
         output_asm.push_back(fmt::format("ERROR {0}", tok.value));
+    } else if (fun_name == "nextpage") {
+        tokens.require(TOK_PAREN_BEGIN);
+        tokens.require(TOK_PAREN_END);
+        output_asm.push_back("NEXTPAGE");
     } else {
         int num_args = 0;
         tokens.require(TOK_PAREN_BEGIN);

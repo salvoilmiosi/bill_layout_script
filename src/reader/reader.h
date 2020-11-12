@@ -39,25 +39,30 @@ public:
 private:
     void exec_command(const pdf_info &info, const command_args &cmd);
     void read_box(const pdf_info &info, layout_box box);
-    void call_function(const command_call &call);
+    void call_function(const std::string &name, size_t numargs);
 
-private:
-    std::map<std::string, box_spacer> m_spacers;
-    std::map<std::string, variable> m_globals;
-    std::vector<std::map<std::string, std::vector<variable>>> m_values;
-
-    const variable &get_variable(const variable_idx &var) const;
-    void set_variable(const variable_idx &var, const variable &value);
+    const variable &get_variable(const std::string &name, size_t index) const;
+    void set_variable(const std::string &name, size_t index, const variable &value);
     void reset_variable(const std::string &name, const variable &value);
     void clear_variable(const std::string &name);
     size_t get_variable_size(const std::string &name);
 
 private:
-    std::vector<command_args> commands;
-    std::vector<variable> var_stack;
-    std::vector<content_view> content_stack;
-    size_t program_counter = 0;
-    bool jumped = false;
+    using variable_page = std::map<std::string, std::vector<variable>>;
+
+    std::map<std::string, box_spacer> m_spacers;
+    std::map<std::string, variable> m_globals;
+    std::vector<variable_page> m_pages;
+
+    std::vector<command_args> m_commands;
+    std::vector<std::string> m_strings;
+    
+    std::vector<variable> m_var_stack;
+    std::vector<content_view> m_content_stack;
+
+    size_t m_page_num = 0;
+    size_t m_programcounter = 0;
+    bool m_jumped = false;
 };
 
 #endif

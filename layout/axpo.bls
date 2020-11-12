@@ -152,7 +152,7 @@
 				"mode" : 0,
 				"name" : "Controllo prossima pagina",
 				"page" : 4,
-				"script" : "$inc(*page_offset)\n*pod_offset=1\n$if($not($isempty(@))) {\n  $if($contains(@,\"DATI FORNITURA\")) {\n    $inc(*PAGE_NUM)\n    $goto(0)\n  } $else {\n    $goto(quadro_dettaglio)\n  }\n}",
+				"script" : "$inc(*page_offset)\n*pod_offset=1\n$if($not($isempty(@))) {\n  $if($contains(@,\"DATI FORNITURA\")) {\n    $nextpage()\n    $goto(0)\n  } $else {\n    $goto(quadro_dettaglio)\n  }\n}",
 				"spacers" : "*page_offset",
 				"type" : 1,
 				"w" : 0.048387095332145691,
