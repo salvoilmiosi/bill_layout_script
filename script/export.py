@@ -44,7 +44,7 @@ def read_file(pdf_file):
     rel_path = pdf_file.relative_to(input_directory)
     print(rel_path)
 
-    args = [app_dir.joinpath('bin/layout_reader'), '-p', pdf_file, '-s', file_layout]
+    args = [app_dir.joinpath('../bin/layout_reader'), '-p', pdf_file, '-s', file_layout]
     proc = subprocess.run(args, capture_output=True, text=True)
 
     try:
@@ -73,7 +73,7 @@ if len(sys.argv) < 2:
 app_dir = Path(sys.argv[0]).parent
 
 input_directory = Path(sys.argv[1])
-file_layout = Path(sys.argv[2]) if len(sys.argv) >= 3 else app_dir.joinpath('layout/controllo.out')
+file_layout = Path(sys.argv[2]) if len(sys.argv) >= 3 else app_dir.joinpath('../layout/controllo.out')
 output_file = Path(sys.argv[3]) if len(sys.argv) >= 4 else app_dir.joinpath('out/{0}.xlsx'.format(input_directory.name))
 
 if not input_directory.exists():
@@ -108,7 +108,7 @@ for i, row in enumerate(out, 2):
         if c['type'] == 'str':
             cell.value = c['value']
         elif c['type'] == 'date':
-            cell.number_format = 'DD/MM/YYYY'
+            cell.number_format = 'DD/MM/YY'
             cell.value = datetime.datetime.strptime(c['value'], "%Y-%m-%d")
         elif c['type'] == 'month':
             cell.number_format = 'MM/YYYY'
