@@ -1,14 +1,14 @@
 .vscode/*
 bin/*
 obj/*
+layout/*.out
+layout/*.txt
 *.sh
 *.exe
 *.dll
 *.so
 *.o
 *.d
-*.out
-layout/*.txt
 *.res
 *.pdf
 *.csv

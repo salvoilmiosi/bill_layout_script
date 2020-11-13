@@ -62,7 +62,7 @@ def read_file(pdf_file):
                     try:
                         row.append({'value':json_page[obj['value']][obj['index'] if 'index' in obj else 0], 'type':obj['type'] if 'type' in obj else 'str'})
                     except (KeyError, IndexError, ValueError):
-                        row.append({})
+                        row.append({'value':'','type':''})
 
             out.append(row)
 
@@ -103,21 +103,22 @@ for i, row in enumerate(out, 2):
         cell = ws.cell(row=i, column=j)
         if new_pod != old_pod:
             cell.border = Border(top=Side(border_style='thin', color='000000'))
-        if not 'value' in c:
-            continue
-        if c['type'] == 'str':
-            cell.value = c['value']
-        elif c['type'] == 'date':
-            cell.number_format = 'DD/MM/YY'
-            cell.value = datetime.datetime.strptime(c['value'], "%Y-%m-%d")
-        elif c['type'] == 'month':
-            cell.number_format = 'MM/YYYY'
-            cell.value = datetime.datetime.strptime(c['value'], "%Y-%m")
-        elif c['type'] == 'number':
-            cell.value = float(c['value'])
-        elif c['type'] == 'percentage':
-            cell.number_format = '0%'
-            cell.value = float(c['value'][:-1]) / 100
+        try:
+            if c['type'] == 'str':
+                cell.value = c['value']
+            elif c['type'] == 'date':
+                cell.number_format = 'DD/MM/YY'
+                cell.value = datetime.datetime.strptime(c['value'], "%Y-%m-%d")
+            elif c['type'] == 'month':
+                cell.number_format = 'MM/YYYY'
+                cell.value = datetime.datetime.strptime(c['value'], "%Y-%m")
+            elif c['type'] == 'number':
+                cell.value = float(c['value'])
+            elif c['type'] == 'percentage':
+                cell.number_format = '0%'
+                cell.value = float(c['value'][:-1]) / 100
+        except (KeyError, IndexError, ValueError):
+            pass
     if new_date == old_date:
         ws.cell(row=i, column=3).fill = PatternFill(patternType='solid', fgColor='ffff00')
     old_pod = new_pod
