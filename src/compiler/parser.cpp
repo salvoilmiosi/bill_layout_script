@@ -250,7 +250,8 @@ void parser::exec_function() {
         add_line("INC 1");
         add_line("JMP {0}", for_label);
         add_line("{0}:", endfor_label);
-        add_line("CLEAR {0}", idx_name.value);
+        add_line("SELVARIDX {0},0", idx_name.value);
+        add_line("CLEAR", idx_name.value);
     } else if (fun_name == "goto") {
         tokens.require(TOK_PAREN_BEGIN);
         tokens.next();
