@@ -9,8 +9,7 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
 
     m_var_stack.clear();
     m_content_stack.clear();
-    m_selected_var.name.clear();
-    m_selected_var.index = 0;
+    m_ref_stack.clear();
     m_programcounter = 0;
     m_jumped = false;
 
@@ -98,33 +97,45 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     case MAX: exec_operator([](const variable &a, const variable &b) { return a > b ? a : b; }); break;
     case MIN: exec_operator([](const variable &a, const variable &b) { return a < b ? a : b; }); break;
     case SELVAR:
-        m_selected_var.name = get_string_ref();
-        m_selected_var.index = m_var_stack.back().asInt();
+    {
+        variable_ref ref;
+        ref.name = get_string_ref();
+        ref.index = m_var_stack.back().asInt();
         m_var_stack.pop_back();
+        m_ref_stack.push_back(std::move(ref));
         break;
+    }
     case SELVARIDX:
     {
+        variable_ref ref;
         const auto &var_idx = cmd.get<variable_idx>();
-        m_selected_var.name = m_asm.get_string(var_idx.name);
-        m_selected_var.index = var_idx.index;
+        ref.name = m_asm.get_string(var_idx.name);
+        ref.index = var_idx.index;
+        m_ref_stack.push_back(std::move(ref));
         break;
     }
     case SELGLOBAL:
-        m_selected_var.name = get_string_ref();
-        m_selected_var.index = INDEX_GLOBAL;
+    {
+        variable_ref ref;
+        ref.name = get_string_ref();
+        ref.index = INDEX_GLOBAL;
+        m_ref_stack.push_back(std::move(ref));
+    }
         break;
     case SETDEBUG: m_var_stack.back().debug = true; break;
     case CLEAR: clear_variable(); break;
     case APPEND:
-        m_selected_var.index = get_variable_size();
+        m_ref_stack.back().index = get_variable_size();
         // fall through
     case SETVAR:
         set_variable(m_var_stack.back());
         m_var_stack.pop_back();
+        m_ref_stack.pop_back();
         break;
     case RESETVAR:
         reset_variable(m_var_stack.back());
         m_var_stack.pop_back();
+        m_ref_stack.pop_back();
         break;
     case COPYCONTENT: m_var_stack.push_back(m_content_stack.back().view()); break;
     case PUSHINT: m_var_stack.emplace_back(cmd.get<small_int>()); break;
@@ -132,6 +143,7 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     case PUSHSTR: m_var_stack.push_back(get_string_ref()); break;
     case PUSHVAR:
         m_var_stack.push_back(get_variable());
+        m_ref_stack.pop_back();
         break;
     case JMP:
         m_programcounter = cmd.get<jump_address>();
@@ -155,21 +167,31 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
             set_variable(get_variable() + m_var_stack.back());
         }
         m_var_stack.pop_back();
+        m_ref_stack.pop_back();
         break;
     case INC:
         set_variable(get_variable() + variable(cmd.get<small_int>()));
+        m_ref_stack.pop_back();
         break;
     case DECTOP:
         if (!m_var_stack.back().empty()) {
             set_variable(get_variable() - m_var_stack.back());
         }
         m_var_stack.pop_back();
+        m_ref_stack.pop_back();
         break;
     case DEC:
         set_variable(get_variable() - variable(cmd.get<small_int>()));
+        m_ref_stack.pop_back();
         break;
-    case ISSET: m_var_stack.push_back(get_variable_size() != 0); break;
-    case SIZE: m_var_stack.push_back((int) get_variable_size()); break;
+    case ISSET:
+        m_var_stack.push_back(get_variable_size() != 0);
+        m_ref_stack.pop_back();
+        break;
+    case SIZE:
+        m_var_stack.push_back((int) get_variable_size());
+        m_ref_stack.pop_back();
+        break;
     case PUSHCONTENT:
         m_content_stack.emplace_back(m_var_stack.back().str());
         m_var_stack.pop_back();
@@ -245,56 +267,56 @@ const variable &reader::get_variable() const {
     if (m_pages.size() <= m_page_num) {
         return VAR_NULL;
     }
-    if (m_selected_var.index == INDEX_GLOBAL) {
-        return get_global(m_selected_var.name);
+    if (m_ref_stack.back().index == INDEX_GLOBAL) {
+        return get_global(m_ref_stack.back().name);
     }
 
     auto &page = m_pages[m_page_num];
-    auto it = page.find(m_selected_var.name);
-    if (it == page.end() || it->second.size() <= m_selected_var.index) {
+    auto it = page.find(m_ref_stack.back().name);
+    if (it == page.end() || it->second.size() <= m_ref_stack.back().index) {
         return VAR_NULL;
     } else {
-        return it->second[m_selected_var.index];
+        return it->second[m_ref_stack.back().index];
     }
 }
 
 void reader::set_variable(const variable &value) {
     if (value.empty()) return;
-    if (m_selected_var.index == INDEX_GLOBAL) {
-        m_globals[m_selected_var.name] = value;
+    if (m_ref_stack.back().index == INDEX_GLOBAL) {
+        m_globals[m_ref_stack.back().name] = value;
         return;
     }
 
     while (m_pages.size() <= m_page_num) m_pages.emplace_back();
     auto &page = m_pages[m_page_num];
-    auto &var = page[m_selected_var.name];
-    while (var.size() <= m_selected_var.index) var.emplace_back();
-    var[m_selected_var.index] = value;
+    auto &var = page[m_ref_stack.back().name];
+    while (var.size() <= m_ref_stack.back().index) var.emplace_back();
+    var[m_ref_stack.back().index] = value;
 }
 
 void reader::reset_variable(const variable &value) {
     if (value.empty()) return;
-    if (m_selected_var.index == INDEX_GLOBAL) {
-        m_globals[m_selected_var.name] = value;
+    if (m_ref_stack.back().index == INDEX_GLOBAL) {
+        m_globals[m_ref_stack.back().name] = value;
         return;
     }
 
     while (m_pages.size() <= m_page_num) m_pages.emplace_back();
     auto &page = m_pages[m_page_num];
-    auto &var = page[m_selected_var.name];
+    auto &var = page[m_ref_stack.back().name];
     var.clear();
     var.push_back(value);
 }
 
 void reader::clear_variable() {
-    if (m_selected_var.index == INDEX_GLOBAL) {
-        auto it = m_globals.find(m_selected_var.name);
+    if (m_ref_stack.back().index == INDEX_GLOBAL) {
+        auto it = m_globals.find(m_ref_stack.back().name);
         if (it != m_globals.end()) {
             m_globals.erase(it);
         }
     } else if (m_page_num < m_pages.size()) {
         auto &page = m_pages[m_page_num];
-        auto it = page.find(m_selected_var.name);
+        auto it = page.find(m_ref_stack.back().name);
         if (it != page.end()) {
             page.erase(it);
         }
@@ -306,7 +328,7 @@ size_t reader::get_variable_size() {
         return 0;
     }
     auto &page = m_pages[m_page_num];
-    auto it = page.find(m_selected_var.name);
+    auto it = page.find(m_ref_stack.back().name);
     if (it == page.end()) {
         return 0;
     } else {

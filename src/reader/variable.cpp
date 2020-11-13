@@ -60,7 +60,7 @@ bool variable::empty() const {
 bool variable::isTrue() const {
     switch(m_type) {
     case VALUE_STRING:
-        return std::get<std::string>(m_value).empty();
+        return ! std::get<std::string>(m_value).empty();
     case VALUE_NUMBER:
         return std::get<fixed_point>(m_value) != fixed_point(0);
     default:

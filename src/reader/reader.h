@@ -67,7 +67,7 @@ private:
 
     std::vector<variable> m_var_stack;
     std::vector<content_view> m_content_stack;
-    variable_ref m_selected_var;
+    std::vector<variable_ref> m_ref_stack;
 
     size_t m_page_num = 0;
     size_t m_programcounter = 0;
