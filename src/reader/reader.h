@@ -7,9 +7,10 @@
 #include <stack>
 #include <memory>
 
-#include "variable.h"
-#include "../compiler/assembler.h"
 #include "../shared/layout.h"
+
+#include "variable.h"
+#include "disassembler.h"
 
 struct box_spacer {
     float w;
@@ -28,6 +29,13 @@ struct content_view {
     std::string_view view() const;
 };
 
+static constexpr size_t INDEX_GLOBAL = -1;
+
+struct variable_ref {
+    std::string name;
+    size_t index;
+};
+
 class reader {
 public:
     void read_layout(const pdf_info &info, std::istream &input);
@@ -41,11 +49,11 @@ private:
     void read_box(const pdf_info &info, layout_box box);
     void call_function(const std::string &name, size_t numargs);
 
-    const variable &get_variable(const std::string &name, size_t index) const;
-    void set_variable(const std::string &name, size_t index, const variable &value);
-    void reset_variable(const std::string &name, const variable &value);
-    void clear_variable(const std::string &name);
-    size_t get_variable_size(const std::string &name);
+    const variable &get_variable() const;
+    void set_variable(const variable &value);
+    void reset_variable(const variable &value);
+    void clear_variable();
+    size_t get_variable_size();
 
 private:
     using variable_page = std::map<std::string, std::vector<variable>>;
@@ -54,11 +62,12 @@ private:
     std::map<std::string, variable> m_globals;
     std::vector<variable_page> m_pages;
 
-    std::vector<command_args> m_commands;
-    std::vector<std::string> m_strings;
-    
+private:
+    disassembler m_asm;
+
     std::vector<variable> m_var_stack;
     std::vector<content_view> m_content_stack;
+    variable_ref m_selected_var;
 
     size_t m_page_num = 0;
     size_t m_programcounter = 0;

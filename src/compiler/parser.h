@@ -5,6 +5,7 @@
 #include <map>
 
 #include <json/json.h>
+#include <fmt/core.h>
 
 #include "../shared/layout.h"
 #include "tokenizer.h"
@@ -18,16 +19,8 @@ struct spacer {
 enum variable_flags {
     VAR_APPEND        = 1 << 0,
     VAR_CLEAR         = 1 << 1,
-    VAR_GLOBAL        = 1 << 2,
-    VAR_NUMBER        = 1 << 3,
-    VAR_DEBUG         = 1 << 4,
-    VAR_GETINDEX      = 1 << 5,
-};
-
-struct variable_ref {
-    std::string name;
-    uint8_t index = 0;
-    uint8_t flags = 0;
+    VAR_NUMBER        = 1 << 2,
+    VAR_DEBUG         = 1 << 3,
 };
 
 class parser {
@@ -41,15 +34,20 @@ private:
     void read_box(const layout_box &box);
     const layout_box *current_box = nullptr;
     
-    void add_value(variable_ref ref);
+    void add_value(int flags);
     void exec_line();
     void evaluate();
     void exec_function();
 
-    variable_ref get_variable();
+    int read_variable();
 
 private:
     std::vector<std::string> output_asm;
+
+    template<typename ... Ts>
+    void add_line(const Ts & ... args) {
+        output_asm.push_back(fmt::format(args ...));
+    }
 
     tokenizer tokens;
 };

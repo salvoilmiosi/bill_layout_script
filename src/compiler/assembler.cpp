@@ -6,7 +6,6 @@
 #include <map>
 
 #include "../shared/utils.h"
-#include "../shared/layout.h"
 
 void assembler::read_lines(const std::vector<std::string> &lines) {
     std::map<std::string, jump_address> labels;
@@ -105,36 +104,28 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("LEQ"):           add_command(LEQ); break;
         case hash("MAX"):           add_command(MAX); break;
         case hash("MIN"):           add_command(MIN); break;
-        case hash("SETGLOBAL"):     add_command(SETGLOBAL, add_string(args[0])); break;
+        case hash("SELGLOBAL"):     add_command(SELGLOBAL, add_string(args[0])); break;
+        case hash("SELVAR"):        add_command(SELVAR, add_string(args[0])); break;
+        case hash("SELVARIDX"):     add_command(SELVARIDX, variable_idx(add_string(args[0]), std::stoi(args[1]))); break;
         case hash("SETDEBUG"):      add_command(SETDEBUG); break;
-        case hash("CLEAR"):         add_command(CLEAR, add_string(args[0])); break;
-        case hash("APPEND"):        add_command(APPEND, add_string(args[0])); break;
-        case hash("SETVAR"):        add_command(SETVAR, add_string(args[0])); break;
-        case hash("SETVARIDX"):     add_command(SETVARIDX, variable_idx(add_string(args[0]), std::stoi(args[1]))); break;
-        case hash("RESETVAR"):      add_command(RESETVAR, add_string(args[0])); break;
+        case hash("CLEAR"):         add_command(CLEAR); break;
+        case hash("APPEND"):        add_command(APPEND); break;
+        case hash("SETVAR"):        add_command(SETVAR); break;
+        case hash("RESETVAR"):      add_command(RESETVAR); break;
         case hash("COPYCONTENT"):   add_command(COPYCONTENT); break;
-        case hash("PUSHNUM"):       add_command(PUSHNUM, std::stof(args[0])); break;
+        case hash("PUSHINT"):       add_command(PUSHINT, std::stoi(args[0])); break;
+        case hash("PUSHFLOAT"):     add_command(PUSHFLOAT, std::stof(args[0])); break;
         case hash("PUSHSTR"):       add_command(PUSHSTR, add_string(parse_string(arg_str))); break;
-        case hash("PUSHGLOBAL"):    add_command(PUSHGLOBAL, add_string(args[0])); break;
-        case hash("PUSHVAR"):       add_command(PUSHVAR, add_string(args[0])); break;
-        case hash("PUSHVARIDX"):    add_command(PUSHVARIDX, variable_idx(add_string(args[0]), std::stoi(args[1]))); break;
+        case hash("PUSHVAR"):       add_command(PUSHVAR); break;
         case hash("JMP"):           add_command(JMP, getgotoindex(args[0])); break;
         case hash("JZ"):            add_command(JZ, getgotoindex(args[0])); break;
         case hash("JTE"):           add_command(JTE, getgotoindex(args[0])); break;
-        case hash("INCTOP"):        add_command(INCTOP, add_string(args[0])); break;
-        case hash("INC"):           add_command(INC, add_string(args[0])); break;
-        case hash("INCIDX"):        add_command(INCIDX, variable_idx(add_string(args[0]), std::stoi(args[1]))); break;
-        case hash("INCTOPIDX"):     add_command(INCTOPIDX, variable_idx(add_string(args[0]), std::stoi(args[1]))); break;
-        case hash("INCGTOP"):       add_command(INCGTOP, add_string(args[0])); break;
-        case hash("INCG"):          add_command(INCG, add_string(args[0])); break;
-        case hash("DECTOP"):        add_command(DECTOP, add_string(args[0])); break;
-        case hash("DEC"):           add_command(DEC, add_string(args[0])); break;
-        case hash("DECIDX"):        add_command(INCIDX, variable_idx(add_string(args[0]), std::stoi(args[1]))); break;
-        case hash("DECTOPIDX"):     add_command(INCTOPIDX, variable_idx(add_string(args[0]), std::stoi(args[1]))); break;
-        case hash("DECGTOP"):       add_command(DECGTOP, add_string(args[0])); break;
-        case hash("DECG"):          add_command(DECG, add_string(args[0])); break;
-        case hash("ISSET"):         add_command(ISSET, add_string(args[0])); break;
-        case hash("SIZE"):          add_command(SIZE, add_string(args[0])); break;
+        case hash("INCTOP"):        add_command(INCTOP); break;
+        case hash("INC"):           add_command(INC, static_cast<small_int>(std::stoi(args[0]))); break;
+        case hash("DECTOP"):        add_command(DECTOP); break;
+        case hash("DEC"):           add_command(DEC, static_cast<small_int>(std::stoi(args[0]))); break;
+        case hash("ISSET"):         add_command(ISSET); break;
+        case hash("SIZE"):          add_command(SIZE); break;
         case hash("PUSHCONTENT"):   add_command(PUSHCONTENT); break;
         case hash("NEXTLINE"):      add_command(NEXTLINE); break;
         case hash("NEXTTOKEN"):     add_command(NEXTTOKEN); break;
@@ -160,7 +151,7 @@ string_ref assembler::add_string(const std::string &str) {
     }
 }
 
-void assembler::save_output(std::ostream &output) {
+void assembler::write_bytecode(std::ostream &output) {
     auto write_data = [&output](const auto &data) {
         output.write(reinterpret_cast<const char *>(&data), sizeof(data));
     };
@@ -209,6 +200,13 @@ void assembler::save_output(std::ostream &output) {
             write_data(spacer.h);
             break;
         }
+        case SELVARIDX:
+        {
+            const auto &var_idx = line.get<variable_idx>();
+            write_data(var_idx.name);
+            write_data(var_idx.index);
+            break;
+        }
         case STRDATA:
         {
             const auto &str = line.get<std::string>();
@@ -216,41 +214,19 @@ void assembler::save_output(std::ostream &output) {
             output.write(str.c_str(), str.size());
             break;
         }
-        case SETVARIDX:
-        case PUSHVARIDX:
-        case INCTOPIDX:
-        case INCIDX:
-        case DECTOPIDX:
-        case DECIDX:
-        {
-            const auto &var_idx = line.get<variable_idx>();
-            write_data(var_idx.name);
-            write_data(var_idx.index);
-            break;
-        }
         case ERROR:
-        case SETGLOBAL:
-        case CLEAR:
-        case APPEND:
-        case SETVAR:
-        case RESETVAR:
         case PUSHSTR:
-        case PUSHGLOBAL:
-        case PUSHVAR:
-        case ISSET:
-        case SIZE:
-        case INC:
-        case INCTOP:
-        case INCG:
-        case INCGTOP:
-        case DEC:
-        case DECTOP:
-        case DECG:
-        case DECGTOP:
+        case SELVAR:
+        case SELGLOBAL:
             write_data(line.get<string_ref>());
             break;
-        case PUSHNUM:
+        case PUSHFLOAT:
             write_data(line.get<float>());
+            break;
+        case PUSHINT:
+        case INC:
+        case DEC:
+            write_data(line.get<small_int>());
             break;
         case JMP:
         case JZ:

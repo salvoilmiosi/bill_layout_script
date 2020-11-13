@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    assembler my_assembler;
+    assembler m_asm;
 
     try {
         if (!read_asm) {
@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
                 }
             }
             
-            my_assembler.read_lines(my_parser.get_output_asm());
+            m_asm.read_lines(my_parser.get_output_asm());
         } else {
             std::vector<std::string> lines;
             std::string line;
@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
                 lines.push_back(line);
             }
             
-            my_assembler.read_lines(lines);
+            m_asm.read_lines(lines);
         }
     } catch (const layout_error &error) {
         std::cerr << error.message << std::endl;
@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
     
     if (!debug) {
         std::ofstream ofs(output_file, std::ofstream::binary | std::ofstream::out);
-        my_assembler.save_output(ofs);
+        m_asm.write_bytecode(ofs);
     }
 
     return 0;

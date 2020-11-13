@@ -64,7 +64,7 @@ public:
     bool debug = false;
 
 private:
-    std::string m_value{};
+    std::string m_value;
     value_type m_type{VALUE_UNDEFINED};
 };
 

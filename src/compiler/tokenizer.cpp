@@ -101,9 +101,6 @@ bool tokenizer::next(bool peek) {
     case '@':
         tok.type = TOK_CONTENT;
         break;
-    case '+':
-        tok.type = TOK_APPEND;
-        break;
     case ':':
         tok.type = TOK_CLEAR;
         break;

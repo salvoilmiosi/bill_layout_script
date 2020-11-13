@@ -22,7 +22,6 @@ enum token_type {
     TOK_PERCENT,            // %
     TOK_GLOBAL,             // *
     TOK_DEBUG,              // !
-    TOK_APPEND,             // +
     TOK_CLEAR,              // :
     TOK_CONTENT,            // @
 };
