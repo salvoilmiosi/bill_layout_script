@@ -5,19 +5,6 @@
 		[
 			{
 				"goto_label" : "",
-				"h" : 0.024234354496002197,
-				"mode" : 0,
-				"name" : "Controllo Layout",
-				"page" : 1,
-				"script" : "$if($neq(@,\"N. fattura\")) {\n  $error(\"Layout Invalido\")\n}",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.091458439826965332,
-				"x" : 0.072103589773178101,
-				"y" : 0.33470377326011658
-			},
-			{
-				"goto_label" : "",
 				"h" : 0.083238311111927032,
 				"mode" : 0,
 				"name" : "Nome Fornitore",
@@ -191,7 +178,7 @@
 				"mode" : 1,
 				"name" : "Dati generali",
 				"page" : 3,
-				"script" : "$for(i,3) {\n  %potenza[i]=$search(@,\"POTENZA FATTURATA kW.+ $NUMBER\\n\")\n}\n%accise=$search(@,\"Imposta erariale.+ $NUMBER\\n\")\n$if($not(prezzo_energia)) {\n  %incremento_prezzo=$search(@,\"Incremento prezzo euro/kWh $NUMBER\")\n  $for(i,3) {\n    %prezzo_energia[i]=$search(@,\"Prezzo energia euro/kWh $NUMBER\")\n    %prezzo_energia[i]=$search(@,\"Prezzo energia monorario euro/kWh $NUMBER\")\n    $inc(prezzo_energia[i],incremento_prezzo)\n  }\n}\n%prezzo_energia[0]=$search(@,\"Prezzo F1 euro/kWh $NUMBER\")\n%prezzo_energia[1]=$search(@,\"Prezzo F2 euro/kWh $NUMBER\")\n%prezzo_energia[2]=$search(@,\"Prezzo F3 euro/kWh $NUMBER\")\n%prezzo_energia[0]=$search(@,\"Prezzo Ore Giorno euro/kWh $NUMBER\")\n%prezzo_energia[1]=$search(@,\"Prezzo Ore Notte euro/kWh $NUMBER\")\n%prezzo_energia[0]=$search(@,\"Prezzo Picco euro/kWh $NUMBER\")\n%prezzo_energia[1]=$search(@,\"Prezzo Fuori Picco euro/kWh $NUMBER\")\n%penale_reattiva_inf75=$search(@,\"Energia Reattiva tra il \\\\d+% e 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER\",3)\n%penale_reattiva_sup75=$search(@,\"Energia Reattiva oltre il 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER\",3)\n%cts=$search(@,\"Corrispettivo Tariffario Specifico dal \\\\d+/\\\\d+/\\\\d+ al \\\\d+/\\\\d+/\\\\d+ $NUMBER\")\n%imponibile=$search(@,\"BASE IMPONIBILE Totale fornitura $NUMBER\")\n%imponibile=$search(@,\"TOTALE IVA Iva \\\\d+% $NUMBER\")\niva=$search(@,\"Iva (\\\\d+%)\")",
+				"script" : "$for(i,3) {\n  %potenza[i]=$search(@,\"POTENZA FATTURATA kW.+ $NUMBER\\n\")\n}\n%accise=$search(@,\"Imposta erariale.+ $NUMBER\\n\")\n$if($not(prezzo_energia)) {\n  %incremento_prezzo=$search(@,\"Incremento prezzo euro/kWh $NUMBER\")\n  $for(i,3) {\n    %prezzo_energia[i]=$search(@,\"Prezzo energia euro/kWh $NUMBER\")\n    %prezzo_energia[i]=$search(@,\"Prezzo energia monorario euro/kWh $NUMBER\")\n    $inc(prezzo_energia[i],incremento_prezzo)\n  }\n}\n%prezzo_energia[0]=$search(@,\"Prezzo F1 euro/kWh $NUMBER\")\n%prezzo_energia[1]=$search(@,\"Prezzo F2 euro/kWh $NUMBER\")\n%prezzo_energia[2]=$search(@,\"Prezzo F3 euro/kWh $NUMBER\")\n$tokens($coalesce(\n $search(@,\"Prezzo Picco euro/kWh ($NUMBER $NUMBER)\"),\n $search(@,\"Prezzo Ore Giorno euro/kWh ($NUMBER $NUMBER)\"))) {\n  %prezzo_energia[0] %energia_attiva:\n}\n$tokens($coalesce(\n $search(@,\"Prezzo Fuori Picco euro/kWh ($NUMBER $NUMBER)\"),\n $search(@,\"Prezzo Ore Notte euro/kWh ($NUMBER $NUMBER)\"))) {\n  %prezzo_energia[1] %energia_attiva[1]\n}\n%penale_reattiva_inf75=$search(@,\"Energia Reattiva tra il \\\\d+% e 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER\",3)\n%penale_reattiva_sup75=$search(@,\"Energia Reattiva oltre il 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER\",3)\n%cts=$search(@,\"Corrispettivo Tariffario Specifico dal \\\\d+/\\\\d+/\\\\d+ al \\\\d+/\\\\d+/\\\\d+ $NUMBER\")\n%imponibile=$search(@,\"BASE IMPONIBILE Totale fornitura $NUMBER\")\n%imponibile=$search(@,\"TOTALE IVA Iva \\\\d+% $NUMBER\")\niva=$search(@,\"Iva (\\\\d+%)\")",
 				"spacers" : "*page_offset",
 				"type" : 1,
 				"w" : 0.057987712323665619,

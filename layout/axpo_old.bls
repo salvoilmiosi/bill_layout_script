@@ -5,19 +5,6 @@
 		[
 			{
 				"goto_label" : "",
-				"h" : 0.066842295229434967,
-				"mode" : 0,
-				"name" : "Convalida Layout",
-				"page" : 1,
-				"script" : "$if($not($contains(@,\"Bolletta Energia Elettrica\")))\n  $error(\"Layout invalido\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.41156843304634094,
-				"x" : 0.53948837518692017,
-				"y" : 0.023591397330164909
-			},
-			{
-				"goto_label" : "",
 				"h" : 0.061848785728216171,
 				"mode" : 0,
 				"name" : "Nome Fornitore",

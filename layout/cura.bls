@@ -9,9 +9,9 @@
 				"mode" : 0,
 				"name" : "Nome Fornitore",
 				"page" : 1,
-				"script" : "$if($not($contains(@,\"CURA GAS & POWER S.p.A.\")))\n  $error(\"Layout invalido\")\nfornitore=\"Cura\"",
+				"script" : "fornitore=\"Cura\"",
 				"spacers" : "",
-				"type" : 0,
+				"type" : 3,
 				"w" : 0.47580644488334656,
 				"x" : 0.020967742428183556,
 				"y" : 0.019384264945983887

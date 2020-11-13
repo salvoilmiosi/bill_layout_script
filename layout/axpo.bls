@@ -5,19 +5,6 @@
 		[
 			{
 				"goto_label" : "",
-				"h" : 0.084535844624042511,
-				"mode" : 0,
-				"name" : "Convalida Layout",
-				"page" : 1,
-				"script" : "$if($not($search(@,\"(BOLLETTA ENERGIA ELETTRICA)\")))\n  $error(\"Layout invalido\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.18631814420223236,
-				"x" : 0.79810905456542969,
-				"y" : 0.018676523119211197
-			},
-			{
-				"goto_label" : "",
 				"h" : 0.069555304944515228,
 				"mode" : 0,
 				"name" : "Nome Fornitore",
@@ -61,7 +48,7 @@
 				"mode" : 0,
 				"name" : "Dati bolletta",
 				"page" : 1,
-				"script" : "numero_fattura=$search(@,\"N\\\\. fattura (\\\\d+)\")\ndata_fattura=$date(@,\"N\\\\. fattura \\\\d+ del DD\\\\.MM\\\\.YYYY\")\ndata_inizio=$date(@,\"PERIODO DD\\\\.MM\\\\.YYYY - DD\\\\.MM\\\\.YYYY\",1)\ndata_fine=$date(@,\"PERIODO DD\\\\.MM\\\\.YYYY - DD\\\\.MM\\\\.YYYY\",2)\nmese_fattura=$date(data_fine,\"YYYY-MM\")\nnumero_cliente=$search(@,\"CODICE CLIENTE (.+)\\n\")\ncodice_pod=$search(@,\"CODICE POD ([0-9A-Z]+)\")\nindirizzo_fornitura=$search($nospace(@),\"FORNIAMO ENERGIA IN (.+) CODICE POD\")\n*multipod=$not(codice_pod)",
+				"script" : "numero_fattura=$search(@,\"N\\\\. fattura (\\\\d+)\")\ndata_fattura=$date(@,\"N\\\\. fattura \\\\d+ del DD\\\\.MM\\\\.YYYY\")\ndata_inizio=$date(@,\"PERIODO DD\\\\.MM\\\\.YYYY - DD\\\\.MM\\\\.YYYY\",1)\ndata_fine=$date(@,\"PERIODO DD\\\\.MM\\\\.YYYY - DD\\\\.MM\\\\.YYYY\",2)\nmese_fattura=$date(data_fine,\"YYYY-MM\")\nnumero_cliente=$search(@,\"CODICE CLIENTE (.+)\\n\")\ncodice_pod=$search(@,\"CODICE POD ([0-9A-Z]+)\")\nindirizzo_fornitura=$search($nospace(@),\"FORNIAMO ENERGIA IN (.+) CODICE POD\")\n*multipod=$isempty(codice_pod)",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.22615706920623779,
