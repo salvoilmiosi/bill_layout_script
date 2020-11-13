@@ -82,7 +82,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
             }
             return variable();
         })},
-        {"strlen", create_function([](const variable &str) { return str.str().size(); })},
+        {"strlen", create_function([](const variable &str) { return (int) str.str().size(); })},
         {"isempty", create_function([](const variable &str) { return str.empty(); })},
         {"strcat", [](const arg_list &args) {
             std::string var;

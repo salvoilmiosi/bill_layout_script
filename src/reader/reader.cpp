@@ -77,11 +77,11 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     }
     case ERROR: throw layout_error(get_string_ref()); break;
     case PARSENUM:
-        if (m_var_stack.back().type() != VALUE_NUMBER) {
-            m_var_stack.back() = variable(parse_number(m_var_stack.back().str()), VALUE_NUMBER);
+        if (m_var_stack.back().type() != VALUE_NUMBER && !m_var_stack.back().empty()) {
+            m_var_stack.back() = dec::fromString<fixed_point>(parse_number(m_var_stack.back().str()));
         }
         break;
-    case PARSEINT: m_var_stack.back() = variable(std::to_string(m_var_stack.back().asInt()), VALUE_NUMBER); break;
+    case PARSEINT: m_var_stack.back() = m_var_stack.back().asInt(); break;
     case EQ:  exec_operator([](const variable &a, const variable &b) { return a == b; }); break;
     case NEQ: exec_operator([](const variable &a, const variable &b) { return a != b; }); break;
     case AND: exec_operator([](const variable &a, const variable &b) { return a.isTrue() && b.isTrue(); }); break;
@@ -169,7 +169,7 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
         set_variable(get_variable() - variable(cmd.get<small_int>()));
         break;
     case ISSET: m_var_stack.push_back(get_variable_size() != 0); break;
-    case SIZE: m_var_stack.push_back(get_variable_size()); break;
+    case SIZE: m_var_stack.push_back((int) get_variable_size()); break;
     case PUSHCONTENT:
         m_content_stack.emplace_back(m_var_stack.back().str());
         m_var_stack.pop_back();

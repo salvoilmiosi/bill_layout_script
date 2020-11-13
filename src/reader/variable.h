@@ -2,6 +2,7 @@
 #define __VARIABLE_H__
 
 #include <string>
+#include <variant>
 
 #include "decimal.h"
 
@@ -16,38 +17,23 @@ using fixed_point = dec::decimal<10>;
 class variable {
 public:
     variable() {}
-    variable(const std::string &value, value_type type = VALUE_STRING) : m_value(value), m_type(type) {}
-    variable(const std::string_view &value, value_type type = VALUE_STRING) : m_value(std::string(value)), m_type(type) {}
-    variable(const fixed_point &value) : m_type(VALUE_NUMBER) {
-        if (value.getAsDouble() == value.getAsInteger()) {
-            m_value = std::to_string(value.getAsInteger());
-        } else {
-            m_value = dec::toString(value);
-        }
-    }
+    variable(const std::string &value) : m_value(value), m_type(VALUE_STRING) {}
+    variable(std::string_view value) : m_value(std::string(value)), m_type(VALUE_STRING) {}
 
-    template<typename T> variable(const T &value) : variable(fixed_point(value)) {}
-    variable(const size_t &value) : variable(int(value)) {}
+    variable(const fixed_point &value) : m_value(value), m_type(VALUE_NUMBER) {}
+    template<typename T> variable(T value) : m_value(fixed_point(value)), m_type(VALUE_NUMBER) {}
 
     value_type type() const {
         return m_type;
     }
 
-    const std::string &str() const {
-        return m_value;
-    }
+    std::string str() const;
 
-    fixed_point number() const {
-        return fixed_point(m_value);
-    }
+    fixed_point number() const;
 
-    int asInt() const {
-        return number().getAsInteger();
-    }
+    int asInt() const;
 
-    bool empty() const {
-        return m_value.empty();
-    }
+    bool empty() const;
 
     bool isTrue() const;
 
@@ -64,7 +50,7 @@ public:
     bool debug = false;
 
 private:
-    std::string m_value;
+    std::variant<std::string, fixed_point> m_value;
     value_type m_type{VALUE_UNDEFINED};
 };
 
