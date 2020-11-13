@@ -113,7 +113,7 @@
 				"mode" : 0,
 				"name" : "Valori fattura",
 				"page" : 2,
-				"script" : "$tokens($search(@,\"Energia attiva kWh $NUMBER $NUMBER ($NUMBER $NUMBER $NUMBER)\",3)) {\n  %energia_attiva+ %energia_attiva+ %energia_attiva+\n}\n$tokens($search(@,\"Energia Reattiva kVARh ($NUMBER $NUMBER $NUMBER)\")) {\n  %energia_reattiva+ %energia_reattiva+ %energia_reattiva+\n}\n$tokens($search(@,\"Potenza prelevata kW ($NUMBER $NUMBER $NUMBER)\")) {\n  %potenza+ %potenza+ %potenza+\n}",
+				"script" : "$tokens($search(@,\"Energia attiva kWh $NUMBER $NUMBER ($NUMBER $NUMBER $NUMBER)\",3)) {\n  %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]\n}\n$tokens($search(@,\"Energia Reattiva kVARh ($NUMBER $NUMBER $NUMBER)\")) {\n  %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]\n}\n$tokens($search(@,\"Potenza prelevata kW ($NUMBER $NUMBER $NUMBER)\")) {\n  %potenza[0] %potenza[1] %potenza[2]\n}",
 				"spacers" : "*page_offset *pod_offset",
 				"type" : 0,
 				"w" : 0.79435485601425171,

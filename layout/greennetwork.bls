@@ -152,7 +152,7 @@
 				"mode" : 0,
 				"name" : "Prezzo Energia",
 				"page" : 5,
-				"script" : "$tokens(@) {\n  %prezzo_energia+ %prezzo_energia+ %prezzo_energia+\n}",
+				"script" : "$tokens(@) {\n  %prezzo_energia[0] %prezzo_energia[1] %prezzo_energia[2]\n}",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.10208247601985931,
