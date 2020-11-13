@@ -9,6 +9,8 @@ app_dir = Path(sys.argv[0]).parent
 dir_out = Path(sys.argv[1]) if len(sys.argv) >= 2 else app_dir.joinpath('out')
 dir_schede = Path(sys.argv[2] if len(sys.argv) >= 3 else 'W:/schede/')
 
+today_date = datetime.date.today()
+
 for f in dir_out.rglob('*.xlsx'):
     nome_cliente = f.stem
 
@@ -20,13 +22,16 @@ for f in dir_out.rglob('*.xlsx'):
 
     old_filename = ''
 
+    indices = {c.value.strip():i for i,c in enumerate(tuple(ws.rows)[0]) if isinstance(c.value, str)}
+
     for row in tuple(ws.rows)[1:]:
-        codice_pod = row[1].value
-        mese_fattura = row[2].value
-        num_fattura = row[4].value
+        codice_pod = row[indices['POD']].value
+        mese_fattura = row[indices['Mese']].value
+        num_fattura = row[indices['N. Fatt.']].value
+        date_download = row[indices['Data Download']].value.date()
         if num_fattura == None or codice_pod == None:
             continue
-        if not isinstance(mese_fattura, datetime.datetime):
+        if mese_fattura != None and not isinstance(mese_fattura, datetime.datetime):
             mese_fattura = datetime.datetime.strptime(mese_fattura, '%Y-%m')
 
         filename = dir_schede.joinpath('BE {0} {1}.xlsx'.format(nome_cliente, codice_pod[-3:]))
@@ -42,15 +47,26 @@ for f in dir_out.rglob('*.xlsx'):
                 print(filename, 'Non trovato')
                 continue
             old_filename = filename
+            
+        indices_scheda = {c.value.strip():i for i,c in enumerate(tuple(ws_scheda.rows)[1]) if isinstance(c.value, str)}
 
         found = False
+        isnew = False
         for row_scheda in tuple(ws_scheda.rows)[2:]:
             mese_scheda = row_scheda[0].value
             if not isinstance(mese_scheda, datetime.datetime):
                 mese_scheda = datetime.datetime.strptime(mese_scheda, '%Y-%m')
-            if row_scheda[2].value == num_fattura and mese_scheda == mese_fattura:
+            if mese_fattura != None and mese_fattura != '' and mese_scheda == mese_fattura:
+                num_fattura_scheda = row_scheda[indices_scheda['N. Fatt.']].value
+                if today_date == date_download:
+                    if num_fattura_scheda != None and num_fattura_scheda != '':
+                        continue
+                    else:
+                        isnew = True
+                elif num_fattura != num_fattura_scheda:
+                    continue
                 found = True
-                for cell_out, cell_scheda in zip(row[3:28], row_scheda[1:26]):
+                for cell_out, cell_scheda in zip(row[indices['Fornitore']:indices['PEF3']+1], row_scheda[indices_scheda['Fornitore']:indices_scheda['PEF3']+1]):
                     if isinstance(cell_out.value,str) and cell_out.value[-1:] == '%':
                         cell_out.number_format = '0%'
                         cell_out.value = float(cell_out.value[:-1]) / 100
@@ -58,7 +74,9 @@ for f in dir_out.rglob('*.xlsx'):
                         cell_out.number_format = 'DD/MM/YY'
                     cell_scheda.number_format = cell_out.number_format
                     cell_scheda.value = cell_out.value
-        if (found):
+        if isnew:
+            print(nome_cliente, codice_pod, num_fattura, 'Added')
+        elif found:
             print(nome_cliente, codice_pod, num_fattura, 'Update')
         else:
             print(nome_cliente, codice_pod, num_fattura)

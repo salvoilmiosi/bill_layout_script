@@ -2,12 +2,15 @@ import subprocess
 import sys
 import json
 import datetime
+import time
+import os
 from pathlib import Path
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Border, Side
 
 table_values = [
     {'title':'File','value':'filename'},
+    {'title':'Data Download','value':'lastmodified','type':'date'},
     {'title':'POD','value':'codice_pod'},
     {'title':'Mese','value':'mese_fattura','type':'month'},
     {'title':'Fornitore','value':'fornitore'},
@@ -58,6 +61,8 @@ def read_file(pdf_file):
             for obj in table_values:
                 if obj['value'] == 'filename':
                     row.append({'value':str(rel_path),'type':'str'})
+                elif obj['value'] == 'lastmodified':
+                    row.append({'value':datetime.date.fromtimestamp(os.stat(str(path)).st_mtime),'type':'date'})
                 else:
                     try:
                         row.append({'value':json_page[obj['value']][obj['index'] if 'index' in obj else 0], 'type':obj['type'] if 'type' in obj else 'str'})
@@ -92,13 +97,15 @@ ws = wb.active
 
 ws.append([obj['title'] for obj in table_values])
 
-out.sort(key = lambda obj: (obj[1]['value'], obj[2]['value']))
+indices = {x['title']:i for i,x in enumerate(table_values)}
+
+out.sort(key = lambda obj: (obj[indices['POD']]['value'], obj[indices['Mese']]['value']))
 
 old_pod = ''
 old_date = ''
 for i, row in enumerate(out, 2):
-    new_pod = row[1]['value']
-    new_date = row[2]['value']
+    new_pod = row[indices['POD']]['value']
+    new_date = row[indices['Mese']]['value']
     for j, c in enumerate(row, 1):
         cell = ws.cell(row=i, column=j)
         if new_pod != old_pod:
@@ -108,7 +115,10 @@ for i, row in enumerate(out, 2):
                 cell.value = c['value']
             elif c['type'] == 'date':
                 cell.number_format = 'DD/MM/YY'
-                cell.value = datetime.datetime.strptime(c['value'], "%Y-%m-%d")
+                if isinstance(c['value'],datetime.date):
+                    cell.value = c['value']
+                else:
+                    cell.value = datetime.datetime.strptime(c['value'], "%Y-%m-%d")
             elif c['type'] == 'month':
                 cell.number_format = 'MM/YYYY'
                 cell.value = datetime.datetime.strptime(c['value'], "%Y-%m")
@@ -119,8 +129,8 @@ for i, row in enumerate(out, 2):
                 cell.value = float(c['value'][:-1]) / 100
         except (KeyError, IndexError, ValueError):
             pass
-    if new_date == old_date:
-        ws.cell(row=i, column=3).fill = PatternFill(patternType='solid', fgColor='ffff00')
+    if new_date == '' or new_date == old_date:
+        ws.cell(row=i, column=indices['Mese'] + 1).fill = PatternFill(patternType='solid', fgColor='ffff00')
     old_pod = new_pod
     old_date = new_date
 

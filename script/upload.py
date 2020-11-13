@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from getpass import getpass
 
+path_schede = Path("W:/schede")
+
 session = requests.Session()
 
 login = {'f':'login'}
@@ -26,7 +28,7 @@ with open(Path(sys.argv[0]).parent.joinpath('forniture.txt')) as file:
         id_fornitura = match.group(1)
         scheda = match.group(2)
 
-        files = {'file': open(Path("W:/schede").joinpath(scheda, 'rb'))}
+        files = {'file': open(path_schede.joinpath(scheda), 'rb')}
         values = {'f':'importDatiFatture', 'id_fornitura':id_fornitura}
         uploadr = json.loads(session.post('https://portale.bollettaetica.com/zelda/fornitura.ws', verify=False, data=values, files=files).text)
         print(scheda, uploadr['head']['status']['type'])
