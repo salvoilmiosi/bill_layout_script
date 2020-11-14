@@ -65,9 +65,12 @@ private:
 private:
     disassembler m_asm;
 
-    std::vector<variable> m_var_stack;
-    std::vector<content_view> m_content_stack;
-    std::vector<variable_ref> m_ref_stack;
+    template<typename T>
+    using stack_t = std::stack<T, std::vector<T>>;
+
+    stack_t<variable> m_var_stack;
+    stack_t<content_view> m_content_stack;
+    stack_t<variable_ref> m_ref_stack;
 
     size_t m_page_num = 0;
     size_t m_programcounter = 0;

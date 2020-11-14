@@ -51,14 +51,14 @@ void reader::call_function(const std::string &name, size_t numargs) {
     static const std::map<std::string, function_handler> dispatcher {
         {"search", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
             try {
-                return search_regex(regex.str(), str.str(), index.empty() ? 1 : index.asInt());
+                return search_regex(regex.str(), str.str(), index.empty() ? 1 : index.as_int());
             } catch (std::regex_error &error) {
                 throw layout_error(fmt::format("Espressione regolare non valida: {0}", regex.str()));
             }
         })},
         {"date", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
             try {
-                return parse_date(regex.str(), str.str(), index.empty() ? 1 : index.asInt());
+                return parse_date(regex.str(), str.str(), index.empty() ? 1 : index.as_int());
             } catch (std::regex_error &error) {
                 throw layout_error(fmt::format("Espressione regolare non valida: {0}", regex.str()));
             }
@@ -66,21 +66,21 @@ void reader::call_function(const std::string &name, size_t numargs) {
         {"month_begin", create_function([](const variable &str) { return str.str() + "-01"; })},
         {"month_end", create_function([](const variable &str) { return date_month_end(str.str()); })},
         {"nospace", create_function([](const variable &str) { return nospace(str.str()); })},
-        {"ifl", create_function<2, 3>   ([](const variable &condition, const variable &var_if, const variable &var_else) { return condition.isTrue() ? var_if : var_else; })},
+        {"ifl", create_function<2, 3>   ([](const variable &condition, const variable &var_if, const variable &var_else) { return condition.as_bool() ? var_if : var_else; })},
         {"coalesce", [](const arg_list &args) {
             for (auto &arg : args) {
                 if (!arg.empty()) return arg;
             }
-            return variable();
+            return variable::null_var();
         }},
         {"contains", create_function<2>([](const variable &str, const variable &str2) {
             return str.str().find(str2.str()) != std::string::npos;
         })},
         {"substr", create_function<2, 3>([](const variable &str, const variable &pos, const variable &count) {
-            if ((size_t) pos.asInt() < str.str().size()) {
-                return variable(str.str().substr(pos.asInt(), count.empty() ? std::string::npos : count.asInt()));
+            if ((size_t) pos.as_int() < str.str().size()) {
+                return variable(str.str().substr(pos.as_int(), count.empty() ? std::string::npos : count.as_int()));
             }
-            return variable();
+            return variable::null_var();
         })},
         {"strlen", create_function([](const variable &str) { return (int) str.str().size(); })},
         {"isempty", create_function([](const variable &str) { return str.empty(); })},
@@ -96,12 +96,12 @@ void reader::call_function(const std::string &name, size_t numargs) {
     try {
         auto it = dispatcher.find(name);
         if (it != dispatcher.end()) {
-            arg_list vars;
+            arg_list vars(numargs);
             for (size_t i=0; i<numargs; ++i) {
-                vars.push_back(m_var_stack[m_var_stack.size()-numargs+i]);
+                vars[numargs - i - 1] = m_var_stack.top();
+                m_var_stack.pop();
             }
-            m_var_stack.resize(m_var_stack.size() - numargs);
-            m_var_stack.push_back(it->second(vars));
+            m_var_stack.push(it->second(vars));
         } else {
             throw layout_error(fmt::format("Funzione sconosciuta: {0}", name));
         }

@@ -1,11 +1,13 @@
 #include "variable.h"
 #include "reader.h"
 
+#include "../shared/utils.h"
+
 std::string variable::str() const {
-    switch (m_type) {
-    case VALUE_STRING:
+    switch (m_value.index()) {
+    case 0:
         return std::get<std::string>(m_value);
-    case VALUE_NUMBER:
+    case 1:
     {
         std::string s = dec::toString(std::get<fixed_point>(m_value));
         auto it = s.rbegin();
@@ -21,58 +23,66 @@ std::string variable::str() const {
 }
 
 fixed_point variable::number() const {
-    switch (m_type) {
-    case VALUE_STRING:
-        return dec::fromString<fixed_point>(std::get<std::string>(m_value));
-    case VALUE_NUMBER:
+    switch (m_value.index()) {
+    case 0:
+        return fixed_point(std::get<std::string>(m_value));
+    case 1:
         return std::get<fixed_point>(m_value);
     default:
         return fixed_point(0);
     }
 }
 
-int variable::asInt() const {
-    switch (m_type) {
-    case VALUE_STRING:
+int variable::as_int() const {
+    switch (m_value.index()) {
+    case 0:
         try {
             return std::stoi(std::get<std::string>(m_value));
         } catch (std::invalid_argument &) {
             return 0;
         }
-    case VALUE_NUMBER:
+    case 1:
         return std::get<fixed_point>(m_value).getAsInteger();
     default:
         return 0;
     }
 }
 
-bool variable::empty() const {
-    switch (m_type) {
-    case VALUE_STRING:
-        return std::get<std::string>(m_value).empty();
-    case VALUE_NUMBER:
-        return false;
-    default:
-        return true;
-    }
-}
-
-bool variable::isTrue() const {
-    switch(m_type) {
-    case VALUE_STRING:
+bool variable::as_bool() const {
+    switch(m_value.index()) {
+    case 0:
         return ! std::get<std::string>(m_value).empty();
-    case VALUE_NUMBER:
+    case 1:
         return std::get<fixed_point>(m_value) != fixed_point(0);
     default:
         return false;
     }
 }
 
+bool variable::empty() const {
+    switch (m_value.index()) {
+    case 0:
+        return std::get<std::string>(m_value).empty();
+    case 1:
+        return false;
+    default:
+        return true;
+    }
+}
+
+variable variable::str_to_number() {
+    if (std::holds_alternative<std::string>(m_value)) {
+        return dec::fromString<fixed_point>(parse_number(std::get<std::string>(m_value)));
+    } else {
+        return *this;
+    }
+}
+
 bool variable::operator == (const variable &other) const {
-    switch(other.m_type) {
-    case VALUE_STRING:
+    switch(other.m_value.index()) {
+    case 0:
         return std::get<std::string>(m_value) == other.str();
-    case VALUE_NUMBER:
+    case 1:
         return std::get<fixed_point>(m_value) == other.number();
     default:
         return false;
