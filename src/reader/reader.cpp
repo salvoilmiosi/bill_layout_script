@@ -7,9 +7,10 @@
 void reader::read_layout(const pdf_info &info, std::istream &input) {
     m_asm.read_bytecode(input);
 
-    m_var_stack = decltype(m_var_stack)();
-    m_content_stack = decltype(m_content_stack)();
-    m_ref_stack = decltype(m_ref_stack)();
+    m_var_stack = {};
+    m_content_stack = {};
+    m_ref_stack = {};
+    m_spacer = {};
     m_programcounter = 0;
     m_jumped = false;
 
@@ -64,12 +65,8 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     case RDBOX:
     case RDPAGE:
     case RDFILE:
-    {
-        auto box = cmd.get<command_box>();
-        box.spacers = m_asm.get_string(box.ref_spacers);
-        read_box(info, box);
+        read_box(info, cmd.get<pdf_rect>());
         break;
-    }
     case CALL:
     {
         const auto &call = cmd.get<command_call>();
@@ -80,6 +77,7 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     case PARSENUM: if (!m_var_stack.top().empty()) m_var_stack.top() = m_var_stack.top().str_to_number(); break;
     case PARSEINT: m_var_stack.top() = m_var_stack.top().as_int(); break;
     case NOT: m_var_stack.top() = !m_var_stack.top().as_bool(); break;
+    case NEG: m_var_stack.top() = -m_var_stack.top(); break;
     case EQ:  exec_operator([](const auto &a, const auto &b) { return a == b; }); break;
     case NEQ: exec_operator([](const auto &a, const auto &b) { return a != b; }); break;
     case AND: exec_operator([](const auto &a, const auto &b) { return a.as_bool() && b.as_bool(); }); break;
@@ -118,8 +116,30 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
         ref.name = get_string_ref();
         ref.index = INDEX_GLOBAL;
         m_ref_stack.push(std::move(ref));
-    }
         break;
+    }
+    case MVBOX:
+    {
+        switch (static_cast<spacer_index>(cmd.get<small_int>())) {
+        case SPACER_PAGE:
+            m_spacer.page += m_var_stack.top().as_int();
+            break;
+        case SPACER_X:
+            m_spacer.x += m_var_stack.top().number().getAsDouble();
+            break;
+        case SPACER_Y:
+            m_spacer.y += m_var_stack.top().number().getAsDouble();
+            break;
+        case SPACER_W:
+            m_spacer.w += m_var_stack.top().number().getAsDouble();
+            break;
+        case SPACER_H:
+            m_spacer.h += m_var_stack.top().number().getAsDouble();
+            break;
+        }
+        m_var_stack.pop();
+        break;
+    }
     case SETDEBUG: m_var_stack.top().set_debug(true); break;
     case CLEAR: clear_variable(); break;
     case APPEND:
@@ -204,12 +224,6 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     case POPCONTENT: m_content_stack.pop(); break;
     case NEXTLINE: m_content_stack.top().next_token("\n"); break;
     case NEXTTOKEN: m_content_stack.top().next_token("\t\n\v\f\r "); break;
-    case SPACER:
-    {
-        const auto &spacer = cmd.get<command_spacer>();
-        m_spacers[m_asm.get_string(spacer.name)] = {spacer.w, spacer.h};
-        break;
-    }
     case NEXTPAGE:
         ++m_page_num;
         break;
@@ -219,42 +233,14 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     }
 }
 
-void reader::read_box(const pdf_info &info, layout_box box) {
-    for (auto &name : tokenize(box.spacers)) {
-        if (name.front() == '*') {
-            box.page += get_global(name.substr(1)).as_int();
-        } else {
-            if (name.size() <= 2 || name.at(name.size()-2) != '.') {
-                throw layout_error(fmt::format("Spaziatore {0} incorretto", name));
-            }
-            bool negative = name.front() == '-';
-            auto it = m_spacers.find(negative ? name.substr(1, name.size()-3) : name.substr(0, name.size()-2));
-            if (it == m_spacers.end()) continue;
-            switch (name.back()) {
-            case 'x':
-                if (negative) box.x -= it->second.w;
-                else box.x += it->second.w;
-                break;
-            case 'w':
-                if (negative) box.w -= it->second.w;
-                else box.w += it->second.w;
-                break;
-            case 'y':
-                if (negative) box.y -= it->second.h;
-                else box.y += it->second.h;
-                break;
-            case 'h':
-                if (negative) box.h -= it->second.h;
-                else box.h += it->second.h;
-                break;
-            default:
-                throw layout_error(fmt::format("Spaziatore {0} incorretto", name));
-            }
-        }
-    }
-
-    while (!m_content_stack.empty())
-        m_content_stack.pop();
+void reader::read_box(const pdf_info &info, pdf_rect box) {
+    box.page += m_spacer.page;
+    box.x += m_spacer.x;
+    box.y += m_spacer.y;
+    box.w += m_spacer.w;
+    box.h += m_spacer.h;
+    m_spacer = {};
+    m_content_stack = {};
     m_content_stack.push(pdf_to_text(info, box));
 }
 

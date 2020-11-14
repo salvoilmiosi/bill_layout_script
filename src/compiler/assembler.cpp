@@ -39,31 +39,29 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         switch (hash(cmd)) {
         case hash("RDBOX"):
         {
-            command_box box;
+            pdf_rect box;
             box.type = BOX_RECTANGLE;
             box.mode = static_cast<read_mode>(std::stoi(args[0]));
             box.page = std::stoi(args[1]);
-            box.ref_spacers = add_string(args[2]);
-            box.x = std::stof(args[3]);
-            box.y = std::stof(args[4]);
-            box.w = std::stof(args[5]);
-            box.h = std::stof(args[6]);
+            box.x = std::stof(args[2]);
+            box.y = std::stof(args[3]);
+            box.w = std::stof(args[4]);
+            box.h = std::stof(args[5]);
             add_command(RDBOX, std::move(box));
             break;
         }
         case hash("RDPAGE"):
         {
-            command_box box;
+            pdf_rect box;
             box.type = BOX_PAGE;
             box.mode = static_cast<read_mode>(std::stoi(args[0]));
             box.page = std::stoi(args[1]);
-            box.ref_spacers = add_string(args[2]);
             add_command(RDPAGE, std::move(box));
             break;
         }
         case hash("RDFILE"):
         {
-            layout_box box;
+            pdf_rect box;
             box.type = BOX_WHOLE_FILE;
             box.mode = static_cast<read_mode>(std::stoi(args[0]));
             add_command(RDFILE, std::move(box));
@@ -77,15 +75,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
             add_command(CALL, std::move(call));
             break;
         }
-        case hash("SPACER"):
-        {
-            command_spacer spacer;
-            spacer.name = add_string(args[0]);
-            spacer.w = std::stof(args[1]);
-            spacer.h = std::stof(args[2]);
-            add_command(SPACER, std::move(spacer));
-            break;
-        }
+        case hash("MVBOX"):         add_command(MVBOX, std::stoi(arg_str)); break;
         case hash("ERROR"):         add_command(ERROR, add_string(parse_string(arg_str))); break;
         case hash("PARSENUM"):      add_command(PARSENUM); break;
         case hash("PARSEINT"):      add_command(PARSEINT); break;
@@ -94,6 +84,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("AND"):           add_command(AND); break;
         case hash("OR"):            add_command(OR); break;
         case hash("NOT"):           add_command(NOT); break;
+        case hash("NEG"):           add_command(NEG); break;
         case hash("ADD"):           add_command(ADD); break;
         case hash("SUB"):           add_command(SUB); break;
         case hash("MUL"):           add_command(MUL); break;
@@ -162,10 +153,9 @@ void assembler::write_bytecode(std::ostream &output) {
         switch (line.command) {
         case RDBOX:
         {
-            const auto &box = line.get<command_box>();
+            const auto &box = line.get<pdf_rect>();
             write_data(static_cast<small_int>(box.mode));
             write_data(static_cast<small_int>(box.page));
-            write_data(box.ref_spacers);
             write_data(box.x);
             write_data(box.y);
             write_data(box.w);
@@ -174,15 +164,14 @@ void assembler::write_bytecode(std::ostream &output) {
         }
         case RDPAGE:
         {
-            const auto &box = line.get<command_box>();
+            const auto &box = line.get<pdf_rect>();
             write_data(static_cast<small_int>(box.mode));
             write_data(static_cast<small_int>(box.page));
-            write_data(box.ref_spacers);
             break;
         }
         case RDFILE:
         {
-            const auto &box = line.get<command_box>();
+            const auto &box = line.get<pdf_rect>();
             write_data(static_cast<small_int>(box.mode));
             break;
         }
@@ -191,14 +180,6 @@ void assembler::write_bytecode(std::ostream &output) {
             const auto &call = line.get<command_call>();
             write_data(call.name);
             write_data(call.numargs);
-            break;
-        }
-        case SPACER:
-        {
-            const auto &spacer = line.get<command_spacer>();
-            write_data(spacer.name);
-            write_data(spacer.w);
-            write_data(spacer.h);
             break;
         }
         case SELVARIDX:
@@ -227,6 +208,7 @@ void assembler::write_bytecode(std::ostream &output) {
         case PUSHINT:
         case INC:
         case DEC:
+        case MVBOX:
             write_data(line.get<small_int>());
             break;
         case JMP:

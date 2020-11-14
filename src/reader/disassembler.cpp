@@ -15,11 +15,10 @@ void disassembler::read_bytecode(std::istream &input) {
         switch(cmd) {
         case RDBOX:
         {
-            command_box box;
+            pdf_rect box;
             box.type = BOX_RECTANGLE;
             box.mode = static_cast<read_mode>(readData<small_int>(input));
             box.page = readData<small_int>(input);
-            box.ref_spacers = readData<string_ref>(input);
             box.x = readData<float>(input);
             box.y = readData<float>(input);
             box.w = readData<float>(input);
@@ -29,20 +28,18 @@ void disassembler::read_bytecode(std::istream &input) {
         }
         case RDPAGE:
         {
-            command_box box;
+            pdf_rect box;
             box.type = BOX_PAGE;
             box.mode = static_cast<read_mode>(readData<small_int>(input));
             box.page = readData<small_int>(input);
-            box.ref_spacers = readData<string_ref>(input);
             m_commands.emplace_back(RDPAGE, std::move(box));
             break;
         }
         case RDFILE:
         {
-            command_box box;
+            pdf_rect box;
             box.type = BOX_WHOLE_FILE;
             box.mode = static_cast<read_mode>(readData<small_int>(input));
-            box.ref_spacers = 0xffff;
             m_commands.emplace_back(RDFILE, std::move(box));
             break;
         }
@@ -52,15 +49,6 @@ void disassembler::read_bytecode(std::istream &input) {
             call.name = readData<string_ref>(input);
             call.numargs = readData<small_int>(input);
             m_commands.emplace_back(CALL, std::move(call));
-            break;
-        }
-        case SPACER:
-        {
-            command_spacer spacer;
-            spacer.name = readData<string_ref>(input);
-            spacer.w = readData<float>(input);
-            spacer.h = readData<float>(input);
-            m_commands.emplace_back(SPACER, std::move(spacer));
             break;
         }
         case SELVARIDX:
@@ -91,6 +79,7 @@ void disassembler::read_bytecode(std::istream &input) {
         case PUSHINT:
         case INC:
         case DEC:
+        case MVBOX:
             m_commands.emplace_back(cmd, readData<small_int>(input));
             break;
         case JMP:

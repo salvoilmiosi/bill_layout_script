@@ -10,6 +10,7 @@ enum asm_command {
     RDBOX,      // byte mode, byte page, string spacers, float x, float y, float w, float h -- legge il rettangolo e resetta content_stack
     RDPAGE,     // byte mode, byte page, string spacers -- legge la pagina e resetta content_stack
     RDFILE,     // byte mode -- legge l'intero file e resetta content_stack
+    MVBOX,      // byte index -- pop, sposta il rettangolo a seconda dello spacer
     CALL,       // string fun_name, byte numargs -- pop * numargs, push della variabile ritornata
     ERROR,      // string message -- throw layout_error(error)
     PARSENUM,   // pop, push parse_num su top
@@ -18,6 +19,7 @@ enum asm_command {
     NEQ,        // pop * 2, push a != b
     AND,        // pop * 2, push a && b
     OR,         // pop * 2, push a || b
+    NEG,        // pop, push -a
     NOT,        // pop, push !a
     ADD,        // pop * 2, push a + b
     SUB,        // pop * 2, push a - b
@@ -56,7 +58,6 @@ enum asm_command {
     NEXTLINE,   // avanza di un token newline nel top di content_stack
     NEXTTOKEN,  // avanza di un token spazio nel top di content_stack
     POPCONTENT, // pop da content_stack
-    SPACER,     // string name, float w, float h -- m_globals[name] = {w, h}
     NEXTPAGE,   // m_page_num++
     STRDATA,    // short len, (byte * len) data -- dati stringa
     HLT=0xff,   // stop esecuzione
@@ -68,19 +69,17 @@ typedef uint16_t string_ref;
 typedef uint16_t jump_address;
 typedef uint16_t string_size;
 
-struct command_box : public layout_box {
-    string_ref ref_spacers;
-};
-
 struct command_call {
     string_ref name;
     small_int numargs;
 };
 
-struct command_spacer {
-    string_ref name;
-    float w;
-    float h;
+enum spacer_index {
+    SPACER_PAGE,
+    SPACER_X,
+    SPACER_Y,
+    SPACER_W,
+    SPACER_H
 };
 
 struct variable_idx {

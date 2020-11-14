@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "../shared/utils.h"
+#include "../shared/bytecode.h"
 
 void parser::read_layout(const bill_layout_script &layout) {
     try {
@@ -16,17 +17,42 @@ void parser::read_layout(const bill_layout_script &layout) {
 
 void parser::read_box(const layout_box &box) {
     current_box = &box;
+    if (!box.goto_label.empty()) add_line("{0}:", box.goto_label);
+
+    for (auto &name : tokenize(box.spacers)) {
+        if (name.size() <= 2) {
+            throw parsing_error{fmt::format("Spaziatore {0} incorretto", name), box.spacers};
+        }
+        add_line("SELGLOBAL {0}", name.substr(2));
+        add_line("PUSHVAR");
+        switch (name[1]) {
+        case '+':
+            break;
+        case '-':
+            add_line("NEG");
+        default:
+            throw parsing_error{fmt::format("Spaziatore {0} incorretto", name), box.spacers};
+        }
+        switch (name.front()) {
+        case 'p': add_line("MVBOX {0}", SPACER_PAGE); break;
+        case 'x': add_line("MVBOX {0}", SPACER_X); break;
+        case 'y': add_line("MVBOX {0}", SPACER_Y); break;
+        case 'w': add_line("MVBOX {0}", SPACER_W); break;
+        case 'h': add_line("MVBOX {0}", SPACER_H); break;
+        default:
+            throw parsing_error{fmt::format("Spaziatore {0} incorretto", name), box.spacers};
+        }
+    }
 
     tokens = tokenizer(box.script);
-    if (!box.goto_label.empty()) add_line("{0}:", box.goto_label);
     switch (box.type) {
     case BOX_DISABLED:
         break;
     case BOX_RECTANGLE:
-        add_line("RDBOX {0},{1},{2},{3},{4},{5},{6}", box.mode, box.page, box.spacers, box.x, box.y, box.w, box.h);
+        add_line("RDBOX {0},{1},{2},{3},{4},{5}", box.mode, box.page, box.x, box.y, box.w, box.h);
         break;
     case BOX_PAGE:
-        add_line("RDPAGE {0},{1},{2}", box.mode, box.page, box.spacers);
+        add_line("RDPAGE {0},{1}", box.mode, box.page);
         break;
     case BOX_WHOLE_FILE:
         add_line("RDFILE {0}", box.mode);
@@ -165,7 +191,6 @@ int parser::read_variable() {
             index = std::stoi(std::string(tokens.current().value));
             break;
         case TOK_BRACKET_END:
-            tokens.advance();
             flags |= VAR_APPEND;
             break;
         default:
@@ -366,14 +391,6 @@ void parser::read_function() {
         tokens.require(TOK_PAREN_END);
         add_line("CLEAR");
         break;
-    case hash("addspacer"):
-    {
-        tokens.require(TOK_PAREN_BEGIN);
-        auto id = tokens.require(TOK_IDENTIFIER);
-        tokens.require(TOK_PAREN_END);
-        add_line("SPACER {0},{1},{2}", id.value, current_box->w, current_box->h);
-        break;
-    }
     case hash("lines"):
     {
         std::string lines_label = fmt::format("__lines_{0}", output_asm.size());
@@ -436,6 +453,20 @@ void parser::read_function() {
         tokens.require(TOK_PAREN_BEGIN);
         tokens.require(TOK_PAREN_END);
         add_line("NEXTPAGE");
+        break;
+    }
+    case hash("boxwidth"):
+    {
+        tokens.require(TOK_PAREN_BEGIN);
+        tokens.require(TOK_PAREN_END);
+        add_line("PUSHFLOAT {0}", current_box->w);
+        break;
+    }
+    case hash("boxheight"):
+    {
+        tokens.require(TOK_PAREN_BEGIN);
+        tokens.require(TOK_PAREN_END);
+        add_line("PUSHFLOAT {0}", current_box->h);
         break;
     }
     default:
