@@ -1,6 +1,7 @@
 .vscode/*
 bin/*
 obj/*
+script/out/*
 layout/*.out
 layout/*.txt
 *.sh
@@ -10,6 +11,3 @@ layout/*.txt
 *.o
 *.d
 *.res
-*.pdf
-*.csv
-*.xlsx

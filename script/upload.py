@@ -4,6 +4,9 @@ import requests
 import json
 from pathlib import Path
 from getpass import getpass
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 path_schede = Path("W:/schede")
 
@@ -11,11 +14,13 @@ session = requests.Session()
 
 login = {'f':'login'}
 
+address = 'https://portale.bollettaetica.com'
+
 while True:
     login['login'] = input('Nome utente: ')
     login['password'] = getpass('Password: ')
 
-    loginr = json.loads(session.post('https://portale.bollettaetica.com/login.ws', verify=False, data=login).text)
+    loginr = json.loads(session.post(address + '/login.ws', verify=False, data=login).text)
     print('Login:', loginr['head']['status']['type'])
     if loginr['head']['status']['code'] == 1:
         break
@@ -30,5 +35,5 @@ with open(Path(sys.argv[0]).parent.joinpath('forniture.txt')) as file:
 
         files = {'file': open(path_schede.joinpath(scheda), 'rb')}
         values = {'f':'importDatiFatture', 'id_fornitura':id_fornitura}
-        uploadr = json.loads(session.post('https://portale.bollettaetica.com/zelda/fornitura.ws', verify=False, data=values, files=files).text)
+        uploadr = json.loads(session.post(address + '/zelda/fornitura.ws', verify=False, data=values, files=files).text)
         print(scheda, uploadr['head']['status']['type'])

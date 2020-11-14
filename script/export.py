@@ -1,4 +1,3 @@
-import subprocess
 import sys
 import json
 import datetime
@@ -6,98 +5,104 @@ import time
 import os
 from pathlib import Path
 from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
 from openpyxl.styles import PatternFill, Border, Side
 
+class TableValue:
+    def __init__(self, title, value, index=0, type='str', number_format=None, column_width=None):
+        self.title = title
+        self.value = value
+        self.index = index
+        self.type = type
+        self.number_format = number_format
+        self.column_width = column_width
+
 table_values = [
-    {'title':'File','value':'filename'},
-    {'title':'Data Download','value':'lastmodified','type':'date'},
-    {'title':'POD','value':'codice_pod'},
-    {'title':'Mese','value':'mese_fattura','type':'month'},
-    {'title':'Fornitore','value':'fornitore'},
-    {'title':'N. Fatt.','value':'numero_fattura'},
-    {'title':'Data Emissione','value':'data_fattura','type':'date'},
-    {'title':'Data scadenza','value':'data_scadenza','type':'date'},
-    {'title':'Costo Materia Energia','value':'spesa_materia_energia','type':'number'},
-    {'title':'Trasporto','value':'trasporto_gestione','type':'number'},
-    {'title':'Oneri','value':'oneri','type':'number'},
-    {'title':'Accise','value':'accise','type':'number'},
-    {'title':'Iva','value':'iva','type':'percentage'},
-    {'title':'Imponibile','value':'imponibile','type':'number'},
-    {'title':'F1','value':'energia_attiva','index':0,'type':'number'},
-    {'title':'F2','value':'energia_attiva','index':1,'type':'number'},
-    {'title':'F3','value':'energia_attiva','index':2,'type':'number'},
-    {'title':'P1','value':'potenza','index':0,'type':'number'},
-    {'title':'P2','value':'potenza','index':1,'type':'number'},
-    {'title':'P3','value':'potenza','index':2,'type':'number'},
-    {'title':'R1','value':'energia_reattiva','index':0,'type':'number'},
-    {'title':'R2','value':'energia_reattiva','index':1,'type':'number'},
-    {'title':'R3','value':'energia_reattiva','index':2,'type':'number'},
-    {'title':'CTS','value':'cts','type':'number'},
-    {'title':'>75%','value':'penale_reattiva_sup75','type':'number'},
-    {'title':'<75%','value':'penale_reattiva_inf75','type':'number'},
-    {'title':'PEF1','value':'prezzo_energia','index':0,'type':'number'},
-    {'title':'PEF2','value':'prezzo_energia','index':1,'type':'number'},
-    {'title':'PEF3','value':'prezzo_energia','index':2,'type':'number'},
+    TableValue('File',                  'filename'),
+    TableValue('Ultima Modifica',       'lastmodified',              type='date'),
+    TableValue('POD',                   'codice_pod', column_width=16),
+    TableValue('Mese',                  'mese_fattura',              type='month'),
+    TableValue('Fornitore',             'fornitore'),
+    TableValue('N. Fatt.',              'numero_fattura'),
+    TableValue('Data Emissione',        'data_fattura',              type='date'),
+    TableValue('Data scadenza',         'data_scadenza',             type='date'),
+    TableValue('Costo Materia Energia', 'spesa_materia_energia',     type='euro', column_width=11),
+    TableValue('Trasporto',             'trasporto_gestione',        type='euro', column_width=11),
+    TableValue('Oneri',                 'oneri',                     type='euro', column_width=11),
+    TableValue('Accise',                'accise',                    type='euro'),
+    TableValue('Iva',                   'iva',                       type='percentage'),
+    TableValue('Imponibile',            'imponibile',                type='euro', column_width=11),
+    TableValue('F1',                    'energia_attiva',   index=0, type='int'),
+    TableValue('F2',                    'energia_attiva',   index=1, type='int'),
+    TableValue('F3',                    'energia_attiva',   index=2, type='int'),
+    TableValue('P1',                    'potenza',          index=0, type='int'),
+    TableValue('P2',                    'potenza',          index=1, type='int'),
+    TableValue('P3',                    'potenza',          index=2, type='int'),
+    TableValue('R1',                    'energia_reattiva', index=0, type='int'),
+    TableValue('R2',                    'energia_reattiva', index=1, type='int'),
+    TableValue('R3',                    'energia_reattiva', index=2, type='int'),
+    TableValue('CTS',                   'cts',                       type='euro'),
+    TableValue('>75%',                  'penale_reattiva_sup75',     type='euro'),
+    TableValue('<75%',                  'penale_reattiva_inf75',     type='euro'),
+    TableValue('PEF1',                  'prezzo_energia',   index=0, type='number', number_format='0.00000000', column_width=11),
+    TableValue('PEF2',                  'prezzo_energia',   index=1, type='number', number_format='0.00000000', column_width=11),
+    TableValue('PEF3',                  'prezzo_energia',   index=2, type='number', number_format='0.00000000', column_width=11),
 ]
 
 out = []
 out_err = []
 
-def read_file(pdf_file):
-    rel_path = pdf_file.relative_to(input_directory)
-    print(rel_path)
+def add_rows(json_data):
+    filename = json_data['filename']
+    lastmodified = json_data['lastmodified']
 
-    args = [app_dir.joinpath('../bin/layout_reader'), '-p', pdf_file, '-s', file_layout]
-    proc = subprocess.run(args, capture_output=True, text=True)
+    print(filename)
 
-    try:
-        json_output = json.loads(proc.stdout)
-        json_values = json_output['values']
-    except:
-        out_err.append([str(rel_path), proc.stderr])
-    else:
-        for json_page in json_values:
-            row = []
-            for obj in table_values:
-                if obj['value'] == 'filename':
-                    row.append({'value':str(rel_path),'type':'str'})
-                elif obj['value'] == 'lastmodified':
-                    row.append({'value':datetime.date.fromtimestamp(os.stat(str(path)).st_mtime),'type':'date'})
-                else:
-                    try:
-                        row.append({'value':json_page[obj['value']][obj['index'] if 'index' in obj else 0], 'type':obj['type'] if 'type' in obj else 'str'})
-                    except (KeyError, IndexError, ValueError):
-                        row.append({'value':'','type':''})
+    if 'error' in json_data:
+        out_err.append([filename, json_data['error']])
+        return
+    for json_page in json_data['values']:
+        row = []
 
-            out.append(row)
+        for obj in table_values:
+            if obj.value == 'filename':
+                row.append({'value':filename, 'type':'str'})
+            elif obj.value == 'lastmodified':
+                row.append({'value':datetime.date.fromtimestamp(lastmodified), 'type':'date'})
+            else:
+                try:
+                    row.append({'value':json_page[obj.value][obj.index], 'type':obj.type, 'number_format':obj.number_format})
+                except (KeyError, IndexError, ValueError):
+                    row.append({'value':'', 'type':''})
+
+        out.append(row)
 
 if len(sys.argv) < 2:
-    print('Argomenti richiesti: input_directory [script_controllo.out] [output.xlsx]')
+    print('Argomenti richiesti: input_file [output.xlsx]')
     sys.exit()
 
 app_dir = Path(sys.argv[0]).parent
 
-input_directory = Path(sys.argv[1])
-file_layout = Path(sys.argv[2]) if len(sys.argv) >= 3 else app_dir.joinpath('../layout/controllo.out')
-output_file = Path(sys.argv[3]) if len(sys.argv) >= 4 else app_dir.joinpath('out/{0}.xlsx'.format(input_directory.name))
+input_file = Path(sys.argv[1])
+output_file = Path(sys.argv[2]) if len(sys.argv) >= 3 else input_file.with_suffix('.xlsx')
 
-if not input_directory.exists():
-    print('La directory {0} non esiste'.format(input_directory))
+if not input_file.exists():
+    print('Il file {0} non esiste'.format(input_file))
     sys.exit(1)
 
-if not file_layout.exists():
-    print('Il file di layout {0} non esiste'.format(file_layout))
-    sys.exit(1)
-
-for path in input_directory.rglob('*.pdf'):
-    read_file(path)
+with open(input_file, 'r') as fin:
+    for r in json.loads(fin.read()):
+        add_rows(r)
 
 wb = Workbook()
 ws = wb.active
 
-ws.append([obj['title'] for obj in table_values])
+ws.append([obj.title for obj in table_values])
+for i, obj in enumerate(table_values, 1):
+    if obj.column_width != None:
+        ws.column_dimensions[get_column_letter(i)].width = obj.column_width
 
-indices = {x['title']:i for i,x in enumerate(table_values)}
+indices = {x.title:i for i,x in enumerate(table_values)}
 
 out.sort(key = lambda obj: (obj[indices['POD']]['value'], obj[indices['Mese']]['value']))
 
@@ -112,6 +117,7 @@ for i, row in enumerate(out, 2):
             cell.border = Border(top=Side(border_style='thin', color='000000'))
         try:
             if c['type'] == 'str':
+                cell.number_format = '@'
                 cell.value = c['value']
             elif c['type'] == 'date':
                 cell.number_format = 'DD/MM/YY'
@@ -122,7 +128,15 @@ for i, row in enumerate(out, 2):
             elif c['type'] == 'month':
                 cell.number_format = 'MM/YYYY'
                 cell.value = datetime.datetime.strptime(c['value'], "%Y-%m")
+            elif c['type'] == 'euro':
+                cell.number_format = '#,##0.00 €'
+                cell.value = float(c['value'])
+            elif c['type'] == 'int':
+                cell.number_format = '0'
+                cell.value = float(c['value'])
             elif c['type'] == 'number':
+                if 'number_format' in c and c['number_format'] != None:
+                    cell.number_format = c['number_format']
                 cell.value = float(c['value'])
             elif c['type'] == 'percentage':
                 cell.number_format = '0%'

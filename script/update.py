@@ -31,7 +31,7 @@ for f in dir_out.rglob('*.xlsx'):
         codice_pod = row[indices['POD']].value
         mese_fattura = row[indices['Mese']].value
         num_fattura = row[indices['N. Fatt.']].value
-        date_download = row[indices['Data Download']].value.date()
+        date_lastmodified = row[indices['Ultima Modifica']].value.date()
         if num_fattura == None or codice_pod == None:
             continue
         if mese_fattura != None and not isinstance(mese_fattura, datetime.datetime):
@@ -69,7 +69,7 @@ for f in dir_out.rglob('*.xlsx'):
                 mese_scheda = datetime.datetime.strptime(mese_scheda, '%Y-%m')
             if mese_fattura != None and mese_fattura != '' and mese_scheda == mese_fattura:
                 num_fattura_scheda = row_scheda[indices_scheda['N. Fatt.']].value
-                if newfile or today_date == date_download:
+                if newfile or today_date == date_lastmodified:
                     if num_fattura_scheda != None and num_fattura_scheda != '':
                         continue
                     else:
