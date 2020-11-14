@@ -3,11 +3,14 @@ from openpyxl import load_workbook
 from pathlib import Path
 import datetime
 import sys
+from shutil import copyfile
 
 app_dir = Path(sys.argv[0]).parent
 
 dir_out = Path(sys.argv[1]) if len(sys.argv) >= 2 else app_dir.joinpath('out')
-dir_schede = Path(sys.argv[2] if len(sys.argv) >= 3 else 'W:/schede/')
+dir_schede = Path(sys.argv[2] if len(sys.argv) >= 3 else 'W:/schede')
+
+scheda_pulita = dir_schede.joinpath('--- BE Pulito.xlsx')
 
 today_date = datetime.date.today()
 
@@ -34,10 +37,18 @@ for f in dir_out.rglob('*.xlsx'):
         if mese_fattura != None and not isinstance(mese_fattura, datetime.datetime):
             mese_fattura = datetime.datetime.strptime(mese_fattura, '%Y-%m')
 
+
         filename = dir_schede.joinpath('BE {0} {1}.xlsx'.format(nome_cliente, codice_pod[-3:]))
         if not filename.exists():
             filename = dir_schede.joinpath('BE {0} {1}.xlsx'.format(nome_cliente, codice_pod[-4:]))
+        
         if filename != old_filename:
+            if filename.exists():
+                newfile = False
+            else:
+                copyfile(scheda_pulita, filename)
+                newfile = True
+            
             if old_filename != '':
                 wb_scheda.save(old_filename)
             try:
@@ -53,12 +64,12 @@ for f in dir_out.rglob('*.xlsx'):
         found = False
         isnew = False
         for row_scheda in tuple(ws_scheda.rows)[2:]:
-            mese_scheda = row_scheda[0].value
+            mese_scheda = row_scheda[indices_scheda['Mese fattura']].value
             if not isinstance(mese_scheda, datetime.datetime):
                 mese_scheda = datetime.datetime.strptime(mese_scheda, '%Y-%m')
             if mese_fattura != None and mese_fattura != '' and mese_scheda == mese_fattura:
                 num_fattura_scheda = row_scheda[indices_scheda['N. Fatt.']].value
-                if today_date == date_download:
+                if newfile or today_date == date_download:
                     if num_fattura_scheda != None and num_fattura_scheda != '':
                         continue
                     else:
