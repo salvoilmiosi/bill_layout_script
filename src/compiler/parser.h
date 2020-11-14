@@ -34,10 +34,9 @@ private:
     void read_box(const layout_box &box);
     const layout_box *current_box = nullptr;
     
-    void add_value(int flags);
-    void exec_line();
-    void evaluate();
-    void exec_function();
+    void read_statement();
+    void read_expression();
+    void read_function();
 
     int read_variable();
 

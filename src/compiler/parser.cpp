@@ -32,55 +32,55 @@ void parser::read_box(const layout_box &box) {
         add_line("RDFILE {0}", box.mode);
         break;
     }
-    while (!tokens.ate()) exec_line();
+    while (!tokens.ate()) read_statement();
 }
 
-void parser::add_value(int flags) {
-    if (flags & VAR_NUMBER) {
-        add_line("PARSENUM");
-    }
+void parser::read_statement() {
+    auto add_value = [&](int flags) {
+        if (flags & VAR_NUMBER) {
+            add_line("PARSENUM");
+        }
 
-    if (flags & VAR_DEBUG) {
-        add_line("SETDEBUG");
-    }
+        if (flags & VAR_DEBUG) {
+            add_line("SETDEBUG");
+        }
 
-    if (flags & VAR_APPEND) {
-        add_line("APPEND");
-    } else if (flags & VAR_CLEAR) {
-        add_line("RESETVAR");
-    } else {
-        add_line("SETVAR");
-    }
-}
+        if (flags & VAR_APPEND) {
+            add_line("APPEND");
+        } else if (flags & VAR_CLEAR) {
+            add_line("RESETVAR");
+        } else {
+            add_line("SETVAR");
+        }
+    };
 
-void parser::exec_line() {
-    tokens.next(true);
+    tokens.peek();
     switch (tokens.current().type) {
     case TOK_BRACE_BEGIN:
         tokens.advance();
         while (true) {
-            tokens.next(true);
+            tokens.peek();
             if (tokens.current().type == TOK_BRACE_END) {
                 tokens.advance();
                 break;
             }
-            exec_line();
+            read_statement();
         }
         break;
     case TOK_COMMENT:
         tokens.advance();
         break;
     case TOK_FUNCTION:
-        exec_function();
+        read_function();
         break;
     default:
     {
         int flags = read_variable();
-        tokens.next(true);
+        tokens.peek();
         switch (tokens.current().type) {
         case TOK_EQUALS:
             tokens.advance();
-            evaluate();
+            read_expression();
             add_value(flags);
             break;
         case TOK_END_OF_FILE:
@@ -93,11 +93,11 @@ void parser::exec_line() {
     }
 }
 
-void parser::evaluate() {
-    tokens.next(true);
+void parser::read_expression() {
+    tokens.peek();
     switch (tokens.current().type) {
     case TOK_FUNCTION:
-        exec_function();
+        read_function();
         break;
     case TOK_NUMBER:
         tokens.advance();
@@ -154,11 +154,11 @@ int parser::read_variable() {
         return flags;
     }
 
-    tokens.next(true);
+    tokens.peek();
     switch (tokens.current().type) {
     case TOK_BRACKET_BEGIN:
         tokens.advance();
-        tokens.next(true);
+        tokens.peek();
         switch (tokens.current().type) {
         case TOK_NUMBER:
             tokens.advance();
@@ -169,7 +169,7 @@ int parser::read_variable() {
             flags |= VAR_APPEND;
             break;
         default:
-            evaluate();
+            read_expression();
             getindex = true;
         }
         tokens.require(TOK_BRACKET_END);
@@ -190,50 +190,22 @@ int parser::read_variable() {
     return flags;
 }
 
-void parser::exec_function() {
+void parser::read_function() {
     tokens.require(TOK_FUNCTION);
     tokens.require(TOK_IDENTIFIER);
     std::string fun_name = std::string(tokens.current().value);
 
     switch(hash(fun_name)) {
     case hash("if"):
-    {
-        std::string else_label = fmt::format("__else_{0}", output_asm.size());
-        std::string endif_label = fmt::format("__endif_{0}", output_asm.size());
-        tokens.require(TOK_PAREN_BEGIN);
-        evaluate();
-        tokens.require(TOK_PAREN_END);
-        add_line("JZ {0}", else_label);
-        exec_line();
-        tokens.next();
-        token tok_else = tokens.current();
-        bool has_else = false;
-        if (tokens.current().type == TOK_FUNCTION) {
-            tokens.next();
-            if (tokens.current().value == "else") {
-                has_else = true;
-            }
-        }
-        if (has_else) {
-            add_line("JMP {0}", endif_label);
-            add_line("{0}:", else_label);
-            exec_line();
-            add_line("{0}:", endif_label);
-        } else {
-            add_line("{0}:", else_label);
-            tokens.gotoTok(tok_else);
-        }
-        break;
-    }
     case hash("ifnot"):
     {
         std::string else_label = fmt::format("__else_{0}", output_asm.size());
         std::string endif_label = fmt::format("__endif_{0}", output_asm.size());
         tokens.require(TOK_PAREN_BEGIN);
-        evaluate();
+        read_expression();
         tokens.require(TOK_PAREN_END);
-        add_line("JNZ {0}", else_label);
-        exec_line();
+        add_line(fun_name == "if" ? "JZ {0}" : "JNZ {0}", else_label);
+        read_statement();
         tokens.next();
         token tok_else = tokens.current();
         bool has_else = false;
@@ -246,7 +218,7 @@ void parser::exec_function() {
         if (has_else) {
             add_line("JMP {0}", endif_label);
             add_line("{0}:", else_label);
-            exec_line();
+            read_statement();
             add_line("{0}:", endif_label);
         } else {
             add_line("{0}:", else_label);
@@ -260,10 +232,10 @@ void parser::exec_function() {
         std::string endwhile_label = fmt::format("__endwhile_{0}", output_asm.size());
         tokens.require(TOK_PAREN_BEGIN);
         add_line("{0}:", while_label);
-        evaluate();
+        read_expression();
         add_line("JZ {0}", endwhile_label);
         tokens.require(TOK_PAREN_END);
-        exec_line();
+        read_statement();
         add_line("JMP {0}", while_label);
         add_line("{0}:", endwhile_label);
         break;
@@ -278,11 +250,11 @@ void parser::exec_function() {
         add_line("{0}:", for_label);
         add_line("SELVARIDX {0},0", idx_name.value);
         add_line("PUSHVAR");
-        evaluate();
+        read_expression();
         add_line("LT");
         add_line("JZ {0}", endfor_label);
         tokens.require(TOK_PAREN_END);
-        exec_line();
+        read_statement();
         add_line("SELVARIDX {0},0", idx_name.value);
         add_line("INC 1");
         add_line("JMP {0}", for_label);
@@ -315,13 +287,13 @@ void parser::exec_function() {
         std::string amount = "1";
         switch(tokens.current().type) {
         case TOK_COMMA:
-            tokens.next(true);
+            tokens.peek();
             if (tokens.current().type == TOK_NUMBER) {
                 tokens.advance();
                 inc_amt = true;
                 amount = tokens.current().value;
             } else {
-                evaluate();
+                read_expression();
                 inc_amt = false;
             }
             tokens.require(TOK_PAREN_END);
@@ -350,13 +322,13 @@ void parser::exec_function() {
         std::string amount = "1";
         switch(tokens.current().type) {
         case TOK_COMMA:
-            tokens.next(true);
+            tokens.peek();
             if (tokens.current().type == TOK_NUMBER) {
                 tokens.advance();
                 inc_amt = true;
                 amount = tokens.current().value;
             } else {
-                evaluate();
+                read_expression();
                 inc_amt = false;
             }
             tokens.require(TOK_PAREN_END);
@@ -407,13 +379,13 @@ void parser::exec_function() {
         std::string lines_label = fmt::format("__lines_{0}", output_asm.size());
         std::string endlines_label = fmt::format("__endlines_{0}", output_asm.size());
         tokens.require(TOK_PAREN_BEGIN);
-        evaluate();
+        read_expression();
         tokens.require(TOK_PAREN_END);
         add_line("PUSHCONTENT");
         add_line("{0}:", lines_label);
         add_line("NEXTLINE");
         add_line("JTE {0}", endlines_label);
-        exec_line();
+        read_statement();
         add_line("JMP {0}", lines_label);
         add_line("{0}:", endlines_label);
         add_line("POPCONTENT");
@@ -422,30 +394,30 @@ void parser::exec_function() {
     case hash("with"):
     {
         tokens.require(TOK_PAREN_BEGIN);
-        evaluate();
+        read_expression();
         tokens.require(TOK_PAREN_END);
         add_line("PUSHCONTENT");
-        exec_line();
+        read_statement();
         add_line("POPCONTENT");
         break;
     }
     case hash("tokens"):
     {
         tokens.require(TOK_PAREN_BEGIN);
-        evaluate();
+        read_expression();
         tokens.require(TOK_PAREN_END);
         add_line("PUSHCONTENT");
 
         tokens.require(TOK_BRACE_BEGIN);
 
         while (true) {
-            tokens.next(true);
+            tokens.peek();
             if (tokens.current().type == TOK_BRACE_END) {
                 tokens.advance();
                 break;
             }
             add_line("NEXTTOKEN");
-            exec_line();
+            read_statement();
         }
         add_line("POPCONTENT");
         break;
@@ -472,13 +444,13 @@ void parser::exec_function() {
         tokens.require(TOK_PAREN_BEGIN);
         bool in_fun_loop = true;
         while (in_fun_loop) {
-            tokens.next(true);
+            tokens.peek();
             if (tokens.current().type == TOK_PAREN_END) {
                 tokens.advance();
                 break;
             }
             ++num_args;
-            evaluate();
+            read_expression();
             tokens.next();
             switch (tokens.current().type) {
             case TOK_COMMA:

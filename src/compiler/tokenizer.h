@@ -44,9 +44,13 @@ public:
     bool next(bool peek = false);
     token require(token_type type);
 
+    bool peek() {
+        return next(true);
+    }
+    void advance();
+
     parsing_error unexpected_token(token_type type);
 
-    void advance();
     void gotoTok(const token &tok);
 
     bool ate() {
