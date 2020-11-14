@@ -28,7 +28,7 @@ void tokenizer::skipSpaces() {
     }
 }
 
-bool tokenizer::next(bool peek) {
+bool tokenizer::next() {
     skipSpaces();
     
     auto start = _current;
@@ -113,36 +113,8 @@ bool tokenizer::next(bool peek) {
     if (!ok) tok.type = TOK_ERROR;
     tok.value = std::string_view(start, _current - start);
 
-    if (peek) {
-        _current = start;
-    }
-
     return ok;
 }
-
-static const char *TOKEN_NAMES[] = {
-    "eof",
-    "errore",
-    "commento",
-    "identificatore",
-    "stringa",
-    "numero",
-    "'$'",
-    "'('",
-    "')'",
-    "','",
-    "'['",
-    "']'",
-    "'{'",
-    "'}'",
-    "'='",
-    "'%'",
-    "'*'",
-    "'!'",
-    "'+'",
-    "':'",
-    "'@'"
-};
 
 token tokenizer::require(token_type type) {
     next();
@@ -152,16 +124,23 @@ token tokenizer::require(token_type type) {
     return current();
 }
 
-parsing_error tokenizer::unexpected_token(token_type type) {
-    return parsing_error{fmt::format("Imprevisto '{0}', richiesto {1}", current().value, TOKEN_NAMES[type]), getLocation(current())};
+bool tokenizer::peek() {
+    auto pos = _current;
+    bool ret = next();
+    _current = pos;
+    return ret;
 }
 
 void tokenizer::advance() {
-    _current += tok.value.size();
+    _current = tok.value.begin() + tok.value.size();
 }
 
 void tokenizer::gotoTok(const token &tok) {
     _current = tok.value.begin();
+}
+
+parsing_error tokenizer::unexpected_token(token_type type) {
+    return parsing_error{fmt::format("Imprevisto '{0}', richiesto {1}", current().value, TOKEN_NAMES[type]), getLocation(current())};
 }
 
 std::string tokenizer::getLocation(const token &tok) {

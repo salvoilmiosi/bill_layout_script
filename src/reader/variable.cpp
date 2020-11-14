@@ -70,11 +70,14 @@ bool variable::empty() const {
     }
 }
 
-variable variable::str_to_number() {
-    if (std::holds_alternative<std::string>(m_value)) {
-        return dec::fromString<fixed_point>(parse_number(std::get<std::string>(m_value)));
-    } else {
-        return *this;
+fixed_point variable::str_to_number() {
+    switch (m_value.index()) {
+    case 0:
+        return fixed_point(parse_number(std::get<std::string>(m_value)));
+    case 1:
+        return std::get<fixed_point>(m_value);
+    default:
+        return fixed_point(0);
     }
 }
 

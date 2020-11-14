@@ -38,7 +38,7 @@ public:
 
     bool empty() const;
 
-    variable str_to_number();
+    fixed_point str_to_number();
 
     bool operator == (const variable &other) const;
     bool operator != (const variable &other) const;

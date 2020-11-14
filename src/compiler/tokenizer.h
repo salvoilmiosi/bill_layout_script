@@ -26,6 +26,30 @@ enum token_type {
     TOK_CONTENT,            // @
 };
 
+constexpr const char *TOKEN_NAMES[] = {
+    "eof",
+    "errore",
+    "commento",
+    "identificatore",
+    "stringa",
+    "numero",
+    "'$'",
+    "'('",
+    "')'",
+    "','",
+    "'['",
+    "']'",
+    "'{'",
+    "'}'",
+    "'='",
+    "'%'",
+    "'*'",
+    "'!'",
+    "'+'",
+    "':'",
+    "'@'"
+};
+
 struct parsing_error {
     const std::string message;
     const std::string line;
@@ -41,12 +65,10 @@ public:
     tokenizer() {}
     tokenizer(const std::string_view &script);
 
-    bool next(bool peek = false);
+    bool next();
     token require(token_type type);
 
-    bool peek() {
-        return next(true);
-    }
+    bool peek();
     void advance();
 
     parsing_error unexpected_token(token_type type);

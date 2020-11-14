@@ -77,7 +77,7 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
         break;
     }
     case ERROR: throw layout_error(get_string_ref()); break;
-    case PARSENUM: m_var_stack.top() = m_var_stack.top().str_to_number(); break;
+    case PARSENUM: if (!m_var_stack.top().empty()) m_var_stack.top() = m_var_stack.top().str_to_number(); break;
     case PARSEINT: m_var_stack.top() = m_var_stack.top().as_int(); break;
     case NOT: m_var_stack.top() = !m_var_stack.top().as_bool(); break;
     case EQ:  exec_operator([](const auto &a, const auto &b) { return a == b; }); break;
