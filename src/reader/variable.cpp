@@ -101,6 +101,14 @@ bool variable::operator > (const variable &other) const {
     return number() > other.number();
 }
 
+bool variable::operator <= (const variable &other) const {
+    return number() <= other.number();
+}
+
+bool variable::operator >= (const variable &other) const {
+    return number() >= other.number();
+}
+
 variable variable::operator + (const variable &other) const {
     return number() + other.number();
 }

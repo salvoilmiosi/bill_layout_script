@@ -195,7 +195,9 @@ void parser::exec_function() {
     tokens.require(TOK_IDENTIFIER);
     std::string fun_name = std::string(tokens.current().value);
 
-    if (fun_name == "if") {
+    switch(hash(fun_name)) {
+    case hash("if"):
+    {
         std::string else_label = fmt::format("__else_{0}", output_asm.size());
         std::string endif_label = fmt::format("__endif_{0}", output_asm.size());
         tokens.require(TOK_PAREN_BEGIN);
@@ -221,7 +223,39 @@ void parser::exec_function() {
             add_line("{0}:", else_label);
             tokens.gotoTok(tok_else);
         }
-    } else if (fun_name == "while") {
+        break;
+    }
+    case hash("ifnot"):
+    {
+        std::string else_label = fmt::format("__else_{0}", output_asm.size());
+        std::string endif_label = fmt::format("__endif_{0}", output_asm.size());
+        tokens.require(TOK_PAREN_BEGIN);
+        evaluate();
+        tokens.require(TOK_PAREN_END);
+        add_line("JNZ {0}", else_label);
+        exec_line();
+        tokens.next();
+        token tok_else = tokens.current();
+        bool has_else = false;
+        if (tokens.current().type == TOK_FUNCTION) {
+            tokens.next();
+            if (tokens.current().value == "else") {
+                has_else = true;
+            }
+        }
+        if (has_else) {
+            add_line("JMP {0}", endif_label);
+            add_line("{0}:", else_label);
+            exec_line();
+            add_line("{0}:", endif_label);
+        } else {
+            add_line("{0}:", else_label);
+            tokens.gotoTok(tok_else);
+        }
+        break;
+    }
+    case hash("while"):
+    {
         std::string while_label = fmt::format("__while_{0}", output_asm.size());
         std::string endwhile_label = fmt::format("__endwhile_{0}", output_asm.size());
         tokens.require(TOK_PAREN_BEGIN);
@@ -232,7 +266,10 @@ void parser::exec_function() {
         exec_line();
         add_line("JMP {0}", while_label);
         add_line("{0}:", endwhile_label);
-    } else if (fun_name == "for") {
+        break;
+    }
+    case hash("for"):
+    {
         std::string for_label = fmt::format("__for_{0}", output_asm.size());
         std::string endfor_label = fmt::format("__endfor_{0}", output_asm.size());
         tokens.require(TOK_PAREN_BEGIN);
@@ -252,7 +289,10 @@ void parser::exec_function() {
         add_line("{0}:", endfor_label);
         add_line("SELVARIDX {0},0", idx_name.value);
         add_line("CLEAR", idx_name.value);
-    } else if (fun_name == "goto") {
+        break;
+    }
+    case hash("goto"):
+    {
         tokens.require(TOK_PAREN_BEGIN);
         tokens.next();
         switch (tokens.current().type) {
@@ -264,7 +304,10 @@ void parser::exec_function() {
             throw parsing_error{"Indirizzo goto invalido", tokens.getLocation(tokens.current())};
         }
         tokens.require(TOK_PAREN_END);
-    } else if (fun_name == "inc") {
+        break;
+    }
+    case hash("inc"):
+    {
         tokens.require(TOK_PAREN_BEGIN);
         int flags = read_variable();
         tokens.next();
@@ -296,7 +339,10 @@ void parser::exec_function() {
             }
             add_line("INCTOP");
         }
-    } else if (fun_name == "dec") {
+        break;
+    }
+    case hash("dec"):
+    {
         tokens.require(TOK_PAREN_BEGIN);
         int flags = read_variable();
         tokens.next();
@@ -328,27 +374,36 @@ void parser::exec_function() {
             }
             add_line("DECTOP");
         }
-    } else if (fun_name == "isset") {
+        break;
+    }
+    case hash("isset"):
         tokens.require(TOK_PAREN_BEGIN);
         read_variable();
         tokens.require(TOK_PAREN_END);
         add_line("ISSET");
-    } else if (fun_name == "size") {
+        break;
+    case hash("size"):
         tokens.require(TOK_PAREN_BEGIN);
         read_variable();
         tokens.require(TOK_PAREN_END);
         add_line("SIZE");
-    } else if (fun_name == "clear") {
+        break;
+    case hash("clear"):
         tokens.require(TOK_PAREN_BEGIN);
         read_variable();
         tokens.require(TOK_PAREN_END);
         add_line("CLEAR");
-    } else if (fun_name == "addspacer") {
+        break;
+    case hash("addspacer"):
+    {
         tokens.require(TOK_PAREN_BEGIN);
         auto id = tokens.require(TOK_IDENTIFIER);
         tokens.require(TOK_PAREN_END);
         add_line("SPACER {0},{1},{2}", id.value, current_box->w, current_box->h);
-    } else if (fun_name == "lines") {
+        break;
+    }
+    case hash("lines"):
+    {
         std::string lines_label = fmt::format("__lines_{0}", output_asm.size());
         std::string endlines_label = fmt::format("__endlines_{0}", output_asm.size());
         tokens.require(TOK_PAREN_BEGIN);
@@ -362,14 +417,20 @@ void parser::exec_function() {
         add_line("JMP {0}", lines_label);
         add_line("{0}:", endlines_label);
         add_line("POPCONTENT");
-    } else if (fun_name == "with") {
+        break;
+    }
+    case hash("with"):
+    {
         tokens.require(TOK_PAREN_BEGIN);
         evaluate();
         tokens.require(TOK_PAREN_END);
         add_line("PUSHCONTENT");
         exec_line();
         add_line("POPCONTENT");
-    } else if (fun_name == "tokens") {
+        break;
+    }
+    case hash("tokens"):
+    {
         tokens.require(TOK_PAREN_BEGIN);
         evaluate();
         tokens.require(TOK_PAREN_END);
@@ -387,17 +448,26 @@ void parser::exec_function() {
             exec_line();
         }
         add_line("POPCONTENT");
-    } else if (fun_name == "error") {
+        break;
+    }
+    case hash("error"):
+    {
         tokens.require(TOK_PAREN_BEGIN);
         auto tok = tokens.require(TOK_STRING);
         tokens.require(TOK_PAREN_END);
 
         add_line("ERROR {0}", tok.value);
-    } else if (fun_name == "nextpage") {
+        break;
+    }
+    case hash("nextpage"):
+    {
         tokens.require(TOK_PAREN_BEGIN);
         tokens.require(TOK_PAREN_END);
         add_line("NEXTPAGE");
-    } else {
+        break;
+    }
+    default:
+    {
         int num_args = 0;
         tokens.require(TOK_PAREN_BEGIN);
         bool in_fun_loop = true;
@@ -441,5 +511,6 @@ void parser::exec_function() {
         default:
             add_line("CALL {0},{1}", fun_name,num_args);
         }
+    }
     }
 }

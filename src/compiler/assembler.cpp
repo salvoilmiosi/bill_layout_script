@@ -119,6 +119,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("PUSHVAR"):       add_command(PUSHVAR); break;
         case hash("JMP"):           add_command(JMP, getgotoindex(args[0])); break;
         case hash("JZ"):            add_command(JZ, getgotoindex(args[0])); break;
+        case hash("JNZ"):            add_command(JNZ, getgotoindex(args[0])); break;
         case hash("JTE"):           add_command(JTE, getgotoindex(args[0])); break;
         case hash("INCTOP"):        add_command(INCTOP); break;
         case hash("INC"):           add_command(INC, static_cast<small_int>(std::stoi(args[0]))); break;
@@ -230,6 +231,7 @@ void assembler::write_bytecode(std::ostream &output) {
             break;
         case JMP:
         case JZ:
+        case JNZ:
         case JTE:
             write_data(line.get<jump_address>());
             break;

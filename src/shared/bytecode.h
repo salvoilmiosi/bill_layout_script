@@ -44,6 +44,7 @@ enum asm_command {
     PUSHVAR,    // push m_selected su var_stack
     JMP,        // short address -- jump incondizionale
     JZ,         // short address -- pop, jump se top = 0
+    JNZ,        // short address -- pop, jump se top != 0
     JTE,        // short address -- jump se top di content_stack a fine di token
     INCTOP,     // pop, m_selected += top
     INC,        // byte amount -- m_selected += amount

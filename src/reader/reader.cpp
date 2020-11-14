@@ -79,21 +79,21 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     case ERROR: throw layout_error(get_string_ref()); break;
     case PARSENUM: m_var_stack.top() = m_var_stack.top().str_to_number(); break;
     case PARSEINT: m_var_stack.top() = m_var_stack.top().as_int(); break;
-    case EQ:  exec_operator([](const variable &a, const variable &b) { return a == b; }); break;
-    case NEQ: exec_operator([](const variable &a, const variable &b) { return a != b; }); break;
-    case AND: exec_operator([](const variable &a, const variable &b) { return a.as_bool() && b.as_bool(); }); break;
-    case OR:  exec_operator([](const variable &a, const variable &b) { return a.as_bool() || b.as_bool(); }); break;
     case NOT: m_var_stack.top() = !m_var_stack.top().as_bool(); break;
-    case ADD: exec_operator([](const variable &a, const variable &b) { return a + b; }); break;
-    case SUB: exec_operator([](const variable &a, const variable &b) { return a - b; }); break;
-    case MUL: exec_operator([](const variable &a, const variable &b) { return a * b; }); break;
-    case DIV: exec_operator([](const variable &a, const variable &b) { return a / b; }); break;
-    case GT:  exec_operator([](const variable &a, const variable &b) { return a > b; }); break;
-    case LT:  exec_operator([](const variable &a, const variable &b) { return a < b; }); break;
-    case GEQ: exec_operator([](const variable &a, const variable &b) { return a > b || a == b; }); break;
-    case LEQ: exec_operator([](const variable &a, const variable &b) { return a < b || a == b; }); break;
-    case MAX: exec_operator([](const variable &a, const variable &b) { return a > b ? a : b; }); break;
-    case MIN: exec_operator([](const variable &a, const variable &b) { return a < b ? a : b; }); break;
+    case EQ:  exec_operator([](const auto &a, const auto &b) { return a == b; }); break;
+    case NEQ: exec_operator([](const auto &a, const auto &b) { return a != b; }); break;
+    case AND: exec_operator([](const auto &a, const auto &b) { return a.as_bool() && b.as_bool(); }); break;
+    case OR:  exec_operator([](const auto &a, const auto &b) { return a.as_bool() || b.as_bool(); }); break;
+    case ADD: exec_operator([](const auto &a, const auto &b) { return a + b; }); break;
+    case SUB: exec_operator([](const auto &a, const auto &b) { return a - b; }); break;
+    case MUL: exec_operator([](const auto &a, const auto &b) { return a * b; }); break;
+    case DIV: exec_operator([](const auto &a, const auto &b) { return a / b; }); break;
+    case GT:  exec_operator([](const auto &a, const auto &b) { return a > b; }); break;
+    case LT:  exec_operator([](const auto &a, const auto &b) { return a < b; }); break;
+    case GEQ: exec_operator([](const auto &a, const auto &b) { return a >= b; }); break;
+    case LEQ: exec_operator([](const auto &a, const auto &b) { return a <= b; }); break;
+    case MAX: exec_operator([](const auto &a, const auto &b) { return a > b ? a : b; }); break;
+    case MIN: exec_operator([](const auto &a, const auto &b) { return a < b ? a : b; }); break;
     case SELVAR:
     {
         variable_ref ref;
@@ -149,6 +149,13 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
         break;
     case JZ:
         if (!m_var_stack.top().as_bool()) {
+            m_programcounter = cmd.get<jump_address>();
+            m_jumped = true;
+        }
+        m_var_stack.pop();
+        break;
+    case JNZ:
+        if (m_var_stack.top().as_bool()) {
             m_programcounter = cmd.get<jump_address>();
             m_jumped = true;
         }

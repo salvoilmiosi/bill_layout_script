@@ -44,6 +44,8 @@ public:
     bool operator != (const variable &other) const;
     bool operator < (const variable &other) const;
     bool operator > (const variable &other) const;
+    bool operator <= (const variable &other) const;
+    bool operator >= (const variable &other) const;
 
     variable operator + (const variable &other) const;
     variable operator - (const variable &other) const;

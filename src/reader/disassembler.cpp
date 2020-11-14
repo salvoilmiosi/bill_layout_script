@@ -95,6 +95,7 @@ void disassembler::read_bytecode(std::istream &input) {
             break;
         case JMP:
         case JZ:
+        case JNZ:
         case JTE:
             m_commands.emplace_back(cmd, readData<jump_address>(input));
             break;
