@@ -7,8 +7,6 @@
 #include <stack>
 #include <memory>
 
-#include "../shared/layout.h"
-
 #include "variable.h"
 #include "disassembler.h"
 
