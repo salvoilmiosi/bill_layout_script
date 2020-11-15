@@ -218,7 +218,8 @@ int parser::read_variable() {
 void parser::read_function() {
     tokens.require(TOK_FUNCTION);
     tokens.require(TOK_IDENTIFIER);
-    std::string fun_name = std::string(tokens.current().value);
+    auto tok_fun_name = tokens.current();
+    std::string fun_name = std::string(tok_fun_name.value);
 
     switch(hash(fun_name)) {
     case hash("if"):
@@ -493,24 +494,29 @@ void parser::read_function() {
                 throw tokens.unexpected_token(TOK_PAREN_END);
             }
         }
+        auto check_args = [&](int should_be) {
+            if (num_args != should_be) {
+                throw parsing_error{fmt::format("La funzione {0} richiede {1} argomenti", fun_name, should_be), tokens.getLocation(tok_fun_name)};
+            }
+        };
         switch (hash(fun_name)) {
-        case hash("num"): add_line("PARSENUM"); break;
-        case hash("int"): add_line("PARSEINT"); break;
-        case hash("eq"):  add_line("EQ"); break;
-        case hash("neq"): add_line("NEQ"); break;
-        case hash("and"): add_line("AND"); break;
-        case hash("or"):  add_line("OR"); break;
-        case hash("not"): add_line("NOT"); break;
-        case hash("add"): add_line("ADD"); break;
-        case hash("sub"): add_line("SUB"); break;
-        case hash("mul"): add_line("MUL"); break;
-        case hash("div"): add_line("DIV"); break;
-        case hash("gt"):  add_line("GT"); break;
-        case hash("lt"):  add_line("LT"); break;
-        case hash("geq"): add_line("GEQ"); break;
-        case hash("leq"): add_line("LEQ"); break;
-        case hash("max"): add_line("MAX"); break;
-        case hash("min"): add_line("MIN"); break;
+        case hash("num"): check_args(1); add_line("PARSENUM"); break;
+        case hash("int"): check_args(1); add_line("PARSEINT"); break;
+        case hash("eq"):  check_args(2); add_line("EQ"); break;
+        case hash("neq"): check_args(2); add_line("NEQ"); break;
+        case hash("and"): check_args(2); add_line("AND"); break;
+        case hash("or"):  check_args(2); add_line("OR"); break;
+        case hash("not"): check_args(1); add_line("NOT"); break;
+        case hash("add"): check_args(2); add_line("ADD"); break;
+        case hash("sub"): check_args(2); add_line("SUB"); break;
+        case hash("mul"): check_args(2); add_line("MUL"); break;
+        case hash("div"): check_args(2); add_line("DIV"); break;
+        case hash("gt"):  check_args(2); add_line("GT"); break;
+        case hash("lt"):  check_args(2); add_line("LT"); break;
+        case hash("geq"): check_args(2); add_line("GEQ"); break;
+        case hash("leq"): check_args(2); add_line("LEQ"); break;
+        case hash("max"): check_args(2); add_line("MAX"); break;
+        case hash("min"): check_args(2); add_line("MIN"); break;
         default:
             add_line("CALL {0},{1}", fun_name,num_args);
         }

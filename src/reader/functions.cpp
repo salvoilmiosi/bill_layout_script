@@ -17,9 +17,8 @@ using function_handler = std::function<variable(const arg_list &)>;
 template<typename Function, std::size_t ... Is>
 variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is...>) {
     auto get_arg = [](const arg_list &args, size_t index) -> const variable & {
-        static const variable VAR_NULL;
         if (args.size() <= index) {
-            return VAR_NULL;
+            return variable::null_var();
         } else {
             return args[index];
         }
