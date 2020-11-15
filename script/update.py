@@ -85,11 +85,7 @@ for f in dir_out.rglob('*.xlsx'):
                         cell_out.number_format = 'DD/MM/YY'
                     cell_scheda.number_format = cell_out.number_format
                     cell_scheda.value = cell_out.value
-        if isnew:
-            print(nome_cliente, codice_pod, num_fattura, 'Added')
-        elif found:
-            print(nome_cliente, codice_pod, num_fattura, 'Update')
-        else:
-            print(nome_cliente, codice_pod, num_fattura)
+        print(nome_cliente, codice_pod, num_fattura, mese_fattura.date() if isinstance(mese_fattura, datetime.datetime) else '-',
+            'Added' if isnew else 'Update' if found else 'Skip')
     
     wb_scheda.save(filename)
