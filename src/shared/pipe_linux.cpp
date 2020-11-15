@@ -2,6 +2,8 @@
 
 #include "pipe.h"
 #include <unistd.h>
+#include <sys/types.h>
+#include <signal.h>
 
 #define PIPE_READ 0
 #define PIPE_WRITE 1

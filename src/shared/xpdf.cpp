@@ -8,6 +8,14 @@
 
 static const char *modes[] = {"-raw", "-simple", "-table"};
 
+#ifdef __linux__
+#define PDFTOTEXT_BIN "/usr/local/bin/pdftotext"
+#define PDFINFO_BIN "/usr/local/bin/pdfinfo"
+#else
+#define PDFTOTEXT_BIN "pdftotext"
+#define PDFINFO_BIN "pdfinfo"
+#endif
+
 std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect) {
     if (!std::filesystem::exists(info.filename)) {
         throw xpdf_error(std::string("File \"") + info.filename + "\" does not exist");
@@ -27,7 +35,7 @@ std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect) {
         auto marginb = std::to_string(info.height * (1.f - in_rect.y - in_rect.h));
 
         const char *args[] = {
-            "pdftotext",
+            PDFTOTEXT_BIN,
             "-f", page_str.c_str(), "-l", page_str.c_str(),
             "-marginl", marginl.c_str(), "-marginr", marginr.c_str(),
             "-margint", margint.c_str(), "-marginb", marginb.c_str(),
@@ -47,7 +55,7 @@ std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect) {
         auto page_str = std::to_string(in_rect.page);
 
         const char *args[] = {
-            "pdftotext",
+            PDFTOTEXT_BIN,
             "-f", page_str.c_str(), "-l", page_str.c_str(),
             modes[in_rect.mode],
             info.filename.c_str(), "-",
@@ -59,7 +67,7 @@ std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect) {
     case BOX_WHOLE_FILE:
     {
         const char *args[] = {
-            "pdftotext",
+            PDFTOTEXT_BIN,
             modes[in_rect.mode],
             info.filename.c_str(), "-",
             nullptr
@@ -79,7 +87,7 @@ pdf_info pdf_get_info(const std::string &pdf) {
     }
 
     const char *args[] = {
-        "pdfinfo", pdf.c_str(), nullptr
+        PDFINFO_BIN, pdf.c_str(), nullptr
     };
 
     std::string output = open_process(args)->read_all();

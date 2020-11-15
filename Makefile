@@ -3,16 +3,18 @@ CXXFLAGS = -g -Wall --std=c++17
 LDFLAGS = 
 
 SRC_DIR = src
-OBJ_DIR = obj
-BIN_DIR = bin
+OBJ_DIR = $(PREFIX)obj
+BIN_DIR = $(PREFIX)bin
 
+BIN_SHARED = layout_shared.so
 BIN_EDITOR = layout_editor
 BIN_READER = layout_reader
 BIN_COMPILER = layout_compiler
 
 INCLUDE = `wx-config --cxxflags` `pkg-config --cflags jsoncpp fmt`
 
-LIBS_EDITOR = `wx-config --libs` `pkg-config --libs jsoncpp`
+LIBS_SHARED = `pkg-config --libs jsoncpp`
+LIBS_EDITOR = `wx-config --libs` `pkg-config --libs jsoncpp fmt`
 LIBS_READER = `pkg-config --libs jsoncpp fmt`
 LIBS_COMPILER = `pkg-config --libs jsoncpp fmt`
 
@@ -39,6 +41,7 @@ IMAGES = $(wildcard resources/*.png)
 RESOURCES = $(OBJ_DIR)/images.o
 
 ifeq ($(OS),Windows_NT)
+	BIN_SHARED := $(BIN_SHARED:.so=.dll)
 	BIN_EDITOR := $(BIN_EDITOR).exe
 	BIN_READER := $(BIN_READER).exe
 	BIN_COMPILER := $(BIN_COMPILER).exe
@@ -57,11 +60,15 @@ clean:
 $(shell mkdir -p $(BIN_DIR) >/dev/null)
 
 $(LAYOUT_DIR)/%.out: $(LAYOUT_DIR)/%.bls $(BIN_DIR)/$(BIN_COMPILER)
-	$(BIN_DIR)/$(BIN_COMPILER) -o $@ $< > $(<:.bls=.txt)
+	$(BIN_DIR)/$(BIN_COMPILER) -q -o $@ $<
+
+shared: $(BIN_DIR)/$(BIN_SHARED)
+$(BIN_DIR)/$(BIN_SHARED): $(OBJECTS_SHARED)
+	$(CXX) -shared -o $(BIN_DIR)/$(BIN_SHARED) $(LDFLAGS) $(OBJECTS_SHARED) $(LIBS_SHARED)
 
 editor: $(BIN_DIR)/$(BIN_EDITOR)
-$(BIN_DIR)/$(BIN_EDITOR): $(OBJECTS_EDITOR) $(OBJECTS_SHARED) $(RESOURCES)
-	$(CXX) -o $(BIN_DIR)/$(BIN_EDITOR) $(LDFLAGS) $(OBJECTS_EDITOR) $(OBJECTS_SHARED) $(RESOURCES) $(LIBS_EDITOR)
+$(BIN_DIR)/$(BIN_EDITOR): $(OBJECTS_EDITOR) $(BIN_DIR)/$(BIN_SHARED) $(RESOURCES)
+	$(CXX) -o $(BIN_DIR)/$(BIN_EDITOR) $(LDFLAGS) $(OBJECTS_EDITOR) $(RESOURCES) $(BIN_DIR)/$(BIN_SHARED) $(LIBS_EDITOR)
 
 $(OBJ_DIR)/images.o : $(IMAGES)
 	$(LD) -r -b binary -o $@ $^
@@ -70,14 +77,20 @@ $(OBJ_DIR)/%.res : resources/%.rc
 	`wx-config --rescomp` -O coff -o $@ -i $< 
 
 reader: $(BIN_DIR)/$(BIN_READER)
-$(BIN_DIR)/$(BIN_READER): $(OBJECTS_READER) $(OBJECTS_SHARED)
-	$(CXX) -o $(BIN_DIR)/$(BIN_READER) $(LDFLAGS) $(OBJECTS_READER) $(OBJECTS_SHARED) $(LIBS_READER) 
+$(BIN_DIR)/$(BIN_READER): $(OBJECTS_READER) $(BIN_DIR)/$(BIN_SHARED)
+	$(CXX) -o $(BIN_DIR)/$(BIN_READER) $(LDFLAGS) $(OBJECTS_READER) $(BIN_DIR)/$(BIN_SHARED) $(LIBS_READER)
 
 compiler: $(BIN_DIR)/$(BIN_COMPILER)
-$(BIN_DIR)/$(BIN_COMPILER): $(OBJECTS_COMPILER) $(OBJECTS_SHARED)
-	$(CXX) -o $(BIN_DIR)/$(BIN_COMPILER) $(LDFLAGS) $(OBJECTS_COMPILER) $(OBJECTS_SHARED) $(LIBS_COMPILER) 
+$(BIN_DIR)/$(BIN_COMPILER): $(OBJECTS_COMPILER) $(BIN_DIR)/$(BIN_SHARED)
+	$(CXX) -o $(BIN_DIR)/$(BIN_COMPILER) $(LDFLAGS) $(OBJECTS_COMPILER) $(BIN_DIR)/$(BIN_SHARED) $(LIBS_COMPILER) 
 
 DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJ_DIR)/$*.Td
+
+$(OBJ_DIR)/shared/%.o : $(SRC_DIR)/shared/%.cpp
+$(OBJ_DIR)/shared/%.o : $(SRC_DIR)/shared/%.cpp $(OBJ_DIR)/%.d
+	@mkdir -p $(dir $@)
+	$(CXX) $(DEPFLAGS) -fPIC $(CXXFLAGS) -c $(INCLUDE) -o $@ $<
+	@mv -f $(OBJ_DIR)/$*.Td $(OBJ_DIR)/$*.d && touch $@
 
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp $(OBJ_DIR)/%.d

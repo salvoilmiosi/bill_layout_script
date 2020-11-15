@@ -98,8 +98,12 @@ int main(int argc, char **argv) {
     }
     
     if (!debug) {
-        std::ofstream ofs(output_file, std::ofstream::binary | std::ofstream::out);
-        m_asm.write_bytecode(ofs);
+        if (output_file == "-") {
+            m_asm.write_bytecode(std::cout);
+        } else {
+            std::ofstream ofs(output_file, std::ofstream::binary | std::ofstream::out);
+            m_asm.write_bytecode(ofs);
+        }
     }
 
     return 0;

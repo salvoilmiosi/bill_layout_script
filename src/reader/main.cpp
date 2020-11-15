@@ -17,7 +17,6 @@ int main(int argc, char **argv) {
     std::filesystem::path file_pdf;
     std::filesystem::path layout_dir;
     bool exec_script = false;
-    bool in_file_layout = true;
     bool debug = false;
 
     for (++argv; argc > 1; --argc, ++argv) {
@@ -48,17 +47,21 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    std::unique_ptr<std::ifstream> ifs;
+    std::ifstream ifs;
+    bool input_stdin = false;
+    bool in_file_layout = true;
 
     if (input_file.empty()) {
         std::cerr << "Specificare un file di input" << std::endl;
         return 1;
+    } else if (input_file == "-") {
+        input_stdin = true;
     } else {
         if (!std::filesystem::exists(input_file)) {
             std::cerr << "Impossibile aprire il file layout " << input_file << std::endl;
             return 1;
         }
-        ifs = std::make_unique<std::ifstream>(input_file, std::ifstream::binary | std::ifstream::in);
+        ifs.open(input_file, std::ifstream::binary | std::ifstream::in);
         if (layout_dir.empty()) {
             layout_dir = input_file.parent_path();
         }
@@ -68,8 +71,12 @@ int main(int argc, char **argv) {
         auto pdf_info = pdf_get_info(file_pdf.string());
 
         if (exec_script) {
-            result.read_layout(pdf_info, *ifs);
-            ifs->close();
+            if (input_stdin) {
+                result.read_layout(pdf_info, std::cin);
+            } else {
+                result.read_layout(pdf_info, ifs);
+                ifs.close();
+            }
 
             in_file_layout = false;
         }
@@ -82,13 +89,18 @@ int main(int argc, char **argv) {
                     std::cerr << "Impossibile aprire il file layout " << input_file << std::endl;
                     return 1;
                 }
-                ifs = std::make_unique<std::ifstream>(input_file, std::ifstream::binary | std::ifstream::in);
+                ifs.open(input_file, std::ifstream::binary | std::ifstream::in);
                 in_file_layout = true;
+                input_stdin = false;
             }
         }
         if (in_file_layout) {
-            result.read_layout(pdf_info, *ifs);
-            ifs->close();
+            if (input_stdin) {
+                result.read_layout(pdf_info, std::cin);
+            } else {
+                result.read_layout(pdf_info, ifs);
+                ifs.close();
+            }
         }
     } catch (layout_error &error) {
         std::cerr << error.message << std::endl;

@@ -148,7 +148,7 @@ void parser::read_expression() {
 }
 
 int parser::read_variable() {
-    int flags;
+    int flags = 0;
     bool isglobal = false;
     bool getindex = false;
     int index = 0;

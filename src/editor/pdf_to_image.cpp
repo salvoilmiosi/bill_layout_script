@@ -5,6 +5,12 @@
 
 #include "../shared/pipe.h"
 
+#ifdef __linux__
+#define PDFTOPNG_BIN "/usr/local/bin/pdftopng"
+#else
+#define PDFTOPNG_BIN "pdftopng"
+#endif
+
 wxImage pdf_to_image(const std::string &pdf, int page) {
     if (!wxFileExists(pdf)) {
         throw xpdf_error(std::string("File \"") + pdf + "\" does not exist");
@@ -13,7 +19,7 @@ wxImage pdf_to_image(const std::string &pdf, int page) {
     auto page_str = std::to_string(page);
 
     const char *args[] = {
-        "pdftopng",
+        PDFTOPNG_BIN,
         "-f", page_str.c_str(),  "-l", page_str.c_str(),
         pdf.c_str(), "temp",
         nullptr
