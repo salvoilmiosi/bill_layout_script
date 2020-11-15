@@ -9,6 +9,7 @@ struct rwops {
     virtual int write(size_t bytes, const void *buffer) { return 0; }
     virtual void close_stdin() { }
     virtual void close_stdout() { }
+    virtual void abort() { }
 
     std::string read_all();
     int write_all(const std::string &buffer);

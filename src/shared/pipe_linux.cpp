@@ -16,6 +16,7 @@ public:
     virtual int write(size_t bytes, const void *buffer) override;
     virtual void close_stdin() override;
     virtual void close_stdout() override;
+    virtual void abort() override;
 
 private:
     int pipe_stdin[2], pipe_stdout[2];
@@ -72,6 +73,12 @@ void unix_process_rwops::close_stdin() {
 
 void unix_process_rwops::close_stdout() {
     ::close(pipe_stdout[PIPE_READ]);
+}
+
+void unix_process_rwops::abort() {
+    ::kill(child_pid, SIGTERM);
+    close_stdin();
+    close_stdout();
 }
 
 std::unique_ptr<rwops> open_process(const char *args[]) {

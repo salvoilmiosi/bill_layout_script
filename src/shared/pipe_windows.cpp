@@ -16,9 +16,11 @@ public:
     virtual int write(size_t bytes, const void *buffer) override;
     virtual void close_stdin() override;
     virtual void close_stdout() override;
+    virtual void abort() override;
 
 private:
     HANDLE pipe_stdin[2], pipe_stdout[2];
+    HANDLE process = nullptr;
 };
 
 windows_process_rwops::windows_process_rwops(const char *args[]) {
@@ -74,7 +76,7 @@ windows_process_rwops::windows_process_rwops(const char *args[]) {
             CREATE_NO_WINDOW, nullptr, nullptr, &start_info, &proc_info)) {
         throw pipe_error("Could not open child process");
     } else {
-        CloseHandle(proc_info.hProcess);
+        process = proc_info.hProcess;
         CloseHandle(proc_info.hThread);
         CloseHandle(pipe_stdout[PIPE_WRITE]);
         CloseHandle(pipe_stdin[PIPE_READ]);
@@ -82,6 +84,13 @@ windows_process_rwops::windows_process_rwops(const char *args[]) {
 }
 
 windows_process_rwops::~windows_process_rwops() {
+    if (process) CloseHandle(process);
+    close_stdin();
+    close_stdout();
+}
+
+void windows_process_rwops::abort() {
+    TerminateProcess(process, 1);
     close_stdin();
     close_stdout();
 }
@@ -101,13 +110,11 @@ int windows_process_rwops::write(size_t bytes, const void *buffer) {
 }
 
 void windows_process_rwops::close_stdin() {
-    CloseHandle(pipe_stdin[PIPE_READ]);
     CloseHandle(pipe_stdin[PIPE_WRITE]);
 }
 
 void windows_process_rwops::close_stdout() {
     CloseHandle(pipe_stdout[PIPE_READ]);
-    CloseHandle(pipe_stdout[PIPE_WRITE]);
 }
 
 std::unique_ptr<rwops> open_process(const char *args[]) {

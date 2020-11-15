@@ -122,6 +122,8 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     toolbar_top->AddTool(MENU_COPY, "Copia", wxArtProvider::GetBitmap(wxART_COPY), "Copia");
     toolbar_top->AddTool(MENU_PASTE, "Incolla", wxArtProvider::GetBitmap(wxART_PASTE), "Incolla");
 
+    toolbar_top->AddTool(MENU_READDATA, "Leggi Layout", wxArtProvider::GetBitmap(wxART_REPORT_VIEW), "Leggi Layout");
+
     toolbar_top->AddStretchableSpace();
 
     wxButton *btn_load_pdf = new wxButton(toolbar_top, CTL_LOAD_PDF, "Carica PDF", wxDefaultPosition, wxSize(100, -1));
@@ -577,14 +579,9 @@ void frame_editor::OnDelete(wxCommandEvent &evt) {
 }
 
 void frame_editor::OnReadData(wxCommandEvent &evt) {
-    if (pdf_filename.empty()) return;
-
-    try {
-        auto *diag = new output_dialog(this, layout, pdf_filename.ToStdString());
-        diag->Show();
-    } catch (const layout_error &error) {
-        wxMessageBox(error.message, "Errore", wxICON_ERROR);
-    }
+    static output_dialog *diag = new output_dialog(this);
+    diag->compileAndRead();
+    diag->Show();
 }
 
 void frame_editor::OnMoveUp(wxCommandEvent &evt) {
