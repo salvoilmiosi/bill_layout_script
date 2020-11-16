@@ -12,20 +12,25 @@ std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect) {
     if (in_rect.page >= info.num_pages) return "";
 
     try {
-        const char *args[20] = {0};
+        const char *args[30] = {0};
         size_t nargs = 0;
 
         auto p = std::to_string(in_rect.page);
-        auto x = std::to_string((int)(info.width * in_rect.x));
-        auto y = std::to_string((int)(info.height * in_rect.y));
-        auto w = std::to_string((int)(info.width * in_rect.w));
-        auto h = std::to_string((int)(info.height * in_rect.h));
+        static const float RESOLUTION = 300;
+        float resolution_factor = RESOLUTION / 72.f;
+        auto x = std::to_string((int)(info.width * in_rect.x * resolution_factor));
+        auto y = std::to_string((int)(info.height * in_rect.y * resolution_factor));
+        auto w = std::to_string((int)(info.width * in_rect.w * resolution_factor));
+        auto h = std::to_string((int)(info.height * in_rect.h * resolution_factor));
+        auto r = std::to_string((int)(RESOLUTION));
 
         args[nargs++] = "pdftotext";
         args[nargs++] = "-q";
 
         switch (in_rect.type) {
         case BOX_RECTANGLE:
+            args[nargs++] = "-r";
+            args[nargs++] = r.c_str();
             args[nargs++] = "-x";
             args[nargs++] = x.c_str();
             args[nargs++] = "-y";
