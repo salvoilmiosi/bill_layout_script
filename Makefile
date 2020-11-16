@@ -13,10 +13,10 @@ BIN_COMPILER = layout_compiler
 
 INCLUDE = `wx-config --cxxflags` `pkg-config --cflags jsoncpp fmt`
 
-LIBS_SHARED = `pkg-config --libs jsoncpp`
-LIBS_EDITOR = `wx-config --libs` `pkg-config --libs jsoncpp fmt`
-LIBS_READER = `pkg-config --libs jsoncpp fmt`
-LIBS_COMPILER = `pkg-config --libs jsoncpp fmt`
+LIBS_SHARED = `pkg-config --libs jsoncpp fmt`
+LIBS_EDITOR = `wx-config --libs` $(LIBS_SHARED)
+LIBS_READER = $(LIBS_SHARED)
+LIBS_COMPILER = $(LIBS_SHARED)
 
 SOURCES_SHARED = $(wildcard $(SRC_DIR)/shared/*.cpp $(SRC_DIR)/shared/**/*.cpp)
 OBJECTS_SHARED = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_SHARED)))
@@ -87,7 +87,7 @@ $(BIN_DIR)/$(BIN_COMPILER): $(OBJECTS_COMPILER) $(BIN_DIR)/$(BIN_SHARED)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJ_DIR)/$*.Td
 
 $(OBJ_DIR)/shared/%.o : $(SRC_DIR)/shared/%.cpp
-$(OBJ_DIR)/shared/%.o : $(SRC_DIR)/shared/%.cpp $(OBJ_DIR)/%.d
+$(OBJ_DIR)/shared/%.o : $(SRC_DIR)/shared/%.cpp $(OBJ_DIR)/shared/%.d
 	@mkdir -p $(dir $@)
 	$(CXX) $(DEPFLAGS) -fPIC $(CXXFLAGS) -c $(INCLUDE) -o $@ $<
 	@mv -f $(OBJ_DIR)/$*.Td $(OBJ_DIR)/$*.d && touch $@
