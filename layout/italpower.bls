@@ -32,7 +32,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.27987974882125854,
-				"mode" : 0,
+				"mode" : 2,
 				"name" : "Sintesi valori",
 				"page" : 1,
 				"script" : "%totale_fattura=$search(@,\"Totale Fattura $NUMBER\")\niva=$search(@,\"IVA (\\\\d+%)\")",
@@ -45,7 +45,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.25184738636016846,
-				"mode" : 0,
+				"mode" : 2,
 				"name" : "Dati cliente",
 				"page" : 1,
 				"script" : "numero_cliente=$search(@,\"Codice cliente (.+)\\n\")\nragione_sociale=$search(@,\"Ragione sociale (.+)\\n\")",
@@ -71,7 +71,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.11220685392618179,
-				"mode" : 0,
+				"mode" : 2,
 				"name" : "Dati fornitura",
 				"page" : 2,
 				"script" : "codice_pod=$search(@,\"Codice POD (.+)\\n\")\nindirizzo_fornitura=$search($nospace(@),\"Indirizzo fornitura (.+) Opzione\")",
@@ -84,7 +84,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.06718018651008606,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Energia attiva",
 				"page" : 2,
 				"script" : "$tokens($search(@,\"Misura ($NUMBER $NUMBER $NUMBER)\")) {\n  %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]\n}\n$tokens($search(@,\"Potenza \\\\(kW\\\\) ($NUMBER $NUMBER $NUMBER)\")) {\n  %potenza[0] %potenza[1] %potenza[2]\n}\n$tokens($search(@,\"Energia Reattiva \\\\(kVar\\\\) ($NUMBER $NUMBER $NUMBER)\")) {\n  %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]\n}",

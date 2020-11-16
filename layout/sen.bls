@@ -19,7 +19,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.21311831474304199,
-				"mode" : 0,
+				"mode" : 2,
 				"name" : "Sintesi degli Importi Fatturati",
 				"page" : 1,
 				"script" : "%spesa_materia_energia=$search(@,\"Spesa per la materia energia \\\\(.\\\\) $NUMBER\")\n%trasporto_gestione=$search(@,\"Spesa per il trasporto dell'energia elettrica e la gestione del contatore \\\\(.\\\\) $NUMBER\")\n%oneri=$search(@,\"Spesa per Oneri di Sistema \\\\(.\\\\) $NUMBER\")",
@@ -32,7 +32,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.17103762924671173,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Dettaglio Fiscale",
 				"page" : 1,
 				"script" : "%accise=$search(@,\"Accisa.+kWh $NUMBER\")\niva=$search(@,\"Importo IVA (\\\\d+%)\")\n%imponibile=$search(@,\"imponibile di euro $NUMBER\")",
@@ -58,10 +58,10 @@
 			{
 				"goto_label" : "",
 				"h" : 0.19207797944545746,
-				"mode" : 0,
+				"mode" : 2,
 				"name" : "Dati Fornitura",
 				"page" : 1,
-				"script" : "indirizzo_fornitura=$search($nospace(@),\"Forniamo energia in (.+)\")\n%potenza_disponibile=$search(@,\"Potenza disponibile $NUMBER\")",
+				"script" : "indirizzo_fornitura=$search($nospace(@),\"Forniamo energia in (.+) Tariffa\")\n%potenza_disponibile=$search(@,\"Potenza disponibile $NUMBER\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.45890939235687256,

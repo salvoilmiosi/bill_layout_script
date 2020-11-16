@@ -58,7 +58,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.19759140908718109,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Sintesi degli importi",
 				"page" : 1,
 				"script" : "%spesa_materia_energia=$search(@,\"Spesa per la materia energia $NUMBER\")\n%trasporto_gestione=$search(@,\"Spesa per trasporto, gestione contatore e oneri sistema $NUMBER\")\n%totale_fattura=$search(@,\"TOTALE DA PAGARE $NUMBER\")",
@@ -71,7 +71,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.10074818879365921,
-				"mode" : 0,
+				"mode" : 2,
 				"name" : "Dati Cliente",
 				"page" : 1,
 				"script" : "ragione_sociale=$search(@,\"Ragione sociale: (.+)\\n\")",
@@ -87,7 +87,7 @@
 				"mode" : 0,
 				"name" : "Dati fornitura",
 				"page" : 2,
-				"script" : "indirizzo_fornitura=$search(@,\"Le stiamo fornendo energia elettrica in (.+)\\n\")\nnumero_cliente=$search(@,\"Codice cliente: $NUMBER\")\ncodice_pod=$search(@,\"POD: (.+) Tensione\")\n%potenza_disponibile=$search(@,\"Pot\\. Disponibile kW: $NUMBER\")",
+				"script" : "indirizzo_fornitura=$search(@,\"Le stiamo fornendo energia elettrica in (.+)\\n\")\nnumero_cliente=$search(@,\"Codice cliente: $NUMBER\")\ncodice_pod=$search(@,\"POD: (.+)\\n\")\n%potenza_disponibile=$search(@,\"Pot\\. Disponibile kW: $NUMBER\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.54131680727005005,
@@ -136,7 +136,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.099364727735519409,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Accise",
 				"page" : 2,
 				"script" : "$lines($search($strcat(@,\"\\n\"),\"((.+Erariale.+$NUMBER\\n)+)\")) {\n  %accise=$search(@,\".+ $NUMBER$\")\n}",

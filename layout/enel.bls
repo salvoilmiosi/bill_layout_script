@@ -19,7 +19,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.16039527952671051,
-				"mode" : 0,
+				"mode" : 2,
 				"name" : "Dati Fornitura",
 				"page" : 1,
 				"script" : "$for(i,3) %potenza[i]=$search(@,\"Potenza contrattualmente impegnata $NUMBER\")\nindirizzo_fornitura=$search($nospace(@),\"Forniamo energia in (.+) Denominazione\")",
@@ -32,7 +32,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.15829364955425262,
-				"mode" : 0,
+				"mode" : 2,
 				"name" : "Sintesi valori",
 				"page" : 1,
 				"script" : "%spesa_materia_energia=$search(@,\"Spesa per l'energia \\\\(.\\\\) $NUMBER\")\n%trasporto_gestione=$search(@,\"Spesa per il trasporto dell'energia elettrica e la gestione del contatore \\\\(.\\\\) $NUMBER\")\n%oneri=$search(@,\"Spesa oneri di sistema \\\\(.\\\\) $NUMBER\")\n%ricalcoli=$search(@,\"Ricalcoli \\\\(.\\\\) $NUMBER\")",
@@ -45,7 +45,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.16947562992572784,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Dettaglio Fiscale",
 				"page" : 1,
 				"script" : "%cts=$search(@,\"CORRISPETTIVO TARIFFARIO SPECIFICO.+ $NUMBER\")\niva=$search(@,\"IVA (\\\\d+%)\")\niva=$search(@,\"IVA Scissione Pagamenti (\\\\d+%)\")\n%imponibile=$search(@,\"imponibile di euro $NUMBER\")\n%accise=$search(@,\"Accisa sull'energia elettrica.+kWh.+ $NUMBER\")\n$inc(%accise,$search(@,\"Accisa sull'energia elettrica.+ $NUMBER Accisa sull'energia elettrica.+ $NUMBER\",2))",
@@ -201,7 +201,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.68953835964202881,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Prezzo energia",
 				"page" : 5,
 				"script" : "$tokens($search(@,\"Energia fascia F1.+kWh ($NUMBER $NUMBER)\")) {\n  %prezzo_energia[0] %energia_attiva[0]\n}\n$tokens($search(@,\"Energia fascia F2.+kWh ($NUMBER $NUMBER)\")) {\n  %prezzo_energia[1] %energia_attiva[1]\n}\n$tokens($search(@,\"Energia fascia F3.+kWh ($NUMBER $NUMBER)\")) {\n  %prezzo_energia[2] %energia_attiva[2]\n}\n$tokens($search(@,\"Energia picco.+kWh ($NUMBER $NUMBER)\")) {\n  %prezzo_energia[0] %energia_attiva[0]\n}\n$tokens($search(@,\"Energia fuori picco.+kWh ($NUMBER $NUMBER)\")) {\n  %prezzo_energia[1] %energia_attiva[1]\n}\n%penale_reattiva_inf75=$search(@,\"Energia Reattiva entro il 75%.+ $NUMBER\\n\")\n%penale_reattiva_sup75=$search(@,\"Energia Reattiva oltre il 75%.+ $NUMBER\\n\")",

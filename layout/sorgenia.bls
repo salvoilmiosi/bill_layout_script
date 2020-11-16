@@ -19,7 +19,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.077134616672992706,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Numero cliente",
 				"page" : 1,
 				"script" : "numero_cliente=$search(@,\"CODICE CLIENTE (.+)\\n\")",

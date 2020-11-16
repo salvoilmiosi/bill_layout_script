@@ -71,7 +71,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.061763588339090347,
-				"mode" : 1,
+				"mode" : 2,
 				"name" : "Nome Cliente",
 				"page" : 1,
 				"script" : "numero_cliente=$search(@,\"Codice Cliente: $NUMBER\")\nragione_sociale=$search(@,\".+\\n(.+)\\n\")\npartita_iva=$search(@,\"Part\\\\.IVA (.+)\\n\")",
@@ -97,7 +97,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.23354679346084595,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Sintesi dati singolo pod",
 				"page" : 1,
 				"script" : "$ifnot(*spacer_multipod) {\n  %spesa_materia_energia=$search(@,\"Corrispettivi energia $NUMBER\")\n  %spesa_materia_energia=$search(@,\"Spese per l'energia $NUMBER\")\n  %trasporto_gestione=$search(@,\"Trasporto $NUMBER\")\n  %trasporto_gestione=$search(@,\"Spesa per trasporto, gestione contatore e oneri di sistema $NUMBER\")\n}",
@@ -110,7 +110,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.3076777458190918,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Accise singolo pod",
 				"page" : 2,
 				"script" : "$ifnot(*spacer_multipod) {\n  $lines($search(@,\"Imposta Erariale ((.+ $NUMBER $NUMBER $NUMBER $NUMBER\\n)+)\")) {\n    iva=$strcat($search(@,\"$NUMBER $NUMBER$\",1),\"%\")\n    $inc(%accise,$search(@,\"$NUMBER $NUMBER$\",2))\n  }\n}",
@@ -162,7 +162,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.16761690378189087,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Accise multipod",
 				"page" : 3,
 				"script" : "$if(*spacer_multipod) {\n  $lines($search(@,\"Imposta Erariale ((.+ $NUMBER $NUMBER $NUMBER $NUMBER\\n)+)\")) {\n    iva=$strcat($search(@,\"$NUMBER $NUMBER$\",1),\"%\")\n    $inc(%accise,$search(@,\"$NUMBER $NUMBER$\",2))\n  }\n}",
@@ -175,10 +175,10 @@
 			{
 				"goto_label" : "",
 				"h" : 0.031652819365262985,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Spese per l'energia",
 				"page" : 3,
-				"script" : "$ifnot(prezzo_energia) {\n  %prezzo_energia[0]=$search(@,\"Prezzo Energia PEAK $NUMBER kWh $NUMBER\",2)\n  %prezzo_energia[1]=$search(@,\"Prezzo Energia OFFPEAK $NUMBER kWh $NUMBER\",2)\n\n  %energia_attiva[0]=$search(@,\"Prezzo Energia PEAK $NUMBER\")\n  %energia_attiva[1]=$search(@,\"Prezzo Energia OFFPEAK $NUMBER\")\n\n  %energia_attiva[0]=$search(@,\"Prezzo Energia F1 $NUMBER\")\n  %energia_attiva[1]=$search(@,\"Prezzo Energia F2 $NUMBER\")\n  %energia_attiva[2]=$search(@,\"Prezzo Energia F3 $NUMBER\")\n\n  %prezzo_energia[0]=$search(@,\"Prezzo Energia F1 $NUMBER kWh $NUMBER\",2)\n  %prezzo_energia[1]=$search(@,\"Prezzo Energia F2 $NUMBER kWh $NUMBER\",2)\n  %prezzo_energia[2]=$search(@,\"Prezzo Energia F3 $NUMBER kWh $NUMBER\",2)\n\n  %sbilanciamento=$search(@,\"Gestione sbilanciamento $NUMBER kWh $NUMBER\",2)\n  $for(i,$size(prezzo_energia)) $inc(prezzo_energia[i],sbilanciamento)\n}\n\n$for(i,3) %potenza[i]=$search(@,\"Quota Potenza $NUMBER kW\")\n\n%penale_reattiva_inf75=$search(@,\"Energia Reattiva tra il 33 e il 75%.+ $NUMBER\\n\")\n$inc(%penale_reattiva_inf75,$search(@,\"Energia Reattiva tra il 33 e il 75% F1.+ $NUMBER\\n\"))\n$inc(%penale_reattiva_inf75,$search(@,\"Energia Reattiva tra il 33 e il 75% F2.+ $NUMBER\\n\"))\n$inc(%penale_reattiva_inf75,$search(@,\"Energia Reattiva tra il 33 e il 75% F3.+ $NUMBER\\n\"))\n%penale_reattiva_sup75=$search(@,\"Energia Reattiva oltre il 75%.+ $NUMBER\\n\")\n$inc(%penale_reattiva_sup75,$search(@,\"Energia Reattiva oltre il 75% F1.+ $NUMBER\\n\"))\n$inc(%penale_reattiva_sup75,$search(@,\"Energia Reattiva oltre il 75% F2.+ $NUMBER\\n\"))\n$inc(%penale_reattiva_sup75,$search(@,\"Energia Reattiva oltre il 75% F3.+ $NUMBER\\n\"))",
+				"script" : "$ifnot(prezzo_energia) {\n  %prezzo_energia[0]=$search(@,\"Prezzo Energia PEAK $NUMBER kWh $NUMBER\",2)\n  %prezzo_energia[1]=$search(@,\"Prezzo Energia OFFPEAK $NUMBER kWh $NUMBER\",2)\n\n  %energia_attiva[0]=$search(@,\"Prezzo Energia PEAK $NUMBER\")\n  %energia_attiva[1]=$search(@,\"Prezzo Energia OFFPEAK $NUMBER\")\n\n  %energia_attiva[0]=$search(@,\"Prezzo Energia F1 $NUMBER\")\n  %energia_attiva[1]=$search(@,\"Prezzo Energia F2 $NUMBER\")\n  %energia_attiva[2]=$search(@,\"Prezzo Energia F3 $NUMBER\")\n\n  %prezzo_energia[0]=$search(@,\"Prezzo Energia F1 $NUMBER kWh $NUMBER\",2)\n  %prezzo_energia[1]=$search(@,\"Prezzo Energia F2 $NUMBER kWh $NUMBER\",2)\n  %prezzo_energia[2]=$search(@,\"Prezzo Energia F3 $NUMBER kWh $NUMBER\",2)\n\n  %sbilanciamento=$search(@,\"Gestione sbilanciamento $NUMBER kWh $NUMBER\",2)\n  $for(i,$size(prezzo_energia)) $inc(prezzo_energia[i],sbilanciamento)\n}\n\n$for(i,3) %potenza[i]=$search(@,\"Quota Potenza $NUMBER kW\")\n\n%penale_reattiva_inf75=$search(@,\"Energia Reattiva tra il 33 e il 75%.+ $NUMBER\\n\")\n%penale_reattiva_inf75=$search(@,\"Energia Reattiva tra il 33 e il 75% F1.+ $NUMBER\\n\")\n$inc(%penale_reattiva_inf75,$search(@,\"Energia Reattiva tra il 33 e il 75% F2.+ $NUMBER\\n\"))\n$inc(%penale_reattiva_inf75,$search(@,\"Energia Reattiva tra il 33 e il 75% F3.+ $NUMBER\\n\"))\n%penale_reattiva_sup75=$search(@,\"Energia Reattiva oltre il 75%.+ $NUMBER\\n\")\n%penale_reattiva_sup75=$search(@,\"Energia Reattiva oltre il 75% F1.+ $NUMBER\\n\")\n$inc(%penale_reattiva_sup75,$search(@,\"Energia Reattiva oltre il 75% F2.+ $NUMBER\\n\"))\n$inc(%penale_reattiva_sup75,$search(@,\"Energia Reattiva oltre il 75% F3.+ $NUMBER\\n\"))",
 				"spacers" : "p+spacer_multipod p+next_page",
 				"type" : 1,
 				"w" : 0.048387140035629272,
