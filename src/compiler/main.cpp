@@ -10,7 +10,6 @@ int main(int argc, char **argv) {
     std::filesystem::path input_file;
     std::filesystem::path output_file;
 
-    bool quiet = false;
     bool debug = false;
     bool read_asm = false;
 
@@ -25,7 +24,6 @@ int main(int argc, char **argv) {
         switch (options_flag) {
         case FLAG_NONE:
             if (strcmp(*argv, "-o") == 0) options_flag = FLAG_OUTPUT;
-            else if (strcmp(*argv, "-q") == 0) quiet = true;
             else if (strcmp(*argv, "-d") == 0) debug = true;
             else if (strcmp(*argv, "-s") == 0) read_asm = true;
             else input_file = *argv;
@@ -73,7 +71,7 @@ int main(int argc, char **argv) {
             parser my_parser;
             my_parser.read_layout(layout);
 
-            if (!quiet) {
+            if (debug) {
                 for (auto &line : my_parser.get_output_asm()) {
                     std::cout << line << std::endl;
                 }
