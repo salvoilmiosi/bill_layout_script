@@ -79,7 +79,7 @@ reader_thread::~reader_thread() {
 
 wxThread::ExitCode reader_thread::Entry() {
     try {
-        std::string cmd_str = get_app_path() + "/layout_compiler";
+        wxString cmd_str = get_app_path() + "layout_compiler";
 
         const char *args1[] = {
             cmd_str.c_str(),
@@ -99,7 +99,7 @@ wxThread::ExitCode reader_thread::Entry() {
             throw layout_error("Errore nella compilazione:\n" + compile_output);
         }
 
-        cmd_str = get_app_path() + "/layout_reader";
+        cmd_str = get_app_path() + "layout_reader";
 
         const char *args2[] = {
             cmd_str.c_str(),

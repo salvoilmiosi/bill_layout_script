@@ -12,7 +12,7 @@ def read_file(pdf_file):
     rel_path = pdf_file.relative_to(input_directory)
     print(rel_path)
 
-    args = [app_dir.joinpath('../bin/layout_reader'), '-p', pdf_file, '-s', file_layout]
+    args = [app_dir.joinpath('../bin/release/layout_reader'), '-p', pdf_file, '-s', file_layout]
     proc = subprocess.run(args, capture_output=True, text=True)
 
     file_obj = {'filename':str(rel_path), 'lastmodified':os.stat(str(path)).st_mtime}

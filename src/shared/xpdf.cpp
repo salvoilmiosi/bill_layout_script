@@ -6,74 +6,52 @@
 #include "pipe.h"
 #include "utils.h"
 
-static const char *modes[] = {"-raw", "-layout"};
-
-#define PDFTOTEXT_BIN "pdftotext"
-#define PDFINFO_BIN "pdfinfo"
+static const char *modes[] = {nullptr, "-layout", "-raw"};
 
 std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect) {
-    if (!std::filesystem::exists(info.filename)) {
-        throw xpdf_error(std::string("File \"") + info.filename + "\" does not exist");
-    }
+    if (in_rect.page >= info.num_pages) return "";
 
     try {
+        const char *args[20] = {0};
+        size_t nargs = 0;
+
+        auto p = std::to_string(in_rect.page);
+        auto x = std::to_string((int)(info.width * in_rect.x));
+        auto y = std::to_string((int)(info.height * in_rect.y));
+        auto w = std::to_string((int)(info.width * in_rect.w));
+        auto h = std::to_string((int)(info.height * in_rect.h));
+
+        args[nargs++] = "pdftotext";
+        args[nargs++] = "-q";
+
         switch (in_rect.type) {
         case BOX_RECTANGLE:
-        {
-            if (in_rect.page >= info.num_pages) {
-                return "";
-            }
-
-            auto page_str = std::to_string(in_rect.page);
-            auto x = std::to_string((int)(info.width * in_rect.x));
-            auto y = std::to_string((int)(info.height * in_rect.y));
-            auto w = std::to_string((int)(info.width * in_rect.w));
-            auto h = std::to_string((int)(info.height * in_rect.h));
-
-            const char *args[] = {
-                PDFTOTEXT_BIN,
-                "-f", page_str.c_str(), "-l", page_str.c_str(),
-                "-x", x.c_str(), "-y", y.c_str(),
-                "-W", w.c_str(), "-H", h.c_str(),
-                "-q", modes[in_rect.mode],
-                info.filename.c_str(), "-",
-                nullptr
-            };
-
-            return string_trim(open_process(args)->read_all());
-        }
+            args[nargs++] = "-x";
+            args[nargs++] = x.c_str();
+            args[nargs++] = "-y";
+            args[nargs++] = y.c_str();
+            args[nargs++] = "-W";
+            args[nargs++] = w.c_str();
+            args[nargs++] = "-H";
+            args[nargs++] = h.c_str();
+            // fall through
         case BOX_PAGE:
-        {
-            if (in_rect.page >= info.num_pages) {
-                return "";
-            }
-
-            auto page_str = std::to_string(in_rect.page);
-
-            const char *args[] = {
-                PDFTOTEXT_BIN,
-                "-f", page_str.c_str(), "-l", page_str.c_str(),
-                "-q", modes[in_rect.mode],
-                info.filename.c_str(), "-",
-                nullptr
-            };
-
-            return string_trim(open_process(args)->read_all());
-        }
+            args[nargs++] = "-f";
+            args[nargs++] = p.c_str();
+            args[nargs++] = "-l";
+            args[nargs++] = p.c_str();
+            break;
         case BOX_FILE:
-        {
-            const char *args[] = {
-                PDFTOTEXT_BIN,
-                "-q", modes[in_rect.mode],
-                info.filename.c_str(), "-",
-                nullptr
-            };
-
-            return string_trim(open_process(args)->read_all());
-        }
+            break;
         default:
             return "";
         }
+
+        if (modes[in_rect.mode]) args[nargs++] = modes[in_rect.mode];
+        args[nargs++] = info.filename.c_str();
+        args[nargs++] = "-";
+        
+        return string_trim(open_process(args)->read_all());
     } catch (const pipe_error &error) {
         throw xpdf_error(error.message);
     }
@@ -85,7 +63,7 @@ pdf_info pdf_get_info(const std::string &pdf) {
     }
 
     const char *args[] = {
-        PDFINFO_BIN, pdf.c_str(), nullptr
+        "pdfinfo", pdf.c_str(), nullptr
     };
 
     try {

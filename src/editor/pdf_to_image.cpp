@@ -5,8 +5,6 @@
 
 #include "../shared/pipe.h"
 
-#define PDFTOCAIRO_BIN "pdftocairo"
-
 wxImage pdf_to_image(const std::string &pdf, int page) {
     if (!wxFileExists(pdf)) {
         throw xpdf_error(std::string("File \"") + pdf + "\" does not exist");
@@ -15,7 +13,7 @@ wxImage pdf_to_image(const std::string &pdf, int page) {
     auto page_str = std::to_string(page);
 
     const char *args[] = {
-        PDFTOCAIRO_BIN,
+        "pdftocairo",
         "-f", page_str.c_str(),  "-l", page_str.c_str(),
         "-png", "-singlefile",
         pdf.c_str(), "temp",

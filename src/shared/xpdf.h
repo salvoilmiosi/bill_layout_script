@@ -18,15 +18,16 @@ enum box_type {
 };
 
 enum read_mode {
+    MODE_DEFAULT,
+    MODE_LAYOUT,
     MODE_RAW,
-    MODE_LAYOUT
 };
 
 struct pdf_rect {
     float x, y;
     float w, h;
-    int page;
-    read_mode mode = MODE_RAW;
+    int page = 0;
+    read_mode mode = MODE_DEFAULT;
     box_type type = BOX_RECTANGLE;
 };
 

@@ -1,10 +1,23 @@
 CXX = g++
-CXXFLAGS = -g -Wall --std=c++17
+CXXFLAGS = -Wall --std=c++17
 LDFLAGS = 
 
 SRC_DIR = src
-OBJ_DIR = $(PREFIX)obj
-BIN_DIR = $(PREFIX)bin
+OBJ_DIR = obj/$(build)
+BIN_DIR = bin/$(build)
+
+ifndef build
+  build = debug
+endif
+
+ifeq ($(build),release)
+  CFLAGS += -O2
+  LDFLAGS += -s -DNDEBUG
+else ifeq ($(build),debug)
+  CFLAGS += -g -DDEBUG
+else
+  $(error "Unknown build option $(build)")
+endif
 
 BIN_SHARED = layout_shared.so
 BIN_EDITOR = layout_editor
@@ -50,17 +63,20 @@ endif
 
 all: editor reader compiler
 
+release:
+	$(MAKE) build=release
+
 layouts: $(LAYOUTS)
 
 clean:
-	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(BIN_DIR)/$(BIN_COMPILER) $(OBJECTS) $(RESOURCES) $(LAYOUTS) $(OBJECTS:.o=.d)
+	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(BIN_DIR)/$(BIN_COMPILER) $(BIN_DIR)/$(BIN_SHARED) $(OBJECTS) $(RESOURCES) $(LAYOUTS) $(OBJECTS:.o=.d)
 
-.PHONY: all clean editor reader compiler layouts
+.PHONY: all release clean editor reader compiler layouts
 
 $(shell mkdir -p $(BIN_DIR) >/dev/null)
 
 $(LAYOUT_DIR)/%.out: $(LAYOUT_DIR)/%.bls $(BIN_DIR)/$(BIN_COMPILER)
-	$(BIN_DIR)/$(BIN_COMPILER) -q -o $@ $<
+	$(BIN_DIR)/$(BIN_COMPILER) -o $@ $<
 
 shared: $(BIN_DIR)/$(BIN_SHARED)
 $(BIN_DIR)/$(BIN_SHARED): $(OBJECTS_SHARED)

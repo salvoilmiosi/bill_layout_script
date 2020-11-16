@@ -6,6 +6,15 @@
 #include <wx/choice.h>
 
 #include "../shared/layout.h"
+class ReaderOutputDialog : public wxDialog {
+public:
+    ReaderOutputDialog(wxWindow *parent);
+
+    void ShowText(const wxString &str);
+
+private:
+    wxTextCtrl *m_text;
+};
 
 class box_dialog : public wxDialog {
 public:
@@ -15,8 +24,10 @@ private:
     bool validateData();
 
     void OnOK(wxCommandEvent &evt);
+    void OnCancel(wxCommandEvent &evt);
     void OnClickHelp(wxCommandEvent &evt);
     void OnClickTest(wxCommandEvent &evt);
+    void OnClose(wxCloseEvent &evt);
 
 private:
     layout_box &box;
@@ -26,7 +37,7 @@ private:
     wxTextCtrl *m_box_spacers;
     wxTextCtrl *m_box_goto_label;
     wxTextCtrl *m_box_script;
-    wxTextCtrl *reader_output;
+    ReaderOutputDialog *reader_output;
     wxChoice *m_box_type;
     wxChoice *m_box_mode;
 

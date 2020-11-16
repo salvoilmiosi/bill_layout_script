@@ -172,10 +172,8 @@ void box_editor_panel::OnDoubleClick(wxMouseEvent &evt) {
     switch (selected_tool) {
     case TOOL_SELECT:
         if (selected_box != app->layout.boxes.end()) {
-            box_dialog diag(app, *selected_box);
-            if (diag.ShowModal() == wxID_OK) {
-                app->updateLayout();
-            }
+            auto diag = new box_dialog(app, *selected_box);
+            diag->Show();
         }
     default:
         break;
