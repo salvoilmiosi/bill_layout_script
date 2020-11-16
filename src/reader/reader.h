@@ -6,6 +6,7 @@
 #include <vector>
 #include <stack>
 #include <memory>
+#include <json/json.h>
 
 #include "variable.h"
 #include "disassembler.h"
@@ -43,7 +44,7 @@ public:
 
     const variable &get_global(const std::string &name) const;
 
-    std::ostream &print_output(std::ostream &output, bool debug);
+    void save_output(Json::Value &output, bool debug);
 
 private:
     void exec_command(const pdf_info &info, const command_args &cmd);

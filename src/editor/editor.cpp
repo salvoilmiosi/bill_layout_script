@@ -478,6 +478,11 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
         str << layout;
         process->write_all(str.str());
         process->close_stdin();
+        
+        std::string compile_output = process->read_all();
+        if (!compile_output.empty()) {
+            wxMessageBox("Errore nella compilazione:\n" + compile_output, "Errore", wxICON_ERROR);
+        }
     } catch (const pipe_error &error) {
         wxMessageBox(error.message, "Erorre", wxICON_ERROR);
     }
@@ -507,9 +512,11 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     std::istringstream iss(open_process(args)->read_all());
 
     Json::Value json_output;
-    try {
-        iss >> json_output;
+    iss >> json_output;
 
+    if (json_output["error"].asBool()) {
+        wxMessageBox("Impossibile leggere l'output: " + json_output["message"].asString(), "Errore", wxOK | wxICON_ERROR);
+    } else {
         wxString output_layout = json_output["globals"]["layout"].asString();
         if (output_layout.empty()) {
             wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
@@ -517,8 +524,6 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
             modified = false;
             openFile(layout_path + output_layout + ".bls");
         }
-    } catch (const std::exception &error) {
-        wxMessageBox("Impossibile leggere l'output: " + iss.str(), "Errore", wxOK | wxICON_ERROR);
     }
 }
 

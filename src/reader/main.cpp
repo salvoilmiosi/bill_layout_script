@@ -2,6 +2,7 @@
 #include <fstream>
 #include <filesystem>
 #include <cstring>
+#include <fmt/core.h>
 
 #include "reader.h"
 
@@ -12,12 +13,22 @@ int main(int argc, char **argv) {
         FLAG_LAYOUT_DIR,
     } options_flag = FLAG_NONE;
 
-    reader result;
+    reader m_reader;
+    Json::Value result = Json::objectValue;
+    result["error"] = false;
+
     std::filesystem::path input_file;
     std::filesystem::path file_pdf;
     std::filesystem::path layout_dir;
     bool exec_script = false;
     bool debug = false;
+
+    auto output_error = [&](const std::string &message) {
+        result["error"] = true;
+        result["message"] = message;
+        std::cout << result;
+        exit(1);
+    };
 
     for (++argv; argc > 1; --argc, ++argv) {
         switch (options_flag) {
@@ -40,11 +51,9 @@ int main(int argc, char **argv) {
     }
 
     if (file_pdf.empty()) {
-        std::cerr << "Specificare il file pdf di input" << std::endl;
-        return 1;
+        output_error("Specificare il file pdf di input");
     } else if (!std::filesystem::exists(file_pdf)) {
-        std::cerr << "Impossibile aprire il file pdf " << file_pdf << std::endl;
-        return 1;
+        output_error(fmt::format("Impossibile aprire il file pdf {0}", file_pdf.string()));
     }
 
     std::ifstream ifs;
@@ -52,14 +61,12 @@ int main(int argc, char **argv) {
     bool in_file_layout = true;
 
     if (input_file.empty()) {
-        std::cerr << "Specificare un file di input" << std::endl;
-        return 1;
+        output_error("Specificare un file di input");
     } else if (input_file == "-") {
         input_stdin = true;
     } else {
         if (!std::filesystem::exists(input_file)) {
-            std::cerr << "Impossibile aprire il file layout " << input_file << std::endl;
-            return 1;
+            output_error(fmt::format("Impossibile aprire il file layout {0}", input_file.string()));
         }
         ifs.open(input_file, std::ifstream::binary | std::ifstream::in);
         if (layout_dir.empty()) {
@@ -72,22 +79,21 @@ int main(int argc, char **argv) {
 
         if (exec_script) {
             if (input_stdin) {
-                result.read_layout(pdf_info, std::cin);
+                m_reader.read_layout(pdf_info, std::cin);
             } else {
-                result.read_layout(pdf_info, ifs);
+                m_reader.read_layout(pdf_info, ifs);
                 ifs.close();
             }
 
             in_file_layout = false;
         }
         if (!layout_dir.empty()) {
-            const auto &layout_path = result.get_global("layout");
+            const auto &layout_path = m_reader.get_global("layout");
             if (!layout_path.empty()) {
                 input_file = layout_dir / layout_path.str();
                 input_file.replace_extension(".out");
                 if (!std::filesystem::exists(input_file)) {
-                    std::cerr << "Impossibile aprire il file layout " << input_file << std::endl;
-                    return 1;
+                    output_error(fmt::format("Impossibile aprire il file layout {0}", input_file.string()));
                 }
                 ifs.open(input_file, std::ifstream::binary | std::ifstream::in);
                 in_file_layout = true;
@@ -96,18 +102,20 @@ int main(int argc, char **argv) {
         }
         if (in_file_layout) {
             if (input_stdin) {
-                result.read_layout(pdf_info, std::cin);
+                m_reader.read_layout(pdf_info, std::cin);
             } else {
-                result.read_layout(pdf_info, ifs);
+                m_reader.read_layout(pdf_info, ifs);
                 ifs.close();
             }
         }
     } catch (const layout_error &error) {
-        std::cerr << error.message << std::endl;
-        return 1;
+        output_error(error.message);
+    } catch (...) {
+        output_error("Errore sconosciuto");
     }
 
-    result.print_output(std::cout, debug);
+    m_reader.save_output(result, debug);
+    std::cout << result;
 
     return 0;
 }

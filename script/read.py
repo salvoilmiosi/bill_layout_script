@@ -19,7 +19,7 @@ def read_pdf(pdf_file):
             args = [app_dir.joinpath('../bin/release/layout_reader'), '-p', pdf_file, controllo]
             proc = subprocess.run(args, capture_output=True, text=True)
             json_out = json.loads(proc.stdout)
-            if 'layout' in json_out['globals']:
+            if not json_out['error'] and 'layout' in json_out['globals']:
                 layout_file = controllo.parent.joinpath(json_out['globals']['layout']).with_suffix('.out')
                 if os.path.getmtime(str(layout_file)) < os.path.getmtime(str(output_file)):
                     out.append(x)
@@ -30,10 +30,11 @@ def read_pdf(pdf_file):
 
     file_obj = {'filename':str(rel_path), 'lastmodified':os.stat(str(path)).st_mtime}
 
-    try:
-        file_obj['values'] = json.loads(proc.stdout)['values']
-    except:
-        file_obj['error'] = proc.stderr
+    json_out = json.loads(proc.stdout)
+    if json_out['error']:
+        file_obj['error'] = json_out['message']
+    else:
+        file_obj['values'] = ['values']
 
     out.append(file_obj)
 

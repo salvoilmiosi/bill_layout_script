@@ -78,60 +78,58 @@ reader_thread::~reader_thread() {
 }
 
 wxThread::ExitCode reader_thread::Entry() {
-    try {
-        wxString cmd_str = get_app_path() + "layout_compiler";
+    wxString cmd_str = get_app_path() + "layout_compiler";
 
-        const char *args1[] = {
-            cmd_str.c_str(),
-            "-q", "-", "-o", "temp.out",
-            nullptr
-        };
+    const char *args1[] = {
+        cmd_str.c_str(),
+        "-q", "-", "-o", "temp.out",
+        nullptr
+    };
 
-        process = open_process(args1);
-        std::ostringstream oss;
-        oss << layout;
-        process->write_all(oss.str());
-        process->close_stdin();
-        std::string compile_output = process->read_all();
-        process.reset();
+    process = open_process(args1);
+    std::ostringstream oss;
+    oss << layout;
+    process->write_all(oss.str());
+    process->close_stdin();
+    std::string compile_output = process->read_all();
+    process.reset();
 
-        if (!compile_output.empty()) {
-            throw layout_error("Errore nella compilazione:\n" + compile_output);
-        }
+    if (!compile_output.empty()) {
+        wxMessageBox("Errore nella compilazione:\n" + compile_output, "Errore", wxICON_ERROR);
+        return (wxThread::ExitCode) 1;
+    }
 
-        cmd_str = get_app_path() + "layout_reader";
+    cmd_str = get_app_path() + "layout_reader";
 
-        const char *args2[] = {
-            cmd_str.c_str(),
-            "-d", "-p", pdf_filename.c_str(),
-            "temp.out",
-            nullptr
-        };
+    const char *args2[] = {
+        cmd_str.c_str(),
+        "-d", "-p", pdf_filename.c_str(),
+        "temp.out",
+        nullptr
+    };
 
-        process = open_process(args2);
-        std::istringstream iss(process->read_all());
-        process.reset();
+    process = open_process(args2);
+    std::istringstream iss(process->read_all());
+    process.reset();
 
-        if (wxFileExists("temp.out")) {
-            wxRemoveFile("temp.out");
+    if (wxFileExists("temp.out")) {
+        wxRemoveFile("temp.out");
 
+        if (!iss.str().empty()) {
             Json::Value json_output;
-            try {
-                iss >> json_output;
+            iss >> json_output;
 
+            if (json_output["error"].asBool()) {
+                wxMessageBox("Errore in lettura:\n" + compile_output, "Errore", wxICON_ERROR);
+                return (wxThread::ExitCode) 1;
+            } else {
                 wxCriticalSectionLocker lock(parent->m_thread_cs);
                 parent->json_values = json_output["values"];
 
                 wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
                 return (wxThread::ExitCode) 0;
-            } catch(const std::exception &error) {
-                if (!iss.str().empty()) {
-                    throw layout_error("Errore in lettura:\n" + iss.str());
-                }
             }
         }
-    } catch (const layout_error &err) {
-        wxMessageBox(err.message, "Errore", wxICON_ERROR);
     }
     return (wxThread::ExitCode) 1;
 }
@@ -200,7 +198,7 @@ void output_dialog::updateItems(int selected_page) {
             if (i == 0) {
                 m_list_ctrl->SetItem(n, col_name, it.name());
             }
-            m_list_ctrl->SetItem(n, col_value, (*it)[Json::Value::ArrayIndex(i)].asString());
+            m_list_ctrl->SetItem(n, col_value, wxString((*it)[Json::Value::ArrayIndex(i)].asCString(), wxConvUTF8));
             ++n;
         }
     }

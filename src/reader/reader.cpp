@@ -1,6 +1,5 @@
 #include "reader.h"
 
-#include <json/json.h>
 #include <fmt/core.h>
 #include "../shared/utils.h"
 
@@ -331,9 +330,7 @@ size_t reader::get_variable_size() {
     }
 }
 
-std::ostream &reader::print_output(std::ostream &out, bool debug) {
-    Json::Value root = Json::objectValue;
-
+void reader::save_output(Json::Value &root, bool debug) {
     Json::Value &values = root["values"] = Json::arrayValue;
 
     for (auto &page : m_pages) {
@@ -359,6 +356,4 @@ std::ostream &reader::print_output(std::ostream &out, bool debug) {
         if (!debug && pair.second.is_debug()) continue;
         globals[pair.first] = pair.second.str();
     }
-
-    return out << root;
 }
