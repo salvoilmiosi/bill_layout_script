@@ -54,7 +54,7 @@ void parser::read_box(const layout_box &box) {
     case BOX_PAGE:
         add_line("RDPAGE {0},{1}", box.mode, box.page);
         break;
-    case BOX_WHOLE_FILE:
+    case BOX_FILE:
         add_line("RDFILE {0}", box.mode);
         break;
     }

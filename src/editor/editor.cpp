@@ -486,7 +486,7 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
             modified = false;
             openFile(layout_path + wxFileName::GetPathSeparator() + output_layout);
         }
-    } catch (std::exception &error) {
+    } catch (const std::exception &error) {
         wxMessageBox("Impossibile leggere l'output: " + iss.str(), "Errore", wxOK | wxICON_ERROR);
     }
 }

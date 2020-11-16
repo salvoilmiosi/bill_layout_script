@@ -85,6 +85,27 @@ std::string parse_number(const std::string &value) {
     return out;
 }
 
+#ifndef NO_JSON_PARSE_STRING
+
+#include <json/reader.h>
+
+std::string parse_string(std::string_view value) {
+    Json::Value out;
+    std::string errs;
+    Json::CharReaderBuilder builder;
+    Json::CharReader *reader = builder.newCharReader();
+    if (!reader->parse(value.begin(), value.end(), &out, &errs)) {
+        return "";
+    }
+    if (out.isString()) {
+        return out.asString();
+    } else {
+        return "";
+    }
+}
+
+#else
+
 std::string parse_string(std::string_view value) {
     std::string decoded;
     auto current = value.begin() + 1;
@@ -129,6 +150,8 @@ std::string parse_string(std::string_view value) {
     }
     return decoded;
 }
+
+#endif
 
 std::string parse_date(const std::string &format, const std::string &value, int index) {
     static const char *MONTHS[] = {"gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"};
@@ -185,7 +208,7 @@ std::string parse_date(const std::string &format, const std::string &value, int 
                 year = "20" + year;
             }
         }
-    } catch (std::invalid_argument &) {}
+    } catch (const std::invalid_argument &) {}
 
     if (year.empty() || month.empty()) {
         return "";

@@ -241,7 +241,12 @@ void reader::read_box(const pdf_info &info, pdf_rect box) {
     box.h += m_spacer.h;
     m_spacer = {};
     m_content_stack = {};
-    m_content_stack.push(pdf_to_text(info, box));
+
+    try {
+        m_content_stack.push(pdf_to_text(info, box));
+    } catch (const xpdf_error &error) {
+        throw layout_error(error.message);
+    }
 }
 
 const variable &reader::get_global(const std::string &name) const {

@@ -47,7 +47,7 @@ unix_process_rwops::unix_process_rwops(const char *args[]) {
         ::close(pipe_stdout[PIPE_READ]);
         ::close(pipe_stdout[PIPE_WRITE]);
 
-        int result = execv(args[0], const_cast<char *const*>(args));
+        int result = execvp(args[0], const_cast<char *const*>(args));
 
         exit(result);
     } else {

@@ -13,14 +13,13 @@ struct pdf_info {
 enum box_type {
     BOX_RECTANGLE,
     BOX_PAGE,
-    BOX_WHOLE_FILE,
+    BOX_FILE,
     BOX_DISABLED,
 };
 
 enum read_mode {
     MODE_RAW,
-    MODE_SIMPLE,
-    MODE_TABLE,
+    MODE_LAYOUT
 };
 
 struct pdf_rect {

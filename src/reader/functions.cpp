@@ -51,14 +51,14 @@ void reader::call_function(const std::string &name, size_t numargs) {
         {"search", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
             try {
                 return search_regex(regex.str(), str.str(), index.empty() ? 1 : index.as_int());
-            } catch (std::regex_error &error) {
+            } catch (const std::regex_error &error) {
                 throw layout_error(fmt::format("Espressione regolare non valida: {0}", regex.str()));
             }
         })},
         {"date", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
             try {
                 return parse_date(regex.str(), str.str(), index.empty() ? 1 : index.as_int());
-            } catch (std::regex_error &error) {
+            } catch (const std::regex_error &error) {
                 throw layout_error(fmt::format("Espressione regolare non valida: {0}", regex.str()));
             }
         })},
@@ -104,7 +104,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
         } else {
             throw layout_error(fmt::format("Funzione sconosciuta: {0}", name));
         }
-    } catch (invalid_numargs &error) {
+    } catch (const invalid_numargs &error) {
         if (error.minargs == error.maxargs) {
             throw layout_error(fmt::format("La funzione {0} richiede {1} argomenti", name, error.minargs));
         } else {

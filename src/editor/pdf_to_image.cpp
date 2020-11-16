@@ -5,11 +5,7 @@
 
 #include "../shared/pipe.h"
 
-#ifdef __linux__
-#define PDFTOPNG_BIN "/usr/local/bin/pdftopng"
-#else
-#define PDFTOPNG_BIN "pdftopng"
-#endif
+#define PDFTOCAIRO_BIN "pdftocairo"
 
 wxImage pdf_to_image(const std::string &pdf, int page) {
     if (!wxFileExists(pdf)) {
@@ -19,8 +15,9 @@ wxImage pdf_to_image(const std::string &pdf, int page) {
     auto page_str = std::to_string(page);
 
     const char *args[] = {
-        PDFTOPNG_BIN,
+        PDFTOCAIRO_BIN,
         "-f", page_str.c_str(),  "-l", page_str.c_str(),
+        "-png", "-singlefile",
         pdf.c_str(), "temp",
         nullptr
     };
@@ -28,14 +25,11 @@ wxImage pdf_to_image(const std::string &pdf, int page) {
     std::string output = open_process(args)->read_all();
     std::cout << output << std::endl;
 
-    char filename[32];
-    snprintf(filename, 32, "temp-%06d.png", page);
-
     wxImage img;
 
-    if (wxFileExists(filename)) {
-        img.LoadFile(filename, wxBITMAP_TYPE_PNG);
-        wxRemoveFile(filename);
+    if (wxFileExists("temp.png")) {
+        img.LoadFile("temp.png", wxBITMAP_TYPE_PNG);
+        wxRemoveFile("temp.png");
         
         if (img.IsOk()) {
             return img;

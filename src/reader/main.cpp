@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
                 ifs.close();
             }
         }
-    } catch (layout_error &error) {
+    } catch (const layout_error &error) {
         std::cerr << error.message << std::endl;
         return 1;
     }

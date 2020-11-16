@@ -136,7 +136,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.17460089921951294,
-				"mode" : 2,
+				"mode" : 1,
 				"name" : "Sintesi valori",
 				"page" : 1,
 				"script" : "%spesa_materia_energia=$search(@,\"SPESA PER LA MATERIA ENERGIA $NUMBER\")\n%spesa_materia_energia=$search(@,\"SPESA PER L'ENERGIA ELETTRICA $NUMBER\")\n%trasporto_gestione=$search(@,\"SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA $NUMBER\")",

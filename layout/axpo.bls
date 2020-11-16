@@ -110,9 +110,9 @@
 			{
 				"goto_label" : "",
 				"h" : 0.28325819969177246,
-				"mode" : 2,
+				"mode" : 1,
 				"name" : "Potenza",
-				"page" : 2,
+				"page" : 1,
 				"script" : "$for(i,3) %potenza[i]=$search(@,\"Potenza.+ $NUMBER\\n\")",
 				"spacers" : "p+page_offset p+pod_offset",
 				"type" : 0,

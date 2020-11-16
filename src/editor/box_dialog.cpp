@@ -48,12 +48,12 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     m_box_name->SetValidator(wxTextValidator(wxFILTER_EMPTY));
     addLabelAndCtrl("Nome:", 0, m_box_name);
 
-    static const wxString box_types[] = {"Rettangolo", "Pagina", "Intero file", "Disabilitato"};
+    static const wxString box_types[] = {"Rettangolo", "Pagina", "File", "Disabilitato"};
     m_box_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, std::size(box_types), box_types);
     m_box_type->SetToolTip("Contenuto");
     m_box_type->SetSelection(box.type);
 
-    static const wxString box_modes[] = {"Lettura grezza", "Lettura incolonnata", "Lettura in tabella"};
+    static const wxString box_modes[] = {"Grezza", "Mantieni Layout"};
     m_box_mode = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, std::size(box_modes), box_modes);
     m_box_mode->SetToolTip("Specifica il metodo di lettura");
     m_box_mode->SetSelection(box.mode);

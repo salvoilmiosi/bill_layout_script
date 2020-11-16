@@ -161,6 +161,19 @@
 			},
 			{
 				"goto_label" : "",
+				"h" : 0.088686175644397736,
+				"mode" : 0,
+				"name" : "Energia Reattiva",
+				"page" : 2,
+				"script" : "$if($contains(@,\"Consumo rilevato reattiva\")) {\n  %energia_reattiva[0]=$search(@,\"F1 $NUMBER\")\n  %energia_reattiva[1]=$search(@,\"F2 $NUMBER\")\n  %energia_reattiva[2]=$search(@,\"F3 $NUMBER\")\n}",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.17153097689151764,
+				"x" : 0.38146442174911499,
+				"y" : 0.087781213223934174
+			},
+			{
+				"goto_label" : "",
 				"h" : 0.037628278136253357,
 				"mode" : 0,
 				"name" : "Potenza",
@@ -197,19 +210,6 @@
 				"w" : 0.7119903564453125,
 				"x" : 0.046957939863204956,
 				"y" : 0.24609211087226868
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.088686175644397736,
-				"mode" : 0,
-				"name" : "Energia Reattiva",
-				"page" : 2,
-				"script" : "$if($contains(@,\"Consumo rilevato reattiva\")) {\n  %energia_reattiva[0]=$search(@,\"F1 $NUMBER\")\n  %energia_reattiva[1]=$search(@,\"F2 $NUMBER\")\n  %energia_reattiva[2]=$search(@,\"F3 $NUMBER\")\n}",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.17153097689151764,
-				"x" : 0.38146442174911499,
-				"y" : 0.087781213223934174
 			}
 		]
 	},

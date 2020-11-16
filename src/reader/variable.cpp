@@ -38,7 +38,7 @@ int variable::as_int() const {
     case 0:
         try {
             return std::stoi(std::get<std::string>(m_value));
-        } catch (std::invalid_argument &) {
+        } catch (const std::invalid_argument &) {
             return 0;
         }
     case 1:

@@ -8,7 +8,7 @@ Il programma è stato scritto in C++17 con le seguenti librerie:
 
 [wxWidgets](https://www.wxwidgets.org/)
 
-[Xpdf](https://www.xpdfreader.com/)
+[Poppler](https://poppler.freedesktop.org/)
 
 [jsoncpp](https://github.com/open-source-parsers/jsoncpp)
 

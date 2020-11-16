@@ -6,79 +6,77 @@
 #include "pipe.h"
 #include "utils.h"
 
-static const char *modes[] = {"-raw", "-simple", "-table"};
+static const char *modes[] = {"-raw", "-layout"};
 
-#ifdef __linux__
-#define PDFTOTEXT_BIN "/usr/local/bin/pdftotext"
-#define PDFINFO_BIN "/usr/local/bin/pdfinfo"
-#else
 #define PDFTOTEXT_BIN "pdftotext"
 #define PDFINFO_BIN "pdfinfo"
-#endif
 
 std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect) {
     if (!std::filesystem::exists(info.filename)) {
         throw xpdf_error(std::string("File \"") + info.filename + "\" does not exist");
     }
 
-    switch (in_rect.type) {
-    case BOX_RECTANGLE:
-    {
-        if (in_rect.page >= info.num_pages) {
+    try {
+        switch (in_rect.type) {
+        case BOX_RECTANGLE:
+        {
+            if (in_rect.page >= info.num_pages) {
+                return "";
+            }
+
+            auto page_str = std::to_string(in_rect.page);
+            auto x = std::to_string((int)(info.width * in_rect.x));
+            auto y = std::to_string((int)(info.height * in_rect.y));
+            auto w = std::to_string((int)(info.width * in_rect.w));
+            auto h = std::to_string((int)(info.height * in_rect.h));
+
+            const char *args[] = {
+                PDFTOTEXT_BIN,
+                "-f", page_str.c_str(), "-l", page_str.c_str(),
+                "-x", x.c_str(), "-y", y.c_str(),
+                "-W", w.c_str(), "-H", h.c_str(),
+                "-q", modes[in_rect.mode],
+                info.filename.c_str(), "-",
+                nullptr
+            };
+
+            return string_trim(open_process(args)->read_all());
+        }
+        case BOX_PAGE:
+        {
+            if (in_rect.page >= info.num_pages) {
+                return "";
+            }
+
+            auto page_str = std::to_string(in_rect.page);
+
+            const char *args[] = {
+                PDFTOTEXT_BIN,
+                "-f", page_str.c_str(), "-l", page_str.c_str(),
+                "-q", modes[in_rect.mode],
+                info.filename.c_str(), "-",
+                nullptr
+            };
+
+            return string_trim(open_process(args)->read_all());
+        }
+        case BOX_FILE:
+        {
+            const char *args[] = {
+                PDFTOTEXT_BIN,
+                "-q", modes[in_rect.mode],
+                info.filename.c_str(), "-",
+                nullptr
+            };
+
+            return string_trim(open_process(args)->read_all());
+        }
+        default:
             return "";
         }
-
-        auto page_str = std::to_string(in_rect.page);
-        auto marginl = std::to_string(info.width * in_rect.x);
-        auto marginr = std::to_string(info.width * (1.f - in_rect.x - in_rect.w));
-        auto margint = std::to_string(info.height * in_rect.y);
-        auto marginb = std::to_string(info.height * (1.f - in_rect.y - in_rect.h));
-
-        const char *args[] = {
-            PDFTOTEXT_BIN,
-            "-f", page_str.c_str(), "-l", page_str.c_str(),
-            "-marginl", marginl.c_str(), "-marginr", marginr.c_str(),
-            "-margint", margint.c_str(), "-marginb", marginb.c_str(),
-            modes[in_rect.mode],
-            info.filename.c_str(), "-",
-            nullptr
-        };
-
-        return string_trim(open_process(args)->read_all());
+    } catch (const pipe_error &error) {
+        throw xpdf_error(error.message);
     }
-    case BOX_PAGE:
-    {
-        if (in_rect.page >= info.num_pages) {
-            return "";
-        }
-
-        auto page_str = std::to_string(in_rect.page);
-
-        const char *args[] = {
-            PDFTOTEXT_BIN,
-            "-f", page_str.c_str(), "-l", page_str.c_str(),
-            modes[in_rect.mode],
-            info.filename.c_str(), "-",
-            nullptr
-        };
-
-        return string_trim(open_process(args)->read_all());
-    }
-    case BOX_WHOLE_FILE:
-    {
-        const char *args[] = {
-            PDFTOTEXT_BIN,
-            modes[in_rect.mode],
-            info.filename.c_str(), "-",
-            nullptr
-        };
-
-        return string_trim(open_process(args)->read_all());
-    }
-    default:
-        break;
-    }
-    return "";
 }
 
 pdf_info pdf_get_info(const std::string &pdf) {
@@ -90,20 +88,24 @@ pdf_info pdf_get_info(const std::string &pdf) {
         PDFINFO_BIN, pdf.c_str(), nullptr
     };
 
-    std::string output = open_process(args)->read_all();
+    try {
+        std::string output = open_process(args)->read_all();
 
-    std::smatch match;
+        std::smatch match;
 
-    pdf_info ret;
-    ret.filename = pdf;
-    
-    if (std::regex_search(output, match, std::regex("Pages: +([0-9]+)"))) {
-        ret.num_pages = std::stoi(match.str(1));
+        pdf_info ret;
+        ret.filename = pdf;
+        
+        if (std::regex_search(output, match, std::regex("Pages: +([0-9]+)"))) {
+            ret.num_pages = std::stoi(match.str(1));
+        }
+        if (std::regex_search(output, match, std::regex("Page size: +([0-9\\.]+) x ([0-9\\.]+)"))) {
+            ret.width = std::stof(match.str(1));
+            ret.height = std::stof(match.str(2));
+        }
+
+        return ret;
+    } catch (const pipe_error &error) {
+        throw xpdf_error(error.message);
     }
-    if (std::regex_search(output, match, std::regex("Page size: +([0-9\\.]+) x ([0-9\\.]+)"))) {
-        ret.width = std::stof(match.str(1));
-        ret.height = std::stof(match.str(2));
-    }
-
-    return ret;
 }

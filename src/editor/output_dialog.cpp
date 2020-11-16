@@ -130,7 +130,7 @@ wxThread::ExitCode reader_thread::Entry() {
                 }
             }
         }
-    } catch (layout_error &err) {
+    } catch (const layout_error &err) {
         wxMessageBox(err.message, "Errore", wxICON_ERROR);
     }
     return (wxThread::ExitCode) 1;

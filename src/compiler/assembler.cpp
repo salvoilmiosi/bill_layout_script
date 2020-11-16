@@ -19,7 +19,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
     auto getgotoindex = [&](const std::string &label) -> jump_address {
         try {
             return std::stoi(label);
-        } catch (std::invalid_argument &) {
+        } catch (const std::invalid_argument &) {
             auto it = labels.find(label);
             if (it == labels.end()) {
                 throw assembly_error{fmt::format("Etichetta sconosciuta: {0}", label)};
@@ -62,7 +62,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("RDFILE"):
         {
             pdf_rect box;
-            box.type = BOX_WHOLE_FILE;
+            box.type = BOX_FILE;
             box.mode = static_cast<read_mode>(std::stoi(args[0]));
             add_command(RDFILE, std::move(box));
             break;

@@ -38,7 +38,7 @@ void disassembler::read_bytecode(std::istream &input) {
         case RDFILE:
         {
             pdf_rect box;
-            box.type = BOX_WHOLE_FILE;
+            box.type = BOX_FILE;
             box.mode = static_cast<read_mode>(readData<small_int>(input));
             m_commands.emplace_back(RDFILE, std::move(box));
             break;
