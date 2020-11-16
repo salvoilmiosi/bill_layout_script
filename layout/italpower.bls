@@ -35,7 +35,7 @@
 				"mode" : 2,
 				"name" : "Sintesi valori",
 				"page" : 1,
-				"script" : "%totale_fattura=$search(@,\"Totale Fattura $NUMBER\")\niva=$search(@,\"IVA (\\\\d+%)\")",
+				"script" : "%totale_fattura=$search(@,\"Totale Fattura \\u20ac $NUMBER\")\niva=$search(@,\"IVA (\\\\d+%)\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.65607798099517822,

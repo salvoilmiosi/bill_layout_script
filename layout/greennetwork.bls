@@ -58,7 +58,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.19759140908718109,
-				"mode" : 1,
+				"mode" : 2,
 				"name" : "Sintesi degli importi",
 				"page" : 1,
 				"script" : "%spesa_materia_energia=$search(@,\"Spesa per la materia energia $NUMBER\")\n%trasporto_gestione=$search(@,\"Spesa per trasporto, gestione contatore e oneri sistema $NUMBER\")\n%totale_fattura=$search(@,\"TOTALE DA PAGARE $NUMBER\")",

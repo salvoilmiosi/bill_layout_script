@@ -22,7 +22,7 @@
 				"mode" : 0,
 				"name" : "Numero fattura",
 				"page" : 1,
-				"script" : "numero_fattura=$search(@,\"Fattura N. (\\\\d+)\")\ndata_fattura=$date(@,\"del DD\\\\.MM\\\\.YYYY\")",
+				"script" : "numero_fattura=$search(@,\"Fattura N\\u00b0 (\\\\d+)\")\ndata_fattura=$date(@,\"del DD\\\\.MM\\\\.YYYY\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.47258064150810242,
@@ -71,7 +71,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.061763588339090347,
-				"mode" : 2,
+				"mode" : 1,
 				"name" : "Nome Cliente",
 				"page" : 1,
 				"script" : "numero_cliente=$search(@,\"Codice Cliente: $NUMBER\")\nragione_sociale=$search(@,\".+\\n(.+)\\n\")\npartita_iva=$search(@,\"Part\\\\.IVA (.+)\\n\")",
@@ -84,7 +84,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.3049132227897644,
-				"mode" : 0,
+				"mode" : 2,
 				"name" : "Dati fornitura singolo pod",
 				"page" : 1,
 				"script" : "$if($contains(@,\"Dati di fornitura\")) {\n  indirizzo_fornitura=$search($nospace(@),\"Indirizzo (.+\\\\d{5}.+\\\\(.{2}\\\\))\")\n  codice_pod=$search(@,\"POD (.+)\\n\")\n  $for(i,3) %potenza[i]=$search(@,\"Potenza Impegnata $NUMBER\")\n} $else {\n  *spacer_multipod=1\n}",
@@ -97,7 +97,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.23354679346084595,
-				"mode" : 1,
+				"mode" : 2,
 				"name" : "Sintesi dati singolo pod",
 				"page" : 1,
 				"script" : "$ifnot(*spacer_multipod) {\n  %spesa_materia_energia=$search(@,\"Corrispettivi energia $NUMBER\")\n  %spesa_materia_energia=$search(@,\"Spese per l'energia $NUMBER\")\n  %trasporto_gestione=$search(@,\"Trasporto $NUMBER\")\n  %trasporto_gestione=$search(@,\"Spesa per trasporto, gestione contatore e oneri di sistema $NUMBER\")\n}",
@@ -123,7 +123,7 @@
 			{
 				"goto_label" : "dati_fattura_multipod",
 				"h" : 0.24091297388076782,
-				"mode" : 0,
+				"mode" : 2,
 				"name" : "Dati fornitura multipod",
 				"page" : 3,
 				"script" : "$if(*spacer_multipod) {\n  indirizzo_fornitura=$search($nospace(@),\"Indirizzo (.+\\\\d{5}.+\\\\(.{2}\\\\))\")\n  codice_pod=$search(@,\"POD (.+)\\n\")\n  $for(i,3) %potenza[i]=$search(@,\"Potenza Impegnata $NUMBER\")\n}",
@@ -136,7 +136,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.16419611871242523,
-				"mode" : 1,
+				"mode" : 2,
 				"name" : "Sintesi dati multipod",
 				"page" : 3,
 				"script" : "$if(*spacer_multipod) {\n  %spesa_materia_energia=$search(@,\"Corrispettivi energia $NUMBER\")\n  %spesa_materia_energia=$search(@,\"Spese per l'energia $NUMBER\")\n  %trasporto_gestione=$search(@,\"Trasporto $NUMBER\")\n  %trasporto_gestione=$search(@,\"Spesa per trasporto, gestione.+ $NUMBER\")\n}",
@@ -152,7 +152,7 @@
 				"mode" : 0,
 				"name" : "Imponibile parziale",
 				"page" : 3,
-				"script" : "%imponibile=$search(@,\"TOT\\\\. $NUMBER\")",
+				"script" : "%imponibile=$search(@,\"TOT\\\\. \\u20ac $NUMBER\")",
 				"spacers" : "p+spacer_multipod p+next_page",
 				"type" : 0,
 				"w" : 0.16397848725318909,

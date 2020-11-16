@@ -19,7 +19,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.12414021790027618,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Dati fornitura",
 				"page" : 1,
 				"script" : "numero_cliente=$search(@,\"Codice Cliente: (.+)\\n\")\nnumero_fattura=$search(@,\"fattura n\\\\. (\\\\d+) \")\ndata_fattura=$date(@,\"fattura n\\\\. \\\\d+ del DD/MM/YYYY\")\ndata_inizio=$date(@,\"Periodo DD/MM/YYYY - DD/MM/YYYY\",1)\ndata_fine=$date(@,\"Periodo DD/MM/YYYY - DD/MM/YYYY\",2)\nmese_fattura=$date(data_fine,\"YYYY-MM\")",
@@ -71,7 +71,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.20506124198436737,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Sintesi degli importi fatturati",
 				"page" : 1,
 				"script" : "%spesa_materia_energia=$search(@,\"Spesa per la materia Energia $NUMBER\\n\")\n%trasporto_gestione=$search(@,\"Servizi di rete $NUMBER\\n\")\n%oneri=$search(@,\"Spesa per oneri di sistema $NUMBER\\n\")",
@@ -84,7 +84,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.085518814623355865,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Dettaglio fiscale/IVA",
 				"page" : 1,
 				"script" : "iva=$search(@,\"IVA (\\\\d+%)\")\n%imponibile=$search(@,\"IVA \\\\d+% $NUMBER\")",
@@ -97,7 +97,7 @@
 			{
 				"goto_label" : "dati_consumi",
 				"h" : 0.91229641437530518,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Dati Consumi",
 				"page" : 2,
 				"script" : "codice_pod=$search(@,\"Codice punto di erogazione \\\\(POD\\\\): ([a-zA-Z0-9]+)\")\n%energia_attiva[0]=$search(@,\"Energia Attiva kWh $NUMBER $NUMBER $NUMBER\",1)\n%energia_attiva[1]=$search(@,\"Energia Attiva kWh $NUMBER $NUMBER $NUMBER\",2)\n%energia_attiva[2]=$search(@,\"Energia Attiva kWh $NUMBER $NUMBER $NUMBER\",3)\n%energia_reattiva[0]=$search(@,\"Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER\",1)\n%energia_reattiva[1]=$search(@,\"Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER\",2)\n%energia_reattiva[2]=$search(@,\"Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER\",3)\n%potenza[0]=$search(@,\"Potenza kW $NUMBER $NUMBER $NUMBER\",1)\n%potenza[1]=$search(@,\"Potenza kW $NUMBER $NUMBER $NUMBER\",2)\n%potenza[2]=$search(@,\"Potenza kW $NUMBER $NUMBER $NUMBER\",3)\n%accise=$search(@,\"Imposta erariale di consumo.+kWh $NUMBER $NUMBER $NUMBER\",3)\n%prezzo_energia[0]=$search(@,\"Indice mese di competenza F1.+kwH $NUMBER\")\n%prezzo_energia[1]=$search(@,\"Indice mese di competenza F2.+kwH $NUMBER\")\n%prezzo_energia[1]=$search(@,\"Indice mese di competenza F3.+kwH $NUMBER\")\n%penale_reattiva_inf75=$search(@,\"Penale Reattiva 33%.+kvarh $NUMBER $NUMBER $NUMBER\",3)\n%penale_reattiva_sup75=$search(@,\"Penale Reattiva 75%.+kvarh $NUMBER $NUMBER $NUMBER\",3)",
