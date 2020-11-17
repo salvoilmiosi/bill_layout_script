@@ -11,10 +11,10 @@ ifndef build
 endif
 
 ifeq ($(build),release)
-  CFLAGS += -O2
+  CXXFLAGS += -O2
   LDFLAGS += -s -DNDEBUG
 else ifeq ($(build),debug)
-  CFLAGS += -g -DDEBUG
+  CXXFLAGS += -g -DDEBUG
 else
   $(error "Unknown build option $(build)")
 endif
