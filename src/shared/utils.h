@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <fmt/format.h>
 
 // divide una stringa per separatore
 std::vector<std::string> string_split(const std::string &str, char separator = ',');
@@ -28,7 +29,7 @@ std::string parse_string(std::string_view value);
 // converte i vari formati di data in un formato universale (dd/mm/aaaa)
 std::string parse_date(const std::string &format, const std::string &value, int index);
 
-std::string date_month_end(const std::string &value);
+std::string date_month_add(const std::string &month, int num);
 
 // cerca $NUMBER in str e ritorna il valore trovato
 std::string search_regex(std::string format, const std::string &value, int index);

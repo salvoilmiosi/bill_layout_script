@@ -4,7 +4,9 @@
 #include "../shared/utils.h"
 
 void reader::read_layout(const pdf_info &info, std::istream &input) {
-    m_asm.read_bytecode(input);
+    if (!m_asm.read_bytecode(input)) {
+        throw layout_error("File layout non riconosciuto");
+    }
 
     m_var_stack = {};
     m_content_stack = {};
@@ -318,6 +320,9 @@ void reader::clear_variable() {
 }
 
 size_t reader::get_variable_size() {
+    if (m_ref_stack.top().index == INDEX_GLOBAL) {
+        return m_globals.find(m_ref_stack.top().name) != m_globals.end();
+    }
     if (m_pages.size() <= m_page_num) {
         return 0;
     }

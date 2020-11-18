@@ -69,6 +69,8 @@ typedef uint16_t string_ref;
 typedef uint16_t jump_address;
 typedef uint16_t string_size;
 
+constexpr int32_t MAGIC = 0xb011377a;
+
 struct command_call {
     string_ref name;
     small_int numargs;

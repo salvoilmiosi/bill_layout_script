@@ -1,7 +1,6 @@
 #include "reader.h"
 
 #include <functional>
-#include <fmt/format.h>
 #include <regex>
 #include "../shared/utils.h"
 
@@ -62,8 +61,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
                 throw layout_error(fmt::format("Espressione regolare non valida: {0}", regex.str()));
             }
         })},
-        {"month_begin", create_function([](const variable &str) { return str.str() + "-01"; })},
-        {"month_end", create_function([](const variable &str) { return date_month_end(str.str()); })},
+        {"month_add", create_function<2>([](const variable &month, const variable &num) { return date_month_add(month.str(), num.as_int()); })},
         {"nospace", create_function([](const variable &str) { return nospace(str.str()); })},
         {"ifl", create_function<2, 3>   ([](const variable &condition, const variable &var_if, const variable &var_else) { return condition.as_bool() ? var_if : var_else; })},
         {"coalesce", [](const arg_list &args) {

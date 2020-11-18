@@ -1,12 +1,12 @@
 #include "disassembler.h"
 
-template<typename T> T readData(std::istream &input) {
-    T buffer;
-    input.read(reinterpret_cast<char *>(&buffer), sizeof(buffer));
-    return buffer;
-}
+#include "../shared/binary_io.h"
 
-void disassembler::read_bytecode(std::istream &input) {
+bool disassembler::read_bytecode(std::istream &input) {
+    auto check = readData<int32_t>(input);
+    if (check != MAGIC) {
+        return false;
+    }
     m_commands.clear();
     m_strings.clear();
 
@@ -60,13 +60,8 @@ void disassembler::read_bytecode(std::istream &input) {
             break;
         }
         case STRDATA:
-        {
-            string_size len = readData<string_size>(input);
-            std::string buffer(len, '\0');
-            input.read(buffer.data(), len);
-            m_strings.push_back(std::move(buffer));
+            m_strings.push_back(readData<std::string>(input));
             break;
-        }
         case ERROR:
         case PUSHSTR:
         case SELVAR:
@@ -92,6 +87,7 @@ void disassembler::read_bytecode(std::istream &input) {
             m_commands.emplace_back(cmd);
         }
     }
+    return true;
 }
 
 const std::string &disassembler::get_string(string_ref ref) {

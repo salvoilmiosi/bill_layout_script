@@ -9,7 +9,7 @@ struct disassembler {
     std::vector<command_args> m_commands;
     std::vector<std::string> m_strings;
 
-    void read_bytecode(std::istream &input);
+    bool read_bytecode(std::istream &input);
     const std::string &get_string(string_ref ref);
 };
 

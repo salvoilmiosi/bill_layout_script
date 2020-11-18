@@ -103,7 +103,7 @@ wxThread::ExitCode reader_thread::Entry() {
 
     const char *args2[] = {
         cmd_str.c_str(),
-        "-d", "-p", pdf_filename.c_str(),
+        "-p", pdf_filename.c_str(),
         "temp.out",
         nullptr
     };
@@ -120,7 +120,7 @@ wxThread::ExitCode reader_thread::Entry() {
             iss >> json_output;
 
             if (json_output["error"].asBool()) {
-                wxMessageBox("Errore in lettura:\n" + compile_output, "Errore", wxICON_ERROR);
+                wxMessageBox("Errore in lettura:\n" + json_output["message"].asString(), "Errore", wxICON_ERROR);
                 return (wxThread::ExitCode) 1;
             } else {
                 wxCriticalSectionLocker lock(parent->m_thread_cs);

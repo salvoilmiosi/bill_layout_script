@@ -6,6 +6,7 @@
 #include <map>
 
 #include "../shared/utils.h"
+#include "../shared/binary_io.h"
 
 void assembler::read_lines(const std::vector<std::string> &lines) {
     std::map<std::string, jump_address> labels;
@@ -144,78 +145,72 @@ string_ref assembler::add_string(const std::string &str) {
 }
 
 void assembler::write_bytecode(std::ostream &output) {
-    auto write_data = [&output](const auto &data) {
-        output.write(reinterpret_cast<const char *>(&data), sizeof(data));
-    };
+    writeData(output, MAGIC);
 
     for (const auto &line : out_lines) {
-        write_data(static_cast<command_int>(line.command));
+        writeData<command_int>(output, line.command);
         switch (line.command) {
         case RDBOX:
         {
             const auto &box = line.get<pdf_rect>();
-            write_data(static_cast<small_int>(box.mode));
-            write_data(static_cast<small_int>(box.page));
-            write_data(box.x);
-            write_data(box.y);
-            write_data(box.w);
-            write_data(box.h);
+            writeData<small_int>(output, box.mode);
+            writeData<small_int>(output, box.page);
+            writeData(output, box.x);
+            writeData(output, box.y);
+            writeData(output, box.w);
+            writeData(output, box.h);
             break;
         }
         case RDPAGE:
         {
             const auto &box = line.get<pdf_rect>();
-            write_data(static_cast<small_int>(box.mode));
-            write_data(static_cast<small_int>(box.page));
+            writeData<small_int>(output, box.mode);
+            writeData<small_int>(output, box.page);
             break;
         }
         case RDFILE:
         {
             const auto &box = line.get<pdf_rect>();
-            write_data(static_cast<small_int>(box.mode));
+            writeData<small_int>(output, box.mode);
             break;
         }
         case CALL:
         {
             const auto &call = line.get<command_call>();
-            write_data(call.name);
-            write_data(call.numargs);
+            writeData(output, call.name);
+            writeData(output, call.numargs);
             break;
         }
         case SELVARIDX:
         {
             const auto &var_idx = line.get<variable_idx>();
-            write_data(var_idx.name);
-            write_data(var_idx.index);
+            writeData(output, var_idx.name);
+            writeData(output, var_idx.index);
             break;
         }
         case STRDATA:
-        {
-            const auto &str = line.get<std::string>();
-            write_data(static_cast<string_size>(str.size()));
-            output.write(str.c_str(), str.size());
+            writeData(output, line.get<std::string>());
             break;
-        }
         case ERROR:
         case PUSHSTR:
         case SELVAR:
         case SELGLOBAL:
-            write_data(line.get<string_ref>());
+            writeData(output, line.get<string_ref>());
             break;
         case PUSHFLOAT:
-            write_data(line.get<float>());
+            writeData(output, line.get<float>());
             break;
         case PUSHINT:
         case INC:
         case DEC:
         case MVBOX:
-            write_data(line.get<small_int>());
+            writeData(output, line.get<small_int>());
             break;
         case JMP:
         case JZ:
         case JNZ:
         case JTE:
-            write_data(line.get<jump_address>());
+            writeData(output, line.get<jump_address>());
             break;
         default:
             break;
@@ -223,8 +218,8 @@ void assembler::write_bytecode(std::ostream &output) {
     }
 
     for (const auto &str : out_strings) {
-        write_data(static_cast<command_int>(STRDATA));
-        write_data(static_cast<string_size>(str.size()));
+        writeData<command_int>(output, STRDATA);
+        writeData<string_size>(output, str.size());
         output.write(str.c_str(), str.size());
     }
 }

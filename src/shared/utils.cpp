@@ -210,20 +210,20 @@ std::string parse_date(const std::string &format, const std::string &value, int 
     }
 }
 
-std::string date_month_end(const std::string &value) {
-    size_t dash = value.find_first_of('-');
-    if (dash == std::string::npos) {
+std::string date_month_add(const std::string &date, int num) {
+    try {
+        int month = std::stoi(date.substr(5));
+        int year = std::stoi(date.substr(0, 4));
+
+        month += num;
+        while (month > 12) {
+            month -= 12;
+            ++year;
+        }
+        return fmt::format("{:04}-{:02}", year, month);
+    } catch (std::invalid_argument &) {
         return "";
     }
-    int year = std::stoi(value.substr(0, dash));
-    int month = std::stoi(value.substr(dash + 1)) - 1;
-    std::string day;
-
-    if (month == 0 || month == 2 || month == 4 || month == 6 || month == 7 || month == 9 || month == 11) day = "-31";
-    else if (month == 3 || month == 5 || month == 8 || month == 10) day = "-30";
-    else day = (year % 4 == 0 && year % 400 != 0) ? "-29" : "-28";
-
-    return value + day;
 }
 
 std::string search_regex(std::string format, const std::string &value, int index) {
