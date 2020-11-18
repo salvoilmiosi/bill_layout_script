@@ -353,7 +353,14 @@ void reader::save_output(Json::Value &root, bool debug) {
 
     Json::Value &globals = root["globals"] = Json::objectValue;
     for (auto &pair : m_globals) {
-        if (!debug && pair.second.is_debug()) continue;
+        std::string name = pair.first;
+        if (pair.second.is_debug()) {
+            if (debug) {
+                name = "!" + name;
+            } else {
+                continue;
+            }
+        }
         globals[pair.first] = pair.second.str();
     }
 }
