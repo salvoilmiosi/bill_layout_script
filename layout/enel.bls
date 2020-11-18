@@ -22,12 +22,12 @@
 				"mode" : 0,
 				"name" : "Calcolo Offset Dettaglio",
 				"page" : 3,
-				"script" : "$ifnot($contains(@,\"DETTAGLIO IMPORTI IN BOLLETTA\")) {\n  $inc(*offset_dettaglio)\n  $goto(calcolo_offset)\n}",
+				"script" : "$if($neq(@,\"DETTAGLIO IMPORTI IN BOLLETTA\")) {\n  $inc(*offset_dettaglio)\n  $goto(calcolo_offset)\n}",
 				"spacers" : "p+*offset_dettaglio",
-				"type" : 1,
-				"w" : 0.037190854549407959,
-				"x" : 0.0049587786197662354,
-				"y" : 0.0070169288665056229
+				"type" : 0,
+				"w" : 0.30930390954017639,
+				"x" : 0.053306885063648224,
+				"y" : 0.20998157560825348
 			},
 			{
 				"goto_label" : "dettaglio_costi",
@@ -248,7 +248,7 @@
 				"type" : 3,
 				"w" : 0.039670243859291077,
 				"x" : 0.76241248846054077,
-				"y" : 0.0061398129910230637
+				"y" : 0.0072800638154149055
 			},
 			{
 				"goto_label" : "",
