@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     
-    if (!debug) {
+    if (!output_file.empty()) {
         if (output_file == "-") {
             m_asm.write_bytecode(std::cout);
         } else {

@@ -3,19 +3,6 @@
 #include <regex>
 #include <algorithm>
 
-std::vector<std::string> tokenize(const std::string &str) {
-    std::vector<std::string> ret;
-
-    size_t start = str.find_first_not_of("\t\n\v\f\r ");
-    while(start != std::string::npos) {
-        size_t end = str.find_first_of("\t\n\v\f\r ", start);
-        ret.push_back(str.substr(start, end - start));
-        start = str.find_first_not_of("\t\n\v\f\r ", end);
-    }
-
-    return ret;
-};
-
 std::vector<std::string> string_split(const std::string &str, char separator) {
     std::vector<std::string> ret;
 
@@ -153,30 +140,45 @@ std::string parse_string(std::string_view value) {
 
 #endif
 
+template<typename ... Ts>
+constexpr bool find_in (const char *str, const char *first, const Ts & ... strs) {
+    if (str == first) {
+        return true;
+    } else if constexpr (sizeof ... (strs) == 0) {
+        return false;
+    } else {
+        return find_in(str, strs...);
+    }
+}
+
 std::string parse_date(const std::string &format, const std::string &value, int index) {
+    auto replace = [](std::string out, const auto& ... strs) {
+        auto replace_impl = [&](std::string &out, const char *str, const std::string &fmt) {
+            if (find_in(str, strs...)) {
+                string_replace(out, str, "(" + fmt + ")");
+            } else {
+                string_replace(out, str, fmt);
+            }
+        };
+
+        replace_impl(out, "DAY", "[0-9]{2}");
+        replace_impl(out, "DD", "[0-9]{2}");
+        replace_impl(out, "MM", "[0-9]{2}");
+        replace_impl(out, "MONTH", "[a-zA-Z]+");
+        replace_impl(out, "MON", "[a-zA-Z]{3}");
+        replace_impl(out, "YEAR", "[0-9]{4}");
+        replace_impl(out, "YYYY", "[0-9]{4}");
+        replace_impl(out, "YY", "[0-9]{2}");
+
+        return out;
+    };
+
+    std::string day = search_regex(replace(format, "DAY", "DD"), value, index);
+    std::string month = string_tolower(search_regex(replace(format, "MM", "MONTH", "MON"), value, index));
+    std::string year = search_regex(replace(format, "YEAR", "YYYY", "YY"), value, index);
+
     static const char *MONTHS[] = {"gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"};
 
-    std::string day = format;
-    string_replace(day, "DAY", "([0-9]{2})");
-    string_replace(day, "DD", "([0-9]{2})");
-    string_replace(day, "MM", "[0-9]{2}");
-    string_replace(day, "MONTH", "[a-zA-Z]+");
-    string_replace(day, "MON", "[a-zA-Z]{3}");
-    string_replace(day, "YEAR", "[0-9]{4}");
-    string_replace(day, "YYYY", "[0-9]{4}");
-    string_replace(day, "YY", "[0-9]{2}");
-    day = search_regex(day, value, index);
-
-    std::string month = format;
-    string_replace(month, "DAY", "[0-9]{2}");
-    string_replace(month, "DD", "[0-9]{2}");
-    string_replace(month, "MM", "([0-9]{2})");
-    string_replace(month, "MONTH", "([a-zA-Z]+)");
-    string_replace(month, "MON", "([a-zA-Z]{3})");
-    string_replace(month, "YEAR", "[0-9]{4}");
-    string_replace(month, "YYYY", "[0-9]{4}");
-    string_replace(month, "YY", "[0-9]{2}");
-    month = string_tolower(search_regex(month, value, index));
     for (size_t i=0; i<std::size(MONTHS); ++i) {
         if (month.find(MONTHS[i]) != std::string::npos) {
             if (i < 9) {
@@ -187,17 +189,6 @@ std::string parse_date(const std::string &format, const std::string &value, int 
             break;
         }
     }
-
-    std::string year = format;
-    string_replace(year, "DAY", "[0-9]{2}");
-    string_replace(year, "DD", "[0-9]{2}");
-    string_replace(year, "MM", "[0-9]{2}");
-    string_replace(year, "MONTH", "[a-zA-Z]+");
-    string_replace(year, "MON", "[a-zA-Z]{3}");
-    string_replace(year, "YEAR", "([0-9]{4})");
-    string_replace(year, "YYYY", "([0-9]{4})");
-    string_replace(year, "YY", "([0-9]{2})");
-    year = search_regex(year, value, index);
 
     try {
         int yy = std::stoi(year);

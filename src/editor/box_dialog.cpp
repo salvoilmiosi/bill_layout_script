@@ -126,6 +126,7 @@ void box_dialog::OnOK(wxCommandEvent &evt) {
         box.spacers = m_box_spacers->GetValue();
         box.goto_label = m_box_goto_label->GetValue();
         box.script = m_box_script->GetValue();
+        app->updateLayout();
         Destroy();
     }
 }

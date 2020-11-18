@@ -24,6 +24,8 @@ enum token_type {
     TOK_DEBUG,              // !
     TOK_CLEAR,              // :
     TOK_CONTENT,            // @
+    TOK_PLUS,               // +
+    TOK_MINUS,              // -
 };
 
 constexpr const char *TOKEN_NAMES[] = {
@@ -47,7 +49,9 @@ constexpr const char *TOKEN_NAMES[] = {
     "'!'",
     "'+'",
     "':'",
-    "'@'"
+    "'@'",
+    "'+'",
+    "'-'",
 };
 
 struct parsing_error {

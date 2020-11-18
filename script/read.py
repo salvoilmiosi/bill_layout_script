@@ -34,7 +34,7 @@ def read_pdf(pdf_file):
     if json_out['error']:
         file_obj['error'] = json_out['message']
     else:
-        file_obj['values'] = ['values']
+        file_obj['values'] = json_out['values']
 
     out.append(file_obj)
 

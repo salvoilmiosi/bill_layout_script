@@ -12,8 +12,6 @@ dir_schede = Path(sys.argv[2] if len(sys.argv) >= 3 else 'W:/schede')
 
 scheda_pulita = dir_schede.joinpath('--- BE Pulito.xlsx')
 
-today_date = datetime.date.today()
-
 for f in dir_out.rglob('*.xlsx'):
     nome_cliente = f.stem
 
@@ -31,7 +29,6 @@ for f in dir_out.rglob('*.xlsx'):
         codice_pod = row[indices['POD']].value
         mese_fattura = row[indices['Mese']].value
         num_fattura = row[indices['N. Fatt.']].value
-        date_lastmodified = row[indices['Ultima Modifica']].value.date()
         if num_fattura == None or codice_pod == None:
             continue
         if mese_fattura != None and not isinstance(mese_fattura, datetime.datetime):
@@ -69,14 +66,12 @@ for f in dir_out.rglob('*.xlsx'):
                 mese_scheda = datetime.datetime.strptime(mese_scheda, '%Y-%m')
             if mese_fattura != None and mese_fattura != '' and mese_scheda == mese_fattura:
                 num_fattura_scheda = row_scheda[indices_scheda['N. Fatt.']].value
-                if newfile or today_date == date_lastmodified:
-                    if num_fattura_scheda != None and num_fattura_scheda != '':
-                        continue
-                    else:
-                        isnew = True
-                elif num_fattura != num_fattura_scheda:
+                if num_fattura_scheda == '' or num_fattura_scheda == None:
+                    isnew = True
+                elif num_fattura == num_fattura_scheda:
+                    found = True
+                else:
                     continue
-                found = True
                 for cell_out, cell_scheda in zip(row[indices['Fornitore']:indices['PEF3']+1], row_scheda[indices_scheda['Fornitore']:indices_scheda['PEF3']+1]):
                     if isinstance(cell_out.value,str) and cell_out.value[-1:] == '%':
                         cell_out.number_format = '0%'
@@ -85,7 +80,8 @@ for f in dir_out.rglob('*.xlsx'):
                         cell_out.number_format = 'DD/MM/YY'
                     cell_scheda.number_format = cell_out.number_format
                     cell_scheda.value = cell_out.value
-        print(nome_cliente, codice_pod, num_fattura, mese_fattura.date() if isinstance(mese_fattura, datetime.datetime) else '-',
-            'Added' if isnew else 'Update' if found else 'Skip')
+        print('Added\t' if isnew else 'Update\t' if found else 'Skip\t',
+            nome_cliente, codice_pod, num_fattura,
+            mese_fattura.date() if isinstance(mese_fattura, datetime.datetime) else '-')
     
     wb_scheda.save(filename)

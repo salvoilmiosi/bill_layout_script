@@ -4,9 +4,6 @@
 #include <vector>
 #include <string>
 
-// divide una stringa per separatori spazio
-std::vector<std::string> tokenize(const std::string &str);
-
 // divide una stringa per separatore
 std::vector<std::string> string_split(const std::string &str, char separator = ',');
 

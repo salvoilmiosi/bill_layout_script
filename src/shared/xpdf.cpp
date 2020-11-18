@@ -9,7 +9,7 @@
 static const char *modes[] = {nullptr, "-layout", "-raw"};
 
 std::string pdf_to_text(const pdf_info &info, const pdf_rect &in_rect) {
-    if (in_rect.page >= info.num_pages) return "";
+    if (in_rect.page > info.num_pages) return "";
 
     try {
         const char *args[30] = {0};

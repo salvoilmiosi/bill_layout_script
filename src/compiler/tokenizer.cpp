@@ -57,7 +57,6 @@ bool tokenizer::next() {
     case '7':
     case '8':
     case '9':
-    case '-':
         tok.type = TOK_NUMBER;
         ok = readNumber();
         break;
@@ -103,6 +102,12 @@ bool tokenizer::next() {
         break;
     case ':':
         tok.type = TOK_CLEAR;
+        break;
+    case '+':
+        tok.type = TOK_PLUS;
+        break;
+    case '-':
+        tok.type = TOK_MINUS;
         break;
     default:
         tok.type = TOK_IDENTIFIER;

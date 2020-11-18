@@ -29,7 +29,7 @@ table_values = [
     TableValue('Costo Materia Energia', 'spesa_materia_energia',     type='euro', column_width=11),
     TableValue('Trasporto',             'trasporto_gestione',        type='euro', column_width=11),
     TableValue('Oneri',                 'oneri',                     type='euro', column_width=11),
-    TableValue('Accise',                'accise',                    type='euro'),
+    TableValue('Accise',                'accise',                    type='euro', column_width=11),
     TableValue('Iva',                   'iva',                       type='percentage', column_width=6),
     TableValue('Imponibile',            'imponibile',                type='euro', column_width=11),
     TableValue('F1',                    'energia_attiva',   index=0, type='int', column_width=8),

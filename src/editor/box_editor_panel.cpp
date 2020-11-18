@@ -127,19 +127,14 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
             case TOOL_NEWBOX:
             {
                 wxRect rect = make_rect(start_pt, end_pt);
-                layout_box box;
+                layout_box &box = app->layout.boxes.emplace_back();
                 box.x = (rect.x + scrollx) / scaled_width;
                 box.y = (rect.y + scrolly) / scaled_height;
                 box.w = rect.width / scaled_width;
                 box.h = rect.height / scaled_height;
                 box.page = app->getSelectedPage();
 
-                box_dialog diag(app, box);
-                if (diag.ShowModal() == wxID_OK) {
-                    app->layout.boxes.push_back(box);
-                    app->updateLayout();
-                    app->selectBox(app->layout.boxes.size() - 1);
-                }
+                (new box_dialog(app, box))->Show();
                 break;
             }
             case TOOL_DELETEBOX:

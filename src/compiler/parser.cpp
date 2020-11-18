@@ -19,28 +19,37 @@ void parser::read_box(const layout_box &box) {
     current_box = &box;
     if (!box.goto_label.empty()) add_line("{0}:", box.goto_label);
 
-    for (auto &name : tokenize(box.spacers)) {
-        if (name.size() <= 2) {
-            throw parsing_error{fmt::format("Spaziatore {0} incorretto", name), box.spacers};
-        }
-        add_line("SELGLOBAL {0}", name.substr(2));
-        add_line("PUSHVAR");
-        switch (name[1]) {
-        case '+':
+    tokens = tokenizer(box.spacers);
+
+    while(!tokens.ate()) {
+        auto tok_num = tokens.require(TOK_IDENTIFIER);
+        tokens.next();
+        switch (tokens.current().type) {
+        case TOK_PLUS:
             break;
-        case '-':
+        case TOK_MINUS:
             add_line("NEG");
         default:
-            throw parsing_error{fmt::format("Spaziatore {0} incorretto", name), box.spacers};
+            throw parsing_error{"Spaziatore incorretto", tokens.getLocation(tokens.current())};
         }
-        switch (name.front()) {
-        case 'p': add_line("MVBOX {0}", SPACER_PAGE); break;
-        case 'x': add_line("MVBOX {0}", SPACER_X); break;
-        case 'y': add_line("MVBOX {0}", SPACER_Y); break;
-        case 'w': add_line("MVBOX {0}", SPACER_W); break;
-        case 'h': add_line("MVBOX {0}", SPACER_H); break;
+        read_expression();
+        switch (hash(string_tolower(std::string(tok_num.value)))) {
+        case hash("p"):
+        case hash("page"):
+            add_line("MVBOX {0}", SPACER_PAGE);
+            break;
+        case hash("x"): add_line("MVBOX {0}", SPACER_X); break;
+        case hash("y"): add_line("MVBOX {0}", SPACER_Y); break;
+        case hash("w"):
+        case hash("width"):
+            add_line("MVBOX {0}", SPACER_W);
+            break;
+        case hash("h"):
+        case hash("height"):
+            add_line("MVBOX {0}", SPACER_H);
+            break;
         default:
-            throw parsing_error{fmt::format("Spaziatore {0} incorretto", name), box.spacers};
+            throw parsing_error{"Spaziatore incorretto", tokens.getLocation(tok_num)};
         }
     }
 
