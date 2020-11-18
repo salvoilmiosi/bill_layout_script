@@ -10,3 +10,4 @@ layout/*.txt
 *.o
 *.d
 *.res
+*.pdf
