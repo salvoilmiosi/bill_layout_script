@@ -4,18 +4,17 @@
 #include "bytecode.h"
 #include <iostream>
 
-#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-    #define BIG_ENDIAN
-#elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-    #define LITTLE_ENDIAN
-#else
-    #error "Cannot determine endianness"
-#endif
+constexpr bool is_big_endian() {
+    union {
+        uint32_t i;
+        char c[4];
+    } bint = {0x01020304};
+
+    return bint.c[0] == 1; 
+}
 
 template <typename T>
 T swap_endian(T u) {
-    static_assert (CHAR_BIT == 8, "CHAR_BIT != 8");
-
     union
     {
         T u;
@@ -34,11 +33,11 @@ template<typename T>
 T readData(std::istream &input) {
     T buffer;
     input.read(reinterpret_cast<char *>(&buffer), sizeof(buffer));
-#ifdef BIG_ENDIAN
-    return buffer;
-#else
-    return swap_endian(buffer);
-#endif
+    if (is_big_endian()) {
+        return buffer;
+    } else {
+        return swap_endian(buffer);
+    }
 }
 
 template<> std::string readData(std::istream &input) {
@@ -50,12 +49,12 @@ template<> std::string readData(std::istream &input) {
 
 template<typename T>
 void writeData(std::ostream &output, const T &data) {
-#ifdef BIG_ENDIAN
-    output.write(reinterpret_cast<const char *>(&data), sizeof(data));
-#else
-    T swapped = swap_endian(data);
-    output.write(reinterpret_cast<const char *>(&swapped), sizeof(data));
-#endif
+    if (is_big_endian()) {
+        output.write(reinterpret_cast<const char *>(&data), sizeof(data));
+    } else {
+        T swapped = swap_endian(data);
+        output.write(reinterpret_cast<const char *>(&swapped), sizeof(data));
+    }
 }
 
 template<> void writeData<std::string>(std::ostream &output, const std::string &str) {
