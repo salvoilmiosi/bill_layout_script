@@ -16,7 +16,7 @@
 #include "resources.h"
 #include "clipboard.h"
 
-#include "../shared/pipe.h"
+#include "subprocess.h"
 
 BEGIN_EVENT_TABLE(frame_editor, wxFrame)
     EVT_MENU (MENU_NEW, frame_editor::OnNewFile)
@@ -205,8 +205,8 @@ void frame_editor::openFile(const wxString &filename) {
         ifs >> layout;
         ifs.close();
         history.clear();
-        if (wxFileExists(pdf_filename)) {
-            loadPdf(pdf_filename);
+        if (wxFileExists(m_doc.filename())) {
+            loadPdf(m_doc.filename());
         }
         updateLayout();
         
@@ -300,8 +300,8 @@ static constexpr size_t MAX_HISTORY_SIZE = 20;
 
 void frame_editor::updateLayout(bool addToHistory) {
     m_list_boxes->Clear();
-    for (size_t i=0; i<layout.boxes.size(); ++i) {
-        auto &box = layout.boxes[i];
+    for (size_t i=0; i<layout.size(); ++i) {
+        auto &box = layout[i];
         m_list_boxes->Append(box.name);
         if (box.selected) {
             m_list_boxes->SetSelection(i);
@@ -390,8 +390,8 @@ void frame_editor::OnRedo(wxCommandEvent &evt) {
 
 void frame_editor::OnCut(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0 && SetClipboard(layout.boxes[selection])) {
-        layout.boxes.erase(layout.boxes.begin() + selection);
+    if (selection >= 0 && SetClipboard(layout[selection])) {
+        layout.erase(layout.begin() + selection);
         updateLayout();
     }
 }
@@ -399,7 +399,7 @@ void frame_editor::OnCut(wxCommandEvent &evt) {
 void frame_editor::OnCopy(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0) {
-        SetClipboard(layout.boxes[selection]);
+        SetClipboard(layout[selection]);
     }
 }
 
@@ -409,32 +409,31 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
             clipboard.page = selected_page;
         }
         
-        layout.boxes.push_back(clipboard);
+        layout.push_back(clipboard);
         updateLayout();
-        selectBox(layout.boxes.size() - 1);
+        selectBox(layout.size() - 1);
     }
 }
 
 void frame_editor::loadPdf(const wxString &filename) {
     try {
-        info = pdf_get_info(filename.ToStdString());
-        pdf_filename = filename;
+        m_doc.open(filename.ToStdString());
         m_page->Clear();
-        for (int i=1; i<=info.num_pages; ++i) {
+        for (int i=1; i<=m_doc.num_pages(); ++i) {
             m_page->Append(wxString::Format("%i", i));
         }
         setSelectedPage(1, true);
         
         static constexpr size_t MAX_RECENT_PDFS_HISTORY = 10;
-        if (auto it = std::find(recentPdfs.begin(), recentPdfs.end(), pdf_filename); it != recentPdfs.end()) {
+        if (auto it = std::find(recentPdfs.begin(), recentPdfs.end(), m_doc.filename()); it != recentPdfs.end()) {
             recentPdfs.erase(it);
         }
-        recentPdfs.push_front(pdf_filename);
+        recentPdfs.push_front(m_doc.filename());
         if (recentPdfs.size() > MAX_RECENT_PDFS_HISTORY) {
             recentPdfs.pop_back();
         }
         updateRecentFiles(true);
-    } catch (const xpdf_error &error) {
+    } catch (const pdf_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);
     }
 }
@@ -483,13 +482,13 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
         if (!compile_output.empty()) {
             wxMessageBox("Errore nella compilazione:\n" + compile_output, "Errore", wxICON_ERROR);
         }
-    } catch (const pipe_error &error) {
+    } catch (const process_error &error) {
         wxMessageBox(error.message, "Erorre", wxICON_ERROR);
     }
 }
 
 void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
-    if (pdf_filename.empty()) {
+    if (!m_doc.isopen()) {
         wxBell();
         return;
     }
@@ -504,7 +503,7 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
 
     const char *args[] = {
         cmd_str.c_str(),
-        "-p", pdf_filename.c_str(),
+        "-p", m_doc.filename().c_str(),
         control_script_filename.c_str(),
         nullptr
     };
@@ -539,23 +538,23 @@ void frame_editor::OnLoadPdf(wxCommandEvent &evt) {
 
 void frame_editor::setSelectedPage(int page, bool force) {
     if (!force && page == selected_page) return;
-    if (pdf_filename.empty()) return;
+    if (!m_doc.isopen()) return;
 
     m_page->SetSelection(page - 1);
     try {
         selected_page = page;
-        m_image->setImage(pdf_to_image(pdf_filename.ToStdString(), page));
-    } catch (const xpdf_error &error) {
+        m_image->setImage(pdf_to_image(m_doc, page));
+    } catch (const pdf_error &error) {
         wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
     }
 }
 
 void frame_editor::OnPageSelect(wxCommandEvent &evt) {
-    if (pdf_filename.empty()) return;
+    if (!m_doc.isopen()) return;
 
     long selected_page;
     if (m_page->GetValue().ToLong(&selected_page)) {
-        if (selected_page > info.num_pages || selected_page <= 0) {
+        if (selected_page > m_doc.num_pages() || selected_page <= 0) {
             wxBell();
         } else {
             setSelectedPage(selected_page);
@@ -584,12 +583,12 @@ void frame_editor::OnSelectBox(wxCommandEvent &evt) {
 
 void frame_editor::selectBox(int selection) {
     m_list_boxes->SetSelection(selection);
-    for (size_t i=0; i<layout.boxes.size(); ++i) {
-        layout.boxes[i].selected = (int)i == selection;
+    for (size_t i=0; i<layout.size(); ++i) {
+        layout[i].selected = (int)i == selection;
     }
-    if (selection >= 0 && selection < (int) layout.boxes.size()) {
-        setSelectedPage(layout.boxes[selection].page);
-        m_image->setSelectedBox(layout.boxes.begin() + selection);
+    if (selection >= 0 && selection < (int) layout.size()) {
+        setSelectedPage(layout[selection].page);
+        m_image->setSelectedBox(layout.begin() + selection);
     }
     m_image->Refresh();
 }
@@ -597,14 +596,14 @@ void frame_editor::selectBox(int selection) {
 void frame_editor::EditSelectedBox(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0) {
-        new box_dialog(this, layout.boxes[selection]);
+        new box_dialog(this, layout[selection]);
     }
 }
 
 void frame_editor::OnDelete(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0) {
-        layout.boxes.erase(layout.boxes.begin() + selection);
+        layout.erase(layout.begin() + selection);
         updateLayout();
     }
 }
@@ -618,15 +617,15 @@ void frame_editor::OnReadData(wxCommandEvent &evt) {
 void frame_editor::OnMoveUp(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection > 0) {
-        std::swap(layout.boxes[selection], layout.boxes[selection-1]);
+        std::swap(layout[selection], layout[selection-1]);
         updateLayout();
     }
 }
 
 void frame_editor::OnMoveDown(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0 && selection < (int)layout.boxes.size() - 1) {
-        std::swap(layout.boxes[selection], layout.boxes[selection+1]);
+    if (selection >= 0 && selection < (int)layout.size() - 1) {
+        std::swap(layout[selection], layout[selection+1]);
         updateLayout();
     }
 }

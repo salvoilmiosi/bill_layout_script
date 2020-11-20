@@ -8,7 +8,7 @@
 #include <json/json.h>
 
 #include "editor.h"
-#include "../shared/pipe.h"
+#include "subprocess.h"
 
 class output_dialog;
 
@@ -31,7 +31,7 @@ protected:
     wxString pdf_filename;
 
 private:
-    std::unique_ptr<rwops> process;
+    std::unique_ptr<subprocess> process;
 };
 
 class output_dialog : public wxDialog {

@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall --std=c++17
+CXXFLAGS = -Wall --std=c++17 -Isrc/shared
 LDFLAGS = 
 
 SRC_DIR = src

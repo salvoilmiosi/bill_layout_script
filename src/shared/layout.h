@@ -1,7 +1,7 @@
 #ifndef __BOX_LAYOUT_H__
 #define __BOX_LAYOUT_H__
 
-#include "xpdf.h"
+#include "pdf_document.h"
 
 #include <vector>
 #include <cstring>
@@ -25,21 +25,7 @@ struct layout_error {
     layout_error(const std::string &message) : message(message) {}
 };
 
-using box_reference = std::vector<layout_box>::iterator;
-
-class bill_layout_script {
-public:
-    bill_layout_script();
-    box_reference getBoxAt(float x, float y, int page);
-    std::pair<box_reference, int> getBoxResizeNode(float x, float y, int page, float scalex, float scaley);
-
-    void clear() {
-        boxes.clear();
-    }
-
-public:
-    std::vector<layout_box> boxes;
-};
+using bill_layout_script = std::vector<layout_box>;
 
 std::ostream &operator << (std::ostream &out, const bill_layout_script &obj);
 std::istream &operator >> (std::istream &in, bill_layout_script &obj);

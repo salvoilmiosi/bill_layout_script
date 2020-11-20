@@ -40,15 +40,19 @@ struct box_spacer {
 
 class reader {
 public:
-    void read_layout(const pdf_info &info, std::istream &input);
+    void open_pdf(const std::string &filename) {
+        m_doc.open(filename);
+    }
+    
+    void read_layout(std::istream &input);
 
     const variable &get_global(const std::string &name) const;
 
     void save_output(Json::Value &output, bool debug);
 
 private:
-    void exec_command(const pdf_info &info, const command_args &cmd);
-    void read_box(const pdf_info &info, pdf_rect box);
+    void exec_command(const command_args &cmd);
+    void read_box(pdf_rect box);
     void call_function(const std::string &name, size_t numargs);
 
     const variable &get_variable() const;
@@ -64,6 +68,7 @@ private:
     std::vector<variable_page> m_pages;
 
 private:
+    pdf_document m_doc;
     disassembler m_asm;
 
     template<typename T>

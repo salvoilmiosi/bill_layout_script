@@ -3,20 +3,16 @@
 #include <filesystem>
 #include <iostream>
 
-#include "../shared/pipe.h"
+#include "subprocess.h"
 
-wxImage pdf_to_image(const std::string &pdf, int page) {
-    if (!wxFileExists(pdf)) {
-        throw xpdf_error(std::string("File \"") + pdf + "\" does not exist");
-    }
-    
+wxImage pdf_to_image(const pdf_document &doc, int page) {
     auto page_str = std::to_string(page);
 
     const char *args[] = {
         "pdftocairo",
         "-f", page_str.c_str(),  "-l", page_str.c_str(),
         "-png", "-singlefile",
-        pdf.c_str(), "temp",
+        doc.filename().c_str(), "temp",
         nullptr
     };
 
@@ -33,5 +29,5 @@ wxImage pdf_to_image(const std::string &pdf, int page) {
             return img;
         }
     }
-    throw xpdf_error("Could not open image");
+    throw pdf_error("Could not open image");
 }

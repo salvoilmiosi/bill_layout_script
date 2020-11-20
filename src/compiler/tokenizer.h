@@ -57,6 +57,8 @@ constexpr const char *TOKEN_NAMES[] = {
 struct parsing_error {
     const std::string message;
     const std::string line;
+
+    parsing_error(const std::string &message, const std::string &line) : message(message), line(line) {}
 };
 
 struct token {

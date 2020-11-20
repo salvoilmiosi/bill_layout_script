@@ -7,7 +7,7 @@
     #include <wx/wx.h>
 #endif
 
-#include "../shared/layout.h"
+#include "layout.h"
 
 #include <deque>
 #include <memory>
@@ -51,12 +51,8 @@ public:
     bool saveIfModified();
     wxString getControlScript();
 
-    const pdf_info &getPdfInfo() {
-        return info;
-    }
-
-    const wxString &getPdfFilename() {
-        return pdf_filename;
+    const pdf_document &getPdfDocument() {
+        return m_doc;
     }
 
     bill_layout_script layout;
@@ -112,9 +108,8 @@ private:
     bool modified = false;
 
 private:
-    pdf_info info;
+    pdf_document m_doc;
     wxString layout_filename;
-    wxString pdf_filename;
     int selected_page = 0;
 };
 

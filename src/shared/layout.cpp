@@ -2,65 +2,9 @@
 
 #include <json/json.h>
 
-constexpr uint32_t MAGIC = 0xb011e77a;
 constexpr uint32_t VERSION = 0x00000001;
-constexpr float RESIZE_TOLERANCE = 8.f;
 
-bill_layout_script::bill_layout_script() {
-
-}
-
-box_reference bill_layout_script::getBoxAt(float x, float y, int page) {
-    auto check_box = [&](layout_box &box) {
-        return (x > box.x && x < box.x + box.w && y > box.y && y < box.y + box.h && box.page == page);
-    };
-    for (auto it = boxes.begin(); it != boxes.end(); ++it) {
-        if (it->selected && check_box(*it)) return it;
-    }
-    for (auto it = boxes.begin(); it != boxes.end(); ++it) {
-        if (check_box(*it)) return it;
-    }
-    return boxes.end();
-}
-
-std::pair<box_reference, int> bill_layout_script::getBoxResizeNode(float x, float y, int page, float scalex, float scaley) {
-    float nw = RESIZE_TOLERANCE / scalex;
-    float nh = RESIZE_TOLERANCE / scaley;
-    auto check_box = [&](box_reference it) {
-        if (it->page == page) {
-            int node = 0;
-            if (y > it->y - nh && y < it->y + it->h + nh) {
-                if (x > it->x - nw && x < it->x + nw) {
-                    node |= RESIZE_LEFT;
-                } else if (x > it->x + it->w - nw && x < it->x + it->w + nw) {
-                    node |= RESIZE_RIGHT;
-                }
-            }
-            if (x > it->x - nw && x < it->x + it->w + nw) {
-                if (y > it->y - nh && y < it->y + nh) {
-                    node |= RESIZE_TOP;
-                } else if (y > it->y + it->h - nh && y < it->y + it->h + nh) {
-                    node |= RESIZE_BOTTOM;
-                }
-            }
-            return std::make_pair(it, node);
-        }
-        return std::make_pair(boxes.end(), 0);
-    };
-    for (auto it = boxes.begin(); it != boxes.end(); ++it) {
-        if (it->selected) {
-            auto res = check_box(it);
-            if (res.second) return res;
-        }
-    }
-    for (auto it = boxes.begin(); it != boxes.end(); ++it) {
-        auto res = check_box(it);
-        if (res.second) return res;
-    }
-    return std::make_pair(boxes.end(), 0);
-}
-
-std::ostream &operator << (std::ostream &out, const bill_layout_script &obj) {
+std::ostream &operator << (std::ostream &out, const bill_layout_script &boxes) {
     Json::Value root = Json::objectValue;
     root["version"] = VERSION;
     
@@ -68,7 +12,7 @@ std::ostream &operator << (std::ostream &out, const bill_layout_script &obj) {
 
     Json::Value &json_boxes = layout["boxes"] = Json::arrayValue;
 
-    for (auto &box : obj.boxes) {
+    for (auto &box : boxes) {
         Json::Value json_box = Json::objectValue;
 
         json_box["name"] = box.name;
@@ -89,7 +33,7 @@ std::ostream &operator << (std::ostream &out, const bill_layout_script &obj) {
     return out << root;
 }
 
-std::istream &operator >> (std::istream &in, bill_layout_script &obj) {
+std::istream &operator >> (std::istream &in, bill_layout_script &boxes) {
     Json::Value root;
 
     try {
@@ -116,7 +60,7 @@ std::istream &operator >> (std::istream &in, bill_layout_script &obj) {
                 box.mode = static_cast<read_mode>(json_box["mode"].asInt());
                 box.type = static_cast<box_type>(json_box["type"].asInt());
 
-                obj.boxes.push_back(box);
+                boxes.push_back(box);
             }
             break;
         }

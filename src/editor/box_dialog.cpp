@@ -9,8 +9,7 @@
 #include <json/json.h>
 
 #include "editor.h"
-#include "../shared/xpdf.h"
-#include "../shared/utils.h"
+#include "utils.h"
 
 enum {
     BUTTON_TEST = 10001,
@@ -162,10 +161,10 @@ void box_dialog::OnClickTest(wxCommandEvent &evt) {
         pdf_rect copy(dynamic_cast<const pdf_rect &>(box));
         copy.type = static_cast<box_type>(m_box_type->GetSelection());
         copy.mode = static_cast<read_mode>(m_box_mode->GetSelection());
-        std::string text = pdf_to_text(app->getPdfInfo(), copy);
+        std::string text = app->getPdfDocument().get_text(copy);
         Json::Value value = text;
         reader_output->ShowText(value.toStyledString());
-    } catch (const xpdf_error &error) {
+    } catch (const pdf_error &error) {
         wxMessageBox(error.message, "Errore", wxICON_ERROR);
     }
 }

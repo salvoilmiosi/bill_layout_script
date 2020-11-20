@@ -5,7 +5,7 @@
 #include <wx/textctrl.h>
 #include <wx/choice.h>
 
-#include "../shared/layout.h"
+#include "layout.h"
 class ReaderOutputDialog : public wxDialog {
 public:
     ReaderOutputDialog(wxWindow *parent);

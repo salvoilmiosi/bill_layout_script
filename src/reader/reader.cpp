@@ -1,9 +1,9 @@
 #include "reader.h"
 
 #include <fmt/core.h>
-#include "../shared/utils.h"
+#include "utils.h"
 
-void reader::read_layout(const pdf_info &info, std::istream &input) {
+void reader::read_layout(std::istream &input) {
     if (!m_asm.read_bytecode(input)) {
         throw layout_error("File layout non riconosciuto");
     }
@@ -17,7 +17,7 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
     m_ate = false;
 
     while (m_programcounter < m_asm.m_commands.size()) {
-        exec_command(info, m_asm.m_commands[m_programcounter]);
+        exec_command(m_asm.m_commands[m_programcounter]);
         if (!m_jumped) {
             ++m_programcounter;
         } else {
@@ -46,7 +46,7 @@ std::string_view content_view::view() const {
     }
 }
 
-void reader::exec_command(const pdf_info &info, const command_args &cmd) {
+void reader::exec_command(const command_args &cmd) {
     auto exec_operator = [&](auto op) {
         auto var2 = m_var_stack.top();
         m_var_stack.pop();
@@ -67,7 +67,7 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     case RDBOX:
     case RDPAGE:
     case RDFILE:
-        read_box(info, cmd.get<pdf_rect>());
+        read_box(cmd.get<pdf_rect>());
         break;
     case CALL:
     {
@@ -232,7 +232,7 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     }
 }
 
-void reader::read_box(const pdf_info &info, pdf_rect box) {
+void reader::read_box(pdf_rect box) {
     box.page += m_spacer.page;
     box.x += m_spacer.x;
     box.y += m_spacer.y;
@@ -241,11 +241,11 @@ void reader::read_box(const pdf_info &info, pdf_rect box) {
     m_spacer = {};
     m_content_stack = {};
 
-    m_ate = box.page > info.num_pages;
+    m_ate = box.page > m_doc.num_pages();
 
     try {
-        m_content_stack.push(pdf_to_text(info, box));
-    } catch (const xpdf_error &error) {
+        m_content_stack.push(m_doc.get_text(box));
+    } catch (const pdf_error &error) {
         throw layout_error(error.message);
     }
 }

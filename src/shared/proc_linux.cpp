@@ -1,6 +1,6 @@
 #ifdef __linux__
 
-#include "pipe.h"
+#include "subprocess.h"
 #include <unistd.h>
 #include <sys/types.h>
 #include <signal.h>
@@ -8,10 +8,10 @@
 #define PIPE_READ 0
 #define PIPE_WRITE 1
 
-class unix_process_rwops : public rwops {
+class unix_process : public subprocess {
 public:
-    unix_process_rwops(const char *args[]);
-    ~unix_process_rwops();
+    unix_process(const char *args[]);
+    ~unix_process();
 
 public:
     virtual int read(size_t bytes, void *buffer) override;
@@ -25,15 +25,15 @@ private:
     int child_pid;
 };
 
-unix_process_rwops::unix_process_rwops(const char *args[]) {
+unix_process::unix_process(const char *args[]) {
     if (pipe(pipe_stdout) < 0)
-        throw pipe_error("Error creating stdout pipe");
+        throw process_error("Error creating stdout pipe");
 
     if (pipe(pipe_stdin) < 0) {
         ::close(pipe_stdout[PIPE_READ]);
         ::close(pipe_stdout[PIPE_WRITE]);
 
-        throw pipe_error("Error creating stdin pipe");
+        throw process_error("Error creating stdin pipe");
     }
 
     child_pid = fork();
@@ -56,35 +56,35 @@ unix_process_rwops::unix_process_rwops(const char *args[]) {
     }
 }
 
-unix_process_rwops::~unix_process_rwops() {
+unix_process::~unix_process() {
     close_stdin();
     close_stdout();
 }
 
-int unix_process_rwops::read(size_t bytes, void *buffer) {
+int unix_process::read(size_t bytes, void *buffer) {
     return ::read(pipe_stdout[PIPE_READ], buffer, bytes);
 }
 
-int unix_process_rwops::write(size_t bytes, const void *buffer) {
+int unix_process::write(size_t bytes, const void *buffer) {
     return ::write(pipe_stdin[PIPE_WRITE], buffer, bytes);
 }
 
-void unix_process_rwops::close_stdin() {
+void unix_process::close_stdin() {
     ::close(pipe_stdin[PIPE_WRITE]);
 }
 
-void unix_process_rwops::close_stdout() {
+void unix_process::close_stdout() {
     ::close(pipe_stdout[PIPE_READ]);
 }
 
-void unix_process_rwops::abort() {
+void unix_process::abort() {
     ::kill(child_pid, SIGTERM);
     close_stdin();
     close_stdout();
 }
 
-std::unique_ptr<rwops> open_process(const char *args[]) {
-    return std::make_unique<unix_process_rwops>(args);
+std::unique_ptr<subprocess> open_process(const char *args[]) {
+    return std::make_unique<unix_process>(args);
 }
 
 #endif

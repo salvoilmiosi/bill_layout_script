@@ -1,13 +1,13 @@
 #include "parser.h"
 
 #include <iostream>
-#include "../shared/utils.h"
-#include "../shared/bytecode.h"
+#include "utils.h"
+#include "bytecode.h"
 
 void parser::read_layout(const bill_layout_script &layout) {
     try {
-        for (size_t i=0; i<layout.boxes.size(); ++i) {
-            read_box(layout.boxes[i]);
+        for (auto &box : layout) {
+            read_box(box);
         }
         add_line("HLT");
     } catch (const parsing_error &error) {
@@ -32,7 +32,7 @@ void parser::read_box(const layout_box &box) {
             negative = true;
             break;
         default:
-            throw parsing_error{"Spaziatore incorretto", tokens.getLocation(tokens.current())};
+            throw parsing_error("Spaziatore incorretto", tokens.getLocation(tokens.current()));
         }
         read_expression();
         if (negative) add_line("NEG");
@@ -52,7 +52,7 @@ void parser::read_box(const layout_box &box) {
             add_line("MVBOX {0}", SPACER_H);
             break;
         default:
-            throw parsing_error{"Spaziatore incorretto", tokens.getLocation(tok_num)};
+            throw parsing_error("Spaziatore incorretto", tokens.getLocation(tok_num));
         }
     }
 
@@ -335,7 +335,7 @@ void parser::read_function() {
             add_line("JMP {0}", tokens.current().value);
             break;
         default:
-            throw parsing_error{"Indirizzo goto invalido", tokens.getLocation(tokens.current())};
+            throw parsing_error("Indirizzo goto invalido", tokens.getLocation(tokens.current()));
         }
         tokens.require(TOK_PAREN_END);
         break;
@@ -466,7 +466,7 @@ void parser::read_function() {
         }
         auto check_args = [&](int should_be) {
             if (num_args != should_be) {
-                throw parsing_error{fmt::format("La funzione {0} richiede {1} argomenti", fun_name, should_be), tokens.getLocation(tok_fun_name)};
+                throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", fun_name, should_be), tokens.getLocation(tok_fun_name));
             }
         };
         switch (hash(fun_name)) {

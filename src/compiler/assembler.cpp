@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <map>
 
-#include "../shared/utils.h"
-#include "../shared/binary_io.h"
+#include "utils.h"
+#include "binary_io.h"
 
 void assembler::read_lines(const std::vector<std::string> &lines) {
     std::map<std::string, jump_address> labels;
@@ -23,7 +23,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         } catch (const std::invalid_argument &) {
             auto it = labels.find(label);
             if (it == labels.end()) {
-                throw assembly_error{fmt::format("Etichetta sconosciuta: {0}", label)};
+                throw assembly_error(fmt::format("Etichetta sconosciuta: {0}", label));
             } else {
                 return it->second;
             }
@@ -127,7 +127,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("ATE"):           add_command(ATE); break;
         case hash("HLT"):           add_command(HLT); break;
         default:
-            throw assembly_error{fmt::format("Comando sconosciuto: {0}", cmd)};
+            throw assembly_error(fmt::format("Comando sconosciuto: {0}", cmd));
         }
     }
 }

@@ -1,15 +1,15 @@
 #if defined(WIN32) || defined(_WIN32) && !defined(__linux__)
 
-#include "pipe.h"
+#include "subprocess.h"
 #include <windows.h>
 
 #define PIPE_READ 0
 #define PIPE_WRITE 1
 
-class windows_process_rwops : public rwops {
+class windows_process : public subprocess {
 public:
-    windows_process_rwops(const char *args[]);
-    ~windows_process_rwops();
+    windows_process(const char *args[]);
+    ~windows_process();
 
 public:
     virtual int read(size_t bytes, void *buffer) override;
@@ -23,7 +23,7 @@ private:
     HANDLE process = nullptr;
 };
 
-windows_process_rwops::windows_process_rwops(const char *args[]) {
+windows_process::windows_process(const char *args[]) {
     SECURITY_ATTRIBUTES attrs;
     ZeroMemory(&attrs, sizeof(SECURITY_ATTRIBUTES));
 
@@ -33,11 +33,11 @@ windows_process_rwops::windows_process_rwops(const char *args[]) {
 
     if (!CreatePipe(&pipe_stdout[PIPE_READ], &pipe_stdout[PIPE_WRITE], &attrs, 0)
         || !SetHandleInformation(pipe_stdout[PIPE_READ], HANDLE_FLAG_INHERIT, 0))
-        throw pipe_error("Error creating stdout pipe");
+        throw process_error("Error creating stdout pipe");
 
     if (!CreatePipe(&pipe_stdin[PIPE_READ], &pipe_stdin[PIPE_WRITE], &attrs, 0)
         || !SetHandleInformation(pipe_stdin[PIPE_WRITE], HANDLE_FLAG_INHERIT, 0))
-        throw pipe_error("Error creating stdin pipe");
+        throw process_error("Error creating stdin pipe");
 
     STARTUPINFOA start_info;
     ZeroMemory(&start_info, sizeof(STARTUPINFOA));
@@ -74,7 +74,7 @@ windows_process_rwops::windows_process_rwops(const char *args[]) {
 
     if (!CreateProcessA(nullptr, cmdline.data(), nullptr, nullptr, true,
             CREATE_NO_WINDOW, nullptr, nullptr, &start_info, &proc_info)) {
-        throw pipe_error("Could not open child process");
+        throw process_error("Could not open child process");
     } else {
         process = proc_info.hProcess;
         CloseHandle(proc_info.hThread);
@@ -83,42 +83,42 @@ windows_process_rwops::windows_process_rwops(const char *args[]) {
     }
 }
 
-windows_process_rwops::~windows_process_rwops() {
+windows_process::~windows_process() {
     if (process) CloseHandle(process);
     close_stdin();
     close_stdout();
 }
 
-void windows_process_rwops::abort() {
+void windows_process::abort() {
     TerminateProcess(process, 1);
     close_stdin();
     close_stdout();
 }
 
-int windows_process_rwops::read(size_t bytes, void *buffer) {
+int windows_process::read(size_t bytes, void *buffer) {
     DWORD bytes_read;
     if (!ReadFile(pipe_stdout[PIPE_READ], buffer, bytes, &bytes_read, nullptr))
         return 0;
     return bytes_read;
 }
 
-int windows_process_rwops::write(size_t bytes, const void *buffer) {
+int windows_process::write(size_t bytes, const void *buffer) {
     DWORD bytes_written;
     if (!WriteFile(pipe_stdin[PIPE_WRITE], buffer, bytes, &bytes_written, nullptr))
         return 0;
     return bytes_written;
 }
 
-void windows_process_rwops::close_stdin() {
+void windows_process::close_stdin() {
     CloseHandle(pipe_stdin[PIPE_WRITE]);
 }
 
-void windows_process_rwops::close_stdout() {
+void windows_process::close_stdout() {
     CloseHandle(pipe_stdout[PIPE_READ]);
 }
 
-std::unique_ptr<rwops> open_process(const char *args[]) {
-    return std::make_unique<windows_process_rwops>(args);
+std::unique_ptr<subprocess> open_process(const char *args[]) {
+    return std::make_unique<windows_process>(args);
 }
 
 #endif

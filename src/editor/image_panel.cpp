@@ -1,6 +1,6 @@
 #include "image_panel.h"
 
-#include "../shared/xpdf.h"
+#include "pdf_document.h"
 
 #include <wx/dcclient.h>
 #include <wx/dcbuffer.h>

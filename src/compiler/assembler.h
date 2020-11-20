@@ -5,10 +5,12 @@
 #include <string>
 #include <ostream>
 
-#include "../shared/bytecode.h"
+#include "bytecode.h"
 
 struct assembly_error {
     std::string message;
+
+    assembly_error(const std::string &message) : message(message) {}
 };
 
 class assembler {

@@ -1,10 +1,10 @@
-#include "pipe.h"
+#include "subprocess.h"
 
 #include <algorithm>
 
 constexpr size_t BUFSIZE = 4096;
 
-std::string rwops::read_all() {
+std::string subprocess::read_all() {
     std::string out;
 
     char buffer[BUFSIZE];
@@ -19,7 +19,7 @@ std::string rwops::read_all() {
     return out;
 }
 
-int rwops::write_all(const std::string &buffer) {
+int subprocess::write_all(const std::string &buffer) {
     size_t bytes_written = 0;
 
     auto it_begin = buffer.begin();

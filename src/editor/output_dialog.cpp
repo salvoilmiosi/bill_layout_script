@@ -145,10 +145,10 @@ void reader_thread::abort() {
 
 void output_dialog::compileAndRead() {
     wxCriticalSectionLocker lock(m_thread_cs);
-    if (m_thread || parent->getPdfFilename().empty()) {
+    if (m_thread || ! parent->getPdfDocument().isopen()) {
         wxBell();
     } else {
-        m_thread = new reader_thread(this, parent->layout, parent->getPdfFilename());
+        m_thread = new reader_thread(this, parent->layout, parent->getPdfDocument().filename());
         if (m_thread->Run() != wxTHREAD_NO_ERROR) {
             delete m_thread;
             m_thread = nullptr;

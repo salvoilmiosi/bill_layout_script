@@ -13,7 +13,6 @@ int main(int argc, char **argv) {
         FLAG_LAYOUT_DIR,
     } options_flag = FLAG_NONE;
 
-    reader m_reader;
     Json::Value result = Json::objectValue;
     result["error"] = false;
 
@@ -56,6 +55,8 @@ int main(int argc, char **argv) {
         output_error(fmt::format("Impossibile aprire il file pdf {0}", file_pdf.string()));
     }
 
+    reader m_reader;
+
     std::ifstream ifs;
     bool input_stdin = false;
     bool in_file_layout = true;
@@ -75,13 +76,13 @@ int main(int argc, char **argv) {
     }
 
     try {
-        auto pdf_info = pdf_get_info(file_pdf.string());
+        m_reader.open_pdf(file_pdf.string());
 
         if (exec_script) {
             if (input_stdin) {
-                m_reader.read_layout(pdf_info, std::cin);
+                m_reader.read_layout(std::cin);
             } else {
-                m_reader.read_layout(pdf_info, ifs);
+                m_reader.read_layout(ifs);
                 ifs.close();
             }
 
@@ -102,9 +103,9 @@ int main(int argc, char **argv) {
         }
         if (in_file_layout) {
             if (input_stdin) {
-                m_reader.read_layout(pdf_info, std::cin);
+                m_reader.read_layout(std::cin);
             } else {
-                m_reader.read_layout(pdf_info, ifs);
+                m_reader.read_layout(ifs);
                 ifs.close();
             }
         }

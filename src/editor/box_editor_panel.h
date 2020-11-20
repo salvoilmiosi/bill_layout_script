@@ -5,6 +5,8 @@
 
 #include "editor.h"
 
+#include "layout_ext.h"
+
 class box_editor_panel : public wxImagePanel {
 public:
     box_editor_panel(wxWindow *parent, class frame_editor *app);

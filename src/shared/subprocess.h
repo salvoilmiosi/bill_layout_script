@@ -1,10 +1,10 @@
-#ifndef __PIPE_H__
-#define __PIPE_H__
+#ifndef __SUBPROCESS_H__
+#define __SUBPROCESS_H__
 
 #include <string>
 #include <memory>
 
-struct rwops {
+struct subprocess {
     virtual int read(size_t bytes, void *buffer) { return 0; }
     virtual int write(size_t bytes, const void *buffer) { return 0; }
     virtual void close_stdin() { }
@@ -15,12 +15,12 @@ struct rwops {
     int write_all(const std::string &buffer);
 };
 
-std::unique_ptr<rwops> open_process(const char *args[]);
+std::unique_ptr<subprocess> open_process(const char *args[]);
 
-struct pipe_error {
+struct process_error {
     const std::string message;
 
-    pipe_error(const std::string &message) : message(message) {}
+    process_error(const std::string &message) : message(message) {}
 };
 
-#endif // __PIPE_H__
+#endif // __SUBPROCESS_H__

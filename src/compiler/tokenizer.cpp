@@ -1,7 +1,7 @@
 #include "tokenizer.h"
 
 #include <fmt/format.h>
-#include "../shared/layout.h"
+#include "layout.h"
 
 tokenizer::tokenizer(const std::string_view &_script) : script(_script) {
     _current = script.begin();
@@ -145,7 +145,7 @@ void tokenizer::gotoTok(const token &tok) {
 }
 
 parsing_error tokenizer::unexpected_token(token_type type) {
-    return parsing_error{fmt::format("Imprevisto '{0}', richiesto {1}", current().value, TOKEN_NAMES[type]), getLocation(current())};
+    return parsing_error(fmt::format("Imprevisto '{0}', richiesto {1}", current().value, TOKEN_NAMES[type]), getLocation(current()));
 }
 
 std::string tokenizer::getLocation(const token &tok) {

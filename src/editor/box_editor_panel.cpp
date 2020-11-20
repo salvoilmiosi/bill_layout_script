@@ -38,7 +38,7 @@ bool box_editor_panel::render(wxDC &dc) {
 
     if (wxImagePanel::render(dc)) {
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        for (auto &box : app->layout.boxes) {
+        for (auto &box : app->layout) {
             if (box.page == app->getSelectedPage()) {
                 if (box.selected) {
                     dc.SetPen(*wxBLACK_DASHED_PEN);
@@ -68,11 +68,11 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
     if (getImage() && !mouseIsDown) {
         switch (selected_tool) {
         case TOOL_SELECT:
-            selected_box = app->layout.getBoxAt(xx, yy, app->getSelectedPage());
-            if (selected_box != app->layout.boxes.end()) {
+            selected_box = getBoxAt(app->layout, xx, yy, app->getSelectedPage());
+            if (selected_box != app->layout.end()) {
                 startx = selected_box->x;
                 starty = selected_box->y;
-                app->selectBox(selected_box - app->layout.boxes.begin());
+                app->selectBox(selected_box - app->layout.begin());
                 mouseIsDown = true;
                 start_pt = evt.GetPosition();
             } else {
@@ -85,9 +85,9 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
             break;
         case TOOL_DELETEBOX:
         {
-            auto it = app->layout.getBoxAt(xx, yy, app->getSelectedPage());
-            if (it != app->layout.boxes.end()) {
-                app->layout.boxes.erase(it);
+            auto it = getBoxAt(app->layout, xx, yy, app->getSelectedPage());
+            if (it != app->layout.end()) {
+                app->layout.erase(it);
                 app->updateLayout();
                 Refresh();
             }
@@ -95,11 +95,11 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
         }
         case TOOL_RESIZE:
         {
-            auto node = app->layout.getBoxResizeNode(xx, yy, app->getSelectedPage(), scaled_width, scaled_height);
+            auto node = getBoxResizeNode(app->layout, xx, yy, app->getSelectedPage(), scaled_width, scaled_height);
             selected_box = node.first;
             if (node.second) {
                 resize_node = node.second;
-                app->selectBox(selected_box - app->layout.boxes.begin());
+                app->selectBox(selected_box - app->layout.begin());
                 mouseIsDown = true;
                 start_pt = evt.GetPosition();
             } else {
@@ -120,7 +120,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
         if (end_pt != start_pt) {
             switch (selected_tool) {
             case TOOL_SELECT:
-                if (selected_box != app->layout.boxes.end()) {
+                if (selected_box != app->layout.end()) {
                     if (start_pt != end_pt) {
                         app->updateLayout();
                     }
@@ -132,7 +132,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 diag.SetTextValidator(wxFILTER_EMPTY);
                 if (diag.ShowModal() == wxID_OK) {
                     wxRect rect = make_rect(start_pt, end_pt);
-                    layout_box &box = app->layout.boxes.emplace_back();
+                    layout_box &box = app->layout.emplace_back();
                     box.name = diag.GetValue();
                     box.x = (rect.x + scrollx) / scaled_width;
                     box.y = (rect.y + scrolly) / scaled_height;
@@ -148,7 +148,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
             case TOOL_DELETEBOX:
                 break;
             case TOOL_RESIZE:
-                if (selected_box != app->layout.boxes.end()) {
+                if (selected_box != app->layout.end()) {
                     if (start_pt != end_pt) {
                         if (selected_box->w < 0) {
                             selected_box->w = -selected_box->w;
@@ -174,7 +174,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
 void box_editor_panel::OnDoubleClick(wxMouseEvent &evt) {
     switch (selected_tool) {
     case TOOL_SELECT:
-        if (selected_box != app->layout.boxes.end()) {
+        if (selected_box != app->layout.end()) {
             new box_dialog(app, *selected_box);
         }
     default:
@@ -222,7 +222,7 @@ void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {
     } else {
         switch (selected_tool) {
         case TOOL_RESIZE:
-            auto node = app->layout.getBoxResizeNode(xx, yy, app->getSelectedPage(), scaled_width, scaled_height);
+            auto node = getBoxResizeNode(app->layout, xx, yy, app->getSelectedPage(), scaled_width, scaled_height);
             switch (node.second) {
             case RESIZE_LEFT:
             case RESIZE_RIGHT:
@@ -251,7 +251,7 @@ void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {
 
 void box_editor_panel::OnKeyDown(wxKeyEvent &evt) {
     constexpr float MOVE_AMT = 5.f;
-    if (selected_box != app->layout.boxes.end()) {
+    if (selected_box != app->layout.end()) {
         switch (evt.GetKeyCode()) {
             case WXK_LEFT: selected_box->x -= MOVE_AMT / scaled_width; Refresh(); break;
             case WXK_RIGHT: selected_box->x += MOVE_AMT / scaled_width; Refresh(); break;
@@ -262,7 +262,7 @@ void box_editor_panel::OnKeyDown(wxKeyEvent &evt) {
 }
 
 void box_editor_panel::OnKeyUp(wxKeyEvent &evt) {
-    if (selected_box != app->layout.boxes.end()) {
+    if (selected_box != app->layout.end()) {
         switch (evt.GetKeyCode()) {
         case WXK_LEFT:
         case WXK_RIGHT:

@@ -7,7 +7,7 @@
 #include <json/json.h>
 #include <fmt/core.h>
 
-#include "../shared/layout.h"
+#include "layout.h"
 #include "tokenizer.h"
 
 struct spacer {

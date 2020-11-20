@@ -1,7 +1,7 @@
 #ifndef __DISASSEMBLER_H__
 #define __DISASSEMBLER_H__
 
-#include "../shared/bytecode.h"
+#include "bytecode.h"
 
 #include <istream>
 

@@ -1,7 +1,7 @@
 #include "variable.h"
 #include "reader.h"
 
-#include "../shared/utils.h"
+#include "utils.h"
 
 std::string variable::str() const {
     switch (m_value.index()) {

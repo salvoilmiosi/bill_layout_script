@@ -1,6 +1,6 @@
 #include "disassembler.h"
 
-#include "../shared/binary_io.h"
+#include "binary_io.h"
 
 bool disassembler::read_bytecode(std::istream &input) {
     auto check = readData<int32_t>(input);
