@@ -54,6 +54,13 @@ void reader::call_function(const std::string &name, size_t numargs) {
                 throw layout_error(fmt::format("Espressione regolare non valida: {0}", regex.str()));
             }
         })},
+        {"searchall", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
+            try {
+                return string_join(search_regex_all(regex.str(), str.str(), index.empty() ? 1 : index.as_int()), "\n");
+            } catch (const std::regex_error &error) {
+                throw layout_error(fmt::format("Espressione regolare non valida: {0}", regex.str()));
+            }
+        })},
         {"date", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
             try {
                 return parse_date(regex.str(), str.str(), index.empty() ? 1 : index.as_int());

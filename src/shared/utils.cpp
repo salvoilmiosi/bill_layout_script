@@ -226,6 +226,19 @@ std::string date_month_add(const std::string &date, int num) {
     }
 }
 
+std::vector<std::string> search_regex_all(std::string format, std::string value, int index) {
+    string_replace(format, " ", "[ \\t\\r\\n\\v\\f]+");
+    string_replace(format, "$NUMBER", "([0-9\\.,-]+)");
+    std::regex expression(format, std::regex::icase);
+    std::smatch match;
+    std::vector<std::string> ret;
+    while (std::regex_search(value, match, expression)) {
+        ret.push_back(match.str(index));
+        value = match.suffix();
+    }
+    return ret;
+}
+
 std::string search_regex(std::string format, const std::string &value, int index) {
     string_replace(format, " ", "[ \\t\\r\\n\\v\\f]+");
     string_replace(format, "$NUMBER", "([0-9\\.,-]+)");
