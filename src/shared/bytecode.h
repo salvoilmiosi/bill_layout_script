@@ -71,6 +71,7 @@ typedef uint16_t jump_address;
 typedef uint16_t string_size;
 
 constexpr int32_t MAGIC = 0xb011377a;
+constexpr int FLOAT_PRECISION = 10;
 
 struct command_call {
     string_ref name;

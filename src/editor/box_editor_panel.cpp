@@ -140,7 +140,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                     box.h = rect.height / scaled_height;
                     box.page = app->getSelectedPage();
                     app->updateLayout();
-
+                    app->selectBox(app->layout.size() - 1);
                     new box_dialog(app, box);
                 }
                 break;

@@ -166,7 +166,7 @@ void output_dialog::OnReadCompleted(wxCommandEvent &evt) {
         for (int i=1; i <= (int)json_output["values"].size(); ++i) {
             m_page->Append(wxString::Format("%i", i));
         }
-        m_page->SetSelection(json_output["values"].size() > 1 ? 1 : 0);
+        m_page->SetSelection(json_output["values"].size() > 0 ? 1 : 0);
     }
     updateItems();
 }

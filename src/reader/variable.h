@@ -5,8 +5,9 @@
 #include <variant>
 
 #include "decimal.h"
+#include "bytecode.h"
 
-using fixed_point = dec::decimal<10>;
+using fixed_point = dec::decimal<FLOAT_PRECISION>;
 
 class variable {
 public:

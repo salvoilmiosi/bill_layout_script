@@ -26,10 +26,14 @@ void pdf_document::open(const std::string &filename) {
         
         if (std::regex_search(output, match, std::regex("Pages: +([0-9]+)"))) {
             m_num_pages = std::stoi(match.str(1));
+        } else {
+            throw pdf_error("Impossibile determinare numero pagine");
         }
         if (std::regex_search(output, match, std::regex("Page size: +([0-9\\.]+) x ([0-9\\.]+)"))) {
             m_width = std::stof(match.str(1));
             m_height = std::stof(match.str(2));
+        } else {
+            throw pdf_error("Impossibile determinare dimensione pagina");
         }
     } catch (const process_error &error) {
         throw pdf_error(error.message);
@@ -41,6 +45,7 @@ constexpr float RESOLUTION = 300;
 constexpr float resolution_factor = RESOLUTION / 72.f;
 
 std::string pdf_document::get_text(const pdf_rect &rect) const {
+    if (!isopen()) return "";
     if (rect.page > m_num_pages) return "";
 
     try {
