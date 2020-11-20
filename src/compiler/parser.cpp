@@ -137,6 +137,17 @@ void parser::read_expression() {
     case TOK_FUNCTION:
         read_function();
         break;
+    case TOK_MINUS:
+    {
+        tokens.advance();
+        tokens.require(TOK_NUMBER);
+        if (tokens.current().value.find('.') == std::string::npos) {
+            add_line("PUSHINT -{0}", tokens.current().value);
+        } else {
+            add_line("PUSHFLOAT -{0}", tokens.current().value);
+        }
+        break;
+    }
     case TOK_NUMBER:
         tokens.advance();
         if (tokens.current().value.find('.') == std::string::npos) {

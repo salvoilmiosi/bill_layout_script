@@ -65,7 +65,7 @@ enum asm_command {
 };
 
 typedef uint8_t command_int;
-typedef uint8_t small_int;
+typedef int8_t small_int;
 typedef uint16_t string_ref;
 typedef uint16_t jump_address;
 typedef uint16_t string_size;
