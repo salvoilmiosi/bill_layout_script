@@ -244,6 +244,19 @@ void parser::read_function() {
     auto tok_fun_name = tokens.current();
     std::string fun_name = std::string(tok_fun_name.value);
 
+    auto var_function = [&](const auto & ... cmd) {
+        tokens.require(TOK_PAREN_BEGIN);
+        read_variable();
+        tokens.require(TOK_PAREN_END);
+        add_line(cmd ...);
+    };
+
+    auto void_function = [&](const auto & ... cmd) {
+        tokens.require(TOK_PAREN_BEGIN);
+        tokens.require(TOK_PAREN_END);
+        add_line(cmd ...);
+    };
+
     switch(hash(fun_name)) {
     case hash("if"):
     case hash("ifnot"):
@@ -363,24 +376,6 @@ void parser::read_function() {
         }
         break;
     }
-    case hash("isset"):
-        tokens.require(TOK_PAREN_BEGIN);
-        read_variable();
-        tokens.require(TOK_PAREN_END);
-        add_line("ISSET");
-        break;
-    case hash("size"):
-        tokens.require(TOK_PAREN_BEGIN);
-        read_variable();
-        tokens.require(TOK_PAREN_END);
-        add_line("SIZE");
-        break;
-    case hash("clear"):
-        tokens.require(TOK_PAREN_BEGIN);
-        read_variable();
-        tokens.require(TOK_PAREN_END);
-        add_line("CLEAR");
-        break;
     case hash("lines"):
     {
         std::string lines_label = fmt::format("__lines_{0}", output_asm.size());
@@ -438,34 +433,13 @@ void parser::read_function() {
         add_line("ERROR {0}", tok.value);
         break;
     }
-    case hash("nextpage"):
-    {
-        tokens.require(TOK_PAREN_BEGIN);
-        tokens.require(TOK_PAREN_END);
-        add_line("NEXTPAGE");
-        break;
-    }
-    case hash("ate"):
-    {
-        tokens.require(TOK_PAREN_BEGIN);
-        tokens.require(TOK_PAREN_END);
-        add_line("ATE");
-        break;
-    }
-    case hash("boxwidth"):
-    {
-        tokens.require(TOK_PAREN_BEGIN);
-        tokens.require(TOK_PAREN_END);
-        add_line("PUSHFLOAT {0}", current_box->w);
-        break;
-    }
-    case hash("boxheight"):
-    {
-        tokens.require(TOK_PAREN_BEGIN);
-        tokens.require(TOK_PAREN_END);
-        add_line("PUSHFLOAT {0}", current_box->h);
-        break;
-    }
+    case hash("isset"):     var_function("ISSET"); break;
+    case hash("size"):      var_function("SIZE"); break;
+    case hash("clear"):     var_function("CLEAR"); break;
+    case hash("nextpage"):  void_function("NEXTPAGE"); break;
+    case hash("ate"):       void_function("ATE"); break;
+    case hash("boxwidth"):  void_function("PUSHFLOAT {0}", current_box->w); break;
+    case hash("boxheight"): void_function("PUSHFLOAT {0}", current_box->h); break;
     default:
     {
         int num_args = 0;
