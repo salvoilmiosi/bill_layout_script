@@ -191,7 +191,7 @@
 				"mode" : 0,
 				"name" : "Controllo prossima pagina",
 				"page" : 4,
-				"script" : "$inc(*next_page)\n$ifnot($isempty(@)) {\n  $if($contains(@,\"Dati di fornitura\")) {\n    $nextpage()\n    $goto(0)\n  } $else {\n    $goto(check_next)\n  }\n}",
+				"script" : "$inc(*next_page)\n$ifnot($ate()) {\n  $if($contains(@,\"Dati di fornitura\")) {\n    $nextpage()\n    $goto(0)\n  } $else {\n    $goto(check_next)\n  }\n}",
 				"spacers" : "p+*next_page",
 				"type" : 1,
 				"w" : 0.048387125134468079,

@@ -139,7 +139,7 @@
 				"mode" : 0,
 				"name" : "==Prossima pagina",
 				"page" : 4,
-				"script" : "*pod_offset=1\n$inc(*page_offset)\n$if($or($contains(@,\"RIEPILOGO IMPORTI\"),$isempty(@))) {\n  $goto(dati_costi)\n} $else $if($contains(@,\"DATI FORNITURA\")) {\n  $nextpage()\n  $goto(0)\n}",
+				"script" : "*pod_offset=1\n$inc(*page_offset)\n$if($or($contains(@,\"RIEPILOGO IMPORTI\"),$ate())) {\n  $goto(dati_costi)\n} $else $if($contains(@,\"DATI FORNITURA\")) {\n  $nextpage()\n  $goto(0)\n}",
 				"spacers" : "p+*page_offset",
 				"type" : 0,
 				"w" : 0.90725803375244141,

@@ -191,7 +191,7 @@
 				"mode" : 0,
 				"name" : "Controllo prossima pagina",
 				"page" : 4,
-				"script" : "$ifnot($isempty(@)) {\n  $inc(*page_offset)\n  $goto(dati_generali)\n}",
+				"script" : "$ifnot($ate()) {\n  $inc(*page_offset)\n  $goto(dati_generali)\n}",
 				"spacers" : "p+*page_offset",
 				"type" : 1,
 				"w" : 0.057603687047958374,
