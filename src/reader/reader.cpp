@@ -116,7 +116,7 @@ void reader::exec_command(const command_args &cmd) {
     {
         variable_ref ref;
         ref.name = get_string_ref();
-        ref.index = INDEX_GLOBAL;
+        ref.flags |= VAR_GLOBAL;
         m_ref_stack.push(std::move(ref));
         break;
     }
@@ -142,7 +142,7 @@ void reader::exec_command(const command_args &cmd) {
         m_var_stack.pop();
         break;
     }
-    case SETDEBUG: m_var_stack.top().set_debug(true); break;
+    case SETDEBUG: m_ref_stack.top().flags |= VAR_DEBUG; break;
     case CLEAR: clear_variable(); break;
     case APPEND:
         m_ref_stack.top().index = get_variable_size();
@@ -260,7 +260,7 @@ const variable &reader::get_global(const std::string &name) const {
 }
 
 const variable &reader::get_variable() const {
-    if (m_ref_stack.top().index == INDEX_GLOBAL) {
+    if (m_ref_stack.top().flags & VAR_GLOBAL) {
         return get_global(m_ref_stack.top().name);
     }
     if (m_pages.size() <= m_page_num) {
@@ -278,34 +278,38 @@ const variable &reader::get_variable() const {
 
 void reader::set_variable(const variable &value) {
     if (value.empty()) return;
-    if (m_ref_stack.top().index == INDEX_GLOBAL) {
-        m_globals[m_ref_stack.top().name] = value;
+    if (m_ref_stack.top().flags & VAR_GLOBAL) {
+        auto &var = m_globals[m_ref_stack.top().name] = value;
+        if (m_ref_stack.top().flags & VAR_DEBUG) var.m_debug = true;
         return;
     }
 
     while (m_pages.size() <= m_page_num) m_pages.emplace_back();
     auto &page = m_pages[m_page_num];
     auto &var = page[m_ref_stack.top().name];
+    if (m_ref_stack.top().flags & VAR_DEBUG) var.m_debug = true;
     while (var.size() <= m_ref_stack.top().index) var.emplace_back();
     var[m_ref_stack.top().index] = value;
 }
 
 void reader::reset_variable(const variable &value) {
     if (value.empty()) return;
-    if (m_ref_stack.top().index == INDEX_GLOBAL) {
-        m_globals[m_ref_stack.top().name] = value;
+    if (m_ref_stack.top().flags & VAR_GLOBAL) {
+        auto &var = m_globals[m_ref_stack.top().name] = value;
+        if (m_ref_stack.top().flags & VAR_DEBUG) var.m_debug = true;
         return;
     }
 
     while (m_pages.size() <= m_page_num) m_pages.emplace_back();
     auto &page = m_pages[m_page_num];
     auto &var = page[m_ref_stack.top().name];
+    if (m_ref_stack.top().flags & VAR_DEBUG) var.m_debug = true;
     var.clear();
     var.push_back(value);
 }
 
 void reader::clear_variable() {
-    if (m_ref_stack.top().index == INDEX_GLOBAL) {
+    if (m_ref_stack.top().flags & VAR_GLOBAL) {
         auto it = m_globals.find(m_ref_stack.top().name);
         if (it != m_globals.end()) {
             m_globals.erase(it);
@@ -320,7 +324,7 @@ void reader::clear_variable() {
 }
 
 size_t reader::get_variable_size() {
-    if (m_ref_stack.top().index == INDEX_GLOBAL) {
+    if (m_ref_stack.top().flags & VAR_GLOBAL) {
         return m_globals.find(m_ref_stack.top().name) != m_globals.end();
     }
     if (m_pages.size() <= m_page_num) {
@@ -342,7 +346,7 @@ void reader::save_output(Json::Value &root, bool debug) {
         auto &page_values = values.append(Json::objectValue);
         for (auto &pair : page) {
             std::string name = pair.first;
-            if (pair.second.front().is_debug()) {
+            if (pair.second.m_debug) {
                 if (debug) {
                     name = "!" + name;
                 } else {
@@ -359,7 +363,7 @@ void reader::save_output(Json::Value &root, bool debug) {
     Json::Value &globals = root["globals"] = Json::objectValue;
     for (auto &pair : m_globals) {
         std::string name = pair.first;
-        if (pair.second.is_debug()) {
+        if (pair.second.m_debug) {
             if (debug) {
                 name = "!" + name;
             } else {

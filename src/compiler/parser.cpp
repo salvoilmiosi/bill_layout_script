@@ -79,10 +79,6 @@ void parser::read_statement() {
             add_line("PARSENUM");
         }
 
-        if (flags & VAR_DEBUG) {
-            add_line("SETDEBUG");
-        }
-
         if (flags & VAR_APPEND) {
             add_line("APPEND");
         } else if (flags & VAR_CLEAR) {
@@ -173,6 +169,7 @@ void parser::read_expression() {
 int parser::read_variable() {
     int flags = 0;
     bool isglobal = false;
+    bool isdebug = false;
     bool getindex = false;
     int index = 0;
 
@@ -183,7 +180,7 @@ int parser::read_variable() {
             isglobal = true;
             break;
         case TOK_DEBUG:
-            flags |= VAR_DEBUG;
+            isdebug = true;
             break;
         case TOK_PERCENT:
             flags |= VAR_NUMBER;
@@ -200,6 +197,8 @@ int parser::read_variable() {
     std::string name(tokens.current().value);
     if (isglobal) {
         add_line("SELGLOBAL {0}", name);
+        
+        if (isdebug) add_line("SETDEBUG");
         return flags;
     }
 
@@ -235,6 +234,8 @@ int parser::read_variable() {
     } else {
         add_line("SELVARIDX {0},{1}", name, index);
     }
+
+    if (isdebug) add_line("SETDEBUG");
     return flags;
 }
 

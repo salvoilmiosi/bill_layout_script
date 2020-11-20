@@ -23,14 +23,6 @@ public:
         return VAR_NULL;
     }
 
-    bool is_debug() const {
-        return m_debug;
-    }
-
-    void set_debug(bool value) {
-        m_debug = value;
-    }
-
     std::string str() const;
     fixed_point number() const;
     int as_int() const;
@@ -55,7 +47,6 @@ public:
 
 private:
     std::variant<std::string, fixed_point> m_value;
-    bool m_debug = false;
 };
 
 #endif

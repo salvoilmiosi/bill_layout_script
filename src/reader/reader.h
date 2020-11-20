@@ -23,11 +23,15 @@ struct content_view {
     std::string_view view() const;
 };
 
-static constexpr size_t INDEX_GLOBAL = -1;
+enum variable_flags {
+    VAR_GLOBAL = 1 << 0,
+    VAR_DEBUG = 1 << 1,
+};
 
 struct variable_ref {
     std::string name;
-    size_t index;
+    size_t index = 0;
+    int flags = 0;
 };
 
 struct box_spacer {
@@ -36,6 +40,13 @@ struct box_spacer {
     float w = 0;
     float h = 0;
     int page = 0;
+};
+
+template<typename T>
+struct with_debug : public T {
+    bool m_debug = false;
+    with_debug() {}
+    with_debug(const T &obj) : T(obj) {}
 };
 
 class reader {
@@ -62,9 +73,11 @@ private:
     size_t get_variable_size();
 
 private:
-    using variable_page = std::map<std::string, std::vector<variable>>;
+    using variable_array = with_debug<std::vector<variable>>;
+    using variable_global = with_debug<variable>;
+    using variable_page = std::map<std::string, variable_array>;
 
-    std::map<std::string, variable> m_globals;
+    std::map<std::string, variable_global> m_globals;
     std::vector<variable_page> m_pages;
 
 private:

@@ -20,7 +20,6 @@ enum variable_flags {
     VAR_APPEND        = 1 << 0,
     VAR_CLEAR         = 1 << 1,
     VAR_NUMBER        = 1 << 2,
-    VAR_DEBUG         = 1 << 3,
 };
 
 class parser {

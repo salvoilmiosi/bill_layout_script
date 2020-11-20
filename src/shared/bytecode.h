@@ -34,7 +34,7 @@ enum asm_command {
     SELVAR,     // string name -- pop, m_selected = (name, top)
     SELVARIDX,  // string name, byte index -- m_selected = (name, index)
     SELGLOBAL,  // string name -- m_selected = (name, INDEX_GLOBAL)
-    SETDEBUG,   // setta flag debug su top
+    SETDEBUG,   // setta flag debug su top di ref_stack
     CLEAR,      // m_selected
     APPEND,     // pop, m_selected.append(top)
     SETVAR,     // pop, m_selected = top
