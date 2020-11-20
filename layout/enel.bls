@@ -222,12 +222,12 @@
 				"type" : 3,
 				"w" : 0.1046302318572998,
 				"x" : 0.090373799204826355,
-				"y" : 0.0072800638154149055
+				"y" : 0.0063137495890259743
 			},
 			{
 				"goto_label" : "",
 				"h" : 0.075958289206027985,
-				"mode" : 2,
+				"mode" : 0,
 				"name" : "Parse Dettaglio Totali",
 				"page" : 3,
 				"script" : "$with($search(*contenuto_dettaglio_costi,\"SPESA PER L'ENERGIA([^]+Totale) spesa per l'energia\")) {\n  $lines($searchall(@,$format(\"al \\\\d\\\\d/{0}/\\\\d\\\\d([^]+?)(dal|Totale)\",mese))) {\n    $inc(%spesa_materia_energia,$search(@,\"$NUMBER$\"))\n  }\n}\n$with($search(*contenuto_dettaglio_costi,\"SPESA PER IL TRASPORTO DELL'ENERGIA ELETTRICA E LA GESTIONE DEL CONTATORE([^]+Totale) spesa per il trasporto\")) {\n  $with($searchall($nospace(@),$format(\"al \\\\d\\\\d/{0}/\\\\d\\\\d([^]+?)(dal|Totale)\",mese))) {\n    $lines($searchall(@,\"mesi.?1 $NUMBER\")) $inc(%trasporto_gestione,@)\n    $lines($searchall(@,\"/kWh $NUMBER $NUMBER $NUMBER\",3)) $inc(%trasporto_gestione,@)\n    $lines($searchall(@,\"/kVarh $NUMBER $NUMBER $NUMBER\",3)) $inc(%trasporto_gestione,@)\n    $for(i,3) %potenza[i]=$search(@,\"kW $NUMBER\")\n  }\n}\n$with($search(*contenuto_dettaglio_costi,\"SPESA ONERI DI SISTEMA([^]+Totale) spesa oneri di sistema\")) {\n  $lines($searchall($nospace(@),$format(\"al \\\\d\\\\d/{0}/\\\\d\\\\d([^]+?)(dal|Totale)\",mese))) {\n    $inc(%oneri,$search(@,\"mesi.?1 $NUMBER\"))\n    $inc(%oneri,$search(@,\"/kWh $NUMBER $NUMBER $NUMBER\",3))\n  }\n}",
