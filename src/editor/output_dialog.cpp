@@ -26,7 +26,7 @@ DECLARE_RESOURCE(tool_reload_png)
 DECLARE_RESOURCE(tool_abort_png)
 
 output_dialog::output_dialog(frame_editor *parent) :
-    wxDialog(parent, wxID_ANY, "Lettura dati", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+    wxDialog(parent, wxID_ANY, "Lettura Dati", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
     parent(parent)
 {
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);

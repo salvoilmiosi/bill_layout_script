@@ -43,7 +43,7 @@ void ReaderOutputDialog::ShowText(const wxString &str) {
 }
 
 box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
-    wxDialog(parent, wxID_ANY, "Opzioni rettangolo", wxDefaultPosition, wxSize(700, 500), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), box(box), app(parent)
+    wxDialog(parent, wxID_ANY, "Modifica Rettangolo", wxDefaultPosition, wxSize(700, 500), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), box(box), app(parent)
 {
     wxBoxSizer *top_level = new wxBoxSizer(wxVERTICAL);
 
@@ -83,7 +83,7 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     m_box_goto_label = new wxTextCtrl(this, wxID_ANY, box.goto_label);
     addLabelAndCtrl("Etichetta goto:", 0, m_box_goto_label);
 
-    m_box_script = new wxTextCtrl(this, wxID_ANY, box.script, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+    m_box_script = new wxTextCtrl(this, wxID_ANY, box.script, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_DONTWRAP);
     m_box_script->SetFont(wxFont(10, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
     addLabelAndCtrl("Script:", 1, m_box_script);
 
