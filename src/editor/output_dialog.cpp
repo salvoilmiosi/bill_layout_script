@@ -8,6 +8,7 @@
 #include "editor.h"
 
 enum {
+    CTL_DEBUG,
     CTL_OUTPUT_PAGE,
     TOOL_UPDATE,
     TOOL_ABORT,
@@ -17,8 +18,9 @@ wxDEFINE_EVENT(wxEVT_COMMAND_READ_COMPLETE, wxThreadEvent);
 BEGIN_EVENT_TABLE(output_dialog, wxDialog)
     EVT_MENU(TOOL_UPDATE, output_dialog::OnClickUpdate)
     EVT_MENU(TOOL_ABORT, output_dialog::OnClickAbort)
-    EVT_COMBOBOX (CTL_OUTPUT_PAGE, output_dialog::OnPageSelect)
-    EVT_TEXT_ENTER (CTL_OUTPUT_PAGE, output_dialog::OnPageSelect)
+    EVT_CHECKBOX(CTL_DEBUG, output_dialog::OnUpdate)
+    EVT_COMBOBOX (CTL_OUTPUT_PAGE, output_dialog::OnUpdate)
+    EVT_TEXT_ENTER (CTL_OUTPUT_PAGE, output_dialog::OnUpdate)
     EVT_COMMAND(wxID_ANY, wxEVT_COMMAND_READ_COMPLETE, output_dialog::OnReadCompleted)
 END_EVENT_TABLE()
 
@@ -42,7 +44,10 @@ output_dialog::output_dialog(frame_editor *parent) :
 
     toolbar->AddStretchableSpace();
 
-    m_page = new wxComboBox(toolbar, CTL_OUTPUT_PAGE, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+    m_show_debug = new wxCheckBox(toolbar, CTL_DEBUG, "Mostra debug");
+    toolbar->AddControl(m_show_debug, "Mostra debug");
+
+    m_page = new wxComboBox(toolbar, CTL_OUTPUT_PAGE, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxTE_PROCESS_ENTER);
 
     toolbar->AddControl(m_page, "Pagina");
 
@@ -104,7 +109,7 @@ wxThread::ExitCode reader_thread::Entry() {
     const char *args2[] = {
         cmd_str.c_str(),
         "-p", pdf_filename.c_str(),
-        "temp.out",
+        "-d", "temp.out",
         nullptr
     };
 
@@ -124,7 +129,7 @@ wxThread::ExitCode reader_thread::Entry() {
                 return (wxThread::ExitCode) 1;
             } else {
                 wxCriticalSectionLocker lock(parent->m_thread_cs);
-                parent->json_values = json_output["values"];
+                parent->json_output = json_output;
 
                 wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
                 return (wxThread::ExitCode) 0;
@@ -155,51 +160,81 @@ void output_dialog::compileAndRead() {
 }
 
 void output_dialog::OnReadCompleted(wxCommandEvent &evt) {
-    wxCriticalSectionLocker lock(m_thread_cs);
-    for (int i=1; i <= (int)json_values.size(); ++i) {
-        m_page->Append(wxString::Format("%i", i));
+    {
+        wxCriticalSectionLocker lock(m_thread_cs);
+        m_page->Append("Globali");
+        for (int i=1; i <= (int)json_output["values"].size(); ++i) {
+            m_page->Append(wxString::Format("%i", i));
+        }
+        m_page->SetSelection(json_output["values"].size() > 1 ? 1 : 0);
     }
-    updateItems(0);
+    updateItems();
 }
 
-void output_dialog::OnPageSelect(wxCommandEvent &evt) {
-    long num;
-    if (m_page->GetValue().ToLong(&num)) {
-        updateItems(num - 1);
-    } else {
-        wxBell();
-    }
+void output_dialog::OnUpdate(wxCommandEvent &evt) {
+    updateItems();
 }
 
-void output_dialog::updateItems(int selected_page) {
+void output_dialog::updateItems() {
     wxCriticalSectionLocker lock(m_thread_cs);
-
-    if (selected_page >= (int)json_values.size() || selected_page < 0) {
-        wxBell();
-        return;
-    }
-
-    m_page->SetSelection(selected_page);
-
-    auto &json_object = json_values[selected_page];
 
     m_list_ctrl->ClearAll();
 
     auto col_name = m_list_ctrl->AppendColumn("Nome", wxLIST_FORMAT_LEFT, 150);
     auto col_value = m_list_ctrl->AppendColumn("Valore", wxLIST_FORMAT_LEFT, 150);
 
-    size_t n=0;
-    for (Json::ValueConstIterator it = json_object.begin(); it != json_object.end(); ++it) {
-        for (size_t i=0; i < it->size(); ++i) {
+    if (m_page->GetValue() == "Globali") {
+        m_page->SetSelection(0);
+        
+        auto &json_object = json_output["globals"];
+
+        size_t n=0;
+        for (Json::ValueConstIterator it = json_object.begin(); it != json_object.end(); ++it) {
+            if (!m_show_debug->GetValue() && it.name().front() == '!') {
+                continue;
+            }
             wxListItem item;
             item.SetId(n);
             m_list_ctrl->InsertItem(item);
 
-            if (i == 0) {
-                m_list_ctrl->SetItem(n, col_name, it.name());
-            }
-            m_list_ctrl->SetItem(n, col_value, wxString((*it)[Json::Value::ArrayIndex(i)].asCString(), wxConvUTF8));
+            m_list_ctrl->SetItem(n, col_name, it.name());
+            m_list_ctrl->SetItem(n, col_value, wxString(it->asCString(), wxConvUTF8));
             ++n;
+        }
+
+    } else {
+        long selected_page;
+        if (!m_page->GetValue().ToLong(&selected_page)) {
+            wxBell();
+            return;
+        }
+
+        if (selected_page > (int)json_output["values"].size() || selected_page <= 0) {
+            wxBell();
+            return;
+        }
+
+        m_page->SetSelection(selected_page);
+        --selected_page;
+
+        auto &json_object = json_output["values"][static_cast<int>(selected_page)];
+
+        size_t n=0;
+        for (Json::ValueConstIterator it = json_object.begin(); it != json_object.end(); ++it) {
+            if (!m_show_debug->GetValue() && it.name().front() == '!') {
+                continue;
+            }
+            for (size_t i=0; i < it->size(); ++i) {
+                wxListItem item;
+                item.SetId(n);
+                m_list_ctrl->InsertItem(item);
+
+                if (i == 0) {
+                    m_list_ctrl->SetItem(n, col_name, it.name());
+                }
+                m_list_ctrl->SetItem(n, col_value, wxString((*it)[Json::Value::ArrayIndex(i)].asCString(), wxConvUTF8));
+                ++n;
+            }
         }
     }
 }

@@ -134,7 +134,7 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     wxButton *btn_auto_layout = new wxButton(toolbar_top, CTL_AUTO_LAYOUT, "Auto carica layout", wxDefaultPosition, wxSize(150, -1));
     toolbar_top->AddControl(btn_auto_layout, "Determina il layout di questo file automaticamente");
 
-    m_page = new wxComboBox(toolbar_top, CTL_PAGE, "Pagina", wxDefaultPosition, wxSize(100, -1));
+    m_page = new wxComboBox(toolbar_top, CTL_PAGE, "Pagina", wxDefaultPosition, wxSize(100, -1), 0, nullptr, wxTE_PROCESS_ENTER);
     toolbar_top->AddControl(m_page, "Pagina");
 
     m_scale = new wxSlider(toolbar_top, CTL_SCALE, 50, 1, 100, wxDefaultPosition, wxSize(200, -1));
@@ -553,14 +553,14 @@ void frame_editor::setSelectedPage(int page, bool force) {
 void frame_editor::OnPageSelect(wxCommandEvent &evt) {
     if (pdf_filename.empty()) return;
 
-    try {
-        int page = std::stoi(m_page->GetValue().ToStdString());
-        if (page > info.num_pages || page <= 0) {
+    long selected_page;
+    if (m_page->GetValue().ToLong(&selected_page)) {
+        if (selected_page > info.num_pages || selected_page <= 0) {
             wxBell();
         } else {
-            setSelectedPage(page);
+            setSelectedPage(selected_page);
         }
-    } catch (const std::invalid_argument &error) {
+    } else {
         wxBell();
     }
 }

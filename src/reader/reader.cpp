@@ -366,6 +366,6 @@ void reader::save_output(Json::Value &root, bool debug) {
                 continue;
             }
         }
-        globals[pair.first] = pair.second.str();
+        globals[name] = pair.second.str();
     }
 }

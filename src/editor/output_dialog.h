@@ -42,20 +42,21 @@ public:
 private:
     frame_editor *parent;
 
+    wxCheckBox *m_show_debug;
     wxComboBox *m_page;
     wxListCtrl *m_list_ctrl;
 
     reader_thread *m_thread = nullptr;
-    Json::Value json_values;
+    Json::Value json_output;
     
     wxCriticalSection m_thread_cs;
 
-    void OnPageSelect(wxCommandEvent &evt);
+    void OnUpdate(wxCommandEvent &evt);
     void OnClickUpdate(wxCommandEvent &evt);
     void OnClickAbort(wxCommandEvent &evt);
 
     void OnReadCompleted(wxCommandEvent &evt);
-    void updateItems(int selected_page);
+    void updateItems();
 
     DECLARE_EVENT_TABLE()
 
