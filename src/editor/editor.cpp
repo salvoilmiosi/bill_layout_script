@@ -98,7 +98,7 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     menuBar->Append(menuEdit, "&Modifica");
 
     wxMenu *menuLayout = new wxMenu;
-    menuLayout->Append(MENU_EDITBOX, "Modifica &Rettangolo\tEnter", "Modifica il rettangolo selezionato");
+    menuLayout->Append(MENU_EDITBOX, "Modifica &Rettangolo\tCtrl-E", "Modifica il rettangolo selezionato");
     menuLayout->Append(MENU_READDATA, "L&eggi Layout\tCtrl-R", "Test della lettura dei dati");
     menuLayout->Append(MENU_EDITCONTROL, "Modifica script di &controllo\tCtrl-L");
     menuLayout->Append(MENU_COMPILE, "Compila Layout\tCtrl-B");
