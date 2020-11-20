@@ -13,11 +13,11 @@ class variable {
 public:
     variable() {}
 
-    variable(const std::string &value) : m_value(value) {}
-    variable(std::string_view value) : m_value(std::string(value)) {}
+    variable(const std::string &value) : m_value(value), m_type(VAR_STRING) {}
+    variable(std::string_view value) : m_value(std::string(value)), m_type(VAR_STRING) {}
 
-    variable(const fixed_point &value) : m_value(value) {}
-    template<typename T> variable(T value) : m_value(fixed_point(value)) {}
+    variable(const fixed_point &value) : m_value(value), m_type(VAR_NUMBER) {}
+    template<typename T> variable(T value) : m_value(fixed_point(value)), m_type(VAR_NUMBER) {}
 
     static const variable &null_var() {
         static const variable VAR_NULL;
@@ -48,6 +48,11 @@ public:
 
 private:
     std::variant<std::string, fixed_point> m_value;
+    enum {
+        VAR_UNDEFINED,
+        VAR_STRING,
+        VAR_NUMBER
+    } m_type = VAR_UNDEFINED;
 };
 
 #endif

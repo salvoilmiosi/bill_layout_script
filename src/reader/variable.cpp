@@ -4,10 +4,10 @@
 #include "utils.h"
 
 std::string variable::str() const {
-    switch (m_value.index()) {
-    case 0:
+    switch (m_type) {
+    case VAR_STRING:
         return std::get<std::string>(m_value);
-    case 1:
+    case VAR_NUMBER:
     {
         std::string s = dec::toString(std::get<fixed_point>(m_value));
         auto it = s.rbegin();
@@ -23,10 +23,10 @@ std::string variable::str() const {
 }
 
 fixed_point variable::number() const {
-    switch (m_value.index()) {
-    case 0:
+    switch (m_type) {
+    case VAR_STRING:
         return fixed_point(std::get<std::string>(m_value));
-    case 1:
+    case VAR_NUMBER:
         return std::get<fixed_point>(m_value);
     default:
         return fixed_point(0);
@@ -34,14 +34,14 @@ fixed_point variable::number() const {
 }
 
 int variable::as_int() const {
-    switch (m_value.index()) {
-    case 0:
+    switch (m_type) {
+    case VAR_STRING:
         try {
             return std::stoi(std::get<std::string>(m_value));
         } catch (const std::invalid_argument &) {
             return 0;
         }
-    case 1:
+    case VAR_NUMBER:
         return std::get<fixed_point>(m_value).getAsInteger();
     default:
         return 0;
@@ -49,10 +49,10 @@ int variable::as_int() const {
 }
 
 bool variable::as_bool() const {
-    switch(m_value.index()) {
-    case 0:
+    switch(m_type) {
+    case VAR_STRING:
         return ! std::get<std::string>(m_value).empty();
-    case 1:
+    case VAR_NUMBER:
         return std::get<fixed_point>(m_value) != fixed_point(0);
     default:
         return false;
@@ -60,10 +60,10 @@ bool variable::as_bool() const {
 }
 
 bool variable::empty() const {
-    switch (m_value.index()) {
-    case 0:
+    switch (m_type) {
+    case VAR_STRING:
         return std::get<std::string>(m_value).empty();
-    case 1:
+    case VAR_NUMBER:
         return false;
     default:
         return true;
@@ -71,10 +71,10 @@ bool variable::empty() const {
 }
 
 fixed_point variable::str_to_number() {
-    switch (m_value.index()) {
-    case 0:
+    switch (m_type) {
+    case VAR_STRING:
         return fixed_point(parse_number(std::get<std::string>(m_value)));
-    case 1:
+    case VAR_NUMBER:
         return std::get<fixed_point>(m_value);
     default:
         return fixed_point(0);
@@ -82,13 +82,13 @@ fixed_point variable::str_to_number() {
 }
 
 bool variable::operator == (const variable &other) const {
-    switch(other.m_value.index()) {
-    case 0:
+    switch(m_type) {
+    case VAR_STRING:
         return std::get<std::string>(m_value) == other.str();
-    case 1:
+    case VAR_NUMBER:
         return std::get<fixed_point>(m_value) == other.number();
     default:
-        return false;
+        return !other.as_bool();
     }
 }
 
