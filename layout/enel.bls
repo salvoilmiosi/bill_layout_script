@@ -74,7 +74,7 @@
 				"mode" : 2,
 				"name" : "Dati Fornitura",
 				"page" : 1,
-				"script" : "indirizzo_fornitura=$search($nospace(@),\"Forniamo energia in (.+) Denominazione\")",
+				"script" : "indirizzo_fornitura=$search($nospace(@),\"Forniamo energia in (.+) Denominazione\")\n$for(i,3) %potenza[i]=$search(@,\"Potenza contrattualmente impegnata $NUMBER\")",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.41827955842018127,
