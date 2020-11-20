@@ -21,8 +21,9 @@ public:
     box_dialog(class frame_editor *parent, layout_box &box);
 
 private:
-    bool validateData();
+    bool saveBox();
 
+    void OnApply(wxCommandEvent &evt);
     void OnOK(wxCommandEvent &evt);
     void OnCancel(wxCommandEvent &evt);
     void OnClickHelp(wxCommandEvent &evt);

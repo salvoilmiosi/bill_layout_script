@@ -94,23 +94,21 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
 
     wxBoxSizer *okCancelSizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxButton *okButton = new wxButton(this, wxID_OK, "OK");
-    okCancelSizer->Add(okButton, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-
-    wxButton *cancelButton = new wxButton(this, wxID_CANCEL, "Annulla");
-    okCancelSizer->Add(cancelButton, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-
-    wxButton *helpButton = new wxButton(this, wxID_HELP, "Aiuto");
-    okCancelSizer->Add(helpButton, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    okCancelSizer->Add(new wxButton(this, wxID_OK, "OK"), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    okCancelSizer->Add(new wxButton(this, wxID_CANCEL, "Annulla"), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    okCancelSizer->Add(new wxButton(this, wxID_APPLY, "Applica"), 0 ,wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    okCancelSizer->Add(new wxButton(this, wxID_HELP, "Aiuto"), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
     top_level->Add(okCancelSizer, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
 
     SetSizer(top_level);
+    Show();
 
     reader_output = new ReaderOutputDialog(this);
 }
 
 BEGIN_EVENT_TABLE(box_dialog, wxDialog)
+    EVT_BUTTON(wxID_APPLY, box_dialog::OnApply)
     EVT_BUTTON(wxID_OK, box_dialog::OnOK)
     EVT_BUTTON(wxID_CANCEL, box_dialog::OnCancel)
     EVT_BUTTON(wxID_HELP, box_dialog::OnClickHelp)
@@ -118,7 +116,7 @@ BEGIN_EVENT_TABLE(box_dialog, wxDialog)
     EVT_CLOSE(box_dialog::OnClose)
 END_EVENT_TABLE()
 
-void box_dialog::OnOK(wxCommandEvent &evt) {
+bool box_dialog::saveBox() {
     if (Validate()) {
         box.name = m_box_name->GetValue();
         box.type = static_cast<box_type>(m_box_type->GetSelection());
@@ -127,12 +125,23 @@ void box_dialog::OnOK(wxCommandEvent &evt) {
         box.goto_label = m_box_goto_label->GetValue();
         box.script = m_box_script->GetValue();
         app->updateLayout();
-        Destroy();
+        return true;
+    }
+    return false;
+}
+
+void box_dialog::OnApply(wxCommandEvent &evt) {
+    saveBox();
+}
+
+void box_dialog::OnOK(wxCommandEvent &evt) {
+    if (saveBox()) {
+        Close();
     }
 }
 
 void box_dialog::OnCancel(wxCommandEvent &evt) {
-    Destroy();
+    Close();
 }
 
 void box_dialog::OnClose(wxCloseEvent &evt) {

@@ -2,6 +2,8 @@
 
 #include "box_dialog.h"
 
+#include <wx/textdlg.h>
+
 BEGIN_EVENT_TABLE(box_editor_panel, wxImagePanel)
     EVT_LEFT_DOWN(box_editor_panel::OnMouseDown)
     EVT_LEFT_UP(box_editor_panel::OnMouseUp)
@@ -126,15 +128,21 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 break;
             case TOOL_NEWBOX:
             {
-                wxRect rect = make_rect(start_pt, end_pt);
-                layout_box &box = app->layout.boxes.emplace_back();
-                box.x = (rect.x + scrollx) / scaled_width;
-                box.y = (rect.y + scrolly) / scaled_height;
-                box.w = rect.width / scaled_width;
-                box.h = rect.height / scaled_height;
-                box.page = app->getSelectedPage();
+                wxTextEntryDialog diag(this, "Inserisci nome:", "Nome Rettangolo");
+                diag.SetTextValidator(wxFILTER_EMPTY);
+                if (diag.ShowModal() == wxID_OK) {
+                    wxRect rect = make_rect(start_pt, end_pt);
+                    layout_box &box = app->layout.boxes.emplace_back();
+                    box.name = diag.GetValue();
+                    box.x = (rect.x + scrollx) / scaled_width;
+                    box.y = (rect.y + scrolly) / scaled_height;
+                    box.w = rect.width / scaled_width;
+                    box.h = rect.height / scaled_height;
+                    box.page = app->getSelectedPage();
+                    app->updateLayout();
 
-                (new box_dialog(app, box))->Show();
+                    new box_dialog(app, box);
+                }
                 break;
             }
             case TOOL_DELETEBOX:
@@ -167,8 +175,7 @@ void box_editor_panel::OnDoubleClick(wxMouseEvent &evt) {
     switch (selected_tool) {
     case TOOL_SELECT:
         if (selected_box != app->layout.boxes.end()) {
-            auto diag = new box_dialog(app, *selected_box);
-            diag->Show();
+            new box_dialog(app, *selected_box);
         }
     default:
         break;
