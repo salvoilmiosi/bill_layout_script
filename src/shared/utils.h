@@ -20,6 +20,9 @@ std::string string_tolower(std::string str);
 // elimina gli spazi in eccesso
 std::string string_trim(std::string str);
 
+// Formatta la stringa data
+std::string string_format(std::string str, const std::vector<std::string> &fmt_args);
+
 // converte un numero dal formato italiano al formato universale (trasforma virgole in punti)
 std::string parse_number(const std::string &value);
 
@@ -29,6 +32,7 @@ std::string parse_string(std::string_view value);
 // converte i vari formati di data in un formato universale (dd/mm/aaaa)
 std::string parse_date(const std::string &format, const std::string &value, int index);
 
+// Aggiunge num mesi alla data
 std::string date_month_add(const std::string &month, int num);
 
 // cerca la regex in str e ritorna i valori trovati

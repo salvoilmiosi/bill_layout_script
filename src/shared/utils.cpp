@@ -58,6 +58,13 @@ int string_replace(std::string &str, const std::string &from, const std::string 
     return count;
 }
 
+std::string string_format(std::string str, const std::vector<std::string> &fmt_args) {
+    for (size_t i=0; i<fmt_args.size(); ++i) {
+        string_replace(str, fmt::format("{{{}}}", i), fmt_args[i]);
+    }
+    return str;
+}
+
 std::string parse_number(const std::string &value) {
     std::string out;
     for (size_t i=0; i<value.size(); ++i) {

@@ -68,6 +68,14 @@ void reader::call_function(const std::string &name, size_t numargs) {
                 throw layout_error(fmt::format("Espressione regolare non valida: {0}", regex.str()));
             }
         })},
+        {"format", [](const arg_list &args) {
+            if (args.size() < 1) {
+                throw layout_error("La funzione format richiede almeno 1 argomento");
+            }
+            std::vector<std::string> fmt_args(args.size()-1);
+            std::transform(args.begin() + 1, args.end(), fmt_args.begin(), [](const variable &var) { return var.str(); });
+            return string_format(args.front().str(), fmt_args);
+        }},
         {"month_add", create_function<2>([](const variable &month, const variable &num) { return date_month_add(month.str(), num.as_int()); })},
         {"nospace", create_function([](const variable &str) { return nospace(str.str()); })},
         {"ifl", create_function<2, 3>   ([](const variable &condition, const variable &var_if, const variable &var_else) { return condition.as_bool() ? var_if : var_else; })},
