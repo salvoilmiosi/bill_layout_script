@@ -59,6 +59,7 @@ enum asm_command {
     NEXTTOKEN,  // avanza di un token spazio nel top di content_stack
     POPCONTENT, // pop da content_stack
     NEXTPAGE,   // m_page_num++
+    ATE,        // push 1 se a fine file, 0 altrimenti
     STRDATA,    // short len, (byte * len) data -- dati stringa
     HLT=0xff,   // stop esecuzione
 };

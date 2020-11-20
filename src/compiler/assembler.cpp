@@ -124,6 +124,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("NEXTTOKEN"):     add_command(NEXTTOKEN); break;
         case hash("POPCONTENT"):    add_command(POPCONTENT); break;
         case hash("NEXTPAGE"):      add_command(NEXTPAGE); break;
+        case hash("ATE"):           add_command(ATE); break;
         case hash("HLT"):           add_command(HLT); break;
         default:
             throw assembly_error{fmt::format("Comando sconosciuto: {0}", cmd)};

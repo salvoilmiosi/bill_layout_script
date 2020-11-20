@@ -77,6 +77,7 @@ private:
     size_t m_page_num = 0;
     size_t m_programcounter = 0;
     bool m_jumped = false;
+    bool m_ate = false;
 };
 
 #endif

@@ -317,40 +317,6 @@ void parser::read_function() {
         break;
     }
     case hash("inc"):
-    {
-        tokens.require(TOK_PAREN_BEGIN);
-        int flags = read_variable();
-        tokens.next();
-        bool inc_amt = true;
-        std::string amount = "1";
-        switch(tokens.current().type) {
-        case TOK_COMMA:
-            tokens.peek();
-            if (tokens.current().type == TOK_NUMBER) {
-                tokens.advance();
-                inc_amt = true;
-                amount = tokens.current().value;
-            } else {
-                read_expression();
-                inc_amt = false;
-            }
-            tokens.require(TOK_PAREN_END);
-            break;
-        case TOK_PAREN_END:
-            break;
-        default:
-            throw tokens.unexpected_token(TOK_PAREN_END);
-        }
-        if (inc_amt) {
-            add_line("INC {0}", amount);
-        } else {
-            if (flags & VAR_NUMBER) {
-                add_line("PARSENUM");
-            }
-            add_line("INCTOP");
-        }
-        break;
-    }
     case hash("dec"):
     {
         tokens.require(TOK_PAREN_BEGIN);
@@ -377,12 +343,12 @@ void parser::read_function() {
             throw tokens.unexpected_token(TOK_PAREN_END);
         }
         if (inc_amt) {
-            add_line("DEC {0}", amount);
+            add_line(fun_name == "inc" ? "INC {0}" : "DEC {0}", amount);
         } else {
             if (flags & VAR_NUMBER) {
                 add_line("PARSENUM");
             }
-            add_line("DECTOP");
+            add_line(fun_name == "inc" ? "INCTOP" : "DECTOP");
         }
         break;
     }
@@ -466,6 +432,13 @@ void parser::read_function() {
         tokens.require(TOK_PAREN_BEGIN);
         tokens.require(TOK_PAREN_END);
         add_line("NEXTPAGE");
+        break;
+    }
+    case hash("ate"):
+    {
+        tokens.require(TOK_PAREN_BEGIN);
+        tokens.require(TOK_PAREN_END);
+        add_line("ATE");
         break;
     }
     case hash("boxwidth"):

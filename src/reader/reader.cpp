@@ -14,6 +14,7 @@ void reader::read_layout(const pdf_info &info, std::istream &input) {
     m_spacer = {};
     m_programcounter = 0;
     m_jumped = false;
+    m_ate = false;
 
     while (m_programcounter < m_asm.m_commands.size()) {
         exec_command(info, m_asm.m_commands[m_programcounter]);
@@ -225,12 +226,9 @@ void reader::exec_command(const pdf_info &info, const command_args &cmd) {
     case POPCONTENT: m_content_stack.pop(); break;
     case NEXTLINE: m_content_stack.top().next_token("\n"); break;
     case NEXTTOKEN: m_content_stack.top().next_token("\t\n\v\f\r "); break;
-    case NEXTPAGE:
-        ++m_page_num;
-        break;
-    case HLT:
-        m_programcounter = m_asm.m_commands.size();
-        break;
+    case NEXTPAGE: ++m_page_num; break;
+    case ATE: m_var_stack.push(m_ate); break;
+    case HLT: m_programcounter = m_asm.m_commands.size(); break;
     }
 }
 
@@ -242,6 +240,8 @@ void reader::read_box(const pdf_info &info, pdf_rect box) {
     box.h += m_spacer.h;
     m_spacer = {};
     m_content_stack = {};
+
+    m_ate = box.page > info.num_pages;
 
     try {
         m_content_stack.push(pdf_to_text(info, box));
