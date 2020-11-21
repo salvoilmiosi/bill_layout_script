@@ -55,7 +55,17 @@ bool disassembler::read_bytecode(std::istream &input) {
         {
             variable_idx var_idx;
             var_idx.name = readData<string_ref>(input);
-            var_idx.index = readData<small_int>(input);
+            var_idx.index_first = readData<small_int>(input);
+            var_idx.index_last = var_idx.index_first;
+            m_commands.emplace_back(cmd, std::move(var_idx));
+            break;
+        }
+        case SELVARRANGE:
+        {
+            variable_idx var_idx;
+            var_idx.name = readData<string_ref>(input);
+            var_idx.index_first = readData<small_int>(input);
+            var_idx.index_last = readData<small_int>(input);
             m_commands.emplace_back(cmd, std::move(var_idx));
             break;
         }
@@ -65,7 +75,9 @@ bool disassembler::read_bytecode(std::istream &input) {
         case ERROR:
         case PUSHSTR:
         case SELVAR:
+        case SELVARALL:
         case SELGLOBAL:
+        case SELVARRANGETOP:
             m_commands.emplace_back(cmd, readData<string_ref>(input));
             break;
         case PUSHFLOAT:

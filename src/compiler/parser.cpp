@@ -171,7 +171,10 @@ int parser::read_variable() {
     bool isglobal = false;
     bool isdebug = false;
     bool getindex = false;
+    bool getindexlast = false;
+    bool rangeall = false;
     int index = 0;
+    int index_last = -1;
 
     bool in_loop = true;
     while (in_loop && tokens.next()) {
@@ -208,9 +211,27 @@ int parser::read_variable() {
         tokens.advance();
         tokens.peek();
         switch (tokens.current().type) {
+        case TOK_COLON:
+            tokens.advance();
+            rangeall = true;
+            break;
         case TOK_NUMBER:
             tokens.advance();
             index = std::stoi(std::string(tokens.current().value));
+            tokens.peek();
+            if (tokens.current().type == TOK_COLON) {
+                tokens.advance();
+                tokens.peek();
+                if (tokens.current().type == TOK_NUMBER) {
+                    tokens.advance();
+                    index_last = std::stoi(std::string(tokens.current().value));
+                } else {
+                    add_line("PUSHINT {0}", index);
+                    read_expression();
+                    getindex = true;
+                    getindexlast = true;
+                }
+            }
             break;
         case TOK_BRACKET_END:
             flags |= VAR_APPEND;
@@ -218,10 +239,16 @@ int parser::read_variable() {
         default:
             read_expression();
             getindex = true;
+            tokens.peek();
+            if (tokens.current().type == TOK_COLON) {
+                tokens.advance();
+                read_expression();
+                getindexlast = true;
+            }
         }
         tokens.require(TOK_BRACKET_END);
         break;
-    case TOK_CLEAR:
+    case TOK_COLON:
         flags |= VAR_CLEAR;
         tokens.advance();
         break;
@@ -229,8 +256,16 @@ int parser::read_variable() {
         break;
     }
 
-    if (getindex) {
-        add_line("SELVAR {0}", name);
+    if (rangeall) {
+        add_line("SELVARALL {0}", name);
+    } else if (getindex) {
+        if (getindexlast) {
+            add_line("SELVARRANGETOP {0}", name);
+        } else {
+            add_line("SELVAR {0}", name);
+        }
+    } else if (index_last >= 0) {
+        add_line("SELVARRANGE {0},{1},{2}", name, index, index_last);
     } else {
         add_line("SELVARIDX {0},{1}", name, index);
     }

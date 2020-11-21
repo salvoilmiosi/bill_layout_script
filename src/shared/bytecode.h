@@ -32,7 +32,10 @@ enum asm_command {
     MAX,        // pop * 2, push max (a, b)
     MIN,        // pop * 2, push min (a, b)
     SELVAR,     // string name -- pop, m_selected = (name, top)
-    SELVARIDX,  // string name, byte index -- m_selected = (name, index)
+    SELVARALL,  // string name -- m_selected = (name, 0, size(index)-1)
+    SELVARIDX,  // string name, byte index -- m_selected = (name, index, index)
+    SELVARRANGETOP,// string name -- pop, pop, m_selected = (name, top-1, top)
+    SELVARRANGE,// string name, bye idxfrom, byte idxtop = (name, idxfrom, idxtop)
     SELGLOBAL,  // string name -- m_selected = (name, INDEX_GLOBAL)
     SETDEBUG,   // setta flag debug su top di ref_stack
     CLEAR,      // m_selected
@@ -88,10 +91,12 @@ enum spacer_index {
 
 struct variable_idx {
     string_ref name;
-    small_int index;
+    small_int index_first;
+    small_int index_last;
 
     variable_idx() {}
-    variable_idx(const string_ref &name, small_int index) : name(name), index(index) {}
+    variable_idx(const string_ref &name, small_int index) : name(name), index_first(index), index_last(index) {}
+    variable_idx(const string_ref &name, small_int index_first, small_int index_last) : name(name), index_first(index_first), index_last(index_last) {}
 };
 
 struct command_args {

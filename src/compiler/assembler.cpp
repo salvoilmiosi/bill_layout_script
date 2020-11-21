@@ -98,7 +98,10 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("MIN"):           add_command(MIN); break;
         case hash("SELGLOBAL"):     add_command(SELGLOBAL, add_string(args[0])); break;
         case hash("SELVAR"):        add_command(SELVAR, add_string(args[0])); break;
+        case hash("SELVARALL"):     add_command(SELVARALL, add_string(args[0])); break;
         case hash("SELVARIDX"):     add_command(SELVARIDX, variable_idx(add_string(args[0]), std::stoi(args[1]))); break;
+        case hash("SELVARRANGE"):   add_command(SELVARRANGE, variable_idx(add_string(args[0]), std::stoi(args[1]), std::stoi(args[2]))); break;
+        case hash("SELVARRANGETOP"): add_command(SELVARRANGETOP, add_string(args[0])); break;
         case hash("SETDEBUG"):      add_command(SETDEBUG); break;
         case hash("CLEAR"):         add_command(CLEAR); break;
         case hash("APPEND"):        add_command(APPEND); break;
@@ -186,7 +189,15 @@ void assembler::write_bytecode(std::ostream &output) {
         {
             const auto &var_idx = line.get<variable_idx>();
             writeData(output, var_idx.name);
-            writeData(output, var_idx.index);
+            writeData(output, var_idx.index_first);
+            break;
+        }
+        case SELVARRANGE:
+        {
+            const auto &var_idx = line.get<variable_idx>();
+            writeData(output, var_idx.name);
+            writeData(output, var_idx.index_first);
+            writeData(output, var_idx.index_last);
             break;
         }
         case STRDATA:
@@ -195,6 +206,8 @@ void assembler::write_bytecode(std::ostream &output) {
         case ERROR:
         case PUSHSTR:
         case SELVAR:
+        case SELVARALL:
+        case SELVARRANGETOP:
         case SELGLOBAL:
             writeData(output, line.get<string_ref>());
             break;

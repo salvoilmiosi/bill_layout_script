@@ -98,17 +98,39 @@ void reader::exec_command(const command_args &cmd) {
     {
         variable_ref ref;
         ref.name = get_string_ref();
-        ref.index = m_var_stack.top().as_int();
+        ref.index_first = m_var_stack.top().as_int();
+        ref.index_last = ref.index_first;
         m_var_stack.pop();
         m_ref_stack.push(std::move(ref));
         break;
     }
+    case SELVARALL:
+    {
+        variable_ref ref;
+        ref.name = get_string_ref();
+        ref.flags |= VAR_RANGE_ALL;
+        m_ref_stack.push(std::move(ref));
+        break;
+    }
     case SELVARIDX:
+    case SELVARRANGE:
     {
         variable_ref ref;
         const auto &var_idx = cmd.get<variable_idx>();
         ref.name = m_asm.get_string(var_idx.name);
-        ref.index = var_idx.index;
+        ref.index_first = var_idx.index_first;
+        ref.index_last = var_idx.index_last;
+        m_ref_stack.push(std::move(ref));
+        break;
+    }
+    case SELVARRANGETOP:
+    {
+        variable_ref ref;
+        ref.name = get_string_ref();
+        ref.index_last = m_var_stack.top().as_int();
+        m_var_stack.pop();
+        ref.index_first = m_var_stack.top().as_int();
+        m_var_stack.pop();
         m_ref_stack.push(std::move(ref));
         break;
     }
@@ -145,7 +167,8 @@ void reader::exec_command(const command_args &cmd) {
     case SETDEBUG: m_ref_stack.top().flags |= VAR_DEBUG; break;
     case CLEAR: clear_variable(); break;
     case APPEND:
-        m_ref_stack.top().index = get_variable_size();
+        m_ref_stack.top().index_first = get_variable_size();
+        m_ref_stack.top().index_last = m_ref_stack.top().index_first;
         // fall through
     case SETVAR:
         set_variable(m_var_stack.top());
@@ -269,10 +292,10 @@ const variable &reader::get_variable() const {
 
     auto &page = m_pages[m_page_num];
     auto it = page.find(m_ref_stack.top().name);
-    if (it == page.end() || it->second.size() <= m_ref_stack.top().index) {
+    if (it == page.end() || it->second.size() <= m_ref_stack.top().index_first) {
         return variable::null_var();
     } else {
-        return it->second[m_ref_stack.top().index];
+        return it->second[m_ref_stack.top().index_first];
     }
 }
 
@@ -288,8 +311,16 @@ void reader::set_variable(const variable &value) {
     auto &page = m_pages[m_page_num];
     auto &var = page[m_ref_stack.top().name];
     if (m_ref_stack.top().flags & VAR_DEBUG) var.m_debug = true;
-    while (var.size() <= m_ref_stack.top().index) var.emplace_back();
-    var[m_ref_stack.top().index] = value;
+    if (m_ref_stack.top().flags & VAR_RANGE_ALL) {
+        for (auto &x : var) { 
+            x = value;
+        }
+    } else {
+        while (var.size() <= m_ref_stack.top().index_last) var.emplace_back();
+        for (size_t i=m_ref_stack.top().index_first; i<=m_ref_stack.top().index_last; ++i) {
+            var[i] = value;
+        }
+    }
 }
 
 void reader::reset_variable(const variable &value) {

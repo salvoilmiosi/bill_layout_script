@@ -101,7 +101,7 @@ bool tokenizer::next() {
         tok.type = TOK_CONTENT;
         break;
     case ':':
-        tok.type = TOK_CLEAR;
+        tok.type = TOK_COLON;
         break;
     case '+':
         tok.type = TOK_PLUS;

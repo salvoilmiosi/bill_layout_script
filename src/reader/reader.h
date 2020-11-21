@@ -26,11 +26,13 @@ struct content_view {
 enum variable_flags {
     VAR_GLOBAL = 1 << 0,
     VAR_DEBUG = 1 << 1,
+    VAR_RANGE_ALL = 1 << 2,
 };
 
 struct variable_ref {
     std::string name;
-    size_t index = 0;
+    size_t index_first = 0;
+    size_t index_last = 0;
     int flags = 0;
 };
 
