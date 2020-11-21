@@ -165,7 +165,7 @@
 				"mode" : 0,
 				"name" : "Potenza Massima",
 				"page" : 2,
-				"script" : "$for(i,3) %potenza[i]",
+				"script" : "%potenza[0:2]",
 				"spacers" : "",
 				"type" : 0,
 				"w" : 0.060754954814910889,
