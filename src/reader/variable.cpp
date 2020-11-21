@@ -96,20 +96,52 @@ bool variable::operator != (const variable &other) const {
     return !(*this == other);
 }
 
+bool variable::operator && (const variable &other) const {
+    return as_bool() && other.as_bool();
+}
+
+bool variable::operator || (const variable &other) const {
+    return as_bool() || other.as_bool();
+}
+
+bool variable::operator ! () const {
+    return ! as_bool();
+}
+
 bool variable::operator < (const variable &other) const {
-    return number() < other.number();
+    switch(m_type) {
+    case VAR_STRING:
+        return std::get<std::string>(m_value) < other.str();
+    default:
+        return number() < other.number();
+    }
 }
 
 bool variable::operator > (const variable &other) const {
-    return number() > other.number();
+    switch(m_type) {
+    case VAR_STRING:
+        return std::get<std::string>(m_value) > other.str();
+    default:
+        return number() > other.number();
+    }
 }
 
 bool variable::operator <= (const variable &other) const {
-    return number() <= other.number();
+    switch(m_type) {
+    case VAR_STRING:
+        return std::get<std::string>(m_value) <= other.str();
+    default:
+        return number() <= other.number();
+    }
 }
 
 bool variable::operator >= (const variable &other) const {
-    return number() >= other.number();
+    switch(m_type) {
+    case VAR_STRING:
+        return std::get<std::string>(m_value) >= other.str();
+    default:
+        return number() >= other.number();
+    }
 }
 
 variable variable::operator - () const {

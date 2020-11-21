@@ -32,11 +32,11 @@ enum asm_command {
     MAX,        // pop * 2, push max (a, b)
     MIN,        // pop * 2, push min (a, b)
     SELVAR,     // string name -- pop, m_selected = (name, top)
-    SELVARALL,  // string name -- m_selected = (name, 0, size(index)-1)
+    SELVARALL,  // string name -- m_selected = (name) VAR_RANGE_ALL
     SELVARIDX,  // string name, byte index -- m_selected = (name, index, index)
     SELVARRANGETOP,// string name -- pop, pop, m_selected = (name, top-1, top)
     SELVARRANGE,// string name, bye idxfrom, byte idxtop = (name, idxfrom, idxtop)
-    SELGLOBAL,  // string name -- m_selected = (name, INDEX_GLOBAL)
+    SELGLOBAL,  // string name -- m_selected = (name) VAR_GLOBAL
     SETDEBUG,   // setta flag debug su top di ref_stack
     CLEAR,      // m_selected
     APPEND,     // pop, m_selected.append(top)

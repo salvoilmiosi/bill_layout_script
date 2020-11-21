@@ -80,9 +80,9 @@ int main(int argc, char **argv) {
 
         if (exec_script) {
             if (input_stdin) {
-                m_reader.read_layout(std::cin);
+                m_reader.exec_program(std::cin);
             } else {
-                m_reader.read_layout(ifs);
+                m_reader.exec_program(ifs);
                 ifs.close();
             }
 
@@ -103,9 +103,9 @@ int main(int argc, char **argv) {
         }
         if (in_file_layout) {
             if (input_stdin) {
-                m_reader.read_layout(std::cin);
+                m_reader.exec_program(std::cin);
             } else {
-                m_reader.read_layout(ifs);
+                m_reader.exec_program(ifs);
                 ifs.close();
             }
         }

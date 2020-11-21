@@ -19,40 +19,42 @@ void parser::read_box(const layout_box &box) {
     current_box = &box;
     if (!box.goto_label.empty()) add_line("{0}:", box.goto_label);
 
-    tokens = tokenizer(box.spacers);
+    if (box.type != BOX_DISABLED) {
+        tokens = tokenizer(box.spacers);
 
-    while(!tokens.ate()) {
-        auto tok_num = tokens.require(TOK_IDENTIFIER);
-        tokens.next();
-        bool negative = false;
-        switch (tokens.current().type) {
-        case TOK_PLUS:
-            break;
-        case TOK_MINUS:
-            negative = true;
-            break;
-        default:
-            throw parsing_error("Spaziatore incorretto", tokens.getLocation(tokens.current()));
-        }
-        read_expression();
-        if (negative) add_line("NEG");
-        switch (hash(string_tolower(std::string(tok_num.value)))) {
-        case hash("p"):
-        case hash("page"):
-            add_line("MVBOX {0}", SPACER_PAGE);
-            break;
-        case hash("x"): add_line("MVBOX {0}", SPACER_X); break;
-        case hash("y"): add_line("MVBOX {0}", SPACER_Y); break;
-        case hash("w"):
-        case hash("width"):
-            add_line("MVBOX {0}", SPACER_W);
-            break;
-        case hash("h"):
-        case hash("height"):
-            add_line("MVBOX {0}", SPACER_H);
-            break;
-        default:
-            throw parsing_error("Spaziatore incorretto", tokens.getLocation(tok_num));
+        while(!tokens.ate()) {
+            auto tok_num = tokens.require(TOK_IDENTIFIER);
+            tokens.next();
+            bool negative = false;
+            switch (tokens.current().type) {
+            case TOK_PLUS:
+                break;
+            case TOK_MINUS:
+                negative = true;
+                break;
+            default:
+                throw parsing_error("Spaziatore incorretto", tokens.getLocation(tokens.current()));
+            }
+            read_expression();
+            if (negative) add_line("NEG");
+            switch (hash(string_tolower(std::string(tok_num.value)))) {
+            case hash("p"):
+            case hash("page"):
+                add_line("MVBOX {0}", SPACER_PAGE);
+                break;
+            case hash("x"): add_line("MVBOX {0}", SPACER_X); break;
+            case hash("y"): add_line("MVBOX {0}", SPACER_Y); break;
+            case hash("w"):
+            case hash("width"):
+                add_line("MVBOX {0}", SPACER_W);
+                break;
+            case hash("h"):
+            case hash("height"):
+                add_line("MVBOX {0}", SPACER_H);
+                break;
+            default:
+                throw parsing_error("Spaziatore incorretto", tokens.getLocation(tok_num));
+            }
         }
     }
 
@@ -71,6 +73,9 @@ void parser::read_box(const layout_box &box) {
         break;
     }
     while (!tokens.ate()) read_statement();
+    if (box.type != BOX_DISABLED) {
+        add_line("POPCONTENT");
+    }
 }
 
 void parser::read_statement() {

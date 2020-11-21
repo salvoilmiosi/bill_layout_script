@@ -3,7 +3,7 @@
 #include <fmt/core.h>
 #include "utils.h"
 
-void reader::read_layout(std::istream &input) {
+void reader::exec_program(std::istream &input) {
     if (!m_asm.read_bytecode(input)) {
         throw layout_error("File layout non riconosciuto");
     }
@@ -78,12 +78,12 @@ void reader::exec_command(const command_args &cmd) {
     case ERROR: throw layout_error(get_string_ref()); break;
     case PARSENUM: if (!m_var_stack.top().empty()) m_var_stack.top() = m_var_stack.top().str_to_number(); break;
     case PARSEINT: m_var_stack.top() = m_var_stack.top().as_int(); break;
-    case NOT: m_var_stack.top() = !m_var_stack.top().as_bool(); break;
+    case NOT: m_var_stack.top() = !m_var_stack.top(); break;
     case NEG: m_var_stack.top() = -m_var_stack.top(); break;
     case EQ:  exec_operator([](const auto &a, const auto &b) { return a == b; }); break;
     case NEQ: exec_operator([](const auto &a, const auto &b) { return a != b; }); break;
-    case AND: exec_operator([](const auto &a, const auto &b) { return a.as_bool() && b.as_bool(); }); break;
-    case OR:  exec_operator([](const auto &a, const auto &b) { return a.as_bool() || b.as_bool(); }); break;
+    case AND: exec_operator([](const auto &a, const auto &b) { return a && b; }); break;
+    case OR:  exec_operator([](const auto &a, const auto &b) { return a || b; }); break;
     case ADD: exec_operator([](const auto &a, const auto &b) { return a + b; }); break;
     case SUB: exec_operator([](const auto &a, const auto &b) { return a - b; }); break;
     case MUL: exec_operator([](const auto &a, const auto &b) { return a * b; }); break;
@@ -262,7 +262,6 @@ void reader::read_box(pdf_rect box) {
     box.w += m_spacer.w;
     box.h += m_spacer.h;
     m_spacer = {};
-    m_content_stack = {};
 
     m_ate = box.page > m_doc.num_pages();
 
@@ -301,23 +300,24 @@ const variable &reader::get_variable() const {
 
 void reader::set_variable(const variable &value) {
     if (value.empty()) return;
-    if (m_ref_stack.top().flags & VAR_GLOBAL) {
-        auto &var = m_globals[m_ref_stack.top().name] = value;
-        if (m_ref_stack.top().flags & VAR_DEBUG) var.m_debug = true;
+    auto &ref = m_ref_stack.top();
+    if (ref.flags & VAR_GLOBAL) {
+        auto &var = m_globals[ref.name] = value;
+        if (ref.flags & VAR_DEBUG) var.m_debug = true;
         return;
     }
 
     while (m_pages.size() <= m_page_num) m_pages.emplace_back();
     auto &page = m_pages[m_page_num];
-    auto &var = page[m_ref_stack.top().name];
-    if (m_ref_stack.top().flags & VAR_DEBUG) var.m_debug = true;
-    if (m_ref_stack.top().flags & VAR_RANGE_ALL) {
+    auto &var = page[ref.name];
+    if (ref.flags & VAR_DEBUG) var.m_debug = true;
+    if (ref.flags & VAR_RANGE_ALL) {
         for (auto &x : var) { 
             x = value;
         }
     } else {
-        while (var.size() <= m_ref_stack.top().index_last) var.emplace_back();
-        for (size_t i=m_ref_stack.top().index_first; i<=m_ref_stack.top().index_last; ++i) {
+        while (var.size() <= ref.index_last) var.emplace_back();
+        for (size_t i=ref.index_first; i<=ref.index_last; ++i) {
             var[i] = value;
         }
     }
@@ -325,29 +325,31 @@ void reader::set_variable(const variable &value) {
 
 void reader::reset_variable(const variable &value) {
     if (value.empty()) return;
-    if (m_ref_stack.top().flags & VAR_GLOBAL) {
-        auto &var = m_globals[m_ref_stack.top().name] = value;
-        if (m_ref_stack.top().flags & VAR_DEBUG) var.m_debug = true;
+    auto &ref = m_ref_stack.top();
+    if (ref.flags & VAR_GLOBAL) {
+        auto &var = m_globals[ref.name] = value;
+        if (ref.flags & VAR_DEBUG) var.m_debug = true;
         return;
     }
 
     while (m_pages.size() <= m_page_num) m_pages.emplace_back();
     auto &page = m_pages[m_page_num];
-    auto &var = page[m_ref_stack.top().name];
-    if (m_ref_stack.top().flags & VAR_DEBUG) var.m_debug = true;
+    auto &var = page[ref.name];
+    if (ref.flags & VAR_DEBUG) var.m_debug = true;
     var.clear();
     var.push_back(value);
 }
 
 void reader::clear_variable() {
-    if (m_ref_stack.top().flags & VAR_GLOBAL) {
-        auto it = m_globals.find(m_ref_stack.top().name);
+    auto &ref = m_ref_stack.top();
+    if (ref.flags & VAR_GLOBAL) {
+        auto it = m_globals.find(ref.name);
         if (it != m_globals.end()) {
             m_globals.erase(it);
         }
     } else if (m_page_num < m_pages.size()) {
         auto &page = m_pages[m_page_num];
-        auto it = page.find(m_ref_stack.top().name);
+        auto it = page.find(ref.name);
         if (it != page.end()) {
             page.erase(it);
         }
@@ -355,14 +357,15 @@ void reader::clear_variable() {
 }
 
 size_t reader::get_variable_size() {
-    if (m_ref_stack.top().flags & VAR_GLOBAL) {
-        return m_globals.find(m_ref_stack.top().name) != m_globals.end();
+    auto &ref = m_ref_stack.top();
+    if (ref.flags & VAR_GLOBAL) {
+        return m_globals.find(ref.name) != m_globals.end();
     }
     if (m_pages.size() <= m_page_num) {
         return 0;
     }
     auto &page = m_pages[m_page_num];
-    auto it = page.find(m_ref_stack.top().name);
+    auto it = page.find(ref.name);
     if (it == page.end()) {
         return 0;
     } else {

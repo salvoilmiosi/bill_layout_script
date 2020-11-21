@@ -57,7 +57,7 @@ public:
         m_doc.open(filename);
     }
     
-    void read_layout(std::istream &input);
+    void exec_program(std::istream &input);
 
     const variable &get_global(const std::string &name) const;
 
