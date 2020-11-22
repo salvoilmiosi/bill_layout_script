@@ -10,6 +10,8 @@ Il programma è stato scritto in C++17 con le seguenti librerie:
 
 [Poppler](https://poppler.freedesktop.org/)
 
+[decimal_for_cpp](https://github.com/vpiotr/decimal_for_cpp)
+
 [jsoncpp](https://github.com/open-source-parsers/jsoncpp)
 
 [fmt](https://fmt.dev/latest/index.html)
