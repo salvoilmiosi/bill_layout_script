@@ -70,6 +70,7 @@ private:
 
     const variable &get_variable() const;
     void set_variable(const variable &value);
+    void inc_variable(const variable &value);
     void reset_variable(const variable &value);
     void clear_variable();
     size_t get_variable_size();

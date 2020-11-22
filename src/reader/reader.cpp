@@ -214,24 +214,24 @@ void reader::exec_command(const command_args &cmd) {
         break;
     case INCTOP:
         if (!m_var_stack.top().empty()) {
-            set_variable(get_variable() + m_var_stack.top());
+            inc_variable(m_var_stack.top());
         }
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
     case INC:
-        set_variable(get_variable() + variable(cmd.get<small_int>()));
+        inc_variable(cmd.get<small_int>());
         m_ref_stack.pop();
         break;
     case DECTOP:
         if (!m_var_stack.top().empty()) {
-            set_variable(get_variable() - m_var_stack.top());
+            inc_variable(- m_var_stack.top());
         }
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
     case DEC:
-        set_variable(get_variable() - variable(cmd.get<small_int>()));
+        inc_variable(- cmd.get<small_int>());
         m_ref_stack.pop();
         break;
     case ISSET:
@@ -319,6 +319,32 @@ void reader::set_variable(const variable &value) {
         while (var.size() <= ref.index_last) var.emplace_back();
         for (size_t i=ref.index_first; i<=ref.index_last; ++i) {
             var[i] = value;
+        }
+    }
+}
+
+void reader::inc_variable(const variable &value) {
+    if (value.empty()) return;
+    auto &ref = m_ref_stack.top();
+    if (ref.flags & VAR_GLOBAL) {
+        auto &var = m_globals[ref.name];
+        var = var + value;
+        if (ref.flags & VAR_DEBUG) var.m_debug = true;
+        return;
+    }
+
+    while (m_pages.size() <= m_page_num) m_pages.emplace_back();
+    auto &page = m_pages[m_page_num];
+    auto &var = page[ref.name];
+    if (ref.flags & VAR_DEBUG) var.m_debug = true;
+    if (ref.flags & VAR_RANGE_ALL) {
+        for (auto &x : var) { 
+            x = x + value;
+        }
+    } else {
+        while (var.size() <= ref.index_last) var.emplace_back();
+        for (size_t i=ref.index_first; i<=ref.index_last; ++i) {
+            var[i] = var[i] + value;
         }
     }
 }
