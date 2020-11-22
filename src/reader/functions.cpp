@@ -110,7 +110,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
         if (it != dispatcher.end()) {
             arg_list vars(numargs);
             for (size_t i=0; i<numargs; ++i) {
-                vars[numargs - i - 1] = m_var_stack.top();
+                vars[numargs - i - 1] = std::move(m_var_stack.top());
                 m_var_stack.pop();
             }
             m_var_stack.push(it->second(vars));

@@ -22,6 +22,10 @@ std::string variable::str() const {
     }
 }
 
+const std::string &variable::strref() const {
+    return std::get<std::string>(m_value);
+}
+
 fixed_point variable::number() const {
     switch (m_type) {
     case VAR_STRING:

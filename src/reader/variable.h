@@ -9,6 +9,12 @@
 
 using fixed_point = dec::decimal<FLOAT_PRECISION>;
 
+enum variable_type {
+    VAR_UNDEFINED,
+    VAR_STRING,
+    VAR_NUMBER
+};
+
 class variable {
 public:
     variable() {}
@@ -25,6 +31,12 @@ public:
     }
 
     std::string str() const;
+    const std::string &strref() const;
+
+    variable_type type() const {
+        return m_type;
+    }
+
     fixed_point number() const;
     int as_int() const;
     bool as_bool() const;
@@ -53,11 +65,7 @@ public:
 
 private:
     std::variant<std::string, fixed_point> m_value;
-    enum {
-        VAR_UNDEFINED,
-        VAR_STRING,
-        VAR_NUMBER
-    } m_type = VAR_UNDEFINED;
+    variable_type m_type = VAR_UNDEFINED;
 };
 
 #endif

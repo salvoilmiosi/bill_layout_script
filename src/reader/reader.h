@@ -16,7 +16,8 @@ struct content_view {
     size_t token_start = -1;
     size_t token_end = -1;
 
-    content_view(const std::string &_text) : text(_text) {}
+    template<typename T>
+    content_view(T &&_text) : text(std::forward<T>(_text)) {}
     
     void next_token(const std::string &separator);
 
@@ -69,9 +70,9 @@ private:
     void call_function(const std::string &name, size_t numargs);
 
     const variable &get_variable() const;
-    void set_variable(const variable &value);
-    void inc_variable(const variable &value);
-    void reset_variable(const variable &value);
+    void set_variable(variable &&value);
+    void inc_variable(variable &&value);
+    void reset_variable(variable &&value);
     void clear_variable();
     size_t get_variable_size();
 
