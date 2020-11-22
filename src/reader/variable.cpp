@@ -149,7 +149,11 @@ bool variable::operator >= (const variable &other) const {
 }
 
 variable variable::operator - () const {
-    return - number();
+    if (empty()) {
+        return *this;
+    } else {
+        return - number();
+    }
 }
 
 variable variable::operator + (const variable &other) const {

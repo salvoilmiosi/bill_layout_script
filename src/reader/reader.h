@@ -70,9 +70,9 @@ private:
     void call_function(const std::string &name, size_t numargs);
 
     const variable &get_variable() const;
-    void set_variable(variable &&value);
-    void inc_variable(variable &&value);
-    void reset_variable(variable &&value);
+    void set_variable();
+    void inc_variable(const variable &value);
+    void reset_variable();
     void clear_variable();
     size_t get_variable_size();
 

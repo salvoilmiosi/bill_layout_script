@@ -170,12 +170,12 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.top().index_last = m_ref_stack.top().index_first;
         // fall through
     case SETVAR:
-        set_variable(std::move(m_var_stack.top()));
+        set_variable();
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
     case RESETVAR:
-        reset_variable(std::move(m_var_stack.top()));
+        reset_variable();
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
@@ -212,9 +212,7 @@ void reader::exec_command(const command_args &cmd) {
         }
         break;
     case INCTOP:
-        if (!m_var_stack.top().empty()) {
-            inc_variable(std::move(m_var_stack.top()));
-        }
+        inc_variable(m_var_stack.top());
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
@@ -223,9 +221,7 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.pop();
         break;
     case DECTOP:
-        if (!m_var_stack.top().empty()) {
-            inc_variable(- m_var_stack.top());
-        }
+        inc_variable(- m_var_stack.top());
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
@@ -301,11 +297,12 @@ const variable &reader::get_variable() const {
     }
 }
 
-void reader::set_variable(variable &&value) {
+void reader::set_variable() {
+    auto &value = m_var_stack.top();
     if (value.empty()) return;
     auto &ref = m_ref_stack.top();
     if (ref.flags & VAR_GLOBAL) {
-        auto &var = m_globals[ref.name] = value;
+        auto &var = m_globals[ref.name] = std::move(value);
         if (ref.flags & VAR_DEBUG) var.m_debug = true;
         return;
     }
@@ -316,17 +313,17 @@ void reader::set_variable(variable &&value) {
     if (ref.flags & VAR_DEBUG) var.m_debug = true;
     if (ref.flags & VAR_RANGE_ALL) {
         for (auto &x : var) { 
-            x = value;
+            x = std::move(value);
         }
     } else {
         while (var.size() <= ref.index_last) var.emplace_back();
         for (size_t i=ref.index_first; i<=ref.index_last; ++i) {
-            var[i] = value;
+            var[i] = std::move(value);
         }
     }
 }
 
-void reader::inc_variable(variable &&value) {
+void reader::inc_variable(const variable &value) {
     if (value.empty()) return;
     auto &ref = m_ref_stack.top();
     if (ref.flags & VAR_GLOBAL) {
@@ -352,11 +349,12 @@ void reader::inc_variable(variable &&value) {
     }
 }
 
-void reader::reset_variable(variable &&value) {
+void reader::reset_variable() {
+    auto &value = m_var_stack.top();
     if (value.empty()) return;
     auto &ref = m_ref_stack.top();
     if (ref.flags & VAR_GLOBAL) {
-        auto &var = m_globals[ref.name] = value;
+        auto &var = m_globals[ref.name] = std::move(value);
         if (ref.flags & VAR_DEBUG) var.m_debug = true;
         return;
     }
@@ -366,7 +364,7 @@ void reader::reset_variable(variable &&value) {
     auto &var = page[ref.name];
     if (ref.flags & VAR_DEBUG) var.m_debug = true;
     var.clear();
-    var.emplace_back(value);
+    var.emplace_back(std::move(value));
 }
 
 void reader::clear_variable() {
