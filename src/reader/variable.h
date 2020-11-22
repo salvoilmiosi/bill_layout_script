@@ -31,7 +31,7 @@ public:
     }
 
     std::string str() const;
-    const std::string &strref() const;
+    std::string &strref();
 
     variable_type type() const {
         return m_type;

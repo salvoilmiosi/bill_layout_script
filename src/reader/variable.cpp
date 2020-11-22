@@ -22,7 +22,7 @@ std::string variable::str() const {
     }
 }
 
-const std::string &variable::strref() const {
+std::string &variable::strref() {
     return std::get<std::string>(m_value);
 }
 
