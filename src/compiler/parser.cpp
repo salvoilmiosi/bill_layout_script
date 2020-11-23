@@ -7,7 +7,7 @@
 void parser::read_layout(const bill_layout_script &layout) {
     try {
         for (auto &box : layout) {
-            read_box(box);
+            read_box(*box);
         }
         add_line("HLT");
     } catch (const parsing_error &error) {

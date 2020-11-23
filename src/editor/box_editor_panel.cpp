@@ -29,18 +29,18 @@ static auto make_rect = [](wxPoint start_pt, wxPoint end_pt) {
 bool box_editor_panel::render(wxDC &dc) {
     auto make_layout_rect = [&](auto &box) {
         wxRect rect;
-        rect.x = box.x * scaled_width - scrollx;
-        rect.y = box.y * scaled_height - scrolly;
-        rect.width = box.w * scaled_width;
-        rect.height = box.h * scaled_height;
+        rect.x = box->x * scaled_width - scrollx;
+        rect.y = box->y * scaled_height - scrolly;
+        rect.width = box->w * scaled_width;
+        rect.height = box->h * scaled_height;
         return rect;
     };
 
     if (wxImagePanel::render(dc)) {
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         for (auto &box : app->layout) {
-            if (box.page == app->getSelectedPage()) {
-                if (box.selected) {
+            if (box->page == app->getSelectedPage()) {
+                if (box->selected) {
                     dc.SetPen(*wxBLACK_DASHED_PEN);
                 } else {
                     dc.SetPen(*wxBLACK_PEN);
@@ -70,8 +70,8 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
         case TOOL_SELECT:
             selected_box = getBoxAt(app->layout, xx, yy, app->getSelectedPage());
             if (selected_box != app->layout.end()) {
-                startx = selected_box->x;
-                starty = selected_box->y;
+                startx = (*selected_box)->x;
+                starty = (*selected_box)->y;
                 app->selectBox(selected_box - app->layout.begin());
                 mouseIsDown = true;
                 start_pt = evt.GetPosition();
@@ -132,16 +132,16 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 diag.SetTextValidator(wxFILTER_EMPTY);
                 if (diag.ShowModal() == wxID_OK) {
                     wxRect rect = make_rect(start_pt, end_pt);
-                    layout_box &box = app->layout.emplace_back();
-                    box.name = diag.GetValue();
-                    box.x = (rect.x + scrollx) / scaled_width;
-                    box.y = (rect.y + scrolly) / scaled_height;
-                    box.w = rect.width / scaled_width;
-                    box.h = rect.height / scaled_height;
-                    box.page = app->getSelectedPage();
+                    auto &box = app->layout.emplace_back(std::make_shared<layout_box>());
+                    box->name = diag.GetValue();
+                    box->x = (rect.x + scrollx) / scaled_width;
+                    box->y = (rect.y + scrolly) / scaled_height;
+                    box->w = rect.width / scaled_width;
+                    box->h = rect.height / scaled_height;
+                    box->page = app->getSelectedPage();
                     app->updateLayout();
                     app->selectBox(app->layout.size() - 1);
-                    new box_dialog(app, box);
+                    new box_dialog(app, *box);
                 }
                 break;
             }
@@ -150,13 +150,13 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
             case TOOL_RESIZE:
                 if (selected_box != app->layout.end()) {
                     if (start_pt != end_pt) {
-                        if (selected_box->w < 0) {
-                            selected_box->w = -selected_box->w;
-                            selected_box->x -= selected_box->w;
+                        if ((*selected_box)->w < 0) {
+                            (*selected_box)->w = -(*selected_box)->w;
+                            (*selected_box)->x -= (*selected_box)->w;
                         }
-                        if (selected_box->h < 0) {
-                            selected_box->h = -selected_box->h;
-                            selected_box->y -= selected_box->h;
+                        if ((*selected_box)->h < 0) {
+                            (*selected_box)->h = -(*selected_box)->h;
+                            (*selected_box)->y -= (*selected_box)->h;
                         }
                         app->updateLayout();
                     }
@@ -175,7 +175,7 @@ void box_editor_panel::OnDoubleClick(wxMouseEvent &evt) {
     switch (selected_tool) {
     case TOOL_SELECT:
         if (selected_box != app->layout.end()) {
-            new box_dialog(app, *selected_box);
+            new box_dialog(app, **selected_box);
         }
     default:
         break;
@@ -192,23 +192,23 @@ void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {
         {
             float dx = (end_pt.x - start_pt.x) / scaled_width;
             float dy = (end_pt.y - start_pt.y) / scaled_height;
-            selected_box->x = startx + dx;
-            selected_box->y = starty + dy;
+            (*selected_box)->x = startx + dx;
+            (*selected_box)->y = starty + dy;
             break;
         }
         case TOOL_RESIZE:
         {
             if (resize_node & RESIZE_TOP) {
-                selected_box->h = selected_box->y + selected_box->h - yy;
-                selected_box->y = yy;
+                (*selected_box)->h = (*selected_box)->y + (*selected_box)->h - yy;
+                (*selected_box)->y = yy;
             } else if (resize_node & RESIZE_BOTTOM) {
-                selected_box->h = yy - selected_box->y;
+                (*selected_box)->h = yy - (*selected_box)->y;
             }
             if (resize_node & RESIZE_LEFT) {
-                selected_box->w = selected_box->x + selected_box->w - xx;
-                selected_box->x = xx;
+                (*selected_box)->w = (*selected_box)->x + (*selected_box)->w - xx;
+                (*selected_box)->x = xx;
             } else if (resize_node & RESIZE_RIGHT) {
-                selected_box->w = xx - selected_box->x;
+                (*selected_box)->w = xx - (*selected_box)->x;
             }
             break;
         }
@@ -253,10 +253,10 @@ void box_editor_panel::OnKeyDown(wxKeyEvent &evt) {
     constexpr float MOVE_AMT = 5.f;
     if (selected_box != app->layout.end()) {
         switch (evt.GetKeyCode()) {
-            case WXK_LEFT: selected_box->x -= MOVE_AMT / scaled_width; Refresh(); break;
-            case WXK_RIGHT: selected_box->x += MOVE_AMT / scaled_width; Refresh(); break;
-            case WXK_UP: selected_box->y -= MOVE_AMT / scaled_height; Refresh(); break;
-            case WXK_DOWN: selected_box->y += MOVE_AMT / scaled_height; Refresh(); break;
+            case WXK_LEFT: (*selected_box)->x -= MOVE_AMT / scaled_width; Refresh(); break;
+            case WXK_RIGHT: (*selected_box)->x += MOVE_AMT / scaled_width; Refresh(); break;
+            case WXK_UP: (*selected_box)->y -= MOVE_AMT / scaled_height; Refresh(); break;
+            case WXK_DOWN: (*selected_box)->y += MOVE_AMT / scaled_height; Refresh(); break;
         }
     }
 }

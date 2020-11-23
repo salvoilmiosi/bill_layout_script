@@ -15,17 +15,17 @@ std::ostream &operator << (std::ostream &out, const bill_layout_script &boxes) {
     for (auto &box : boxes) {
         Json::Value json_box = Json::objectValue;
 
-        json_box["name"] = box.name;
-        json_box["spacers"] = box.spacers;
-        json_box["script"] = box.script;
-        json_box["goto_label"] = box.goto_label;
-        json_box["x"] = box.x;
-        json_box["y"] = box.y;
-        json_box["w"] = box.w;
-        json_box["h"] = box.h;
-        json_box["page"] = box.page;
-        json_box["mode"] = box.mode;
-        json_box["type"] = box.type;
+        json_box["name"] = box->name;
+        json_box["spacers"] = box->spacers;
+        json_box["script"] = box->script;
+        json_box["goto_label"] = box->goto_label;
+        json_box["x"] = box->x;
+        json_box["y"] = box->y;
+        json_box["w"] = box->w;
+        json_box["h"] = box->h;
+        json_box["page"] = box->page;
+        json_box["mode"] = box->mode;
+        json_box["type"] = box->type;
 
         json_boxes.append(json_box);
     }
@@ -60,7 +60,7 @@ std::istream &operator >> (std::istream &in, bill_layout_script &boxes) {
                 box.mode = static_cast<read_mode>(json_box["mode"].asInt());
                 box.type = static_cast<box_type>(json_box["type"].asInt());
 
-                boxes.push_back(box);
+                boxes.push_back(std::make_shared<layout_box>(box));
             }
             break;
         }

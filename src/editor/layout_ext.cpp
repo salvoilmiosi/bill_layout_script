@@ -7,10 +7,10 @@ box_reference getBoxAt(bill_layout_script &boxes, float x, float y, int page) {
         return (x > box.x && x < box.x + box.w && y > box.y && y < box.y + box.h && box.page == page);
     };
     for (auto it = boxes.begin(); it != boxes.end(); ++it) {
-        if (it->selected && check_box(*it)) return it;
+        if ((*it)->selected && check_box(**it)) return it;
     }
     for (auto it = boxes.begin(); it != boxes.end(); ++it) {
-        if (check_box(*it)) return it;
+        if (check_box(**it)) return it;
     }
     return boxes.end();
 }
@@ -19,19 +19,20 @@ std::pair<box_reference, int> getBoxResizeNode(bill_layout_script &boxes, float 
     float nw = RESIZE_TOLERANCE / scalex;
     float nh = RESIZE_TOLERANCE / scaley;
     auto check_box = [&](box_reference it) {
-        if (it->page == page) {
+        auto &box = **it;
+        if (box.page == page) {
             int node = 0;
-            if (y > it->y - nh && y < it->y + it->h + nh) {
-                if (x > it->x - nw && x < it->x + nw) {
+            if (y > box.y - nh && y < box.y + box.h + nh) {
+                if (x > box.x - nw && x < box.x + nw) {
                     node |= RESIZE_LEFT;
-                } else if (x > it->x + it->w - nw && x < it->x + it->w + nw) {
+                } else if (x > box.x + box.w - nw && x < box.x + box.w + nw) {
                     node |= RESIZE_RIGHT;
                 }
             }
-            if (x > it->x - nw && x < it->x + it->w + nw) {
-                if (y > it->y - nh && y < it->y + nh) {
+            if (x > box.x - nw && x < box.x + box.w + nw) {
+                if (y > box.y - nh && y < box.y + nh) {
                     node |= RESIZE_TOP;
-                } else if (y > it->y + it->h - nh && y < it->y + it->h + nh) {
+                } else if (y > box.y + box.h - nh && y < box.y + box.h + nh) {
                     node |= RESIZE_BOTTOM;
                 }
             }
@@ -40,7 +41,7 @@ std::pair<box_reference, int> getBoxResizeNode(bill_layout_script &boxes, float 
         return std::make_pair(boxes.end(), 0);
     };
     for (auto it = boxes.begin(); it != boxes.end(); ++it) {
-        if (it->selected) {
+        if ((*it)->selected) {
             auto res = check_box(it);
             if (res.second) return res;
         }

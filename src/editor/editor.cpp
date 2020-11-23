@@ -302,8 +302,8 @@ void frame_editor::updateLayout(bool addToHistory) {
     m_list_boxes->Clear();
     for (size_t i=0; i<layout.size(); ++i) {
         auto &box = layout[i];
-        m_list_boxes->Append(box.name);
-        if (box.selected) {
+        m_list_boxes->Append(box->name);
+        if (box->selected) {
             m_list_boxes->SetSelection(i);
         }
     }
@@ -390,7 +390,7 @@ void frame_editor::OnRedo(wxCommandEvent &evt) {
 
 void frame_editor::OnCut(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0 && SetClipboard(layout[selection])) {
+    if (selection >= 0 && SetClipboard(*layout[selection])) {
         layout.erase(layout.begin() + selection);
         updateLayout();
     }
@@ -399,7 +399,7 @@ void frame_editor::OnCut(wxCommandEvent &evt) {
 void frame_editor::OnCopy(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0) {
-        SetClipboard(layout[selection]);
+        SetClipboard(*layout[selection]);
     }
 }
 
@@ -409,7 +409,7 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
             clipboard.page = selected_page;
         }
         
-        layout.push_back(clipboard);
+        layout.push_back(std::make_shared<layout_box>(std::move(clipboard)));
         updateLayout();
         selectBox(layout.size() - 1);
     }
@@ -584,10 +584,10 @@ void frame_editor::OnSelectBox(wxCommandEvent &evt) {
 void frame_editor::selectBox(int selection) {
     m_list_boxes->SetSelection(selection);
     for (size_t i=0; i<layout.size(); ++i) {
-        layout[i].selected = (int)i == selection;
+        layout[i]->selected = (int)i == selection;
     }
     if (selection >= 0 && selection < (int) layout.size()) {
-        setSelectedPage(layout[selection].page);
+        setSelectedPage(layout[selection]->page);
         m_image->setSelectedBox(layout.begin() + selection);
     }
     m_image->Refresh();
@@ -596,7 +596,7 @@ void frame_editor::selectBox(int selection) {
 void frame_editor::EditSelectedBox(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0) {
-        new box_dialog(this, layout[selection]);
+        new box_dialog(this, *layout[selection]);
     }
 }
 

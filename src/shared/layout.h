@@ -3,6 +3,7 @@
 
 #include "pdf_document.h"
 
+#include <memory>
 #include <vector>
 #include <cstring>
 
@@ -25,7 +26,7 @@ struct layout_error {
     layout_error(const std::string &message) : message(message) {}
 };
 
-using bill_layout_script = std::vector<layout_box>;
+using bill_layout_script = std::vector<std::shared_ptr<layout_box>>;
 
 std::ostream &operator << (std::ostream &out, const bill_layout_script &obj);
 std::istream &operator >> (std::istream &in, bill_layout_script &obj);
