@@ -5,16 +5,16 @@
 		[
 			{
 				"goto_label" : "",
-				"h" : 0.075256556272506714,
+				"h" : 0.10442490875720978,
 				"mode" : 0,
 				"name" : "Nome Fornitore",
 				"page" : 1,
-				"script" : "fornitore=\"SEN\"",
+				"script" : "$ifnot($contains(@,\"Servizio di Maggior Tutela\"))\n  $error(\"Layout Invalido\")\nfornitore=\"SEN\"",
 				"spacers" : "",
-				"type" : 3,
+				"type" : 0,
 				"w" : 0.40645161271095276,
-				"x" : 0.062903225421905518,
-				"y" : 0.031927023082971573
+				"x" : 0.05250578373670578,
+				"y" : 0.031264942139387131
 			},
 			{
 				"goto_label" : "",

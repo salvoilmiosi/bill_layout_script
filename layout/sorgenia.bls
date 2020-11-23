@@ -5,6 +5,19 @@
 		[
 			{
 				"goto_label" : "",
+				"h" : 0.024828042834997177,
+				"mode" : 0,
+				"name" : "Convalida Layout",
+				"page" : 1,
+				"script" : "$ifnot($eq(@,\"BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO\"))\n  $error(\"Layout Invalido\")",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.82919603586196899,
+				"x" : 0.075381457805633545,
+				"y" : 0.31081032752990723
+			},
+			{
+				"goto_label" : "",
 				"h" : 0.083238311111927032,
 				"mode" : 0,
 				"name" : "Nome Fornitore",

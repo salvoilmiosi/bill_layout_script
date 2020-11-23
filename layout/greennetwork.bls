@@ -5,6 +5,19 @@
 		[
 			{
 				"goto_label" : "",
+				"h" : 0.10482951253652573,
+				"mode" : 0,
+				"name" : "Convalida Layout",
+				"page" : 1,
+				"script" : "$ifnot($contains(@,\"GREEN NETWORK S.p.A.\\nSociet\\u00e0 a Socio Unico\"))\n  $error(\"Layout Invalido\")",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.46658521890640259,
+				"x" : 0.031192326918244362,
+				"y" : 0.89656823873519897
+			},
+			{
+				"goto_label" : "",
 				"h" : 0.094640821218490601,
 				"mode" : 0,
 				"name" : "Nome Fornitore",

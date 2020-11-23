@@ -5,6 +5,19 @@
 		[
 			{
 				"goto_label" : "",
+				"h" : 0.099255584180355072,
+				"mode" : 0,
+				"name" : "Convalida Layout",
+				"page" : 1,
+				"script" : "$ifnot($contains(@,\"www.italpowerenergia.it\"))\n  $error(\"Layout Invalido\")",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.44484913349151611,
+				"x" : 0.014308013021945953,
+				"y" : 0.15623565018177032
+			},
+			{
+				"goto_label" : "",
 				"h" : 0.084378562867641449,
 				"mode" : 0,
 				"name" : "Nome Fornitore",

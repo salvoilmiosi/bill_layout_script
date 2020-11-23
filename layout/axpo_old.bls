@@ -5,6 +5,19 @@
 		[
 			{
 				"goto_label" : "",
+				"h" : 0.055872291326522827,
+				"mode" : 0,
+				"name" : "Convalida Layout",
+				"page" : 1,
+				"script" : "$ifnot($eq(@,\"Bolletta Energia Elettrica\\nFornitura del Mercato Libero\"))\n  $error(\"Layout Invalido\")",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.40290087461471558,
+				"x" : 0.54311037063598633,
+				"y" : 0.030786773189902306
+			},
+			{
+				"goto_label" : "",
 				"h" : 0.061848785728216171,
 				"mode" : 0,
 				"name" : "Nome Fornitore",
