@@ -9,6 +9,9 @@ from pathlib import Path
 out = []
 old_out = []
 
+app_dir = Path(sys.argv[0]).parent
+layout_reader = app_dir.joinpath('../bin/release/layout_reader')
+
 def read_pdf(pdf_file):
     rel_path = pdf_file.relative_to(input_directory)
     print(rel_path)
@@ -16,33 +19,35 @@ def read_pdf(pdf_file):
     # Rilegge i vecchi file solo se il layout e' stato ricompilato
     for x in old_out:
         if x['filename'] == str(rel_path):
-            args = [app_dir.joinpath('../bin/release/layout_reader'), '-p', pdf_file, controllo]
+            args = [layout_reader, '-p', pdf_file, controllo]
             proc = subprocess.run(args, capture_output=True, text=True)
             json_out = json.loads(proc.stdout)
             if not json_out['error'] and 'layout' in json_out['globals']:
-                layout_file = controllo.parent.joinpath(json_out['globals']['layout']).with_suffix('.out')
+                layout_file = controllo.parent.joinpath(json_out['globals']['layout']).with_suffix('.bls')
                 if os.path.getmtime(str(layout_file)) < os.path.getmtime(str(output_file)):
                     out.append(x)
                     return
 
-    args = [app_dir.joinpath('../bin/release/layout_reader'), '-p', pdf_file, '-s', controllo]
+    args = [layout_reader, '-p', pdf_file, '-s', controllo]
     proc = subprocess.run(args, capture_output=True, text=True)
 
     file_obj = {'filename':str(rel_path), 'lastmodified':os.stat(str(path)).st_mtime}
 
-    json_out = json.loads(proc.stdout)
-    if json_out['error']:
-        file_obj['error'] = json_out['message']
-    else:
-        file_obj['values'] = json_out['values']
+    try:
+        json_out = json.loads(proc.stdout)
+        if json_out['error']:
+            file_obj['error'] = json_out['message']
+        else:
+            file_obj['values'] = json_out['values']
+    except:
+        file_obj['error'] = 'Errore {0}'.format(proc.returncode)
+        print('### Errore alla lettura di {0}'.format(rel_path))
 
     out.append(file_obj)
 
 if len(sys.argv) < 2:
     print('Argomenti richiesti: input_directory [script_controllo.out] [output.json]')
     sys.exit()
-
-app_dir = Path(sys.argv[0]).parent
 
 input_directory = Path(sys.argv[1])
 controllo = Path(sys.argv[2]) if len(sys.argv) >= 3 else app_dir.joinpath('../layout/controllo.out')
