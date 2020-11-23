@@ -35,6 +35,9 @@ std::string parse_date(const std::string &format, const std::string &value, int 
 // Aggiunge num mesi alla data
 std::string date_month_add(const std::string &month, int num);
 
+// formatta una data nel formato indicato
+std::string date_format(const std::string &date, std::string format);
+
 // cerca la regex in str e ritorna i valori trovati
 std::vector<std::string> search_regex_all(std::string format, std::string value, int index);
 

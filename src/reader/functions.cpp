@@ -76,6 +76,9 @@ void reader::call_function(const std::string &name, size_t numargs) {
             std::transform(args.begin() + 1, args.end(), fmt_args.begin(), [](const variable &var) { return var.str(); });
             return string_format(args.front().str(), fmt_args);
         }},
+        {"date_format", create_function<2>([](const variable &month, const variable &format) {
+            return date_format(month.str(), format.str());
+        })},
         {"month_add", create_function<2>([](const variable &month, const variable &num) { return date_month_add(month.str(), num.as_int()); })},
         {"nospace", create_function([](const variable &str) { return nospace(str.str()); })},
         {"ifl", create_function<2, 3>   ([](const variable &condition, const variable &var_if, const variable &var_else) { return condition.as_bool() ? var_if : var_else; })},

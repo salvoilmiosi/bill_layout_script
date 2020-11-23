@@ -158,6 +158,36 @@ constexpr bool find_in (const char *str, const char *first, const Ts & ... strs)
     }
 }
 
+constexpr const char *MONTHS[] = {
+    "gen",
+    "feb",
+    "mar",
+    "apr",
+    "mag",
+    "giu",
+    "lug",
+    "ago",
+    "set",
+    "ott",
+    "nov",
+    "dic"
+};
+
+constexpr const char *MONTHS_FULL[] = {
+    "gennaio",
+    "febbraio",
+    "marzo",
+    "aprile",
+    "maggio",
+    "giugno",
+    "luglio",
+    "agosto",
+    "settembre",
+    "ottobre",
+    "novembre",
+    "dicembre"
+};
+
 std::string parse_date(const std::string &format, const std::string &value, int index) {
     auto replace = [](std::string out, const auto& ... strs) {
         auto replace_impl = [&](std::string &out, const char *str, const std::string &fmt) {
@@ -183,8 +213,6 @@ std::string parse_date(const std::string &format, const std::string &value, int 
     std::string day = search_regex(replace(format, "DAY", "DD"), value, index);
     std::string month = string_tolower(search_regex(replace(format, "MM", "MONTH", "MON"), value, index));
     std::string year = search_regex(replace(format, "YEAR", "YYYY", "YY"), value, index);
-
-    static const char *MONTHS[] = {"gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"};
 
     for (size_t i=0; i<std::size(MONTHS); ++i) {
         if (month.find(MONTHS[i]) != std::string::npos) {
@@ -219,8 +247,13 @@ std::string parse_date(const std::string &format, const std::string &value, int 
 
 std::string date_month_add(const std::string &date, int num) {
     try {
-        int month = std::stoi(date.substr(5));
-        int year = std::stoi(date.substr(0, 4));
+        std::regex expression("(\\d{4})-(\\d{2})(-(\\d{2}))?");
+        std::smatch match;
+        if (!std::regex_search(date, match, expression))
+            return "";
+
+        int month = std::stoi(match.str(2));
+        int year = std::stoi(match.str(1));
 
         month += num;
         while (month > 12) {
@@ -231,6 +264,29 @@ std::string date_month_add(const std::string &date, int num) {
     } catch (std::invalid_argument &) {
         return "";
     }
+}
+
+std::string date_format(const std::string &date, std::string format) {
+    std::regex expression("(\\d{4})-(\\d{2})(-(\\d{2}))?");
+    std::smatch match;
+    if (!std::regex_search(date, match, expression))
+        return "";
+    
+    int month = std::stoi(match.str(2));
+    if (month > (int) std::size(MONTHS)) {
+        return "";
+    }
+
+    string_replace(format, "DAY", match.str(4));
+    string_replace(format, "DD", match.str(4));
+    string_replace(format, "MM", match.str(2));
+    string_replace(format, "MONTH", MONTHS_FULL[month-1]);
+    string_replace(format, "MON", MONTHS[month-1]);
+    string_replace(format, "YEAR", match.str(1));
+    string_replace(format, "YYYY", match.str(1));
+    string_replace(format, "YY", match.str(1).substr(2));
+
+    return format;
 }
 
 std::vector<std::string> search_regex_all(std::string format, std::string value, int index) {

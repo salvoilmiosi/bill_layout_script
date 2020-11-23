@@ -264,6 +264,8 @@ void reader::read_box(pdf_rect box) {
 
     m_ate = box.page > m_doc.num_pages();
 
+    m_content_stack = {};
+
     try {
         m_content_stack.push(m_doc.get_text(box));
     } catch (const pdf_error &error) {

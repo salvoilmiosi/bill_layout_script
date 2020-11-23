@@ -73,9 +73,6 @@ void parser::read_box(const layout_box &box) {
         break;
     }
     while (!tokens.ate()) read_statement();
-    if (box.type != BOX_DISABLED) {
-        add_line("POPCONTENT");
-    }
 }
 
 void parser::read_statement() {
