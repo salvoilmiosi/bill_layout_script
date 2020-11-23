@@ -12,9 +12,9 @@
 				"script" : "$ifnot($eq(@,\"Bolletta Energia Elettrica\\nFornitura del Mercato Libero\"))\n  $error(\"Layout Invalido\")",
 				"spacers" : "",
 				"type" : 0,
-				"w" : 0.40290087461471558,
-				"x" : 0.54311037063598633,
-				"y" : 0.030786773189902306
+				"w" : 0.35455280542373657,
+				"x" : 0.5398871898651123,
+				"y" : 0.030786771327257156
 			},
 			{
 				"goto_label" : "",
