@@ -61,6 +61,7 @@ public:
     void exec_program(std::istream &input);
 
     const variable &get_global(const std::string &name) const;
+    const variable &get_variable(const std::string &name, size_t index = 0, size_t page_idx = 0) const;
 
     void save_output(Json::Value &output, bool debug);
 
@@ -69,12 +70,12 @@ private:
     void read_box(pdf_rect box);
     void call_function(const std::string &name, size_t numargs);
 
-    const variable &get_variable() const;
-    void set_variable();
-    void inc_variable(const variable &value);
-    void reset_variable();
-    void clear_variable();
-    size_t get_variable_size();
+    const variable &get_ref() const;
+    void set_ref();
+    void inc_ref(const variable &value);
+    void reset_ref();
+    void clear_ref();
+    size_t get_ref_size();
 
 private:
     using variable_array = with_debug<std::vector<variable>>;

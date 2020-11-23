@@ -164,18 +164,18 @@ void reader::exec_command(const command_args &cmd) {
         break;
     }
     case SETDEBUG: m_ref_stack.top().flags |= VAR_DEBUG; break;
-    case CLEAR: clear_variable(); break;
+    case CLEAR: clear_ref(); break;
     case APPEND:
-        m_ref_stack.top().index_first = get_variable_size();
+        m_ref_stack.top().index_first = get_ref_size();
         m_ref_stack.top().index_last = m_ref_stack.top().index_first;
         // fall through
     case SETVAR:
-        set_variable();
+        set_ref();
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
     case RESETVAR:
-        reset_variable();
+        reset_ref();
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
@@ -184,7 +184,7 @@ void reader::exec_command(const command_args &cmd) {
     case PUSHFLOAT: m_var_stack.push(cmd.get<float>()); break;
     case PUSHSTR: m_var_stack.push(get_string_ref()); break;
     case PUSHVAR:
-        m_var_stack.push(get_variable());
+        m_var_stack.push(get_ref());
         m_ref_stack.pop();
         break;
     case JMP:
@@ -212,29 +212,29 @@ void reader::exec_command(const command_args &cmd) {
         }
         break;
     case INCTOP:
-        inc_variable(m_var_stack.top());
+        inc_ref(m_var_stack.top());
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
     case INC:
-        inc_variable(cmd.get<small_int>());
+        inc_ref(cmd.get<small_int>());
         m_ref_stack.pop();
         break;
     case DECTOP:
-        inc_variable(- m_var_stack.top());
+        inc_ref(- m_var_stack.top());
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
     case DEC:
-        inc_variable(- cmd.get<small_int>());
+        inc_ref(- cmd.get<small_int>());
         m_ref_stack.pop();
         break;
     case ISSET:
-        m_var_stack.push(get_variable_size() != 0);
+        m_var_stack.push(get_ref_size() != 0);
         m_ref_stack.pop();
         break;
     case SIZE:
-        m_var_stack.push((int) get_variable_size());
+        m_var_stack.push((int) get_ref_size());
         m_ref_stack.pop();
         break;
     case PUSHCONTENT:
@@ -280,24 +280,29 @@ const variable &reader::get_global(const std::string &name) const {
     }
 }
 
-const variable &reader::get_variable() const {
-    if (m_ref_stack.top().flags & VAR_GLOBAL) {
-        return get_global(m_ref_stack.top().name);
-    }
+const variable &reader::get_variable(const std::string &name, size_t index, size_t page_idx) const {
     if (m_pages.size() <= m_page_num) {
         return variable::null_var();
     }
 
     auto &page = m_pages[m_page_num];
-    auto it = page.find(m_ref_stack.top().name);
-    if (it == page.end() || it->second.size() <= m_ref_stack.top().index_first) {
+    auto it = page.find(name);
+    if (it == page.end() || it->second.size() <= index) {
         return variable::null_var();
     } else {
-        return it->second[m_ref_stack.top().index_first];
+        return it->second[index];
     }
 }
 
-void reader::set_variable() {
+const variable &reader::get_ref() const {
+    if (m_ref_stack.top().flags & VAR_GLOBAL) {
+        return get_global(m_ref_stack.top().name);
+    } else {
+        return get_variable(m_ref_stack.top().name, m_ref_stack.top().index_first, m_page_num);
+    }
+}
+
+void reader::set_ref() {
     auto &value = m_var_stack.top();
     if (value.empty()) return;
     auto &ref = m_ref_stack.top();
@@ -323,7 +328,7 @@ void reader::set_variable() {
     }
 }
 
-void reader::inc_variable(const variable &value) {
+void reader::inc_ref(const variable &value) {
     if (value.empty()) return;
     auto &ref = m_ref_stack.top();
     if (ref.flags & VAR_GLOBAL) {
@@ -349,7 +354,7 @@ void reader::inc_variable(const variable &value) {
     }
 }
 
-void reader::reset_variable() {
+void reader::reset_ref() {
     auto &value = m_var_stack.top();
     if (value.empty()) return;
     auto &ref = m_ref_stack.top();
@@ -367,7 +372,7 @@ void reader::reset_variable() {
     var.emplace_back(std::move(value));
 }
 
-void reader::clear_variable() {
+void reader::clear_ref() {
     auto &ref = m_ref_stack.top();
     if (ref.flags & VAR_GLOBAL) {
         auto it = m_globals.find(ref.name);
@@ -383,7 +388,7 @@ void reader::clear_variable() {
     }
 }
 
-size_t reader::get_variable_size() {
+size_t reader::get_ref_size() {
     auto &ref = m_ref_stack.top();
     if (ref.flags & VAR_GLOBAL) {
         return m_globals.find(ref.name) != m_globals.end();
