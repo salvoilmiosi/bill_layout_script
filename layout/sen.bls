@@ -71,7 +71,7 @@
 			{
 				"goto_label" : "",
 				"h" : 0.087554976344108582,
-				"mode" : 0,
+				"mode" : 1,
 				"name" : "Numero Cliente, POD",
 				"page" : 1,
 				"script" : "numero_cliente=$search(@,\"CLIENTE\\n(.+)\\n\")\ncodice_pod=$search(@,\"CODICE POD\\n(.+)\\n\")",
@@ -80,6 +80,32 @@
 				"w" : 0.23329493403434753,
 				"x" : 0.053763441741466522,
 				"y" : 0.33936038613319397
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.10288470238447189,
+				"mode" : 0,
+				"name" : "Dati Bolletta",
+				"page" : 1,
+				"script" : "numero_fattura=$search(@,\"N\\\\. Fattura (.+)\\n\")\ndata_fattura=$date(@,\"Del DD\\\\.MM\\\\.YYYY\")\nmese_fattura=$date(@,\"MESE MON\\\\.YYYY$\")",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.2048572450876236,
+				"x" : 0.2994067370891571,
+				"y" : 0.34207525849342346
+			},
+			{
+				"goto_label" : "",
+				"h" : 0.069555304944515228,
+				"mode" : 0,
+				"name" : "Totale / Scadenza",
+				"page" : 1,
+				"script" : "%totale_fattura=$search(@,\"TOTALE DA PAGARE $NUMBER\")\ndata_scadenza=$date(@,\"DD\\\\.MM\\\\.YYYY\")",
+				"spacers" : "",
+				"type" : 0,
+				"w" : 0.23207090795040131,
+				"x" : 0.512489914894104,
+				"y" : 0.34093499183654785
 			},
 			{
 				"goto_label" : "",
@@ -171,19 +197,6 @@
 				"w" : 0.060754954814910889,
 				"x" : 0.58420628309249878,
 				"y" : 0.27423033118247986
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.10288470238447189,
-				"mode" : 0,
-				"name" : "Dati Bolletta",
-				"page" : 1,
-				"script" : "numero_fattura=$search(@,\"N\\\\. Fattura (.+)\\n\")\ndata_fattura=$date(@,\"Del DD\\\\.MM\\\\.YYYY\")\nmese_fattura=$date(@,\"MESE MON\\\\.YYYY$\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.2048572450876236,
-				"x" : 0.2994067370891571,
-				"y" : 0.34207525849342346
 			},
 			{
 				"goto_label" : "",
