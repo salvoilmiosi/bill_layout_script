@@ -339,12 +339,12 @@ void reader::inc_variable(const variable &value) {
     if (ref.flags & VAR_DEBUG) var.m_debug = true;
     if (ref.flags & VAR_RANGE_ALL) {
         for (auto &x : var) { 
-            x = x + value;
+            x += value;
         }
     } else {
         while (var.size() <= ref.index_last) var.emplace_back();
         for (size_t i=ref.index_first; i<=ref.index_last; ++i) {
-            var[i] = var[i] + value;
+            var[i] += value;
         }
     }
 }

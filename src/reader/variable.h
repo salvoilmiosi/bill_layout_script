@@ -63,6 +63,8 @@ public:
     variable operator * (const variable &other) const;
     variable operator / (const variable &other) const;
 
+    variable &operator += (const variable &other);
+
 private:
     std::variant<std::string, fixed_point> m_value;
     variable_type m_type = VAR_UNDEFINED;

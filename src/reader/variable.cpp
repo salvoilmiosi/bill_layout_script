@@ -171,3 +171,9 @@ variable variable::operator * (const variable &other) const {
 variable variable::operator / (const variable &other) const {
     return number() / other.number();
 }
+
+variable &variable::operator += (const variable &other) {
+    m_value = number() + other.number();
+    m_type = VAR_NUMBER;
+    return *this;
+}
