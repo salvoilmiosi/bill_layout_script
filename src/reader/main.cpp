@@ -111,9 +111,12 @@ int main(int argc, char **argv) {
         }
     } catch (const layout_error &error) {
         output_error(error.message);
-    } catch (...) {
+    }
+#ifdef NDEBUG
+    catch (...) {
         output_error("Errore sconosciuto");
     }
+#endif
 
     m_reader.save_output(result, debug);
     std::cout << result;

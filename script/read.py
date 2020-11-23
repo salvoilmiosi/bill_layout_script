@@ -19,11 +19,14 @@ def read_pdf(pdf_file):
     # Rilegge i vecchi file solo se il layout e' stato ricompilato
     for x in old_out:
         if x['filename'] == str(rel_path):
-            args = [layout_reader, '-p', pdf_file, controllo]
-            proc = subprocess.run(args, capture_output=True, text=True)
-            json_out = json.loads(proc.stdout)
-            if not json_out['error'] and 'layout' in json_out['globals']:
-                layout_file = controllo.parent.joinpath(json_out['globals']['layout']).with_suffix('.bls')
+            if not 'layout' in x:
+                args = [layout_reader, '-p', pdf_file, controllo]
+                proc = subprocess.run(args, capture_output=True, text=True)
+                json_out = json.loads(proc.stdout)
+                if not json_out['error'] and 'layout' in json_out['globals']:
+                    x['layout'] = json_out['globals']['layout']
+            if 'layout' in x:
+                layout_file = controllo.parent.joinpath(x['layout']).with_suffix('.bls')
                 if os.path.getmtime(str(layout_file)) < os.path.getmtime(str(output_file)):
                     out.append(x)
                     return
@@ -39,6 +42,8 @@ def read_pdf(pdf_file):
             file_obj['error'] = json_out['message']
         else:
             file_obj['values'] = json_out['values']
+            if 'layout' in json_out['globals']:
+                file_obj['layout'] = json_out['globals']['layout']
     except:
         file_obj['error'] = 'Errore {0}'.format(proc.returncode)
         print('### Errore alla lettura di {0}'.format(rel_path))
