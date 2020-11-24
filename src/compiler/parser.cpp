@@ -462,15 +462,6 @@ void parser::read_function() {
         add_line("POPCONTENT");
         break;
     }
-    case hash("error"):
-    {
-        tokens.require(TOK_PAREN_BEGIN);
-        auto tok = tokens.require(TOK_STRING);
-        tokens.require(TOK_PAREN_END);
-
-        add_line("ERROR {0}", tok.value);
-        break;
-    }
     case hash("isset"):     var_function("ISSET"); break;
     case hash("size"):      var_function("SIZE"); break;
     case hash("clear"):     var_function("CLEAR"); break;
@@ -525,6 +516,7 @@ void parser::read_function() {
         case hash("leq"): check_args(2); add_line("LEQ"); break;
         case hash("max"): check_args(2); add_line("MAX"); break;
         case hash("min"): check_args(2); add_line("MIN"); break;
+        case hash("error"): check_args(1); add_line("ERROR"); break;
         default:
             add_line("CALL {0},{1}", fun_name,num_args);
         }

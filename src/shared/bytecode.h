@@ -5,7 +5,7 @@
 
 #include "layout.h"
 
-enum asm_command {
+enum opcode {
     NOP,        // nessuna operazione
     RDBOX,      // byte mode, byte page, string spacers, float x, float y, float w, float h -- legge il rettangolo e resetta content_stack
     RDPAGE,     // byte mode, byte page, string spacers -- legge la pagina e resetta content_stack
@@ -100,18 +100,29 @@ struct variable_idx {
 };
 
 struct command_args {
-    const asm_command command;
+    const opcode command;
 
     const std::shared_ptr<void> data;
 
-    command_args(asm_command command = NOP) : command(command) {}
+    command_args(opcode command = NOP) : command(command) {}
 
     template<typename T>
-    command_args(asm_command command, const T& data) : command(command), data(std::make_shared<T>(data)) {}
+    command_args(opcode command, const T& data) : command(command), data(std::make_shared<T>(data)) {}
     
     template<typename T> const T &get() const {
         return *std::static_pointer_cast<T>(data);
     }
+};
+
+struct bytecode {
+    std::vector<command_args> m_commands;
+    std::vector<std::string> m_strings;
+
+    std::ostream &write_bytecode(std::ostream &output);
+    std::istream &read_bytecode(std::istream &input);
+    
+    string_ref add_string(const std::string &str);
+    const std::string &get_string(string_ref ref);
 };
 
 #endif

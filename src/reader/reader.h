@@ -9,7 +9,7 @@
 #include <json/json.h>
 
 #include "variable.h"
-#include "disassembler.h"
+#include "bytecode.h"
 
 struct content_view {
     std::string text;
@@ -87,10 +87,10 @@ private:
 
 private:
     pdf_document m_doc;
-    disassembler m_asm;
+    bytecode m_code;
 
     template<typename T>
-    using stack_t = std::stack<T, std::vector<T>>;
+    using stack_t = std::stack<T>;
 
     stack_t<variable> m_var_stack;
     stack_t<content_view> m_content_stack;

@@ -4,7 +4,7 @@
 #include "utils.h"
 
 void reader::exec_program(std::istream &input) {
-    if (!m_asm.read_bytecode(input)) {
+    if (m_code.read_bytecode(input).fail()) {
         throw layout_error("File layout non riconosciuto");
     }
 
@@ -16,8 +16,8 @@ void reader::exec_program(std::istream &input) {
     m_jumped = false;
     m_ate = false;
 
-    while (m_programcounter < m_asm.m_commands.size()) {
-        exec_command(m_asm.m_commands[m_programcounter]);
+    while (m_programcounter < m_code.m_commands.size()) {
+        exec_command(m_code.m_commands[m_programcounter]);
         if (!m_jumped) {
             ++m_programcounter;
         } else {
@@ -56,7 +56,7 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto get_string_ref = [&]() {
-        return m_asm.get_string(cmd.get<string_ref>());
+        return m_code.get_string(cmd.get<string_ref>());
     };
 
     switch(cmd.command) {
@@ -71,10 +71,10 @@ void reader::exec_command(const command_args &cmd) {
     case CALL:
     {
         const auto &call = cmd.get<command_call>();
-        call_function(m_asm.get_string(call.name), call.numargs);
+        call_function(m_code.get_string(call.name), call.numargs);
         break;
     }
-    case ERROR: throw layout_error(get_string_ref()); break;
+    case ERROR: throw layout_error(m_var_stack.top().str()); break;
     case PARSENUM: if (!m_var_stack.top().empty()) m_var_stack.top() = m_var_stack.top().str_to_number(); break;
     case PARSEINT: m_var_stack.top() = m_var_stack.top().as_int(); break;
     case NOT: m_var_stack.top() = !m_var_stack.top(); break;
@@ -116,7 +116,7 @@ void reader::exec_command(const command_args &cmd) {
     {
         variable_ref ref;
         const auto &var_idx = cmd.get<variable_idx>();
-        ref.name = m_asm.get_string(var_idx.name);
+        ref.name = m_code.get_string(var_idx.name);
         ref.index_first = var_idx.index_first;
         ref.index_last = var_idx.index_last;
         m_ref_stack.emplace(std::move(ref));
@@ -250,7 +250,7 @@ void reader::exec_command(const command_args &cmd) {
     case NEXTTOKEN: m_content_stack.top().next_token("\t\n\v\f\r "); break;
     case NEXTPAGE: ++m_page_num; break;
     case ATE: m_var_stack.push(m_ate); break;
-    case HLT: m_programcounter = m_asm.m_commands.size(); break;
+    case HLT: m_programcounter = m_code.m_commands.size(); break;
     }
 }
 

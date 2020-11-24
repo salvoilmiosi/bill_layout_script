@@ -2,7 +2,6 @@
 
 #include <fmt/core.h>
 #include <vector>
-#include <algorithm>
 #include <map>
 
 #include "utils.h"
@@ -77,7 +76,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
             break;
         }
         case hash("MVBOX"):         add_command(MVBOX, std::stoi(arg_str)); break;
-        case hash("ERROR"):         add_command(ERROR, add_string(parse_string(arg_str))); break;
+        case hash("ERROR"):         add_command(ERROR); break;
         case hash("PARSENUM"):      add_command(PARSENUM); break;
         case hash("PARSEINT"):      add_command(PARSEINT); break;
         case hash("EQ"):            add_command(EQ); break;
@@ -132,108 +131,5 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         default:
             throw assembly_error(fmt::format("Comando sconosciuto: {0}", cmd));
         }
-    }
-}
-
-string_ref assembler::add_string(const std::string &str) {
-    if (str.empty()) {
-        return 0xffff;
-    }
-    auto it = std::find(out_strings.begin(), out_strings.end(), str);
-    if (it != out_strings.end()) {
-        return it - out_strings.begin();
-    } else {
-        out_strings.push_back(str);
-        return out_strings.size() - 1;
-    }
-}
-
-void assembler::write_bytecode(std::ostream &output) {
-    writeData(output, MAGIC);
-
-    for (const auto &line : out_lines) {
-        writeData<command_int>(output, line.command);
-        switch (line.command) {
-        case RDBOX:
-        {
-            const auto &box = line.get<pdf_rect>();
-            writeData<small_int>(output, box.mode);
-            writeData<small_int>(output, box.page);
-            writeData(output, box.x);
-            writeData(output, box.y);
-            writeData(output, box.w);
-            writeData(output, box.h);
-            break;
-        }
-        case RDPAGE:
-        {
-            const auto &box = line.get<pdf_rect>();
-            writeData<small_int>(output, box.mode);
-            writeData<small_int>(output, box.page);
-            break;
-        }
-        case RDFILE:
-        {
-            const auto &box = line.get<pdf_rect>();
-            writeData<small_int>(output, box.mode);
-            break;
-        }
-        case CALL:
-        {
-            const auto &call = line.get<command_call>();
-            writeData(output, call.name);
-            writeData(output, call.numargs);
-            break;
-        }
-        case SELVARIDX:
-        {
-            const auto &var_idx = line.get<variable_idx>();
-            writeData(output, var_idx.name);
-            writeData(output, var_idx.index_first);
-            break;
-        }
-        case SELVARRANGE:
-        {
-            const auto &var_idx = line.get<variable_idx>();
-            writeData(output, var_idx.name);
-            writeData(output, var_idx.index_first);
-            writeData(output, var_idx.index_last);
-            break;
-        }
-        case STRDATA:
-            writeData(output, line.get<std::string>());
-            break;
-        case ERROR:
-        case PUSHSTR:
-        case SELVAR:
-        case SELVARALL:
-        case SELVARRANGETOP:
-        case SELGLOBAL:
-            writeData(output, line.get<string_ref>());
-            break;
-        case PUSHFLOAT:
-            writeData(output, line.get<float>());
-            break;
-        case PUSHINT:
-        case INC:
-        case DEC:
-        case MVBOX:
-            writeData(output, line.get<small_int>());
-            break;
-        case JMP:
-        case JZ:
-        case JNZ:
-        case JTE:
-            writeData(output, line.get<jump_address>());
-            break;
-        default:
-            break;
-        }
-    }
-
-    for (const auto &str : out_strings) {
-        writeData<command_int>(output, STRDATA);
-        writeData<string_size>(output, str.size());
-        output.write(str.c_str(), str.size());
     }
 }
