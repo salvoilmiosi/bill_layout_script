@@ -41,9 +41,9 @@ def read_pdf(pdf_file):
         if json_out['error']:
             file_obj['error'] = json_out['message']
         else:
-            file_obj['values'] = json_out['values']
             if 'layout' in json_out['globals']:
                 file_obj['layout'] = json_out['globals']['layout']
+            file_obj['values'] = json_out['values']
     except:
         file_obj['error'] = 'Errore {0}'.format(proc.returncode)
         print('### Errore alla lettura di {0}'.format(rel_path))

@@ -37,3 +37,17 @@ def skip_conguagli(json_data):
         old_datafatt = new_datafatt
 
     return new_data
+
+if __name__ == '__main__':
+    if len(sys.argv) <= 1:
+        print('Specificare file di input')
+        exit(0)
+    
+    in_file = Path(sys.argv[1])
+    
+    with open(in_file, 'r') as file:
+        data = skip_conguagli(json.loads(file.read()))
+    
+    out_file = in_file.with_name(in_file.stem + '-nocong').with_suffix(in_file.suffix)
+    with open(out_file, 'w') as file:
+        file.write(json.dumps(data))
