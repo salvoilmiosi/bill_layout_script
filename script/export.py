@@ -9,22 +9,23 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import PatternFill, Border, Side
 
 class TableValue:
-    def __init__(self, title, value, index=0, type='str', number_format=None, column_width=None):
+    def __init__(self, title, value, index=0, type='str', number_format='', column_width=None, obligatory=False):
         self.title = title
         self.value = value
         self.index = index
         self.type = type
         self.number_format = number_format
         self.column_width = column_width
+        self.obligatory = obligatory
 
 table_values = [
     TableValue('File',                  'filename'),
-    TableValue('Ultima Modifica',       'lastmodified',              type='date'),
-    TableValue('POD',                   'codice_pod', column_width=16),
-    TableValue('Mese',                  'mese_fattura',              type='month'),
-    TableValue('Fornitore',             'fornitore'),
-    TableValue('N. Fatt.',              'numero_fattura'),
-    TableValue('Data Emissione',        'data_fattura',              type='date'),
+    TableValue('Ultima Modifica',       'lastmodified',             type='date'),
+    TableValue('POD',                   'codice_pod', column_width=16,            obligatory=True),
+    TableValue('Mese',                  'mese_fattura',             type='month', obligatory=True),
+    TableValue('Fornitore',             'fornitore',                              obligatory=True),
+    TableValue('N. Fatt.',              'numero_fattura',                         obligatory=True, column_width=11),
+    TableValue('Data Emissione',        'data_fattura',              type='date', obligatory=True),
     TableValue('Data scadenza',         'data_scadenza',             type='date'),
     TableValue('Costo Materia Energia', 'spesa_materia_energia',     type='euro', column_width=11),
     TableValue('Trasporto',             'trasporto_gestione',        type='euro', column_width=11),
@@ -47,6 +48,7 @@ table_values = [
     TableValue('PEF1',                  'prezzo_energia',   index=0, type='number', number_format='0.00000000', column_width=11),
     TableValue('PEF2',                  'prezzo_energia',   index=1, type='number', number_format='0.00000000', column_width=11),
     TableValue('PEF3',                  'prezzo_energia',   index=2, type='number', number_format='0.00000000', column_width=11),
+    TableValue('Disp. Var',             'disp_var',                  type='number', number_format='0.00000000', column_width=11)
 ]
 
 out = []
@@ -66,14 +68,33 @@ def add_rows(json_data):
 
         for obj in table_values:
             if obj.value == 'filename':
-                row.append({'value':filename, 'type':'str'})
+                row.append({'value':filename, 'number_format': ''})
             elif obj.value == 'lastmodified':
-                row.append({'value':datetime.date.fromtimestamp(lastmodified), 'type':'date'})
+                row.append({'value':datetime.date.fromtimestamp(lastmodified), 'number_format':'DD/MM/YY'})
             else:
                 try:
-                    row.append({'value':json_page[obj.value][obj.index], 'type':obj.type, 'number_format':obj.number_format})
+                    value = json_page[obj.value][obj.index]
+                    if obj.type == 'str':
+                        row.append({'value': value, 'number_format': '@'})
+                    elif obj.type == 'date':
+                        row.append({'value': datetime.datetime.strptime(value, '%Y-%m-%d'), 'number_format': 'DD/MM/YY'})
+                    elif obj.type == 'month':
+                        row.append({'value': datetime.datetime.strptime(value, '%Y-%m'), 'number_format': 'MM/YYYY'})
+                    elif obj.type == 'euro':
+                        row.append({'value': float(value), 'number_format': '#,##0.00 €'})
+                    elif obj.type == 'int':
+                        row.append({'value': float(value), 'number_format': '0'})
+                    elif obj.type == 'number':
+                        row.append({'value': float(value), 'number_format': obj.number_format})
+                    elif obj.type == 'percentage':
+                        row.append({'value': float(value[:-1]) / 100, 'number_format': '0%'})
+                    else:
+                        row.append({'value': value, 'number_format': ''})
                 except (KeyError, IndexError, ValueError):
-                    row.append({'value':'', 'type':''})
+                    if obj.obligatory:
+                        continue
+                    else:
+                        row.append({'value': '', 'number_format': ''})
 
         out.append(row)
 
@@ -104,47 +125,24 @@ for i, obj in enumerate(table_values, 1):
 
 indices = {x.title:i for i,x in enumerate(table_values)}
 
-out.sort(key = lambda obj: (obj[indices['POD']]['value'], obj[indices['Mese']]['value']))
+out.sort(key = lambda obj: (obj[indices['POD']]['value'], obj[indices['Mese']]['value'], obj[indices['Data Emissione']]['value']))
 
-old_pod = ''
-old_date = ''
+old_pod = None
+old_date = None
 for i, row in enumerate(out, 2):
     new_pod = row[indices['POD']]['value']
     new_date = row[indices['Mese']]['value']
     for j, c in enumerate(row, 1):
         cell = ws.cell(row=i, column=j)
-        if new_pod != old_pod:
+        if old_pod != None and new_pod != old_pod:
             cell.border = Border(top=Side(border_style='thin', color='000000'))
+        if new_date == old_date:
+            cell.fill = PatternFill(patternType='solid', fgColor='ffff00')
         try:
-            if c['type'] == 'str':
-                cell.number_format = '@'
-                cell.value = c['value']
-            elif c['type'] == 'date':
-                cell.number_format = 'DD/MM/YY'
-                if isinstance(c['value'],datetime.date):
-                    cell.value = c['value']
-                else:
-                    cell.value = datetime.datetime.strptime(c['value'], "%Y-%m-%d")
-            elif c['type'] == 'month':
-                cell.number_format = 'MM/YYYY'
-                cell.value = datetime.datetime.strptime(c['value'], "%Y-%m")
-            elif c['type'] == 'euro':
-                cell.number_format = '#,##0.00 €'
-                cell.value = float(c['value'])
-            elif c['type'] == 'int':
-                cell.number_format = '0'
-                cell.value = float(c['value'])
-            elif c['type'] == 'number':
-                if 'number_format' in c and c['number_format'] != None:
-                    cell.number_format = c['number_format']
-                cell.value = float(c['value'])
-            elif c['type'] == 'percentage':
-                cell.number_format = '0%'
-                cell.value = float(c['value'][:-1]) / 100
+            cell.number_format = c['number_format']
+            cell.value = c['value']
         except (KeyError, IndexError, ValueError):
             pass
-    if new_date == '' or new_date == old_date:
-        ws.cell(row=i, column=indices['Mese'] + 1).fill = PatternFill(patternType='solid', fgColor='ffff00')
     old_pod = new_pod
     old_date = new_date
 
