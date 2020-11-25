@@ -23,7 +23,30 @@ void parser::read_box(const layout_box &box) {
         tokens = tokenizer(box.spacers);
 
         while(!tokens.ate()) {
-            auto tok_num = tokens.require(TOK_IDENTIFIER);
+            tokens.require(TOK_IDENTIFIER);
+            spacer_index index;
+            switch (hash(string_tolower(std::string(tokens.current().value)))) {
+            case hash("p"):
+            case hash("page"):
+                index = SPACER_PAGE;
+                break;
+            case hash("x"):
+                index = SPACER_X;
+                break;
+            case hash("y"):
+                index = SPACER_Y;
+                break;
+            case hash("w"):
+            case hash("width"):
+                index = SPACER_W;
+                break;
+            case hash("h"):
+            case hash("height"):
+                index = SPACER_H;
+                break;
+            default:
+                throw tokens.unexpected_token();
+            }
             tokens.next();
             bool negative = false;
             switch (tokens.current().type) {
@@ -33,28 +56,11 @@ void parser::read_box(const layout_box &box) {
                 negative = true;
                 break;
             default:
-                throw parsing_error("Spaziatore incorretto", tokens.getLocation(tokens.current()));
+                throw tokens.unexpected_token(TOK_PLUS);
             }
             read_expression();
             if (negative) add_line("NEG");
-            switch (hash(string_tolower(std::string(tok_num.value)))) {
-            case hash("p"):
-            case hash("page"):
-                add_line("MVBOX {0}", SPACER_PAGE);
-                break;
-            case hash("x"): add_line("MVBOX {0}", SPACER_X); break;
-            case hash("y"): add_line("MVBOX {0}", SPACER_Y); break;
-            case hash("w"):
-            case hash("width"):
-                add_line("MVBOX {0}", SPACER_W);
-                break;
-            case hash("h"):
-            case hash("height"):
-                add_line("MVBOX {0}", SPACER_H);
-                break;
-            default:
-                throw parsing_error("Spaziatore incorretto", tokens.getLocation(tok_num));
-            }
+            add_line("MVBOX {0}", index);
         }
     }
 
@@ -111,7 +117,7 @@ void parser::read_statement() {
         break;
     default:
     {
-        int flags = read_variable();
+        int flags = read_variable(false);
         tokens.peek();
         switch (tokens.current().type) {
         case TOK_EQUALS:
@@ -163,12 +169,12 @@ void parser::read_expression() {
         add_line("COPYCONTENT");
         break;
     default:
-        read_variable();
+        read_variable(true);
         add_line("PUSHVAR");
     }
 }
 
-int parser::read_variable() {
+int parser::read_variable(bool read_only) {
     int flags = 0;
     bool isglobal = false;
     bool isdebug = false;
@@ -185,9 +191,11 @@ int parser::read_variable() {
             isglobal = true;
             break;
         case TOK_DEBUG:
+            if (read_only) throw tokens.unexpected_token(TOK_IDENTIFIER);
             isdebug = true;
             break;
         case TOK_PERCENT:
+            if (read_only) throw tokens.unexpected_token(TOK_IDENTIFIER);
             flags |= VAR_NUMBER;
             break;
         default:
@@ -214,6 +222,7 @@ int parser::read_variable() {
         tokens.peek();
         switch (tokens.current().type) {
         case TOK_COLON:
+            if (read_only) throw tokens.unexpected_token(TOK_NUMBER);
             tokens.advance();
             rangeall = true;
             break;
@@ -222,6 +231,7 @@ int parser::read_variable() {
             index = std::stoi(std::string(tokens.current().value));
             tokens.peek();
             if (tokens.current().type == TOK_COLON) {
+                if (read_only) throw tokens.unexpected_token(TOK_BRACKET_END);
                 tokens.advance();
                 tokens.peek();
                 if (tokens.current().type == TOK_NUMBER) {
@@ -243,6 +253,7 @@ int parser::read_variable() {
             getindex = true;
             tokens.peek();
             if (tokens.current().type == TOK_COLON) {
+                if (read_only) throw tokens.unexpected_token(TOK_BRACKET_END);
                 tokens.advance();
                 read_expression();
                 getindexlast = true;
@@ -251,6 +262,7 @@ int parser::read_variable() {
         tokens.require(TOK_BRACKET_END);
         break;
     case TOK_COLON:
+        if (read_only) throw tokens.unexpected_token();
         flags |= VAR_CLEAR;
         tokens.advance();
         break;
@@ -284,7 +296,7 @@ void parser::read_function() {
 
     auto var_function = [&](const auto & ... cmd) {
         tokens.require(TOK_PAREN_BEGIN);
-        read_variable();
+        read_variable(true);
         tokens.require(TOK_PAREN_END);
         add_line(cmd ...);
     };
@@ -375,7 +387,7 @@ void parser::read_function() {
     case hash("dec"):
     {
         tokens.require(TOK_PAREN_BEGIN);
-        int flags = read_variable();
+        int flags = read_variable(false);
         tokens.next();
         bool inc_amt = true;
         std::string amount = "1";

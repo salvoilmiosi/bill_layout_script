@@ -149,6 +149,10 @@ parsing_error tokenizer::unexpected_token(token_type type) {
     return parsing_error(fmt::format("Imprevisto '{0}', richiesto {1}", current().value, TOKEN_NAMES[type]), getLocation(current()));
 }
 
+parsing_error tokenizer::unexpected_token() {
+    return parsing_error(fmt::format("Imprevisto '{0}'", current().value), getLocation(current()));
+}
+
 std::string tokenizer::getLocation(const token &tok) {
     size_t numline = 1;
     size_t loc = 1;

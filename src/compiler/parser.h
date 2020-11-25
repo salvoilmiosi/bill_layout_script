@@ -36,7 +36,7 @@ private:
     void read_expression();
     void read_function();
 
-    int read_variable();
+    int read_variable(bool read_only = false);
 
 private:
     std::vector<std::string> output_asm;

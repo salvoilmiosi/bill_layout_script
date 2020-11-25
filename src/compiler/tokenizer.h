@@ -47,7 +47,6 @@ constexpr const char *TOKEN_NAMES[] = {
     "'%'",
     "'*'",
     "'!'",
-    "'+'",
     "':'",
     "'@'",
     "'+'",
@@ -78,6 +77,7 @@ public:
     void advance();
 
     parsing_error unexpected_token(token_type type);
+    parsing_error unexpected_token();
 
     void gotoTok(const token &tok);
 
