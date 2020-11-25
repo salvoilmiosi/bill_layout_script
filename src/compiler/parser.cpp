@@ -69,7 +69,7 @@ void parser::read_box(const layout_box &box) {
     case BOX_DISABLED:
         break;
     case BOX_RECTANGLE:
-        add_line("RDBOX {0},{1},{2:.{6}},{3:.{6}},{4:.{6}},{5:.{6}}", box.mode, box.page, box.x, box.y, box.w, box.h, FLOAT_PRECISION);
+        add_line("RDBOX {0},{1},{2:.{6}f},{3:.{6}f},{4:.{6}f},{5:.{6}f}", box.mode, box.page, box.x, box.y, box.w, box.h, FLOAT_PRECISION);
         break;
     case BOX_PAGE:
         add_line("RDPAGE {0},{1}", box.mode, box.page);
@@ -148,7 +148,7 @@ void parser::read_expression() {
         if (tokens.current().value.find('.') == std::string::npos) {
             add_line("PUSHINT -{0}", tokens.current().value);
         } else {
-            add_line("PUSHFLOAT -{0:.{1}}", tokens.current().value, FLOAT_PRECISION);
+            add_line("PUSHFLOAT -{0:.{1}f}", tokens.current().value, FLOAT_PRECISION);
         }
         break;
     }
@@ -157,7 +157,7 @@ void parser::read_expression() {
         if (tokens.current().value.find('.') == std::string::npos) {
             add_line("PUSHINT {0}", tokens.current().value);
         } else {
-            add_line("PUSHFLOAT {0:.{1}}", tokens.current().value, FLOAT_PRECISION);
+            add_line("PUSHFLOAT {0:.{1}f}", tokens.current().value, FLOAT_PRECISION);
         }
         break;
     case TOK_STRING:
@@ -472,8 +472,8 @@ void parser::read_function() {
     case hash("clear"):     var_function("CLEAR"); break;
     case hash("nextpage"):  void_function("NEXTPAGE"); break;
     case hash("ate"):       void_function("ATE"); break;
-    case hash("boxwidth"):  void_function("PUSHFLOAT {0:.{1}}", current_box->w, FLOAT_PRECISION); break;
-    case hash("boxheight"): void_function("PUSHFLOAT {0:.{1}}", current_box->h, FLOAT_PRECISION); break;
+    case hash("boxwidth"):  void_function("PUSHFLOAT {0:.{1}f}", current_box->w, FLOAT_PRECISION); break;
+    case hash("boxheight"): void_function("PUSHFLOAT {0:.{1}f}", current_box->h, FLOAT_PRECISION); break;
     default:
     {
         int num_args = 0;
