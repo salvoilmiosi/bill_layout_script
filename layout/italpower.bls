@@ -56,7 +56,7 @@ data_scadenza=$date(@,"Scadenza Fattura: DD/MM/YYYY")
 ### W 0.6560779809951782
 ### H 0.27987974882125854
 ### Script
-%totale_fattura=$search(@,"Totale Fattura \u20ac $NUMBER")
+%totale_fattura=$search(@,"Totale Fattura \u20ac ($NUMBER)")
 iva=$search(@,"IVA (\\d+%)")
 ### End Script
 ### End Box
@@ -149,23 +149,23 @@ $tokens($search(@,"Energia Reattiva \\(kVar\\) ($NUMBER $NUMBER $NUMBER)")) {
 p+*page_offset
 ### End Spacers
 ### Script
-%spesa_materia_energia=$search(@,"Servizi di Vendita $NUMBER")
-%spesa_materia_energia=$search(@,"Spesa Materia Prima $NUMBER")
-%trasporto_gestione=$search(@,"Servizi di Rete $NUMBER")
-%trasporto_gestione=$search(@,"Trasporto, Gestione Contatore e Oneri di Sistema $NUMBER")
-%oneri=$search(@,"Altri Oneri $NUMBER")
-%accise=$search(@,"Imposte.+Euro.+ $NUMBER")
-%prezzo_energia[0]=$search(@,"Energia F1.+ Euro $NUMBER")
-%prezzo_energia[1]=$search(@,"Energia F2.+ Euro $NUMBER")
-%prezzo_energia[2]=$search(@,"Energia F3.+ Euro $NUMBER")
-%prezzo_energia[0]=$search(@,"Energia Peak.+ Euro $NUMBER")
-%prezzo_energia[1]=$search(@,"Energia Off-Peak.+ Euro $NUMBER")
-%pcv=$search(@,"PCV .+ Euro $NUMBER")
-%disp_var=$search(@,"Dispacciamento Quota Variabile.+ Euro $NUMBER")
-%penale_reattiva_inf75=$search(@,"reattiva entro 75% .+ Euro $NUMBER $NUMBER",2)
-%penale_reattiva_sup75=$search(@,"reattiva oltre 75% .+ Euro $NUMBER $NUMBER",2)
-%imponibile=$search(@,"Totale periodo $NUMBER")
-%potenza[0:2]=$search(@,"Trasporto Quota Potenza \u20ac/kW $NUMBER")
+%spesa_materia_energia=$search(@,"Servizi di Vendita ($NUMBER)")
+%spesa_materia_energia=$search(@,"Spesa Materia Prima ($NUMBER)")
+%trasporto_gestione=$search(@,"Servizi di Rete ($NUMBER)")
+%trasporto_gestione=$search(@,"Trasporto, Gestione Contatore e Oneri di Sistema ($NUMBER)")
+%oneri=$search(@,"Altri Oneri ($NUMBER)")
+%accise=$search(@,"Imposte.+Euro.+ ($NUMBER)")
+%prezzo_energia[0]=$search(@,"Energia F1.+ Euro ($NUMBER)")
+%prezzo_energia[1]=$search(@,"Energia F2.+ Euro ($NUMBER)")
+%prezzo_energia[2]=$search(@,"Energia F3.+ Euro ($NUMBER)")
+%prezzo_energia[0]=$search(@,"Energia Peak.+ Euro ($NUMBER)")
+%prezzo_energia[1]=$search(@,"Energia Off-Peak.+ Euro ($NUMBER)")
+%pcv=$search(@,"PCV .+ Euro ($NUMBER)")
+%disp_var=$search(@,"Dispacciamento Quota Variabile.+ Euro ($NUMBER)")
+%penale_reattiva_inf75=$search(@,"reattiva entro 75% .+ Euro $NUMBER ($NUMBER)")
+%penale_reattiva_sup75=$search(@,"reattiva oltre 75% .+ Euro $NUMBER ($NUMBER)")
+%imponibile=$search(@,"Totale periodo ($NUMBER)")
+%potenza[0:2]=$search(@,"Trasporto Quota Potenza \u20ac/kW ($NUMBER)")
 ### End Script
 ### End Box
 

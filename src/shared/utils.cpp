@@ -290,8 +290,8 @@ std::string date_format(const std::string &date, std::string format) {
 }
 
 std::vector<std::string> search_regex_all(std::string format, std::string value, int index) {
-    string_replace(format, " ", "[ \\t\\r\\n\\v\\f]+");
-    string_replace(format, "$NUMBER", "([0-9\\.,-]+)");
+    string_replace(format, " ", "\\s+");
+    string_replace(format, "$NUMBER", "[0-9\\.,-]+");
     std::regex expression(format, std::regex::icase);
     std::smatch match;
     std::vector<std::string> ret;
@@ -303,8 +303,8 @@ std::vector<std::string> search_regex_all(std::string format, std::string value,
 }
 
 std::string search_regex(std::string format, const std::string &value, int index) {
-    string_replace(format, " ", "[ \\t\\r\\n\\v\\f]+");
-    string_replace(format, "$NUMBER", "([0-9\\.,-]+)");
+    string_replace(format, " ", "\\s+");
+    string_replace(format, "$NUMBER", "[0-9\\.,-]+");
     std::regex expression(format, std::regex::icase);
     std::smatch match;
     if (std::regex_search(value, match, expression)) {

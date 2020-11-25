@@ -104,7 +104,7 @@ fornitore="Enel Energia"
 ### H 0.1603952795267105
 ### Script
 indirizzo_fornitura=$search($nospace(@),"Forniamo energia in (.+) Denominazione")
-%potenza[0:2]=$search(@,"Potenza contrattualmente impegnata $NUMBER")
+%potenza[0:2]=$search(@,"Potenza contrattualmente impegnata ($NUMBER)")
 ### End Script
 ### End Box
 
@@ -118,10 +118,10 @@ indirizzo_fornitura=$search($nospace(@),"Forniamo energia in (.+) Denominazione"
 ### W 0.6890491247177124
 ### H 0.16947562992572784
 ### Script
-%cts=$search(@,"CORRISPETTIVO TARIFFARIO SPECIFICO.+ $NUMBER")
+%cts=$search(@,"CORRISPETTIVO TARIFFARIO SPECIFICO.+ ($NUMBER)")
 iva=$search(@,"IVA (\\d+%)")
 iva=$search(@,"IVA Scissione Pagamenti (\\d+%)")
-%imponibile=$search(@,"imponibile di euro $NUMBER")
+%imponibile=$search(@,"imponibile di euro ($NUMBER)")
 ### End Script
 ### End Box
 
@@ -254,7 +254,7 @@ ragione_sociale
 ### H 0.09516942501068115
 ### Script
 $if($contains(@,"Energia reattiva")) {
-  $tokens($search(@,$strcat(mese,".+ $NUMBER $NUMBER $NUMBER ($NUMBER $NUMBER $NUMBER)"),4)) {
+  $tokens($search(@,$strcat(mese,".+ $NUMBER $NUMBER $NUMBER ($NUMBER $NUMBER $NUMBER)"))) {
     %energia_reattiva[0]
     %energia_reattiva[1]
     %energia_reattiva[2]
@@ -290,10 +290,10 @@ $with(*contenuto_dettaglio_costi) {
     %prezzo_energia[1] %energia_attiva[1]
   }
   $with($search(@,$format("Energia attiva dal \\d\\d/{0}.+\n((.*Energia Reattiva.*\n)+)",mese))) {
-    %penale_reattiva_inf75=$search(@,"entro il 75%.+ $NUMBER\n")
-    %penale_reattiva_sup75=$search(@,"oltre il 75%.+ $NUMBER\n")
+    %penale_reattiva_inf75=$search(@,"entro il 75%.+ ($NUMBER)\n")
+    %penale_reattiva_sup75=$search(@,"oltre il 75%.+ ($NUMBER)\n")
   }
-  %accise=$search(@,$format("Accisa sull'energia elettrica \\(entro 200000\\) dal \\d\\d/{0}.+kWh $NUMBER $NUMBER $NUMBER",mese),3)
+  %accise=$search(@,$format("Accisa sull'energia elettrica \\(entro 200000\\) dal \\d\\d/{0}.+kWh $NUMBER $NUMBER ($NUMBER)",mese))
 }
 ### End Script
 ### End Box
@@ -310,21 +310,21 @@ $with(*contenuto_dettaglio_costi) {
 ### Script
 $with($search(*contenuto_dettaglio_costi,"SPESA PER L'ENERGIA([^]+Totale) spesa per l'energia")) {
   $lines($searchall(@,$format("al \\d\\d/{0}([^]+?)(dal|Totale)",mese))) {
-    $inc(%spesa_materia_energia,$search(@,"$NUMBER$"))
+    $inc(%spesa_materia_energia,$search(@,"($NUMBER)$"))
   }
 }
 $with($search(*contenuto_dettaglio_costi,"SPESA PER IL TRASPORTO DELL'ENERGIA ELETTRICA E LA GESTIONE DEL CONTATORE([^]+Totale) spesa per il trasporto")) {
   $with($searchall($nospace(@),$format("al \\d\\d/{0}([^]+?)(dal|Totale)",mese))) {
-    $lines($searchall(@,"mesi.?1 $NUMBER")) $inc(%trasporto_gestione,@)
-    $lines($searchall(@,"/kWh $NUMBER $NUMBER $NUMBER",3)) $inc(%trasporto_gestione,@)
-    $lines($searchall(@,"/kVarh $NUMBER $NUMBER $NUMBER",3)) $inc(%trasporto_gestione,@)
-    %potenza[0:2]=$search(@,"kW $NUMBER")
+    $lines($searchall(@,"mesi.?1 ($NUMBER)")) $inc(%trasporto_gestione,@)
+    $lines($searchall(@,"/kWh $NUMBER $NUMBER ($NUMBER)")) $inc(%trasporto_gestione,@)
+    $lines($searchall(@,"/kVarh $NUMBER $NUMBER ($NUMBER)")) $inc(%trasporto_gestione,@)
+    %potenza[0:2]=$search(@,"kW ($NUMBER)")
   }
 }
 $with($search(*contenuto_dettaglio_costi,"SPESA ONERI DI SISTEMA([^]+Totale) spesa oneri di sistema")) {
   $lines($searchall($nospace(@),$format("al \\d\\d/{0}([^]+?)(dal|Totale)",mese))) {
-    $inc(%oneri,$search(@,"mesi.?1 $NUMBER"))
-    $inc(%oneri,$search(@,"/kWh $NUMBER $NUMBER $NUMBER",3))
+    $inc(%oneri,$search(@,"mesi.?1 ($NUMBER)"))
+    $inc(%oneri,$search(@,"/kWh $NUMBER $NUMBER ($NUMBER)"))
   }
 }
 ### End Script

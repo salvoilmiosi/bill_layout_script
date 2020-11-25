@@ -5,10 +5,10 @@
 ### Type DISABLED
 ### Mode DEFAULT
 ### Page 1
-### X 0.05806451663374901
-### Y 0.01824401319026947
-### W 0.3499999940395355
-### H 0.11402508616447449
+### X 0.0580645
+### Y 0.018244
+### W 0.35
+### H 0.114025
 ### Script
 fornitore="Lenergia"
 ### End Script
@@ -19,10 +19,10 @@ fornitore="Lenergia"
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.51248699426651
-### Y 0.027586715295910835
-### W 0.4747658669948578
-### H 0.12414021790027618
+### X 0.512487
+### Y 0.0275867
+### W 0.474766
+### H 0.12414
 ### Script
 numero_cliente=$search(@,"Codice Cliente: (.+)\n")
 numero_fattura=$search(@,"fattura n\\. (\\d+) ")
@@ -38,10 +38,10 @@ mese_fattura=$date(data_fine,"YYYY-MM")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.11056191474199295
-### Y 0.36230552196502686
-### W 0.3329864740371704
-### H 0.03586272895336151
+### X 0.110562
+### Y 0.362306
+### W 0.332986
+### H 0.0358627
 ### Script
 %totale_fattura
 ### End Script
@@ -52,10 +52,10 @@ mese_fattura=$date(data_fine,"YYYY-MM")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.11290322244167328
-### Y 0.42075255513191223
-### W 0.3338709771633148
-### H 0.034207526594400406
+### X 0.112903
+### Y 0.420753
+### W 0.333871
+### H 0.0342075
 ### Script
 data_scadenza=$date(@,"DD/MM/YYYY")
 ### End Script
@@ -66,12 +66,12 @@ data_scadenza=$date(@,"DD/MM/YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.10535900294780731
-### Y 0.22069372236728668
-### W 0.3485952317714691
-### H 0.05517343059182167
+### X 0.105359
+### Y 0.220694
+### W 0.348595
+### H 0.0551734
 ### Script
-ragione_sociale=$search(@,"^(.+)\n(.+)\n(.+)\n(.+)$",1)
+ragione_sociale=$search(@,"^(.+)\n")
 indirizzo_fornitura=$substr($search($nospace(@),"(.+)C\\.F\\."),$add(1,$strlen(ragione_sociale)))
 ### End Script
 ### End Box
@@ -81,14 +81,14 @@ indirizzo_fornitura=$substr($search($nospace(@),"(.+)C\\.F\\."),$add(1,$strlen(r
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.5176899433135986
-### Y 0.3402361571788788
-### W 0.46956297755241394
-### H 0.20506124198436737
+### X 0.51769
+### Y 0.340236
+### W 0.469563
+### H 0.205061
 ### Script
-%spesa_materia_energia=$search(@,"Spesa per la materia Energia $NUMBER\n")
-%trasporto_gestione=$search(@,"Servizi di rete $NUMBER\n")
-%oneri=$search(@,"Spesa per oneri di sistema $NUMBER\n")
+%spesa_materia_energia=$search(@,"Spesa per la materia Energia ($NUMBER)\n")
+%trasporto_gestione=$search(@,"Servizi di rete ($NUMBER)\n")
+%oneri=$search(@,"Spesa per oneri di sistema ($NUMBER)\n")
 ### End Script
 ### End Box
 
@@ -97,13 +97,13 @@ indirizzo_fornitura=$substr($search($nospace(@),"(.+)C\\.F\\."),$add(1,$strlen(r
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.5163891911506653
-### Y 0.5701254606246948
-### W 0.4747658669948578
-### H 0.08551881462335587
+### X 0.516389
+### Y 0.570125
+### W 0.474766
+### H 0.0855188
 ### Script
 iva=$search(@,"IVA (\\d+%)")
-%imponibile=$search(@,"IVA \\d+% $NUMBER")
+%imponibile=$search(@,"IVA \\d+% ($NUMBER)")
 ### End Script
 ### End Box
 
@@ -112,27 +112,27 @@ iva=$search(@,"IVA (\\d+%)")
 ### Type FILE
 ### Mode LAYOUT
 ### Page 2
-### X 0.06842619180679321
-### Y 0.023323312401771545
-### W 0.9042032957077026
-### H 0.9122964143753052
+### X 0.0684262
+### Y 0.0233233
+### W 0.904203
+### H 0.912296
 ### Goto Label dati_consumi
 ### Script
 codice_pod=$search(@,"Codice punto di erogazione \\(POD\\): ([a-zA-Z0-9]+)")
-%energia_attiva[0]=$search(@,"Energia Attiva kWh $NUMBER $NUMBER $NUMBER",1)
-%energia_attiva[1]=$search(@,"Energia Attiva kWh $NUMBER $NUMBER $NUMBER",2)
-%energia_attiva[2]=$search(@,"Energia Attiva kWh $NUMBER $NUMBER $NUMBER",3)
-%energia_reattiva[0]=$search(@,"Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER",1)
-%energia_reattiva[1]=$search(@,"Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER",2)
-%energia_reattiva[2]=$search(@,"Energia Reattiva kvarh $NUMBER $NUMBER $NUMBER",3)
-%potenza[0]=$search(@,"Potenza kW $NUMBER $NUMBER $NUMBER",1)
-%potenza[1]=$search(@,"Potenza kW $NUMBER $NUMBER $NUMBER",2)
-%potenza[2]=$search(@,"Potenza kW $NUMBER $NUMBER $NUMBER",3)
-%accise=$search(@,"Imposta erariale di consumo.+kWh $NUMBER $NUMBER $NUMBER",3)
-%prezzo_energia[0]=$search(@,"Indice mese di competenza F1.+kwH $NUMBER")
-%prezzo_energia[1]=$search(@,"Indice mese di competenza F2.+kwH $NUMBER")
-%prezzo_energia[1]=$search(@,"Indice mese di competenza F3.+kwH $NUMBER")
-%penale_reattiva_inf75=$search(@,"Penale Reattiva 33%.+kvarh $NUMBER $NUMBER $NUMBER",3)
-%penale_reattiva_sup75=$search(@,"Penale Reattiva 75%.+kvarh $NUMBER $NUMBER $NUMBER",3)
+$tokens($search(@,"Energia Attiva kWh ($NUMBER $NUMBER $NUMBER)")) {
+    %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]
+}
+$tokens($search(@,"Energia Reattiva kvarh ($NUMBER $NUMBER $NUMBER)")) {
+    %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
+}
+$tokens($search(@,"Potenza kW ($NUMBER $NUMBER $NUMBER)")) {
+    %potenza[0] %potenza[1] %potenza[2]
+}
+%accise=$search(@,"Imposta erariale di consumo.+kWh $NUMBER $NUMBER ($NUMBER)")
+%prezzo_energia[0]=$search(@,"Indice mese di competenza F1.+kwH ($NUMBER)")
+%prezzo_energia[1]=$search(@,"Indice mese di competenza F2.+kwH ($NUMBER)")
+%prezzo_energia[1]=$search(@,"Indice mese di competenza F3.+kwH ($NUMBER)")
+%penale_reattiva_inf75=$search(@,"Penale Reattiva 33%.+kvarh $NUMBER $NUMBER ($NUMBER)")
+%penale_reattiva_sup75=$search(@,"Penale Reattiva 75%.+kvarh $NUMBER $NUMBER ($NUMBER)")
 ### End Script
 ### End Box

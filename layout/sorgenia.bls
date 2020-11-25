@@ -193,7 +193,7 @@ indirizzo_fornitura
 ### W 0.26752617955207825
 ### H 0.05359179154038429
 ### Script
-%potenza[0:2]=$search(@,"Potenza impegnata: $NUMBER")
+%potenza[0:2]=$search(@,"Potenza impegnata: ($NUMBER)")
 ### End Script
 ### End Box
 
@@ -250,14 +250,14 @@ $with($search(@,"ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)")) {
 $with(*contenuto_dettaglio) {
   $with($search(@,$format("{0}([^]+?FORNITURA DI {0} euro $NUMBER)",$date_format(mese_fattura,"MONTH YEAR")))) {
 
-    %pcv=$search(@,"PCV euro/cliente/mese $NUMBER $NUMBER $NUMBER",3)
-    %spesa_materia_energia=$search(@,"DETTAGLIO DELLA SPESA PER LA MATERIA ENERGIA[^]+?$NUMBER DETTAGLIO")
-    %spesa_materia_energia=$search(@,"DETTAGLIO DELLA SPESA PER L\u2019ENERGIA ELETTRICA[^]+?$NUMBER DETTAGLIO")
-    %trasporto_gestione=$search(@,"DETTAGLIO DELLA SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA[^]+?$NUMBER IMPOSTE")
+    %pcv=$search(@,"PCV euro/cliente/mese $NUMBER $NUMBER ($NUMBER)")
+    %spesa_materia_energia=$search(@,"DETTAGLIO DELLA SPESA PER LA MATERIA ENERGIA[^]+?($NUMBER) DETTAGLIO")
+    %spesa_materia_energia=$search(@,"DETTAGLIO DELLA SPESA PER L\u2019ENERGIA ELETTRICA[^]+?($NUMBER) DETTAGLIO")
+    %trasporto_gestione=$search(@,"DETTAGLIO DELLA SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA[^]+?($NUMBER) IMPOSTE")
 
-    %prezzo_energia[0]=$search(@,"Prezzo F1 euro/kWh $NUMBER")
-    %prezzo_energia[1]=$search(@,"Prezzo F2 euro/kWh $NUMBER")
-    %prezzo_energia[2]=$search(@,"Prezzo F3 euro/kWh $NUMBER")
+    %prezzo_energia[0]=$search(@,"Prezzo F1 euro/kWh ($NUMBER)")
+    %prezzo_energia[1]=$search(@,"Prezzo F2 euro/kWh ($NUMBER)")
+    %prezzo_energia[2]=$search(@,"Prezzo F3 euro/kWh ($NUMBER)")
     $tokens($coalesce(
     $search(@,"Prezzo Picco euro/kWh ($NUMBER $NUMBER)"),
     $search(@,"Prezzo Ore Giorno euro/kWh ($NUMBER $NUMBER)"))) {
@@ -268,21 +268,21 @@ $with(*contenuto_dettaglio) {
     $search(@,"Prezzo Ore Notte euro/kWh ($NUMBER $NUMBER)"))) {
       %prezzo_energia[1] %energia_attiva[1]
     }
-    %sbilanciamento=$search(@,"Incremento prezzo euro/kWh $NUMBER")
-    %prezzo_energia[0:2]=$search(@,"Prezzo energia euro/kWh $NUMBER")
-    %prezzo_energia[0:2]=$search(@,"Prezzo energia monorario euro/kWh $NUMBER")
+    %sbilanciamento=$search(@,"Incremento prezzo euro/kWh ($NUMBER)")
+    %prezzo_energia[0:2]=$search(@,"Prezzo energia euro/kWh ($NUMBER)")
+    %prezzo_energia[0:2]=$search(@,"Prezzo energia monorario euro/kWh ($NUMBER)")
     $inc(prezzo_energia[:],sbilanciamento)
 
-    %imponibile=$search(@,"$NUMBER$")
+    %imponibile=$search(@,"($NUMBER)$")
 
-    %penale_reattiva_inf75=$search(@,"Energia Reattiva tra il \\d+% e 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER",3)
-    %penale_reattiva_sup75=$search(@,"Energia Reattiva oltre il 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER",3)
+    %penale_reattiva_inf75=$search(@,"Energia Reattiva tra il \\d+% e 75% attiva euro/kVARh $NUMBER $NUMBER ($NUMBER)")
+    %penale_reattiva_sup75=$search(@,"Energia Reattiva oltre il 75% attiva euro/kVARh $NUMBER $NUMBER ($NUMBER)")
 
-    %potenza[0:2]=$search(@,"Quota Potenza euro/kW/mese $NUMBER $NUMBER",2)
-    %accise=$search(@,"Imposta erariale.+ $NUMBER\n")
+    %potenza[0:2]=$search(@,"Quota Potenza euro/kW/mese $NUMBER ($NUMBER)")
+    %accise=$search(@,"Imposta erariale.+ ($NUMBER)\n")
   }
 
-  $lines($searchall(@,"Corrispettivo Tariffario Specifico dal \\d+/\\d+/\\d+ al \\d+/\\d+/\\d+ $NUMBER")) $inc(%cts,@)
+  $lines($searchall(@,"Corrispettivo Tariffario Specifico dal \\d+/\\d+/\\d+ al \\d+/\\d+/\\d+ ($NUMBER)")) $inc(%cts,@)
   iva=$search(@,"Iva (\\d+%)")
 }
 ### End Script

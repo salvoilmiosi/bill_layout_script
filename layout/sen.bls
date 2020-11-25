@@ -28,9 +28,9 @@ fornitore="SEN"
 ### H 0.213118314743042
 ### Label 
 ### Script
-%spesa_materia_energia=$search(@,"Spesa per la materia energia \\(.\\) $NUMBER")
-%trasporto_gestione=$search(@,"Spesa per il trasporto dell'energia elettrica e la gestione del contatore \\(.\\) $NUMBER")
-%oneri=$search(@,"Spesa per Oneri di Sistema \\(.\\) $NUMBER")
+%spesa_materia_energia=$search(@,"Spesa per la materia energia \\(.\\) ($NUMBER)")
+%trasporto_gestione=$search(@,"Spesa per il trasporto dell'energia elettrica e la gestione del contatore \\(.\\) ($NUMBER)")
+%oneri=$search(@,"Spesa per Oneri di Sistema \\(.\\) ($NUMBER)")
 ### End Script
 ### End Box
 
@@ -45,9 +45,9 @@ fornitore="SEN"
 ### H 0.17103762924671173
 ### Label 
 ### Script
-%accise=$search(@,"Accisa.+kWh $NUMBER")
+%accise=$search(@,"Accisa.+kWh ($NUMBER)")
 iva=$search(@,"Importo IVA (\\d+%)")
-%imponibile=$search(@,"imponibile di euro $NUMBER")
+%imponibile=$search(@,"imponibile di euro ($NUMBER)")
 ### End Script
 ### End Box
 
@@ -78,7 +78,7 @@ ragione_sociale=$search(@,"^(.+)\n")
 ### Label 
 ### Script
 indirizzo_fornitura=$search($nospace(@),"Forniamo energia in (.+) Tariffa")
-%potenza_disponibile=$search(@,"Potenza disponibile $NUMBER")
+%potenza_disponibile=$search(@,"Potenza disponibile ($NUMBER)")
 ### End Script
 ### End Box
 
@@ -126,7 +126,7 @@ mese_fattura=$date(@,"MESE MON\\.YYYY$")
 ### H 0.06955530494451523
 ### Label 
 ### Script
-%totale_fattura=$search(@,"TOTALE DA PAGARE $NUMBER")
+%totale_fattura=$search(@,"TOTALE DA PAGARE ($NUMBER)")
 data_scadenza=$date(@,"DD\\.MM\\.YYYY")
 ### End Script
 ### End Box

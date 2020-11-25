@@ -131,7 +131,7 @@ indirizzo_fornitura=$substr($search(@,"Fornitura: (.+)\n"),$add(1,$strlen(ragion
 p+*page_offset p+*pod_offset
 ### End Spacers
 ### Script
-$tokens($search(@,"Energia attiva kWh $NUMBER $NUMBER ($NUMBER $NUMBER $NUMBER)",3)) {
+$tokens($search(@,"Energia attiva kWh $NUMBER $NUMBER ($NUMBER $NUMBER $NUMBER)")) {
   %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]
 }
 $tokens($search(@,"Energia Reattiva kVARh ($NUMBER $NUMBER $NUMBER)")) {
@@ -157,20 +157,20 @@ $tokens($search(@,"Potenza prelevata kW ($NUMBER $NUMBER $NUMBER)")) {
 p+*page_offset
 ### End Spacers
 ### Script
-%spesa_materia_energia=$search(@,"SPESA PER LA MATERIA PRIMA - ENERGIA $NUMBER")
-%trasporto_gestione=$search(@,"SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE $NUMBER")
-%oneri=$search(@,"SPESA PER ONERI DI SISTEMA $NUMBER")
-%accise=$search(@,"Imposta erariale.+kWh $NUMBER $NUMBER $NUMBER",3)
-%prezzo_energia[0]=$search(@,"Onere per consumo energia kWh $NUMBER $NUMBER",2)
-%prezzo_energia[1]=$search(@,"Onere per consumo energia kWh $NUMBER $NUMBER",2)
-%prezzo_energia[2]=$search(@,"Onere per consumo energia kWh $NUMBER $NUMBER",2)
-%penale_reattiva_inf75=$search(@,"Onere per servizi di distribuzione - penali en\\. Reattiva F1 33-75% kVARh $NUMBER $NUMBER $NUMBER",3)
-$inc(%penale_reattiva_inf75,$search(@,"Onere per servizi di distribuzione - penali en\\. Reattiva F2 33-75% kVARh $NUMBER $NUMBER $NUMBER",3))
-$inc(%penale_reattiva_inf75,$search(@,"Onere per servizi di distribuzione - penali en\\. Reattiva F3 33-75% kVARh $NUMBER $NUMBER $NUMBER",3))
-%penale_reattiva_sup75=$search(@,"Onere per servizi di distribuzione - penali en\\. Reattiva F1 > 75% kVARh $NUMBER $NUMBER $NUMBER",3)
-$inc(%penale_reattiva_sup75,$search(@,"Onere per servizi di distribuzione - penali en\\. Reattiva F2 > 75% kVARh $NUMBER $NUMBER $NUMBER",3))
-$inc(%penale_reattiva_sup75,$search(@,"Onere per servizi di distribuzione - penali en\\. Reattiva F3 > 75% kVARh $NUMBER $NUMBER $NUMBER",3))
-%imponibile=$search(@,"Totale $NUMBER")
+%spesa_materia_energia=$search(@,"SPESA PER LA MATERIA PRIMA - ENERGIA ($NUMBER)")
+%trasporto_gestione=$search(@,"SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE ($NUMBER)")
+%oneri=$search(@,"SPESA PER ONERI DI SISTEMA ($NUMBER)")
+%accise=$search(@,"Imposta erariale.+kWh $NUMBER $NUMBER ($NUMBER)")
+%prezzo_energia[0]=$search(@,"Onere per consumo energia kWh $NUMBER ($NUMBER)")
+%prezzo_energia[1]=$search(@,"Onere per consumo energia kWh $NUMBER ($NUMBER)")
+%prezzo_energia[2]=$search(@,"Onere per consumo energia kWh $NUMBER ($NUMBER)")
+%penale_reattiva_inf75=$search(@,"Onere per servizi di distribuzione - penali en\\. Reattiva F1 33-75% kVARh $NUMBER $NUMBER ($NUMBER)")
+$inc(%penale_reattiva_inf75,$search(@,"Onere per servizi di distribuzione - penali en\\. Reattiva F2 33-75% kVARh $NUMBER $NUMBER ($NUMBER)"))
+$inc(%penale_reattiva_inf75,$search(@,"Onere per servizi di distribuzione - penali en\\. Reattiva F3 33-75% kVARh $NUMBER $NUMBER ($NUMBER)"))
+%penale_reattiva_sup75=$search(@,"Onere per servizi di distribuzione - penali en\\. Reattiva F1 > 75% kVARh $NUMBER $NUMBER ($NUMBER)")
+$inc(%penale_reattiva_sup75,$search(@,"Onere per servizi di distribuzione - penali en\\. Reattiva F2 > 75% kVARh $NUMBER $NUMBER ($NUMBER)"))
+$inc(%penale_reattiva_sup75,$search(@,"Onere per servizi di distribuzione - penali en\\. Reattiva F3 > 75% kVARh $NUMBER $NUMBER ($NUMBER)"))
+%imponibile=$search(@,"Totale ($NUMBER)")
 ### End Script
 ### End Box
 
