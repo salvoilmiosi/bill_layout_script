@@ -63,7 +63,8 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
     std::shared_ptr<layout_box> current;
 
     try {
-        while (std::getline(input, line)) {
+        while (input.peek() != EOF) {
+            std::getline(input, line);
             if (line.empty()) continue;
             if (line == "### Box") {
                 auto current = std::make_shared<layout_box>();
