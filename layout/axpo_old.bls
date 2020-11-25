@@ -1,217 +1,315 @@
-{
-	"layout" : 
-	{
-		"boxes" : 
-		[
-			{
-				"goto_label" : "",
-				"h" : 0.055872291326522827,
-				"mode" : 0,
-				"name" : "Convalida Layout",
-				"page" : 1,
-				"script" : "$ifnot($eq(@,\"Bolletta Energia Elettrica\\nFornitura del Mercato Libero\"))\n  $error(\"Layout Invalido\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.35455280542373657,
-				"x" : 0.5398871898651123,
-				"y" : 0.030786771327257156
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.061848785728216171,
-				"mode" : 0,
-				"name" : "Nome Fornitore",
-				"page" : 1,
-				"script" : "fornitore=\"Axpo\"",
-				"spacers" : "",
-				"type" : 3,
-				"w" : 0.1927141547203064,
-				"x" : 0.024193547666072845,
-				"y" : 0.014823260717093945
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.033067274838685989,
-				"mode" : 0,
-				"name" : "Numero fattura",
-				"page" : 1,
-				"script" : "numero_fattura=$search(@,\"Fattura N\\u00b0 (\\\\d+)\")\ndata_fattura=$date(@,\"del DD\\\\.MM\\\\.YYYY\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.47258064150810242,
-				"x" : 0.035483870655298233,
-				"y" : 0.18015962839126587
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.046153008937835693,
-				"mode" : 0,
-				"name" : "Scadenza",
-				"page" : 1,
-				"script" : "data_scadenza=$date(@,\"DD\\\\.MM\\\\.YYYY\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.43266767263412476,
-				"x" : 0.54147464036941528,
-				"y" : 0.095020905137062073
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.031927023082971573,
-				"mode" : 0,
-				"name" : "Periodo",
-				"page" : 1,
-				"script" : "mese_fattura=$date(@,\"MONTH YEAR\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.20483870804309845,
-				"x" : 0.035483870655298233,
-				"y" : 0.23147092759609222
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.03990878164768219,
-				"mode" : 0,
-				"name" : "Totale",
-				"page" : 1,
-				"script" : "%totale_fattura",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.25645160675048828,
-				"x" : 0.24354839324951172,
-				"y" : 0.25997719168663025
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.061763588339090347,
-				"mode" : 1,
-				"name" : "Nome Cliente",
-				"page" : 1,
-				"script" : "numero_cliente=$search(@,\"Codice Cliente: $NUMBER\")\nragione_sociale=$search(@,\".+\\n(.+)\\n\")\npartita_iva=$search(@,\"Part\\\\.IVA (.+)\\n\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.49462366104125977,
-				"x" : 0.021505376324057579,
-				"y" : 0.10642340779304504
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.3049132227897644,
-				"mode" : 2,
-				"name" : "Dati fornitura singolo pod",
-				"page" : 1,
-				"script" : "$if($contains(@,\"Dati di fornitura\")) {\n  indirizzo_fornitura=$search($nospace(@),\"Indirizzo (.+\\\\d{5}.+\\\\(.{2}\\\\))\")\n  codice_pod=$search(@,\"POD (.+)\\n\")\n  %potenza[0:2]=$search(@,\"Potenza Impegnata $NUMBER\")\n} $else {\n  *spacer_multipod=1\n}",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.421836256980896,
-				"x" : 0.067204304039478302,
-				"y" : 0.61503535509109497
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.23354679346084595,
-				"mode" : 2,
-				"name" : "Sintesi dati singolo pod",
-				"page" : 1,
-				"script" : "$ifnot(*spacer_multipod) {\n  %spesa_materia_energia=$search(@,\"Corrispettivi energia $NUMBER\")\n  %spesa_materia_energia=$search(@,\"Spese per l'energia $NUMBER\")\n  %trasporto_gestione=$search(@,\"Trasporto $NUMBER\")\n  %trasporto_gestione=$search(@,\"Spesa per trasporto, gestione contatore e oneri di sistema $NUMBER\")\n}",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.42907363176345825,
-				"x" : 0.066170394420623779,
-				"y" : 0.32745665311813354
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.3076777458190918,
-				"mode" : 1,
-				"name" : "Accise singolo pod",
-				"page" : 2,
-				"script" : "$ifnot(*spacer_multipod) {\n  $lines($search(@,\"Imposta Erariale ((.+ $NUMBER $NUMBER $NUMBER $NUMBER\\n)+)\")) {\n    iva=$strcat($search(@,\"$NUMBER $NUMBER$\",1),\"%\")\n    $inc(%accise,$search(@,\"$NUMBER $NUMBER$\",2))\n  }\n}",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.44193547964096069,
-				"x" : 0.048387095332145691,
-				"y" : 0.5919802188873291
-			},
-			{
-				"goto_label" : "dati_fattura_multipod",
-				"h" : 0.24091297388076782,
-				"mode" : 2,
-				"name" : "Dati fornitura multipod",
-				"page" : 3,
-				"script" : "$if(*spacer_multipod) {\n  indirizzo_fornitura=$search($nospace(@),\"Indirizzo (.+\\\\d{5}.+\\\\(.{2}\\\\))\")\n  codice_pod=$search(@,\"POD (.+)\\n\")\n  %potenza[0:2]=$search(@,\"Potenza Impegnata $NUMBER\")\n}",
-				"spacers" : "p+*next_page",
-				"type" : 0,
-				"w" : 0.45019805431365967,
-				"x" : 0.032059989869594574,
-				"y" : 0.094320766627788544
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.16419611871242523,
-				"mode" : 2,
-				"name" : "Sintesi dati multipod",
-				"page" : 3,
-				"script" : "$if(*spacer_multipod) {\n  %spesa_materia_energia=$search(@,\"Corrispettivi energia $NUMBER\")\n  %spesa_materia_energia=$search(@,\"Spese per l'energia $NUMBER\")\n  %trasporto_gestione=$search(@,\"Trasporto $NUMBER\")\n  %trasporto_gestione=$search(@,\"Spesa per trasporto, gestione.+ $NUMBER\")\n}",
-				"spacers" : "p+*next_page",
-				"type" : 0,
-				"w" : 0.45645162463188171,
-				"x" : 0.49354839324951172,
-				"y" : 0.093500569462776184
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.038958568125963211,
-				"mode" : 0,
-				"name" : "Imponibile parziale",
-				"page" : 3,
-				"script" : "%imponibile=$search(@,\"TOT\\\\. \\u20ac $NUMBER\")",
-				"spacers" : "p+*spacer_multipod p+*next_page",
-				"type" : 0,
-				"w" : 0.16397848725318909,
-				"x" : 0.77688169479370117,
-				"y" : 0.15203344821929932
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.16761690378189087,
-				"mode" : 1,
-				"name" : "Accise multipod",
-				"page" : 3,
-				"script" : "$if(*spacer_multipod) {\n  $lines($search(@,\"Imposta Erariale ((.+ $NUMBER $NUMBER $NUMBER $NUMBER\\n)+)\")) {\n    iva=$strcat($search(@,\"$NUMBER $NUMBER$\",1),\"%\")\n    $inc(%accise,$search(@,\"$NUMBER $NUMBER$\",2))\n  }\n}",
-				"spacers" : "p+*next_page",
-				"type" : 0,
-				"w" : 0.4467741847038269,
-				"x" : 0.029032258316874504,
-				"y" : 0.52565562725067139
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.031652819365262985,
-				"mode" : 1,
-				"name" : "Spese per l'energia",
-				"page" : 3,
-				"script" : "$ifnot(prezzo_energia) {\n  %prezzo_energia[0]=$search(@,\"Prezzo Energia PEAK $NUMBER kWh $NUMBER\",2)\n  %prezzo_energia[1]=$search(@,\"Prezzo Energia OFFPEAK $NUMBER kWh $NUMBER\",2)\n\n  %energia_attiva[0]=$search(@,\"Prezzo Energia PEAK $NUMBER\")\n  %energia_attiva[1]=$search(@,\"Prezzo Energia OFFPEAK $NUMBER\")\n\n  %energia_attiva[0]=$search(@,\"Prezzo Energia F1 $NUMBER\")\n  %energia_attiva[1]=$search(@,\"Prezzo Energia F2 $NUMBER\")\n  %energia_attiva[2]=$search(@,\"Prezzo Energia F3 $NUMBER\")\n\n  %prezzo_energia[0]=$search(@,\"Prezzo Energia F1 $NUMBER kWh $NUMBER\",2)\n  %prezzo_energia[1]=$search(@,\"Prezzo Energia F2 $NUMBER kWh $NUMBER\",2)\n  %prezzo_energia[2]=$search(@,\"Prezzo Energia F3 $NUMBER kWh $NUMBER\",2)\n\n  %sbilanciamento=$search(@,\"Gestione sbilanciamento $NUMBER kWh $NUMBER\",2)\n  $inc(prezzo_energia[:],sbilanciamento)\n}\n\n%potenza[0:2]=$search(@,\"Quota Potenza $NUMBER kW\")\n\n%penale_reattiva_inf75=$search(@,\"Energia Reattiva tra il 33 e il 75%.+ $NUMBER\\n\")\n%penale_reattiva_inf75=$search(@,\"Energia Reattiva tra il 33 e il 75% F1.+ $NUMBER\\n\")\n$inc(%penale_reattiva_inf75,$search(@,\"Energia Reattiva tra il 33 e il 75% F2.+ $NUMBER\\n\"))\n$inc(%penale_reattiva_inf75,$search(@,\"Energia Reattiva tra il 33 e il 75% F3.+ $NUMBER\\n\"))\n%penale_reattiva_sup75=$search(@,\"Energia Reattiva oltre il 75%.+ $NUMBER\\n\")\n%penale_reattiva_sup75=$search(@,\"Energia Reattiva oltre il 75% F1.+ $NUMBER\\n\")\n$inc(%penale_reattiva_sup75,$search(@,\"Energia Reattiva oltre il 75% F2.+ $NUMBER\\n\"))\n$inc(%penale_reattiva_sup75,$search(@,\"Energia Reattiva oltre il 75% F3.+ $NUMBER\\n\"))",
-				"spacers" : "p+*spacer_multipod p+*next_page",
-				"type" : 1,
-				"w" : 0.048387140035629272,
-				"x" : 0.22903221845626831,
-				"y" : 0.027640227228403091
-			},
-			{
-				"goto_label" : "check_next",
-				"h" : 0.033067274838685989,
-				"mode" : 0,
-				"name" : "Controllo prossima pagina",
-				"page" : 4,
-				"script" : "$inc(*next_page)\n$ifnot($ate()) {\n  $if($contains(@,\"Dati di fornitura\")) {\n    $nextpage()\n    $goto(0)\n  } $else {\n    $goto(check_next)\n  }\n}",
-				"spacers" : "p+*next_page",
-				"type" : 1,
-				"w" : 0.048387125134468079,
-				"x" : 0.21774192154407501,
-				"y" : 0.033067274838685989
-			}
-		]
-	},
-	"version" : 1
+### Bill Layout Script
+
+### Box
+### Name Convalida Layout
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.5398871898651123
+### Y 0.030786771327257156
+### W 0.3545528054237366
+### H 0.05587229132652283
+### Script
+$ifnot($eq(@,"Bolletta Energia Elettrica\nFornitura del Mercato Libero"))
+  $error("Layout Invalido")
+### End Script
+### End Box
+
+### Box
+### Name Nome Fornitore
+### Type DISABLED
+### Mode DEFAULT
+### Page 1
+### X 0.024193547666072845
+### Y 0.014823260717093945
+### W 0.1927141547203064
+### H 0.06184878572821617
+### Script
+fornitore="Axpo"
+### End Script
+### End Box
+
+### Box
+### Name Numero fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.03548387065529823
+### Y 0.18015962839126587
+### W 0.4725806415081024
+### H 0.03306727483868599
+### Script
+numero_fattura=$search(@,"Fattura N\u00b0 (\\d+)")
+data_fattura=$date(@,"del DD\\.MM\\.YYYY")
+### End Script
+### End Box
+
+### Box
+### Name Scadenza
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.5414746403694153
+### Y 0.09502090513706207
+### W 0.43266767263412476
+### H 0.04615300893783569
+### Script
+data_scadenza=$date(@,"DD\\.MM\\.YYYY")
+### End Script
+### End Box
+
+### Box
+### Name Periodo
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.03548387065529823
+### Y 0.23147092759609222
+### W 0.20483870804309845
+### H 0.03192702308297157
+### Script
+mese_fattura=$date(@,"MONTH YEAR")
+### End Script
+### End Box
+
+### Box
+### Name Totale
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.24354839324951172
+### Y 0.25997719168663025
+### W 0.2564516067504883
+### H 0.03990878164768219
+### Script
+%totale_fattura
+### End Script
+### End Box
+
+### Box
+### Name Nome Cliente
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 1
+### X 0.02150537632405758
+### Y 0.10642340779304504
+### W 0.49462366104125977
+### H 0.06176358833909035
+### Script
+numero_cliente=$search(@,"Codice Cliente: $NUMBER")
+ragione_sociale=$search(@,".+\n(.+)\n")
+partita_iva=$search(@,"Part\\.IVA (.+)\n")
+### End Script
+### End Box
+
+### Box
+### Name Dati fornitura singolo pod
+### Type RECTANGLE
+### Mode RAW
+### Page 1
+### X 0.0672043040394783
+### Y 0.615035355091095
+### W 0.421836256980896
+### H 0.3049132227897644
+### Script
+$if($contains(@,"Dati di fornitura")) {
+  indirizzo_fornitura=$search($nospace(@),"Indirizzo (.+\\d{5}.+\\(.{2}\\))")
+  codice_pod=$search(@,"POD (.+)\n")
+  %potenza[0:2]=$search(@,"Potenza Impegnata $NUMBER")
+} $else {
+  *spacer_multipod=1
 }
+### End Script
+### End Box
+
+### Box
+### Name Sintesi dati singolo pod
+### Type RECTANGLE
+### Mode RAW
+### Page 1
+### X 0.06617039442062378
+### Y 0.32745665311813354
+### W 0.42907363176345825
+### H 0.23354679346084595
+### Script
+$ifnot(*spacer_multipod) {
+  %spesa_materia_energia=$search(@,"Corrispettivi energia $NUMBER")
+  %spesa_materia_energia=$search(@,"Spese per l'energia $NUMBER")
+  %trasporto_gestione=$search(@,"Trasporto $NUMBER")
+  %trasporto_gestione=$search(@,"Spesa per trasporto, gestione contatore e oneri di sistema $NUMBER")
+}
+### End Script
+### End Box
+
+### Box
+### Name Accise singolo pod
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### X 0.04838709533214569
+### Y 0.5919802188873291
+### W 0.4419354796409607
+### H 0.3076777458190918
+### Script
+$ifnot(*spacer_multipod) {
+  $lines($search(@,"Imposta Erariale ((.+ $NUMBER $NUMBER $NUMBER $NUMBER\n)+)")) {
+    iva=$strcat($search(@,"$NUMBER $NUMBER$",1),"%")
+    $inc(%accise,$search(@,"$NUMBER $NUMBER$",2))
+  }
+}
+### End Script
+### End Box
+
+### Box
+### Name Dati fornitura multipod
+### Type RECTANGLE
+### Mode RAW
+### Page 3
+### X 0.032059989869594574
+### Y 0.09432076662778854
+### W 0.45019805431365967
+### H 0.24091297388076782
+### Goto Label dati_fattura_multipod
+### Spacers
+p+*next_page
+### End Spacers
+### Script
+$if(*spacer_multipod) {
+  indirizzo_fornitura=$search($nospace(@),"Indirizzo (.+\\d{5}.+\\(.{2}\\))")
+  codice_pod=$search(@,"POD (.+)\n")
+  %potenza[0:2]=$search(@,"Potenza Impegnata $NUMBER")
+}
+### End Script
+### End Box
+
+### Box
+### Name Sintesi dati multipod
+### Type RECTANGLE
+### Mode RAW
+### Page 3
+### X 0.4935483932495117
+### Y 0.09350056946277618
+### W 0.4564516246318817
+### H 0.16419611871242523
+### Spacers
+p+*next_page
+### End Spacers
+### Script
+$if(*spacer_multipod) {
+  %spesa_materia_energia=$search(@,"Corrispettivi energia $NUMBER")
+  %spesa_materia_energia=$search(@,"Spese per l'energia $NUMBER")
+  %trasporto_gestione=$search(@,"Trasporto $NUMBER")
+  %trasporto_gestione=$search(@,"Spesa per trasporto, gestione.+ $NUMBER")
+}
+### End Script
+### End Box
+
+### Box
+### Name Imponibile parziale
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 3
+### X 0.7768816947937012
+### Y 0.15203344821929932
+### W 0.1639784872531891
+### H 0.03895856812596321
+### Spacers
+p+*spacer_multipod p+*next_page
+### End Spacers
+### Script
+%imponibile=$search(@,"TOT\\. \u20ac $NUMBER")
+### End Script
+### End Box
+
+### Box
+### Name Accise multipod
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 3
+### X 0.029032258316874504
+### Y 0.5256556272506714
+### W 0.4467741847038269
+### H 0.16761690378189087
+### Spacers
+p+*next_page
+### End Spacers
+### Script
+$if(*spacer_multipod) {
+  $lines($search(@,"Imposta Erariale ((.+ $NUMBER $NUMBER $NUMBER $NUMBER\n)+)")) {
+    iva=$strcat($search(@,"$NUMBER $NUMBER$",1),"%")
+    $inc(%accise,$search(@,"$NUMBER $NUMBER$",2))
+  }
+}
+### End Script
+### End Box
+
+### Box
+### Name Spese per l'energia
+### Type PAGE
+### Mode LAYOUT
+### Page 3
+### X 0.2290322184562683
+### Y 0.02764022722840309
+### W 0.04838714003562927
+### H 0.031652819365262985
+### Spacers
+p+*spacer_multipod p+*next_page
+### End Spacers
+### Script
+$ifnot(prezzo_energia) {
+  %prezzo_energia[0]=$search(@,"Prezzo Energia PEAK $NUMBER kWh $NUMBER",2)
+  %prezzo_energia[1]=$search(@,"Prezzo Energia OFFPEAK $NUMBER kWh $NUMBER",2)
+
+  %energia_attiva[0]=$search(@,"Prezzo Energia PEAK $NUMBER")
+  %energia_attiva[1]=$search(@,"Prezzo Energia OFFPEAK $NUMBER")
+
+  %energia_attiva[0]=$search(@,"Prezzo Energia F1 $NUMBER")
+  %energia_attiva[1]=$search(@,"Prezzo Energia F2 $NUMBER")
+  %energia_attiva[2]=$search(@,"Prezzo Energia F3 $NUMBER")
+
+  %prezzo_energia[0]=$search(@,"Prezzo Energia F1 $NUMBER kWh $NUMBER",2)
+  %prezzo_energia[1]=$search(@,"Prezzo Energia F2 $NUMBER kWh $NUMBER",2)
+  %prezzo_energia[2]=$search(@,"Prezzo Energia F3 $NUMBER kWh $NUMBER",2)
+
+  %sbilanciamento=$search(@,"Gestione sbilanciamento $NUMBER kWh $NUMBER",2)
+  $inc(prezzo_energia[:],sbilanciamento)
+}
+
+%potenza[0:2]=$search(@,"Quota Potenza $NUMBER kW")
+
+%penale_reattiva_inf75=$search(@,"Energia Reattiva tra il 33 e il 75%.+ $NUMBER\n")
+%penale_reattiva_inf75=$search(@,"Energia Reattiva tra il 33 e il 75% F1.+ $NUMBER\n")
+$inc(%penale_reattiva_inf75,$search(@,"Energia Reattiva tra il 33 e il 75% F2.+ $NUMBER\n"))
+$inc(%penale_reattiva_inf75,$search(@,"Energia Reattiva tra il 33 e il 75% F3.+ $NUMBER\n"))
+%penale_reattiva_sup75=$search(@,"Energia Reattiva oltre il 75%.+ $NUMBER\n")
+%penale_reattiva_sup75=$search(@,"Energia Reattiva oltre il 75% F1.+ $NUMBER\n")
+$inc(%penale_reattiva_sup75,$search(@,"Energia Reattiva oltre il 75% F2.+ $NUMBER\n"))
+$inc(%penale_reattiva_sup75,$search(@,"Energia Reattiva oltre il 75% F3.+ $NUMBER\n"))
+### End Script
+### End Box
+
+### Box
+### Name Controllo prossima pagina
+### Type PAGE
+### Mode DEFAULT
+### Page 4
+### X 0.217741921544075
+### Y 0.03306727483868599
+### W 0.04838712513446808
+### H 0.03306727483868599
+### Goto Label check_next
+### Spacers
+p+*next_page
+### End Spacers
+### Script
+$inc(*next_page)
+$ifnot($ate()) {
+  $if($contains(@,"Dati di fornitura")) {
+    $nextpage()
+    $goto(0)
+  } $else {
+    $goto(check_next)
+  }
+}
+### End Script
+### End Box

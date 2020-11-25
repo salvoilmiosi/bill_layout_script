@@ -1,22 +1,24 @@
-{
-	"layout" : 
-	{
-		"boxes" : 
-		[
-			{
-				"goto_label" : "",
-				"h" : 0.0,
-				"mode" : 0,
-				"name" : "Identifica layout",
-				"page" : 1,
-				"script" : "*layout=$ifl($contains(@,\"Axpo Italia SpA\"),$ifl($contains(@,\"C/O MILANO CENTRO\"),\"axpo_old\",\"axpo\"))\n*layout=$ifl($contains(@,\"Enel Energia\"),\"enel\")\n*layout=$ifl($contains(@,\"ITALPOWER ENERGIA\"),\"italpower\")\n*layout=$ifl($contains(@,\"Sorgenia S.p.A\"),\"sorgenia\")\n*layout=$ifl($contains(@,\"www.lenergia.eu\"),\"lenergia\")\n*layout=$ifl($contains(@,\"Servizio Elettrico Nazionale SpA\"),\"sen\")\n*layout=$ifl($contains(@,\"GREEN NETWORK S.p.A\"),\"greennetwork\")\n*layout=$ifl($contains(@,\"CURA GAS & POWER S.p.A.\"),\"cura\")\n$ifnot($isset(*layout))\n  $error(\"Impossibile determinare il layout\")",
-				"spacers" : "",
-				"type" : 2,
-				"w" : 0.0,
-				"x" : 0.0,
-				"y" : 0.0
-			}
-		]
-	},
-	"version" : 1
-}
+### Bill Layout Script
+
+### Box
+### Name Identifica Layout
+### Type FILE
+### Mode DEFAULT
+### Page 1
+### X 0.0
+### Y 0.0
+### W 0.0
+### H 0.0
+### Script
+*layout=$ifl($contains(@,"Axpo Italia SpA"),$ifl($contains(@,"C/O MILANO CENTRO"),"axpo_old","axpo"))
+*layout=$ifl($contains(@,"Enel Energia"),"enel")
+*layout=$ifl($contains(@,"ITALPOWER ENERGIA"),"italpower")
+*layout=$ifl($contains(@,"Sorgenia S.p.A"),"sorgenia")
+*layout=$ifl($contains(@,"www.lenergia.eu"),"lenergia")
+*layout=$ifl($contains(@,"Servizio Elettrico Nazionale SpA"),"sen")
+*layout=$ifl($contains(@,"GREEN NETWORK S.p.A"),"greennetwork")
+*layout=$ifl($contains(@,"CURA GAS & POWER S.p.A."),"cura")
+$ifnot($isset(*layout))
+  $error("Impossibile determinare il layout")
+### End Script
+### End Box

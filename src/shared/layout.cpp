@@ -1,75 +1,154 @@
 #include "layout.h"
 
-#include <json/json.h>
+#include <iostream>
 
-constexpr uint32_t VERSION = 0x00000001;
+constexpr const char *BOX_TYPES[] = {
+    "RECTANGLE",
+    "PAGE",
+    "FILE",
+    "DISABLED"
+};
 
-std::ostream &operator << (std::ostream &out, const bill_layout_script &boxes) {
-    Json::Value root = Json::objectValue;
-    root["version"] = VERSION;
-    
-    Json::Value &layout = root["layout"] = Json::objectValue;
+constexpr const char *READ_MODES[] = {
+    "DEFAULT",
+    "LAYOUT",
+    "RAW"
+};
 
-    Json::Value &json_boxes = layout["boxes"] = Json::arrayValue;
+std::ostream &operator << (std::ostream &output, const bill_layout_script &layout) {
+    output << "### Bill Layout Script\n";
 
-    for (auto &box : boxes) {
-        Json::Value json_box = Json::objectValue;
-
-        json_box["name"] = box->name;
-        json_box["spacers"] = box->spacers;
-        json_box["script"] = box->script;
-        json_box["goto_label"] = box->goto_label;
-        json_box["x"] = box->x;
-        json_box["y"] = box->y;
-        json_box["w"] = box->w;
-        json_box["h"] = box->h;
-        json_box["page"] = box->page;
-        json_box["mode"] = box->mode;
-        json_box["type"] = box->type;
-
-        json_boxes.append(json_box);
+    for (auto &box : layout) {
+        output << '\n';
+        output << "### Box\n";
+        output << "### Name " << box->name << '\n';
+        output << "### Type " << BOX_TYPES[box->type] << '\n';
+        output << "### Mode " << READ_MODES[box->mode] << '\n';
+        output << "### Page " << box->page << '\n';
+        output << "### X " << box->x << '\n';
+        output << "### Y " << box->y << '\n';
+        output << "### W " << box->w << '\n';
+        output << "### H " << box->h << '\n';
+        if (!box->goto_label.empty()) {
+            output << "### Goto Label " << box->goto_label << '\n';
+        }
+        if (!box->spacers.empty()) {
+            output << "### Spacers\n" << box->spacers << "\n### End Spacers\n";
+        }
+        if (!box->script.empty()) {
+            output << "### Script\n" << box->script << "\n### End Script\n";
+        }
+        output << "### End Box\n";
     }
 
-    return out << root;
+    return output;
 }
 
-std::istream &operator >> (std::istream &in, bill_layout_script &boxes) {
-    Json::Value root;
-
-    try {
-        in >> root;
-        int version = root["version"].asInt();
-
-        switch(version) {
-        case 0x00000001:
-        {
-            Json::Value &layout = root["layout"];
-            Json::Value &json_boxes = layout["boxes"];
-            for (Json::Value::iterator it=json_boxes.begin(); it!=json_boxes.end(); ++it) {
-                Json::Value &json_box = *it;
-                layout_box box;
-                box.name = json_box["name"].asString();
-                box.spacers = json_box["spacers"].asString();
-                box.script = json_box["script"].asString();
-                box.goto_label = json_box["goto_label"].asString();
-                box.x = json_box["x"].asFloat();
-                box.y = json_box["y"].asFloat();
-                box.w = json_box["w"].asFloat();
-                box.h = json_box["h"].asFloat();
-                box.page = json_box["page"].asInt();
-                box.mode = static_cast<read_mode>(json_box["mode"].asInt());
-                box.type = static_cast<box_type>(json_box["type"].asInt());
-
-                boxes.push_back(std::make_shared<layout_box>(box));
-            }
-            break;
+struct suffix {
+    suffix(const std::string &line, const std::string &str) {
+        if (line.substr(0, str.size()) == str) {
+            value = line.substr(str.size() + 1);
         }
-        default:
-            throw layout_error("Versione non supportata");
-        }
-    } catch (const std::exception &error) {
-        throw layout_error("Impossibile leggere questo file");
+    }
+    
+    operator bool () const {
+        return !value.empty();
+    }
+    
+    std::string value;
+};
+
+std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
+    std::string line;
+    if (!std::getline(input, line) || line != "### Bill Layout Script") {
+        input.setstate(std::ios::failbit);
+        return input;
     }
 
-    return in;
+    layout.clear();
+    std::shared_ptr<layout_box> current;
+
+    try {
+        while (std::getline(input, line)) {
+            if (line.empty()) continue;
+            if (line == "### Box") {
+                auto current = std::make_shared<layout_box>();
+                bool fail = true;
+                while (std::getline(input, line)) {
+                    if (line.empty()) continue;
+                    if (line == "### End Box") {
+                        fail = false;
+                        break;
+                    } else if (auto suf = suffix(line, "### Name")) {
+                        current->name = suf.value;
+                    } else if (auto suf = suffix(line, "### Type")) {
+                        for (size_t i=0; i<std::size(BOX_TYPES); ++i) {
+                            if (BOX_TYPES[i] == suf.value) {
+                                current->type = static_cast<box_type>(i);
+                            }
+                        }
+                    } else if (auto suf = suffix(line, "### Mode")) {
+                        for (size_t i=0; i<std::size(READ_MODES); ++i) {
+                            if (READ_MODES[i] == suf.value) {
+                                current->mode = static_cast<read_mode>(i);
+                            }
+                        }
+                    } else if (auto suf = suffix(line, "### Page")) {
+                        current->page = std::stoi(suf.value);
+                    } else if (auto suf = suffix(line, "### X")) {
+                        current->x = std::stof(suf.value);
+                    } else if (auto suf = suffix(line, "### Y")) {
+                        current->y = std::stof(suf.value);
+                    } else if (auto suf = suffix(line, "### W")) {
+                        current->w = std::stof(suf.value);
+                    } else if (auto suf = suffix(line, "### H")) {
+                        current->h = std::stof(suf.value);
+                    } else if (auto suf = suffix(line, "### Goto Label")) {
+                        current->goto_label = suf.value;
+                    } else if (line == "### Spacers") {
+                        bool fail = true;
+                        while (std::getline(input, line)) {
+                            if (line == "### End Spacers") {
+                                fail = false;
+                                break;
+                            }
+                            if (!current->spacers.empty()) current->spacers += '\n';
+                            current->spacers += line;
+                        }
+                        if (fail) {
+                            input.setstate(std::ios::failbit);
+                            return input;
+                        }
+                    } else if (line == "### Script") {
+                        bool fail = true;
+                        while (std::getline(input, line)) {
+                            if (line == "### End Script") {
+                                fail = false;
+                                break;
+                            }
+                            if (!current->script.empty()) current->script += '\n';
+                            current->script += line;
+                        }
+                        if (fail) {
+                            input.setstate(std::ios::failbit);
+                            return input;
+                        }
+                    }
+                }
+                if (fail) {
+                    input.setstate(std::ios::failbit);
+                    return input;
+                } else {
+                    layout.push_back(current);
+                }
+            } else {
+                input.setstate(std::ios::failbit);
+                return input;
+            }
+        }
+    } catch (std::invalid_argument &) {
+        input.setstate(std::ios::failbit);
+    }
+
+    return input;
 }

@@ -1,178 +1,207 @@
-{
-	"layout" : 
-	{
-		"boxes" : 
-		[
-			{
-				"goto_label" : "",
-				"h" : 0.10482951253652573,
-				"mode" : 0,
-				"name" : "Convalida Layout",
-				"page" : 1,
-				"script" : "$ifnot($contains(@,\"GREEN NETWORK S.p.A.\\nSociet\\u00e0 a Socio Unico\"))\n  $error(\"Layout Invalido\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.46658521890640259,
-				"x" : 0.031192326918244362,
-				"y" : 0.89656823873519897
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.094640821218490601,
-				"mode" : 0,
-				"name" : "Nome Fornitore",
-				"page" : 1,
-				"script" : "fornitore=\"Green network\"",
-				"spacers" : "",
-				"type" : 3,
-				"w" : 0.51129031181335449,
-				"x" : 0.020967742428183556,
-				"y" : 0.012542759068310261
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.033067274838685989,
-				"mode" : 0,
-				"name" : "Numero fattura",
-				"page" : 1,
-				"script" : "numero_fattura=$search(@,\"Fattura n\\\\. (.+) \")\ndata_fattura=$date(@,\"DD/MM/YYYY\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.30806452035903931,
-				"x" : 0.093548387289047241,
-				"y" : 0.11060433089733124
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.03069906122982502,
-				"mode" : 0,
-				"name" : "Conguaglio",
-				"page" : 1,
-				"script" : "conguaglio=$not($contains(@,\"non\"))",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.45905709266662598,
-				"x" : 0.038254756480455399,
-				"y" : 0.20392948389053345
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.037277430295944214,
-				"mode" : 0,
-				"name" : "Periodo",
-				"page" : 1,
-				"script" : "mese_fattura=$date(@,\"Fattura di MONTH YEAR\")\ndata_scadenza=$date(@,\"scadenza DD MONTH YEAR\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.24503722786903381,
-				"x" : 0.03928866982460022,
-				"y" : 0.16592112183570862
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.19759140908718109,
-				"mode" : 2,
-				"name" : "Sintesi degli importi",
-				"page" : 1,
-				"script" : "%spesa_materia_energia=$search(@,\"Spesa per la materia energia $NUMBER\")\n%trasporto_gestione=$search(@,\"Spesa per trasporto, gestione contatore e oneri sistema $NUMBER\")\n%totale_fattura=$search(@,\"TOTALE DA PAGARE $NUMBER\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.43968182802200317,
-				"x" : 0.52364116907119751,
-				"y" : 0.2999015748500824
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.10074818879365921,
-				"mode" : 2,
-				"name" : "Dati Cliente",
-				"page" : 1,
-				"script" : "ragione_sociale=$search(@,\"Ragione sociale: (.+)\\n\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.46067166328430176,
-				"x" : 0.041979674249887466,
-				"y" : 0.54357165098190308
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.10933911800384521,
-				"mode" : 0,
-				"name" : "Dati fornitura",
-				"page" : 2,
-				"script" : "indirizzo_fornitura=$search(@,\"Le stiamo fornendo energia elettrica in (.+)\\n\")\nnumero_cliente=$search(@,\"Codice cliente: $NUMBER\")\ncodice_pod=$search(@,\"POD: (.+)\\n\")\n%potenza_disponibile=$search(@,\"Pot\\. Disponibile kW: $NUMBER\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.54131680727005005,
-				"x" : 0.056341137737035751,
-				"y" : 0.099977746605873108
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.03748774528503418,
-				"mode" : 0,
-				"name" : "IVA",
-				"page" : 1,
-				"script" : "%iva $if(iva) iva=$strcat(iva,\"%\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.11599646508693695,
-				"x" : 0.045293856412172318,
-				"y" : 0.71695220470428467
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.039049685001373291,
-				"mode" : 0,
-				"name" : "Imponibile",
-				"page" : 1,
-				"script" : "%imponibile",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.11599646508693695,
-				"x" : 0.26955369114875793,
-				"y" : 0.71617120504379272
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.1700713038444519,
-				"mode" : 1,
-				"name" : "Riepilogo consumi",
-				"page" : 2,
-				"script" : "$lines($search(@,\"((\\\\d{2}/\\\\d{2}/\\\\d{4} \\\\d{2}/\\\\d{2}/\\\\d{4}.+Consumi.+\\n)+)\")) {\n  $tokens($search(@,\"($NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER)\")) {\n    %energia_f0\n    %energia_attiva[0]\n    %energia_attiva[1]\n    %energia_attiva[2]\n    %energia_reattiva_f0\n    %energia_reattiva[0]\n    %energia_reattiva[1]\n    %energia_reattiva[2]\n    %potenza[0:2]\n  }\n}",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.90609282255172729,
-				"x" : 0.046473484486341476,
-				"y" : 0.21838703751564026
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.099364727735519409,
-				"mode" : 1,
-				"name" : "Accise",
-				"page" : 2,
-				"script" : "$lines($search($strcat(@,\"\\n\"),\"((.+Erariale.+$NUMBER\\n)+)\")) {\n  %accise=$search(@,\".+ $NUMBER$\")\n}",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.78421652317047119,
-				"x" : 0.039170507341623306,
-				"y" : 0.39094316959381104
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.087323009967803955,
-				"mode" : 0,
-				"name" : "Prezzo Energia",
-				"page" : 5,
-				"script" : "$tokens(@) {\n  %prezzo_energia[0] %prezzo_energia[1] %prezzo_energia[2]\n}",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.10208247601985931,
-				"x" : 0.55124539136886597,
-				"y" : 0.1724809855222702
-			}
-		]
-	},
-	"version" : 1
+### Bill Layout Script
+
+### Box
+### Name Convalida Layout
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.031192326918244362
+### Y 0.896568238735199
+### W 0.4665852189064026
+### H 0.10482951253652573
+### Script
+$ifnot($contains(@,"GREEN NETWORK S.p.A.\nSociet\u00e0 a Socio Unico"))
+  $error("Layout Invalido")
+### End Script
+### End Box
+
+### Box
+### Name Nome Fornitore
+### Type DISABLED
+### Mode DEFAULT
+### Page 1
+### X 0.020967742428183556
+### Y 0.01254275906831026
+### W 0.5112903118133545
+### H 0.0946408212184906
+### Script
+fornitore="Green network"
+### End Script
+### End Box
+
+### Box
+### Name Numero fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.09354838728904724
+### Y 0.11060433089733124
+### W 0.3080645203590393
+### H 0.03306727483868599
+### Script
+numero_fattura=$search(@,"Fattura n\\. (.+) ")
+data_fattura=$date(@,"DD/MM/YYYY")
+### End Script
+### End Box
+
+### Box
+### Name Conguaglio
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.0382547564804554
+### Y 0.20392948389053345
+### W 0.459057092666626
+### H 0.03069906122982502
+### Script
+conguaglio=$not($contains(@,"non"))
+### End Script
+### End Box
+
+### Box
+### Name Periodo
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.03928866982460022
+### Y 0.16592112183570862
+### W 0.2450372278690338
+### H 0.037277430295944214
+### Script
+mese_fattura=$date(@,"Fattura di MONTH YEAR")
+data_scadenza=$date(@,"scadenza DD MONTH YEAR")
+### End Script
+### End Box
+
+### Box
+### Name Sintesi degli importi
+### Type RECTANGLE
+### Mode RAW
+### Page 1
+### X 0.5236411690711975
+### Y 0.2999015748500824
+### W 0.4396818280220032
+### H 0.1975914090871811
+### Script
+%spesa_materia_energia=$search(@,"Spesa per la materia energia $NUMBER")
+%trasporto_gestione=$search(@,"Spesa per trasporto, gestione contatore e oneri sistema $NUMBER")
+%totale_fattura=$search(@,"TOTALE DA PAGARE $NUMBER")
+### End Script
+### End Box
+
+### Box
+### Name Dati Cliente
+### Type RECTANGLE
+### Mode RAW
+### Page 1
+### X 0.041979674249887466
+### Y 0.5435716509819031
+### W 0.46067166328430176
+### H 0.10074818879365921
+### Script
+ragione_sociale=$search(@,"Ragione sociale: (.+)\n")
+### End Script
+### End Box
+
+### Box
+### Name Dati fornitura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 2
+### X 0.05634113773703575
+### Y 0.09997774660587311
+### W 0.54131680727005
+### H 0.10933911800384521
+### Script
+indirizzo_fornitura=$search(@,"Le stiamo fornendo energia elettrica in (.+)\n")
+numero_cliente=$search(@,"Codice cliente: $NUMBER")
+codice_pod=$search(@,"POD: (.+)\n")
+%potenza_disponibile=$search(@,"Pot\. Disponibile kW: $NUMBER")
+### End Script
+### End Box
+
+### Box
+### Name IVA
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.04529385641217232
+### Y 0.7169522047042847
+### W 0.11599646508693695
+### H 0.03748774528503418
+### Script
+%iva $if(iva) iva=$strcat(iva,"%")
+### End Script
+### End Box
+
+### Box
+### Name Imponibile
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.26955369114875793
+### Y 0.7161712050437927
+### W 0.11599646508693695
+### H 0.03904968500137329
+### Script
+%imponibile
+### End Script
+### End Box
+
+### Box
+### Name Riepilogo consumi
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### X 0.046473484486341476
+### Y 0.21838703751564026
+### W 0.9060928225517273
+### H 0.1700713038444519
+### Script
+$lines($search(@,"((\\d{2}/\\d{2}/\\d{4} \\d{2}/\\d{2}/\\d{4}.+Consumi.+\n)+)")) {
+  $tokens($search(@,"($NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER)")) {
+    %energia_f0
+    %energia_attiva[0]
+    %energia_attiva[1]
+    %energia_attiva[2]
+    %energia_reattiva_f0
+    %energia_reattiva[0]
+    %energia_reattiva[1]
+    %energia_reattiva[2]
+    %potenza[0:2]
+  }
 }
+### End Script
+### End Box
+
+### Box
+### Name Accise
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### X 0.039170507341623306
+### Y 0.39094316959381104
+### W 0.7842165231704712
+### H 0.09936472773551941
+### Script
+$lines($search($strcat(@,"\n"),"((.+Erariale.+$NUMBER\n)+)")) {
+  %accise=$search(@,".+ $NUMBER$")
+}
+### End Script
+### End Box
+
+### Box
+### Name Prezzo Energia
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 5
+### X 0.551245391368866
+### Y 0.1724809855222702
+### W 0.10208247601985931
+### H 0.08732300996780396
+### Script
+$tokens(@) {
+  %prezzo_energia[0] %prezzo_energia[1] %prezzo_energia[2]
+}
+### End Script
+### End Box

@@ -6,7 +6,7 @@
 enum token_type {
     TOK_END_OF_FILE = 0,
     TOK_ERROR,
-    TOK_COMMENT,            // # comment
+    TOK_COMMENT,            // # commento
     TOK_IDENTIFIER,         // [a-bA-B_][a-bA-B0-9_]+
     TOK_STRING,             // "xyz"
     TOK_NUMBER,             // 123
@@ -103,7 +103,7 @@ private:
     bool readIdentifier();
     bool readString();
     bool readNumber();
-    bool readComment();
+    bool readToNewline();
 };
 
 #endif

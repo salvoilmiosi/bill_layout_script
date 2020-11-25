@@ -1,230 +1,309 @@
-{
-	"layout" : 
-	{
-		"boxes" : 
-		[
-			{
-				"goto_label" : "",
-				"h" : 0.024828042834997177,
-				"mode" : 0,
-				"name" : "Convalida Layout",
-				"page" : 1,
-				"script" : "$ifnot($eq(@,\"BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO\"))\n  $error(\"Layout Invalido\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.82919603586196899,
-				"x" : 0.075381457805633545,
-				"y" : 0.31081032752990723
-			},
-			{
-				"goto_label" : "lettura_dati",
-				"h" : 0.86431014537811279,
-				"mode" : 1,
-				"name" : "Lettura dati generali",
-				"page" : 3,
-				"script" : "$ifnot($or($contains(@,\"INFORMAZIONI PER I CLIENTI SORGENIA\"),$ate())) {\n  *!contenuto_dettaglio=$strcat(*contenuto_dettaglio,\"\\n\",@)\n  $inc(*page_offset)\n  $goto(lettura_dati)\n}",
-				"spacers" : "p+*page_offset",
-				"type" : 0,
-				"w" : 0.91055595874786377,
-				"x" : 0.040290102362632751,
-				"y" : 0.080957815051078796
-			},
-			{
-				"goto_label" : "nome_fornitore",
-				"h" : 0.083238311111927032,
-				"mode" : 0,
-				"name" : "Nome Fornitore",
-				"page" : 1,
-				"script" : "fornitore=\"Sorgenia\"",
-				"spacers" : "",
-				"type" : 3,
-				"w" : 0.3612903356552124,
-				"x" : 0.061290323734283447,
-				"y" : 0.041049029678106308
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.077134616672992706,
-				"mode" : 1,
-				"name" : "Numero cliente",
-				"page" : 1,
-				"script" : "numero_cliente=$search(@,\"CODICE CLIENTE (.+)\\n\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.46489563584327698,
-				"x" : 0.48481974005699158,
-				"y" : 0.010436194017529488
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.028506269678473473,
-				"mode" : 0,
-				"name" : "Ragione sociale",
-				"page" : 1,
-				"script" : "ragione_sociale",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.38810482621192932,
-				"x" : 0.076612904667854309,
-				"y" : 0.15037056803703308
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.017103761434555054,
-				"mode" : 0,
-				"name" : "Numero fattura",
-				"page" : 1,
-				"script" : "numero_fattura",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.21572580933570862,
-				"x" : 0.24596774578094482,
-				"y" : 0.3385692834854126
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.017103761434555054,
-				"mode" : 0,
-				"name" : "Data fattura",
-				"page" : 1,
-				"script" : "data_fattura=$date(@,\"DD/MM/YYYY\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.21572580933570862,
-				"x" : 0.24596774578094482,
-				"y" : 0.35495221614837646
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.023517671972513199,
-				"mode" : 0,
-				"name" : "Periodo",
-				"page" : 1,
-				"script" : "mese_fattura=$date(@,\"MONTH YEAR\")\n*mese_fine=$date(@,\"MONTH YEAR/MONTH YEAR\",2)\nmese_fattura=$month_add(mese_fattura,*calc_mese)\n$ifnot($isset(mese_fattura)) {\n  $error(\"Layout Invalido\")\n}",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.31149193644523621,
-				"x" : 0.07358870655298233,
-				"y" : 0.48460659384727478
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.023475753143429756,
-				"mode" : 0,
-				"name" : "Data scadenza",
-				"page" : 1,
-				"script" : "data_scadenza=$date(@,\"DD/MM/YYYY\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.23481972515583038,
-				"x" : 0.70683109760284424,
-				"y" : 0.45945402979850769
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.016391105949878693,
-				"mode" : 0,
-				"name" : "Codice POD",
-				"page" : 1,
-				"script" : "codice_pod",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.23084677755832672,
-				"x" : 0.69959676265716553,
-				"y" : 0.33851194381713867
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.020074838772416115,
-				"mode" : 0,
-				"name" : "Indirizzo fornitura",
-				"page" : 1,
-				"script" : "indirizzo_fornitura",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.43616539239883423,
-				"x" : 0.49295777082443237,
-				"y" : 0.3541201651096344
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.033494867384433746,
-				"mode" : 0,
-				"name" : "Totale spesa",
-				"page" : 1,
-				"script" : "%totale_fattura",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.36794355511665344,
-				"x" : 0.31451612710952759,
-				"y" : 0.43543326854705811
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.053591791540384293,
-				"mode" : 1,
-				"name" : "Potenza Impegnata",
-				"page" : 2,
-				"script" : "%potenza[0:2]=$search(@,\"Potenza impegnata: $NUMBER\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.26752617955207825,
-				"x" : 0.69460111856460571,
-				"y" : 0.085518814623355865
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.53847414255142212,
-				"mode" : 1,
-				"name" : "Energia Attiva",
-				"page" : 2,
-				"script" : "### Il rettangolo e' alto perche' il layout shifta verticalmente.\n\n$with($search(@,\"ENERGIA ATTIVA[^]+?F1 F2 F3\\n((.+ $NUMBER $NUMBER $NUMBER\\n)+)\")) {\n  $tokens($search(@,$format(\"{0} \\\\w+ ($NUMBER $NUMBER $NUMBER)\",$date_format(mese_fattura,\"MON - YY\")))) {\n    %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]\n  }\n}",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.35085326433181763,
-				"x" : 0.058017726987600327,
-				"y" : 0.38426452875137329
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.5330120325088501,
-				"mode" : 1,
-				"name" : "Energia Reattiva",
-				"page" : 2,
-				"script" : "### Il rettangolo e' alto perche' il layout shifta verticalmente\n\n$with($search(@,\"ENERGIA REATTIVA[^]+?F1 F2 F3\\n([^]+)\")) {\n  $tokens($search(@,$format(\"{0} ($NUMBER $NUMBER $NUMBER)\",$date_format(mese_fattura,\"MON - YY\")))) {\n    %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]\n  }\n}",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.23529410362243652,
-				"x" : 0.058017726987600327,
-				"y" : 0.38654503226280212
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.039094299077987671,
-				"mode" : 0,
-				"name" : "Parsing dati generali",
-				"page" : 3,
-				"script" : "$with(*contenuto_dettaglio) {\n$with($search(@,$format(\"{0}([^]+?FORNITURA DI {0} euro $NUMBER)\",$date_format(mese_fattura,\"MONTH YEAR\")))) {\n\n%pcv=$search(@,\"PCV euro/cliente/mese $NUMBER $NUMBER $NUMBER\",3)\n%spesa_materia_energia=$search(@,\"DETTAGLIO DELLA SPESA PER LA MATERIA ENERGIA[^]+?$NUMBER DETTAGLIO\")\n%spesa_materia_energia=$search(@,\"DETTAGLIO DELLA SPESA PER L\\u2019ENERGIA ELETTRICA[^]+?$NUMBER DETTAGLIO\")\n%trasporto_gestione=$search(@,\"DETTAGLIO DELLA SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA[^]+?$NUMBER IMPOSTE\")\n\n%prezzo_energia[0]=$search(@,\"Prezzo F1 euro/kWh $NUMBER\")\n%prezzo_energia[1]=$search(@,\"Prezzo F2 euro/kWh $NUMBER\")\n%prezzo_energia[2]=$search(@,\"Prezzo F3 euro/kWh $NUMBER\")\n$tokens($coalesce(\n $search(@,\"Prezzo Picco euro/kWh ($NUMBER $NUMBER)\"),\n $search(@,\"Prezzo Ore Giorno euro/kWh ($NUMBER $NUMBER)\"))) {\n  %prezzo_energia[0] %energia_attiva:\n}\n$tokens($coalesce(\n $search(@,\"Prezzo Fuori Picco euro/kWh ($NUMBER $NUMBER)\"),\n $search(@,\"Prezzo Ore Notte euro/kWh ($NUMBER $NUMBER)\"))) {\n  %prezzo_energia[1] %energia_attiva[1]\n}\n%sbilanciamento=$search(@,\"Incremento prezzo euro/kWh $NUMBER\")\n%prezzo_energia[0:2]=$search(@,\"Prezzo energia euro/kWh $NUMBER\")\n%prezzo_energia[0:2]=$search(@,\"Prezzo energia monorario euro/kWh $NUMBER\")\n$inc(prezzo_energia[:],sbilanciamento)\n\n%imponibile=$search(@,\"$NUMBER$\")\n\n%penale_reattiva_inf75=$search(@,\"Energia Reattiva tra il \\\\d+% e 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER\",3)\n%penale_reattiva_sup75=$search(@,\"Energia Reattiva oltre il 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER\",3)\n\n%potenza[0:2]=$search(@,\"Quota Potenza euro/kW/mese $NUMBER $NUMBER\",2)\n%accise=$search(@,\"Imposta erariale.+ $NUMBER\\n\")\n\n}\n\n$lines($searchall(@,\"Corrispettivo Tariffario Specifico dal \\\\d+/\\\\d+/\\\\d+ al \\\\d+/\\\\d+/\\\\d+ $NUMBER\")) $inc(%cts,@)\niva=$search(@,\"Iva (\\\\d+%)\")\n}",
-				"spacers" : "",
-				"type" : 3,
-				"w" : 0.057987712323665619,
-				"x" : 0.26682156324386597,
-				"y" : 0.031981341540813446
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.044795569032430649,
-				"mode" : 0,
-				"name" : "Controllo prossima pagina",
-				"page" : 4,
-				"script" : "$if($isset(*mese_fine)) {\n  $if($neq(mese_fattura,*mese_fine)) {\n    $inc(*calc_mese)\n    $nextpage()\n    $goto(nome_fornitore)\n  }\n}",
-				"spacers" : "",
-				"type" : 3,
-				"w" : 0.057603687047958374,
-				"x" : 0.27073732018470764,
-				"y" : 0.028506271541118622
-			}
-		]
-	},
-	"version" : 1
+### Bill Layout Script
+
+### Box
+### Name Convalida Layout
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.07538145780563354
+### Y 0.3108103275299072
+### W 0.829196035861969
+### H 0.024828042834997177
+### Script
+$ifnot($eq(@,"BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO"))
+  $error("Layout Invalido")
+### End Script
+### End Box
+
+### Box
+### Name Lettura dati generali
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 3
+### X 0.04029010236263275
+### Y 0.0809578150510788
+### W 0.9105559587478638
+### H 0.8643101453781128
+### Goto Label lettura_dati
+### Spacers
+p+*page_offset
+### End Spacers
+### Script
+$ifnot($or($contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA"),$ate())) {
+  *!contenuto_dettaglio=$strcat(*contenuto_dettaglio,"\n",@)
+  $inc(*page_offset)
+  $goto(lettura_dati)
 }
+### End Script
+### End Box
+
+### Box
+### Name Nome Fornitore
+### Type DISABLED
+### Mode DEFAULT
+### Page 1
+### X 0.06129032373428345
+### Y 0.04104902967810631
+### W 0.3612903356552124
+### H 0.08323831111192703
+### Goto Label nome_fornitore
+### Script
+fornitore="Sorgenia"
+### End Script
+### End Box
+
+### Box
+### Name Numero cliente
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 1
+### X 0.4848197400569916
+### Y 0.010436194017529488
+### W 0.464895635843277
+### H 0.0771346166729927
+### Script
+numero_cliente=$search(@,"CODICE CLIENTE (.+)\n")
+### End Script
+### End Box
+
+### Box
+### Name Ragione sociale
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.07661290466785431
+### Y 0.15037056803703308
+### W 0.3881048262119293
+### H 0.028506269678473473
+### Script
+ragione_sociale
+### End Script
+### End Box
+
+### Box
+### Name Numero fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.24596774578094482
+### Y 0.3385692834854126
+### W 0.21572580933570862
+### H 0.017103761434555054
+### Script
+numero_fattura
+### End Script
+### End Box
+
+### Box
+### Name Data fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.24596774578094482
+### Y 0.35495221614837646
+### W 0.21572580933570862
+### H 0.017103761434555054
+### Script
+data_fattura=$date(@,"DD/MM/YYYY")
+### End Script
+### End Box
+
+### Box
+### Name Periodo
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.07358870655298233
+### Y 0.4846065938472748
+### W 0.3114919364452362
+### H 0.0235176719725132
+### Script
+mese_fattura=$date(@,"MONTH YEAR")
+*mese_fine=$date(@,"MONTH YEAR/MONTH YEAR",2)
+mese_fattura=$month_add(mese_fattura,*calc_mese)
+$ifnot($isset(mese_fattura)) {
+  $error("Layout Invalido")
+}
+### End Script
+### End Box
+
+### Box
+### Name Data scadenza
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.7068310976028442
+### Y 0.4594540297985077
+### W 0.23481972515583038
+### H 0.023475753143429756
+### Script
+data_scadenza=$date(@,"DD/MM/YYYY")
+### End Script
+### End Box
+
+### Box
+### Name Codice POD
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.6995967626571655
+### Y 0.33851194381713867
+### W 0.23084677755832672
+### H 0.016391105949878693
+### Script
+codice_pod
+### End Script
+### End Box
+
+### Box
+### Name Indirizzo fornitura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.4929577708244324
+### Y 0.3541201651096344
+### W 0.43616539239883423
+### H 0.020074838772416115
+### Script
+indirizzo_fornitura
+### End Script
+### End Box
+
+### Box
+### Name Totale spesa
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.3145161271095276
+### Y 0.4354332685470581
+### W 0.36794355511665344
+### H 0.033494867384433746
+### Script
+%totale_fattura
+### End Script
+### End Box
+
+### Box
+### Name Potenza Impegnata
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### X 0.6946011185646057
+### Y 0.08551881462335587
+### W 0.26752617955207825
+### H 0.05359179154038429
+### Script
+%potenza[0:2]=$search(@,"Potenza impegnata: $NUMBER")
+### End Script
+### End Box
+
+### Box
+### Name Energia Attiva
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### X 0.05801772698760033
+### Y 0.3842645287513733
+### W 0.3508532643318176
+### H 0.5384741425514221
+### Script
+### Il rettangolo e' alto perche' il layout shifta verticalmente.
+
+$with($search(@,"ENERGIA ATTIVA[^]+?F1 F2 F3\n((.+ $NUMBER $NUMBER $NUMBER\n)+)")) {
+  $tokens($search(@,$format("{0} \\w+ ($NUMBER $NUMBER $NUMBER)",$date_format(mese_fattura,"MON - YY")))) {
+    %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]
+  }
+}
+### End Script
+### End Box
+
+### Box
+### Name Energia Reattiva
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### X 0.05801772698760033
+### Y 0.3865450322628021
+### W 0.23529410362243652
+### H 0.5330120325088501
+### Script
+### Il rettangolo e' alto perche' il layout shifta verticalmente
+
+$with($search(@,"ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)")) {
+  $tokens($search(@,$format("{0} ($NUMBER $NUMBER $NUMBER)",$date_format(mese_fattura,"MON - YY")))) {
+    %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
+  }
+}
+### End Script
+### End Box
+
+### Box
+### Name Parsing dati generali
+### Type DISABLED
+### Mode DEFAULT
+### Page 3
+### X 0.26682156324386597
+### Y 0.031981341540813446
+### W 0.05798771232366562
+### H 0.03909429907798767
+### Script
+$with(*contenuto_dettaglio) {
+  $with($search(@,$format("{0}([^]+?FORNITURA DI {0} euro $NUMBER)",$date_format(mese_fattura,"MONTH YEAR")))) {
+
+    %pcv=$search(@,"PCV euro/cliente/mese $NUMBER $NUMBER $NUMBER",3)
+    %spesa_materia_energia=$search(@,"DETTAGLIO DELLA SPESA PER LA MATERIA ENERGIA[^]+?$NUMBER DETTAGLIO")
+    %spesa_materia_energia=$search(@,"DETTAGLIO DELLA SPESA PER L\u2019ENERGIA ELETTRICA[^]+?$NUMBER DETTAGLIO")
+    %trasporto_gestione=$search(@,"DETTAGLIO DELLA SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA[^]+?$NUMBER IMPOSTE")
+
+    %prezzo_energia[0]=$search(@,"Prezzo F1 euro/kWh $NUMBER")
+    %prezzo_energia[1]=$search(@,"Prezzo F2 euro/kWh $NUMBER")
+    %prezzo_energia[2]=$search(@,"Prezzo F3 euro/kWh $NUMBER")
+    $tokens($coalesce(
+    $search(@,"Prezzo Picco euro/kWh ($NUMBER $NUMBER)"),
+    $search(@,"Prezzo Ore Giorno euro/kWh ($NUMBER $NUMBER)"))) {
+      %prezzo_energia[0] %energia_attiva:
+    }
+    $tokens($coalesce(
+    $search(@,"Prezzo Fuori Picco euro/kWh ($NUMBER $NUMBER)"),
+    $search(@,"Prezzo Ore Notte euro/kWh ($NUMBER $NUMBER)"))) {
+      %prezzo_energia[1] %energia_attiva[1]
+    }
+    %sbilanciamento=$search(@,"Incremento prezzo euro/kWh $NUMBER")
+    %prezzo_energia[0:2]=$search(@,"Prezzo energia euro/kWh $NUMBER")
+    %prezzo_energia[0:2]=$search(@,"Prezzo energia monorario euro/kWh $NUMBER")
+    $inc(prezzo_energia[:],sbilanciamento)
+
+    %imponibile=$search(@,"$NUMBER$")
+
+    %penale_reattiva_inf75=$search(@,"Energia Reattiva tra il \\d+% e 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER",3)
+    %penale_reattiva_sup75=$search(@,"Energia Reattiva oltre il 75% attiva euro/kVARh $NUMBER $NUMBER $NUMBER",3)
+
+    %potenza[0:2]=$search(@,"Quota Potenza euro/kW/mese $NUMBER $NUMBER",2)
+    %accise=$search(@,"Imposta erariale.+ $NUMBER\n")
+  }
+
+  $lines($searchall(@,"Corrispettivo Tariffario Specifico dal \\d+/\\d+/\\d+ al \\d+/\\d+/\\d+ $NUMBER")) $inc(%cts,@)
+  iva=$search(@,"Iva (\\d+%)")
+}
+### End Script
+### End Box
+
+### Box
+### Name Controllo prossima pagina
+### Type DISABLED
+### Mode DEFAULT
+### Page 4
+### X 0.27073732018470764
+### Y 0.028506271541118622
+### W 0.057603687047958374
+### H 0.04479556903243065
+### Script
+$if($isset(*mese_fine)) {
+  $if($neq(mese_fattura,*mese_fine)) {
+    $inc(*calc_mese)
+    $nextpage()
+    $goto(nome_fornitore)
+  }
+}
+### End Script
+### End Box

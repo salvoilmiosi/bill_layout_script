@@ -1,139 +1,190 @@
-{
-	"layout" : 
-	{
-		"boxes" : 
-		[
-			{
-				"goto_label" : "",
-				"h" : 0.099255584180355072,
-				"mode" : 0,
-				"name" : "Convalida Layout",
-				"page" : 1,
-				"script" : "$ifnot($contains(@,\"www.italpowerenergia.it\"))\n  $error(\"Layout Invalido\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.44484913349151611,
-				"x" : 0.014308013021945953,
-				"y" : 0.15623565018177032
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.084378562867641449,
-				"mode" : 0,
-				"name" : "Nome Fornitore",
-				"page" : 1,
-				"script" : "fornitore=\"Italpower\"",
-				"spacers" : "",
-				"type" : 3,
-				"w" : 0.35483869910240173,
-				"x" : 0.019354838877916336,
-				"y" : 0.014823260717093945
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.076332628726959229,
-				"mode" : 0,
-				"name" : "Numero fattura",
-				"page" : 1,
-				"script" : "numero_fattura=$search(@,\"Fattura Numero: (.+)\\n\")\ndata_fattura=$date(@,\"Data Fattura: DD/MM/YYYY\")\ndata_scadenza=$date(@,\"Scadenza Fattura: DD/MM/YYYY\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.29507052898406982,
-				"x" : 0.016757436096668243,
-				"y" : 0.31090840697288513
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.27987974882125854,
-				"mode" : 2,
-				"name" : "Sintesi valori",
-				"page" : 1,
-				"script" : "%totale_fattura=$search(@,\"Totale Fattura \\u20ac $NUMBER\")\niva=$search(@,\"IVA (\\\\d+%)\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.65607798099517822,
-				"x" : 0.33064517378807068,
-				"y" : 0.3014754056930542
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.25184738636016846,
-				"mode" : 2,
-				"name" : "Dati cliente",
-				"page" : 1,
-				"script" : "numero_cliente=$search(@,\"Codice cliente (.+)\\n\")\nragione_sociale=$search(@,\"Ragione sociale (.+)\\n\")",
-				"spacers" : "",
-				"type" : 0,
-				"w" : 0.48646837472915649,
-				"x" : 0.016757436096668243,
-				"y" : 0.58038771152496338
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.037628278136253357,
-				"mode" : 0,
-				"name" : "Periodo",
-				"page" : 2,
-				"script" : "mese_fattura=$date(@,\"Dettaglio consumi mese di MONTH YEAR\")",
-				"spacers" : "p+*page_offset",
-				"type" : 0,
-				"w" : 0.96612900495529175,
-				"x" : 0.020864790305495262,
-				"y" : 0.052815437316894531
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.11220685392618179,
-				"mode" : 2,
-				"name" : "Dati fornitura",
-				"page" : 2,
-				"script" : "codice_pod=$search(@,\"Codice POD (.+)\\n\")\nindirizzo_fornitura=$search($nospace(@),\"Indirizzo fornitura (.+) Opzione\")",
-				"spacers" : "p+*page_offset",
-				"type" : 0,
-				"w" : 0.48365300893783569,
-				"x" : 0.016346991062164307,
-				"y" : 0.12086658924818039
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.06718018651008606,
-				"mode" : 1,
-				"name" : "Energia attiva",
-				"page" : 2,
-				"script" : "$tokens($search(@,\"Misura ($NUMBER $NUMBER $NUMBER)\")) {\n  %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]\n}\n$tokens($search(@,\"Potenza \\\\(kW\\\\) ($NUMBER $NUMBER $NUMBER)\")) {\n  %potenza[0] %potenza[1] %potenza[2]\n}\n$tokens($search(@,\"Energia Reattiva \\\\(kVar\\\\) ($NUMBER $NUMBER $NUMBER)\")) {\n  %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]\n}",
-				"spacers" : "p+*page_offset",
-				"type" : 0,
-				"w" : 0.42495131492614746,
-				"x" : 0.50750839710235596,
-				"y" : 0.1362956166267395
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.69359004497528076,
-				"mode" : 1,
-				"name" : "Prezzi Energia",
-				"page" : 2,
-				"script" : "%spesa_materia_energia=$search(@,\"Servizi di Vendita $NUMBER\")\n%spesa_materia_energia=$search(@,\"Spesa Materia Prima $NUMBER\")\n%trasporto_gestione=$search(@,\"Servizi di Rete $NUMBER\")\n%trasporto_gestione=$search(@,\"Trasporto, Gestione Contatore e Oneri di Sistema $NUMBER\")\n%oneri=$search(@,\"Altri Oneri $NUMBER\")\n%accise=$search(@,\"Imposte.+Euro.+ $NUMBER\")\n%prezzo_energia[0]=$search(@,\"Energia F1.+ Euro $NUMBER\")\n%prezzo_energia[1]=$search(@,\"Energia F2.+ Euro $NUMBER\")\n%prezzo_energia[2]=$search(@,\"Energia F3.+ Euro $NUMBER\")\n%prezzo_energia[0]=$search(@,\"Energia Peak.+ Euro $NUMBER\")\n%prezzo_energia[1]=$search(@,\"Energia Off-Peak.+ Euro $NUMBER\")\n%pcv=$search(@,\"PCV .+ Euro $NUMBER\")\n%disp_var=$search(@,\"Dispacciamento Quota Variabile.+ Euro $NUMBER\")\n%penale_reattiva_inf75=$search(@,\"reattiva entro 75% .+ Euro $NUMBER $NUMBER\",2)\n%penale_reattiva_sup75=$search(@,\"reattiva oltre 75% .+ Euro $NUMBER $NUMBER\",2)\n%imponibile=$search(@,\"Totale periodo $NUMBER\")\n%potenza[0:2]=$search(@,\"Trasporto Quota Potenza \\u20ac/kW $NUMBER\")",
-				"spacers" : "p+*page_offset",
-				"type" : 0,
-				"w" : 0.97580647468566895,
-				"x" : 0.017741935327649117,
-				"y" : 0.25313571095466614
-			},
-			{
-				"goto_label" : "",
-				"h" : 0.026225769892334938,
-				"mode" : 0,
-				"name" : "Pagina successiva",
-				"page" : 3,
-				"script" : "$if($contains(@,\"Dettaglio consumi\")) {\n  $inc(*page_offset)\n  $nextpage()\n  $goto(0)\n}",
-				"spacers" : "p+*page_offset",
-				"type" : 0,
-				"w" : 0.96129035949707031,
-				"x" : 0.022580645978450775,
-				"y" : 0.055872291326522827
-			}
-		]
-	},
-	"version" : 1
+### Bill Layout Script
+
+### Box
+### Name Convalida Layout
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.014308013021945953
+### Y 0.15623565018177032
+### W 0.4448491334915161
+### H 0.09925558418035507
+### Script
+$ifnot($contains(@,"www.italpowerenergia.it"))
+  $error("Layout Invalido")
+### End Script
+### End Box
+
+### Box
+### Name Nome Fornitore
+### Type DISABLED
+### Mode DEFAULT
+### Page 1
+### X 0.019354838877916336
+### Y 0.014823260717093945
+### W 0.35483869910240173
+### H 0.08437856286764145
+### Script
+fornitore="Italpower"
+### End Script
+### End Box
+
+### Box
+### Name Numero fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.016757436096668243
+### Y 0.31090840697288513
+### W 0.2950705289840698
+### H 0.07633262872695923
+### Script
+numero_fattura=$search(@,"Fattura Numero: (.+)\n")
+data_fattura=$date(@,"Data Fattura: DD/MM/YYYY")
+data_scadenza=$date(@,"Scadenza Fattura: DD/MM/YYYY")
+### End Script
+### End Box
+
+### Box
+### Name Sintesi valori
+### Type RECTANGLE
+### Mode RAW
+### Page 1
+### X 0.3306451737880707
+### Y 0.3014754056930542
+### W 0.6560779809951782
+### H 0.27987974882125854
+### Script
+%totale_fattura=$search(@,"Totale Fattura \u20ac $NUMBER")
+iva=$search(@,"IVA (\\d+%)")
+### End Script
+### End Box
+
+### Box
+### Name Dati cliente
+### Type RECTANGLE
+### Mode RAW
+### Page 1
+### X 0.016757436096668243
+### Y 0.5803877115249634
+### W 0.4864683747291565
+### H 0.25184738636016846
+### Script
+numero_cliente=$search(@,"Codice cliente (.+)\n")
+ragione_sociale=$search(@,"Ragione sociale (.+)\n")
+### End Script
+### End Box
+
+### Box
+### Name Periodo
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 2
+### X 0.020864790305495262
+### Y 0.05281543731689453
+### W 0.9661290049552917
+### H 0.03762827813625336
+### Spacers
+p+*page_offset
+### End Spacers
+### Script
+mese_fattura=$date(@,"Dettaglio consumi mese di MONTH YEAR")
+### End Script
+### End Box
+
+### Box
+### Name Dati fornitura
+### Type RECTANGLE
+### Mode RAW
+### Page 2
+### X 0.016346991062164307
+### Y 0.12086658924818039
+### W 0.4836530089378357
+### H 0.1122068539261818
+### Spacers
+p+*page_offset
+### End Spacers
+### Script
+codice_pod=$search(@,"Codice POD (.+)\n")
+indirizzo_fornitura=$search($nospace(@),"Indirizzo fornitura (.+) Opzione")
+### End Script
+### End Box
+
+### Box
+### Name Energia attiva
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### X 0.507508397102356
+### Y 0.1362956166267395
+### W 0.42495131492614746
+### H 0.06718018651008606
+### Spacers
+p+*page_offset
+### End Spacers
+### Script
+$tokens($search(@,"Misura ($NUMBER $NUMBER $NUMBER)")) {
+  %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]
 }
+$tokens($search(@,"Potenza \\(kW\\) ($NUMBER $NUMBER $NUMBER)")) {
+  %potenza[0] %potenza[1] %potenza[2]
+}
+$tokens($search(@,"Energia Reattiva \\(kVar\\) ($NUMBER $NUMBER $NUMBER)")) {
+  %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
+}
+### End Script
+### End Box
+
+### Box
+### Name Prezzi Energia
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### X 0.017741935327649117
+### Y 0.25313571095466614
+### W 0.975806474685669
+### H 0.6935900449752808
+### Spacers
+p+*page_offset
+### End Spacers
+### Script
+%spesa_materia_energia=$search(@,"Servizi di Vendita $NUMBER")
+%spesa_materia_energia=$search(@,"Spesa Materia Prima $NUMBER")
+%trasporto_gestione=$search(@,"Servizi di Rete $NUMBER")
+%trasporto_gestione=$search(@,"Trasporto, Gestione Contatore e Oneri di Sistema $NUMBER")
+%oneri=$search(@,"Altri Oneri $NUMBER")
+%accise=$search(@,"Imposte.+Euro.+ $NUMBER")
+%prezzo_energia[0]=$search(@,"Energia F1.+ Euro $NUMBER")
+%prezzo_energia[1]=$search(@,"Energia F2.+ Euro $NUMBER")
+%prezzo_energia[2]=$search(@,"Energia F3.+ Euro $NUMBER")
+%prezzo_energia[0]=$search(@,"Energia Peak.+ Euro $NUMBER")
+%prezzo_energia[1]=$search(@,"Energia Off-Peak.+ Euro $NUMBER")
+%pcv=$search(@,"PCV .+ Euro $NUMBER")
+%disp_var=$search(@,"Dispacciamento Quota Variabile.+ Euro $NUMBER")
+%penale_reattiva_inf75=$search(@,"reattiva entro 75% .+ Euro $NUMBER $NUMBER",2)
+%penale_reattiva_sup75=$search(@,"reattiva oltre 75% .+ Euro $NUMBER $NUMBER",2)
+%imponibile=$search(@,"Totale periodo $NUMBER")
+%potenza[0:2]=$search(@,"Trasporto Quota Potenza \u20ac/kW $NUMBER")
+### End Script
+### End Box
+
+### Box
+### Name Pagina successiva
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 3
+### X 0.022580645978450775
+### Y 0.05587229132652283
+### W 0.9612903594970703
+### H 0.026225769892334938
+### Spacers
+p+*page_offset
+### End Spacers
+### Script
+$if($contains(@,"Dettaglio consumi")) {
+  $inc(*page_offset)
+  $nextpage()
+  $goto(0)
+}
+### End Script
+### End Box
