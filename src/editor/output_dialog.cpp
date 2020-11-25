@@ -6,6 +6,7 @@
 
 #include "resources.h"
 #include "editor.h"
+#include "compile_error_diag.h"
 
 enum {
     CTL_DEBUG,
@@ -15,6 +16,7 @@ enum {
 };
 
 wxDEFINE_EVENT(wxEVT_COMMAND_READ_COMPLETE, wxThreadEvent);
+wxDEFINE_EVENT(wxEVT_COMMAND_COMPILE_ERROR, wxThreadEvent);
 BEGIN_EVENT_TABLE(output_dialog, wxDialog)
     EVT_MENU(TOOL_UPDATE, output_dialog::OnClickUpdate)
     EVT_MENU(TOOL_ABORT, output_dialog::OnClickAbort)
@@ -22,6 +24,7 @@ BEGIN_EVENT_TABLE(output_dialog, wxDialog)
     EVT_COMBOBOX (CTL_OUTPUT_PAGE, output_dialog::OnUpdate)
     EVT_TEXT_ENTER (CTL_OUTPUT_PAGE, output_dialog::OnUpdate)
     EVT_COMMAND(wxID_ANY, wxEVT_COMMAND_READ_COMPLETE, output_dialog::OnReadCompleted)
+    EVT_COMMAND(wxID_ANY, wxEVT_COMMAND_COMPILE_ERROR, output_dialog::OnCompileError)
 END_EVENT_TABLE()
 
 DECLARE_RESOURCE(tool_reload_png)
@@ -100,7 +103,9 @@ wxThread::ExitCode reader_thread::Entry() {
     process.reset();
 
     if (!compile_output.empty()) {
-        wxMessageBox("Errore nella compilazione:\n" + compile_output, "Errore", wxICON_ERROR);
+        wxCriticalSectionLocker lock(parent->m_thread_cs);
+        parent->compile_output = compile_output;
+        wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR));
         return (wxThread::ExitCode) 1;
     }
 
@@ -157,6 +162,10 @@ void output_dialog::compileAndRead() {
         m_page->Clear();
         m_list_ctrl->ClearAll();
     }
+}
+
+void output_dialog::OnCompileError(wxCommandEvent &evt) {
+    CompileErrorDialog(this, compile_output).ShowModal();
 }
 
 void output_dialog::OnReadCompleted(wxCommandEvent &evt) {

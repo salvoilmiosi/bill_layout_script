@@ -48,6 +48,7 @@ private:
 
     reader_thread *m_thread = nullptr;
     Json::Value json_output;
+    wxString compile_output;
     
     wxCriticalSection m_thread_cs;
 
@@ -56,6 +57,7 @@ private:
     void OnClickAbort(wxCommandEvent &evt);
 
     void OnReadCompleted(wxCommandEvent &evt);
+    void OnCompileError(wxCommandEvent &evt);
     void updateItems();
 
     DECLARE_EVENT_TABLE()

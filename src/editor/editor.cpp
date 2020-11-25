@@ -15,6 +15,7 @@
 #include "output_dialog.h"
 #include "resources.h"
 #include "clipboard.h"
+#include "compile_error_diag.h"
 
 #include "subprocess.h"
 
@@ -198,30 +199,30 @@ void frame_editor::OnNewFile(wxCommandEvent &evt) {
 }
 
 void frame_editor::openFile(const wxString &filename) {
-    try {
-        layout_filename = filename;
-        std::ifstream ifs(layout_filename.ToStdString());
-        layout.clear();
-        ifs >> layout;
-        ifs.close();
-        history.clear();
-        if (wxFileExists(m_doc.filename())) {
-            loadPdf(m_doc.filename());
-        }
-        updateLayout();
-        
-        static constexpr size_t MAX_RECENT_FILES_HISTORY = 10;
-        if (auto it = std::find(recentFiles.begin(), recentFiles.end(), layout_filename); it != recentFiles.end()) {
-            recentFiles.erase(it);
-        }
-        recentFiles.push_front(layout_filename);
-        if (recentFiles.size() > MAX_RECENT_FILES_HISTORY) {
-            recentFiles.pop_back();
-        }
-        updateRecentFiles(true);
-    } catch (const layout_error &error) {
-        wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
+    layout_filename = filename;
+    std::ifstream ifs(layout_filename.ToStdString());
+    layout.clear();
+    ifs >> layout;
+    if (ifs.fail()){
+        wxMessageBox("Impossibile aprire questo file", "Errore", wxOK | wxICON_ERROR);
+        return;
     }
+    ifs.close();
+    history.clear();
+    if (wxFileExists(m_doc.filename())) {
+        loadPdf(m_doc.filename());
+    }
+    updateLayout();
+    
+    static constexpr size_t MAX_RECENT_FILES_HISTORY = 10;
+    if (auto it = std::find(recentFiles.begin(), recentFiles.end(), layout_filename); it != recentFiles.end()) {
+        recentFiles.erase(it);
+    }
+    recentFiles.push_front(layout_filename);
+    if (recentFiles.size() > MAX_RECENT_FILES_HISTORY) {
+        recentFiles.pop_back();
+    }
+    updateRecentFiles(true);
 }
 
 void frame_editor::OnOpenFile(wxCommandEvent &evt) {
@@ -256,15 +257,14 @@ bool frame_editor::save(bool saveAs) {
 
         layout_filename = diag.GetPath().ToStdString();
     }
-    try {
-        std::ofstream ofs(layout_filename.ToStdString());
-        ofs << layout;
-        ofs.close();
-        modified = false;
-    } catch (const layout_error &error) {
-        wxMessageBox(error.message, "Errore", wxICON_ERROR);
+    std::ofstream ofs(layout_filename.ToStdString());
+    ofs << layout;
+    if (ofs.fail()) {
+        wxMessageBox("Impossibile salvare questo file", "Errore", wxICON_ERROR);
         return false;
     }
+    ofs.close();
+    modified = false;
     return true;
 }
 
@@ -480,7 +480,7 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
         
         std::string compile_output = process->read_all();
         if (!compile_output.empty()) {
-            wxMessageBox("Errore nella compilazione:\n" + compile_output, "Errore", wxICON_ERROR);
+            CompileErrorDialog(this, compile_output).ShowModal();
         }
     } catch (const process_error &error) {
         wxMessageBox(error.message, "Erorre", wxICON_ERROR);
