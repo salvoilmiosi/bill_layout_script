@@ -3,18 +3,14 @@
 
 #include <string>
 
-enum box_type {
-    BOX_RECTANGLE,
-    BOX_PAGE,
-    BOX_FILE,
-    BOX_DISABLED,
-};
+enum box_type                              { BOX_RECTANGLE, BOX_PAGE, BOX_FILE, BOX_DISABLED };
+constexpr const char *box_type_strings[] = { "RECTANGLE",   "PAGE",   "FILE",   "DISABLED" };
+constexpr const char *box_type_labels[] =  { "Rettangolo",  "Pagina", "File",   "Disabilitato" };
 
-enum read_mode {
-    MODE_DEFAULT,
-    MODE_LAYOUT,
-    MODE_RAW,
-};
+enum read_mode                              { MODE_DEFAULT, MODE_LAYOUT, MODE_RAW };
+constexpr const char *read_mode_strings[] = { "DEFAULT",    "LAYOUT",    "RAW" };
+constexpr const char *read_mode_labels[] =  { "Default",    "Layout",    "Grezza" };
+constexpr const char *read_mode_options[] = { nullptr,      "-layout",   "-raw" };
 
 struct pdf_rect {
     float x, y;

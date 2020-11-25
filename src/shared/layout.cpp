@@ -2,19 +2,6 @@
 
 #include <iostream>
 
-constexpr const char *BOX_TYPES[] = {
-    "RECTANGLE",
-    "PAGE",
-    "FILE",
-    "DISABLED"
-};
-
-constexpr const char *READ_MODES[] = {
-    "DEFAULT",
-    "LAYOUT",
-    "RAW"
-};
-
 std::ostream &operator << (std::ostream &output, const bill_layout_script &layout) {
     output << "### Bill Layout Script\n";
 
@@ -22,8 +9,8 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script &layou
         output << '\n';
         output << "### Box\n";
         output << "### Name " << box->name << '\n';
-        output << "### Type " << BOX_TYPES[box->type] << '\n';
-        output << "### Mode " << READ_MODES[box->mode] << '\n';
+        output << "### Type " << box_type_strings[box->type] << '\n';
+        output << "### Mode " << read_mode_strings[box->mode] << '\n';
         output << "### Page " << box->page << '\n';
         output << "### X " << box->x << '\n';
         output << "### Y " << box->y << '\n';
@@ -82,14 +69,14 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                     } else if (auto suf = suffix(line, "### Name")) {
                         current->name = suf.value;
                     } else if (auto suf = suffix(line, "### Type")) {
-                        for (size_t i=0; i<std::size(BOX_TYPES); ++i) {
-                            if (BOX_TYPES[i] == suf.value) {
+                        for (size_t i=0; i<std::size(box_type_strings); ++i) {
+                            if (box_type_strings[i] == suf.value) {
                                 current->type = static_cast<box_type>(i);
                             }
                         }
                     } else if (auto suf = suffix(line, "### Mode")) {
-                        for (size_t i=0; i<std::size(READ_MODES); ++i) {
-                            if (READ_MODES[i] == suf.value) {
+                        for (size_t i=0; i<std::size(read_mode_strings); ++i) {
+                            if (read_mode_strings[i] == suf.value) {
                                 current->mode = static_cast<read_mode>(i);
                             }
                         }

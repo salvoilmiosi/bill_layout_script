@@ -40,7 +40,6 @@ void pdf_document::open(const std::string &filename) {
     }
 }
 
-constexpr const char *modes[] = {nullptr, "-layout", "-raw"};
 constexpr float RESOLUTION = 300;
 constexpr float resolution_factor = RESOLUTION / 72.f;
 
@@ -87,7 +86,7 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
             return "";
         }
 
-        if (modes[rect.mode]) args[nargs++] = modes[rect.mode];
+        if (read_mode_options[rect.mode]) args[nargs++] = read_mode_options[rect.mode];
         args[nargs++] = m_filename.c_str();
         args[nargs++] = "-";
         

@@ -63,13 +63,17 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     m_box_name->SetValidator(wxTextValidator(wxFILTER_EMPTY));
     addLabelAndCtrl("Nome:", 0, m_box_name);
 
-    static const wxString box_types[] = {"Rettangolo", "Pagina", "File", "Disabilitato"};
-    m_box_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, std::size(box_types), box_types);
+    m_box_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    for (const char *str : box_type_labels) {
+        m_box_type->Append(str);
+    }
     m_box_type->SetToolTip("Contenuto");
     m_box_type->SetSelection(box.type);
 
-    static const wxString box_modes[] = {"Default", "Layout", "Grezza"};
-    m_box_mode = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, std::size(box_modes), box_modes);
+    m_box_mode = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    for (const char *str : read_mode_labels) {
+        m_box_mode->Append(str);
+    }
     m_box_mode->SetToolTip("Specifica il metodo di lettura");
     m_box_mode->SetSelection(box.mode);
 
