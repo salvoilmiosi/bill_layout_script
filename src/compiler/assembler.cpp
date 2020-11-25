@@ -17,15 +17,11 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
     }
 
     auto getgotoindex = [&](const std::string &label) -> jump_address {
-        try {
-            return std::stoi(label);
-        } catch (const std::invalid_argument &) {
-            auto it = labels.find(label);
-            if (it == labels.end()) {
-                throw assembly_error(fmt::format("Etichetta sconosciuta: {0}", label));
-            } else {
-                return it->second;
-            }
+        auto it = labels.find(label);
+        if (it == labels.end()) {
+            throw assembly_error(fmt::format("Etichetta sconosciuta: {0}", label));
+        } else {
+            return it->second;
         }
     };
 

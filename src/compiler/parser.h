@@ -4,7 +4,6 @@
 #include <vector>
 #include <map>
 
-#include <json/json.h>
 #include <fmt/core.h>
 
 #include "layout.h"

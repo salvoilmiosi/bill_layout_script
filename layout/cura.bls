@@ -9,6 +9,7 @@
 ### Y 0.019384264945983887
 ### W 0.47580644488334656
 ### H 0.10718358308076859
+### Goto Label nome_fornitore
 ### Script
 fornitore="Cura"
 ### End Script
@@ -192,7 +193,7 @@ $if($or($contains(@,"RIEPILOGO IMPORTI"),$ate())) {
   $goto(dati_costi)
 } $else $if($contains(@,"DATI FORNITURA")) {
   $nextpage()
-  $goto(0)
+  $goto(nome_fornitore)
 }
 ### End Script
 ### End Box

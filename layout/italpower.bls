@@ -24,6 +24,7 @@ $ifnot($contains(@,"www.italpowerenergia.it"))
 ### Y 0.014823260717093945
 ### W 0.35483869910240173
 ### H 0.08437856286764145
+### Goto Label nome_fornitore
 ### Script
 fornitore="Italpower"
 ### End Script
@@ -184,7 +185,7 @@ p+*page_offset
 $if($contains(@,"Dettaglio consumi")) {
   $inc(*page_offset)
   $nextpage()
-  $goto(0)
+  $goto(nome_fornitore)
 }
 ### End Script
 ### End Box

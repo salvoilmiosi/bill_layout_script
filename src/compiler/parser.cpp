@@ -366,15 +366,8 @@ void parser::read_function() {
     case hash("goto"):
     {
         tokens.require(TOK_PAREN_BEGIN);
-        tokens.next();
-        switch (tokens.current().type) {
-        case TOK_IDENTIFIER:
-        case TOK_NUMBER:
-            add_line("JMP {0}", tokens.current().value);
-            break;
-        default:
-            throw parsing_error("Indirizzo goto invalido", tokens.getLocation(tokens.current()));
-        }
+        tokens.require(TOK_IDENTIFIER);
+        add_line("JMP {0}", tokens.current().value);
         tokens.require(TOK_PAREN_END);
         break;
     }

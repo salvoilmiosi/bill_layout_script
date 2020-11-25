@@ -24,6 +24,7 @@ $ifnot($eq(@,"Bolletta Energia Elettrica\nFornitura del Mercato Libero"))
 ### Y 0.014823260717093945
 ### W 0.1927141547203064
 ### H 0.06184878572821617
+### Goto Label nome_fornitore
 ### Script
 fornitore="Axpo"
 ### End Script
@@ -306,7 +307,7 @@ $inc(*next_page)
 $ifnot($ate()) {
   $if($contains(@,"Dati di fornitura")) {
     $nextpage()
-    $goto(0)
+    $goto(nome_fornitore)
   } $else {
     $goto(check_next)
   }
