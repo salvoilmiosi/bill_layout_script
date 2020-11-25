@@ -271,7 +271,6 @@ $with(*contenuto_dettaglio) {
     %sbilanciamento=$search(@,"Incremento prezzo euro/kWh ($NUMBER)")
     %prezzo_energia[0:2]=$search(@,"Prezzo energia euro/kWh ($NUMBER)")
     %prezzo_energia[0:2]=$search(@,"Prezzo energia monorario euro/kWh ($NUMBER)")
-    $inc(prezzo_energia[:],sbilanciamento)
 
     %imponibile=$search(@,"($NUMBER)$")
 

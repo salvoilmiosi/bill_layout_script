@@ -5,10 +5,10 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.03387096896767616
-### Y 0.028506271541118622
-### W 0.3403225839138031
-### H 0.11288483440876007
+### X 0.033871
+### Y 0.0285063
+### W 0.340323
+### H 0.112885
 ### Script
 $ifnot($contains(@,"Enel Energia - Mercato libero dell'energia")) {
   $error("Layout Invalido")
@@ -21,10 +21,10 @@ $ifnot($contains(@,"Enel Energia - Mercato libero dell'energia")) {
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 3
-### X 0.053306885063648224
-### Y 0.20998157560825348
-### W 0.3093039095401764
-### H 0.027190597727894783
+### X 0.0533069
+### Y 0.209982
+### W 0.309304
+### H 0.0271906
 ### Goto Label calcolo_offset
 ### Spacers
 p+*offset_dettaglio
@@ -44,10 +44,10 @@ $if($ate()) {
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 3
-### X 0.048197634518146515
-### Y 0.2155074179172516
-### W 0.7119903564453125
-### H 0.7604700326919556
+### X 0.0481976
+### Y 0.215507
+### W 0.71199
+### H 0.76047
 ### Goto Label dettaglio_costi
 ### Spacers
 p+*offset_dettaglio y-*spacer_dettaglio h+*spacer_dettaglio
@@ -62,10 +62,10 @@ p+*offset_dettaglio y-*spacer_dettaglio h+*spacer_dettaglio
 ### Type PAGE
 ### Mode DEFAULT
 ### Page 3
-### X 0.04834810644388199
-### Y 0.0057012541219592094
-### W 0.032232072204351425
-### H 0.2098061591386795
+### X 0.0483481
+### Y 0.00570125
+### W 0.0322321
+### H 0.209806
 ### Spacers
 p+*offset_dettaglio
 ### End Spacers
@@ -83,10 +83,10 @@ $ifnot($ate()) {
 ### Type DISABLED
 ### Mode DEFAULT
 ### Page 1
-### X 0.042548805475234985
-### Y 0.035523198544979095
-### W 0.042990148067474365
-### H 0.028506271541118622
+### X 0.0425488
+### Y 0.0355232
+### W 0.0429901
+### H 0.0285063
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Enel Energia"
@@ -98,10 +98,10 @@ fornitore="Enel Energia"
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.0462365597486496
-### Y 0.17179779708385468
-### W 0.4182795584201813
-### H 0.1603952795267105
+### X 0.0462366
+### Y 0.171798
+### W 0.41828
+### H 0.160395
 ### Script
 indirizzo_fornitura=$search($nospace(@),"Forniamo energia in (.+) Denominazione")
 %potenza[0:2]=$search(@,"Potenza contrattualmente impegnata ($NUMBER)")
@@ -113,10 +113,10 @@ indirizzo_fornitura=$search($nospace(@),"Forniamo energia in (.+) Denominazione"
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.0439792275428772
-### Y 0.6728495359420776
-### W 0.6890491247177124
-### H 0.16947562992572784
+### X 0.0439792
+### Y 0.67285
+### W 0.689049
+### H 0.169476
 ### Script
 %cts=$search(@,"CORRISPETTIVO TARIFFARIO SPECIFICO.+ ($NUMBER)")
 iva=$search(@,"IVA (\\d+%)")
@@ -130,10 +130,10 @@ iva=$search(@,"IVA Scissione Pagamenti (\\d+%)")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.519066333770752
-### Y 0.3686198592185974
-### W 0.21763145923614502
-### H 0.03592571243643761
+### X 0.519066
+### Y 0.36862
+### W 0.217631
+### H 0.0359257
 ### Script
 %totale_fattura
 ### End Script
@@ -144,10 +144,10 @@ iva=$search(@,"IVA Scissione Pagamenti (\\d+%)")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.3049049973487854
-### Y 0.39986878633499146
-### W 0.19443216919898987
-### H 0.015619874000549316
+### X 0.304905
+### Y 0.399869
+### W 0.194432
+### H 0.0156199
 ### Script
 data_fattura=$date(@,"DD/MM/YYYY")
 ### End Script
@@ -158,10 +158,10 @@ data_fattura=$date(@,"DD/MM/YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.6628369092941284
-### Y 0.4045547544956207
-### W 0.07401679456233978
-### H 0.011714905500411987
+### X 0.662837
+### Y 0.404555
+### W 0.0740168
+### H 0.0117149
 ### Script
 data_scadenza=$date(@,"DD/MM/YYYY")
 ### End Script
@@ -172,10 +172,10 @@ data_scadenza=$date(@,"DD/MM/YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.2798861563205719
-### Y 0.43061238527297974
-### W 0.22106261551380157
-### H 0.020122073590755463
+### X 0.279886
+### Y 0.430612
+### W 0.221063
+### H 0.0201221
 ### Script
 mese_fattura=$date(@,"MON\\. YEAR")
 *mese_fine=$date(@,"MON\\. YEAR - MON\\. YEAR",2)
@@ -192,10 +192,10 @@ $if($isset(*mese_fine)) {
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.054131682962179184
-### Y 0.3530091643333435
-### W 0.20437471568584442
-### H 0.021086830645799637
+### X 0.0541317
+### Y 0.353009
+### W 0.204375
+### H 0.0210868
 ### Script
 numero_cliente
 ### End Script
@@ -206,10 +206,10 @@ numero_cliente
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.05523641034960747
-### Y 0.39127784967422485
-### W 0.20768891274929047
-### H 0.017962856218218803
+### X 0.0552364
+### Y 0.391278
+### W 0.207689
+### H 0.0179629
 ### Script
 codice_pod
 ### End Script
@@ -220,10 +220,10 @@ codice_pod
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.3457799255847931
-### Y 0.3873728811740875
-### W 0.15355722606182098
-### H 0.012495899572968483
+### X 0.34578
+### Y 0.387373
+### W 0.153557
+### H 0.0124959
 ### Script
 numero_fattura
 ### End Script
@@ -234,10 +234,10 @@ numero_fattura
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.5015466213226318
-### Y 0.18353351950645447
-### W 0.397702157497406
-### H 0.031239748001098633
+### X 0.501547
+### Y 0.183534
+### W 0.397702
+### H 0.0312397
 ### Script
 ragione_sociale
 ### End Script
@@ -248,10 +248,10 @@ ragione_sociale
 ### Type PAGE
 ### Mode LAYOUT
 ### Page 2
-### X 0.05756983533501625
-### Y 0.42134714126586914
-### W 0.6868947148323059
-### H 0.09516942501068115
+### X 0.0575698
+### Y 0.421347
+### W 0.686895
+### H 0.0951694
 ### Script
 $if($contains(@,"Energia reattiva")) {
   $tokens($search(@,$strcat(mese,".+ $NUMBER $NUMBER $NUMBER ($NUMBER $NUMBER $NUMBER)"))) {
@@ -268,10 +268,10 @@ $if($contains(@,"Energia reattiva")) {
 ### Type DISABLED
 ### Mode DEFAULT
 ### Page 3
-### X 0.09037379920482635
-### Y 0.006313749589025974
-### W 0.1046302318572998
-### H 0.07937900722026825
+### X 0.0903738
+### Y 0.00631375
+### W 0.10463
+### H 0.079379
 ### Script
 $with(*contenuto_dettaglio_costi) {
   $tokens($search(@,$format("Energia fascia F1 dal \\d\\d/{0}.+kWh ($NUMBER $NUMBER)",mese))) {
@@ -293,6 +293,7 @@ $with(*contenuto_dettaglio_costi) {
     %penale_reattiva_inf75=$search(@,"entro il 75%.+ ($NUMBER)\n")
     %penale_reattiva_sup75=$search(@,"oltre il 75%.+ ($NUMBER)\n")
   }
+  %sbilanciamento=$search(@,$format("Corrispettivo di Sbilanciamento dal \\d\\d/{0}.+kWh ($NUMBER)",mese))
   %accise=$search(@,$format("Accisa sull'energia elettrica \\(entro 200000\\) dal \\d\\d/{0}.+kWh $NUMBER $NUMBER ($NUMBER)",mese))
 }
 ### End Script
@@ -303,10 +304,10 @@ $with(*contenuto_dettaglio_costi) {
 ### Type DISABLED
 ### Mode DEFAULT
 ### Page 3
-### X 0.19996283948421478
-### Y 0.009121970273554325
-### W 0.10128305852413177
-### H 0.07595828920602798
+### X 0.199963
+### Y 0.00912197
+### W 0.101283
+### H 0.0759583
 ### Script
 $with($search(*contenuto_dettaglio_costi,"SPESA PER L'ENERGIA([^]+Totale) spesa per l'energia")) {
   $lines($searchall(@,$format("al \\d\\d/{0}([^]+?)(dal|Totale)",mese))) {
@@ -335,10 +336,10 @@ $with($search(*contenuto_dettaglio_costi,"SPESA ONERI DI SISTEMA([^]+Totale) spe
 ### Type DISABLED
 ### Mode DEFAULT
 ### Page 3
-### X 0.315096914768219
-### Y 0.010049681179225445
-### W 0.04190169274806976
-### H 0.028506271541118622
+### X 0.315097
+### Y 0.0100497
+### W 0.0419017
+### H 0.0285063
 ### Script
 $if($isset(*mese_fine)) {
   $if($neq(mese_fattura,*mese_fine)) {

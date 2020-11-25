@@ -156,26 +156,22 @@ p+*page_offset
 $with($search(@,"Sbilanciamento\n((dal.+\n)+)")) {
   %sbilanciamento=$search(@,$format("dal \\d\\d\\.{0}.+Euro/kWh ($NUMBER)",mese))
 }
-$ifnot($isset(prezzo_energia)) {
- $with(
-  $coalesce(
-    $search(@,"Prezzo Energia\n((dal.+\n)+)"),
-    $search(@,"Prezzo Indicizzato\n((dal.+\n)+)"))
-  ){
-    $tokens($search(@,$format("dal \\d\\d\\.{0}.+ F1 Euro/kWh ($NUMBER $NUMBER)",mese)))
-      { %prezzo_energia[0] %energia_attiva[0] }
-    $tokens($search(@,$format("dal \\d\\d\\.{0}.+ F2 Euro/kWh ($NUMBER $NUMBER)",mese)))
-      { %prezzo_energia[1] %energia_attiva[1] }
-    $tokens($search(@,$format("dal \\d\\d\\.{0}.+ F3 Euro/kWh ($NUMBER $NUMBER)",mese)))
-      { %prezzo_energia[2] %energia_attiva[2] }
+$with(
+$coalesce(
+  $search(@,"Prezzo Energia\n((dal.+\n)+)"),
+  $search(@,"Prezzo Indicizzato\n((dal.+\n)+)"))
+){
+  $tokens($search(@,$format("dal \\d\\d\\.{0}.+ F1 Euro/kWh ($NUMBER $NUMBER)",mese)))
+    { %prezzo_energia[0] %energia_attiva[0] }
+  $tokens($search(@,$format("dal \\d\\d\\.{0}.+ F2 Euro/kWh ($NUMBER $NUMBER)",mese)))
+    { %prezzo_energia[1] %energia_attiva[1] }
+  $tokens($search(@,$format("dal \\d\\d\\.{0}.+ F3 Euro/kWh ($NUMBER $NUMBER)",mese)))
+    { %prezzo_energia[2] %energia_attiva[2] }
 
-    $tokens($search(@,$format("dal \\d\\d\\.{0}.+ PEAK Euro/kWh ($NUMBER $NUMBER)",mese)))
-      { %prezzo_energia[0] %energia_attiva[0] }
-    $tokens($search(@,$format("dal \\d\\d\\.{0}.+ OFFPEAK Euro/kWh ($NUMBER $NUMBER)",mese)))
-      { %prezzo_energia[1] %energia_attiva[1] }
-
-    $inc(prezzo_energia[:],sbilanciamento)
-  }
+  $tokens($search(@,$format("dal \\d\\d\\.{0}.+ PEAK Euro/kWh ($NUMBER $NUMBER)",mese)))
+    { %prezzo_energia[0] %energia_attiva[0] }
+  $tokens($search(@,$format("dal \\d\\d\\.{0}.+ OFFPEAK Euro/kWh ($NUMBER $NUMBER)",mese)))
+    { %prezzo_energia[1] %energia_attiva[1] }
 }
 
 $with($search(@,"Energia Reattiva entro 75%\n((dal.+\n)+)")) {
