@@ -5,10 +5,10 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.031192326918244362
-### Y 0.896568238735199
-### W 0.4665852189064026
-### H 0.10482951253652573
+### X 0.0311923269
+### Y 0.8965682387
+### W 0.4665852189
+### H 0.1048295125
 ### Script
 $ifnot($contains(@,"GREEN NETWORK S.p.A.\nSociet\u00e0 a Socio Unico"))
   $error("Layout Invalido")
@@ -20,10 +20,10 @@ $ifnot($contains(@,"GREEN NETWORK S.p.A.\nSociet\u00e0 a Socio Unico"))
 ### Type DISABLED
 ### Mode DEFAULT
 ### Page 1
-### X 0.020967742428183556
-### Y 0.01254275906831026
-### W 0.5112903118133545
-### H 0.0946408212184906
+### X 0.0209677424
+### Y 0.0125427591
+### W 0.5112903118
+### H 0.0946408212
 ### Script
 fornitore="Green network"
 ### End Script
@@ -34,10 +34,10 @@ fornitore="Green network"
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.09354838728904724
-### Y 0.11060433089733124
-### W 0.3080645203590393
-### H 0.03306727483868599
+### X 0.0935483873
+### Y 0.1106043309
+### W 0.3080645204
+### H 0.0330672748
 ### Script
 numero_fattura=$search(@,"Fattura n\\. (.+) ")
 data_fattura=$date(@,"DD/MM/YYYY")
@@ -49,10 +49,10 @@ data_fattura=$date(@,"DD/MM/YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0382547564804554
-### Y 0.20392948389053345
-### W 0.459057092666626
-### H 0.03069906122982502
+### X 0.0382547565
+### Y 0.2039294839
+### W 0.4590570927
+### H 0.0306990612
 ### Script
 conguaglio=$not($contains(@,"non"))
 ### End Script
@@ -63,10 +63,10 @@ conguaglio=$not($contains(@,"non"))
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.03928866982460022
-### Y 0.16592112183570862
-### W 0.2450372278690338
-### H 0.037277430295944214
+### X 0.0392886698
+### Y 0.1659211218
+### W 0.2450372279
+### H 0.0372774303
 ### Script
 mese_fattura=$date(@,"Fattura di MONTH YEAR")
 data_scadenza=$date(@,"scadenza DD MONTH YEAR")
@@ -78,10 +78,10 @@ data_scadenza=$date(@,"scadenza DD MONTH YEAR")
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.5236411690711975
-### Y 0.2999015748500824
-### W 0.4396818280220032
-### H 0.1975914090871811
+### X 0.5236411691
+### Y 0.2999015749
+### W 0.4396818280
+### H 0.1975914091
 ### Script
 %spesa_materia_energia=$search(@,"Spesa per la materia energia ($NUMBER)")
 %trasporto_gestione=$search(@,"Spesa per trasporto, gestione contatore e oneri sistema ($NUMBER)")
@@ -94,10 +94,10 @@ data_scadenza=$date(@,"scadenza DD MONTH YEAR")
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.041979674249887466
-### Y 0.5435716509819031
-### W 0.46067166328430176
-### H 0.10074818879365921
+### X 0.0419796742
+### Y 0.5435716510
+### W 0.4606716633
+### H 0.1007481888
 ### Script
 ragione_sociale=$search(@,"Ragione sociale: (.+)\n")
 ### End Script
@@ -108,10 +108,10 @@ ragione_sociale=$search(@,"Ragione sociale: (.+)\n")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 2
-### X 0.05634113773703575
-### Y 0.09997774660587311
-### W 0.54131680727005
-### H 0.10933911800384521
+### X 0.0563411377
+### Y 0.0999777466
+### W 0.5413168073
+### H 0.1093391180
 ### Script
 indirizzo_fornitura=$search(@,"Le stiamo fornendo energia elettrica in (.+)\n")
 numero_cliente=$search(@,"Codice cliente: ($NUMBER)")
@@ -125,10 +125,10 @@ codice_pod=$search(@,"POD: (.+)\n")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.04529385641217232
-### Y 0.7169522047042847
-### W 0.11599646508693695
-### H 0.03748774528503418
+### X 0.0452938564
+### Y 0.7169522047
+### W 0.1159964651
+### H 0.0374877453
 ### Script
 %iva $if(iva) iva=$strcat(iva,"%")
 ### End Script
@@ -139,10 +139,10 @@ codice_pod=$search(@,"POD: (.+)\n")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.26955369114875793
-### Y 0.7161712050437927
-### W 0.11599646508693695
-### H 0.03904968500137329
+### X 0.2695536911
+### Y 0.7161712050
+### W 0.1159964651
+### H 0.0390496850
 ### Script
 %imponibile
 ### End Script
@@ -153,10 +153,10 @@ codice_pod=$search(@,"POD: (.+)\n")
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 2
-### X 0.046473484486341476
-### Y 0.21838703751564026
-### W 0.9060928225517273
-### H 0.1700713038444519
+### X 0.0464734845
+### Y 0.2183870375
+### W 0.9060928226
+### H 0.1700713038
 ### Script
 $lines($search(@,"((\\d{2}/\\d{2}/\\d{4} \\d{2}/\\d{2}/\\d{4}.+Consumi.+\n)+)")) {
   $tokens($search(@,"($NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER $NUMBER)")) {
@@ -179,10 +179,10 @@ $lines($search(@,"((\\d{2}/\\d{2}/\\d{4} \\d{2}/\\d{2}/\\d{4}.+Consumi.+\n)+)"))
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 2
-### X 0.039170507341623306
-### Y 0.39094316959381104
-### W 0.7842165231704712
-### H 0.09936472773551941
+### X 0.0391705073
+### Y 0.3909431696
+### W 0.7842165232
+### H 0.0993647277
 ### Script
 $lines($search($strcat(@,"\n"),"((.+Erariale.+$NUMBER\n)+)")) {
   %accise=$search(@,".+ ($NUMBER)$")
@@ -195,10 +195,10 @@ $lines($search($strcat(@,"\n"),"((.+Erariale.+$NUMBER\n)+)")) {
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 5
-### X 0.551245391368866
-### Y 0.1724809855222702
-### W 0.10208247601985931
-### H 0.08732300996780396
+### X 0.5512453914
+### Y 0.1724809855
+### W 0.1020824760
+### H 0.0873230100
 ### Script
 $tokens(@) {
   %prezzo_energia[0] %prezzo_energia[1] %prezzo_energia[2]

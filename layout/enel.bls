@@ -5,10 +5,10 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.033871
-### Y 0.0285063
-### W 0.340323
-### H 0.112885
+### X 0.0338709690
+### Y 0.0285062715
+### W 0.3403225839
+### H 0.1128848344
 ### Script
 $ifnot($contains(@,"Enel Energia - Mercato libero dell'energia")) {
   $error("Layout Invalido")
@@ -21,10 +21,10 @@ $ifnot($contains(@,"Enel Energia - Mercato libero dell'energia")) {
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 3
-### X 0.0533069
-### Y 0.209982
-### W 0.309304
-### H 0.0271906
+### X 0.0533068851
+### Y 0.2099815756
+### W 0.3093039095
+### H 0.0271905977
 ### Goto Label calcolo_offset
 ### Spacers
 p+*offset_dettaglio
@@ -44,10 +44,10 @@ $if($ate()) {
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 3
-### X 0.0481976
-### Y 0.215507
-### W 0.71199
-### H 0.76047
+### X 0.0481976345
+### Y 0.2155074179
+### W 0.7119903564
+### H 0.7604700327
 ### Goto Label dettaglio_costi
 ### Spacers
 p+*offset_dettaglio y-*spacer_dettaglio h+*spacer_dettaglio
@@ -62,10 +62,10 @@ p+*offset_dettaglio y-*spacer_dettaglio h+*spacer_dettaglio
 ### Type PAGE
 ### Mode DEFAULT
 ### Page 3
-### X 0.0483481
-### Y 0.00570125
-### W 0.0322321
-### H 0.209806
+### X 0.0483481064
+### Y 0.0057012541
+### W 0.0322320722
+### H 0.2098061591
 ### Spacers
 p+*offset_dettaglio
 ### End Spacers
@@ -83,10 +83,10 @@ $ifnot($ate()) {
 ### Type DISABLED
 ### Mode DEFAULT
 ### Page 1
-### X 0.0425488
-### Y 0.0355232
-### W 0.0429901
-### H 0.0285063
+### X 0.0425488055
+### Y 0.0355231985
+### W 0.0429901481
+### H 0.0285062715
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Enel Energia"
@@ -98,10 +98,10 @@ fornitore="Enel Energia"
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.0462366
-### Y 0.171798
-### W 0.41828
-### H 0.160395
+### X 0.0462365597
+### Y 0.1717977971
+### W 0.4182795584
+### H 0.1603952795
 ### Script
 indirizzo_fornitura=$search($nospace(@),"Forniamo energia in (.+) Denominazione")
 %potenza[0:2]=$search(@,"Potenza contrattualmente impegnata ($NUMBER)")
@@ -113,10 +113,10 @@ indirizzo_fornitura=$search($nospace(@),"Forniamo energia in (.+) Denominazione"
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.0439792
-### Y 0.67285
-### W 0.689049
-### H 0.169476
+### X 0.0439792275
+### Y 0.6728495359
+### W 0.6890491247
+### H 0.1694756299
 ### Script
 %cts=$search(@,"CORRISPETTIVO TARIFFARIO SPECIFICO.+ ($NUMBER)")
 iva=$search(@,"IVA (\\d+%)")
@@ -130,10 +130,10 @@ iva=$search(@,"IVA Scissione Pagamenti (\\d+%)")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.519066
-### Y 0.36862
-### W 0.217631
-### H 0.0359257
+### X 0.5190663338
+### Y 0.3686198592
+### W 0.2176314592
+### H 0.0359257124
 ### Script
 %totale_fattura
 ### End Script
@@ -144,10 +144,10 @@ iva=$search(@,"IVA Scissione Pagamenti (\\d+%)")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.304905
-### Y 0.399869
-### W 0.194432
-### H 0.0156199
+### X 0.3049049973
+### Y 0.3998687863
+### W 0.1944321692
+### H 0.0156198740
 ### Script
 data_fattura=$date(@,"DD/MM/YYYY")
 ### End Script
@@ -158,10 +158,10 @@ data_fattura=$date(@,"DD/MM/YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.662837
-### Y 0.404555
-### W 0.0740168
-### H 0.0117149
+### X 0.6628369093
+### Y 0.4045547545
+### W 0.0740167946
+### H 0.0117149055
 ### Script
 data_scadenza=$date(@,"DD/MM/YYYY")
 ### End Script
@@ -172,10 +172,10 @@ data_scadenza=$date(@,"DD/MM/YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.279886
-### Y 0.430612
-### W 0.221063
-### H 0.0201221
+### X 0.2798861563
+### Y 0.4306123853
+### W 0.2210626155
+### H 0.0201220736
 ### Script
 mese_fattura=$date(@,"MON\\. YEAR")
 *mese_fine=$date(@,"MON\\. YEAR - MON\\. YEAR",2)
@@ -192,10 +192,10 @@ $if($isset(*mese_fine)) {
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0541317
-### Y 0.353009
-### W 0.204375
-### H 0.0210868
+### X 0.0541316830
+### Y 0.3530091643
+### W 0.2043747157
+### H 0.0210868306
 ### Script
 numero_cliente
 ### End Script
@@ -206,10 +206,10 @@ numero_cliente
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0552364
-### Y 0.391278
-### W 0.207689
-### H 0.0179629
+### X 0.0552364103
+### Y 0.3912778497
+### W 0.2076889127
+### H 0.0179628562
 ### Script
 codice_pod
 ### End Script
@@ -220,10 +220,10 @@ codice_pod
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.34578
-### Y 0.387373
-### W 0.153557
-### H 0.0124959
+### X 0.3457799256
+### Y 0.3873728812
+### W 0.1535572261
+### H 0.0124958996
 ### Script
 numero_fattura
 ### End Script
@@ -234,10 +234,10 @@ numero_fattura
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.501547
-### Y 0.183534
-### W 0.397702
-### H 0.0312397
+### X 0.5015466213
+### Y 0.1835335195
+### W 0.3977021575
+### H 0.0312397480
 ### Script
 ragione_sociale
 ### End Script
@@ -248,10 +248,10 @@ ragione_sociale
 ### Type PAGE
 ### Mode LAYOUT
 ### Page 2
-### X 0.0575698
-### Y 0.421347
-### W 0.686895
-### H 0.0951694
+### X 0.0575698353
+### Y 0.4213471413
+### W 0.6868947148
+### H 0.0951694250
 ### Script
 $if($contains(@,"Energia reattiva")) {
   $tokens($search(@,$strcat(mese,".+ $NUMBER $NUMBER $NUMBER ($NUMBER $NUMBER $NUMBER)"))) {
@@ -268,10 +268,10 @@ $if($contains(@,"Energia reattiva")) {
 ### Type DISABLED
 ### Mode DEFAULT
 ### Page 3
-### X 0.0903738
-### Y 0.00631375
-### W 0.10463
-### H 0.079379
+### X 0.0903737992
+### Y 0.0063137496
+### W 0.1046302319
+### H 0.0793790072
 ### Script
 $with(*contenuto_dettaglio_costi) {
   $tokens($search(@,$format("Energia fascia F1 dal \\d\\d/{0}.+kWh ($NUMBER $NUMBER)",mese))) {
@@ -304,10 +304,10 @@ $with(*contenuto_dettaglio_costi) {
 ### Type DISABLED
 ### Mode DEFAULT
 ### Page 3
-### X 0.199963
-### Y 0.00912197
-### W 0.101283
-### H 0.0759583
+### X 0.1999628395
+### Y 0.0091219703
+### W 0.1012830585
+### H 0.0759582892
 ### Script
 $with($search(*contenuto_dettaglio_costi,"SPESA PER L'ENERGIA([^]+Totale) spesa per l'energia")) {
   $lines($searchall(@,$format("al \\d\\d/{0}([^]+?)(dal|Totale)",mese))) {
@@ -336,10 +336,10 @@ $with($search(*contenuto_dettaglio_costi,"SPESA ONERI DI SISTEMA([^]+Totale) spe
 ### Type DISABLED
 ### Mode DEFAULT
 ### Page 3
-### X 0.315097
-### Y 0.0100497
-### W 0.0419017
-### H 0.0285063
+### X 0.3150969148
+### Y 0.0100496812
+### W 0.0419016927
+### H 0.0285062715
 ### Script
 $if($isset(*mese_fine)) {
   $if($neq(mese_fattura,*mese_fine)) {

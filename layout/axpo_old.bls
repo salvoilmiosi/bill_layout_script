@@ -5,10 +5,10 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.5398871898651123
-### Y 0.030786771327257156
-### W 0.3545528054237366
-### H 0.05587229132652283
+### X 0.5398871899
+### Y 0.0307867713
+### W 0.3545528054
+### H 0.0558722913
 ### Script
 $ifnot($eq(@,"Bolletta Energia Elettrica\nFornitura del Mercato Libero"))
   $error("Layout Invalido")
@@ -20,10 +20,10 @@ $ifnot($eq(@,"Bolletta Energia Elettrica\nFornitura del Mercato Libero"))
 ### Type DISABLED
 ### Mode DEFAULT
 ### Page 1
-### X 0.024193547666072845
-### Y 0.014823260717093945
-### W 0.1927141547203064
-### H 0.06184878572821617
+### X 0.0241935477
+### Y 0.0148232607
+### W 0.1927141547
+### H 0.0618487857
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Axpo"
@@ -35,10 +35,10 @@ fornitore="Axpo"
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.03548387065529823
-### Y 0.18015962839126587
-### W 0.4725806415081024
-### H 0.03306727483868599
+### X 0.0354838707
+### Y 0.1801596284
+### W 0.4725806415
+### H 0.0330672748
 ### Script
 numero_fattura=$search(@,"Fattura N\u00b0 (\\d+)")
 data_fattura=$date(@,"del DD\\.MM\\.YYYY")
@@ -50,10 +50,10 @@ data_fattura=$date(@,"del DD\\.MM\\.YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.5414746403694153
-### Y 0.09502090513706207
-### W 0.43266767263412476
-### H 0.04615300893783569
+### X 0.5414746404
+### Y 0.0950209051
+### W 0.4326676726
+### H 0.0461530089
 ### Script
 data_scadenza=$date(@,"DD\\.MM\\.YYYY")
 ### End Script
@@ -64,10 +64,10 @@ data_scadenza=$date(@,"DD\\.MM\\.YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.03548387065529823
-### Y 0.23147092759609222
-### W 0.20483870804309845
-### H 0.03192702308297157
+### X 0.0354838707
+### Y 0.2314709276
+### W 0.2048387080
+### H 0.0319270231
 ### Script
 mese_fattura=$date(@,"MONTH YEAR")
 ### End Script
@@ -78,10 +78,10 @@ mese_fattura=$date(@,"MONTH YEAR")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.24354839324951172
-### Y 0.25997719168663025
-### W 0.2564516067504883
-### H 0.03990878164768219
+### X 0.2435483932
+### Y 0.2599771917
+### W 0.2564516068
+### H 0.0399087816
 ### Script
 %totale_fattura
 ### End Script
@@ -92,10 +92,10 @@ mese_fattura=$date(@,"MONTH YEAR")
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.02150537632405758
-### Y 0.10642340779304504
-### W 0.49462366104125977
-### H 0.06176358833909035
+### X 0.0215053763
+### Y 0.1064234078
+### W 0.4946236610
+### H 0.0617635883
 ### Script
 numero_cliente=$search(@,"Codice Cliente: ($NUMBER)")
 ragione_sociale=$search(@,".+\n(.+)\n")
@@ -108,10 +108,10 @@ partita_iva=$search(@,"Part\\.IVA (.+)\n")
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.0672043040394783
-### Y 0.615035355091095
-### W 0.421836256980896
-### H 0.3049132227897644
+### X 0.0672043040
+### Y 0.6150353551
+### W 0.4218362570
+### H 0.3049132228
 ### Script
 $if($contains(@,"Dati di fornitura")) {
   indirizzo_fornitura=$search($nospace(@),"Indirizzo (.+\\d{5}.+\\(.{2}\\))")
@@ -128,10 +128,10 @@ $if($contains(@,"Dati di fornitura")) {
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.06617039442062378
-### Y 0.32745665311813354
-### W 0.42907363176345825
-### H 0.23354679346084595
+### X 0.0661703944
+### Y 0.3274566531
+### W 0.4290736318
+### H 0.2335467935
 ### Script
 $ifnot(*spacer_multipod) {
   %spesa_materia_energia=$search(@,"Corrispettivi energia ($NUMBER)")
@@ -147,10 +147,10 @@ $ifnot(*spacer_multipod) {
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 2
-### X 0.04838709533214569
-### Y 0.5919802188873291
-### W 0.4419354796409607
-### H 0.3076777458190918
+### X 0.0483870953
+### Y 0.5919802189
+### W 0.4419354796
+### H 0.3076777458
 ### Script
 $ifnot(*spacer_multipod) {
   $lines($search(@,"Imposta Erariale ((.+ $NUMBER $NUMBER $NUMBER $NUMBER\n)+)")) {
@@ -166,10 +166,10 @@ $ifnot(*spacer_multipod) {
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 3
-### X 0.032059989869594574
-### Y 0.09432076662778854
-### W 0.45019805431365967
-### H 0.24091297388076782
+### X 0.0320599899
+### Y 0.0943207666
+### W 0.4501980543
+### H 0.2409129739
 ### Goto Label dati_fattura_multipod
 ### Spacers
 p+*next_page
@@ -188,10 +188,10 @@ $if(*spacer_multipod) {
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 3
-### X 0.4935483932495117
-### Y 0.09350056946277618
-### W 0.4564516246318817
-### H 0.16419611871242523
+### X 0.4935483932
+### Y 0.0935005695
+### W 0.4564516246
+### H 0.1641961187
 ### Spacers
 p+*next_page
 ### End Spacers
@@ -210,10 +210,10 @@ $if(*spacer_multipod) {
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 3
-### X 0.7768816947937012
-### Y 0.15203344821929932
-### W 0.1639784872531891
-### H 0.03895856812596321
+### X 0.7768816948
+### Y 0.1520334482
+### W 0.1639784873
+### H 0.0389585681
 ### Spacers
 p+*spacer_multipod p+*next_page
 ### End Spacers
@@ -227,10 +227,10 @@ p+*spacer_multipod p+*next_page
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 3
-### X 0.029032258316874504
-### Y 0.5256556272506714
-### W 0.4467741847038269
-### H 0.16761690378189087
+### X 0.0290322583
+### Y 0.5256556273
+### W 0.4467741847
+### H 0.1676169038
 ### Spacers
 p+*next_page
 ### End Spacers
@@ -249,10 +249,10 @@ $if(*spacer_multipod) {
 ### Type PAGE
 ### Mode LAYOUT
 ### Page 3
-### X 0.2290322184562683
-### Y 0.02764022722840309
-### W 0.04838714003562927
-### H 0.031652819365262985
+### X 0.2290322185
+### Y 0.0276402272
+### W 0.0483871400
+### H 0.0316528194
 ### Spacers
 p+*spacer_multipod p+*next_page
 ### End Spacers
@@ -290,10 +290,10 @@ $inc(%penale_reattiva_sup75,$search(@,"Energia Reattiva oltre il 75% F3.+ ($NUMB
 ### Type PAGE
 ### Mode DEFAULT
 ### Page 4
-### X 0.217741921544075
-### Y 0.03306727483868599
-### W 0.04838712513446808
-### H 0.03306727483868599
+### X 0.2177419215
+### Y 0.0330672748
+### W 0.0483871251
+### H 0.0330672748
 ### Goto Label check_next
 ### Spacers
 p+*next_page

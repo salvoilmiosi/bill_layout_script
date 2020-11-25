@@ -5,10 +5,10 @@
 ### Type FILE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0
-### Y 0.0
-### W 0.0
-### H 0.0
+### X 0.0000000000
+### Y 0.0000000000
+### W 0.0000000000
+### H 0.0000000000
 ### Script
 *layout=$ifl($contains(@,"Axpo Italia SpA"),$ifl($contains(@,"C/O MILANO CENTRO"),"axpo_old","axpo"))
 *layout=$ifl($contains(@,"Enel Energia"),"enel")

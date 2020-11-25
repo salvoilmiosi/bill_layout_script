@@ -5,10 +5,10 @@
 ### Type DISABLED
 ### Mode DEFAULT
 ### Page 1
-### X 0.0580645
-### Y 0.018244
-### W 0.35
-### H 0.114025
+### X 0.0580645017
+### Y 0.0182440002
+### W 0.3499999940
+### H 0.1140249968
 ### Script
 fornitore="Lenergia"
 ### End Script
@@ -19,10 +19,10 @@ fornitore="Lenergia"
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.512487
-### Y 0.0275867
-### W 0.474766
-### H 0.12414
+### X 0.5124869943
+### Y 0.0275867004
+### W 0.4747659862
+### H 0.1241400018
 ### Script
 numero_cliente=$search(@,"Codice Cliente: (.+)\n")
 numero_fattura=$search(@,"fattura n\\. (\\d+) ")
@@ -38,10 +38,10 @@ mese_fattura=$date(data_fine,"YYYY-MM")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.110562
-### Y 0.362306
-### W 0.332986
-### H 0.0358627
+### X 0.1105619967
+### Y 0.3623059988
+### W 0.3329859972
+### H 0.0358626992
 ### Script
 %totale_fattura
 ### End Script
@@ -52,10 +52,10 @@ mese_fattura=$date(data_fine,"YYYY-MM")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.112903
-### Y 0.420753
-### W 0.333871
-### H 0.0342075
+### X 0.1129029989
+### Y 0.4207530022
+### W 0.3338710070
+### H 0.0342075005
 ### Script
 data_scadenza=$date(@,"DD/MM/YYYY")
 ### End Script
@@ -66,10 +66,10 @@ data_scadenza=$date(@,"DD/MM/YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.105359
-### Y 0.220694
-### W 0.348595
-### H 0.0551734
+### X 0.1053590029
+### Y 0.2206940055
+### W 0.3485949934
+### H 0.0551734008
 ### Script
 ragione_sociale=$search(@,"^(.+)\n")
 indirizzo_fornitura=$substr($search($nospace(@),"(.+)C\\.F\\."),$add(1,$strlen(ragione_sociale)))
@@ -81,10 +81,10 @@ indirizzo_fornitura=$substr($search($nospace(@),"(.+)C\\.F\\."),$add(1,$strlen(r
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.51769
-### Y 0.340236
-### W 0.469563
-### H 0.205061
+### X 0.5176900029
+### Y 0.3402360082
+### W 0.4695630074
+### H 0.2050610036
 ### Script
 %spesa_materia_energia=$search(@,"Spesa per la materia Energia ($NUMBER)\n")
 %trasporto_gestione=$search(@,"Servizi di rete ($NUMBER)\n")
@@ -97,10 +97,10 @@ indirizzo_fornitura=$substr($search($nospace(@),"(.+)C\\.F\\."),$add(1,$strlen(r
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.516389
-### Y 0.570125
-### W 0.474766
-### H 0.0855188
+### X 0.5163890123
+### Y 0.5701249838
+### W 0.4747659862
+### H 0.0855187997
 ### Script
 iva=$search(@,"IVA (\\d+%)")
 %imponibile=$search(@,"IVA \\d+% ($NUMBER)")
@@ -112,10 +112,10 @@ iva=$search(@,"IVA (\\d+%)")
 ### Type FILE
 ### Mode LAYOUT
 ### Page 2
-### X 0.0684262
-### Y 0.0233233
-### W 0.904203
-### H 0.912296
+### X 0.0684261993
+### Y 0.0233232994
+### W 0.9042029977
+### H 0.9122959971
 ### Goto Label dati_consumi
 ### Script
 codice_pod=$search(@,"Codice punto di erogazione \\(POD\\): ([a-zA-Z0-9]+)")

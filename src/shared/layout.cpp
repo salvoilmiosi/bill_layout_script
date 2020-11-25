@@ -1,8 +1,14 @@
 #include "layout.h"
+#include "bytecode.h"
 
 #include <iostream>
+#include <iomanip>
 
 std::ostream &operator << (std::ostream &output, const bill_layout_script &layout) {
+    std::ios orig_state(nullptr);
+    orig_state.copyfmt(output);
+    output << std::fixed << std::setprecision(FLOAT_PRECISION);
+
     output << "### Bill Layout Script\n";
 
     for (auto &box : layout) {
@@ -28,6 +34,7 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script &layou
         output << "### End Box\n";
     }
 
+    output.copyfmt(orig_state);
     return output;
 }
 

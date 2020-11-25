@@ -5,11 +5,10 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.05250578373670578
-### Y 0.03126494213938713
-### W 0.40645161271095276
-### H 0.10442490875720978
-### Label 
+### X 0.0525057837
+### Y 0.0312649421
+### W 0.4064516127
+### H 0.1044249088
 ### Script
 $ifnot($contains(@,"Servizio di Maggior Tutela"))
   $error("Layout Invalido")
@@ -22,11 +21,10 @@ fornitore="SEN"
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.04896313324570656
-### Y 0.47035348415374756
-### W 0.30913978815078735
-### H 0.213118314743042
-### Label 
+### X 0.0489631332
+### Y 0.4703534842
+### W 0.3091397882
+### H 0.2131183147
 ### Script
 %spesa_materia_energia=$search(@,"Spesa per la materia energia \\(.\\) ($NUMBER)")
 %trasporto_gestione=$search(@,"Spesa per il trasporto dell'energia elettrica e la gestione del contatore \\(.\\) ($NUMBER)")
@@ -39,11 +37,10 @@ fornitore="SEN"
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.045122887939214706
-### Y 0.6943313479423523
-### W 0.6912442445755005
-### H 0.17103762924671173
-### Label 
+### X 0.0451228879
+### Y 0.6943313479
+### W 0.6912442446
+### H 0.1710376292
 ### Script
 %accise=$search(@,"Accisa.+kWh ($NUMBER)")
 iva=$search(@,"Importo IVA (\\d+%)")
@@ -56,11 +53,10 @@ iva=$search(@,"Importo IVA (\\d+%)")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.5078725218772888
-### Y 0.20293749868869781
-### W 0.460829496383667
-### H 0.12216973304748535
-### Label 
+### X 0.5078725219
+### Y 0.2029374987
+### W 0.4608294964
+### H 0.1221697330
 ### Script
 ragione_sociale=$search(@,"^(.+)\n")
 ### End Script
@@ -71,11 +67,10 @@ ragione_sociale=$search(@,"^(.+)\n")
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.04896313324570656
-### Y 0.14388880133628845
-### W 0.45890939235687256
-### H 0.19207797944545746
-### Label 
+### X 0.0489631332
+### Y 0.1438888013
+### W 0.4589093924
+### H 0.1920779794
 ### Script
 indirizzo_fornitura=$search($nospace(@),"Forniamo energia in (.+) Tariffa")
 %potenza_disponibile=$search(@,"Potenza disponibile ($NUMBER)")
@@ -87,11 +82,10 @@ indirizzo_fornitura=$search($nospace(@),"Forniamo energia in (.+) Tariffa")
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.05376344174146652
-### Y 0.33936038613319397
-### W 0.23329493403434753
-### H 0.08755497634410858
-### Label 
+### X 0.0537634417
+### Y 0.3393603861
+### W 0.2332949340
+### H 0.0875549763
 ### Script
 numero_cliente=$search(@,"CLIENTE\n(.+)\n")
 codice_pod=$search(@,"CODICE POD\n(.+)\n")
@@ -103,11 +97,10 @@ codice_pod=$search(@,"CODICE POD\n(.+)\n")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.2994067370891571
-### Y 0.34207525849342346
-### W 0.2048572450876236
-### H 0.1028847023844719
-### Label 
+### X 0.2994067371
+### Y 0.3420752585
+### W 0.2048572451
+### H 0.1028847024
 ### Script
 numero_fattura=$search(@,"N\\. Fattura (.+)\n")
 data_fattura=$date(@,"Del DD\\.MM\\.YYYY")
@@ -120,11 +113,10 @@ mese_fattura=$date(@,"MESE MON\\.YYYY$")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.512489914894104
-### Y 0.34093499183654785
-### W 0.2320709079504013
-### H 0.06955530494451523
-### Label 
+### X 0.5124899149
+### Y 0.3409349918
+### W 0.2320709080
+### H 0.0695553049
 ### Script
 %totale_fattura=$search(@,"TOTALE DA PAGARE ($NUMBER)")
 data_scadenza=$date(@,"DD\\.MM\\.YYYY")
@@ -136,11 +128,10 @@ data_scadenza=$date(@,"DD\\.MM\\.YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 2
-### X 0.18698734045028687
-### Y 0.2772417664527893
-### W 0.0607108473777771
-### H 0.028286993503570557
-### Label 
+### X 0.1869873405
+### Y 0.2772417665
+### W 0.0607108474
+### H 0.0282869935
 ### Script
 %energia_attiva[0]
 ### End Script
@@ -151,11 +142,10 @@ data_scadenza=$date(@,"DD\\.MM\\.YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 2
-### X 0.2522159516811371
-### Y 0.2765108346939087
-### W 0.06238552927970886
-### H 0.02755606174468994
-### Label 
+### X 0.2522159517
+### Y 0.2765108347
+### W 0.0623855293
+### H 0.0275560617
 ### Script
 %energia_attiva[1]
 ### End Script
@@ -166,11 +156,10 @@ data_scadenza=$date(@,"DD\\.MM\\.YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 2
-### X 0.31909751892089844
-### Y 0.2770809531211853
-### W 0.05962932109832764
-### H 0.02844780683517456
-### Label 
+### X 0.3190975189
+### Y 0.2770809531
+### W 0.0596293211
+### H 0.0284478068
 ### Script
 %energia_attiva[2]
 ### End Script
@@ -181,11 +170,10 @@ data_scadenza=$date(@,"DD\\.MM\\.YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 2
-### X 0.3859790563583374
-### Y 0.2759407162666321
-### W 0.05962932109832764
-### H 0.028126180171966553
-### Label 
+### X 0.3859790564
+### Y 0.2759407163
+### W 0.0596293211
+### H 0.0281261802
 ### Script
 %energia_reattiva[0]
 ### End Script
@@ -196,11 +184,10 @@ data_scadenza=$date(@,"DD\\.MM\\.YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 2
-### X 0.45447221398353577
-### Y 0.27702248096466064
-### W 0.05620160698890686
-### H 0.029237210750579834
-### Label 
+### X 0.4544722140
+### Y 0.2770224810
+### W 0.0562016070
+### H 0.0292372108
 ### Script
 %energia_reattiva[1]
 ### End Script
@@ -211,11 +198,10 @@ data_scadenza=$date(@,"DD\\.MM\\.YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 2
-### X 0.5189363360404968
-### Y 0.2753705680370331
-### W 0.06008988618850708
-### H 0.029427260160446167
-### Label 
+### X 0.5189363360
+### Y 0.2753705680
+### W 0.0600898862
+### H 0.0294272602
 ### Script
 %energia_reattiva[2]
 ### End Script
@@ -226,11 +212,10 @@ data_scadenza=$date(@,"DD\\.MM\\.YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 2
-### X 0.5842062830924988
-### Y 0.27423033118247986
-### W 0.06075495481491089
-### H 0.03056749701499939
-### Label 
+### X 0.5842062831
+### Y 0.2742303312
+### W 0.0607549548
+### H 0.0305674970
 ### Script
 %potenza[0:2]
 ### End Script
@@ -241,11 +226,10 @@ data_scadenza=$date(@,"DD\\.MM\\.YYYY")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 7
-### X 0.46207496523857117
-### Y 0.3705815374851227
-### W 0.07519616186618805
-### H 0.057012543082237244
-### Label 
+### X 0.4620749652
+### Y 0.3705815375
+### W 0.0751961619
+### H 0.0570125431
 ### Script
 $tokens(@) {
   %prezzo_energia[0] %prezzo_energia[1] %prezzo_energia[2]
