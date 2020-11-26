@@ -32,7 +32,7 @@ p+*offset_dettaglio
 ### Script
 $if($ate()) {
   $error("Layout Invalido: Dettaglio Importi Mancante")
-} $else $if($neq(@,"DETTAGLIO IMPORTI IN BOLLETTA")) {
+} $elif($neq(@,"DETTAGLIO IMPORTI IN BOLLETTA")) {
   $inc(*offset_dettaglio)
   $goto(calcolo_offset)
 }

@@ -191,7 +191,7 @@ p+*page_offset
 $inc(*page_offset)
 $if($or($contains(@,"RIEPILOGO IMPORTI"),$ate())) {
   $goto(dati_costi)
-} $else $if($contains(@,"DATI FORNITURA")) {
+} $elif($contains(@,"DATI FORNITURA")) {
   $nextpage()
   $goto(nome_fornitore)
 }

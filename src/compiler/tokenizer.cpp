@@ -42,6 +42,7 @@ bool tokenizer::next() {
         break;
     case '$':
         tok.type = TOK_FUNCTION;
+        ok = readIdentifier();
         break;
     case '"':
         tok.type = TOK_STRING;

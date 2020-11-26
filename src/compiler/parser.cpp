@@ -290,9 +290,8 @@ int parser::read_variable(bool read_only) {
 
 void parser::read_function() {
     tokens.require(TOK_FUNCTION);
-    tokens.require(TOK_IDENTIFIER);
     auto tok_fun_name = tokens.current();
-    std::string fun_name = std::string(tok_fun_name.value);
+    std::string fun_name = std::string(tok_fun_name.value.substr(1));
 
     auto var_function = [&](const auto & ... cmd) {
         tokens.require(TOK_PAREN_BEGIN);
@@ -311,31 +310,46 @@ void parser::read_function() {
     case hash("if"):
     case hash("ifnot"):
     {
-        std::string else_label = fmt::format("__else_{0}", output_asm.size());
         std::string endif_label = fmt::format("__endif_{0}", output_asm.size());
-        tokens.require(TOK_PAREN_BEGIN);
-        read_expression();
-        tokens.require(TOK_PAREN_END);
-        add_line(fun_name == "if" ? "JZ {0}" : "JNZ {0}", else_label);
-        read_statement();
-        tokens.next();
-        token tok_else = tokens.current();
-        bool has_else = false;
-        if (tokens.current().type == TOK_FUNCTION) {
-            tokens.next();
-            if (tokens.current().value == "else") {
-                has_else = true;
+        std::string else_label;
+        bool condition_positive = fun_name == "if";
+        bool in_loop = true;
+        bool has_endif = false;
+        while (in_loop) {
+            else_label = fmt::format("__else_{0}", output_asm.size());
+            tokens.require(TOK_PAREN_BEGIN);
+            read_expression();
+            tokens.require(TOK_PAREN_END);
+            add_line(condition_positive ? "JZ {0}" : "JNZ {0}", else_label);
+            read_statement();
+            tokens.peek();
+            if (tokens.current().type == TOK_FUNCTION) {
+                switch (hash(std::string(tokens.current().value.substr(1)))) {
+                case hash("else"):
+                    tokens.next();
+                    has_endif = true;
+                    add_line("JMP {0}", endif_label);
+                    add_line("{0}:", else_label);
+                    read_statement();
+                    in_loop = false;
+                    break;
+                case hash("elif"):
+                case hash("elifnot"):
+                    tokens.next();
+                    condition_positive = tokens.current().value.substr(1) == "elif";
+                    has_endif = true;
+                    add_line("JMP {0}", endif_label);
+                    add_line("{0}:", else_label);
+                    break;
+                default:
+                    in_loop = false;
+                }
+            } else {
+                in_loop = false;
             }
         }
-        if (has_else) {
-            add_line("JMP {0}", endif_label);
-            add_line("{0}:", else_label);
-            read_statement();
-            add_line("{0}:", endif_label);
-        } else {
-            add_line("{0}:", else_label);
-            tokens.gotoTok(tok_else);
-        }
+        add_line("{0}:", else_label);
+        if (has_endif) add_line("{0}:", endif_label);
         break;
     }
     case hash("while"):
