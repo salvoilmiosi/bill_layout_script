@@ -45,20 +45,6 @@ data_fattura=$date(@,"DD/MM/YYYY")
 ### End Box
 
 ### Box
-### Name Conguaglio
-### Type RECTANGLE
-### Mode DEFAULT
-### Page 1
-### X 0.0382547565
-### Y 0.2039294839
-### W 0.4590570927
-### H 0.0306990612
-### Script
-conguaglio=$not($contains(@,"non"))
-### End Script
-### End Box
-
-### Box
 ### Name Periodo
 ### Type RECTANGLE
 ### Mode DEFAULT
