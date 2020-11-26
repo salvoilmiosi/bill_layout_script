@@ -10,14 +10,14 @@
 ### W 0.0000000000
 ### H 0.0000000000
 ### Script
-*layout=$ifl($contains(@,"Axpo Italia SpA"),$ifl($contains(@,"C/O MILANO CENTRO"),"axpo_old","axpo"))
-*layout=$ifl($contains(@,"Enel Energia"),"enel")
-*layout=$ifl($contains(@,"ITALPOWER ENERGIA"),"italpower")
-*layout=$ifl($contains(@,"Sorgenia S.p.A"),"sorgenia")
-*layout=$ifl($contains(@,"www.lenergia.eu"),"lenergia")
-*layout=$ifl($contains(@,"Servizio Elettrico Nazionale SpA"),"sen")
-*layout=$ifl($contains(@,"GREEN NETWORK S.p.A"),"greennetwork")
-*layout=$ifl($contains(@,"CURA GAS & POWER S.p.A."),"cura")
+*layout=$if($contains(@,"Axpo Italia SpA"),$if($contains(@,"C/O MILANO CENTRO"),"axpo_old","axpo"))
+*layout=$if($contains(@,"Enel Energia"),"enel")
+*layout=$if($contains(@,"ITALPOWER ENERGIA"),"italpower")
+*layout=$if($contains(@,"Sorgenia S.p.A"),"sorgenia")
+*layout=$if($contains(@,"www.lenergia.eu"),"lenergia")
+*layout=$if($contains(@,"Servizio Elettrico Nazionale SpA"),"sen")
+*layout=$if($contains(@,"GREEN NETWORK S.p.A"),"greennetwork")
+*layout=$if($contains(@,"CURA GAS & POWER S.p.A."),"cura")
 $ifnot($isset(*layout))
   $error("Impossibile determinare il layout")
 ### End Script

@@ -113,7 +113,7 @@ void parser::read_statement() {
         tokens.advance();
         break;
     case TOK_FUNCTION:
-        read_function();
+        read_keyword();
         break;
     default:
     {
@@ -289,9 +289,8 @@ int parser::read_variable(bool read_only) {
 }
 
 void parser::read_function() {
-    tokens.require(TOK_FUNCTION);
-    auto tok_fun_name = tokens.current();
-    std::string fun_name = std::string(tok_fun_name.value.substr(1));
+    auto tok_fun_name = tokens.require(TOK_FUNCTION);
+    std::string fun_name(tok_fun_name.value.substr(1));
 
     auto var_function = [&](const auto & ... cmd) {
         tokens.require(TOK_PAREN_BEGIN);
@@ -306,185 +305,9 @@ void parser::read_function() {
         add_line(cmd ...);
     };
 
-    switch(hash(fun_name)) {
-    case hash("if"):
-    case hash("ifnot"):
-    {
-        std::string endif_label = fmt::format("__endif_{0}", output_asm.size());
-        std::string else_label;
-        bool condition_positive = fun_name == "if";
-        bool in_loop = true;
-        bool has_endif = false;
-        while (in_loop) {
-            else_label = fmt::format("__else_{0}", output_asm.size());
-            tokens.require(TOK_PAREN_BEGIN);
-            read_expression();
-            tokens.require(TOK_PAREN_END);
-            add_line(condition_positive ? "JZ {0}" : "JNZ {0}", else_label);
-            read_statement();
-            tokens.peek();
-            if (tokens.current().type == TOK_FUNCTION) {
-                switch (hash(std::string(tokens.current().value.substr(1)))) {
-                case hash("else"):
-                    tokens.next();
-                    has_endif = true;
-                    add_line("JMP {0}", endif_label);
-                    add_line("{0}:", else_label);
-                    read_statement();
-                    in_loop = false;
-                    break;
-                case hash("elif"):
-                case hash("elifnot"):
-                    tokens.next();
-                    condition_positive = tokens.current().value.substr(1) == "elif";
-                    has_endif = true;
-                    add_line("JMP {0}", endif_label);
-                    add_line("{0}:", else_label);
-                    break;
-                default:
-                    in_loop = false;
-                }
-            } else {
-                in_loop = false;
-            }
-        }
-        add_line("{0}:", else_label);
-        if (has_endif) add_line("{0}:", endif_label);
-        break;
-    }
-    case hash("while"):
-    {
-        std::string while_label = fmt::format("__while_{0}", output_asm.size());
-        std::string endwhile_label = fmt::format("__endwhile_{0}", output_asm.size());
-        tokens.require(TOK_PAREN_BEGIN);
-        add_line("{0}:", while_label);
-        read_expression();
-        add_line("JZ {0}", endwhile_label);
-        tokens.require(TOK_PAREN_END);
-        read_statement();
-        add_line("JMP {0}", while_label);
-        add_line("{0}:", endwhile_label);
-        break;
-    }
-    case hash("for"):
-    {
-        std::string for_label = fmt::format("__for_{0}", output_asm.size());
-        std::string endfor_label = fmt::format("__endfor_{0}", output_asm.size());
-        tokens.require(TOK_PAREN_BEGIN);
-        auto idx_name = tokens.require(TOK_IDENTIFIER);
-        tokens.require(TOK_COMMA);
-        add_line("{0}:", for_label);
-        add_line("SELVARIDX {0},0", idx_name.value);
-        add_line("PUSHVAR");
-        read_expression();
-        add_line("LT");
-        add_line("JZ {0}", endfor_label);
-        tokens.require(TOK_PAREN_END);
-        read_statement();
-        add_line("SELVARIDX {0},0", idx_name.value);
-        add_line("INC 1");
-        add_line("JMP {0}", for_label);
-        add_line("{0}:", endfor_label);
-        add_line("SELVARIDX {0},0", idx_name.value);
-        add_line("CLEAR", idx_name.value);
-        break;
-    }
-    case hash("goto"):
-    {
-        tokens.require(TOK_PAREN_BEGIN);
-        tokens.require(TOK_IDENTIFIER);
-        add_line("JMP {0}", tokens.current().value);
-        tokens.require(TOK_PAREN_END);
-        break;
-    }
-    case hash("inc"):
-    case hash("dec"):
-    {
-        tokens.require(TOK_PAREN_BEGIN);
-        int flags = read_variable(false);
-        tokens.next();
-        bool inc_amt = true;
-        std::string amount = "1";
-        switch(tokens.current().type) {
-        case TOK_COMMA:
-            tokens.peek();
-            if (tokens.current().type == TOK_NUMBER) {
-                tokens.advance();
-                inc_amt = true;
-                amount = tokens.current().value;
-            } else {
-                read_expression();
-                inc_amt = false;
-            }
-            tokens.require(TOK_PAREN_END);
-            break;
-        case TOK_PAREN_END:
-            break;
-        default:
-            throw tokens.unexpected_token(TOK_PAREN_END);
-        }
-        if (inc_amt) {
-            add_line(fun_name == "inc" ? "INC {0}" : "DEC {0}", amount);
-        } else {
-            if (flags & VAR_NUMBER) {
-                add_line("PARSENUM");
-            }
-            add_line(fun_name == "inc" ? "INCTOP" : "DECTOP");
-        }
-        break;
-    }
-    case hash("lines"):
-    {
-        std::string lines_label = fmt::format("__lines_{0}", output_asm.size());
-        std::string endlines_label = fmt::format("__endlines_{0}", output_asm.size());
-        tokens.require(TOK_PAREN_BEGIN);
-        read_expression();
-        tokens.require(TOK_PAREN_END);
-        add_line("PUSHCONTENT");
-        add_line("{0}:", lines_label);
-        add_line("NEXTLINE");
-        add_line("JTE {0}", endlines_label);
-        read_statement();
-        add_line("JMP {0}", lines_label);
-        add_line("{0}:", endlines_label);
-        add_line("POPCONTENT");
-        break;
-    }
-    case hash("with"):
-    {
-        tokens.require(TOK_PAREN_BEGIN);
-        read_expression();
-        tokens.require(TOK_PAREN_END);
-        add_line("PUSHCONTENT");
-        read_statement();
-        add_line("POPCONTENT");
-        break;
-    }
-    case hash("tokens"):
-    {
-        tokens.require(TOK_PAREN_BEGIN);
-        read_expression();
-        tokens.require(TOK_PAREN_END);
-        add_line("PUSHCONTENT");
-
-        tokens.require(TOK_BRACE_BEGIN);
-
-        while (true) {
-            tokens.peek();
-            if (tokens.current().type == TOK_BRACE_END) {
-                tokens.advance();
-                break;
-            }
-            add_line("NEXTTOKEN");
-            read_statement();
-        }
-        add_line("POPCONTENT");
-        break;
-    }
+    switch (hash(fun_name)) {
     case hash("isset"):     var_function("ISSET"); break;
     case hash("size"):      var_function("SIZE"); break;
-    case hash("clear"):     var_function("CLEAR"); break;
-    case hash("nextpage"):  void_function("NEXTPAGE"); break;
     case hash("ate"):       void_function("ATE"); break;
     case hash("boxwidth"):  void_function("PUSHFLOAT {0:.{1}f}", current_box->w, FLOAT_PRECISION); break;
     case hash("boxheight"): void_function("PUSHFLOAT {0:.{1}f}", current_box->h, FLOAT_PRECISION); break;
@@ -512,30 +335,30 @@ void parser::read_function() {
                 throw tokens.unexpected_token(TOK_PAREN_END);
             }
         }
-        auto check_args = [&](int should_be) {
+        auto call_op = [&](int should_be, auto & ... args) {
             if (num_args != should_be) {
                 throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", fun_name, should_be), tokens.getLocation(tok_fun_name));
             }
+            add_line(args...);
         };
         switch (hash(fun_name)) {
-        case hash("num"): check_args(1); add_line("PARSENUM"); break;
-        case hash("int"): check_args(1); add_line("PARSEINT"); break;
-        case hash("eq"):  check_args(2); add_line("EQ"); break;
-        case hash("neq"): check_args(2); add_line("NEQ"); break;
-        case hash("and"): check_args(2); add_line("AND"); break;
-        case hash("or"):  check_args(2); add_line("OR"); break;
-        case hash("not"): check_args(1); add_line("NOT"); break;
-        case hash("add"): check_args(2); add_line("ADD"); break;
-        case hash("sub"): check_args(2); add_line("SUB"); break;
-        case hash("mul"): check_args(2); add_line("MUL"); break;
-        case hash("div"): check_args(2); add_line("DIV"); break;
-        case hash("gt"):  check_args(2); add_line("GT"); break;
-        case hash("lt"):  check_args(2); add_line("LT"); break;
-        case hash("geq"): check_args(2); add_line("GEQ"); break;
-        case hash("leq"): check_args(2); add_line("LEQ"); break;
-        case hash("max"): check_args(2); add_line("MAX"); break;
-        case hash("min"): check_args(2); add_line("MIN"); break;
-        case hash("error"): check_args(1); add_line("ERROR"); break;
+        case hash("num"): call_op(1, "PARSENUM"); break;
+        case hash("int"): call_op(1, "PARSEINT"); break;
+        case hash("eq"):  call_op(2, "EQ"); break;
+        case hash("neq"): call_op(2, "NEQ"); break;
+        case hash("and"): call_op(2, "AND"); break;
+        case hash("or"):  call_op(2, "OR"); break;
+        case hash("not"): call_op(1, "NOT"); break;
+        case hash("add"): call_op(2, "ADD"); break;
+        case hash("sub"): call_op(2, "SUB"); break;
+        case hash("mul"): call_op(2, "MUL"); break;
+        case hash("div"): call_op(2, "DIV"); break;
+        case hash("gt"):  call_op(2, "GT"); break;
+        case hash("lt"):  call_op(2, "LT"); break;
+        case hash("geq"): call_op(2, "GEQ"); break;
+        case hash("leq"): call_op(2, "LEQ"); break;
+        case hash("max"): call_op(2, "MAX"); break;
+        case hash("min"): call_op(2, "MIN"); break;
         default:
             add_line("CALL {0},{1}", fun_name,num_args);
         }

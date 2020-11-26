@@ -34,7 +34,9 @@ private:
     
     void read_statement();
     void read_expression();
+
     void read_function();
+    void read_keyword();
 
     int read_variable(bool read_only = false);
 

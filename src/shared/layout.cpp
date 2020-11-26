@@ -128,6 +128,8 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                             input.setstate(std::ios::failbit);
                             return input;
                         }
+                    } else {
+                        fail = true;
                     }
                 }
                 if (fail) {
