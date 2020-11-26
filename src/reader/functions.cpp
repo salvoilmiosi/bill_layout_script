@@ -82,6 +82,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
         {"month_add", create_function<2>([](const variable &month, const variable &num) { return date_month_add(month.str(), num.as_int()); })},
         {"nonewline", create_function([](const variable &str) { return nonewline(str.str()); })},
         {"if", create_function<2, 3>([](const variable &condition, const variable &var_if, const variable &var_else) { return condition.as_bool() ? var_if : var_else; })},
+        {"ifnot", create_function<2, 3>([](const variable &condition, const variable &var_if, const variable &var_else) { return condition.as_bool() ? var_else : var_if; })},
         {"coalesce", [](const arg_list &args) {
             for (auto &arg : args) {
                 if (!arg.empty()) return arg;
