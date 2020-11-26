@@ -45,7 +45,7 @@ std::vector<std::string> search_regex_all(std::string format, std::string value,
 std::string search_regex(std::string format, const std::string &value, int index);
 
 // trasforma ogni carattere di spazio in " "
-std::string nospace(std::string input);
+std::string nonewline(std::string input);
 
 struct hasher {
     size_t constexpr operator() (char const *input) const {

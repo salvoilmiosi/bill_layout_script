@@ -80,7 +80,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
             return date_format(month.str(), format.str());
         })},
         {"month_add", create_function<2>([](const variable &month, const variable &num) { return date_month_add(month.str(), num.as_int()); })},
-        {"nospace", create_function([](const variable &str) { return nospace(str.str()); })},
+        {"nonewline", create_function([](const variable &str) { return nonewline(str.str()); })},
         {"ifl", create_function<2, 3>   ([](const variable &condition, const variable &var_if, const variable &var_else) { return condition.as_bool() ? var_if : var_else; })},
         {"coalesce", [](const arg_list &args) {
             for (auto &arg : args) {

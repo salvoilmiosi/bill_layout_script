@@ -97,7 +97,7 @@ mese_fattura=$date(@,"MONTH YEAR")
 ### W 0.4946236610
 ### H 0.0617635883
 ### Script
-numero_cliente=$search(@,"Codice Cliente: ($NUMBER)")
+numero_cliente=$search(@,"Codice Cliente: (%N)")
 ragione_sociale=$search(@,".+\n(.+)\n")
 partita_iva=$search(@,"Part\\.IVA (.+)\n")
 ### End Script
@@ -114,9 +114,9 @@ partita_iva=$search(@,"Part\\.IVA (.+)\n")
 ### H 0.3049132228
 ### Script
 $if($contains(@,"Dati di fornitura")) {
-  indirizzo_fornitura=$search($nospace(@),"Indirizzo (.+\\d{5}.+\\(.{2}\\))")
+  indirizzo_fornitura=$search($nonewline(@),"Indirizzo (.+\\d{5}.+\\(.{2}\\))")
   codice_pod=$search(@,"POD (.+)\n")
-  %potenza[0:2]=$search(@,"Potenza Impegnata ($NUMBER)")
+  %potenza[0:2]=$search(@,"Potenza Impegnata (%N)")
 } $else {
   *spacer_multipod=1
 }
@@ -134,10 +134,10 @@ $if($contains(@,"Dati di fornitura")) {
 ### H 0.2335467935
 ### Script
 $ifnot(*spacer_multipod) {
-  %spesa_materia_energia=$search(@,"Corrispettivi energia ($NUMBER)")
-  %spesa_materia_energia=$search(@,"Spese per l'energia ($NUMBER)")
-  %trasporto_gestione=$search(@,"Trasporto ($NUMBER)")
-  %trasporto_gestione=$search(@,"Spesa per trasporto, gestione contatore e oneri di sistema ($NUMBER)")
+  %spesa_materia_energia=$search(@,"Corrispettivi energia (%N)")
+  %spesa_materia_energia=$search(@,"Spese per l'energia (%N)")
+  %trasporto_gestione=$search(@,"Trasporto (%N)")
+  %trasporto_gestione=$search(@,"Spesa per trasporto, gestione contatore e oneri di sistema (%N)")
 }
 ### End Script
 ### End Box
@@ -153,9 +153,9 @@ $ifnot(*spacer_multipod) {
 ### H 0.3076777458
 ### Script
 $ifnot(*spacer_multipod) {
-  $lines($search(@,"Imposta Erariale ((.+ $NUMBER $NUMBER $NUMBER $NUMBER\n)+)")) {
-    iva=$strcat($search(@,"($NUMBER) $NUMBER$"),"%")
-    $inc(%accise,$search(@,"$NUMBER ($NUMBER)$"))
+  $lines($search(@,"Imposta Erariale ((.+ %N %N %N %N\n)+)")) {
+    iva=$strcat($search(@,"(%N) %N$"),"%")
+    $inc(%accise,$search(@,"%N (%N)$"))
   }
 }
 ### End Script
@@ -176,9 +176,9 @@ p+*next_page
 ### End Spacers
 ### Script
 $if(*spacer_multipod) {
-  indirizzo_fornitura=$search($nospace(@),"Indirizzo (.+\\d{5}.+\\(.{2}\\))")
+  indirizzo_fornitura=$search($nonewline(@),"Indirizzo (.+\\d{5}.+\\(.{2}\\))")
   codice_pod=$search(@,"POD (.+)\n")
-  %potenza[0:2]=$search(@,"Potenza Impegnata ($NUMBER)")
+  %potenza[0:2]=$search(@,"Potenza Impegnata (%N)")
 }
 ### End Script
 ### End Box
@@ -197,10 +197,10 @@ p+*next_page
 ### End Spacers
 ### Script
 $if(*spacer_multipod) {
-  %spesa_materia_energia=$search(@,"Corrispettivi energia ($NUMBER)")
-  %spesa_materia_energia=$search(@,"Spese per l'energia ($NUMBER)")
-  %trasporto_gestione=$search(@,"Trasporto ($NUMBER)")
-  %trasporto_gestione=$search(@,"Spesa per trasporto, gestione.+ ($NUMBER)")
+  %spesa_materia_energia=$search(@,"Corrispettivi energia (%N)")
+  %spesa_materia_energia=$search(@,"Spese per l'energia (%N)")
+  %trasporto_gestione=$search(@,"Trasporto (%N)")
+  %trasporto_gestione=$search(@,"Spesa per trasporto, gestione.+ (%N)")
 }
 ### End Script
 ### End Box
@@ -218,7 +218,7 @@ $if(*spacer_multipod) {
 p+*spacer_multipod p+*next_page
 ### End Spacers
 ### Script
-%imponibile=$search(@,"TOT\\. \u20ac ($NUMBER)")
+%imponibile=$search(@,"TOT\\. \u20ac (%N)")
 ### End Script
 ### End Box
 
@@ -236,9 +236,9 @@ p+*next_page
 ### End Spacers
 ### Script
 $if(*spacer_multipod) {
-  $lines($search(@,"Imposta Erariale ((.+ $NUMBER $NUMBER $NUMBER $NUMBER\n)+)")) {
-    iva=$strcat($search(@,"($NUMBER) $NUMBER$"),"%")
-    $inc(%accise,$search(@,"$NUMBER ($NUMBER)$"))
+  $lines($search(@,"Imposta Erariale ((.+ %N %N %N %N\n)+)")) {
+    iva=$strcat($search(@,"(%N) %N$"),"%")
+    $inc(%accise,$search(@,"%N (%N)$"))
   }
 }
 ### End Script
@@ -257,31 +257,31 @@ $if(*spacer_multipod) {
 p+*spacer_multipod p+*next_page
 ### End Spacers
 ### Script
-%prezzo_energia[0]=$search(@,"Prezzo Energia PEAK $NUMBER kWh ($NUMBER)")
-%prezzo_energia[1]=$search(@,"Prezzo Energia OFFPEAK $NUMBER kWh ($NUMBER)")
+%prezzo_energia[0]=$search(@,"Prezzo Energia PEAK %N kWh (%N)")
+%prezzo_energia[1]=$search(@,"Prezzo Energia OFFPEAK %N kWh (%N)")
 
-%energia_attiva[0]=$search(@,"Prezzo Energia PEAK ($NUMBER)")
-%energia_attiva[1]=$search(@,"Prezzo Energia OFFPEAK ($NUMBER)")
+%energia_attiva[0]=$search(@,"Prezzo Energia PEAK (%N)")
+%energia_attiva[1]=$search(@,"Prezzo Energia OFFPEAK (%N)")
 
-%energia_attiva[0]=$search(@,"Prezzo Energia F1 ($NUMBER)")
-%energia_attiva[1]=$search(@,"Prezzo Energia F2 ($NUMBER)")
-%energia_attiva[2]=$search(@,"Prezzo Energia F3 ($NUMBER)")
+%energia_attiva[0]=$search(@,"Prezzo Energia F1 (%N)")
+%energia_attiva[1]=$search(@,"Prezzo Energia F2 (%N)")
+%energia_attiva[2]=$search(@,"Prezzo Energia F3 (%N)")
 
-%prezzo_energia[0]=$search(@,"Prezzo Energia F1 $NUMBER kWh ($NUMBER)")
-%prezzo_energia[1]=$search(@,"Prezzo Energia F2 $NUMBER kWh ($NUMBER)")
-%prezzo_energia[2]=$search(@,"Prezzo Energia F3 $NUMBER kWh ($NUMBER)")
+%prezzo_energia[0]=$search(@,"Prezzo Energia F1 %N kWh (%N)")
+%prezzo_energia[1]=$search(@,"Prezzo Energia F2 %N kWh (%N)")
+%prezzo_energia[2]=$search(@,"Prezzo Energia F3 %N kWh (%N)")
 
-%sbilanciamento=$search(@,"Gestione sbilanciamento $NUMBER kWh ($NUMBER)")
-%potenza[0:2]=$search(@,"Quota Potenza ($NUMBER) kW")
+%sbilanciamento=$search(@,"Gestione sbilanciamento %N kWh (%N)")
+%potenza[0:2]=$search(@,"Quota Potenza (%N) kW")
 
-%penale_reattiva_inf75=$search(@,"Energia Reattiva tra il 33 e il 75%.+ ($NUMBER)\n")
-%penale_reattiva_inf75=$search(@,"Energia Reattiva tra il 33 e il 75% F1.+ ($NUMBER)\n")
-$inc(%penale_reattiva_inf75,$search(@,"Energia Reattiva tra il 33 e il 75% F2.+ ($NUMBER)\n"))
-$inc(%penale_reattiva_inf75,$search(@,"Energia Reattiva tra il 33 e il 75% F3.+ ($NUMBER)\n"))
-%penale_reattiva_sup75=$search(@,"Energia Reattiva oltre il 75%.+ ($NUMBER)\n")
-%penale_reattiva_sup75=$search(@,"Energia Reattiva oltre il 75% F1.+ ($NUMBER)\n")
-$inc(%penale_reattiva_sup75,$search(@,"Energia Reattiva oltre il 75% F2.+ ($NUMBER)\n"))
-$inc(%penale_reattiva_sup75,$search(@,"Energia Reattiva oltre il 75% F3.+ ($NUMBER)\n"))
+%penale_reattiva_inf75=$search(@,"Energia Reattiva tra il 33 e il 75%.+ (%N)\n")
+%penale_reattiva_inf75=$search(@,"Energia Reattiva tra il 33 e il 75% F1.+ (%N)\n")
+$inc(%penale_reattiva_inf75,$search(@,"Energia Reattiva tra il 33 e il 75% F2.+ (%N)\n"))
+$inc(%penale_reattiva_inf75,$search(@,"Energia Reattiva tra il 33 e il 75% F3.+ (%N)\n"))
+%penale_reattiva_sup75=$search(@,"Energia Reattiva oltre il 75%.+ (%N)\n")
+%penale_reattiva_sup75=$search(@,"Energia Reattiva oltre il 75% F1.+ (%N)\n")
+$inc(%penale_reattiva_sup75,$search(@,"Energia Reattiva oltre il 75% F2.+ (%N)\n"))
+$inc(%penale_reattiva_sup75,$search(@,"Energia Reattiva oltre il 75% F3.+ (%N)\n"))
 ### End Script
 ### End Box
 
