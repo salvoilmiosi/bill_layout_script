@@ -1,131 +1,206 @@
-#include "reader.h"
-
-#include <functional>
-#include <regex>
+#include "functions.h"
 #include "utils.h"
 
-struct invalid_numargs {
-    size_t numargs;
-    size_t minargs;
-    size_t maxargs;
-};
+#include <regex>
+#include <algorithm>
+#include <fmt/format.h>
 
-using arg_list = std::vector<variable>;
-using function_handler = std::function<variable(const arg_list &)>;
-
-template<typename Function, std::size_t ... Is>
-variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is...>) {
-    auto get_arg = [](const arg_list &args, size_t index) -> const variable & {
-        if (args.size() <= index) {
-            return variable::null_var();
-        } else {
-            return args[index];
-        }
-    };
-    return fun(get_arg(args, Is)...);
+std::string string_format(std::string str, const std::vector<std::string> &fmt_args) {
+    for (size_t i=0; i<fmt_args.size(); ++i) {
+        string_replace(str, fmt::format("${}", i), fmt_args[i]);
+    }
+    return str;
 }
 
-template<size_t Minargs, size_t Maxargs, typename Function>
-function_handler create_function(Function fun) {
-    return [fun](const arg_list &vars) {
-        if (vars.size() < Minargs || vars.size() > Maxargs) {
-            throw invalid_numargs{vars.size(), Minargs, Maxargs};
-        }
-        return exec_helper(fun, vars, std::make_index_sequence<Maxargs>{});
-    };
-}
-
-template<size_t Argnum, typename Function>
-inline function_handler create_function(Function fun) {
-    return create_function<Argnum, Argnum>(fun);
-}
-
-template<typename Function>
-inline function_handler create_function(Function fun) {
-    return create_function<1>(fun);
-}
-
-void reader::call_function(const std::string &name, size_t numargs) {
-    static const std::map<std::string, function_handler> dispatcher {
-        {"search", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
-            try {
-                return search_regex(regex.str(), str.str(), index.empty() ? 1 : index.as_int());
-            } catch (const std::regex_error &error) {
-                throw layout_error(fmt::format("Espressione regolare non valida: {0}", regex.str()));
-            }
-        })},
-        {"searchall", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
-            try {
-                return string_join(search_regex_all(regex.str(), str.str(), index.empty() ? 1 : index.as_int()), "\n");
-            } catch (const std::regex_error &error) {
-                throw layout_error(fmt::format("Espressione regolare non valida: {0}", regex.str()));
-            }
-        })},
-        {"date", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
-            try {
-                return parse_date(regex.str(), str.str(), index.empty() ? 1 : index.as_int());
-            } catch (const std::regex_error &error) {
-                throw layout_error(fmt::format("Espressione regolare non valida: {0}", regex.str()));
-            }
-        })},
-        {"format", [](const arg_list &args) {
-            if (args.size() < 1) {
-                throw layout_error("La funzione format richiede almeno 1 argomento");
-            }
-            std::vector<std::string> fmt_args(args.size()-1);
-            std::transform(args.begin() + 1, args.end(), fmt_args.begin(), [](const variable &var) { return var.str(); });
-            return string_format(args.front().str(), fmt_args);
-        }},
-        {"date_format", create_function<2>([](const variable &month, const variable &format) {
-            return date_format(month.str(), format.str());
-        })},
-        {"month_add", create_function<2>([](const variable &month, const variable &num) { return date_month_add(month.str(), num.as_int()); })},
-        {"nonewline", create_function([](const variable &str) { return nonewline(str.str()); })},
-        {"if", create_function<2, 3>([](const variable &condition, const variable &var_if, const variable &var_else) { return condition.as_bool() ? var_if : var_else; })},
-        {"ifnot", create_function<2, 3>([](const variable &condition, const variable &var_if, const variable &var_else) { return condition.as_bool() ? var_else : var_if; })},
-        {"coalesce", [](const arg_list &args) {
-            for (auto &arg : args) {
-                if (!arg.empty()) return arg;
-            }
-            return variable::null_var();
-        }},
-        {"contains", create_function<2>([](const variable &str, const variable &str2) {
-            return str.str().find(str2.str()) != std::string::npos;
-        })},
-        {"substr", create_function<2, 3>([](const variable &str, const variable &pos, const variable &count) {
-            if ((size_t) pos.as_int() < str.str().size()) {
-                return variable(str.str().substr(pos.as_int(), count.empty() ? std::string::npos : count.as_int()));
-            }
-            return variable::null_var();
-        })},
-        {"strlen", create_function([](const variable &str) { return (int) str.str().size(); })},
-        {"isempty", create_function([](const variable &str) { return str.empty(); })},
-        {"strcat", [](const arg_list &args) {
-            std::string var;
-            for (auto &arg : args) {
-                var += arg.str();
-            }
-            return var;
-        }}
-    };
-
-    try {
-        auto it = dispatcher.find(name);
-        if (it != dispatcher.end()) {
-            arg_list vars(numargs);
-            for (size_t i=0; i<numargs; ++i) {
-                vars[numargs - i - 1] = std::move(m_var_stack.top());
-                m_var_stack.pop();
-            }
-            m_var_stack.push(it->second(vars));
-        } else {
-            throw layout_error(fmt::format("Funzione sconosciuta: {0}", name));
-        }
-    } catch (const invalid_numargs &error) {
-        if (error.minargs == error.maxargs) {
-            throw layout_error(fmt::format("La funzione {0} richiede {1} argomenti", name, error.minargs));
-        } else {
-            throw layout_error(fmt::format("La funzione {0} richiede {1}-{2} argomenti", name, error.minargs, error.maxargs));
+std::string parse_number(const std::string &value) {
+    std::string out;
+    for (size_t i=0; i<value.size(); ++i) {
+        if (std::isdigit(value.at(i))) {
+            out += value.at(i);
+        } else if (value.at(i) == ',') {
+            out += '.';
+        } else if (value.at(i) == '-') {
+            out += '-';
         }
     }
+    return out;
+}
+
+template<typename ... Ts>
+constexpr bool find_in (const char *str, const char *first, const Ts & ... strs) {
+    if (str == first) {
+        return true;
+    } else if constexpr (sizeof ... (strs) == 0) {
+        return false;
+    } else {
+        return find_in(str, strs...);
+    }
+}
+
+constexpr const char *MONTHS[] = {
+    "gen",
+    "feb",
+    "mar",
+    "apr",
+    "mag",
+    "giu",
+    "lug",
+    "ago",
+    "set",
+    "ott",
+    "nov",
+    "dic"
+};
+
+constexpr const char *MONTHS_FULL[] = {
+    "gennaio",
+    "febbraio",
+    "marzo",
+    "aprile",
+    "maggio",
+    "giugno",
+    "luglio",
+    "agosto",
+    "settembre",
+    "ottobre",
+    "novembre",
+    "dicembre"
+};
+
+std::string parse_date(const std::string &format, const std::string &value, int index) {
+    auto replace = [](std::string out, const auto& ... strs) {
+        auto replace_impl = [&](std::string &out, const char *str, const std::string &fmt) {
+            if (find_in(str, strs...)) {
+                string_replace(out, str, "(" + fmt + ")");
+            } else {
+                string_replace(out, str, fmt);
+            }
+        };
+
+        replace_impl(out, "DAY", "[0-9]{2}");
+        replace_impl(out, "DD", "[0-9]{2}");
+        replace_impl(out, "MM", "[0-9]{2}");
+        replace_impl(out, "MONTH", "[a-zA-Z]+");
+        replace_impl(out, "MON", "[a-zA-Z]{3}");
+        replace_impl(out, "YEAR", "[0-9]{4}");
+        replace_impl(out, "YYYY", "[0-9]{4}");
+        replace_impl(out, "YY", "[0-9]{2}");
+
+        return out;
+    };
+
+    std::string day = search_regex(replace(format, "DAY", "DD"), value, index);
+    std::string month = string_tolower(search_regex(replace(format, "MM", "MONTH", "MON"), value, index));
+    std::string year = search_regex(replace(format, "YEAR", "YYYY", "YY"), value, index);
+
+    for (size_t i=0; i<std::size(MONTHS); ++i) {
+        if (month.find(MONTHS[i]) != std::string::npos) {
+            if (i < 9) {
+                month = std::string("0") + std::to_string(i + 1);
+            } else {
+                month = std::to_string(i + 1);
+            }
+            break;
+        }
+    }
+
+    try {
+        int yy = std::stoi(year);
+        if (yy < 100) {
+            if (yy > 90) {
+                year = "19" + year;
+            } else {
+                year = "20" + year;
+            }
+        }
+    } catch (const std::invalid_argument &) {}
+
+    if (year.empty() || month.empty()) {
+        return "";
+    } else if (day.empty()) {
+        return year + "-" + month;
+    } else {
+        return year + "-" + month + "-" + day;
+    }
+}
+
+std::string date_month_add(const std::string &date, int num) {
+    try {
+        std::regex expression("(\\d{4})-(\\d{2})(-(\\d{2}))?");
+        std::smatch match;
+        if (!std::regex_search(date, match, expression))
+            return "";
+
+        int month = std::stoi(match.str(2));
+        int year = std::stoi(match.str(1));
+
+        month += num;
+        while (month > 12) {
+            month -= 12;
+            ++year;
+        }
+        return fmt::format("{:04}-{:02}", year, month);
+    } catch (std::invalid_argument &) {
+        return "";
+    }
+}
+
+std::string date_format(const std::string &date, std::string format) {
+    std::regex expression("(\\d{4})-(\\d{2})(-(\\d{2}))?");
+    std::smatch match;
+    if (!std::regex_search(date, match, expression))
+        return "";
+    
+    int month = std::stoi(match.str(2));
+    if (month > (int) std::size(MONTHS)) {
+        return "";
+    }
+
+    string_replace(format, "DAY", match.str(4));
+    string_replace(format, "DD", match.str(4));
+    string_replace(format, "MM", match.str(2));
+    string_replace(format, "MONTH", MONTHS_FULL[month-1]);
+    string_replace(format, "MON", MONTHS[month-1]);
+    string_replace(format, "YEAR", match.str(1));
+    string_replace(format, "YYYY", match.str(1));
+    string_replace(format, "YY", match.str(1).substr(2));
+
+    return format;
+}
+
+std::vector<std::string> search_regex_all(std::string format, std::string value, int index) {
+    string_replace(format, " ", "\\s+");
+    string_replace(format, "%N", "[0-9\\.,-]+");
+    std::regex expression(format, std::regex::icase);
+    std::smatch match;
+    std::vector<std::string> ret;
+    while (std::regex_search(value, match, expression)) {
+        ret.push_back(match.str(index));
+        value = match.suffix();
+    }
+    return ret;
+}
+
+std::string search_regex(std::string format, const std::string &value, int index) {
+    string_replace(format, " ", "\\s+");
+    string_replace(format, "%N", "[0-9\\.,-]+");
+    std::regex expression(format, std::regex::icase);
+    std::smatch match;
+    if (std::regex_search(value, match, expression)) {
+        return match.str(index);
+    } else {
+        return "";
+    }
+}
+
+std::string nonewline(std::string input) {
+    size_t index = 0;
+    while (true) {
+        index = input.find_first_of("\t\r\n\v\f", index);
+        if (index == std::string::npos) break;
+
+        input.replace(index, 1, " ");
+        ++index;
+    }
+    return input;
 }
