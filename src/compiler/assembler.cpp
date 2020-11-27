@@ -5,6 +5,7 @@
 #include <map>
 
 #include "utils.h"
+#include "parsestr.h"
 #include "binary_io.h"
 
 void assembler::read_lines(const std::vector<std::string> &lines) {
