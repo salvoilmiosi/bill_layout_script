@@ -153,13 +153,13 @@ $if($contains(@,/Energia Reattiva/)) {
 p+*page_offset
 ### End Spacers
 ### Script
-$with($search(/Sbilanciamento\n((dal.+\n)+)/)) {
+$with($search(@,/Sbilanciamento\n((dal.+\n)+)/)) {
   %sbilanciamento=$search(@,$format(/dal \d\d\.$0.+Euro\/kWh (%N)/,mese))
 }
 $with(
 $coalesce(
-  $search(/Prezzo Energia\n((dal.+\n)+)/),
-  $search(/Prezzo Indicizzato\n((dal.+\n)+)/))
+  $search(@,/Prezzo Energia\n((dal.+\n)+)/),
+  $search(@,/Prezzo Indicizzato\n((dal.+\n)+)/))
 ){
   $tokens($search(@,$format(/dal \d\d\.$0.+ F1 Euro\/kWh (%N %N)/,mese)))
     { %prezzo_energia[0] %energia_attiva[0] }
@@ -174,12 +174,12 @@ $coalesce(
     { %prezzo_energia[1] %energia_attiva[1] }
 }
 
-$with($search(/Energia Reattiva entro 75%\n((dal.+\n)+)/)) {
+$with($search(@,/Energia Reattiva entro 75%\n((dal.+\n)+)/)) {
   $inc(%penale_reattiva_inf75,$search(@,$format(/dal \d\d\.$0.+ F1 Euro\/kVarh %N %N (%N)/,mese)))
   $inc(%penale_reattiva_inf75,$search(@,$format(/dal \d\d\.$0.+ F2 Euro\/kVarh %N %N (%N)/,mese)))
   $inc(%penale_reattiva_inf75,$search(@,$format(/dal \d\d\.$0.+ F3 Euro\/kVarh %N %N (%N)/,mese)))
 }
-$with($search(/Energia Reattiva oltre 75%\n((dal.+\n)+)/)) {
+$with($search(@,/Energia Reattiva oltre 75%\n((dal.+\n)+)/)) {
   $inc(%penale_reattiva_sup75,$search(@,$format(/dal \d\d\.$0.+ F1 Euro\/kVarh %N %N (%N)/,mese)))
   $inc(%penale_reattiva_sup75,$search(@,$format(/dal \d\d\.$0.+ F2 Euro\/kVarh %N %N (%N)/,mese)))
   $inc(%penale_reattiva_sup75,$search(@,$format(/dal \d\d\.$0.+ F3 Euro\/kVarh %N %N (%N)/,mese)))
