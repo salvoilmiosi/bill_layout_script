@@ -26,8 +26,17 @@ std::string string_format(std::string str, const std::vector<std::string> &fmt_a
 // converte un numero dal formato italiano al formato universale (trasforma virgole in punti)
 std::string parse_number(const std::string &value);
 
-// parsa una stringa dal format json
+// parsa una stringa
 std::string parse_string(std::string_view value);
+
+// parsa una stringa regexp
+std::string parse_string_regexp(std::string_view value);
+
+typedef std::string_view::iterator location;
+
+bool decodeUnicodeCodePoint(location &current, location end, unsigned int &unicode);
+bool decodeUnicodeEscapeSequence(location &current, location end, unsigned int &ret_unicode);
+std::string codePointToUTF8(unsigned int cp);
 
 // converte i vari formati di data in un formato universale (dd/mm/aaaa)
 std::string parse_date(const std::string &format, const std::string &value, int index);

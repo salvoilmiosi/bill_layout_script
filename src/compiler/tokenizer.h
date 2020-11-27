@@ -9,6 +9,7 @@ enum token_type {
     TOK_COMMENT,            // # commento
     TOK_IDENTIFIER,         // [a-bA-B_][a-bA-B0-9_]+
     TOK_STRING,             // "xyz"
+    TOK_REGEXP,             // /xyz/
     TOK_NUMBER,             // 123
     TOK_FUNCTION,           // $
     TOK_PAREN_BEGIN,        // (
@@ -34,6 +35,7 @@ constexpr const char *TOKEN_NAMES[] = {
     "commento",
     "identificatore",
     "stringa",
+    "regexp",
     "numero",
     "'$'",
     "'('",
@@ -102,6 +104,7 @@ private:
 
     bool readIdentifier();
     bool readString();
+    bool readRegexp();
     bool readNumber();
     bool readToNewline();
 };

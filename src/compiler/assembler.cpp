@@ -105,7 +105,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("COPYCONTENT"):   add_command(COPYCONTENT); break;
         case hash("PUSHINT"):       add_command(PUSHINT, std::stoi(args[0])); break;
         case hash("PUSHFLOAT"):     add_command(PUSHFLOAT, std::stof(args[0])); break;
-        case hash("PUSHSTR"):       add_command(PUSHSTR, add_string(parse_string(arg_str))); break;
+        case hash("PUSHSTR"):       add_command(PUSHSTR, arg_str.front() == '"' ? parse_string(arg_str) : parse_string_regexp(arg_str)); break;
         case hash("PUSHVAR"):       add_command(PUSHVAR); break;
         case hash("JMP"):           add_command(JMP, getgotoindex(args[0])); break;
         case hash("JZ"):            add_command(JZ, getgotoindex(args[0])); break;

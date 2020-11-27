@@ -60,7 +60,7 @@ int string_replace(std::string &str, const std::string &from, const std::string 
 
 std::string string_format(std::string str, const std::vector<std::string> &fmt_args) {
     for (size_t i=0; i<fmt_args.size(); ++i) {
-        string_replace(str, fmt::format("{{{}}}", i), fmt_args[i]);
+        string_replace(str, fmt::format("${}", i), fmt_args[i]);
     }
     return str;
 }
@@ -79,31 +79,10 @@ std::string parse_number(const std::string &value) {
     return out;
 }
 
-#ifndef NO_JSON_PARSE_STRING
-
-#include <json/reader.h>
-
-std::string parse_string(std::string_view value) {
-    Json::Value out;
-    std::string errs;
-    Json::CharReaderBuilder builder;
-    Json::CharReader *reader = builder.newCharReader();
-    if (!reader->parse(value.begin(), value.end(), &out, &errs)) {
-        return "";
-    }
-    if (out.isString()) {
-        return out.asString();
-    } else {
-        return "";
-    }
-}
-
-#else
-
 std::string parse_string(std::string_view value) {
     std::string decoded;
-    auto current = value.begin() + 1;
-    auto end = value.end() - 1;
+    location current = value.begin() + 1;
+    location end = value.end() - 1;
     while (current != end) {
         char c = *current++;
         if (c == '"') break;
@@ -135,6 +114,14 @@ std::string parse_string(std::string_view value) {
             case 't':
                 decoded += '\t';
                 break;
+            case 'u':
+            {
+                unsigned int unicode;
+                if (!decodeUnicodeCodePoint(current, end, unicode))
+                    return "";
+                decoded += codePointToUTF8(unicode);
+                break;
+            }
             default:
                 return std::string();
             }
@@ -145,7 +132,47 @@ std::string parse_string(std::string_view value) {
     return decoded;
 }
 
-#endif
+std::string parse_string_regexp(std::string_view value) {
+    std::string decoded;
+    location current = value.begin() + 1;
+    location end = value.end() - 1;
+    while (current != end) {
+        char c = *current++;
+        if (c == '/') break;
+        if (c == '\\') {
+            if (current == end) return "";
+            char escape = *current++;
+            switch (escape) {
+            case 'f':
+                decoded += '\f';
+                break;
+            case 'n':
+                decoded += '\n';
+                break;
+            case 'r':
+                decoded += '\r';
+                break;
+            case 't':
+                decoded += '\t';
+                break;
+            case 'u':
+            {
+                unsigned int unicode;
+                if (!decodeUnicodeCodePoint(current, end, unicode))
+                    return "";
+                decoded += codePointToUTF8(unicode);
+                break;
+            }
+            default:
+                decoded += '\\';
+                decoded += escape;
+            }
+        } else {
+            decoded += c;
+        }
+    }
+    return decoded;
+}
 
 template<typename ... Ts>
 constexpr bool find_in (const char *str, const char *first, const Ts & ... strs) {

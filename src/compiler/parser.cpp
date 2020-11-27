@@ -161,6 +161,7 @@ void parser::read_expression() {
         }
         break;
     case TOK_STRING:
+    case TOK_REGEXP:
         tokens.advance();
         add_line("PUSHSTR {0}", tokens.current().value);
         break;

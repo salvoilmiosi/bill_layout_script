@@ -48,6 +48,10 @@ bool tokenizer::next() {
         tok.type = TOK_STRING;
         ok = readString();
         break;
+    case '/':
+        tok.type = TOK_REGEXP;
+        ok = readRegexp();
+        break;
     case '0':
     case '1':
     case '2':
@@ -197,6 +201,22 @@ bool tokenizer::readString() {
             nextChar();
             break;
         case '"':
+            return true;
+        case '\n':
+        case '\0':
+            return false;
+        }
+    }
+    return false;
+}
+
+bool tokenizer::readRegexp() {
+    while (true) {
+        switch (nextChar()) {
+        case '\\':
+            nextChar();
+            break;
+        case '/':
             return true;
         case '\n':
         case '\0':
