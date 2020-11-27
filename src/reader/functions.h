@@ -20,10 +20,10 @@ std::string date_month_add(const std::string &month, int num);
 std::string date_format(const std::string &date, std::string format);
 
 // cerca la regex in str e ritorna i valori trvati
-std::vector<std::string> search_regex_all(std::string format, std::string value, int index);
+std::vector<std::string> search_regex_all(const std::string &format, std::string value, int index);
 
 // cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
-std::string search_regex(std::string format, const std::string &value, int index);
+std::string search_regex(const std::string &format, const std::string &value, int index);
 
 // trasforma ogni carattere di spazio in " "
 std::string nonewline(std::string input);
