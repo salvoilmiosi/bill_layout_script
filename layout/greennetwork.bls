@@ -10,7 +10,7 @@
 ### W 0.4665852189
 ### H 0.1048295125
 ### Script
-$ifnot($contains(@,"GREEN NETWORK S.p.A.\nSociet\u00e0 a Socio Unico"))
+$ifnot($contains(@,/GREEN NETWORK S.p.A.\nSociet\u00e0 a Socio Unico/))
   $error("Layout Invalido")
 ### End Script
 ### End Box
@@ -39,8 +39,8 @@ fornitore="Green network"
 ### W 0.3080645204
 ### H 0.0330672748
 ### Script
-numero_fattura=$search(@,"Fattura n\\. (.+) ")
-data_fattura=$date(@,"DD/MM/YYYY")
+numero_fattura=$search(@,/Fattura n\. (.+) /)
+data_fattura=$date(@,/DD\/MM\/YYYY/)
 ### End Script
 ### End Box
 
@@ -54,8 +54,8 @@ data_fattura=$date(@,"DD/MM/YYYY")
 ### W 0.2450372279
 ### H 0.0372774303
 ### Script
-mese_fattura=$date(@,"Fattura di MONTH YEAR")
-data_scadenza=$date(@,"scadenza DD MONTH YEAR")
+mese_fattura=$date(@,/Fattura di MONTH YEAR/)
+data_scadenza=$date(@,/scadenza DD MONTH YEAR/)
 ### End Script
 ### End Box
 
@@ -69,9 +69,9 @@ data_scadenza=$date(@,"scadenza DD MONTH YEAR")
 ### W 0.4396818280
 ### H 0.1975914091
 ### Script
-%spesa_materia_energia=$search(@,"Spesa per la materia energia (%N)")
-%trasporto_gestione=$search(@,"Spesa per trasporto, gestione contatore e oneri sistema (%N)")
-%totale_fattura=$search(@,"TOTALE DA PAGARE (%N)")
+%spesa_materia_energia=$search(@,/Spesa per la materia energia (%N)/)
+%trasporto_gestione=$search(@,/Spesa per trasporto, gestione contatore e oneri sistema (%N)/)
+%totale_fattura=$search(@,/TOTALE DA PAGARE (%N)/)
 ### End Script
 ### End Box
 
@@ -85,7 +85,7 @@ data_scadenza=$date(@,"scadenza DD MONTH YEAR")
 ### W 0.4606716633
 ### H 0.1007481888
 ### Script
-ragione_sociale=$search(@,"Ragione sociale: (.+)\n")
+ragione_sociale=$search(@,/Ragione sociale: (.+)\n/)
 ### End Script
 ### End Box
 
@@ -99,10 +99,10 @@ ragione_sociale=$search(@,"Ragione sociale: (.+)\n")
 ### W 0.5413168073
 ### H 0.1093391180
 ### Script
-indirizzo_fornitura=$search(@,"Le stiamo fornendo energia elettrica in (.+)\n")
-numero_cliente=$search(@,"Codice cliente: (%N)")
-codice_pod=$search(@,"POD: (.+)\n")
-%potenza_disponibile=$search(@,"Pot\. Disponibile kW: (%N)")
+indirizzo_fornitura=$search(@,/Le stiamo fornendo energia elettrica in (.+)\n/)
+numero_cliente=$search(@,/Codice cliente: (%N)/)
+codice_pod=$search(@,/POD: (.+)\n/)
+%potenza_disponibile=$search(@,/Pot\. Disponibile kW: (%N)/)
 ### End Script
 ### End Box
 
@@ -144,8 +144,8 @@ codice_pod=$search(@,"POD: (.+)\n")
 ### W 0.9060928226
 ### H 0.1700713038
 ### Script
-$lines($search(@,"((\\d{2}/\\d{2}/\\d{4} \\d{2}/\\d{2}/\\d{4}.+Consumi.+\n)+)")) {
-  $tokens($search(@,"(%N %N %N %N %N %N %N %N %N)")) {
+$lines($search(@,/((\d\d\/\d\d\/\d\d\d\d \d\d\/\d\d\/\d\d\d\d.+Consumi.+\n)+)/)) {
+  $tokens($search(@,/(%N %N %N %N %N %N %N %N %N)/)) {
     %energia_f0
     %energia_attiva[0]
     %energia_attiva[1]
@@ -170,8 +170,8 @@ $lines($search(@,"((\\d{2}/\\d{2}/\\d{4} \\d{2}/\\d{2}/\\d{4}.+Consumi.+\n)+)"))
 ### W 0.7842165232
 ### H 0.0993647277
 ### Script
-$lines($search($strcat(@,"\n"),"((.+Erariale.+%N\n)+)")) {
-  %accise=$search(@,".+ (%N)$")
+$lines($search($strcat(@,"\n"),/((.+Erariale.+%N\n)+)/)) {
+  %accise=$search(@,/.+ (%N)$/)
 }
 ### End Script
 ### End Box

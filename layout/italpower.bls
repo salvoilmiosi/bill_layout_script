@@ -40,9 +40,9 @@ fornitore="Italpower"
 ### W 0.2950705290
 ### H 0.0763326287
 ### Script
-numero_fattura=$search(@,"Fattura Numero: (.+)\n")
-data_fattura=$date(@,"Data Fattura: DD/MM/YYYY")
-data_scadenza=$date(@,"Scadenza Fattura: DD/MM/YYYY")
+numero_fattura=$search(@,/Fattura Numero: (.+)\n/)
+data_fattura=$date(@,/Data Fattura: DD\/MM\/YYYY/)
+data_scadenza=$date(@,/Scadenza Fattura: DD\/MM\/YYYY/)
 ### End Script
 ### End Box
 
@@ -56,8 +56,8 @@ data_scadenza=$date(@,"Scadenza Fattura: DD/MM/YYYY")
 ### W 0.6560779810
 ### H 0.2798797488
 ### Script
-%totale_fattura=$search(@,"Totale Fattura \u20ac (%N)")
-iva=$search(@,"IVA (\\d+%)")
+%totale_fattura=$search(@,/Totale Fattura \u20ac (%N)/)
+iva=$search(@,/IVA (\d+%)/)
 ### End Script
 ### End Box
 
@@ -71,8 +71,8 @@ iva=$search(@,"IVA (\\d+%)")
 ### W 0.4864683747
 ### H 0.2518473864
 ### Script
-numero_cliente=$search(@,"Codice cliente (.+)\n")
-ragione_sociale=$search(@,"Ragione sociale (.+)\n")
+numero_cliente=$search(@,/Codice cliente (.+)\n/)
+ragione_sociale=$search(@,/Ragione sociale (.+)\n/)
 ### End Script
 ### End Box
 
@@ -89,7 +89,7 @@ ragione_sociale=$search(@,"Ragione sociale (.+)\n")
 p+*page_offset
 ### End Spacers
 ### Script
-mese_fattura=$date(@,"Dettaglio consumi mese di MONTH YEAR")
+mese_fattura=$date(@,/Dettaglio consumi mese di MONTH YEAR/)
 ### End Script
 ### End Box
 
@@ -106,8 +106,8 @@ mese_fattura=$date(@,"Dettaglio consumi mese di MONTH YEAR")
 p+*page_offset
 ### End Spacers
 ### Script
-codice_pod=$search(@,"Codice POD (.+)\n")
-indirizzo_fornitura=$search($nonewline(@),"Indirizzo fornitura (.+) Opzione")
+codice_pod=$search(@,/Codice POD (.+)\n/)
+indirizzo_fornitura=$search($nonewline(@),/Indirizzo fornitura (.+) Opzione/)
 ### End Script
 ### End Box
 
@@ -124,13 +124,13 @@ indirizzo_fornitura=$search($nonewline(@),"Indirizzo fornitura (.+) Opzione")
 p+*page_offset
 ### End Spacers
 ### Script
-$tokens($search(@,"Misura (%N %N %N)")) {
+$tokens($search(@,/Misura (%N %N %N)/)) {
   %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]
 }
-$tokens($search(@,"Potenza \\(kW\\) (%N %N %N)")) {
+$tokens($search(@,/Potenza \(kW\) (%N %N %N)/)) {
   %potenza[0] %potenza[1] %potenza[2]
 }
-$tokens($search(@,"Energia Reattiva \\(kVar\\) (%N %N %N)")) {
+$tokens($search(@,/Energia Reattiva \(kVar\) (%N %N %N)/)) {
   %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
 }
 ### End Script
@@ -149,23 +149,23 @@ $tokens($search(@,"Energia Reattiva \\(kVar\\) (%N %N %N)")) {
 p+*page_offset
 ### End Spacers
 ### Script
-%spesa_materia_energia=$search(@,"Servizi di Vendita (%N)")
-%spesa_materia_energia=$search(@,"Spesa Materia Prima (%N)")
-%trasporto_gestione=$search(@,"Servizi di Rete (%N)")
-%trasporto_gestione=$search(@,"Trasporto, Gestione Contatore e Oneri di Sistema (%N)")
-%oneri=$search(@,"Altri Oneri (%N)")
-%accise=$search(@,"Imposte.+Euro.+ (%N)")
-%prezzo_energia[0]=$search(@,"Energia F1.+ Euro (%N)")
-%prezzo_energia[1]=$search(@,"Energia F2.+ Euro (%N)")
-%prezzo_energia[2]=$search(@,"Energia F3.+ Euro (%N)")
-%prezzo_energia[0]=$search(@,"Energia Peak.+ Euro (%N)")
-%prezzo_energia[1]=$search(@,"Energia Off-Peak.+ Euro (%N)")
-%pcv=$search(@,"PCV .+ Euro (%N)")
-%disp_var=$search(@,"Dispacciamento Quota Variabile.+ Euro (%N)")
-%penale_reattiva_inf75=$search(@,"reattiva entro 75% .+ Euro %N (%N)")
-%penale_reattiva_sup75=$search(@,"reattiva oltre 75% .+ Euro %N (%N)")
-%imponibile=$search(@,"Totale periodo (%N)")
-%potenza[0:2]=$search(@,"Trasporto Quota Potenza \u20ac/kW (%N)")
+%spesa_materia_energia=$search(@,/Servizi di Vendita (%N)/)
+%spesa_materia_energia=$search(@,/Spesa Materia Prima (%N)/)
+%trasporto_gestione=$search(@,/Servizi di Rete (%N)/)
+%trasporto_gestione=$search(@,/Trasporto, Gestione Contatore e Oneri di Sistema (%N)/)
+%oneri=$search(@,/Altri Oneri (%N)/)
+%accise=$search(@,/Imposte.+Euro.+ (%N)/)
+%prezzo_energia[0]=$search(@,/Energia F1.+ Euro (%N)/)
+%prezzo_energia[1]=$search(@,/Energia F2.+ Euro (%N)/)
+%prezzo_energia[2]=$search(@,/Energia F3.+ Euro (%N)/)
+%prezzo_energia[0]=$search(@,/Energia Peak.+ Euro (%N)/)
+%prezzo_energia[1]=$search(@,/Energia Off-Peak.+ Euro (%N)/)
+%pcv=$search(@,/PCV .+ Euro (%N)/)
+%disp_var=$search(@,/Dispacciamento Quota Variabile.+ Euro (%N)/)
+%penale_reattiva_inf75=$search(@,/reattiva entro 75% .+ Euro %N (%N)/)
+%penale_reattiva_sup75=$search(@,/reattiva oltre 75% .+ Euro %N (%N)/)
+%imponibile=$search(@,/Totale periodo (%N)/)
+%potenza[0:2]=$search(@,/Trasporto Quota Potenza \u20ac\/kW (%N)/)
 ### End Script
 ### End Box
 

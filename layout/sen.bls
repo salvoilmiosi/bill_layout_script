@@ -26,9 +26,9 @@ fornitore="SEN"
 ### W 0.3091397882
 ### H 0.2131183147
 ### Script
-%spesa_materia_energia=$search(@,"Spesa per la materia energia \\(.\\) (%N)")
-%trasporto_gestione=$search(@,"Spesa per il trasporto dell'energia elettrica e la gestione del contatore \\(.\\) (%N)")
-%oneri=$search(@,"Spesa per Oneri di Sistema \\(.\\) (%N)")
+%spesa_materia_energia=$search(@,/Spesa per la materia energia \(.\) (%N)/)
+%trasporto_gestione=$search(@,/Spesa per il trasporto dell'energia elettrica e la gestione del contatore \(.\) (%N)/)
+%oneri=$search(@,/Spesa per Oneri di Sistema \(.\) (%N)/)
 ### End Script
 ### End Box
 
@@ -42,9 +42,9 @@ fornitore="SEN"
 ### W 0.6912442446
 ### H 0.1710376292
 ### Script
-%accise=$search(@,"Accisa.+kWh (%N)")
-iva=$search(@,"Importo IVA (\\d+%)")
-%imponibile=$search(@,"imponibile di euro (%N)")
+%accise=$search(@,/Accisa.+kWh (%N)/)
+iva=$search(@,/Importo IVA (\d+%)/)
+%imponibile=$search(@,/imponibile di euro (%N)/)
 ### End Script
 ### End Box
 
@@ -58,7 +58,7 @@ iva=$search(@,"Importo IVA (\\d+%)")
 ### W 0.4608294964
 ### H 0.1221697330
 ### Script
-ragione_sociale=$search(@,"^(.+)\n")
+ragione_sociale=$search(@,/^(.+)\n/)
 ### End Script
 ### End Box
 
@@ -72,8 +72,8 @@ ragione_sociale=$search(@,"^(.+)\n")
 ### W 0.4589093924
 ### H 0.1920779794
 ### Script
-indirizzo_fornitura=$search($nonewline(@),"Forniamo energia in (.+) Tariffa")
-%potenza_disponibile=$search(@,"Potenza disponibile (%N)")
+indirizzo_fornitura=$search($nonewline(@),/Forniamo energia in (.+) Tariffa/)
+%potenza_disponibile=$search(@,/Potenza disponibile (%N)/)
 ### End Script
 ### End Box
 
@@ -87,8 +87,8 @@ indirizzo_fornitura=$search($nonewline(@),"Forniamo energia in (.+) Tariffa")
 ### W 0.2332949340
 ### H 0.0875549763
 ### Script
-numero_cliente=$search(@,"CLIENTE\n(.+)\n")
-codice_pod=$search(@,"CODICE POD\n(.+)\n")
+numero_cliente=$search(@,/CLIENTE\n(.+)\n/)
+codice_pod=$search(@,/CODICE POD\n(.+)\n/)
 ### End Script
 ### End Box
 
@@ -102,9 +102,9 @@ codice_pod=$search(@,"CODICE POD\n(.+)\n")
 ### W 0.2048572451
 ### H 0.1028847024
 ### Script
-numero_fattura=$search(@,"N\\. Fattura (.+)\n")
-data_fattura=$date(@,"Del DD\\.MM\\.YYYY")
-mese_fattura=$date(@,"MESE MON\\.YYYY$")
+numero_fattura=$search(@,/N\. Fattura (.+)\n/)
+data_fattura=$date(@,/Del DD\.MM\.YYYY/)
+mese_fattura=$date(@,/MESE MON\.YYYY$/)
 ### End Script
 ### End Box
 
@@ -118,8 +118,8 @@ mese_fattura=$date(@,"MESE MON\\.YYYY$")
 ### W 0.2320709080
 ### H 0.0695553049
 ### Script
-%totale_fattura=$search(@,"TOTALE DA PAGARE (%N)")
-data_scadenza=$date(@,"DD\\.MM\\.YYYY")
+%totale_fattura=$search(@,/TOTALE DA PAGARE (%N)/)
+data_scadenza=$date(@,/DD\.MM\.YYYY/)
 ### End Script
 ### End Box
 
