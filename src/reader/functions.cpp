@@ -63,26 +63,27 @@ struct date_t {
 };
 
 bool date_from_string(const std::string &str, date_t &date) {
-    std::regex expression("(\\d{4})-(\\d{2})(-(\\d{2}))?");
-    std::smatch match;
-    if (std::regex_search(str, match, expression)) {
-        date.year = std::stoi(match.str(1));
-        date.month = std::stoi(match.str(2));
-        if (date.month > 12) {
-            return false;
+    static std::regex expression("(\\d{4})-(\\d{2})(-(\\d{2}))?");
+    try {
+        std::smatch match;
+        if (std::regex_search(str, match, expression)) {
+            date.year = std::stoi(match.str(1));
+            date.month = std::stoi(match.str(2));
+            if (date.month > 12) {
+                return false;
+            }
+            auto day = match.str(4);
+            if (!day.empty()) date.day = std::stoi(day);
+            return true;
         }
-        if (match.size() >= 4) {
-            date.day = std::stoi(match.str(3));
-        }
-        return true;
-    }
+    } catch (std::invalid_argument &) {}
     return false;
 }
 
 std::string date_to_string(const date_t &date) {
-    if (date.year == 0 || date.month == 0) {
+    if (!date.year || !date.month) {
         return "";
-    } else if (date.day == 0) {
+    } else if (!date.day) {
         return fmt::format("{:04}-{:02}", date.year, date.month);
     } else {
         return fmt::format("{:04}-{:02}-{:02}", date.year, date.month, date.day);
@@ -126,22 +127,18 @@ std::string parse_date(const std::string &format, const std::string &value, int 
     std::string month = string_tolower(search_regex(replace(format, "MM", "MONTH", "MON"), value, index));
     std::string year = search_regex(replace(format, "YEAR", "YYYY", "YY"), value, index);
 
-    for (size_t i=0; i<std::size(MONTHS); ++i) {
-        if (month.find(MONTHS[i]) != std::string::npos) {
-            if (i < 9) {
-                month = std::string("0") + std::to_string(i + 1);
-            } else {
-                month = std::to_string(i + 1);
-            }
-            break;
-        }
-    }
-
     try {
         date_t date;
-        date.year = std::stoi(year);
-        date.month = std::stoi(month);
+        for (size_t i=0; i<std::size(MONTHS); ++i) {
+            if (month.find(MONTHS[i]) != std::string::npos) {
+                date.month = i+1;
+                break;
+            }
+        }
+        if (!date.month && !month.empty()) date.month = std::stoi(month);
         if (!day.empty()) date.day = std::stoi(day);
+        if (!year.empty()) date.year = std::stoi(year);
+
         if (date.year < 100) {
             if (date.year > 90) {
                 date.year += 1900;
@@ -150,7 +147,7 @@ std::string parse_date(const std::string &format, const std::string &value, int 
             }
         }
         return date_to_string(date);
-    } catch (const std::invalid_argument &) {
+    } catch (std::invalid_argument &) {
         return "";
     }
 }
@@ -189,13 +186,14 @@ std::string date_format(const std::string &str, std::string format) {
 
 static const std::regex &create_regex(const std::string &format) {
     static std::map<std::string, std::regex> expressions;
-    if (expressions.find(format) == expressions.end()) {
-        std::string format_edit;
+    auto it = expressions.find(format);
+    if (it == expressions.end()) {
+        std::string format_edit = format;
         string_replace(format_edit, " ", "\\s+");
         string_replace(format_edit, "%N", "[0-9\\.,-]+");
-        expressions[format] = std::regex(format_edit, std::regex::icase);
+        return expressions[format] = std::regex(format_edit, std::regex::icase);
     }
-    return expressions[format];
+    return it->second;
 }
 
 std::vector<std::string> search_regex_all(const std::string &format, std::string value, int index) {
