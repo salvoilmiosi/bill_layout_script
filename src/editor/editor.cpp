@@ -198,6 +198,16 @@ void frame_editor::OnNewFile(wxCommandEvent &evt) {
     }
 }
 
+template<typename Container, typename T>
+static typename Container::const_iterator find_in(const Container &con, const T &obj) {
+    for (auto it = con.begin(); it != con.end(); ++it) {
+        if (*it == obj) {
+            return it;
+        }
+    }
+    return con.end();
+}
+
 void frame_editor::openFile(const wxString &filename) {
     layout_filename = filename;
     std::ifstream ifs(layout_filename.ToStdString());
@@ -215,7 +225,7 @@ void frame_editor::openFile(const wxString &filename) {
     updateLayout();
     
     static constexpr size_t MAX_RECENT_FILES_HISTORY = 10;
-    if (auto it = std::find(recentFiles.begin(), recentFiles.end(), layout_filename); it != recentFiles.end()) {
+    if (auto it = find_in(recentFiles, layout_filename); it != recentFiles.end()) {
         recentFiles.erase(it);
     }
     recentFiles.push_front(layout_filename);
@@ -425,7 +435,7 @@ void frame_editor::loadPdf(const wxString &filename) {
         setSelectedPage(1, true);
         
         static constexpr size_t MAX_RECENT_PDFS_HISTORY = 10;
-        if (auto it = std::find(recentPdfs.begin(), recentPdfs.end(), m_doc.filename()); it != recentPdfs.end()) {
+        if (auto it = find_in(recentPdfs, m_doc.filename()); it != recentPdfs.end()) {
             recentPdfs.erase(it);
         }
         recentPdfs.push_front(m_doc.filename());
@@ -498,30 +508,32 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
         control_script_filename = getControlScript();
     }
     
-    wxString cmd_str = get_app_path() + "layout_reader";
-    wxString layout_path = wxFileName(control_script_filename).GetPathWithSep();
+    if (!control_script_filename.empty()) {
+        wxString cmd_str = get_app_path() + "layout_reader";
+        wxString layout_path = wxFileName(control_script_filename).GetPathWithSep();
 
-    const char *args[] = {
-        cmd_str.c_str(),
-        "-p", m_doc.filename().c_str(),
-        control_script_filename.c_str(),
-        nullptr
-    };
+        const char *args[] = {
+            cmd_str.c_str(),
+            "-p", m_doc.filename().c_str(),
+            control_script_filename.c_str(),
+            nullptr
+        };
 
-    std::istringstream iss(open_process(args)->read_all());
+        std::istringstream iss(open_process(args)->read_all());
 
-    Json::Value json_output;
-    iss >> json_output;
+        Json::Value json_output;
+        iss >> json_output;
 
-    if (json_output["error"].asBool()) {
-        wxMessageBox("Impossibile leggere l'output: " + json_output["message"].asString(), "Errore", wxOK | wxICON_ERROR);
-    } else {
-        wxString output_layout = json_output["globals"]["layout"].asString();
-        if (output_layout.empty()) {
-            wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
-        } else if (saveIfModified()) {
-            modified = false;
-            openFile(layout_path + output_layout + ".bls");
+        if (json_output["error"].asBool()) {
+            wxMessageBox("Impossibile leggere l'output: " + json_output["message"].asString(), "Errore", wxOK | wxICON_ERROR);
+        } else {
+            wxString output_layout = json_output["globals"]["layout"].asString();
+            if (output_layout.empty()) {
+                wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
+            } else if (saveIfModified()) {
+                modified = false;
+                openFile(layout_path + output_layout + ".bls");
+            }
         }
     }
 }
