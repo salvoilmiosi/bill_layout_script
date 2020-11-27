@@ -26,17 +26,6 @@ std::string parse_number(const std::string &value) {
     return out;
 }
 
-template<typename ... Ts>
-constexpr bool find_in (const char *str, const char *first, const Ts & ... strs) {
-    if (str == first) {
-        return true;
-    } else if constexpr (sizeof ... (strs) == 0) {
-        return false;
-    } else {
-        return find_in(str, strs...);
-    }
-}
-
 constexpr const char *MONTHS[] = {
     "gen",
     "feb",
@@ -100,10 +89,21 @@ std::string date_to_string(const date_t &date) {
     }
 }
 
+template<typename ... Ts>
+constexpr bool find_variadic(const char *str, const char *first, const Ts & ... strs) {
+    if (str == first) {
+        return true;
+    } else if constexpr (sizeof ... (strs) == 0) {
+        return false;
+    } else {
+        return find_variadic(str, strs...);
+    }
+}
+
 std::string parse_date(const std::string &format, const std::string &value, int index) {
     auto replace = [](std::string out, const auto& ... strs) {
         auto replace_impl = [&](std::string &out, const char *str, const std::string &fmt) {
-            if (find_in(str, strs...)) {
+            if (find_variadic(str, strs...)) {
                 string_replace(out, str, "(" + fmt + ")");
             } else {
                 string_replace(out, str, fmt);
