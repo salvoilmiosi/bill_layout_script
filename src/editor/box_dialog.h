@@ -3,6 +3,7 @@
 
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
+#include <wx/stc/stc.h>
 #include <wx/choice.h>
 
 #include "layout.h"
@@ -23,6 +24,8 @@ public:
 private:
     bool saveBox();
 
+    void CreateScriptBox();
+
     void OnApply(wxCommandEvent &evt);
     void OnOK(wxCommandEvent &evt);
     void OnCancel(wxCommandEvent &evt);
@@ -37,7 +40,7 @@ private:
     wxTextCtrl *m_box_name;
     wxTextCtrl *m_box_spacers;
     wxTextCtrl *m_box_goto_label;
-    wxTextCtrl *m_box_script;
+    wxStyledTextCtrl *m_box_script;
     ReaderOutputDialog *reader_output;
     wxChoice *m_box_type;
     wxChoice *m_box_mode;

@@ -84,10 +84,10 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     addLabelAndCtrl("Spaziatori:", 0, m_box_spacers);
 
     m_box_goto_label = new wxTextCtrl(this, wxID_ANY, box.goto_label);
-    addLabelAndCtrl("Etichetta goto:", 0, m_box_goto_label);
+    addLabelAndCtrl("Label goto:", 0, m_box_goto_label);
 
-    m_box_script = new wxTextCtrl(this, wxID_ANY, box.script, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_DONTWRAP);
-    m_box_script->SetFont(wxFont(10, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    CreateScriptBox();
+    m_box_script->SetValue(box.script);
     addLabelAndCtrl("Script:", 1, m_box_script);
 
     top_level->Add(sizer, 1, wxEXPAND | wxALL, 5);
@@ -131,6 +131,12 @@ bool box_dialog::saveBox() {
         return true;
     }
     return false;
+}
+
+void box_dialog::CreateScriptBox() {
+    wxStyledTextCtrl *text = new wxStyledTextCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    text->StyleSetFont(0, wxFont(10, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    m_box_script = text;
 }
 
 void box_dialog::OnApply(wxCommandEvent &evt) {
