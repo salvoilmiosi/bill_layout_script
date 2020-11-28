@@ -137,6 +137,7 @@ void box_dialog::CreateScriptBox() {
     wxStyledTextCtrl *text = new wxStyledTextCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     wxFont font(10, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     text->StyleSetFont(0, font);
+    text->SetEOLMode(wxSTC_EOL_LF);
     m_box_script = text;
 }
 
