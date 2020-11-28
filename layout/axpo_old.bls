@@ -210,9 +210,9 @@ $if(*spacer_multipod) {
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 3
-### X 0.7768816948
+### X 0.6784850955
 ### Y 0.1520334482
-### W 0.1639784873
+### W 0.2623750567
 ### H 0.0389585681
 ### Spacers
 p+*spacer_multipod p+*next_page
