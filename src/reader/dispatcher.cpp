@@ -63,8 +63,10 @@ void reader::call_function(const std::string &name, size_t numargs) {
             if (args.size() < 1) {
                 throw layout_error("La funzione format richiede almeno 1 argomento");
             }
-            std::vector<std::string> fmt_args(args.size()-1);
-            std::transform(args.begin() + 1, args.end(), fmt_args.begin(), [](const variable &var) { return var.str(); });
+            std::vector<std::string> fmt_args;
+            std::transform(std::next(args.begin()), args.end(),
+                std::inserter(fmt_args, fmt_args.begin()),
+                [](const variable &var) { return var.str(); });
             return string_format(args.front().str(), fmt_args);
         }},
         {"replace", create_function<3>([](const variable &value, const variable &regex, const variable &str) {
