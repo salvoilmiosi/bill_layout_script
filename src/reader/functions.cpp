@@ -172,14 +172,16 @@ std::string date_format(const std::string &str, std::string format) {
         return "";
     }
 
-    string_replace(format, "DAY", std::to_string(date.day));
-    string_replace(format, "DD", std::to_string(date.day));
-    string_replace(format, "MM", std::to_string(date.month));
+    auto to_str = [](int n, int size) { return fmt::format("{:0{}}", n, size); };
+
+    string_replace(format, "DAY", to_str(date.day, 2));
+    string_replace(format, "DD", to_str(date.day, 2));
+    string_replace(format, "MM", to_str(date.month, 2));
     string_replace(format, "MONTH", MONTHS_FULL[date.month-1]);
     string_replace(format, "MON", MONTHS[date.month-1]);
-    string_replace(format, "YEAR", std::to_string(date.year));
-    string_replace(format, "YYYY", std::to_string(date.year));
-    string_replace(format, "YY", std::to_string(date.year).substr(2));
+    string_replace(format, "YEAR", to_str(date.year, 4));
+    string_replace(format, "YYYY", to_str(date.year, 4));
+    string_replace(format, "YY", to_str(date.year, 4).substr(2));
 
     return format;
 }
