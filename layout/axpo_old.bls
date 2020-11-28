@@ -154,7 +154,7 @@ $ifnot(*spacer_multipod) {
 ### Script
 $ifnot(*spacer_multipod) {
   $lines($search(@,/Imposta Erariale ((.+ %N %N %N %N\n)+)/)) {
-    iva=$strcat($search(@,/(%N) %N$/),"%")
+    iva=$percent($search(@,/(%N) %N$/))
     $inc(%accise,$search(@,/%N (%N)$/))
   }
 }
@@ -237,7 +237,7 @@ p+*next_page
 ### Script
 $if(*spacer_multipod) {
   $lines($search(@,/Imposta Erariale ((.+ %N %N %N %N\n)+)/)) {
-    iva=$strcat($search(@,/(%N) %N$/),"%")
+    iva=$percent($search(@,/(%N) %N$/))
     $inc(%accise,$search(@,/%N (%N)$/))
   }
 }

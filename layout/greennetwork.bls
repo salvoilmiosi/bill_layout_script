@@ -116,7 +116,7 @@ codice_pod=$search(@,/POD: (.+)\n/)
 ### W 0.1159964651
 ### H 0.0374877453
 ### Script
-%iva $if(iva) iva=$strcat(iva,"%")
+iva=$percent($num(@))
 ### End Script
 ### End Box
 

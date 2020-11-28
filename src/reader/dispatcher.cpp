@@ -102,7 +102,14 @@ void reader::call_function(const std::string &name, size_t numargs) {
                 var += arg.str();
             }
             return var;
-        }}
+        }},
+        {"percent", create_function([](const variable &str) {
+            if (!str.empty()) {
+                return variable(str.str() + "%");
+            } else {
+                return variable::null_var();
+            }
+        })}
     };
 
     try {

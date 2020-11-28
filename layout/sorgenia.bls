@@ -119,7 +119,7 @@ data_fattura=$date(@,/DD\/MM\/YYYY/)
 ### H 0.0235176720
 ### Script
 mese_fattura=$date(@,/MONTH YEAR/)
-*mese_fine=$date(@,"MONTH YEAR/MONTH YEAR",2)
+*mese_fine=$date(@,/MONTH YEAR\/MONTH YEAR/,2)
 mese_fattura=$month_add(mese_fattura,*calc_mese)
 $ifnot($isset(mese_fattura)) {
   $error("Layout Invalido")
