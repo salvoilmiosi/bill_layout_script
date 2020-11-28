@@ -178,7 +178,7 @@ data_scadenza=$date(@,/DD\/MM\/YYYY/)
 ### H 0.0201220736
 ### Script
 mese_fattura=$date(@,/MON\. YEAR/)
-*mese_fine=$date(@,"MON\. YEAR - MON\. YEAR",2)
+*mese_fine=$date(@,/MON\. YEAR - MON\. YEAR/,2)
 $if($isset(*mese_fine)) {
   mese_fattura=$month_add(mese_fattura,*calc_mese)
   $inc(*calc_mese)
@@ -254,10 +254,8 @@ ragione_sociale
 ### H 0.0951694250
 ### Script
 $if($contains(@,"Energia reattiva")) {
-  $tokens($search(@,$strcat(mese,/.+ %N %N %N (%N %N %N)/))) {
-    %energia_reattiva[0]
-    %energia_reattiva[1]
-    %energia_reattiva[2]
+  $tokens($search(@,$format(/$0.+ %N %N %N (%N %N %N)/,mese))) {
+    %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
   }
 }
 ### End Script

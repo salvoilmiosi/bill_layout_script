@@ -10,7 +10,7 @@
 ### W 0.4665852189
 ### H 0.1048295125
 ### Script
-$ifnot($contains(@,/GREEN NETWORK S.p.A.\nSociet\u00e0 a Socio Unico/))
+$ifnot($contains(@,"GREEN NETWORK S.p.A.\nSociet\u00e0 a Socio Unico"))
   $error("Layout Invalido")
 ### End Script
 ### End Box

@@ -131,7 +131,7 @@ p+*page_offset p+*pod_offset
 ### End Spacers
 ### Script
 %imponibile=$search(@,/TOTALE IMPONIBILE (%N)/)
-$if($contains(@,/Energia Reattiva/)) {
+$if($contains(@,"Energia Reattiva")) {
   $with($search(@,/CONSUMI E LETTURE[^]+?((\d\d\.\d\d\.\d\d\d\d - \d\d\.\d\d\.\d\d\d\d.+\n)+)/)) {
     %energia_reattiva[0:2]=$search(@,$format(/\d\d\.$0.+ (%N)\n/,mese))
   }
