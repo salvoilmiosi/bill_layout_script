@@ -419,7 +419,7 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
             clipboard.page = selected_page;
         }
         
-        auto box = layout.emplace_back(std::make_shared<layout_box>(std::move(clipboard)));
+        auto &box = insertAfterSelected(layout, std::move(clipboard));
         updateLayout();
         selectBox(box);
     }

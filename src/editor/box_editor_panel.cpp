@@ -130,7 +130,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 diag.SetTextValidator(wxFILTER_EMPTY);
                 if (diag.ShowModal() == wxID_OK) {
                     wxRect rect = make_rect(start_pt, end_pt);
-                    auto &box = app->layout.emplace_back(std::make_shared<layout_box>());
+                    auto &box = insertAfterSelected(app->layout);
                     box->name = diag.GetValue();
                     box->x = (rect.x + scrollx) / scaled_width;
                     box->y = (rect.y + scrolly) / scaled_height;
