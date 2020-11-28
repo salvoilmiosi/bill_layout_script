@@ -254,7 +254,7 @@ ragione_sociale
 ### H 0.0951694250
 ### Script
 $if($contains(@,"Energia reattiva")) {
-  $tokens($search(@,$format(/$0.+ %N %N %N (%N %N %N)/,mese))) {
+  $tokens($search(@,$format(/\d\d\/$0 %N %N %N (%N %N %N)/,$date_format(mese_fattura,"MM/YYYY")))) {
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
   }
 }
