@@ -195,14 +195,14 @@ static std::regex create_regex(const std::string &format) {
     }
 }
 
-std::vector<std::string> search_regex_all(const std::string &format, std::string value, int index) {
-    std::regex expression = create_regex(format);
-    std::smatch match;
+std::vector<std::string> search_regex_all(const std::string &format, const std::string &value, int index) {
     std::vector<std::string> ret;
-    while (std::regex_search(value, match, expression)) {
-        ret.push_back(match.str(index));
-        value = match.suffix();
-    }
+    std::regex expression = create_regex(format);
+    std::transform(
+        std::sregex_iterator(value.begin(), value.end(), expression),
+        std::sregex_iterator(),
+        std::inserter(ret, ret.begin()),
+        [index](const auto &match) { return match.str(index); });
     return ret;
 }
 
