@@ -177,6 +177,7 @@ void parser::read_keyword() {
                 break;
             }
             add_line("NEXTTOKEN");
+
             read_statement();
         }
         add_line("POPCONTENT");
@@ -198,6 +199,10 @@ void parser::read_keyword() {
         read_expression();
         tokens.require(TOK_PAREN_END);
         add_line("ERROR");
+        break;
+    case hash("skip"):
+        tokens.require(TOK_PAREN_BEGIN);
+        tokens.require(TOK_PAREN_END);
         break;
     default:
         throw parsing_error(fmt::format("Parola chiave sconosciuta: {0}", name), tokens.getLocation(tok_name));

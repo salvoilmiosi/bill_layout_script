@@ -106,7 +106,7 @@ private:
     bool readString();
     bool readRegexp();
     bool readNumber();
-    bool readToNewline();
+    bool readComment();
 };
 
 #endif

@@ -77,7 +77,7 @@ bool parse_string(std::string &decoded, std::string_view value) {
         char c = *current++;
         if (c == '"') break;
         if (c == '\\') {
-            if (current == end) return "";
+            if (current == end) return false;
             char escape = *current++;
             switch (escape) {
             case '"':
@@ -129,7 +129,7 @@ bool parse_string_regexp(std::string &decoded, std::string_view value) {
         char c = *current++;
         if (c == '/') break;
         if (c == '\\') {
-            if (current == end) return "";
+            if (current == end) return false;
             char escape = *current++;
             switch (escape) {
             case '/':

@@ -99,9 +99,12 @@ bool tokenizer::next() {
         tok.type = TOK_GLOBAL;
         break;
     case '#':
-    case ';':
         tok.type = TOK_COMMENT;
-        ok = readToNewline();
+        ok = readComment();
+        if (ok) {
+            // skip comments
+            return next();
+        }
         break;
     case '@':
         tok.type = TOK_CONTENT;
@@ -235,7 +238,7 @@ bool tokenizer::readNumber() {
     return true;
 }
 
-bool tokenizer::readToNewline() {
+bool tokenizer::readComment() {
     while (true) {
         switch(nextChar()) {
         case '\n':

@@ -109,9 +109,6 @@ void parser::read_statement() {
             read_statement();
         }
         break;
-    case TOK_COMMENT:
-        tokens.advance();
-        break;
     case TOK_FUNCTION:
         read_keyword();
         break;
