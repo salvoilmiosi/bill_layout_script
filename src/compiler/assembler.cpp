@@ -107,15 +107,18 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("PUSHINT"):       add_command(PUSHINT, std::stoi(args[0])); break;
         case hash("PUSHFLOAT"):     add_command(PUSHFLOAT, std::stof(args[0])); break;
         case hash("PUSHSTR"):
-            add_command(PUSHSTR,
-                add_string(arg_str.front() == '"' ?
-                    parse_string(arg_str) :
-                    parse_string_regexp(arg_str)));
+        {
+            std::string str;
+            if (!(arg_str.front() == '"' ? parse_string : parse_string_regexp)(str, arg_str)) {
+                throw assembly_error(fmt::format("Stringa non valida: {0}", arg_str));
+            }
+            add_command(PUSHSTR, add_string(str));
             break;
+        }
         case hash("PUSHVAR"):       add_command(PUSHVAR); break;
         case hash("JMP"):           add_command(JMP, getgotoindex(args[0])); break;
         case hash("JZ"):            add_command(JZ, getgotoindex(args[0])); break;
-        case hash("JNZ"):            add_command(JNZ, getgotoindex(args[0])); break;
+        case hash("JNZ"):           add_command(JNZ, getgotoindex(args[0])); break;
         case hash("JTE"):           add_command(JTE, getgotoindex(args[0])); break;
         case hash("INCTOP"):        add_command(INCTOP); break;
         case hash("INC"):           add_command(INC, static_cast<small_int>(std::stoi(args[0]))); break;

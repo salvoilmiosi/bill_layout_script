@@ -1,11 +1,11 @@
 #include "parsestr.h"
+#include "utils.h"
 
 typedef std::string_view::iterator location;
 
 // borrowed from jsoncpp source code
 
 static bool decodeUnicodeEscapeSequence(location &current, location end, unsigned int &ret_unicode) {
-    return false;
   int unicode = 0;
   for (int index = 0; index < 4; ++index) {
     char c = *current++;
@@ -70,9 +70,7 @@ static inline std::string codePointToUTF8(unsigned int cp) {
   return result;
 }
 
-
-std::string parse_string(std::string_view value) {
-    std::string decoded;
+bool parse_string(std::string &decoded, std::string_view value) {
     location current = value.begin() + 1;
     location end = value.end() - 1;
     while (current != end) {
@@ -110,22 +108,21 @@ std::string parse_string(std::string_view value) {
             {
                 unsigned int unicode;
                 if (!decodeUnicodeCodePoint(current, end, unicode))
-                    return "";
+                    return false;
                 decoded += codePointToUTF8(unicode);
                 break;
             }
             default:
-                return std::string();
+                return false;
             }
         } else {
             decoded += c;
         }
     }
-    return decoded;
+    return true;
 }
 
-std::string parse_string_regexp(std::string_view value) {
-    std::string decoded;
+bool parse_string_regexp(std::string &decoded, std::string_view value) {
     location current = value.begin() + 1;
     location end = value.end() - 1;
     while (current != end) {
@@ -154,7 +151,7 @@ std::string parse_string_regexp(std::string_view value) {
             {
                 unsigned int unicode;
                 if (!decodeUnicodeCodePoint(current, end, unicode))
-                    return "";
+                    return false;
                 decoded += codePointToUTF8(unicode);
                 break;
             }
@@ -166,5 +163,8 @@ std::string parse_string_regexp(std::string_view value) {
             decoded += c;
         }
     }
-    return decoded;
+    
+    string_replace(decoded, " ", "\\s+");
+    string_replace(decoded, "%N", "[0-9\\.,-]+");
+    return true;
 }

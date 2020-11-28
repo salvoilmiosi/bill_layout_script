@@ -184,20 +184,8 @@ std::string date_format(const std::string &str, std::string format) {
     return format;
 }
 
-static const std::regex &create_regex(const std::string &format) {
-    static std::map<std::string, std::regex> expressions;
-    auto it = expressions.find(format);
-    if (it == expressions.end()) {
-        std::string format_edit = format;
-        string_replace(format_edit, " ", "\\s+");
-        string_replace(format_edit, "%N", "[0-9\\.,-]+");
-        return expressions[format] = std::regex(format_edit, std::regex::icase);
-    }
-    return it->second;
-}
-
 std::vector<std::string> search_regex_all(const std::string &format, std::string value, int index) {
-    const std::regex &expression = create_regex(format);
+    std::regex expression = std::regex(format, std::regex::icase);
     std::smatch match;
     std::vector<std::string> ret;
     while (std::regex_search(value, match, expression)) {
@@ -208,13 +196,17 @@ std::vector<std::string> search_regex_all(const std::string &format, std::string
 }
 
 std::string search_regex(const std::string &format, const std::string &value, int index) {
-    const std::regex &expression = create_regex(format);
+    std::regex expression = std::regex(format, std::regex::icase);
     std::smatch match;
     if (std::regex_search(value, match, expression)) {
         return match.str(index);
     } else {
         return "";
     }
+}
+
+std::string string_replace_regex(const std::string &format, const std::string &value, const std::string &str) {
+    return std::regex_replace(value, std::regex(format, std::regex::icase), str);
 }
 
 std::string nonewline(std::string input) {

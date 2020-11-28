@@ -22,6 +22,9 @@ std::string date_format(const std::string &date, std::string format);
 // cerca la regex in str e ritorna i valori trvati
 std::vector<std::string> search_regex_all(const std::string &format, std::string value, int index);
 
+// rimpiazza in str le occorrenze di format in value
+std::string string_replace_regex(const std::string &format, const std::string &value, const std::string &str);
+
 // cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
 std::string search_regex(const std::string &format, const std::string &value, int index);
 
