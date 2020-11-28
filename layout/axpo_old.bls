@@ -246,13 +246,13 @@ $if(*spacer_multipod) {
 
 ### Box
 ### Name Spese per l'energia
-### Type PAGE
+### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 3
-### X 0.2290322185
-### Y 0.0276402272
-### W 0.0483871400
-### H 0.0316528194
+### X 0.0388630033
+### Y 0.2955991626
+### W 0.9039250612
+### H 0.3600450754
 ### Spacers
 p+*spacer_multipod p+*next_page
 ### End Spacers
