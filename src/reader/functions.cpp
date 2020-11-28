@@ -1,5 +1,6 @@
 #include "functions.h"
 #include "utils.h"
+#include "layout.h"
 
 #include <regex>
 #include <algorithm>
@@ -186,8 +187,16 @@ std::string date_format(const std::string &str, std::string format) {
     return format;
 }
 
+static std::regex create_regex(const std::string &format) {
+    try {
+        return std::regex(format, std::regex::icase);
+    } catch (std::regex_error &) {
+        throw layout_error(fmt::format("Espressione regolare non valida: {}", format));
+    }
+}
+
 std::vector<std::string> search_regex_all(const std::string &format, std::string value, int index) {
-    std::regex expression = std::regex(format, std::regex::icase);
+    std::regex expression = create_regex(format);
     std::smatch match;
     std::vector<std::string> ret;
     while (std::regex_search(value, match, expression)) {
@@ -198,7 +207,7 @@ std::vector<std::string> search_regex_all(const std::string &format, std::string
 }
 
 std::string search_regex(const std::string &format, const std::string &value, int index) {
-    std::regex expression = std::regex(format, std::regex::icase);
+    std::regex expression = create_regex(format);
     std::smatch match;
     if (std::regex_search(value, match, expression)) {
         return match.str(index);
@@ -208,7 +217,7 @@ std::string search_regex(const std::string &format, const std::string &value, in
 }
 
 std::string string_replace_regex(const std::string &format, const std::string &value, const std::string &str) {
-    return std::regex_replace(value, std::regex(format, std::regex::icase), str);
+    return std::regex_replace(value, create_regex(format), str);
 }
 
 std::string nonewline(std::string input) {
