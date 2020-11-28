@@ -15,7 +15,7 @@ public:
         selected_tool = tool;
     }
 
-    void setSelectedBox(box_reference box) {
+    void setSelectedBox(const box_ptr &box) {
         selected_box = box;
     }
 
@@ -32,7 +32,7 @@ private:
     class frame_editor *app;
 
     wxPoint start_pt, end_pt;
-    box_reference selected_box;
+    box_ptr selected_box;
     char resize_node = 0;
     float startx, starty;
     bool mouseIsDown = false;

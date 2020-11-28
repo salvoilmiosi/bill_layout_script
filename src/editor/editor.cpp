@@ -419,9 +419,9 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
             clipboard.page = selected_page;
         }
         
-        layout.push_back(std::make_shared<layout_box>(std::move(clipboard)));
+        auto box = layout.emplace_back(std::make_shared<layout_box>(std::move(clipboard)));
         updateLayout();
-        selectBox(layout.size() - 1);
+        selectBox(box);
     }
 }
 
@@ -590,17 +590,27 @@ void frame_editor::OnChangeTool(wxCommandEvent &evt) {
 
 void frame_editor::OnSelectBox(wxCommandEvent &evt) {
     size_t selection = m_list_boxes->GetSelection();
-    selectBox(selection);
+    if (selection >= 0 && selection < layout.size()) {
+        selectBox(layout[selection]);
+    } else {
+        selectBox(nullptr);
+    }
 }
 
-void frame_editor::selectBox(int selection) {
-    m_list_boxes->SetSelection(selection);
+void frame_editor::selectBox(const box_ptr &box) {
     for (size_t i=0; i<layout.size(); ++i) {
-        layout[i]->selected = (int)i == selection;
+        if (layout[i] == box) {
+            m_list_boxes->SetSelection(i);
+            layout[i]->selected = true;
+        } else {
+            layout[i]->selected = false;
+        }
     }
-    if (selection >= 0 && selection < (int) layout.size()) {
-        setSelectedPage(layout[selection]->page);
-        m_image->setSelectedBox(layout.begin() + selection);
+    if (box) {
+        setSelectedPage(box->page);
+        m_image->setSelectedBox(box);
+    } else {
+        m_list_boxes->SetSelection(-1);
     }
     m_image->Refresh();
 }

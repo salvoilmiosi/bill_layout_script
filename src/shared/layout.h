@@ -26,7 +26,8 @@ struct layout_error {
     layout_error(const std::string &message) : message(message) {}
 };
 
-using bill_layout_script = std::vector<std::shared_ptr<layout_box>>;
+using box_ptr = std::shared_ptr<layout_box>;
+using bill_layout_script = std::vector<box_ptr>;
 
 std::ostream &operator << (std::ostream &out, const bill_layout_script &obj);
 std::istream &operator >> (std::istream &in, bill_layout_script &obj);

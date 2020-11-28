@@ -40,7 +40,7 @@ public:
         return selected_page;
     }
     void setSelectedPage(int page, bool force = false);
-    void selectBox(int id);
+    void selectBox(const box_ptr &box);
 
     void updateRecentFiles(bool save = false);
     

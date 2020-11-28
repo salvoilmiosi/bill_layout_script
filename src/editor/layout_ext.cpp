@@ -2,24 +2,24 @@
 
 constexpr float RESIZE_TOLERANCE = 8.f;
 
-box_reference getBoxAt(bill_layout_script &boxes, float x, float y, int page) {
+box_ptr getBoxAt(bill_layout_script &boxes, float x, float y, int page) {
     auto check_box = [&](const layout_box &box) {
         return (x > box.x && x < box.x + box.w && y > box.y && y < box.y + box.h && box.page == page);
     };
     for (auto it = boxes.begin(); it != boxes.end(); ++it) {
-        if ((*it)->selected && check_box(**it)) return it;
+        if ((*it)->selected && check_box(**it)) return *it;
     }
     for (auto it = boxes.begin(); it != boxes.end(); ++it) {
-        if (check_box(**it)) return it;
+        if (check_box(**it)) return *it;
     }
-    return boxes.end();
+    return nullptr;
 }
 
-std::pair<box_reference, int> getBoxResizeNode(bill_layout_script &boxes, float x, float y, int page, float scalex, float scaley) {
+std::pair<box_ptr, int> getBoxResizeNode(bill_layout_script &boxes, float x, float y, int page, float scalex, float scaley) {
     float nw = RESIZE_TOLERANCE / scalex;
     float nh = RESIZE_TOLERANCE / scaley;
-    auto check_box = [&](box_reference it) {
-        auto &box = **it;
+    auto check_box = [&](box_ptr &it) -> std::pair<box_ptr, int> {
+        layout_box &box = *it;
         if (box.page == page) {
             int node = 0;
             if (y > box.y - nh && y < box.y + box.h + nh) {
@@ -38,19 +38,19 @@ std::pair<box_reference, int> getBoxResizeNode(bill_layout_script &boxes, float 
             }
             return std::make_pair(it, node);
         }
-        return std::make_pair(boxes.end(), 0);
+        return std::make_pair(nullptr, 0);
     };
     for (auto it = boxes.begin(); it != boxes.end(); ++it) {
         if ((*it)->selected) {
-            auto res = check_box(it);
+            auto res = check_box(*it);
             if (res.second) return res;
         }
     }
     for (auto it = boxes.begin(); it != boxes.end(); ++it) {
-        auto res = check_box(it);
+        auto res = check_box(*it);
         if (res.second) return res;
     }
-    return std::make_pair(boxes.end(), 0);
+    return std::make_pair(nullptr, 0);
 }
 
 bill_layout_script copyLayout(const bill_layout_script &layout) {

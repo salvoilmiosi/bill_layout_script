@@ -69,14 +69,14 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
         switch (selected_tool) {
         case TOOL_SELECT:
             selected_box = getBoxAt(app->layout, xx, yy, app->getSelectedPage());
-            if (selected_box != app->layout.end()) {
-                startx = (*selected_box)->x;
-                starty = (*selected_box)->y;
-                app->selectBox(selected_box - app->layout.begin());
+            if (selected_box) {
+                startx = selected_box->x;
+                starty = selected_box->y;
+                app->selectBox(selected_box);
                 mouseIsDown = true;
                 start_pt = evt.GetPosition();
             } else {
-                app->selectBox(-1);
+                app->selectBox(nullptr);
             }
             break;
         case TOOL_NEWBOX:
@@ -86,8 +86,8 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
         case TOOL_DELETEBOX:
         {
             auto it = getBoxAt(app->layout, xx, yy, app->getSelectedPage());
-            if (it != app->layout.end()) {
-                app->layout.erase(it);
+            if (it) {
+                app->layout.erase(std::find(app->layout.begin(), app->layout.end(), it));
                 app->updateLayout();
                 Refresh();
             }
@@ -99,11 +99,11 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
             selected_box = node.first;
             if (node.second) {
                 resize_node = node.second;
-                app->selectBox(selected_box - app->layout.begin());
+                app->selectBox(selected_box);
                 mouseIsDown = true;
                 start_pt = evt.GetPosition();
             } else {
-                app->selectBox(-1);
+                app->selectBox(nullptr);
             }
             break;
         }
@@ -120,10 +120,8 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
         if (end_pt != start_pt) {
             switch (selected_tool) {
             case TOOL_SELECT:
-                if (selected_box != app->layout.end()) {
-                    if (start_pt != end_pt) {
-                        app->updateLayout();
-                    }
+                if (selected_box && start_pt != end_pt) {
+                    app->updateLayout();
                 }
                 break;
             case TOOL_NEWBOX:
@@ -140,7 +138,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                     box->h = rect.height / scaled_height;
                     box->page = app->getSelectedPage();
                     app->updateLayout();
-                    app->selectBox(app->layout.size() - 1);
+                    app->selectBox(box);
                     new box_dialog(app, *box);
                 }
                 break;
@@ -148,15 +146,15 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
             case TOOL_DELETEBOX:
                 break;
             case TOOL_RESIZE:
-                if (selected_box != app->layout.end()) {
+                if (selected_box) {
                     if (start_pt != end_pt) {
-                        if ((*selected_box)->w < 0) {
-                            (*selected_box)->w = -(*selected_box)->w;
-                            (*selected_box)->x -= (*selected_box)->w;
+                        if (selected_box->w < 0) {
+                            selected_box->w = -selected_box->w;
+                            selected_box->x -= selected_box->w;
                         }
-                        if ((*selected_box)->h < 0) {
-                            (*selected_box)->h = -(*selected_box)->h;
-                            (*selected_box)->y -= (*selected_box)->h;
+                        if (selected_box->h < 0) {
+                            selected_box->h = -selected_box->h;
+                            selected_box->y -= selected_box->h;
                         }
                         app->updateLayout();
                     }
@@ -174,8 +172,8 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
 void box_editor_panel::OnDoubleClick(wxMouseEvent &evt) {
     switch (selected_tool) {
     case TOOL_SELECT:
-        if (selected_box != app->layout.end()) {
-            new box_dialog(app, **selected_box);
+        if (selected_box) {
+            new box_dialog(app, *selected_box);
         }
     default:
         break;
@@ -192,23 +190,23 @@ void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {
         {
             float dx = (end_pt.x - start_pt.x) / scaled_width;
             float dy = (end_pt.y - start_pt.y) / scaled_height;
-            (*selected_box)->x = startx + dx;
-            (*selected_box)->y = starty + dy;
+            selected_box->x = startx + dx;
+            selected_box->y = starty + dy;
             break;
         }
         case TOOL_RESIZE:
         {
             if (resize_node & RESIZE_TOP) {
-                (*selected_box)->h = (*selected_box)->y + (*selected_box)->h - yy;
-                (*selected_box)->y = yy;
+                selected_box->h = selected_box->y + selected_box->h - yy;
+                selected_box->y = yy;
             } else if (resize_node & RESIZE_BOTTOM) {
-                (*selected_box)->h = yy - (*selected_box)->y;
+                selected_box->h = yy - selected_box->y;
             }
             if (resize_node & RESIZE_LEFT) {
-                (*selected_box)->w = (*selected_box)->x + (*selected_box)->w - xx;
-                (*selected_box)->x = xx;
+                selected_box->w = selected_box->x + selected_box->w - xx;
+                selected_box->x = xx;
             } else if (resize_node & RESIZE_RIGHT) {
-                (*selected_box)->w = xx - (*selected_box)->x;
+                selected_box->w = xx - selected_box->x;
             }
             break;
         }
@@ -251,18 +249,18 @@ void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {
 
 void box_editor_panel::OnKeyDown(wxKeyEvent &evt) {
     constexpr float MOVE_AMT = 5.f;
-    if (selected_box != app->layout.end()) {
+    if (selected_box) {
         switch (evt.GetKeyCode()) {
-            case WXK_LEFT: (*selected_box)->x -= MOVE_AMT / scaled_width; Refresh(); break;
-            case WXK_RIGHT: (*selected_box)->x += MOVE_AMT / scaled_width; Refresh(); break;
-            case WXK_UP: (*selected_box)->y -= MOVE_AMT / scaled_height; Refresh(); break;
-            case WXK_DOWN: (*selected_box)->y += MOVE_AMT / scaled_height; Refresh(); break;
+            case WXK_LEFT: selected_box->x -= MOVE_AMT / scaled_width; Refresh(); break;
+            case WXK_RIGHT: selected_box->x += MOVE_AMT / scaled_width; Refresh(); break;
+            case WXK_UP: selected_box->y -= MOVE_AMT / scaled_height; Refresh(); break;
+            case WXK_DOWN: selected_box->y += MOVE_AMT / scaled_height; Refresh(); break;
         }
     }
 }
 
 void box_editor_panel::OnKeyUp(wxKeyEvent &evt) {
-    if (selected_box != app->layout.end()) {
+    if (selected_box) {
         switch (evt.GetKeyCode()) {
         case WXK_LEFT:
         case WXK_RIGHT:
