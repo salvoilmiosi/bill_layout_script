@@ -307,7 +307,7 @@ $with(*contenuto_dettaglio_costi) {
 ### W 0.1012830585
 ### H 0.0759582892
 ### Script
-$with($search(@,/SPESA PER L'ENERGIA([^]+Totale) spesa per l'energia/)) {
+$with($search(*contenuto_dettaglio_costi,/SPESA PER L'ENERGIA([^]+Totale) spesa per l'energia/)) {
   $lines($searchall(@,$format(/al \d\d\/$0([^]+?)(dal|Totale)/,mese))) {
     $inc(%spesa_materia_energia,$search(@,/(%N)$/))
   }
