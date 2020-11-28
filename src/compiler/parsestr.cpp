@@ -1,4 +1,4 @@
-#include "parsestr.h"
+#include "assembler.h"
 #include "utils.h"
 
 typedef std::string_view::iterator location;
@@ -70,7 +70,7 @@ static inline std::string codePointToUTF8(unsigned int cp) {
   return result;
 }
 
-bool parse_string(std::string &decoded, std::string_view value) {
+bool assembler::parse_string(std::string &decoded, std::string_view value) {
     location current = value.begin() + 1;
     location end = value.end() - 1;
     while (current != end) {
@@ -122,7 +122,7 @@ bool parse_string(std::string &decoded, std::string_view value) {
     return true;
 }
 
-bool parse_string_regexp(std::string &decoded, std::string_view value) {
+bool assembler::parse_string_regexp(std::string &decoded, std::string_view value) {
     location current = value.begin() + 1;
     location end = value.end() - 1;
     while (current != end) {
