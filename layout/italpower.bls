@@ -5,12 +5,12 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0143080130
-### Y 0.1562356502
-### W 0.4448491335
-### H 0.0992555842
+### X 0.0193548799
+### Y 0.2746438980
+### W 0.7097657323
+### H 0.0239315927
 ### Script
-$ifnot($contains(@,"www.italpowerenergia.it"))
+$ifnot($contains(@,"FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA"))
   $error("Layout Invalido")
 ### End Script
 ### End Box
