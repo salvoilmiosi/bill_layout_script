@@ -52,3 +52,11 @@ std::pair<box_reference, int> getBoxResizeNode(bill_layout_script &boxes, float 
     }
     return std::make_pair(boxes.end(), 0);
 }
+
+bill_layout_script copyLayout(const bill_layout_script &layout) {
+    bill_layout_script ret;
+    for (auto &ptr : layout) {
+        ret.push_back(std::make_shared<layout_box>(*ptr));
+    }
+    return ret;
+}

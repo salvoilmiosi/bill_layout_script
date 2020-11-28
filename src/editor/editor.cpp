@@ -326,7 +326,7 @@ void frame_editor::updateLayout(bool addToHistory) {
         while (!history.empty() && history.end() > currentHistory + 1) {
             history.pop_back();
         }
-        history.push_back(layout);
+        history.push_back(copyLayout(layout));
         if (history.size() > MAX_HISTORY_SIZE) {
             history.pop_front();
         }
@@ -381,7 +381,7 @@ void frame_editor::updateRecentFiles(bool save) {
 void frame_editor::OnUndo(wxCommandEvent &evt) {
     if (currentHistory > history.begin()) {
         --currentHistory;
-        layout = *currentHistory;
+        layout = copyLayout(*currentHistory);
         updateLayout(false);
     } else {
         wxBell();
@@ -391,7 +391,7 @@ void frame_editor::OnUndo(wxCommandEvent &evt) {
 void frame_editor::OnRedo(wxCommandEvent &evt) {
     if (currentHistory < history.end() - 1) {
         ++currentHistory;
-        layout = *currentHistory;
+        layout = copyLayout(*currentHistory);
         updateLayout(false);
     } else {
         wxBell();
