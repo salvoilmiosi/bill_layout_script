@@ -104,7 +104,9 @@ fornitore="Enel Energia"
 ### H 0.1603952795
 ### Script
 indirizzo_fornitura=$search($nonewline(@),/Forniamo energia in (.+) Denominazione/)
-%potenza[0:2]=$search(@,/Potenza contrattualmente impegnata (%N)/)
+%potenza[0:2]=$coalesce(
+  $search(@,/Potenza contrattualmente impegnata (%N)/),
+  $search(@,/Livello massimo di potenza (%N)/))
 ### End Script
 ### End Box
 
