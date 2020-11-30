@@ -13,50 +13,6 @@ std::string string_format(std::string str, const std::vector<std::string> &fmt_a
     return str;
 }
 
-std::string parse_number(const std::string &value) {
-    std::string out;
-    for (size_t i=0; i<value.size(); ++i) {
-        if (std::isdigit(value.at(i))) {
-            out += value.at(i);
-        } else if (value.at(i) == ',') {
-            out += '.';
-        } else if (value.at(i) == '-') {
-            out += '-';
-        }
-    }
-    return out;
-}
-
-constexpr const char *MONTHS[] = {
-    "gen",
-    "feb",
-    "mar",
-    "apr",
-    "mag",
-    "giu",
-    "lug",
-    "ago",
-    "set",
-    "ott",
-    "nov",
-    "dic"
-};
-
-constexpr const char *MONTHS_FULL[] = {
-    "gennaio",
-    "febbraio",
-    "marzo",
-    "aprile",
-    "maggio",
-    "giugno",
-    "luglio",
-    "agosto",
-    "settembre",
-    "ottobre",
-    "novembre",
-    "dicembre"
-};
-
 struct date_t {
     int year = 0;
     int month = 0;

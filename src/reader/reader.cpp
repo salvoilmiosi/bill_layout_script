@@ -75,7 +75,7 @@ void reader::exec_command(const command_args &cmd) {
         break;
     }
     case ERROR: throw layout_error(m_var_stack.top().str()); break;
-    case PARSENUM: if (!m_var_stack.top().empty()) m_var_stack.top() = m_var_stack.top().str_to_number(); break;
+    case PARSENUM: m_var_stack.top() = m_var_stack.top().parse_number(); break;
     case PARSEINT: m_var_stack.top() = m_var_stack.top().as_int(); break;
     case NOT: m_var_stack.top() = !m_var_stack.top(); break;
     case NEG: m_var_stack.top() = -m_var_stack.top(); break;

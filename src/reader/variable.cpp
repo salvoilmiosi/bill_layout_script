@@ -74,14 +74,23 @@ bool variable::empty() const {
     }
 }
 
-fixed_point variable::str_to_number() {
-    switch (m_type) {
-    case VAR_STRING:
-        return fixed_point(parse_number(std::get<std::string>(m_value)));
-    case VAR_NUMBER:
-        return std::get<fixed_point>(m_value);
-    default:
-        return fixed_point(0);
+variable variable::parse_number() {
+    if (m_type == VAR_STRING) {
+        std::string out;
+        for (char c : std::get<std::string>(m_value)) {
+            if (std::isdigit(c) || c == '-') {
+                out += c;
+            } else if (c == DECIMAL_POINT) {
+                out += '.';
+            }
+        }
+        if (out.empty()) {
+            return null_var();
+        } else {
+            return fixed_point(out);
+        }
+    } else {
+        return *this;
     }
 }
 

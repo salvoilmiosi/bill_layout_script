@@ -43,7 +43,7 @@ public:
 
     bool empty() const;
 
-    fixed_point str_to_number();
+    variable parse_number();
     
     bool operator == (const variable &other) const;
     bool operator != (const variable &other) const;

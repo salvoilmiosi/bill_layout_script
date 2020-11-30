@@ -4,11 +4,10 @@
 #include <vector>
 #include <string>
 
+#include "locale_ita.h"
+
 // Formatta la stringa data
 std::string string_format(std::string str, const std::vector<std::string> &fmt_args);
-
-// converte un numero dal formato italiano al formato universale (trasforma virgole in punti)
-std::string parse_number(const std::string &value);
 
 // converte i vari formati di data in un formato universale (dd/mm/aaaa)
 std::string parse_date(const std::string &format, const std::string &value, int index);
