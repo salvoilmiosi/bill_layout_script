@@ -72,22 +72,23 @@ void parser::read_keyword() {
         std::string for_label = fmt::format("__for_{0}", output_asm.size());
         std::string endfor_label = fmt::format("__endfor_{0}", output_asm.size());
         tokens.require(TOK_PAREN_BEGIN);
-        auto idx_name = tokens.require(TOK_IDENTIFIER);
+        read_statement();
         tokens.require(TOK_COMMA);
         add_line("{0}:", for_label);
-        add_line("SELVARIDX {0},0", idx_name.value);
-        add_line("PUSHVAR");
         read_expression();
-        add_line("LT");
         add_line("JZ {0}", endfor_label);
+        tokens.require(TOK_COMMA);
+        size_t from = output_asm.size();
+        read_statement();
+        size_t to = output_asm.size();
         tokens.require(TOK_PAREN_END);
         read_statement();
-        add_line("SELVARIDX {0},0", idx_name.value);
-        add_line("INC 1");
+        for (size_t i=from; i<to; ++i) {
+            output_asm.push_back(output_asm[i]);
+        }
+        output_asm.erase(output_asm.begin() + from, output_asm.begin() + to);
         add_line("JMP {0}", for_label);
         add_line("{0}:", endfor_label);
-        add_line("SELVARIDX {0},0", idx_name.value);
-        add_line("CLEAR", idx_name.value);
         break;
     }
     case hash("goto"):
@@ -96,42 +97,6 @@ void parser::read_keyword() {
         tokens.require(TOK_IDENTIFIER);
         add_line("JMP {0}", tokens.current().value);
         tokens.require(TOK_PAREN_END);
-        break;
-    }
-    case hash("inc"):
-    case hash("dec"):
-    {
-        tokens.require(TOK_PAREN_BEGIN);
-        int flags = read_variable(false);
-        tokens.next();
-        bool inc_amt = true;
-        std::string amount = "1";
-        switch(tokens.current().type) {
-        case TOK_COMMA:
-            tokens.peek();
-            if (tokens.current().type == TOK_NUMBER) {
-                tokens.advance();
-                inc_amt = true;
-                amount = tokens.current().value;
-            } else {
-                read_expression();
-                inc_amt = false;
-            }
-            tokens.require(TOK_PAREN_END);
-            break;
-        case TOK_PAREN_END:
-            break;
-        default:
-            throw tokens.unexpected_token(TOK_PAREN_END);
-        }
-        if (inc_amt) {
-            add_line(name == "inc" ? "INC {0}" : "DEC {0}", amount);
-        } else {
-            if (flags & VAR_NUMBER) {
-                add_line("PARSENUM");
-            }
-            add_line(name == "inc" ? "INCTOP" : "DECTOP");
-        }
         break;
     }
     case hash("lines"):
@@ -203,6 +168,11 @@ void parser::read_keyword() {
     case hash("skip"):
         tokens.require(TOK_PAREN_BEGIN);
         tokens.require(TOK_PAREN_END);
+        break;
+    case hash("halt"):
+        tokens.require(TOK_PAREN_BEGIN);
+        tokens.require(TOK_PAREN_END);
+        add_line("HLT");
         break;
     default:
         throw parsing_error(fmt::format("Parola chiave sconosciuta: {0}", name), tokens.getLocation(tok_name));

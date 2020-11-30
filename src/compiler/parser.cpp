@@ -82,6 +82,8 @@ void parser::read_box(const layout_box &box) {
 }
 
 void parser::read_statement() {
+    std::string inc_amount;
+
     auto add_value = [&](int flags) {
         if (flags & VAR_NUMBER) {
             add_line("PARSENUM");
@@ -91,6 +93,18 @@ void parser::read_statement() {
             add_line("APPEND");
         } else if (flags & VAR_CLEAR) {
             add_line("RESETVAR");
+        } else if (flags & VAR_INCREASE) {
+            if (inc_amount.empty()) {
+                add_line("INCTOP");
+            } else {
+                add_line("INC {}", inc_amount);
+            }
+        } else if (flags & VAR_DECREASE) {
+            if (inc_amount.empty()) {
+                add_line("DECTOP");
+            } else {
+                add_line("DEC {}", inc_amount);
+            }
         } else {
             add_line("SETVAR");
         }
@@ -119,6 +133,15 @@ void parser::read_statement() {
         switch (tokens.current().type) {
         case TOK_EQUALS:
             tokens.advance();
+            if (flags & (VAR_INCREASE | VAR_DECREASE)) {
+                tokens.peek();
+                if (tokens.current().type == TOK_NUMBER) {
+                    inc_amount = tokens.current().value;
+                    tokens.advance();
+                    add_value(flags);
+                    break;
+                }
+            }
             read_expression();
             add_value(flags);
             break;
@@ -206,69 +229,80 @@ int parser::read_variable(bool read_only) {
     }
     
     std::string name(tokens.current().value);
-    if (isglobal) {
-        add_line("SELGLOBAL {0}", name);
-        
-        if (isdebug) add_line("SETDEBUG");
-        return flags;
-    }
 
     tokens.peek();
-    switch (tokens.current().type) {
-    case TOK_BRACKET_BEGIN:
-        tokens.advance();
-        tokens.peek();
-        switch (tokens.current().type) {
-        case TOK_COLON:
-            if (read_only) throw tokens.unexpected_token(TOK_NUMBER);
+    if (!isglobal) {
+        switch(tokens.current().type) {
+        case TOK_BRACKET_BEGIN:
             tokens.advance();
-            rangeall = true;
-            break;
-        case TOK_NUMBER:
-            tokens.advance();
-            index = std::stoi(std::string(tokens.current().value));
             tokens.peek();
-            if (tokens.current().type == TOK_COLON) {
-                if (read_only) throw tokens.unexpected_token(TOK_BRACKET_END);
+            switch (tokens.current().type) {
+            case TOK_COLON:
+                if (read_only) throw tokens.unexpected_token(TOK_NUMBER);
                 tokens.advance();
+                rangeall = true;
+                break;
+            case TOK_NUMBER:
+                tokens.advance();
+                index = std::stoi(std::string(tokens.current().value));
                 tokens.peek();
-                if (tokens.current().type == TOK_NUMBER) {
+                if (tokens.current().type == TOK_COLON) {
+                    if (read_only) throw tokens.unexpected_token(TOK_BRACKET_END);
                     tokens.advance();
-                    index_last = std::stoi(std::string(tokens.current().value));
-                } else {
-                    add_line("PUSHINT {0}", index);
+                    tokens.peek();
+                    if (tokens.current().type == TOK_NUMBER) {
+                        tokens.advance();
+                        index_last = std::stoi(std::string(tokens.current().value));
+                    } else {
+                        add_line("PUSHINT {0}", index);
+                        read_expression();
+                        getindex = true;
+                        getindexlast = true;
+                    }
+                }
+                break;
+            case TOK_BRACKET_END:
+                flags |= VAR_APPEND;
+                break;
+            default:
+                read_expression();
+                getindex = true;
+                tokens.peek();
+                if (tokens.current().type == TOK_COLON) {
+                    if (read_only) throw tokens.unexpected_token(TOK_BRACKET_END);
+                    tokens.advance();
                     read_expression();
-                    getindex = true;
                     getindexlast = true;
                 }
             }
+            tokens.require(TOK_BRACKET_END);
             break;
-        case TOK_BRACKET_END:
-            flags |= VAR_APPEND;
+        case TOK_COLON:
+            if (read_only) throw tokens.unexpected_token();
+            flags |= VAR_CLEAR;
+            tokens.advance();
             break;
         default:
-            read_expression();
-            getindex = true;
-            tokens.peek();
-            if (tokens.current().type == TOK_COLON) {
-                if (read_only) throw tokens.unexpected_token(TOK_BRACKET_END);
-                tokens.advance();
-                read_expression();
-                getindexlast = true;
-            }
+            break;
         }
-        tokens.require(TOK_BRACKET_END);
-        break;
-    case TOK_COLON:
+    }
+
+    switch(tokens.current().type) {
+    case TOK_PLUS:
         if (read_only) throw tokens.unexpected_token();
-        flags |= VAR_CLEAR;
+        flags |= VAR_INCREASE;
         tokens.advance();
-        break;
+    case TOK_MINUS:
+        if (read_only) throw tokens.unexpected_token();
+        flags |= VAR_DECREASE;
+        tokens.advance();
     default:
         break;
     }
 
-    if (rangeall) {
+    if (isglobal) {
+        add_line("SELGLOBAL {0}", name);
+    } else if (rangeall) {
         add_line("SELVARALL {0}", name);
     } else if (getindex) {
         if (getindexlast) {
