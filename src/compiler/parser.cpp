@@ -85,7 +85,7 @@ void parser::read_statement() {
     std::string inc_amount;
 
     auto add_value = [&](int flags) {
-        if (flags & VAR_NUMBER) {
+        if ((flags & VAR_NUMBER) && inc_amount.empty()) {
             add_line("PARSENUM");
         }
 
@@ -136,10 +136,12 @@ void parser::read_statement() {
             if (flags & (VAR_INCREASE | VAR_DECREASE)) {
                 tokens.peek();
                 if (tokens.current().type == TOK_NUMBER) {
-                    inc_amount = tokens.current().value;
-                    tokens.advance();
-                    add_value(flags);
-                    break;
+                    if (tokens.current().value.find('.') == std::string_view::npos) {
+                        inc_amount = tokens.current().value;
+                        tokens.advance();
+                        add_value(flags);
+                        break;
+                    }
                 }
             }
             read_expression();
@@ -230,8 +232,8 @@ int parser::read_variable(bool read_only) {
     
     std::string name(tokens.current().value);
 
-    tokens.peek();
     if (!isglobal) {
+        tokens.peek();
         switch(tokens.current().type) {
         case TOK_BRACKET_BEGIN:
             tokens.advance();
@@ -287,6 +289,7 @@ int parser::read_variable(bool read_only) {
         }
     }
 
+    tokens.peek();
     switch(tokens.current().type) {
     case TOK_PLUS:
         if (read_only) throw tokens.unexpected_token();
