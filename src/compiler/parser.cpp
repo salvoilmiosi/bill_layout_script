@@ -292,18 +292,18 @@ int parser::read_variable(bool read_only) {
         }
     }
 
-    tokens.peek();
-    switch(tokens.current().type) {
-    case TOK_PLUS:
-        if (read_only) throw tokens.unexpected_token();
-        flags |= VAR_INCREASE;
-        tokens.advance();
-    case TOK_MINUS:
-        if (read_only) throw tokens.unexpected_token();
-        flags |= VAR_DECREASE;
-        tokens.advance();
-    default:
-        break;
+    if (!read_only) {
+        tokens.peek();
+        switch(tokens.current().type) {
+        case TOK_PLUS:
+            flags |= VAR_INCREASE;
+            tokens.advance();
+        case TOK_MINUS:
+            flags |= VAR_DECREASE;
+            tokens.advance();
+        default:
+            break;
+        }
     }
 
     if (isglobal) {
