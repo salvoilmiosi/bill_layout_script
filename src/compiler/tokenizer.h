@@ -10,7 +10,8 @@ enum token_type {
     TOK_IDENTIFIER,         // [a-bA-B_][a-bA-B0-9_]*
     TOK_STRING,             // "xyz"
     TOK_REGEXP,             // /xyz/
-    TOK_NUMBER,             // 123
+    TOK_NUMBER,             // 123.4
+    TOK_INTEGER,            // 123
     TOK_FUNCTION,           // $funzione
     TOK_PAREN_BEGIN,        // (
     TOK_PAREN_END,          // )
@@ -37,6 +38,7 @@ constexpr const char *TOKEN_NAMES[] = {
     "stringa",
     "regexp",
     "numero",
+    "numero intero",
     "'$'",
     "'('",
     "')'",

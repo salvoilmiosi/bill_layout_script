@@ -62,8 +62,12 @@ bool tokenizer::next() {
     case '7':
     case '8':
     case '9':
-        tok.type = TOK_NUMBER;
         ok = readNumber();
+        if (tok.value.find('.') == std::string_view::npos) {
+            tok.type = TOK_INTEGER;
+        } else {
+            tok.type = TOK_NUMBER;
+        }
         break;
     case ',':
         tok.type = TOK_COMMA;

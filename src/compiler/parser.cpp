@@ -135,13 +135,11 @@ void parser::read_statement() {
             tokens.advance();
             if (flags & (VAR_INCREASE | VAR_DECREASE)) {
                 tokens.peek();
-                if (tokens.current().type == TOK_NUMBER) {
-                    if (tokens.current().value.find('.') == std::string_view::npos) {
-                        inc_amount = tokens.current().value;
-                        tokens.advance();
-                        add_value(flags);
-                        break;
-                    }
+                if (tokens.current().type == TOK_INTEGER) {
+                    inc_amount = tokens.current().value;
+                    tokens.advance();
+                    add_value(flags);
+                    break;
                 }
             }
             read_expression();
@@ -166,21 +164,26 @@ void parser::read_expression() {
     case TOK_MINUS:
     {
         tokens.advance();
-        tokens.require(TOK_NUMBER);
-        if (tokens.current().value.find('.') == std::string::npos) {
+        tokens.next();
+        switch (tokens.current().type) {
+        case TOK_INTEGER:
             add_line("PUSHINT -{0}", tokens.current().value);
-        } else {
+            break;
+        case TOK_NUMBER:
             add_line("PUSHFLOAT -{0:.{1}f}", tokens.current().value, FLOAT_PRECISION);
+            break;
+        default:
+            throw tokens.unexpected_token(TOK_NUMBER);
         }
         break;
     }
+    case TOK_INTEGER:
+        tokens.advance();
+        add_line("PUSHINT {0}", tokens.current().value);
+        break;
     case TOK_NUMBER:
         tokens.advance();
-        if (tokens.current().value.find('.') == std::string::npos) {
-            add_line("PUSHINT {0}", tokens.current().value);
-        } else {
-            add_line("PUSHFLOAT {0:.{1}f}", tokens.current().value, FLOAT_PRECISION);
-        }
+        add_line("PUSHFLOAT {0:.{1}f}", tokens.current().value, FLOAT_PRECISION);
         break;
     case TOK_STRING:
     case TOK_REGEXP:
@@ -235,27 +238,27 @@ int parser::read_variable(bool read_only) {
     if (!isglobal) {
         tokens.peek();
         switch(tokens.current().type) {
-        case TOK_BRACKET_BEGIN:
+        case TOK_BRACKET_BEGIN: // variable[
             tokens.advance();
             tokens.peek();
             switch (tokens.current().type) {
-            case TOK_COLON:
-                if (read_only) throw tokens.unexpected_token(TOK_NUMBER);
+            case TOK_COLON: // variable[:] -- seleziona range intero
+                if (read_only) throw tokens.unexpected_token(TOK_INTEGER);
                 tokens.advance();
                 rangeall = true;
                 break;
-            case TOK_NUMBER:
+            case TOK_INTEGER: // variable[int
                 tokens.advance();
                 index = std::stoi(std::string(tokens.current().value));
                 tokens.peek();
-                if (tokens.current().type == TOK_COLON) {
+                if (tokens.current().type == TOK_COLON) { // variable[int:
                     if (read_only) throw tokens.unexpected_token(TOK_BRACKET_END);
                     tokens.advance();
                     tokens.peek();
-                    if (tokens.current().type == TOK_NUMBER) {
+                    if (tokens.current().type == TOK_INTEGER) { // variable[a:b] -- selvarrange a,b
                         tokens.advance();
                         index_last = std::stoi(std::string(tokens.current().value));
-                    } else {
+                    } else { // variable[int:expr] -- pushint a, expr, selvarrangetop
                         add_line("PUSHINT {0}", index);
                         read_expression();
                         getindex = true;
