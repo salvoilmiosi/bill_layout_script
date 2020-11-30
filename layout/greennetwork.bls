@@ -175,15 +175,21 @@ $tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese
 ### Box
 ### Name Prezzo Energia
 ### Type RECTANGLE
-### Mode DEFAULT
+### Mode LAYOUT
 ### Page 5
-### X 0.5512453914
-### Y 0.1724809855
-### W 0.1020824760
-### H 0.0873230100
+### X 0.0429704189
+### Y 0.1330107599
+### W 0.9153138995
+### H 0.2722168565
 ### Script
-$tokens(@) {
-  %prezzo_energia[0] %prezzo_energia[1] %prezzo_energia[2]
+!mese=$date_format(mese_fattura,"MM/YYYY")
+$with($search(@,/Componente di Generazione.+\n((Dal.+\n)+)/)) {
+  %prezzo_energia[0]=$search(@,$format(/F1 .+\d\d\/$0 \u20ac\/kWh (%N)/,mese))
+  %prezzo_energia[1]=$search(@,$format(/F2 .+\d\d\/$0 \u20ac\/kWh (%N)/,mese))
+  %prezzo_energia[2]=$search(@,$format(/F3 .+\d\d\/$0 \u20ac\/kWh (%N)/,mese))
+}
+$with($search(@,/Prezzo commercializzazione vendita.+\n((Dal.+\n)+)/)) {
+  %pcv=$search(@,$format(/\d\d\/$0 .+ Mese (%N)/,mese))
 }
 ### End Script
 ### End Box

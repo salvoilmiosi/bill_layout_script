@@ -156,6 +156,9 @@ p+*page_offset
 $with($search(@,/Sbilanciamento\n((dal.+\n)+)/)) {
   %sbilanciamento=$search(@,$format(/dal \d\d\.$0.+Euro\/kWh (%N)/,mese))
 }
+$with($search(@,/Prezzo Commercializzazione Vendita\n((dal.+\n)+)/)) {
+  %pcv=$search(@,$format(/dal \d\d\.$0.+euro\/mese %N %N (%N)/,mese))
+}
 $with(
 $coalesce(
   $search(@,/Prezzo Energia\n((dal.+\n)+)/),

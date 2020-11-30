@@ -15,7 +15,7 @@ fornitore="Lenergia"
 ### End Box
 
 ### Box
-### Name Dati fornitura
+### Name Dati fattura
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
@@ -30,6 +30,7 @@ data_fattura=$date(@,/fattura n\. \d+ del DD\/MM\/YYYY/)
 data_inizio=$date(@,/Periodo DD\/MM\/YYYY - DD\/MM\/YYYY/,1)
 data_fine=$date(@,/Periodo DD\/MM\/YYYY - DD\/MM\/YYYY/,2)
 mese_fattura=$date(data_fine,/YYYY-MM/)
+!mese=$date_format(mese_fattura,"MM/YYYY")
 ### End Script
 ### End Box
 
@@ -108,31 +109,85 @@ iva=$search(@,/IVA (\d+%)/)
 ### End Box
 
 ### Box
-### Name Dati Consumi
+### Name Dati Fornitura
 ### Type FILE
 ### Mode LAYOUT
 ### Page 2
 ### X 0.0684261993
 ### Y 0.0233232994
 ### W 0.9042029977
-### H 0.9122959971
-### Goto Label dati_consumi
+### H 0.1718861610
 ### Script
 codice_pod=$search(@,/Codice punto di erogazione \(POD\): ([a-zA-Z0-9]+)/)
-$tokens($search(@,/Energia Attiva kWh (%N %N %N)/)) {
-    %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]
-}
-$tokens($search(@,/Energia Reattiva kvarh (%N %N %N)/)) {
+### End Script
+### End Box
+
+### Box
+### Name Energia Reattiva / Potenza
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### X 0.0351196676
+### Y 0.3179854751
+### W 0.9235171676
+### H 0.4926017821
+### Script
+$tokens($search(@,$format(/\d\d\/$0 Energia Reattiva kvarh (%N %N %N)/,mese))) {
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
 }
-$tokens($search(@,/Potenza kW (%N %N %N)/)) {
+$tokens($search(@,$format(/\d\d\/$0 Potenza kW (%N %N %N)/,mese))) {
     %potenza[0] %potenza[1] %potenza[2]
 }
-%accise=$search(@,/Imposta erariale di consumo.+kWh %N %N (%N)/)
-%prezzo_energia[0]=$search(@,/Indice mese di competenza F1.+kwH (%N)/)
-%prezzo_energia[1]=$search(@,/Indice mese di competenza F2.+kwH (%N)/)
-%prezzo_energia[1]=$search(@,/Indice mese di competenza F3.+kwH (%N)/)
+### End Script
+### End Box
+
+### Box
+### Name Quadro Dettaglio
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 7
+### X 0.0537634380
+### Y 0.0664767325
+### W 0.9124850035
+### H 0.8831908703
+### Goto Label quadro_dettaglio
+### Spacers
+p+*page_offset
+### End Spacers
+### Script
+$tokens($search(@,$format(/Indice mese di competenza F1 .+ \d\d\/$0 \u20ac\/kWh (%N %N)/,mese))) {
+  %prezzo_energia[0] %energia_attiva[0]
+}
+$tokens($search(@,$format(/Indice mese di competenza F2 .+ \d\d\/$0 \u20ac\/kWh (%N %N)/,mese))) {
+  %prezzo_energia[1] %energia_attiva[1]
+}
+$tokens($search(@,$format(/Indice mese di competenza F3 .+ \d\d\/$0 \u20ac\/kWh (%N %N)/,mese))) {
+  %prezzo_energia[2] %energia_attiva[2]
+}
+
+%pcv=$search(@,$format(/PCV .+ \d\d\/$0 \u20ac\/Pdp\/mese %N %N (%N)/,mese))
+%accise=$search(@,$format(/Imposta erariale di consumo .+ \d\d\/$0 \u20ac\/kWh %N %N (%N)/,mese))
 %penale_reattiva_inf75=$search(@,/Penale Reattiva 33%.+kvarh %N %N (%N)/)
 %penale_reattiva_sup75=$search(@,/Penale Reattiva 75%.+kvarh %N %N (%N)/)
+### End Script
+### End Box
+
+### Box
+### Name Controllo Prossima Pagina
+### Type PAGE
+### Mode DEFAULT
+### Page 8
+### X 0.0910509974
+### Y 0.0385993943
+### W 0.0338189304
+### H 0.0238948651
+### Spacers
+p+*page_offset
+### End Spacers
+### Script
+$ifnot($ate()) {
+  *page_offset+=1
+  $goto(quadro_dettaglio)
+}
 ### End Script
 ### End Box

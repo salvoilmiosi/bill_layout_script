@@ -153,7 +153,7 @@ p+*page_offset
 %spesa_materia_energia=$search(@,/Spesa Materia Prima (%N)/)
 %trasporto_gestione=$search(@,/Servizi di Rete (%N)/)
 %trasporto_gestione=$search(@,/Trasporto, Gestione Contatore e Oneri di Sistema (%N)/)
-#%oneri=$search(@,/Altri Oneri (%N)/)
+%oneri_amministrativi=$search(@,/Altri Oneri (%N)/)
 %accise=$search(@,/Imposte.+Euro.+ (%N)/)
 %prezzo_energia[0]=$search(@,/Energia F1.+ Euro (%N)/)
 %prezzo_energia[1]=$search(@,/Energia F2.+ Euro (%N)/)
@@ -165,6 +165,7 @@ p+*page_offset
 %penale_reattiva_inf75=$search(@,/reattiva entro 75% .+ Euro %N (%N)/)
 %penale_reattiva_sup75=$search(@,/reattiva oltre 75% .+ Euro %N (%N)/)
 %imponibile=$search(@,/Totale periodo (%N)/)
+%pcv=$search(@,/PCV .+Euro (%N)/)
 %potenza[0:2]=$search(@,/Trasporto Quota Potenza \u20ac\/kW (%N)/)
 ### End Script
 ### End Box

@@ -276,6 +276,7 @@ $tokens($search(@,/Prezzo Energia F3 (%N kWh %N)/)) {
   %energia_attiva[2] $skip() %prezzo_energia[2]
 }
 
+%pcv=$search(@,/Prezzo Commercializzazione e Vendita .+\u20ac (%N)/)
 %sbilanciamento=$search(@,/Gestione sbilanciamento %N kWh (%N)/)
 %potenza[0:2]=$search(@,/Quota Potenza (%N) kW/)
 
