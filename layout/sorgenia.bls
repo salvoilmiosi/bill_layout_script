@@ -198,26 +198,6 @@ indirizzo_fornitura
 ### End Box
 
 ### Box
-### Name Energia Attiva
-### Type RECTANGLE
-### Mode LAYOUT
-### Page 2
-### X 0.0580177270
-### Y 0.3842645288
-### W 0.3508532643
-### H 0.5384741426
-### Script
-### Il rettangolo e' alto perche' il layout shifta verticalmente.
-
-$with($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n((.+ %N %N %N\n)+)/)) {
-  $tokens($search(@,$format(/$0 \w+ (%N %N %N)/,$date_format(mese_fattura,"MON - YY")))) {
-    %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]
-  }
-}
-### End Script
-### End Box
-
-### Box
 ### Name Energia Reattiva
 ### Type RECTANGLE
 ### Mode LAYOUT
@@ -255,22 +235,29 @@ $with(*contenuto_dettaglio) {
     %spesa_materia_energia=$search(@,/DETTAGLIO DELLA SPESA PER L\u2019ENERGIA ELETTRICA[^]+?(%N) DETTAGLIO/)
     %trasporto_gestione=$search(@,/DETTAGLIO DELLA SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA[^]+?(%N) IMPOSTE/)
 
-    %prezzo_energia[0]=$search(@,/Prezzo F1 euro\/kWh (%N)/)
-    %prezzo_energia[1]=$search(@,/Prezzo F2 euro\/kWh (%N)/)
-    %prezzo_energia[2]=$search(@,/Prezzo F3 euro\/kWh (%N)/)
+    $tokens($search(@,/Prezzo F1 euro\/kWh (%N %N)/)) {
+      %prezzo_energia[0] %energia_attiva[0]
+    }
+    $tokens($search(@,/Prezzo F2 euro\/kWh (%N %N)/)) {
+      %prezzo_energia[1] %energia_attiva[1]
+    }
+    $tokens($search(@,/Prezzo F3 euro\/kWh (%N %N)/)) {
+      %prezzo_energia[2] %energia_attiva[2]
+    }
     $tokens($coalesce(
     $search(@,/Prezzo Picco euro\/kWh (%N %N)/),
     $search(@,/Prezzo Ore Giorno euro\/kWh (%N %N)/))) {
-      %prezzo_energia[0] %energia_attiva:
+      %prezzo_energia[0] %energia_attiva[0]
     }
     $tokens($coalesce(
     $search(@,/Prezzo Fuori Picco euro\/kWh (%N %N)/),
     $search(@,/Prezzo Ore Notte euro\/kWh (%N %N)/))) {
       %prezzo_energia[1] %energia_attiva[1]
     }
-    %sbilanciamento=$search(@,/Incremento prezzo euro\/kWh (%N)/)
     %prezzo_energia[0:2]=$search(@,/Prezzo energia euro\/kWh (%N)/)
     %prezzo_energia[0:2]=$search(@,/Prezzo energia monorario euro\/kWh (%N)/)
+
+    %sbilanciamento=$search(@,/Incremento prezzo euro\/kWh (%N)/)
 
     %imponibile=$search(@,/(%N)$/)
 

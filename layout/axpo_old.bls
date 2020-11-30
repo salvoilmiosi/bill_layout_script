@@ -154,8 +154,9 @@ $ifnot(*spacer_multipod) {
 ### Script
 $ifnot(*spacer_multipod) {
   $lines($search(@,/Imposta Erariale ((.+ %N %N %N %N\n)+)/)) {
-    iva=$percent($search(@,/(%N) %N$/))
-    %accise+=$search(@,/%N (%N)$/)
+    $tokens($search(@,/(%N %N)$/)) {
+      iva=$percent(@) %accise+
+    }
   }
 }
 ### End Script
@@ -197,10 +198,10 @@ p+*next_page
 ### End Spacers
 ### Script
 $if(*spacer_multipod) {
-  %spesa_materia_energia=$search(@,/Corrispettivi energia (%N)/)
-  %spesa_materia_energia=$search(@,/Spese per l'energia (%N)/)
-  %trasporto_gestione=$search(@,/Trasporto (%N)/)
-  %trasporto_gestione=$search(@,/Spesa per trasporto, gestione.+ (%N)/)
+  %spesa_materia_energia=$search(@,/Corrispettivi energia \u20ac (%N)/)
+  %spesa_materia_energia=$search(@,/Spese per l'energia \u20ac (%N)/)
+  %trasporto_gestione=$search(@,/Trasporto \u20ac (%N)/)
+  %trasporto_gestione=$search(@,/Spesa per trasporto, gestione.+ \u20ac (%N)/)
 }
 ### End Script
 ### End Box
@@ -236,9 +237,10 @@ p+*next_page
 ### End Spacers
 ### Script
 $if(*spacer_multipod) {
-  $lines($search(@,/Imposta Erariale ((.+ %N %N %N %N\n)+)/)) {
-    iva=$percent($search(@,/(%N) %N$/))
-    %accise+=$search(@,/%N (%N)$/)
+  $lines($search(@,/Imposta Erariale ((.+ %N %N %N \u20ac %N\n)+)/)) {
+    $tokens($search(@,/(%N \u20ac %N)/)) {
+      iva=$percent(@) $skip() %accise+
+    }
   }
 }
 ### End Script
