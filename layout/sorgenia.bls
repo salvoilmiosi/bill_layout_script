@@ -31,7 +31,7 @@ p+*page_offset
 ### Script
 $ifnot($or($contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA"),$ate())) {
   *!contenuto_dettaglio=$strcat(*contenuto_dettaglio,"\n",@)
-  $inc(*page_offset)
+  *page_offset+=1
   $goto(lettura_dati)
 }
 ### End Script
@@ -281,7 +281,7 @@ $with(*contenuto_dettaglio) {
     %accise=$search(@,/Imposta erariale.+ (%N)\n/)
   }
 
-  $lines($searchall(@,/Corrispettivo Tariffario Specifico dal \d+\/\d+\/\d+ al \d+\/\d+\/\d+ (%N)/)) $inc(%cts,@)
+  $lines($searchall(@,/Corrispettivo Tariffario Specifico dal \d+\/\d+\/\d+ al \d+\/\d+\/\d+ (%N)/)) %cts+
   iva=$search(@,/Iva (\d+%)/)
 }
 ### End Script
@@ -299,7 +299,7 @@ $with(*contenuto_dettaglio) {
 ### Script
 $if($isset(*mese_fine)) {
   $if($neq(mese_fattura,*mese_fine)) {
-    $inc(*calc_mese)
+    *calc_mese+=1
     $nextpage()
     $goto(nome_fornitore)
   }

@@ -175,14 +175,14 @@ $coalesce(
 }
 
 $with($search(@,/Energia Reattiva entro 75%\n((dal.+\n)+)/)) {
-  $inc(%penale_reattiva_inf75,$search(@,$format(/dal \d\d\.$0.+ F1 Euro\/kVarh %N %N (%N)/,mese)))
-  $inc(%penale_reattiva_inf75,$search(@,$format(/dal \d\d\.$0.+ F2 Euro\/kVarh %N %N (%N)/,mese)))
-  $inc(%penale_reattiva_inf75,$search(@,$format(/dal \d\d\.$0.+ F3 Euro\/kVarh %N %N (%N)/,mese)))
+  %penale_reattiva_inf75+=$search(@,$format(/dal \d\d\.$0.+ F1 Euro\/kVarh %N %N (%N)/,mese))
+  %penale_reattiva_inf75+=$search(@,$format(/dal \d\d\.$0.+ F2 Euro\/kVarh %N %N (%N)/,mese))
+  %penale_reattiva_inf75+=$search(@,$format(/dal \d\d\.$0.+ F3 Euro\/kVarh %N %N (%N)/,mese))
 }
 $with($search(@,/Energia Reattiva oltre 75%\n((dal.+\n)+)/)) {
-  $inc(%penale_reattiva_sup75,$search(@,$format(/dal \d\d\.$0.+ F1 Euro\/kVarh %N %N (%N)/,mese)))
-  $inc(%penale_reattiva_sup75,$search(@,$format(/dal \d\d\.$0.+ F2 Euro\/kVarh %N %N (%N)/,mese)))
-  $inc(%penale_reattiva_sup75,$search(@,$format(/dal \d\d\.$0.+ F3 Euro\/kVarh %N %N (%N)/,mese)))
+  %penale_reattiva_sup75+=$search(@,$format(/dal \d\d\.$0.+ F1 Euro\/kVarh %N %N (%N)/,mese))
+  %penale_reattiva_sup75+=$search(@,$format(/dal \d\d\.$0.+ F2 Euro\/kVarh %N %N (%N)/,mese))
+  %penale_reattiva_sup75+=$search(@,$format(/dal \d\d\.$0.+ F3 Euro\/kVarh %N %N (%N)/,mese))
 }
 %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA IMPORTO \u20ac (%N)/)
 %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO IMPORTO \u20ac (%N)/)
@@ -208,7 +208,7 @@ $with($search(@,/Imposta erariale di consumo \(accisa\)\n[^]*?((dal.+\n)+)/)) {
 p+*page_offset
 ### End Spacers
 ### Script
-$inc(*page_offset)
+*page_offset+=1
 *pod_offset=1
 $ifnot($ate()) {
   $if($contains(@,"DATI FORNITURA")) {

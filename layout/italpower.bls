@@ -183,7 +183,7 @@ p+*page_offset
 ### End Spacers
 ### Script
 $if($contains(@,"Dettaglio consumi")) {
-  $inc(*page_offset)
+  *page_offset+=1
   $nextpage()
   $goto(nome_fornitore)
 }

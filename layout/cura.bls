@@ -161,13 +161,13 @@ p+*page_offset
 %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE (%N)/)
 %oneri=$search(@,/SPESA PER ONERI DI SISTEMA (%N)/)
 %accise=$search(@,/Imposta erariale.+kWh %N %N (%N)/)
-%prezzo_energia[0:2]=$search(@,/Onere per consumo energia kWh %N (%N)/)
-%penale_reattiva_inf75=$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F1 33-75% kVARh %N %N (%N)/)
-$inc(%penale_reattiva_inf75,$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F2 33-75% kVARh %N %N (%N)/))
-$inc(%penale_reattiva_inf75,$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F3 33-75% kVARh %N %N (%N)/))
-%penale_reattiva_sup75=$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F1 > 75% kVARh %N %N (%N)/)
-$inc(%penale_reattiva_sup75,$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F2 > 75% kVARh %N %N (%N)/))
-$inc(%penale_reattiva_sup75,$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F3 > 75% kVARh %N %N (%N)/))
+%prezzo_energia[0:2]   =$search(@,/Onere per consumo energia kWh %N (%N)/)
+%penale_reattiva_inf75 =$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F1 33-75% kVARh %N %N (%N)/)
+%penale_reattiva_inf75+=$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F2 33-75% kVARh %N %N (%N)/)
+%penale_reattiva_inf75+=$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F3 33-75% kVARh %N %N (%N)/)
+%penale_reattiva_sup75 =$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F1 > 75% kVARh %N %N (%N)/)
+%penale_reattiva_sup75+=$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F2 > 75% kVARh %N %N (%N)/)
+%penale_reattiva_sup75+=$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F3 > 75% kVARh %N %N (%N)/)
 %imponibile=$search(@,/Totale (%N)/)
 ### End Script
 ### End Box
@@ -186,7 +186,7 @@ p+*page_offset
 ### End Spacers
 ### Script
 *pod_offset=1
-$inc(*page_offset)
+*page_offset+=1
 $if($or($contains(@,"RIEPILOGO IMPORTI"),$ate())) {
   $goto(dati_costi)
 } $elif($contains(@,"DATI FORNITURA")) {
