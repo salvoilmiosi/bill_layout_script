@@ -287,7 +287,7 @@ const variable &reader::get_variable(const std::string &name, size_t index, size
         return variable::null_var();
     }
 
-    auto &page = m_pages[m_page_num];
+    auto &page = m_pages[page_idx];
     auto it = page.find(name);
     if (it == page.end() || it->second.size() <= index) {
         return variable::null_var();
