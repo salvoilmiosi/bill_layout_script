@@ -144,18 +144,16 @@ iva=$percent($num(@))
 ### W 0.9060928226
 ### H 0.1700713038
 ### Script
-$lines($search(@,/((\d\d\/\d\d\/\d\d\d\d \d\d\/\d\d\/\d\d\d\d.+Consumi.+\n)+)/)) {
-  $tokens($search(@,/(%N %N %N %N %N %N %N %N %N)/)) {
-    %energia_f0
-    %energia_attiva[0]
-    %energia_attiva[1]
-    %energia_attiva[2]
-    %energia_reattiva_f0
-    %energia_reattiva[0]
-    %energia_reattiva[1]
-    %energia_reattiva[2]
-    %potenza[0:2]
-  }
+$tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese_fattura,"MM/YYYY")))) {
+  $skip()
+  %energia_attiva[0]
+  %energia_attiva[1]
+  %energia_attiva[2]
+  $skip()
+  %energia_reattiva[0]
+  %energia_reattiva[1]
+  %energia_reattiva[2]
+  %potenza[0:2]
 }
 ### End Script
 ### End Box
@@ -170,9 +168,7 @@ $lines($search(@,/((\d\d\/\d\d\/\d\d\d\d \d\d\/\d\d\/\d\d\d\d.+Consumi.+\n)+)/))
 ### W 0.7842165232
 ### H 0.0993647277
 ### Script
-$lines($search($strcat(@,"\n"),/((.+Erariale.+%N\n)+)/)) {
-  %accise=$search(@,/.+ (%N)$/)
-}
+%accise=$search(@,$format(/$0 \w+ Erariale.+kWh %N \u20ac (%N)/,$date_format(mese_fattura,"MONTH YEAR")))
 ### End Script
 ### End Box
 

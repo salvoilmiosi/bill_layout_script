@@ -259,19 +259,22 @@ $if(*spacer_multipod) {
 p+*spacer_multipod p+*next_page
 ### End Spacers
 ### Script
-%prezzo_energia[0]=$search(@,/Prezzo Energia PEAK %N kWh (%N)/)
-%prezzo_energia[1]=$search(@,/Prezzo Energia OFFPEAK %N kWh (%N)/)
+$tokens($search(@,/Prezzo Energia PEAK (%N kWh %N)/)) {
+  %energia_attiva[0] $skip() %prezzo_energia[0]
+}
+$tokens($search(@,/Prezzo Energia OFFPEAK (%N kWh %N)/)) {
+  %energia_attiva[1] $skip() %prezzo_energia[1]
+}
 
-%energia_attiva[0]=$search(@,/Prezzo Energia PEAK (%N)/)
-%energia_attiva[1]=$search(@,/Prezzo Energia OFFPEAK (%N)/)
-
-%energia_attiva[0]=$search(@,/Prezzo Energia F1 (%N)/)
-%energia_attiva[1]=$search(@,/Prezzo Energia F2 (%N)/)
-%energia_attiva[2]=$search(@,/Prezzo Energia F3 (%N)/)
-
-%prezzo_energia[0]=$search(@,/Prezzo Energia F1 %N kWh (%N)/)
-%prezzo_energia[1]=$search(@,/Prezzo Energia F2 %N kWh (%N)/)
-%prezzo_energia[2]=$search(@,/Prezzo Energia F3 %N kWh (%N)/)
+$tokens($search(@,/Prezzo Energia F1 (%N kWh %N)/)) {
+  %energia_attiva[0] $skip() %prezzo_energia[0]
+}
+$tokens($search(@,/Prezzo Energia F2 (%N kWh %N)/)) {
+  %energia_attiva[1] $skip() %prezzo_energia[1]
+}
+$tokens($search(@,/Prezzo Energia F3 (%N kWh %N)/)) {
+  %energia_attiva[2] $skip() %prezzo_energia[2]
+}
 
 %sbilanciamento=$search(@,/Gestione sbilanciamento %N kWh (%N)/)
 %potenza[0:2]=$search(@,/Quota Potenza (%N) kW/)
