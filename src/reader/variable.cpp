@@ -95,14 +95,7 @@ variable variable::parse_number() {
 }
 
 bool variable::operator == (const variable &other) const {
-    switch(m_type) {
-    case VAR_STRING:
-        return std::get<std::string>(m_value) == other.str();
-    case VAR_NUMBER:
-        return std::get<fixed_point>(m_value) == other.number();
-    default:
-        return !other.as_bool();
-    }
+    return m_type == other.m_type && (m_type == VAR_UNDEFINED || m_value == other.m_value);
 }
 
 bool variable::operator != (const variable &other) const {
@@ -158,11 +151,7 @@ bool variable::operator >= (const variable &other) const {
 }
 
 variable variable::operator - () const {
-    if (empty()) {
-        return *this;
-    } else {
-        return - number();
-    }
+    return - number();
 }
 
 variable variable::operator + (const variable &other) const {
