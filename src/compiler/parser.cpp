@@ -224,24 +224,26 @@ int parser::read_variable(bool read_only) {
             if (read_only) throw tokens.unexpected_token(TOK_IDENTIFIER);
             flags |= VAR_NUMBER;
             break;
-        default:
+        case TOK_IDENTIFIER:
             in_loop = false;
+            break;
+        default:
+            throw tokens.unexpected_token(TOK_IDENTIFIER);
         }
-    }
-
-    if (tokens.current().type != TOK_IDENTIFIER) {
-        throw tokens.unexpected_token(TOK_IDENTIFIER);
     }
     
     std::string name(tokens.current().value);
 
     if (!isglobal) {
         tokens.peek();
-        switch(tokens.current().type) {
-        case TOK_BRACKET_BEGIN: // variable[
+        if (tokens.current().type == TOK_BRACKET_BEGIN) { // variable[
             tokens.advance();
             tokens.peek();
             switch (tokens.current().type) {
+            case TOK_BRACKET_END: // variable[] -- aggiunge alla fine
+                if (read_only) throw tokens.unexpected_token(TOK_INTEGER);
+                flags |= VAR_APPEND;
+                break;
             case TOK_COLON: // variable[:] -- seleziona range intero
                 if (read_only) throw tokens.unexpected_token(TOK_INTEGER);
                 tokens.advance();
@@ -251,8 +253,7 @@ int parser::read_variable(bool read_only) {
                 tokens.advance();
                 index = std::stoi(std::string(tokens.current().value));
                 tokens.peek();
-                if (tokens.current().type == TOK_COLON) { // variable[int:
-                    if (read_only) throw tokens.unexpected_token(TOK_BRACKET_END);
+                if (!read_only && tokens.current().type == TOK_COLON) { // variable[int:
                     tokens.advance();
                     tokens.peek();
                     if (tokens.current().type == TOK_INTEGER) { // variable[a:b] -- selvarrange a,b
@@ -266,24 +267,17 @@ int parser::read_variable(bool read_only) {
                     }
                 }
                 break;
-            case TOK_BRACKET_END:
-                flags |= VAR_APPEND;
-                break;
-            default:
+            default: // variable[expr
                 read_expression();
                 getindex = true;
                 tokens.peek();
-                if (tokens.current().type == TOK_COLON) {
-                    if (read_only) throw tokens.unexpected_token(TOK_BRACKET_END);
+                if (!read_only && tokens.current().type == TOK_COLON) { // variable[expr:expr]
                     tokens.advance();
                     read_expression();
                     getindexlast = true;
                 }
             }
             tokens.require(TOK_BRACKET_END);
-            break;
-        default:
-            break;
         }
     }
 
