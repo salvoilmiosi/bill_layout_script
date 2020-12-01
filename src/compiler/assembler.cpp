@@ -11,8 +11,8 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
     std::map<std::string, jump_address> labels;
 
     for (size_t i=0; i<lines.size(); ++i) {
-        if (lines[i].back() == ':') {
-            labels[lines[i].substr(0, lines[i].size()-1)] = i - labels.size();
+        if (lines[i].substr(0, 5) == "LABEL") {
+            labels[lines[i].substr(6)] = i - labels.size();
         }
     }
 
@@ -26,13 +26,13 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
     };
 
     for (auto &line : lines) {
-        if (line.back() == ':') continue;
-        
         size_t space_pos = line.find_first_of(' ');
         std::string cmd = line.substr(0, space_pos);
         auto arg_str = line.substr(space_pos + 1);
         auto args = string_split(arg_str, ',');
         switch (hash(cmd)) {
+        case hash("LABEL"):
+            break;
         case hash("RDBOX"):
         {
             pdf_rect box;

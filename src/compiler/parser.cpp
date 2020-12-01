@@ -17,7 +17,7 @@ void parser::read_layout(const bill_layout_script &layout) {
 
 void parser::read_box(const layout_box &box) {
     current_box = &box;
-    if (!box.goto_label.empty()) add_line("{0}:", box.goto_label);
+    if (!box.goto_label.empty()) add_line("LABEL {0}", box.goto_label);
 
     tokens = tokenizer(box.spacers);
 
