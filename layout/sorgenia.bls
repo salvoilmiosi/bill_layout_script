@@ -39,7 +39,7 @@ $ifnot($or($contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA"),$ate())) {
 
 ### Box
 ### Name Nome Fornitore
-### Type DISABLED
+### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
 ### X 0.0612903237
@@ -239,7 +239,7 @@ $with($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
 
 ### Box
 ### Name Parsing dati generali
-### Type DISABLED
+### Type NOREAD
 ### Mode DEFAULT
 ### Page 3
 ### X 0.2668215632
@@ -296,7 +296,7 @@ $with(*contenuto_dettaglio) {
 
 ### Box
 ### Name Controllo prossima pagina
-### Type DISABLED
+### Type NOREAD
 ### Mode DEFAULT
 ### Page 4
 ### X 0.2707373202

@@ -17,7 +17,7 @@ $ifnot($eq(@,"BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero"))
 
 ### Box
 ### Name Nome Fornitore
-### Type DISABLED
+### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
 ### X 0.0209677424

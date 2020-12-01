@@ -59,7 +59,7 @@ p+*offset_dettaglio y-*spacer_dettaglio h+*spacer_dettaglio
 
 ### Box
 ### Name Spacer prima pagina dettaglio
-### Type PAGE
+### Type NOREAD
 ### Mode DEFAULT
 ### Page 3
 ### X 0.0483481064
@@ -80,7 +80,7 @@ $ifnot($ate()) {
 
 ### Box
 ### Name Nome Fornitore
-### Type DISABLED
+### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
 ### X 0.0425488055
@@ -265,7 +265,7 @@ $if($contains(@,"Energia reattiva")) {
 
 ### Box
 ### Name Parse Dettaglio Costi
-### Type DISABLED
+### Type NOREAD
 ### Mode DEFAULT
 ### Page 3
 ### X 0.0903737992
@@ -302,7 +302,7 @@ $with(*contenuto_dettaglio_costi) {
 
 ### Box
 ### Name Parse Dettaglio Totali
-### Type DISABLED
+### Type NOREAD
 ### Mode DEFAULT
 ### Page 3
 ### X 0.1999628395
@@ -334,7 +334,7 @@ $with($search(*contenuto_dettaglio_costi,/SPESA ONERI DI SISTEMA([^]+Totale) spe
 
 ### Box
 ### Name Prossima pagina
-### Type DISABLED
+### Type NOREAD
 ### Mode DEFAULT
 ### Page 3
 ### X 0.3150969148

@@ -2,7 +2,7 @@
 
 ### Box
 ### Name Nome Fornitore
-### Type DISABLED
+### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
 ### X 0.0580645017
@@ -177,7 +177,7 @@ $tokens($search(@,$format(/Indice mese di competenza F3 .+ \d\d\/$0 \u20ac\/kWh 
 
 ### Box
 ### Name Controllo Prossima Pagina
-### Type PAGE
+### Type NOREAD
 ### Mode DEFAULT
 ### Page 6
 ### X 0.0910509974
