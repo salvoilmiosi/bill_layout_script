@@ -40,14 +40,14 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
             writeData(output, call.numargs);
             break;
         }
-        case SELVARIDX:
+        case SELVAR:
         {
             const auto &var_idx = line.get<variable_idx>();
             writeData(output, var_idx.name);
             writeData(output, var_idx.index_first);
             break;
         }
-        case SELVARRANGE:
+        case SELRANGE:
         {
             const auto &var_idx = line.get<variable_idx>();
             writeData(output, var_idx.name);
@@ -59,15 +59,16 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
             writeData(output, line.get<std::string>());
             break;
         case PUSHSTR:
-        case SELVAR:
-        case SELVARALL:
-        case SELVARRANGETOP:
+        case SELVARTOP:
+        case SELRANGEALL:
+        case SELRANGETOP:
         case SELGLOBAL:
             writeData(output, line.get<string_ref>());
             break;
         case PUSHFLOAT:
             writeData(output, line.get<float>());
             break;
+        case SETPAGE:
         case PUSHINT:
         case INC:
         case DEC:
@@ -143,7 +144,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             m_commands.emplace_back(CALL, std::move(call));
             break;
         }
-        case SELVARIDX:
+        case SELVAR:
         {
             variable_idx var_idx;
             var_idx.name = readData<string_ref>(input);
@@ -152,7 +153,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             m_commands.emplace_back(cmd, std::move(var_idx));
             break;
         }
-        case SELVARRANGE:
+        case SELRANGE:
         {
             variable_idx var_idx;
             var_idx.name = readData<string_ref>(input);
@@ -165,15 +166,16 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             m_strings.push_back(readData<std::string>(input));
             break;
         case PUSHSTR:
-        case SELVAR:
-        case SELVARALL:
+        case SELVARTOP:
+        case SELRANGEALL:
         case SELGLOBAL:
-        case SELVARRANGETOP:
+        case SELRANGETOP:
             m_commands.emplace_back(cmd, readData<string_ref>(input));
             break;
         case PUSHFLOAT:
             m_commands.emplace_back(cmd, readData<float>(input));
             break;
+        case SETPAGE:
         case PUSHINT:
         case INC:
         case DEC:

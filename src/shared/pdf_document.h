@@ -3,9 +3,9 @@
 
 #include <string>
 
-enum box_type                              { BOX_RECTANGLE, BOX_PAGE, BOX_FILE, BOX_DISABLED };
-constexpr const char *box_type_strings[] = { "RECTANGLE",   "PAGE",   "FILE",   "DISABLED" };
-constexpr const char *box_type_labels[] =  { "Rettangolo",  "Pagina", "File",   "Disabilitato" };
+enum box_type                              { BOX_RECTANGLE, BOX_PAGE, BOX_FILE, BOX_NO_READ };
+constexpr const char *box_type_strings[] = { "RECTANGLE",   "PAGE",   "FILE",   "NOREAD" };
+constexpr const char *box_type_labels[] =  { "Rettangolo",  "Pagina", "File",   "Nessuna Lettura" };
 
 enum read_mode                              { MODE_DEFAULT, MODE_LAYOUT, MODE_RAW };
 constexpr const char *read_mode_strings[] = { "DEFAULT",    "LAYOUT",    "RAW" };

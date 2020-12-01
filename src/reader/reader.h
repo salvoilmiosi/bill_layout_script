@@ -67,6 +67,7 @@ public:
 
 private:
     void exec_command(const command_args &cmd);
+    void set_page(int page);
     void read_box(pdf_rect box);
     void call_function(const std::string &name, size_t numargs);
 

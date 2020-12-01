@@ -19,55 +19,51 @@ void parser::read_box(const layout_box &box) {
     current_box = &box;
     if (!box.goto_label.empty()) add_line("{0}:", box.goto_label);
 
-    if (box.type != BOX_DISABLED) {
-        tokens = tokenizer(box.spacers);
+    tokens = tokenizer(box.spacers);
 
-        while(!tokens.ate()) {
-            tokens.require(TOK_IDENTIFIER);
-            spacer_index index;
-            switch (hash(string_tolower(std::string(tokens.current().value)))) {
-            case hash("p"):
-            case hash("page"):
-                index = SPACER_PAGE;
-                break;
-            case hash("x"):
-                index = SPACER_X;
-                break;
-            case hash("y"):
-                index = SPACER_Y;
-                break;
-            case hash("w"):
-            case hash("width"):
-                index = SPACER_W;
-                break;
-            case hash("h"):
-            case hash("height"):
-                index = SPACER_H;
-                break;
-            default:
-                throw tokens.unexpected_token();
-            }
-            tokens.next();
-            bool negative = false;
-            switch (tokens.current().type) {
-            case TOK_PLUS:
-                break;
-            case TOK_MINUS:
-                negative = true;
-                break;
-            default:
-                throw tokens.unexpected_token(TOK_PLUS);
-            }
-            read_expression();
-            if (negative) add_line("NEG");
-            add_line("MVBOX {0}", index);
+    while(!tokens.ate()) {
+        tokens.require(TOK_IDENTIFIER);
+        spacer_index index;
+        switch (hash(string_tolower(std::string(tokens.current().value)))) {
+        case hash("p"):
+        case hash("page"):
+            index = SPACER_PAGE;
+            break;
+        case hash("x"):
+            index = SPACER_X;
+            break;
+        case hash("y"):
+            index = SPACER_Y;
+            break;
+        case hash("w"):
+        case hash("width"):
+            index = SPACER_W;
+            break;
+        case hash("h"):
+        case hash("height"):
+            index = SPACER_H;
+            break;
+        default:
+            throw tokens.unexpected_token();
         }
+        tokens.next();
+        bool negative = false;
+        switch (tokens.current().type) {
+        case TOK_PLUS:
+            break;
+        case TOK_MINUS:
+            negative = true;
+            break;
+        default:
+            throw tokens.unexpected_token(TOK_PLUS);
+        }
+        read_expression();
+        if (negative) add_line("NEG");
+        add_line("MVBOX {0}", index);
     }
 
     tokens = tokenizer(box.script);
     switch (box.type) {
-    case BOX_DISABLED:
-        break;
     case BOX_RECTANGLE:
         add_line("RDBOX {0},{1},{2:.{6}f},{3:.{6}f},{4:.{6}f},{5:.{6}f}", box.mode, box.page, box.x, box.y, box.w, box.h, FLOAT_PRECISION);
         break;
@@ -76,6 +72,9 @@ void parser::read_box(const layout_box &box) {
         break;
     case BOX_FILE:
         add_line("RDFILE {0}", box.mode);
+        break;
+    case BOX_NO_READ:
+        add_line("SETPAGE {}", box.page);
         break;
     }
     while (!tokens.ate()) read_statement();
@@ -256,10 +255,10 @@ int parser::read_variable(bool read_only) {
                 if (!read_only && tokens.current().type == TOK_COLON) { // variable[int:
                     tokens.advance();
                     tokens.peek();
-                    if (tokens.current().type == TOK_INTEGER) { // variable[a:b] -- selvarrange a,b
+                    if (tokens.current().type == TOK_INTEGER) { // variable[a:b] -- seleziona range
                         tokens.advance();
                         index_last = std::stoi(std::string(tokens.current().value));
-                    } else { // variable[int:expr] -- pushint a, expr, selvarrangetop
+                    } else { // variable[int:expr] -- seleziona range
                         add_line("PUSHINT {0}", index);
                         read_expression();
                         getindex = true;
@@ -304,17 +303,17 @@ int parser::read_variable(bool read_only) {
     if (isglobal) {
         add_line("SELGLOBAL {0}", name);
     } else if (rangeall) {
-        add_line("SELVARALL {0}", name);
+        add_line("SELRANGEALL {0}", name);
     } else if (getindex) {
         if (getindexlast) {
-            add_line("SELVARRANGETOP {0}", name);
+            add_line("SELRANGETOP {0}", name);
         } else {
-            add_line("SELVAR {0}", name);
+            add_line("SELVARTOP {0}", name);
         }
     } else if (index_last >= 0) {
-        add_line("SELVARRANGE {0},{1},{2}", name, index, index_last);
+        add_line("SELRANGE {0},{1},{2}", name, index, index_last);
     } else {
-        add_line("SELVARIDX {0},{1}", name, index);
+        add_line("SELVAR {0},{1}", name, index);
     }
 
     if (isdebug) add_line("SETDEBUG");

@@ -69,6 +69,9 @@ void reader::exec_command(const command_args &cmd) {
     case RDFILE:
         read_box(cmd.get<pdf_rect>());
         break;
+    case SETPAGE:
+        set_page(cmd.get<small_int>());
+        break;
     case CALL:
     {
         const auto &call = cmd.get<command_call>();
@@ -98,7 +101,7 @@ void reader::exec_command(const command_args &cmd) {
     case LEQ: exec_operator([](const auto &a, const auto &b) { return a <= b; }); break;
     case MAX: exec_operator([](const auto &a, const auto &b) { return a > b ? a : b; }); break;
     case MIN: exec_operator([](const auto &a, const auto &b) { return a < b ? a : b; }); break;
-    case SELVAR:
+    case SELVARTOP:
     {
         variable_ref ref;
         ref.name = get_string_ref();
@@ -108,7 +111,7 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.emplace(std::move(ref));
         break;
     }
-    case SELVARALL:
+    case SELRANGEALL:
     {
         variable_ref ref;
         ref.name = get_string_ref();
@@ -116,8 +119,8 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.emplace(std::move(ref));
         break;
     }
-    case SELVARIDX:
-    case SELVARRANGE:
+    case SELVAR:
+    case SELRANGE:
     {
         variable_ref ref;
         const auto &var_idx = cmd.get<variable_idx>();
@@ -127,7 +130,7 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.emplace(std::move(ref));
         break;
     }
-    case SELVARRANGETOP:
+    case SELRANGETOP:
     {
         variable_ref ref;
         ref.name = get_string_ref();
@@ -257,6 +260,13 @@ void reader::exec_command(const command_args &cmd) {
     case ATE: m_var_stack.push(m_ate); break;
     case HLT: m_programcounter = m_code.m_commands.size(); break;
     }
+}
+
+void reader::set_page(int page) {
+    page += m_spacer.page;
+    m_spacer = {};
+    m_ate = page > m_doc.num_pages();
+    m_content_stack = {};
 }
 
 void reader::read_box(pdf_rect box) {

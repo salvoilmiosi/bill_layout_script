@@ -63,6 +63,11 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
             add_command(RDFILE, std::move(box));
             break;
         }
+        case hash("SETPAGE"):
+        {
+            add_command(SETPAGE, std::stoi(args[0]));
+            break;
+        }
         case hash("CALL"):
         {
             command_call call;
@@ -92,11 +97,11 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("MAX"):           add_command(MAX); break;
         case hash("MIN"):           add_command(MIN); break;
         case hash("SELGLOBAL"):     add_command(SELGLOBAL, add_string(args[0])); break;
-        case hash("SELVAR"):        add_command(SELVAR, add_string(args[0])); break;
-        case hash("SELVARALL"):     add_command(SELVARALL, add_string(args[0])); break;
-        case hash("SELVARIDX"):     add_command(SELVARIDX, variable_idx(add_string(args[0]), std::stoi(args[1]))); break;
-        case hash("SELVARRANGE"):   add_command(SELVARRANGE, variable_idx(add_string(args[0]), std::stoi(args[1]), std::stoi(args[2]))); break;
-        case hash("SELVARRANGETOP"): add_command(SELVARRANGETOP, add_string(args[0])); break;
+        case hash("SELVAR"):        add_command(SELVAR, variable_idx(add_string(args[0]), std::stoi(args[1]))); break;
+        case hash("SELVARTOP"):     add_command(SELVARTOP, add_string(args[0])); break;
+        case hash("SELRANGE"):     add_command(SELRANGE, variable_idx(add_string(args[0]), std::stoi(args[1]), std::stoi(args[2]))); break;
+        case hash("SELRANGETOP"):  add_command(SELRANGETOP, add_string(args[0])); break;
+        case hash("SELRANGEALL"):     add_command(SELRANGEALL, add_string(args[0])); break;
         case hash("SETDEBUG"):      add_command(SETDEBUG); break;
         case hash("CLEAR"):         add_command(CLEAR); break;
         case hash("APPEND"):        add_command(APPEND); break;

@@ -11,6 +11,7 @@ enum opcode {
     RDPAGE,     // byte mode, byte page, string spacers -- legge la pagina e resetta content_stack
     RDFILE,     // byte mode -- legge l'intero file e resetta content_stack
     MVBOX,      // byte index -- pop, sposta il rettangolo a seconda dello spacer
+    SETPAGE,    // byte page -- setta la pagina letta
     CALL,       // string fun_name, byte numargs -- pop * numargs, push della variabile ritornata
     ERROR,      // string message -- throw layout_error(error)
     PARSENUM,   // pop, push parse_num su top
@@ -31,18 +32,18 @@ enum opcode {
     LEQ,        // pop * 2, push a <= b
     MAX,        // pop * 2, push max (a, b)
     MIN,        // pop * 2, push min (a, b)
-    SELVAR,     // string name -- pop, m_selected = (name, top)
-    SELVARALL,  // string name -- m_selected = (name) VAR_RANGE_ALL
-    SELVARIDX,  // string name, byte index -- m_selected = (name, index, index)
-    SELVARRANGETOP,// string name -- pop, pop, m_selected = (name, top-1, top)
-    SELVARRANGE,// string name, bye idxfrom, byte idxtop = (name, idxfrom, idxtop)
     SELGLOBAL,  // string name -- m_selected = (name) VAR_GLOBAL
+    SELVAR,     // string name, byte index -- m_selected = (name, index, index)
+    SELVARTOP,  // string name -- pop, m_selected = (name, top)
+    SELRANGE,   // string name, bye idxfrom, byte idxto = (name, idxfrom, idxto)
+    SELRANGETOP,// string name -- pop, pop, m_selected = (name, top-1, top)
+    SELRANGEALL,// string name -- m_selected = (name), set flag range_all
     SETDEBUG,   // setta flag debug su top di ref_stack
-    CLEAR,      // m_selected
+    CLEAR,      // m_selected.clear()
     APPEND,     // pop, m_selected.append(top)
     SETVAR,     // pop, m_selected = top
-    RESETVAR,   // m_selected = {top}
-    COPYCONTENT,// push top di content_stack su var_stack
+    RESETVAR,   // m_selected.clear(), setvar
+    COPYCONTENT,// push copia top di content_stack su var_stack
     PUSHINT,    // byte number, push number su var_stack
     PUSHFLOAT,  // float number, push number su var_stack
     PUSHSTR,    // string str, push str su var_stack
@@ -55,9 +56,9 @@ enum opcode {
     INC,        // byte amount -- m_selected += amount
     DECTOP,     // pop, m_selected -= top
     DEC,        // m_selected -= amount
-    ISSET,      // push m_selected.isset()
-    SIZE,       // push m_selected.isset()
-    PUSHCONTENT,// push copia di top content_stack in content_stack
+    ISSET,      // push m_selected.size() != 0
+    SIZE,       // push m_selected.size()
+    PUSHCONTENT,// pop, push top var_stack in content_stack
     NEXTLINE,   // avanza di un token newline nel top di content_stack
     NEXTTOKEN,  // avanza di un token spazio nel top di content_stack
     POPCONTENT, // pop da content_stack
