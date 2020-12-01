@@ -71,9 +71,8 @@ private:
     void call_function(const std::string &name, size_t numargs);
 
     const variable &get_ref() const;
-    void set_ref();
+    void set_ref(bool reset = false);
     void inc_ref(const variable &value);
-    void reset_ref();
     void clear_ref();
     size_t get_ref_size();
 

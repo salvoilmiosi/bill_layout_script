@@ -43,7 +43,7 @@ public:
 
     bool empty() const;
 
-    variable parse_number();
+    static variable str_to_number(const std::string &str);
     
     bool operator == (const variable &other) const;
     bool operator != (const variable &other) const;

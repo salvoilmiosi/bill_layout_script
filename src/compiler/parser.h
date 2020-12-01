@@ -17,7 +17,7 @@ struct spacer {
 
 enum variable_flags {
     VAR_APPEND      = 1 << 0,
-    VAR_CLEAR       = 1 << 1,
+    VAR_RESET       = 1 << 1,
     VAR_NUMBER      = 1 << 2,
     VAR_INCREASE    = 1 << 3,
     VAR_DECREASE    = 1 << 4

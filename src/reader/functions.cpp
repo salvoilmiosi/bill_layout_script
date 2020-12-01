@@ -1,10 +1,23 @@
 #include "functions.h"
 #include "utils.h"
 #include "layout.h"
+#include "locale_ita.h"
 
 #include <regex>
 #include <algorithm>
 #include <fmt/format.h>
+
+std::string parse_number(const std::string &str) {
+    std::string out;
+    for (char c : str) {
+        if (std::isdigit(c) || c == '-') {
+            out += c;
+        } else if (c == DECIMAL_POINT) {
+            out += '.';
+        }
+    }
+    return out;
+}
 
 std::string string_format(std::string str, const std::vector<std::string> &fmt_args) {
     for (size_t i=0; i<fmt_args.size(); ++i) {

@@ -4,7 +4,8 @@
 #include <vector>
 #include <string>
 
-#include "locale_ita.h"
+// Converte la stringa data in un numero dato il locale
+std::string parse_number(const std::string &str);
 
 // Formatta la stringa data
 std::string string_format(std::string str, const std::vector<std::string> &fmt_args);

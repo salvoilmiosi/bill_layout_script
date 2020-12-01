@@ -91,7 +91,7 @@ void parser::read_statement() {
 
         if (flags & VAR_APPEND) {
             add_line("APPEND");
-        } else if (flags & VAR_CLEAR) {
+        } else if (flags & VAR_RESET) {
             add_line("RESETVAR");
         } else if (flags & VAR_INCREASE) {
             if (inc_amount.empty()) {
@@ -282,11 +282,6 @@ int parser::read_variable(bool read_only) {
             }
             tokens.require(TOK_BRACKET_END);
             break;
-        case TOK_COLON:
-            if (read_only) throw tokens.unexpected_token();
-            flags |= VAR_CLEAR;
-            tokens.advance();
-            break;
         default:
             break;
         }
@@ -298,9 +293,15 @@ int parser::read_variable(bool read_only) {
         case TOK_PLUS:
             flags |= VAR_INCREASE;
             tokens.advance();
+            break;
         case TOK_MINUS:
             flags |= VAR_DECREASE;
             tokens.advance();
+            break;
+        case TOK_COLON:
+            flags |= VAR_RESET;
+            tokens.advance();
+            break;
         default:
             break;
         }

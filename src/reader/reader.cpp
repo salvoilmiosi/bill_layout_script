@@ -2,6 +2,7 @@
 
 #include <fmt/core.h>
 #include "utils.h"
+#include "functions.h"
 
 void reader::exec_program(std::istream &input) {
     if (m_code.read_bytecode(input).fail()) {
@@ -75,7 +76,11 @@ void reader::exec_command(const command_args &cmd) {
         break;
     }
     case ERROR: throw layout_error(m_var_stack.top().str()); break;
-    case PARSENUM: m_var_stack.top() = m_var_stack.top().parse_number(); break;
+    case PARSENUM:
+        if (m_var_stack.top().type() == VAR_STRING) {
+            m_var_stack.top() = variable::str_to_number(parse_number(m_var_stack.top().str()));
+        }
+        break;
     case PARSEINT: m_var_stack.top() = m_var_stack.top().as_int(); break;
     case NOT: m_var_stack.top() = !m_var_stack.top(); break;
     case NEG: m_var_stack.top() = -m_var_stack.top(); break;
@@ -170,12 +175,12 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.top().index_last = m_ref_stack.top().index_first;
         // fall through
     case SETVAR:
-        set_ref();
+        set_ref(false);
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
     case RESETVAR:
-        reset_ref();
+        set_ref(true);
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
@@ -304,7 +309,7 @@ const variable &reader::get_ref() const {
     }
 }
 
-void reader::set_ref() {
+void reader::set_ref(bool clear) {
     auto &value = m_var_stack.top();
     if (value.empty()) return;
     auto &ref = m_ref_stack.top();
@@ -323,6 +328,7 @@ void reader::set_ref() {
             x = std::move(value);
         }
     } else {
+        if (clear) var.clear();
         while (var.size() <= ref.index_last) var.emplace_back();
         for (size_t i=ref.index_first; i<=ref.index_last; ++i) {
             var[i] = std::move(value);
@@ -354,24 +360,6 @@ void reader::inc_ref(const variable &value) {
             var[i] += value;
         }
     }
-}
-
-void reader::reset_ref() {
-    auto &value = m_var_stack.top();
-    if (value.empty()) return;
-    auto &ref = m_ref_stack.top();
-    if (ref.flags & VAR_GLOBAL) {
-        auto &var = m_globals[ref.name] = std::move(value);
-        if (ref.flags & VAR_DEBUG) var.m_debug = true;
-        return;
-    }
-
-    while (m_pages.size() <= m_page_num) m_pages.emplace_back();
-    auto &page = m_pages[m_page_num];
-    auto &var = page[ref.name];
-    if (ref.flags & VAR_DEBUG) var.m_debug = true;
-    var.clear();
-    var.emplace_back(std::move(value));
 }
 
 void reader::clear_ref() {
