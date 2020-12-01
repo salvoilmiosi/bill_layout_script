@@ -128,10 +128,13 @@ codice_pod=$search(@,/Codice punto di erogazione \(POD\): ([a-zA-Z0-9]+)/)
 ### Mode LAYOUT
 ### Page 2
 ### X 0.0351196676
-### Y 0.3179854751
+### Y 0.2005697936
 ### W 0.9235171676
-### H 0.4926017821
+### H 0.6100174785
 ### Script
+$tokens($search(@,$format(/\d\d\/$0 Energia Attiva kWh (%N %N %N)/,mese))) {
+    %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]
+}
 $tokens($search(@,$format(/\d\d\/$0 Energia Reattiva kvarh (%N %N %N)/,mese))) {
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
 }
@@ -145,7 +148,7 @@ $tokens($search(@,$format(/\d\d\/$0 Potenza kW (%N %N %N)/,mese))) {
 ### Name Quadro Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 7
+### Page 5
 ### X 0.0537634380
 ### Y 0.0664767325
 ### W 0.9124850035
@@ -176,7 +179,7 @@ $tokens($search(@,$format(/Indice mese di competenza F3 .+ \d\d\/$0 \u20ac\/kWh 
 ### Name Controllo Prossima Pagina
 ### Type PAGE
 ### Mode DEFAULT
-### Page 8
+### Page 6
 ### X 0.0910509974
 ### Y 0.0385993943
 ### W 0.0338189304
