@@ -17,6 +17,7 @@ public:
 private:
     wxString input_file;
     wxString output_file;
+    bool quiet = false;
     bool debug = false;
     bool read_asm = false;
 };
@@ -26,6 +27,7 @@ wxIMPLEMENT_APP_CONSOLE(MainApp);
 static const wxCmdLineEntryDesc g_cmdline_desc[] = {
     { wxCMD_LINE_OPTION, "o", "output", "output layout", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_SWITCH, "d", "debug", "debug", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_SWITCH, "q", "quiet", "quiet mode", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_SWITCH, "s", "assembler", "assembler", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_PARAM, nullptr, nullptr, "input bls", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
     { wxCMD_LINE_NONE }
@@ -40,6 +42,7 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     if (parser.GetParamCount() >= 1) input_file = parser.GetParam(0);
     parser.Found("o", &output_file);
     debug = parser.Found("d");
+    quiet = parser.Found("q");
     read_asm = parser.Found("s");
     return true;
 }
@@ -76,7 +79,7 @@ int MainApp::OnRun() {
             parser my_parser;
             my_parser.read_layout(layout);
 
-            if (debug) {
+            if (!quiet) {
                 for (auto &line : my_parser.get_output_asm()) {
                     std::cout << line << std::endl;
                 }
@@ -100,7 +103,7 @@ int MainApp::OnRun() {
         return 1;
     }
     
-    if (!output_file.empty()) {
+    if (!debug && !output_file.empty()) {
         if (output_file == "-") {
             m_asm.write_bytecode(std::cout);
         } else {

@@ -23,15 +23,17 @@ public:
 protected:
     virtual ExitCode Entry();
 
+private:
+    std::unique_ptr<subprocess> process;
+
+    wxString temp_file;
+
     output_dialog *parent;
 
     Json::Value json_values;
 
     bill_layout_script layout;
     wxString pdf_filename;
-
-private:
-    std::unique_ptr<subprocess> process;
 };
 
 class output_dialog : public wxDialog {

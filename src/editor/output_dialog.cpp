@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include <wx/statline.h>
+#include <wx/filename.h>
 
 #include "resources.h"
 #include "editor.h"
@@ -83,14 +84,19 @@ void output_dialog::OnClickAbort(wxCommandEvent &) {
 reader_thread::~reader_thread() {
     wxCriticalSectionLocker lock(parent->m_thread_cs);
     parent->m_thread = nullptr;
+    if (wxFileExists(temp_file)) {
+        wxRemoveFile(temp_file);
+    }
 }
 
 wxThread::ExitCode reader_thread::Entry() {
     wxString cmd_str = get_app_path() + "layout_compiler";
 
+    temp_file = wxFileName::CreateTempFileName("layout");
+
     const char *args1[] = {
         cmd_str.c_str(),
-        "-q", "-", "-o", "temp.out",
+        "-q", "-", "-o", temp_file.c_str(),
         nullptr
     };
 
@@ -114,7 +120,7 @@ wxThread::ExitCode reader_thread::Entry() {
     const char *args2[] = {
         cmd_str.c_str(),
         "-p", pdf_filename.c_str(),
-        "-d", "temp.out",
+        "-d", temp_file.c_str(),
         nullptr
     };
 
@@ -122,23 +128,19 @@ wxThread::ExitCode reader_thread::Entry() {
     std::istringstream iss(process->read_all());
     process.reset();
 
-    if (wxFileExists("temp.out")) {
-        wxRemoveFile("temp.out");
+    if (!iss.str().empty()) {
+        Json::Value json_output;
+        iss >> json_output;
 
-        if (!iss.str().empty()) {
-            Json::Value json_output;
-            iss >> json_output;
+        if (json_output["error"].asBool()) {
+            wxMessageBox("Errore in lettura:\n" + json_output["message"].asString(), "Errore", wxICON_INFORMATION);
+            return (wxThread::ExitCode) 1;
+        } else {
+            wxCriticalSectionLocker lock(parent->m_thread_cs);
+            parent->json_output = json_output;
 
-            if (json_output["error"].asBool()) {
-                wxMessageBox("Errore in lettura:\n" + json_output["message"].asString(), "Errore", wxICON_ERROR);
-                return (wxThread::ExitCode) 1;
-            } else {
-                wxCriticalSectionLocker lock(parent->m_thread_cs);
-                parent->json_output = json_output;
-
-                wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
-                return (wxThread::ExitCode) 0;
-            }
+            wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
+            return (wxThread::ExitCode) 0;
         }
     }
     return (wxThread::ExitCode) 1;
