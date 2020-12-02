@@ -44,9 +44,8 @@ std::string date_t::to_string() {
 }
 
 static bool search_date(wxDateTime &dt, const std::string &format, const std::string &value, const std::string &regex, int index) {
-    wxString date_str = search_regex(regex, value, index);
     wxString::const_iterator end;
-    return dt.ParseFormat(date_str, format, &end);
+    return dt.ParseFormat(search_regex(regex, value, index), format, &end);
 }
 
 std::string parse_date(const std::string &format, const std::string &value, const std::string &regex, int index) {

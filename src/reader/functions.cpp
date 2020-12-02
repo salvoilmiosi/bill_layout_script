@@ -56,7 +56,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
         {"searchall", create_function<2, 3>([](const variable &str, const variable &regex, const variable &index) {
             return string_join(search_regex_all(regex.str(), str.str(), index.empty() ? 1 : index.as_int()), "\n");
         })},
-        {"date", create_function<1, 4>([](const variable &str, const variable &format, const variable &regex, const variable &index) {
+        {"date", create_function<2, 4>([](const variable &str, const variable &format, const variable &regex, const variable &index) {
             return parse_date(format.str(), str.str(), regex.str(), index.empty() ? 1 : index.as_int());
         })},
         {"month", create_function<1, 4>([](const variable &str, const variable &format, const variable &regex, const variable &index) {

@@ -20,7 +20,7 @@ private:
     bool exec_script = false;
     bool debug = false;
 
-    wxLocale loc = wxLocale::GetSystemLanguage();
+    wxLocale loc = wxLANGUAGE_DEFAULT;
 };
 
 wxIMPLEMENT_APP_CONSOLE(MainApp);
