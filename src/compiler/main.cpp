@@ -1,59 +1,64 @@
 #include <iostream>
 #include <fstream>
-#include <filesystem>
-#include <cstring>
+
+#include <wx/app.h>
+#include <wx/cmdline.h>
+#include <wx/filename.h>
 
 #include "parser.h"
 #include "assembler.h"
 
-int main(int argc, char **argv) {
-    std::filesystem::path input_file;
-    std::filesystem::path output_file;
+class MainApp : public wxAppConsole {
+public:
+    virtual int OnRun() override;
+    virtual void OnInitCmdLine(wxCmdLineParser &parser) override;
+    virtual bool OnCmdLineParsed(wxCmdLineParser &parser) override;
 
+private:
+    wxString input_file;
+    wxString output_file;
     bool debug = false;
     bool read_asm = false;
+};
 
+wxIMPLEMENT_APP_CONSOLE(MainApp);
+
+static const wxCmdLineEntryDesc g_cmdline_desc[] = {
+    { wxCMD_LINE_OPTION, "o", "output", "output layout", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_SWITCH, "d", "debug", "debug", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_SWITCH, "s", "assembler", "assembler", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_PARAM, nullptr, nullptr, "input bls", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
+    { wxCMD_LINE_NONE }
+};
+
+void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
+    parser.SetDesc(g_cmdline_desc);
+    parser.SetSwitchChars('-');
+}
+
+bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
+    if (parser.GetParamCount() >= 1) input_file = parser.GetParam(0);
+    parser.Found("o", &output_file);
+    debug = parser.Found("d");
+    read_asm = parser.Found("s");
+    return true;
+}
+
+int MainApp::OnRun() {
     std::ifstream ifs;
-    
-    enum {
-        FLAG_NONE,
-        FLAG_OUTPUT,
-    } options_flag = FLAG_NONE;
 
-    for (++argv; argc > 1; --argc, ++argv) {
-        switch (options_flag) {
-        case FLAG_NONE:
-            if (strcmp(*argv, "-o") == 0) options_flag = FLAG_OUTPUT;
-            else if (strcmp(*argv, "-d") == 0) debug = true;
-            else if (strcmp(*argv, "-s") == 0) read_asm = true;
-            else input_file = *argv;
-            break;
-        case FLAG_OUTPUT:
-            output_file = *argv;
-            options_flag = FLAG_NONE;
-            break;
-        }
-    }
-
-    if (input_file.empty()) {
-        std::cerr << "Specificare un file di input, o - per stdin" << std::endl;
-        return 1;
-    } else if (input_file != "-") {
-        if (!std::filesystem::exists(input_file)) {
+    if (input_file != "-") {
+        if (!wxFileExists(input_file)) {
             std::cerr << "Impossibile aprire il file layout " << input_file << std::endl;
             return 1;
         }
-        ifs.open(input_file);
+        ifs.open(input_file.ToStdString());
 
-        if (output_file.empty()) {
-            output_file = input_file;
-            output_file.replace_extension("out");
+        if (!debug && output_file.empty()) {
+            wxFileName f(input_file);
+            f.SetExt("out");
+            output_file = f.GetFullPath();
         }
-    }
-
-    if (!debug && output_file.empty()) {
-        std::cerr << "Specificare un file di output" << std::endl;
-        return 1;
     }
 
     assembler m_asm;
@@ -99,7 +104,7 @@ int main(int argc, char **argv) {
         if (output_file == "-") {
             m_asm.write_bytecode(std::cout);
         } else {
-            std::ofstream ofs(output_file, std::ofstream::binary | std::ofstream::out);
+            std::ofstream ofs(output_file.ToStdString(), std::ofstream::binary | std::ofstream::out);
             m_asm.write_bytecode(ofs);
         }
     }

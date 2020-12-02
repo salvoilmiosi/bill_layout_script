@@ -30,7 +30,7 @@ static const wxCmdLineEntryDesc g_cmdline_desc[] = {
     { wxCMD_LINE_OPTION, "l", "layout-dir", "layout directory", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_SWITCH, "d", "debug", "debug", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_SWITCH, "s", "script", "script controllo", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
-    { wxCMD_LINE_PARAM, nullptr, nullptr, "layout", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
+    { wxCMD_LINE_PARAM, nullptr, nullptr, "input layout", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
     { wxCMD_LINE_NONE }
 };
 

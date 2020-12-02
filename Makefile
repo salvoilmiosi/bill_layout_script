@@ -29,7 +29,7 @@ INCLUDE = `wx-config --cxxflags` `pkg-config --cflags jsoncpp fmt`
 LIBS_SHARED = `pkg-config --libs jsoncpp fmt`
 LIBS_EDITOR = `wx-config --libs std,stc` $(LIBS_SHARED)
 LIBS_READER = `wx-config --libs base` $(LIBS_SHARED)
-LIBS_COMPILER = $(LIBS_SHARED)
+LIBS_COMPILER = `wx-config --libs base` $(LIBS_SHARED)
 
 SOURCES_SHARED = $(wildcard $(SRC_DIR)/shared/*.cpp $(SRC_DIR)/shared/**/*.cpp)
 OBJECTS_SHARED = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_SHARED)))
