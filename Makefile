@@ -5,6 +5,8 @@ LDFLAGS =
 SRC_DIR = src
 OBJ_DIR = obj/$(build)
 BIN_DIR = bin/$(build)
+BLS_DIR = bls
+LAYOUT_DIR = layout
 
 ifndef build
   build = debug
@@ -23,6 +25,8 @@ BIN_SHARED = layout_shared.so
 BIN_EDITOR = layout_editor
 BIN_READER = layout_reader
 BIN_COMPILER = layout_compiler
+
+OUT_LAYOUT_TXT = 1
 
 INCLUDE = `wx-config --cxxflags` `pkg-config --cflags jsoncpp fmt`
 
@@ -43,8 +47,7 @@ OBJECTS_READER = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_REA
 SOURCES_COMPILER = $(wildcard $(SRC_DIR)/compiler/*.cpp $(SRC_DIR)/compiler/**/*.cpp)
 OBJECTS_COMPILER = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_COMPILER)))
 
-LAYOUT_DIR = layout
-LAYOUTS = $(patsubst $(LAYOUT_DIR)/%.bls,$(LAYOUT_DIR)/%.out,$(wildcard $(LAYOUT_DIR)/*.bls))
+LAYOUTS = $(patsubst $(BLS_DIR)/%.bls,$(LAYOUT_DIR)/%.out,$(wildcard $(BLS_DIR)/*.bls))
 
 SOURCES = $(SOURCES_SHARED) $(SOURCES_EDITOR) $(SOURCES_READER) $(SOURCES_COMPILER)
 OBJECTS = $(OBJECTS_SHARED) $(OBJECTS_EDITOR) $(OBJECTS_READER) $(OBJECTS_COMPILER)
@@ -75,8 +78,8 @@ clean:
 
 $(shell mkdir -p $(BIN_DIR) >/dev/null)
 
-$(LAYOUT_DIR)/%.out: $(LAYOUT_DIR)/%.bls $(BIN_DIR)/$(BIN_COMPILER)
-	$(BIN_DIR)/$(BIN_COMPILER) -d -o $@ $< > $(@:.out=.txt)
+$(LAYOUT_DIR)/%.out: $(BLS_DIR)/%.bls $(BIN_DIR)/$(BIN_COMPILER)
+	$(BIN_DIR)/$(BIN_COMPILER) -o $@ $< $(if $(filter $(OUT_LAYOUT_TXT),1),> $(@:.out=.txt),-q)
 
 shared: $(BIN_DIR)/$(BIN_SHARED)
 $(BIN_DIR)/$(BIN_SHARED): $(OBJECTS_SHARED)
