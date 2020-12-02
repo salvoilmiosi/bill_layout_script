@@ -59,7 +59,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
         {"date", create_function<2, 4>([](const variable &str, const variable &format, const variable &regex, const variable &index) {
             return parse_date(format.str(), str.str(), regex.str(), index.empty() ? 1 : index.as_int());
         })},
-        {"month", create_function<2, 4>([](const variable &str, const variable &format, const variable &regex, const variable &index) {
+        {"month", create_function<1, 4>([](const variable &str, const variable &format, const variable &regex, const variable &index) {
             return parse_month(format.str(), str.str(), regex.str(), index.empty() ? 1 : index.as_int());
         })},
         {"format", [](const arg_list &args) {
