@@ -37,6 +37,7 @@ BEGIN_EVENT_TABLE(frame_editor, wxFrame)
     EVT_MENU (MENU_DELETE, frame_editor::OnDelete)
     EVT_MENU (MENU_READDATA, frame_editor::OnReadData)
     EVT_MENU (MENU_EDITCONTROL, frame_editor::OpenControlScript)
+    EVT_MENU (MENU_LAYOUTPATH, frame_editor::OpenLayoutPath)
     EVT_MENU (MENU_COMPILE, frame_editor::OnCompile)
     EVT_BUTTON(CTL_AUTO_LAYOUT, frame_editor::OnAutoLayout)
     EVT_BUTTON (CTL_LOAD_PDF, frame_editor::OnLoadPdf)
@@ -102,6 +103,7 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     menuLayout->Append(MENU_EDITBOX, "Modifica &Rettangolo\tCtrl-E", "Modifica il rettangolo selezionato");
     menuLayout->Append(MENU_READDATA, "L&eggi Layout\tCtrl-R", "Test della lettura dei dati");
     menuLayout->Append(MENU_EDITCONTROL, "Modifica script di &controllo\tCtrl-L");
+    menuLayout->Append(MENU_LAYOUTPATH, "Modifica cartella layout\tCtrl-K");
     menuLayout->Append(MENU_COMPILE, "Compila Layout\tCtrl-B");
 
     menuBar->Append(menuLayout, "&Layout");
@@ -454,13 +456,28 @@ wxString frame_editor::getControlScript() {
     if (diag.ShowModal() == wxID_CANCEL)
         return wxString();
     
-    wxString filename = diag.GetPath().ToStdString();
+    wxString filename = diag.GetPath();
     wxConfig::Get()->Write("ControlScriptFilename", filename);
+    return filename;
+}
+
+wxString frame_editor::getLayoutPath() {
+    wxDirDialog diag(this, "Apri cartella layout", wxEmptyString);
+
+    if (diag.ShowModal() == wxID_CANCEL)
+        return wxString();
+
+    wxString filename = diag.GetPath();
+    wxConfig::Get()->Write("LayoutPath", filename);
     return filename;
 }
 
 void frame_editor::OpenControlScript(wxCommandEvent &evt) {
     getControlScript();
+}
+
+void frame_editor::OpenLayoutPath(wxCommandEvent &evt) {
+    getLayoutPath();
 }
 
 void frame_editor::OnCompile(wxCommandEvent &evt) {
@@ -506,34 +523,37 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     wxString control_script_filename = wxConfig::Get()->Read("ControlScriptFilename");
     if (control_script_filename.empty()) {
         control_script_filename = getControlScript();
+        if (control_script_filename.empty()) return;
     }
     
-    if (!control_script_filename.empty()) {
-        wxString cmd_str = get_app_path() + "layout_reader";
-        wxString layout_path = wxFileName(control_script_filename).GetPathWithSep();
+    wxString cmd_str = get_app_path() + "layout_reader";
+    wxString layout_path = wxConfig::Get()->Read("LayoutPath");
+    if (layout_path.empty()) {
+        layout_path = getLayoutPath();
+        if (layout_path.empty()) return;
+    }
 
-        const char *args[] = {
-            cmd_str.c_str(),
-            "-p", m_doc.filename().c_str(),
-            control_script_filename.c_str(),
-            nullptr
-        };
+    const char *args[] = {
+        cmd_str.c_str(),
+        "-p", m_doc.filename().c_str(),
+        control_script_filename.c_str(),
+        nullptr
+    };
 
-        std::istringstream iss(open_process(args)->read_all());
+    std::istringstream iss(open_process(args)->read_all());
 
-        Json::Value json_output;
-        iss >> json_output;
+    Json::Value json_output;
+    iss >> json_output;
 
-        if (json_output["error"].asBool()) {
-            wxMessageBox("Impossibile leggere l'output: " + json_output["message"].asString(), "Errore", wxOK | wxICON_ERROR);
-        } else {
-            wxString output_layout = json_output["globals"]["layout"].asString();
-            if (output_layout.empty()) {
-                wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
-            } else if (saveIfModified()) {
-                modified = false;
-                openFile(layout_path + output_layout + ".bls");
-            }
+    if (json_output["error"].asBool()) {
+        wxMessageBox("Impossibile leggere l'output: " + json_output["message"].asString(), "Errore", wxOK | wxICON_ERROR);
+    } else {
+        wxString output_layout = json_output["globals"]["layout"].asString();
+        if (output_layout.empty()) {
+            wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
+        } else if (saveIfModified()) {
+            modified = false;
+            openFile(layout_path + wxFileName::GetPathSeparator() + output_layout + ".bls");
         }
     }
 }
