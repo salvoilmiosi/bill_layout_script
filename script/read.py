@@ -26,7 +26,7 @@ def read_pdf(pdf_file):
                 if not json_out['error'] and 'layout' in json_out['globals']:
                     x['layout'] = json_out['globals']['layout']
             if 'layout' in x:
-                layout_file = controllo.parent.joinpath(x['layout']).with_suffix('.bls')
+                layout_file = controllo.parent.parent.joinpath('bls').joinpath(x['layout']).with_suffix('.bls')
                 if os.path.getmtime(str(layout_file)) < os.path.getmtime(str(output_file)):
                     out.append(x)
                     return
