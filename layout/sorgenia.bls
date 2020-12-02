@@ -210,7 +210,7 @@ indirizzo_fornitura
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
 $with($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
-  $tokens($search(@,$format(/$0 \w+ (%N %N %N)/,$date_format(mese_fattura,"%b - %Y")))) {
+  $tokens($search(@,$format(/$0 \w+ (%N %N %N)/,$date_format(mese_fattura,"%b - %y")))) {
     %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]
   }
 }
@@ -230,7 +230,7 @@ $with($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
 $with($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
-  $tokens($search(@,$format(/$0 (%N %N %N)/,$date_format(mese_fattura,"%b - %Y")))) {
+  $tokens($search(@,$format(/$0 (%N %N %N)/,$date_format(mese_fattura,"%b - %y")))) {
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
   }
 }
