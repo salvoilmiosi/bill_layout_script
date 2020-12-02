@@ -180,8 +180,8 @@ data_scadenza=$date(@,"%d/%m/%Y")
 ### H 0.0201220736
 ### Script
 mese_fattura=$month(@,"%b. %Y")
-*mese_fine=$month(@,"%b. %Y",/%D - (%D)/)
-$if($isset(*mese_fine)) {
+mese_fine=$month(@,"%b. %Y",/%D - (%D)/)
+$if($isset(mese_fine)) {
   mese_fattura=$month_add(mese_fattura,*calc_mese)
   *calc_mese+=1
 }
@@ -342,8 +342,8 @@ $with($search(*contenuto_dettaglio_costi,/SPESA ONERI DI SISTEMA([^]+Totale) spe
 ### W 0.0419016927
 ### H 0.0285062715
 ### Script
-$if($isset(*mese_fine)) {
-  $if($neq(mese_fattura,*mese_fine)) {
+$if($isset(mese_fine)) {
+  $if($neq(mese_fattura,mese_fine)) {
     $nextpage()
     $goto(nome_fornitore)
   }

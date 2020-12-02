@@ -119,7 +119,7 @@ data_fattura=$date(@,"%d/%m/%Y")
 ### H 0.0235176720
 ### Script
 mese_fattura=$month(@,"%B %Y")
-*mese_fine=$month(@,"%B %Y",/%D\/(%D)/)
+mese_fine=$month(@,"%B %Y",/%D\/(%D)/)
 mese_fattura=$month_add(mese_fattura,*calc_mese)
 $ifnot($isset(mese_fattura)) {
   $error("Layout Invalido")
@@ -304,8 +304,8 @@ $with(*contenuto_dettaglio) {
 ### W 0.0576036870
 ### H 0.0447955690
 ### Script
-$if($isset(*mese_fine)) {
-  $if($neq(mese_fattura,*mese_fine)) {
+$if($isset(mese_fine)) {
+  $if($neq(mese_fattura,mese_fine)) {
     *calc_mese+=1
     $nextpage()
     $goto(nome_fornitore)
