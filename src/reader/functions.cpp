@@ -33,7 +33,7 @@ struct date_t {
 };
 
 bool date_from_string(const std::string &str, date_t &date) {
-    static std::regex expression("(\\d{4})-(\\d{2})(-(\\d{2}))?");
+    static std::regex expression("^(\\d{4})-(\\d{2})(-(\\d{2}))?$");
     try {
         std::smatch match;
         if (std::regex_search(str, match, expression)) {
@@ -94,18 +94,21 @@ std::string parse_date(const std::string &format, const std::string &value, int 
     };
 
     std::string day = search_regex(replace(format, "DAY", "DD"), value, index);
-    std::string month = string_tolower(search_regex(replace(format, "MM", "MONTH", "MON"), value, index));
+    std::string month = search_regex(replace(format, "MM"), value, index);
+    std::string month_str = string_tolower(search_regex(replace(format, "MONTH", "MON"), value, index));
     std::string year = search_regex(replace(format, "YEAR", "YYYY", "YY"), value, index);
 
     try {
         date_t date;
-        for (size_t i=0; i<std::size(MONTHS); ++i) {
-            if (month.find(MONTHS[i]) != std::string::npos) {
-                date.month = i+1;
-                break;
+        if (!month.empty()) {
+            date.month = std::stoi(month);
+        } else if (!month_str.empty()) {
+            if (auto it = std::find_if(std::begin(MONTHS_ABBR), std::end(MONTHS_ABBR), [month_str](auto &str) {
+                return month_str.find(str) != std::string::npos;
+            }); it != std::end(MONTHS_ABBR)) {
+                date.month = it - std::begin(MONTHS_ABBR) + 1;
             }
-        }
-        if (!date.month && !month.empty()) date.month = std::stoi(month);
+        } 
         if (!day.empty()) date.day = std::stoi(day);
         if (!year.empty()) date.year = std::stoi(year);
 
@@ -147,11 +150,11 @@ std::string date_format(const std::string &str, std::string format) {
     string_replace(format, "DAY", to_str(date.day, 2));
     string_replace(format, "DD", to_str(date.day, 2));
     string_replace(format, "MM", to_str(date.month, 2));
-    string_replace(format, "MONTH", MONTHS_FULL[date.month-1]);
-    string_replace(format, "MON", MONTHS[date.month-1]);
+    string_replace(format, "MONTH", MONTHS[date.month-1]);
+    string_replace(format, "MON", MONTHS_ABBR[date.month-1]);
     string_replace(format, "YEAR", to_str(date.year, 4));
     string_replace(format, "YYYY", to_str(date.year, 4));
-    string_replace(format, "YY", to_str(date.year, 4).substr(2));
+    string_replace(format, "YY", to_str(date.year % 100, 2));
 
     return format;
 }

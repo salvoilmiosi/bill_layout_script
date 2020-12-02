@@ -3,7 +3,7 @@
 
 constexpr char DECIMAL_POINT = ',';
 
-constexpr const char *MONTHS[] = {
+constexpr const char *MONTHS_ABBR[] = {
     "gen",
     "feb",
     "mar",
@@ -18,7 +18,7 @@ constexpr const char *MONTHS[] = {
     "dic"
 };
 
-constexpr const char *MONTHS_FULL[] = {
+constexpr const char *MONTHS[] = {
     "gennaio",
     "febbraio",
     "marzo",
