@@ -53,7 +53,7 @@ $if($ate()) {
 p+*offset_dettaglio y-*spacer_dettaglio h+*spacer_dettaglio
 ### End Spacers
 ### Script
-*!contenuto_dettaglio_costi=$strcat(*contenuto_dettaglio_costi,@,"\n")
+*!contenuto_dettaglio_costi+=$strcat(@,"\n")
 ### End Script
 ### End Box
 

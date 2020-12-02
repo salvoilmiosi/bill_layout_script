@@ -159,7 +159,17 @@ variable variable::operator / (const variable &other) const {
 }
 
 variable &variable::operator += (const variable &other) {
-    m_value = number() + other.number();
-    m_type = VAR_NUMBER;
+    switch (other.m_type) {
+    case VAR_STRING:
+        m_value = str() + other.str();
+        m_type = VAR_STRING;
+        break;
+    case VAR_NUMBER:
+        m_value = number() + other.number();
+        m_type = VAR_NUMBER;
+        break;
+    default:
+        *this = other;
+    }
     return *this;
 }

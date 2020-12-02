@@ -351,7 +351,7 @@ void reader::inc_ref(const variable &value) {
     auto &ref = m_ref_stack.top();
     if (ref.flags & VAR_GLOBAL) {
         auto &var = m_globals[ref.name];
-        var = var + value;
+        var += value;
         if (ref.flags & VAR_DEBUG) var.m_debug = true;
         return;
     }
