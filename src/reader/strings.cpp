@@ -27,7 +27,7 @@ std::string string_format(std::string str, const std::vector<std::string> &fmt_a
     return str;
 }
 
-static std::regex create_regex(const std::string &format) {
+std::regex create_regex(const std::string &format) {
     try {
         return std::regex(format, std::regex::icase);
     } catch (std::regex_error &) {

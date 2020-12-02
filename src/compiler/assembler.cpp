@@ -6,6 +6,7 @@
 
 #include "utils.h"
 #include "binary_io.h"
+#include "parsestr.h"
 
 void assembler::read_lines(const std::vector<std::string> &lines) {
     std::map<std::string, jump_address> labels;

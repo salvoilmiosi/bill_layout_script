@@ -1,8 +1,10 @@
 #include "parser.h"
 
 #include <iostream>
+
 #include "utils.h"
 #include "bytecode.h"
+#include "parsestr.h"
 
 void parser::read_layout(const bill_layout_script &layout) {
     try {
@@ -343,6 +345,10 @@ void parser::read_function() {
     case hash("ate"):       void_function("ATE"); break;
     case hash("boxwidth"):  void_function("PUSHFLOAT {0:.{1}f}", current_box->w, FLOAT_PRECISION); break;
     case hash("boxheight"): void_function("PUSHFLOAT {0:.{1}f}", current_box->h, FLOAT_PRECISION); break;
+    case hash("date"):
+    case hash("month"):
+        read_date_fun(fun_name);
+        break;
     default:
     {
         int num_args = 0;
@@ -395,5 +401,68 @@ void parser::read_function() {
             add_line("CALL {0},{1}", fun_name,num_args);
         }
     }
+    }
+}
+
+void parser::read_date_fun(const std::string &fun_name) {
+    tokens.require(TOK_PAREN_BEGIN);
+    read_expression();
+    tokens.next();
+    switch (tokens.current().type) {
+    case TOK_COMMA:
+    {
+        auto date_fmt = tokens.require(TOK_STRING).value;
+        add_line("PUSHSTR {}", date_fmt);
+        std::string regex = "/(%D)/";
+        int idx = -1;
+        tokens.next();
+        switch (tokens.current().type) {
+        case TOK_COMMA:
+        {
+            regex = std::string(tokens.require(TOK_REGEXP).value);
+            tokens.next();
+            switch (tokens.current().type) {
+            case TOK_INTEGER:
+                idx = std::stoi(std::string(tokens.current().value));
+                break;
+            case TOK_PAREN_END:
+                break;
+            default:
+                throw tokens.unexpected_token(TOK_PAREN_END);
+            }
+            break;
+        }
+        case TOK_PAREN_END:
+            break;
+        default:
+            throw tokens.unexpected_token(TOK_PAREN_END);
+        }
+        
+        std::string date_regex;
+        parse_string(date_regex, date_fmt);
+        string_replace(date_regex, ".", "\\.");
+        string_replace(date_regex, "/", "\\/");
+        string_replace(date_regex, "%b", "\\w+");
+        string_replace(date_regex, "%B", "\\w+");
+        string_replace(date_regex, "%d", "\\d{2}");
+        string_replace(date_regex, "%m", "\\d{2}");
+        string_replace(date_regex, "%y", "\\d{2}");
+        string_replace(date_regex, "%Y", "\\d{4}");
+
+        string_replace(regex, "%D", date_regex);
+        add_line("PUSHSTR {}", regex);
+        if (idx >= 0) {
+            add_line("PUSHINT {}", idx);
+            add_line("CALL {},4", fun_name);
+        } else {
+            add_line("CALL {},3", fun_name);
+        }
+        break;
+    }
+    case TOK_PAREN_END:
+        add_line("CALL {},1", fun_name);
+        break;
+    default:
+        throw tokens.unexpected_token(TOK_PAREN_END);
     }
 }
