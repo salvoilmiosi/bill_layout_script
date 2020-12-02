@@ -40,7 +40,7 @@ fornitore="Green network"
 ### H 0.0330672748
 ### Script
 numero_fattura=$search(@,/Fattura n\. (.+) /)
-data_fattura=$date(@,/DD\/MM\/YYYY/)
+data_fattura=$date(@,"%d/%m/%Y")
 ### End Script
 ### End Box
 
@@ -54,8 +54,8 @@ data_fattura=$date(@,/DD\/MM\/YYYY/)
 ### W 0.2450372279
 ### H 0.0372774303
 ### Script
-mese_fattura=$date(@,/Fattura di MONTH YEAR/)
-data_scadenza=$date(@,/scadenza DD MONTH YEAR/)
+mese_fattura=$month(@,"%B %Y",/Fattura di (%D)/)
+data_scadenza=$date(@,"%d %B %Y",/scadenza (%D)/)
 ### End Script
 ### End Box
 
@@ -144,7 +144,7 @@ iva=$percent($num(@))
 ### W 0.9060928226
 ### H 0.1700713038
 ### Script
-$tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese_fattura,"MM/YYYY")))) {
+$tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese_fattura,"%m/%Y")))) {
   $skip()
   %energia_attiva[0]
   %energia_attiva[1]
@@ -168,7 +168,7 @@ $tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese
 ### W 0.7842165232
 ### H 0.0993647277
 ### Script
-%accise=$search(@,$format(/$0 \w+ Erariale.+kWh %N \u20ac (%N)/,$date_format(mese_fattura,"MONTH YEAR")))
+%accise=$search(@,$format(/$0 \w+ Erariale.+kWh %N \u20ac (%N)/,$date_format(mese_fattura,"%B %Y")))
 ### End Script
 ### End Box
 
@@ -182,7 +182,7 @@ $tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese
 ### W 0.9153138995
 ### H 0.2722168565
 ### Script
-!mese=$date_format(mese_fattura,"MM/YYYY")
+!mese=$date_format(mese_fattura,"%m/%Y")
 $with($search(@,/Componente di Generazione.+\n((Dal.+\n)+)/)) {
   %prezzo_energia[0]=$search(@,$format(/F1 .+\d\d\/$0 \u20ac\/kWh (%N)/,mese))
   %prezzo_energia[1]=$search(@,$format(/F2 .+\d\d\/$0 \u20ac\/kWh (%N)/,mese))

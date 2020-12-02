@@ -41,8 +41,8 @@ fornitore="Italpower"
 ### H 0.0763326287
 ### Script
 numero_fattura=$search(@,/Fattura Numero: (.+)\n/)
-data_fattura=$date(@,/Data Fattura: DD\/MM\/YYYY/)
-data_scadenza=$date(@,/Scadenza Fattura: DD\/MM\/YYYY/)
+data_fattura=$date(@,"%d/%m/%Y",/Data Fattura: (%D)/)
+data_scadenza=$date(@,"%d/%m/%Y",/Scadenza Fattura: (%D)/)
 ### End Script
 ### End Box
 
@@ -89,7 +89,7 @@ ragione_sociale=$search(@,/Ragione sociale (.+)\n/)
 p+*page_offset
 ### End Spacers
 ### Script
-mese_fattura=$date(@,/Dettaglio consumi mese di MONTH YEAR/)
+mese_fattura=$month(@,"%B %Y",/Dettaglio consumi mese di (%D)/)
 ### End Script
 ### End Box
 

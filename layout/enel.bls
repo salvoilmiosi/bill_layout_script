@@ -151,7 +151,7 @@ iva=$search(@,/IVA Scissione Pagamenti (\d+%)/)
 ### W 0.1944321692
 ### H 0.0156198740
 ### Script
-data_fattura=$date(@,/DD\/MM\/YYYY/)
+data_fattura=$date(@,"%d/%m/%Y")
 ### End Script
 ### End Box
 
@@ -165,7 +165,7 @@ data_fattura=$date(@,/DD\/MM\/YYYY/)
 ### W 0.0740167946
 ### H 0.0117149055
 ### Script
-data_scadenza=$date(@,/DD\/MM\/YYYY/)
+data_scadenza=$date(@,"%d/%m/%Y")
 ### End Script
 ### End Box
 
@@ -179,13 +179,13 @@ data_scadenza=$date(@,/DD\/MM\/YYYY/)
 ### W 0.2210626155
 ### H 0.0201220736
 ### Script
-mese_fattura=$date(@,/MON\. YEAR/)
-*mese_fine=$date(@,/MON\. YEAR - MON\. YEAR/,2)
+mese_fattura=$month(@,"%b. %Y")
+*mese_fine=$month(@,"%b. %Y",/%D - (%D)/)
 $if($isset(*mese_fine)) {
   mese_fattura=$month_add(mese_fattura,*calc_mese)
   *calc_mese+=1
 }
-!mese=$date_format(mese_fattura,"MM/YY")
+!mese=$date_format(mese_fattura,"%m/%y")
 ### End Script
 ### End Box
 
@@ -256,7 +256,7 @@ ragione_sociale
 ### H 0.0951694250
 ### Script
 $if($contains(@,"Energia reattiva")) {
-  $tokens($search(@,$format(/\d\d\/$0 %N %N %N (%N %N %N)/,$date_format(mese_fattura,"MM/YYYY")))) {
+  $tokens($search(@,$format(/\d\d\/$0 %N %N %N (%N %N %N)/,$date_format(mese_fattura,"%m/%Y")))) {
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
   }
 }

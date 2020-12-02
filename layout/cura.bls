@@ -40,7 +40,7 @@ ragione_sociale=$search(@,/RAGIONE SOCIALE:\n(.+)\n/)
 ### H 0.0209045988
 ### Script
 numero_fattura=$search(@,/Fattura N. (.+) del/)
-data_fattura=$date(@,/DD\/MM\/YYYY/)
+data_fattura=$date(@,"%d/%m/%Y")
 ### End Script
 ### End Box
 
@@ -54,7 +54,7 @@ data_fattura=$date(@,/DD\/MM\/YYYY/)
 ### W 0.2325268835
 ### H 0.0228050165
 ### Script
-mese_fattura=$date(@,/MONTH YEAR/)
+mese_fattura=$month(@,"%B %Y")
 ### End Script
 ### End Box
 
@@ -82,7 +82,7 @@ mese_fattura=$date(@,/MONTH YEAR/)
 ### W 0.2137096822
 ### H 0.0171037633
 ### Script
-data_scadenza=$date(@,/DD MONTH YEAR/)
+data_scadenza=$date(@,"%d %B %Y")
 ### End Script
 ### End Box
 

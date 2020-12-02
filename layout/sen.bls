@@ -103,8 +103,8 @@ codice_pod=$search(@,/CODICE POD\n(.+)\n/)
 ### H 0.1028847024
 ### Script
 numero_fattura=$search(@,/N\. Fattura (.+)\n/)
-data_fattura=$date(@,/Del DD\.MM\.YYYY/)
-mese_fattura=$date(@,/MESE MON\.YYYY$/)
+data_fattura=$date(@,"%d.%m.%Y",/Del (%D)/)
+mese_fattura=$month(@,"%b.%Y",/MESE (%D)$/)
 ### End Script
 ### End Box
 
@@ -119,7 +119,7 @@ mese_fattura=$date(@,/MESE MON\.YYYY$/)
 ### H 0.0695553049
 ### Script
 %totale_fattura=$search(@,/TOTALE DA PAGARE (%N)/)
-data_scadenza=$date(@,/DD\.MM\.YYYY/)
+data_scadenza=$date(@,"%d.%m.%Y")
 ### End Script
 ### End Box
 

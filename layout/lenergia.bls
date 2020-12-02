@@ -26,11 +26,11 @@ fornitore="Lenergia"
 ### Script
 numero_cliente=$search(@,/Codice Cliente: (.+)\n/)
 numero_fattura=$search(@,/fattura n\. (\d+) /)
-data_fattura=$date(@,/fattura n\. \d+ del DD\/MM\/YYYY/)
-data_inizio=$date(@,/Periodo DD\/MM\/YYYY - DD\/MM\/YYYY/,1)
-data_fine=$date(@,/Periodo DD\/MM\/YYYY - DD\/MM\/YYYY/,2)
-mese_fattura=$date(data_fine,/YYYY-MM/)
-!mese=$date_format(mese_fattura,"MM/YYYY")
+data_fattura=$date(@,"%d/%m/%Y",/fattura n\. \d+ del (%D)/)
+mese_inizio=$month(@,"%d/%m/%Y",/Periodo (%D) - %D/)
+mese_fine=$month(@,"%d/%m/%Y",/Periodo %D - (%D)/)
+mese_fattura=mese_fine
+!mese=$date_format(mese_fattura,"%m/%Y")
 ### End Script
 ### End Box
 
@@ -58,7 +58,7 @@ mese_fattura=$date(data_fine,/YYYY-MM/)
 ### W 0.3338710070
 ### H 0.0342075005
 ### Script
-data_scadenza=$date(@,/DD\/MM\/YYYY/)
+data_scadenza=$date(@,"%d/%m/%Y")
 ### End Script
 ### End Box
 

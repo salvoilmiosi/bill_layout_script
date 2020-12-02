@@ -55,7 +55,7 @@ ragione_sociale
 ### H 0.1000219882
 ### Script
 %totale_fattura=$search(@,/TOTALE DA PAGARE (%N)/)
-data_scadenza=$date(@,/entro il DD\.MM\.YYYY/)
+data_scadenza=$date(@,"%d.%m.%Y",/entro il (%D)/)
 ### End Script
 ### End Box
 
@@ -70,15 +70,15 @@ data_scadenza=$date(@,/entro il DD\.MM\.YYYY/)
 ### H 0.3194189668
 ### Script
 numero_fattura=$search(@,/N\. fattura (\d+)/)
-data_fattura=$date(@,/N\. fattura \d+ del DD\.MM\.YYYY/)
-data_inizio=$date(@,/PERIODO DD\.MM\.YYYY - DD\.MM\.YYYY/,1)
-data_fine=$date(@,/PERIODO DD\.MM\.YYYY - DD\.MM\.YYYY/,2)
-mese_fattura=$date(data_fine,/YYYY-MM/)
+data_fattura=$date(@,"%d.%m.%Y",/N\. fattura \d+ del (%D)/)
+mese_inizio=$month(@,"%d.%m.%Y",/PERIODO (%D) - %D/)
+mese_fine=$month(@,"%d.%m.%Y",/PERIODO %D - (%D)/)
+mese_fattura=mese_fine
 numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
 indirizzo_fornitura=$search($nonewline(@),/FORNIAMO ENERGIA IN (.+) CODICE POD/)
 *multipod=$isempty(codice_pod)
-!mese=$date_format(mese_fattura,"MM.YYYY")
+!mese=$date_format(mese_fattura,"%m.%Y")
 ### End Script
 ### End Box
 

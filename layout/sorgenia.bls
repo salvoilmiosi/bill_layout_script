@@ -104,7 +104,7 @@ numero_fattura
 ### W 0.2157258093
 ### H 0.0171037614
 ### Script
-data_fattura=$date(@,/DD\/MM\/YYYY/)
+data_fattura=$date(@,"%d/%m/%Y")
 ### End Script
 ### End Box
 
@@ -118,8 +118,8 @@ data_fattura=$date(@,/DD\/MM\/YYYY/)
 ### W 0.3114919364
 ### H 0.0235176720
 ### Script
-mese_fattura=$date(@,/MONTH YEAR/)
-*mese_fine=$date(@,/MONTH YEAR\/MONTH YEAR/,2)
+mese_fattura=$month(@,"%B %Y")
+*mese_fine=$month(@,"%B %Y",/%D\/(%D)/)
 mese_fattura=$month_add(mese_fattura,*calc_mese)
 $ifnot($isset(mese_fattura)) {
   $error("Layout Invalido")
@@ -137,7 +137,7 @@ $ifnot($isset(mese_fattura)) {
 ### W 0.2348197252
 ### H 0.0234757531
 ### Script
-data_scadenza=$date(@,/DD\/MM\/YYYY/)
+data_scadenza=$date(@,"%d/%m/%Y")
 ### End Script
 ### End Box
 
@@ -210,7 +210,7 @@ indirizzo_fornitura
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
 $with($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
-  $tokens($search(@,$format(/$0 \w+ (%N %N %N)/,$date_format(mese_fattura,"MON - YY")))) {
+  $tokens($search(@,$format(/$0 \w+ (%N %N %N)/,$date_format(mese_fattura,"%b - %Y")))) {
     %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]
   }
 }
@@ -230,7 +230,7 @@ $with($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
 $with($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
-  $tokens($search(@,$format(/$0 (%N %N %N)/,$date_format(mese_fattura,"MON - YY")))) {
+  $tokens($search(@,$format(/$0 (%N %N %N)/,$date_format(mese_fattura,"%b - %Y")))) {
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
   }
 }
@@ -248,7 +248,7 @@ $with($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
 ### H 0.0390942991
 ### Script
 $with(*contenuto_dettaglio) {
-  $with($search(@,$format(/$0([^]+?FORNITURA DI $0 euro %N)/,$date_format(mese_fattura,"MONTH YEAR")))) {
+  $with($search(@,$format(/$0([^]+?FORNITURA DI $0 euro %N)/,$date_format(mese_fattura,"%B %Y")))) {
 
     %pcv=$search(@,/PCV euro\/cliente\/mese %N %N (%N)/)
     %spesa_materia_energia=$search(@,/DETTAGLIO DELLA SPESA PER LA MATERIA ENERGIA[^]+?(%N) DETTAGLIO/)

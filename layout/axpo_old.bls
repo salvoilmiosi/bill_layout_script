@@ -41,7 +41,7 @@ fornitore="Axpo"
 ### H 0.0330672748
 ### Script
 numero_fattura=$search(@,/Fattura N\u00b0 (\d+)/)
-data_fattura=$date(@,/del DD\.MM\.YYYY/)
+data_fattura=$date(@,"%d.%m.%Y",/del (%D)/)
 ### End Script
 ### End Box
 
@@ -55,7 +55,7 @@ data_fattura=$date(@,/del DD\.MM\.YYYY/)
 ### W 0.4326676726
 ### H 0.0461530089
 ### Script
-data_scadenza=$date(@,/DD\.MM\.YYYY/)
+data_scadenza=$date(@,"%d.%m.%Y")
 ### End Script
 ### End Box
 
@@ -69,7 +69,7 @@ data_scadenza=$date(@,/DD\.MM\.YYYY/)
 ### W 0.2048387080
 ### H 0.0319270231
 ### Script
-mese_fattura=$date(@,/MONTH YEAR/)
+mese_fattura=$month(@,"%B %Y")
 ### End Script
 ### End Box
 
