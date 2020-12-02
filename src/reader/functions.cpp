@@ -72,8 +72,10 @@ void reader::call_function(const std::string &name, size_t numargs) {
                 [](const variable &var) { return var.str(); });
             return string_format(args.front().str(), fmt_args);
         }},
-        {"replace", create_function<3>([](const variable &value, const variable &regex, const variable &str) {
-            return string_replace_regex(value.str(), regex.str(), str.str());
+        {"replace", create_function<3>([](const variable &value, const variable &regex, const variable &to) {
+            std::string str = value.str();
+            string_replace_regex(str, regex.str(), to.str());
+            return str;
         })},
         {"date_format", create_function<2>([](const variable &month, const variable &format) {
             return date_format(month.str(), format.str());

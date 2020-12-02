@@ -48,9 +48,8 @@ static bool search_date(wxDateTime &dt, const std::string &format, const std::st
 
     std::string date_regex = format;
     string_replace(date_regex, ".", "\\.");
-    string_replace(date_regex, "%Y", "\\d{4}");
-    date_regex = string_replace_regex("%[aAbBh]", date_regex, "\\w+");
-    date_regex = string_replace_regex("%[edmy]", date_regex, "\\d{2}");
+    string_replace_regex(date_regex, "%[aAbBh]", "\\w+");
+    string_replace_regex(date_regex, "%[edmyY]", "\\d{2,4}");
 
     string_replace(regex, "%D", date_regex);
 

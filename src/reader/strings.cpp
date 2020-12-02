@@ -56,8 +56,8 @@ std::string search_regex(const std::string &format, const std::string &value, in
     }
 }
 
-std::string string_replace_regex(const std::string &format, const std::string &value, const std::string &str) {
-    return std::regex_replace(value, create_regex(format), str);
+std::string &string_replace_regex(std::string &value, const std::string &format, const std::string &str) {
+    return value = std::regex_replace(value, create_regex(format), str);
 }
 
 std::string nonewline(std::string input) {
