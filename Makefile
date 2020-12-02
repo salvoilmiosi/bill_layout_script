@@ -102,16 +102,10 @@ $(BIN_DIR)/$(BIN_COMPILER): $(OBJECTS_COMPILER) $(BIN_DIR)/$(BIN_SHARED)
 
 DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJ_DIR)/$*.Td
 
-$(OBJ_DIR)/shared/%.o : $(SRC_DIR)/shared/%.cpp
-$(OBJ_DIR)/shared/%.o : $(SRC_DIR)/shared/%.cpp $(OBJ_DIR)/shared/%.d
-	@mkdir -p $(dir $@)
-	$(CXX) $(DEPFLAGS) -fPIC $(CXXFLAGS) -c $(INCLUDE) -o $@ $<
-	@mv -f $(OBJ_DIR)/$*.Td $(OBJ_DIR)/$*.d && touch $@
-
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp $(OBJ_DIR)/%.d
 	@mkdir -p $(dir $@)
-	$(CXX) $(DEPFLAGS) $(CXXFLAGS) -c $(INCLUDE) -o $@ $<
+	$(CXX) $(DEPFLAGS) $(if $(filter $(SOURCES_SHARED),$<),-fPIC) $(CXXFLAGS) -c $(INCLUDE) -o $@ $<
 	@mv -f $(OBJ_DIR)/$*.Td $(OBJ_DIR)/$*.d && touch $@
 
 $(OBJ_DIR)/%.d: ;
