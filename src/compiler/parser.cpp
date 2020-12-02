@@ -339,7 +339,7 @@ void parser::read_function() {
 
     switch (hash(fun_name)) {
     case hash("isset"):     var_function("ISSET"); break;
-    case hash("size"):      var_function("SIZE"); break;
+    case hash("size"):      var_function("GETSIZE"); break;
     case hash("ate"):       void_function("ATE"); break;
     case hash("boxwidth"):  void_function("PUSHFLOAT {0:.{1}f}", current_box->w, FLOAT_PRECISION); break;
     case hash("boxheight"): void_function("PUSHFLOAT {0:.{1}f}", current_box->h, FLOAT_PRECISION); break;

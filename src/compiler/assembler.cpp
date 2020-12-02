@@ -77,7 +77,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
             break;
         }
         case hash("MVBOX"):         add_command(MVBOX, std::stoi(arg_str)); break;
-        case hash("ERROR"):         add_command(ERROR); break;
+        case hash("THROWERR"):         add_command(THROWERR); break;
         case hash("PARSENUM"):      add_command(PARSENUM); break;
         case hash("PARSEINT"):      add_command(PARSEINT); break;
         case hash("EQ"):            add_command(EQ); break;
@@ -129,7 +129,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("DECTOP"):        add_command(DECTOP); break;
         case hash("DEC"):           add_command(DEC, static_cast<small_int>(std::stoi(args[0]))); break;
         case hash("ISSET"):         add_command(ISSET); break;
-        case hash("SIZE"):          add_command(SIZE); break;
+        case hash("GETSIZE"):       add_command(GETSIZE); break;
         case hash("PUSHCONTENT"):   add_command(PUSHCONTENT); break;
         case hash("NEXTLINE"):      add_command(NEXTLINE); break;
         case hash("NEXTTOKEN"):     add_command(NEXTTOKEN); break;

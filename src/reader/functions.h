@@ -10,14 +10,17 @@ std::string parse_number(const std::string &str);
 // Formatta la stringa data
 std::string string_format(std::string str, const std::vector<std::string> &fmt_args);
 
-// converte i vari formati di data in un formato universale (dd/mm/aaaa)
-std::string parse_date(const std::string &format, const std::string &value, int index);
+// converte i vari formati di data in formato yyyy-mm-dd
+std::string parse_date(const std::string &format, const std::string &value, std::string regex, int index);
+
+// converte i vari formati di data in formato yyyy-mm
+std::string parse_month(const std::string &format, const std::string &value, std::string regex, int index);
 
 // Aggiunge num mesi alla data
 std::string date_month_add(const std::string &month, int num);
 
 // formatta una data nel formato indicato
-std::string date_format(const std::string &date, std::string format);
+std::string date_format(const std::string &date, const std::string &format);
 
 // cerca la regex in str e ritorna i valori trvati
 std::vector<std::string> search_regex_all(const std::string &format, const std::string &value, int index);

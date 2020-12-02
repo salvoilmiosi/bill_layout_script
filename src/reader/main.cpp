@@ -1,58 +1,70 @@
 #include <iostream>
 #include <fstream>
-#include <filesystem>
 #include <cstring>
 #include <fmt/core.h>
 
+#include <wx/app.h>
+#include <wx/cmdline.h>
+#include <wx/filename.h>
+
 #include "reader.h"
 
-int main(int argc, char **argv) {
-    enum {
-        FLAG_NONE,
-        FLAG_PDF,
-        FLAG_LAYOUT_DIR,
-    } options_flag = FLAG_NONE;
+class MainApp : public wxAppConsole {
+public:
+    virtual int OnRun() override;
+    virtual void OnInitCmdLine(wxCmdLineParser &parser) override;
+    virtual bool OnCmdLineParsed(wxCmdLineParser &parser) override;
 
-    Json::Value result = Json::objectValue;
-    result["error"] = false;
-
-    std::filesystem::path input_file;
-    std::filesystem::path file_pdf;
-    std::filesystem::path layout_dir;
+private:
+    wxString input_file;
+    wxString file_pdf;
+    wxString layout_dir;
     bool exec_script = false;
     bool debug = false;
+
+    wxLocale loc = wxLocale::GetSystemLanguage();
+};
+
+wxIMPLEMENT_APP_CONSOLE(MainApp);
+
+static const wxCmdLineEntryDesc g_cmdline_desc[] = {
+    { wxCMD_LINE_OPTION, "p", "pdf", "input pdf", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
+    { wxCMD_LINE_OPTION, "l", "layout-dir", "layout directory", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_SWITCH, "d", "debug", "debug", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_SWITCH, "s", "script", "script controllo", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_PARAM, nullptr, nullptr, "input layout file", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
+    { wxCMD_LINE_NONE }
+};
+
+void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
+    parser.SetDesc(g_cmdline_desc);
+    parser.SetSwitchChars('-');
+}
+
+bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
+    if (parser.GetParamCount() >= 1) input_file = parser.GetParam(0);
+    parser.Found("p", &file_pdf);
+    parser.Found("l", &layout_dir);
+    exec_script = parser.Found("s");
+    debug = parser.Found("d");
+    return true;
+}
+
+int MainApp::OnRun() {
+    Json::Value result = Json::objectValue;
+    result["error"] = false;
 
     auto output_error = [&](const std::string &message) {
         result["error"] = true;
         result["message"] = message;
         std::cout << result;
-        exit(1);
+        return 1;
     };
 
-    for (++argv; argc > 1; --argc, ++argv) {
-        switch (options_flag) {
-        case FLAG_NONE:
-            if (strcmp(*argv, "-p") == 0) options_flag = FLAG_PDF;
-            else if (strcmp(*argv, "-l") == 0) options_flag = FLAG_LAYOUT_DIR;
-            else if (strcmp(*argv, "-s") == 0) exec_script = true;
-            else if (strcmp(*argv, "-d") == 0) debug = true;
-            else input_file = *argv;
-            break;
-        case FLAG_PDF:
-            file_pdf = *argv;
-            options_flag = FLAG_NONE;
-            break;
-        case FLAG_LAYOUT_DIR:
-            layout_dir = *argv;
-            options_flag = FLAG_NONE;
-            break;
-        }
-    }
-
     if (file_pdf.empty()) {
-        output_error("Specificare il file pdf di input");
-    } else if (!std::filesystem::exists(file_pdf)) {
-        output_error(fmt::format("Impossibile aprire il file pdf {0}", file_pdf.string()));
+        return output_error("Specificare il file pdf di input");
+    } else if (!wxFileExists(file_pdf)) {
+        return output_error(fmt::format("Impossibile aprire il file pdf {0}", file_pdf.ToStdString()));
     }
 
     reader m_reader;
@@ -62,21 +74,21 @@ int main(int argc, char **argv) {
     bool in_file_layout = true;
 
     if (input_file.empty()) {
-        output_error("Specificare un file di input");
+        return output_error("Specificare un file di input");
     } else if (input_file == "-") {
         input_stdin = true;
     } else {
-        if (!std::filesystem::exists(input_file)) {
-            output_error(fmt::format("Impossibile aprire il file layout {0}", input_file.string()));
+        if (!wxFileExists(input_file)) {
+            return output_error(fmt::format("Impossibile aprire il file layout {0}", input_file.ToStdString()));
         }
-        ifs.open(input_file, std::ifstream::binary | std::ifstream::in);
+        ifs.open(input_file.ToStdString(), std::ifstream::binary | std::ifstream::in);
         if (layout_dir.empty()) {
-            layout_dir = input_file.parent_path();
+            layout_dir = wxFileName(input_file).GetPath();
         }
     }
 
     try {
-        m_reader.open_pdf(file_pdf.string());
+        m_reader.open_pdf(file_pdf.ToStdString());
 
         if (exec_script) {
             if (input_stdin) {
@@ -91,12 +103,12 @@ int main(int argc, char **argv) {
         if (!layout_dir.empty()) {
             const auto &layout_path = m_reader.get_global("layout");
             if (!layout_path.empty()) {
-                input_file = layout_dir / layout_path.str();
-                input_file.replace_extension(".out");
-                if (!std::filesystem::exists(input_file)) {
-                    output_error(fmt::format("Impossibile aprire il file layout {0}", input_file.string()));
+                wxFileName input_file2 = layout_dir + wxFileName::GetPathSeparator() + layout_path.str();
+                input_file2.SetExt("out");
+                if (!input_file2.Exists()) {
+                    return output_error(fmt::format("Impossibile aprire il file layout {0}", input_file2.GetFullPath().ToStdString()));
                 }
-                ifs.open(input_file, std::ifstream::binary | std::ifstream::in);
+                ifs.open(input_file2.GetFullPath().ToStdString(), std::ifstream::binary | std::ifstream::in);
                 in_file_layout = true;
                 input_stdin = false;
             }
@@ -110,11 +122,11 @@ int main(int argc, char **argv) {
             }
         }
     } catch (const layout_error &error) {
-        output_error(error.message);
+        return output_error(error.message);
     }
 #ifdef NDEBUG
     catch (...) {
-        output_error("Errore sconosciuto");
+        return output_error("Errore sconosciuto");
     }
 #endif
 

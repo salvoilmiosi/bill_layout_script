@@ -78,7 +78,7 @@ void reader::exec_command(const command_args &cmd) {
         call_function(m_code.get_string(call.name), call.numargs);
         break;
     }
-    case ERROR: throw layout_error(m_var_stack.top().str()); break;
+    case THROWERR: throw layout_error(m_var_stack.top().str()); break;
     case PARSENUM:
         if (m_var_stack.top().type() == VAR_STRING) {
             m_var_stack.top() = variable::str_to_number(parse_number(m_var_stack.top().str()));
@@ -241,7 +241,7 @@ void reader::exec_command(const command_args &cmd) {
         m_var_stack.push(get_ref_size() != 0);
         m_ref_stack.pop();
         break;
-    case SIZE:
+    case GETSIZE:
         m_var_stack.push((int) get_ref_size());
         m_ref_stack.pop();
         break;

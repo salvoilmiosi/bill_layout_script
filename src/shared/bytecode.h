@@ -13,7 +13,7 @@ enum opcode {
     MVBOX,      // byte index -- pop, sposta il rettangolo a seconda dello spacer
     SETPAGE,    // byte page -- setta la pagina letta
     CALL,       // string fun_name, byte numargs -- pop * numargs, push della variabile ritornata
-    ERROR,      // string message -- throw layout_error(error)
+    THROWERR,   // string message -- throw layout_error(error)
     PARSENUM,   // pop, push parse_num su top
     PARSEINT,   // pop, push parse_int su top
     EQ,         // pop * 2, push a == b
@@ -57,7 +57,7 @@ enum opcode {
     DECTOP,     // pop, m_selected -= top
     DEC,        // m_selected -= amount
     ISSET,      // push m_selected.size() != 0
-    SIZE,       // push m_selected.size()
+    GETSIZE,    // push m_selected.size()
     PUSHCONTENT,// pop, push top var_stack in content_stack
     NEXTLINE,   // avanza di un token newline nel top di content_stack
     NEXTTOKEN,  // avanza di un token spazio nel top di content_stack
