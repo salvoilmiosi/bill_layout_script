@@ -12,21 +12,21 @@ struct date_t {
     int day = 0;
     
     std::string to_string();
-    static bool from_string(const std::string &str, date_t &date);
+    bool from_string(const std::string &str);
 };
 
-bool date_t::from_string(const std::string &str, date_t &date) {
+bool date_t::from_string(const std::string &str) {
     static std::regex expression("^(\\d{4})-(\\d{2})(-(\\d{2}))?$");
     try {
         std::smatch match;
         if (std::regex_search(str, match, expression)) {
-            date.year = std::stoi(match.str(1));
-            date.month = std::stoi(match.str(2));
-            if (date.month > 12) {
+            year = std::stoi(match.str(1));
+            month = std::stoi(match.str(2));
+            if (month > 12) {
                 return false;
             }
             auto day = match.str(4);
-            if (!day.empty()) date.day = std::stoi(day);
+            if (!day.empty()) day = std::stoi(day);
             return true;
         }
     } catch (std::invalid_argument &) {}
@@ -49,8 +49,8 @@ static wxDateTime search_date(const std::string &format, const std::string &valu
     std::string date_regex = format;
     string_replace(date_regex, ".", "\\.");
     string_replace(date_regex, "%Y", "\\d{4}");
-    date_regex = string_replace_regex("%[bB]", date_regex, "\\w+");
-    date_regex = string_replace_regex("%[dmy]", date_regex, "\\d{2}");
+    date_regex = string_replace_regex("%[aAbBh]", date_regex, "\\w+");
+    date_regex = string_replace_regex("%[edmy]", date_regex, "\\d{2}");
 
     string_replace(regex, "%D", date_regex);
 
@@ -75,11 +75,7 @@ std::string parse_date(const std::string &format, const std::string &value, std:
         return "";
     }
 
-    date_t date;
-    date.day = dt.GetDay();
-    date.month = dt.GetMonth() + 1;
-    date.year = dt.GetYear();
-    return date.to_string();
+    return date_t{dt.GetYear(), dt.GetMonth() + 1, dt.GetDay()}.to_string();
 }
 
 std::string parse_month(const std::string &format, const std::string &value, std::string regex, int index) {
@@ -89,15 +85,12 @@ std::string parse_month(const std::string &format, const std::string &value, std
         return "";
     }
 
-    date_t date;
-    date.month = dt.GetMonth() + 1;
-    date.year = dt.GetYear();
-    return date.to_string();
+    return date_t{dt.GetYear(), dt.GetMonth() + 1, 0}.to_string();
 }
 
 std::string date_month_add(const std::string &str, int num) {
     date_t date;
-    if (!date_t::from_string(str, date)) {
+    if (!date.from_string(str)) {
         return "";
     }
 
@@ -111,7 +104,7 @@ std::string date_month_add(const std::string &str, int num) {
 
 std::string date_format(const std::string &str, const std::string &format) {
     date_t date;
-    if (!date_t::from_string(str, date)) {
+    if (!date.from_string(str)) {
         return "";
     }
 

@@ -1,7 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <cstring>
-#include <fmt/core.h>
 
 #include <wx/app.h>
 #include <wx/cmdline.h>
@@ -32,7 +30,7 @@ static const wxCmdLineEntryDesc g_cmdline_desc[] = {
     { wxCMD_LINE_OPTION, "l", "layout-dir", "layout directory", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_SWITCH, "d", "debug", "debug", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_SWITCH, "s", "script", "script controllo", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
-    { wxCMD_LINE_PARAM, nullptr, nullptr, "input layout file", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
+    { wxCMD_LINE_PARAM, nullptr, nullptr, "layout", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
     { wxCMD_LINE_NONE }
 };
 
@@ -61,10 +59,8 @@ int MainApp::OnRun() {
         return 1;
     };
 
-    if (file_pdf.empty()) {
-        return output_error("Specificare il file pdf di input");
-    } else if (!wxFileExists(file_pdf)) {
-        return output_error(fmt::format("Impossibile aprire il file pdf {0}", file_pdf.ToStdString()));
+    if (!wxFileExists(file_pdf)) {
+        return output_error(wxString::Format("Impossibile aprire il file pdf %s", file_pdf).ToStdString());
     }
 
     reader m_reader;
@@ -73,13 +69,11 @@ int MainApp::OnRun() {
     bool input_stdin = false;
     bool in_file_layout = true;
 
-    if (input_file.empty()) {
-        return output_error("Specificare un file di input");
-    } else if (input_file == "-") {
+    if (input_file == "-") {
         input_stdin = true;
     } else {
         if (!wxFileExists(input_file)) {
-            return output_error(fmt::format("Impossibile aprire il file layout {0}", input_file.ToStdString()));
+            return output_error(wxString::Format("Impossibile aprire il file layout %s", input_file).ToStdString());
         }
         ifs.open(input_file.ToStdString(), std::ifstream::binary | std::ifstream::in);
         if (layout_dir.empty()) {
@@ -106,7 +100,7 @@ int MainApp::OnRun() {
                 wxFileName input_file2 = layout_dir + wxFileName::GetPathSeparator() + layout_path.str();
                 input_file2.SetExt("out");
                 if (!input_file2.Exists()) {
-                    return output_error(fmt::format("Impossibile aprire il file layout {0}", input_file2.GetFullPath().ToStdString()));
+                    return output_error(wxString::Format("Impossibile aprire il file layout %s", input_file2.GetFullPath()).ToStdString());
                 }
                 ifs.open(input_file2.GetFullPath().ToStdString(), std::ifstream::binary | std::ifstream::in);
                 in_file_layout = true;
