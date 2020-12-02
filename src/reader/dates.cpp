@@ -54,16 +54,8 @@ static bool search_date(wxDateTime &dt, const std::string &format, const std::st
     string_replace(regex, "%D", date_regex);
 
     wxString date_str = search_regex(regex, value, index);
-    if (date_str.empty()) {
-        return false;
-    }
-
     wxString::const_iterator end;
-    if (!dt.ParseFormat(date_str, format, &end)) {
-        return false;
-    }
-
-    return true;
+    return dt.ParseFormat(date_str, format, &end);
 }
 
 std::string parse_date(const std::string &format, const std::string &value, std::string regex, int index) {
@@ -83,13 +75,14 @@ std::string parse_month(const std::string &format, const std::string &value, std
         }
         date.day = 0;
         return date.to_string();
-    }
-    wxDateTime dt;
-    if (!search_date(dt, format, value, regex, index)) {
-        return "";
-    }
+    } else {
+        wxDateTime dt;
+        if (!search_date(dt, format, value, regex, index)) {
+            return "";
+        }
 
-    return date_t{dt.GetYear(), dt.GetMonth() + 1, 0}.to_string();
+        return date_t{dt.GetYear(), dt.GetMonth() + 1, 0}.to_string();
+    }
 }
 
 std::string date_month_add(const std::string &str, int num) {
