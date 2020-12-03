@@ -1,9 +1,8 @@
 .vscode/*
 bin/*
 obj/*
-script/out/*
-layout/*.out
-layout/*.txt
+out/*
+layout/*
 *.exe
 *.dll
 *.so

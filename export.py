@@ -54,104 +54,97 @@ table_values = [
     TableValue('Disp. Var',             'disp_var',                  type='number', number_format='0.00000000', column_width=11)
 ]
 
-out = []
-out_err = []
+def export_file(input_file):
+    out = []
+    out_err = []
 
-def add_rows(json_data):
-    filename = json_data['filename']
-    lastmodified = json_data['lastmodified']
+    def add_rows(json_data):
+        filename = json_data['filename']
+        lastmodified = json_data['lastmodified']
 
-    print(filename)
+        if 'error' in json_data:
+            out_err.append([filename, json_data['error']])
+            return
+        for json_page in json_data['values']:
+            row = []
 
-    if 'error' in json_data:
-        out_err.append([filename, json_data['error']])
-        return
-    for json_page in json_data['values']:
-        row = []
+            for obj in table_values:
+                if obj.value == 'filename':
+                    row.append({'value':filename, 'number_format': ''})
+                elif obj.value == 'lastmodified':
+                    row.append({'value':datetime.date.fromtimestamp(lastmodified), 'number_format':'DD/MM/YY'})
+                else:
+                    try:
+                        value = json_page[obj.value][obj.index]
+                        if obj.type == 'str':
+                            row.append({'value': value, 'number_format': '@'})
+                        elif obj.type == 'date':
+                            row.append({'value': datetime.datetime.strptime(value, '%Y-%m-%d'), 'number_format': 'DD/MM/YY'})
+                        elif obj.type == 'month':
+                            row.append({'value': datetime.datetime.strptime(value, '%Y-%m'), 'number_format': 'MM/YYYY'})
+                        elif obj.type == 'euro':
+                            row.append({'value': float(value), 'number_format': '#,##0.00 €'})
+                        elif obj.type == 'int':
+                            row.append({'value': float(value), 'number_format': '0'})
+                        elif obj.type == 'number':
+                            row.append({'value': float(value), 'number_format': obj.number_format})
+                        elif obj.type == 'percentage':
+                            row.append({'value': float(value[:-1]) / 100, 'number_format': '0%'})
+                        else:
+                            row.append({'value': value, 'number_format': ''})
+                    except (KeyError, IndexError, ValueError):
+                        if obj.obligatory:
+                            continue
+                        else:
+                            row.append({'value': '', 'number_format': ''})
 
-        for obj in table_values:
-            if obj.value == 'filename':
-                row.append({'value':filename, 'number_format': ''})
-            elif obj.value == 'lastmodified':
-                row.append({'value':datetime.date.fromtimestamp(lastmodified), 'number_format':'DD/MM/YY'})
-            else:
-                try:
-                    value = json_page[obj.value][obj.index]
-                    if obj.type == 'str':
-                        row.append({'value': value, 'number_format': '@'})
-                    elif obj.type == 'date':
-                        row.append({'value': datetime.datetime.strptime(value, '%Y-%m-%d'), 'number_format': 'DD/MM/YY'})
-                    elif obj.type == 'month':
-                        row.append({'value': datetime.datetime.strptime(value, '%Y-%m'), 'number_format': 'MM/YYYY'})
-                    elif obj.type == 'euro':
-                        row.append({'value': float(value), 'number_format': '#,##0.00 €'})
-                    elif obj.type == 'int':
-                        row.append({'value': float(value), 'number_format': '0'})
-                    elif obj.type == 'number':
-                        row.append({'value': float(value), 'number_format': obj.number_format})
-                    elif obj.type == 'percentage':
-                        row.append({'value': float(value[:-1]) / 100, 'number_format': '0%'})
-                    else:
-                        row.append({'value': value, 'number_format': ''})
-                except (KeyError, IndexError, ValueError):
-                    if obj.obligatory:
-                        continue
-                    else:
-                        row.append({'value': '', 'number_format': ''})
+            out.append(row)
 
-        out.append(row)
+    with open(input_file, 'r') as fin:
+        for r in json.loads(fin.read()):
+            add_rows(r)
 
-if len(sys.argv) < 2:
-    print('Argomenti richiesti: input_file [output.xlsx]')
-    sys.exit()
+    wb = Workbook()
+    ws = wb.active
 
-app_dir = Path(sys.argv[0]).parent
+    ws.append([obj.title for obj in table_values])
+    for i, obj in enumerate(table_values, 1):
+        if obj.column_width != None:
+            ws.column_dimensions[get_column_letter(i)].width = obj.column_width
 
-input_file = Path(sys.argv[1])
-output_file = Path(sys.argv[2]) if len(sys.argv) >= 3 else input_file.with_suffix('.xlsx')
+    indices = {x.title:i for i,x in enumerate(table_values)}
 
-if not input_file.exists():
-    print('Il file {0} non esiste'.format(input_file))
-    sys.exit(1)
+    out.sort(key = lambda obj: (obj[indices['POD']]['value'], obj[indices['Mese']]['value'], obj[indices['Data Emissione']]['value']))
 
-with open(input_file, 'r') as fin:
-    for r in json.loads(fin.read()):
-        add_rows(r)
+    old_pod = None
+    old_date = None
+    for i, row in enumerate(out, 2):
+        new_pod = row[indices['POD']]['value']
+        new_date = row[indices['Mese']]['value']
+        for j, c in enumerate(row, 1):
+            cell = ws.cell(row=i, column=j)
+            if old_pod != None and new_pod != old_pod:
+                cell.border = Border(top=Side(border_style='thin', color='000000'))
+            if new_date == old_date:
+                cell.fill = PatternFill(patternType='solid', fgColor='ffff00')
+            try:
+                cell.number_format = c['number_format']
+                cell.value = c['value']
+            except (KeyError, IndexError, ValueError):
+                pass
+        old_pod = new_pod
+        old_date = new_date
 
-wb = Workbook()
-ws = wb.active
+    for row in out_err:
+        ws.append(row)
 
-ws.append([obj.title for obj in table_values])
-for i, obj in enumerate(table_values, 1):
-    if obj.column_width != None:
-        ws.column_dimensions[get_column_letter(i)].width = obj.column_width
+    ws.freeze_panes = ws['A2']
 
-indices = {x.title:i for i,x in enumerate(table_values)}
+    wb.save(input_file.with_suffix('.xlsx'))
 
-out.sort(key = lambda obj: (obj[indices['POD']]['value'], obj[indices['Mese']]['value'], obj[indices['Data Emissione']]['value']))
+in_dir = Path("W:/letture")
+if len(sys.argv) > 1:
+    in_dir = Path(sys.argv[1])
 
-old_pod = None
-old_date = None
-for i, row in enumerate(out, 2):
-    new_pod = row[indices['POD']]['value']
-    new_date = row[indices['Mese']]['value']
-    for j, c in enumerate(row, 1):
-        cell = ws.cell(row=i, column=j)
-        if old_pod != None and new_pod != old_pod:
-            cell.border = Border(top=Side(border_style='thin', color='000000'))
-        if new_date == old_date:
-            cell.fill = PatternFill(patternType='solid', fgColor='ffff00')
-        try:
-            cell.number_format = c['number_format']
-            cell.value = c['value']
-        except (KeyError, IndexError, ValueError):
-            pass
-    old_pod = new_pod
-    old_date = new_date
-
-for row in out_err:
-    ws.append(row)
-
-ws.freeze_panes = ws['A2']
-
-wb.save(output_file)
+for f in in_dir.rglob('*.json'):
+    export_file(f)

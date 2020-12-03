@@ -28,7 +28,7 @@ fix_conguagli = input('Fix Conguagli? S/n').lower()
 
 if input('Proseguire? s/N ').lower() != 's': exit(0)
 
-in_dir = Path(sys.argv[0]).parent.joinpath('out')
+in_dir = Path('W:/letture')
 if len(sys.argv) > 1:
     in_dir = Path(sys.argv[1])
 
