@@ -54,10 +54,6 @@ struct suffix {
 
 std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
     std::string line;
-    if (!std::getline(input, line) || line != "### Bill Layout Script") {
-        input.setstate(std::ios::failbit);
-        return input;
-    }
 
     layout.clear();
     std::shared_ptr<layout_box> current;
@@ -138,7 +134,7 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                 } else {
                     layout.push_back(current);
                 }
-            } else {
+            } else if (line.front() != '#') {
                 input.setstate(std::ios::failbit);
                 return input;
             }
