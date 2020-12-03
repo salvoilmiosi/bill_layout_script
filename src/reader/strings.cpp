@@ -13,7 +13,7 @@ std::string parse_number(const std::string &str) {
     for (char c : str) {
         if (std::isdigit(c) || c == '-') {
             out += c;
-        } else if (c == wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT)) {
+        } else if (c == wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER)) {
             out += '.';
         }
     }
