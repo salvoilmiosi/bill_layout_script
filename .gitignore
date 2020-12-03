@@ -3,6 +3,7 @@ bin/*
 obj/*
 out/*
 layout/*
+*.sh
 *.exe
 *.dll
 *.so
