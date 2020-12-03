@@ -133,7 +133,7 @@ $if($contains(@,"Dati di fornitura")) {
 ### W 0.4290736318
 ### H 0.2335467935
 ### Script
-iva=$search(@,/IVA (%N%)/)
+iva=$search(@,/IVA (\d%)/)
 $ifnot(*spacer_multipod) {
   %spesa_materia_energia=$search(@,/Corrispettivi energia (%N)/)
   %spesa_materia_energia=$search(@,/Spese per l'energia (%N)/)

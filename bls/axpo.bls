@@ -90,8 +90,10 @@ indirizzo_fornitura=$search($nonewline(@),/FORNIAMO ENERGIA IN (.+) CODICE POD/)
 ### W 0.4389663041
 ### H 0.2384654284
 ### Script
-%imponibile=$search(@,/imponibile di (%N)/)
 iva=$search(@,/Importo IVA (\d+%)/)
+$ifnot(*multipod) {
+  %imponibile=$search(@,/imponibile di (%N)/)
+}
 ### End Script
 ### End Box
 
