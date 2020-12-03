@@ -283,10 +283,16 @@ $with(*contenuto_dettaglio_costi) {
   $tokens($search(@,$format(/Energia fascia F3 dal \d\d\/$0.+kWh (%N %N)/,mese))) {
     %prezzo_energia[2] %energia_attiva[2]
   }
-  $tokens($search(@,$format(/Energia picco dal \d\d\/$0.+kWh (%N %N)/,mese))) {
+  $tokens(
+   $coalesce(
+    $search(@,$format(/Energia picco dal \d\d\/$0.+kWh (%N %N)/,mese)),
+    $search(@,$format(/Energia ore di picco dal \d\d\/$0.+kWh (%N %N)/,mese)))) {
     %prezzo_energia[0] %energia_attiva[0]
   }
-  $tokens($search(@,$format(/Energia fuori picco dal \d\d\/$0.+kWh (%N %N)/,mese))) {
+  $tokens(
+   $coalesce(
+    $search(@,$format(/Energia fuori picco dal \d\d\/$0.+kWh (%N %N)/,mese)),
+    $search(@,$format(/Energia ore di fuori picco dal \d\d\/$0.+kWh (%N %N)/,mese)))) {
     %prezzo_energia[1] %energia_attiva[1]
   }
   $with($search(@,$format(/Energia attiva dal \d\d\/$0.+\n((.*Energia Reattiva.*\n)+)/,mese))) {
