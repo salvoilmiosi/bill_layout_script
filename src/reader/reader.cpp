@@ -70,7 +70,7 @@ void reader::exec_command(const command_args &cmd) {
         read_box(cmd.get<pdf_rect>());
         break;
     case SETPAGE:
-        set_page(cmd.get<small_int>());
+        set_page(cmd.get<byte_int>());
         break;
     case CALL:
     {
@@ -151,7 +151,7 @@ void reader::exec_command(const command_args &cmd) {
     }
     case MVBOX:
     {
-        switch (static_cast<spacer_index>(cmd.get<small_int>())) {
+        switch (static_cast<spacer_index>(cmd.get<byte_int>())) {
         case SPACER_PAGE:
             m_spacer.page += m_var_stack.top().as_int();
             break;

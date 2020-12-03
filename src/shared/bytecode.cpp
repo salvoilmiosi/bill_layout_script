@@ -12,8 +12,8 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
         case RDBOX:
         {
             const auto &box = line.get<pdf_rect>();
-            writeData<small_int>(output, box.mode);
-            writeData<small_int>(output, box.page);
+            writeData<byte_int>(output, box.mode);
+            writeData<byte_int>(output, box.page);
             writeData(output, box.x);
             writeData(output, box.y);
             writeData(output, box.w);
@@ -23,14 +23,14 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
         case RDPAGE:
         {
             const auto &box = line.get<pdf_rect>();
-            writeData<small_int>(output, box.mode);
-            writeData<small_int>(output, box.page);
+            writeData<byte_int>(output, box.mode);
+            writeData<byte_int>(output, box.page);
             break;
         }
         case RDFILE:
         {
             const auto &box = line.get<pdf_rect>();
-            writeData<small_int>(output, box.mode);
+            writeData<byte_int>(output, box.mode);
             break;
         }
         case CALL:
@@ -69,10 +69,12 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
             writeData(output, line.get<float>());
             break;
         case SETPAGE:
+        case MVBOX:
+            writeData(output, line.get<byte_int>());
+            break;
         case PUSHINT:
         case INC:
         case DEC:
-        case MVBOX:
             writeData(output, line.get<small_int>());
             break;
         case JMP:
@@ -110,8 +112,8 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         {
             pdf_rect box;
             box.type = BOX_RECTANGLE;
-            box.mode = static_cast<read_mode>(readData<small_int>(input));
-            box.page = readData<small_int>(input);
+            box.mode = static_cast<read_mode>(readData<byte_int>(input));
+            box.page = readData<byte_int>(input);
             box.x = readData<float>(input);
             box.y = readData<float>(input);
             box.w = readData<float>(input);
@@ -123,8 +125,8 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         {
             pdf_rect box;
             box.type = BOX_PAGE;
-            box.mode = static_cast<read_mode>(readData<small_int>(input));
-            box.page = readData<small_int>(input);
+            box.mode = static_cast<read_mode>(readData<byte_int>(input));
+            box.page = readData<byte_int>(input);
             m_commands.emplace_back(RDPAGE, std::move(box));
             break;
         }
@@ -132,7 +134,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         {
             pdf_rect box;
             box.type = BOX_FILE;
-            box.mode = static_cast<read_mode>(readData<small_int>(input));
+            box.mode = static_cast<read_mode>(readData<byte_int>(input));
             m_commands.emplace_back(RDFILE, std::move(box));
             break;
         }
@@ -140,7 +142,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         {
             command_call call;
             call.name = readData<string_ref>(input);
-            call.numargs = readData<small_int>(input);
+            call.numargs = readData<byte_int>(input);
             m_commands.emplace_back(CALL, std::move(call));
             break;
         }
@@ -148,7 +150,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         {
             variable_idx var_idx;
             var_idx.name = readData<string_ref>(input);
-            var_idx.index_first = readData<small_int>(input);
+            var_idx.index_first = readData<byte_int>(input);
             var_idx.index_last = var_idx.index_first;
             m_commands.emplace_back(cmd, std::move(var_idx));
             break;
@@ -157,8 +159,8 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         {
             variable_idx var_idx;
             var_idx.name = readData<string_ref>(input);
-            var_idx.index_first = readData<small_int>(input);
-            var_idx.index_last = readData<small_int>(input);
+            var_idx.index_first = readData<byte_int>(input);
+            var_idx.index_last = readData<byte_int>(input);
             m_commands.emplace_back(cmd, std::move(var_idx));
             break;
         }
@@ -176,10 +178,12 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             m_commands.emplace_back(cmd, readData<float>(input));
             break;
         case SETPAGE:
+        case MVBOX:
+            m_commands.emplace_back(cmd, readData<byte_int>(input));
+            break;
         case PUSHINT:
         case INC:
         case DEC:
-        case MVBOX:
             m_commands.emplace_back(cmd, readData<small_int>(input));
             break;
         case JMP:

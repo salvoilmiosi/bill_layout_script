@@ -109,7 +109,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("SETVAR"):        add_command(SETVAR); break;
         case hash("RESETVAR"):      add_command(RESETVAR); break;
         case hash("COPYCONTENT"):   add_command(COPYCONTENT); break;
-        case hash("PUSHINT"):       add_command(PUSHINT, std::stoi(args[0])); break;
+        case hash("PUSHINT"):       add_command(PUSHINT, static_cast<small_int>(std::stoi(args[0]))); break;
         case hash("PUSHFLOAT"):     add_command(PUSHFLOAT, std::stof(args[0])); break;
         case hash("PUSHSTR"):
         {

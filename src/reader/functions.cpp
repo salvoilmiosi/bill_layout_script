@@ -100,6 +100,9 @@ void reader::call_function(const std::string &name, size_t numargs) {
             return variable::null_var();
         })},
         {"strlen", create_function([](const variable &str) { return (int) str.str().size(); })},
+        {"strfind", create_function<2, 3>([](const variable &str, const variable &value, const variable &index) {
+            return (int) string_tolower(str.str()).find(string_tolower(value.str()), index.as_int());
+        })},
         {"isempty", create_function([](const variable &str) { return str.empty(); })},
         {"strcat", [](const arg_list &args) {
             std::string var;

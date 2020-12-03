@@ -69,7 +69,8 @@ enum opcode {
 };
 
 typedef uint8_t command_int;
-typedef int8_t small_int;
+typedef int8_t byte_int;
+typedef int16_t small_int;
 typedef uint16_t string_ref;
 typedef uint16_t jump_address;
 typedef uint16_t string_size;
@@ -79,7 +80,7 @@ constexpr int FLOAT_PRECISION = 10;
 
 struct command_call {
     string_ref name;
-    small_int numargs;
+    byte_int numargs;
 };
 
 enum spacer_index {
@@ -92,12 +93,12 @@ enum spacer_index {
 
 struct variable_idx {
     string_ref name;
-    small_int index_first;
-    small_int index_last;
+    byte_int index_first;
+    byte_int index_last;
 
     variable_idx() {}
-    variable_idx(const string_ref &name, small_int index) : name(name), index_first(index), index_last(index) {}
-    variable_idx(const string_ref &name, small_int index_first, small_int index_last) : name(name), index_first(index_first), index_last(index_last) {}
+    variable_idx(const string_ref &name, byte_int index) : name(name), index_first(index), index_last(index) {}
+    variable_idx(const string_ref &name, byte_int index_first, byte_int index_last) : name(name), index_first(index_first), index_last(index_last) {}
 };
 
 struct command_args {
