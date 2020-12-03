@@ -25,7 +25,7 @@ def read_pdf(pdf_file):
                 json_out = json.loads(proc.stdout)
                 if not json_out['error'] and 'layout' in json_out['globals']:
                     x['layout'] = json_out['globals']['layout']
-            if 'layout' in x:
+            if 'layout' in x and 'values' in x:
                 layout_file = controllo.parent.parent.joinpath('bls').joinpath(x['layout']).with_suffix('.bls')
                 if os.path.getmtime(str(layout_file)) < os.path.getmtime(str(output_file)):
                     out.append(x)
@@ -40,9 +40,8 @@ def read_pdf(pdf_file):
         json_out = json.loads(proc.stdout)
         if json_out['error']:
             file_obj['error'] = json_out['message']
-        else:
-            if 'layout' in json_out['globals']:
-                file_obj['layout'] = json_out['globals']['layout']
+        elif 'layout' in json_out['globals']:
+            file_obj['layout'] = json_out['globals']['layout']
             file_obj['values'] = json_out['values']
     except:
         file_obj['error'] = 'Errore {0}'.format(proc.returncode)
