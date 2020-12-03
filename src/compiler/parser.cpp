@@ -171,7 +171,7 @@ void parser::read_expression() {
             add_line("PUSHINT -{0}", tokens.current().value);
             break;
         case TOK_NUMBER:
-            add_line("PUSHFLOAT -{0:.{1}f}", tokens.current().value, FLOAT_PRECISION);
+            add_line("PUSHFLOAT -{0}", tokens.current().value);
             break;
         default:
             throw tokens.unexpected_token(TOK_NUMBER);
@@ -184,7 +184,7 @@ void parser::read_expression() {
         break;
     case TOK_NUMBER:
         tokens.advance();
-        add_line("PUSHFLOAT {0:.{1}f}", tokens.current().value, FLOAT_PRECISION);
+        add_line("PUSHFLOAT {0}", tokens.current().value);
         break;
     case TOK_STRING:
     case TOK_REGEXP:

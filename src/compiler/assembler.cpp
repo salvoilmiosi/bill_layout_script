@@ -109,7 +109,17 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("SETVAR"):        add_command(opcode::SETVAR); break;
         case hash("RESETVAR"):      add_command(opcode::RESETVAR); break;
         case hash("COPYCONTENT"):   add_command(opcode::COPYCONTENT); break;
-        case hash("PUSHINT"):       add_command(opcode::PUSHINT, static_cast<small_int>(std::stoi(args[0]))); break;
+        case hash("PUSHINT"): {
+            int32_t num = std::stoi(args[0]);
+            if (static_cast<int8_t>(num) == num) {
+                add_command(opcode::PUSHBYTE, static_cast<int8_t>(num));
+            } else if (static_cast<int16_t>(num) == num) {
+                add_command(opcode::PUSHSHORT, static_cast<int16_t>(num));
+            } else {
+                add_command(opcode::PUSHINT, num);
+            }
+            break;
+        }
         case hash("PUSHFLOAT"):     add_command(opcode::PUSHFLOAT, std::stof(args[0])); break;
         case hash("PUSHSTR"):
         {

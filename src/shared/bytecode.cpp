@@ -65,6 +65,15 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
         case opcode::SELGLOBAL:
             writeData(output, line.get<string_ref>());
             break;
+        case opcode::PUSHBYTE:
+            writeData(output, line.get<int8_t>());
+            break;
+        case opcode::PUSHSHORT:
+            writeData(output, line.get<int16_t>());
+            break;
+        case opcode::PUSHINT:
+            writeData(output, line.get<int32_t>());
+            break;
         case opcode::PUSHFLOAT:
             writeData(output, line.get<float>());
             break;
@@ -72,7 +81,6 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
         case opcode::MVBOX:
             writeData(output, line.get<byte_int>());
             break;
-        case opcode::PUSHINT:
         case opcode::INC:
         case opcode::DEC:
             writeData(output, line.get<small_int>());
@@ -174,6 +182,15 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         case opcode::SELRANGETOP:
             m_commands.emplace_back(cmd, readData<string_ref>(input));
             break;
+        case opcode::PUSHBYTE:
+            m_commands.emplace_back(cmd, readData<int8_t>(input));
+            break;
+        case opcode::PUSHSHORT:
+            m_commands.emplace_back(cmd, readData<int16_t>(input));
+            break;
+        case opcode::PUSHINT:
+            m_commands.emplace_back(cmd, readData<int32_t>(input));
+            break;
         case opcode::PUSHFLOAT:
             m_commands.emplace_back(cmd, readData<float>(input));
             break;
@@ -181,7 +198,6 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         case opcode::MVBOX:
             m_commands.emplace_back(cmd, readData<byte_int>(input));
             break;
-        case opcode::PUSHINT:
         case opcode::INC:
         case opcode::DEC:
             m_commands.emplace_back(cmd, readData<small_int>(input));

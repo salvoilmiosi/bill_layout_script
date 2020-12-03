@@ -188,9 +188,11 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.pop();
         break;
     case opcode::COPYCONTENT: m_var_stack.push(m_content_stack.top().view()); break;
-    case opcode::PUSHINT: m_var_stack.push(cmd.get<small_int>()); break;
+    case opcode::PUSHBYTE:  m_var_stack.push(cmd.get<int8_t>()); break;
+    case opcode::PUSHSHORT: m_var_stack.push(cmd.get<int16_t>()); break;
+    case opcode::PUSHINT:   m_var_stack.push(cmd.get<int32_t>()); break;
     case opcode::PUSHFLOAT: m_var_stack.push(cmd.get<float>()); break;
-    case opcode::PUSHSTR: m_var_stack.push(get_string_ref()); break;
+    case opcode::PUSHSTR:   m_var_stack.push(get_string_ref()); break;
     case opcode::PUSHVAR:
         m_var_stack.push(get_ref());
         m_ref_stack.pop();

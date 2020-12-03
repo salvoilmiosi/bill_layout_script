@@ -44,7 +44,9 @@ enum class opcode : uint8_t {
     SETVAR,     // pop, m_selected = top
     RESETVAR,   // m_selected.clear(), setvar
     COPYCONTENT,// push copia top di content_stack su var_stack
-    PUSHINT,    // byte number, push number su var_stack
+    PUSHBYTE,   // byte number, push number su var_stack
+    PUSHSHORT,  // byte*2 number, push number su var_stack
+    PUSHINT,    // byte*4 number, push number su var_stack
     PUSHFLOAT,  // float number, push number su var_stack
     PUSHSTR,    // string str, push str su var_stack
     PUSHVAR,    // push m_selected su var_stack
