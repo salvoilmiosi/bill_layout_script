@@ -104,7 +104,7 @@ wxThread::ExitCode reader_thread::Entry() {
     std::ostringstream oss;
     oss << layout;
     process->write_all(oss.str());
-    process->close_stdin();
+    process->close();
     std::string compile_output = process->read_all();
     process.reset();
 

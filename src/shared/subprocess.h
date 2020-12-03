@@ -7,8 +7,7 @@
 struct subprocess {
     virtual int read(size_t bytes, void *buffer) { return 0; }
     virtual int write(size_t bytes, const void *buffer) { return 0; }
-    virtual void close_stdin() { }
-    virtual void close_stdout() { }
+    virtual void close() { }
     virtual void abort() { }
 
     std::string read_all();

@@ -14,8 +14,7 @@ public:
 public:
     virtual int read(size_t bytes, void *buffer) override;
     virtual int write(size_t bytes, const void *buffer) override;
-    virtual void close_stdin() override;
-    virtual void close_stdout() override;
+    virtual void close() override;
     virtual void abort() override;
 
 private:
@@ -85,14 +84,12 @@ windows_process::windows_process(const char *args[]) {
 
 windows_process::~windows_process() {
     if (process) CloseHandle(process);
-    close_stdin();
-    close_stdout();
+    CloseHandle(pipe_stdin[PIPE_WRITE]);
+    CloseHandle(pipe_stdout[PIPE_READ]);
 }
 
 void windows_process::abort() {
     TerminateProcess(process, 1);
-    close_stdin();
-    close_stdout();
 }
 
 int windows_process::read(size_t bytes, void *buffer) {
@@ -109,12 +106,8 @@ int windows_process::write(size_t bytes, const void *buffer) {
     return bytes_written;
 }
 
-void windows_process::close_stdin() {
+void windows_process::close() {
     CloseHandle(pipe_stdin[PIPE_WRITE]);
-}
-
-void windows_process::close_stdout() {
-    CloseHandle(pipe_stdout[PIPE_READ]);
 }
 
 std::unique_ptr<subprocess> open_process(const char *args[]) {

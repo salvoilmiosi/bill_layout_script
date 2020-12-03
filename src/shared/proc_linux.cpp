@@ -16,8 +16,7 @@ public:
 public:
     virtual int read(size_t bytes, void *buffer) override;
     virtual int write(size_t bytes, const void *buffer) override;
-    virtual void close_stdin() override;
-    virtual void close_stdout() override;
+    virtual void close() override;
     virtual void abort() override;
 
 private:
@@ -57,8 +56,8 @@ unix_process::unix_process(const char *args[]) {
 }
 
 unix_process::~unix_process() {
-    close_stdin();
-    close_stdout();
+    ::close(pipe_stdin[PIPE_WRITE]);
+    ::close(pipe_stdout[PIPE_READ]);
 }
 
 int unix_process::read(size_t bytes, void *buffer) {
@@ -69,18 +68,12 @@ int unix_process::write(size_t bytes, const void *buffer) {
     return ::write(pipe_stdin[PIPE_WRITE], buffer, bytes);
 }
 
-void unix_process::close_stdin() {
+void unix_process::close() {
     ::close(pipe_stdin[PIPE_WRITE]);
-}
-
-void unix_process::close_stdout() {
-    ::close(pipe_stdout[PIPE_READ]);
 }
 
 void unix_process::abort() {
     ::kill(child_pid, SIGTERM);
-    close_stdin();
-    close_stdout();
 }
 
 std::unique_ptr<subprocess> open_process(const char *args[]) {
