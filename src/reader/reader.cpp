@@ -61,47 +61,47 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     switch(cmd.command) {
-    case NOP:
-    case STRDATA:
+    case opcode::NOP:
+    case opcode::STRDATA:
         break;
-    case RDBOX:
-    case RDPAGE:
-    case RDFILE:
+    case opcode::RDBOX:
+    case opcode::RDPAGE:
+    case opcode::RDFILE:
         read_box(cmd.get<pdf_rect>());
         break;
-    case SETPAGE:
+    case opcode::SETPAGE:
         set_page(cmd.get<byte_int>());
         break;
-    case CALL:
+    case opcode::CALL:
     {
         const auto &call = cmd.get<command_call>();
         call_function(m_code.get_string(call.name), call.numargs);
         break;
     }
-    case THROWERR: throw layout_error(m_var_stack.top().str()); break;
-    case PARSENUM:
+    case opcode::THROWERR: throw layout_error(m_var_stack.top().str()); break;
+    case opcode::PARSENUM:
         if (m_var_stack.top().type() == VAR_STRING) {
             m_var_stack.top() = variable::str_to_number(parse_number(m_var_stack.top().str()));
         }
         break;
-    case PARSEINT: m_var_stack.top() = m_var_stack.top().as_int(); break;
-    case NOT: m_var_stack.top() = !m_var_stack.top(); break;
-    case NEG: m_var_stack.top() = -m_var_stack.top(); break;
-    case EQ:  exec_operator([](const auto &a, const auto &b) { return a == b; }); break;
-    case NEQ: exec_operator([](const auto &a, const auto &b) { return a != b; }); break;
-    case AND: exec_operator([](const auto &a, const auto &b) { return a && b; }); break;
-    case OR:  exec_operator([](const auto &a, const auto &b) { return a || b; }); break;
-    case ADD: exec_operator([](const auto &a, const auto &b) { return a + b; }); break;
-    case SUB: exec_operator([](const auto &a, const auto &b) { return a - b; }); break;
-    case MUL: exec_operator([](const auto &a, const auto &b) { return a * b; }); break;
-    case DIV: exec_operator([](const auto &a, const auto &b) { return a / b; }); break;
-    case GT:  exec_operator([](const auto &a, const auto &b) { return a > b; }); break;
-    case LT:  exec_operator([](const auto &a, const auto &b) { return a < b; }); break;
-    case GEQ: exec_operator([](const auto &a, const auto &b) { return a >= b; }); break;
-    case LEQ: exec_operator([](const auto &a, const auto &b) { return a <= b; }); break;
-    case MAX: exec_operator([](const auto &a, const auto &b) { return a > b ? a : b; }); break;
-    case MIN: exec_operator([](const auto &a, const auto &b) { return a < b ? a : b; }); break;
-    case SELVARTOP:
+    case opcode::PARSEINT: m_var_stack.top() = m_var_stack.top().as_int(); break;
+    case opcode::NOT: m_var_stack.top() = !m_var_stack.top(); break;
+    case opcode::NEG: m_var_stack.top() = -m_var_stack.top(); break;
+    case opcode::EQ:  exec_operator([](const auto &a, const auto &b) { return a == b; }); break;
+    case opcode::NEQ: exec_operator([](const auto &a, const auto &b) { return a != b; }); break;
+    case opcode::AND: exec_operator([](const auto &a, const auto &b) { return a && b; }); break;
+    case opcode::OR:  exec_operator([](const auto &a, const auto &b) { return a || b; }); break;
+    case opcode::ADD: exec_operator([](const auto &a, const auto &b) { return a + b; }); break;
+    case opcode::SUB: exec_operator([](const auto &a, const auto &b) { return a - b; }); break;
+    case opcode::MUL: exec_operator([](const auto &a, const auto &b) { return a * b; }); break;
+    case opcode::DIV: exec_operator([](const auto &a, const auto &b) { return a / b; }); break;
+    case opcode::GT:  exec_operator([](const auto &a, const auto &b) { return a > b; }); break;
+    case opcode::LT:  exec_operator([](const auto &a, const auto &b) { return a < b; }); break;
+    case opcode::GEQ: exec_operator([](const auto &a, const auto &b) { return a >= b; }); break;
+    case opcode::LEQ: exec_operator([](const auto &a, const auto &b) { return a <= b; }); break;
+    case opcode::MAX: exec_operator([](const auto &a, const auto &b) { return a > b ? a : b; }); break;
+    case opcode::MIN: exec_operator([](const auto &a, const auto &b) { return a < b ? a : b; }); break;
+    case opcode::SELVARTOP:
     {
         variable_ref ref;
         ref.name = get_string_ref();
@@ -111,7 +111,7 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.emplace(std::move(ref));
         break;
     }
-    case SELRANGEALL:
+    case opcode::SELRANGEALL:
     {
         variable_ref ref;
         ref.name = get_string_ref();
@@ -119,8 +119,8 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.emplace(std::move(ref));
         break;
     }
-    case SELVAR:
-    case SELRANGE:
+    case opcode::SELVAR:
+    case opcode::SELRANGE:
     {
         variable_ref ref;
         const auto &var_idx = cmd.get<variable_idx>();
@@ -130,7 +130,7 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.emplace(std::move(ref));
         break;
     }
-    case SELRANGETOP:
+    case opcode::SELRANGETOP:
     {
         variable_ref ref;
         ref.name = get_string_ref();
@@ -141,7 +141,7 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.emplace(std::move(ref));
         break;
     }
-    case SELGLOBAL:
+    case opcode::SELGLOBAL:
     {
         variable_ref ref;
         ref.name = get_string_ref();
@@ -149,7 +149,7 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.emplace(std::move(ref));
         break;
     }
-    case MVBOX:
+    case opcode::MVBOX:
     {
         switch (static_cast<spacer_index>(cmd.get<byte_int>())) {
         case SPACER_PAGE:
@@ -171,81 +171,81 @@ void reader::exec_command(const command_args &cmd) {
         m_var_stack.pop();
         break;
     }
-    case SETDEBUG: m_ref_stack.top().flags |= VAR_DEBUG; break;
-    case CLEAR: clear_ref(); break;
-    case APPEND:
+    case opcode::SETDEBUG: m_ref_stack.top().flags |= VAR_DEBUG; break;
+    case opcode::CLEAR: clear_ref(); break;
+    case opcode::APPEND:
         m_ref_stack.top().index_first = get_ref_size();
         m_ref_stack.top().index_last = m_ref_stack.top().index_first;
         // fall through
-    case SETVAR:
+    case opcode::SETVAR:
         set_ref(false);
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
-    case RESETVAR:
+    case opcode::RESETVAR:
         set_ref(true);
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
-    case COPYCONTENT: m_var_stack.push(m_content_stack.top().view()); break;
-    case PUSHINT: m_var_stack.push(cmd.get<small_int>()); break;
-    case PUSHFLOAT: m_var_stack.push(cmd.get<float>()); break;
-    case PUSHSTR: m_var_stack.push(get_string_ref()); break;
-    case PUSHVAR:
+    case opcode::COPYCONTENT: m_var_stack.push(m_content_stack.top().view()); break;
+    case opcode::PUSHINT: m_var_stack.push(cmd.get<small_int>()); break;
+    case opcode::PUSHFLOAT: m_var_stack.push(cmd.get<float>()); break;
+    case opcode::PUSHSTR: m_var_stack.push(get_string_ref()); break;
+    case opcode::PUSHVAR:
         m_var_stack.push(get_ref());
         m_ref_stack.pop();
         break;
-    case JMP:
+    case opcode::JMP:
         m_programcounter = cmd.get<jump_address>();
         m_jumped = true;
         break;
-    case JZ:
+    case opcode::JZ:
         if (!m_var_stack.top().as_bool()) {
             m_programcounter = cmd.get<jump_address>();
             m_jumped = true;
         }
         m_var_stack.pop();
         break;
-    case JNZ:
+    case opcode::JNZ:
         if (m_var_stack.top().as_bool()) {
             m_programcounter = cmd.get<jump_address>();
             m_jumped = true;
         }
         m_var_stack.pop();
         break;
-    case JTE:
+    case opcode::JTE:
         if (m_content_stack.top().token_start == m_content_stack.top().text.size()) {
             m_programcounter = cmd.get<jump_address>();
             m_jumped = true;
         }
         break;
-    case INCTOP:
+    case opcode::INCTOP:
         inc_ref(m_var_stack.top());
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
-    case INC:
+    case opcode::INC:
         inc_ref(cmd.get<small_int>());
         m_ref_stack.pop();
         break;
-    case DECTOP:
+    case opcode::DECTOP:
         inc_ref(- m_var_stack.top());
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
-    case DEC:
+    case opcode::DEC:
         inc_ref(- cmd.get<small_int>());
         m_ref_stack.pop();
         break;
-    case ISSET:
+    case opcode::ISSET:
         m_var_stack.push(get_ref_size() != 0);
         m_ref_stack.pop();
         break;
-    case GETSIZE:
+    case opcode::GETSIZE:
         m_var_stack.push((int) get_ref_size());
         m_ref_stack.pop();
         break;
-    case PUSHCONTENT:
+    case opcode::PUSHCONTENT:
         if (m_var_stack.top().type() == VAR_STRING) {
             m_content_stack.emplace(std::move(m_var_stack.top().strref()));
         } else {
@@ -253,12 +253,12 @@ void reader::exec_command(const command_args &cmd) {
         }
         m_var_stack.pop();
         break;
-    case POPCONTENT: m_content_stack.pop(); break;
-    case NEXTLINE: m_content_stack.top().next_token("\n"); break;
-    case NEXTTOKEN: m_content_stack.top().next_token("\t\n\v\f\r "); break;
-    case NEXTPAGE: ++m_page_num; break;
-    case ATE: m_var_stack.push(m_ate); break;
-    case HLT: m_programcounter = m_code.m_commands.size(); break;
+    case opcode::POPCONTENT: m_content_stack.pop(); break;
+    case opcode::NEXTLINE: m_content_stack.top().next_token("\n"); break;
+    case opcode::NEXTTOKEN: m_content_stack.top().next_token("\t\n\v\f\r "); break;
+    case opcode::NEXTPAGE: ++m_page_num; break;
+    case opcode::ATE: m_var_stack.push(m_ate); break;
+    case opcode::HLT: m_programcounter = m_code.m_commands.size(); break;
     }
 }
 

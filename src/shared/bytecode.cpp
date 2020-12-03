@@ -7,9 +7,9 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
     writeData(output, MAGIC);
 
     for (const auto &line : m_commands) {
-        writeData<command_int>(output, line.command);
+        writeData<opcode>(output, line.command);
         switch (line.command) {
-        case RDBOX:
+        case opcode::RDBOX:
         {
             const auto &box = line.get<pdf_rect>();
             writeData<byte_int>(output, box.mode);
@@ -20,34 +20,34 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
             writeData(output, box.h);
             break;
         }
-        case RDPAGE:
+        case opcode::RDPAGE:
         {
             const auto &box = line.get<pdf_rect>();
             writeData<byte_int>(output, box.mode);
             writeData<byte_int>(output, box.page);
             break;
         }
-        case RDFILE:
+        case opcode::RDFILE:
         {
             const auto &box = line.get<pdf_rect>();
             writeData<byte_int>(output, box.mode);
             break;
         }
-        case CALL:
+        case opcode::CALL:
         {
             const auto &call = line.get<command_call>();
             writeData(output, call.name);
             writeData(output, call.numargs);
             break;
         }
-        case SELVAR:
+        case opcode::SELVAR:
         {
             const auto &var_idx = line.get<variable_idx>();
             writeData(output, var_idx.name);
             writeData(output, var_idx.index_first);
             break;
         }
-        case SELRANGE:
+        case opcode::SELRANGE:
         {
             const auto &var_idx = line.get<variable_idx>();
             writeData(output, var_idx.name);
@@ -55,32 +55,32 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
             writeData(output, var_idx.index_last);
             break;
         }
-        case STRDATA:
+        case opcode::STRDATA:
             writeData(output, line.get<std::string>());
             break;
-        case PUSHSTR:
-        case SELVARTOP:
-        case SELRANGEALL:
-        case SELRANGETOP:
-        case SELGLOBAL:
+        case opcode::PUSHSTR:
+        case opcode::SELVARTOP:
+        case opcode::SELRANGEALL:
+        case opcode::SELRANGETOP:
+        case opcode::SELGLOBAL:
             writeData(output, line.get<string_ref>());
             break;
-        case PUSHFLOAT:
+        case opcode::PUSHFLOAT:
             writeData(output, line.get<float>());
             break;
-        case SETPAGE:
-        case MVBOX:
+        case opcode::SETPAGE:
+        case opcode::MVBOX:
             writeData(output, line.get<byte_int>());
             break;
-        case PUSHINT:
-        case INC:
-        case DEC:
+        case opcode::PUSHINT:
+        case opcode::INC:
+        case opcode::DEC:
             writeData(output, line.get<small_int>());
             break;
-        case JMP:
-        case JZ:
-        case JNZ:
-        case JTE:
+        case opcode::JMP:
+        case opcode::JZ:
+        case opcode::JNZ:
+        case opcode::JTE:
             writeData(output, line.get<jump_address>());
             break;
         default:
@@ -89,7 +89,7 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
     }
 
     for (const auto &str : m_strings) {
-        writeData<command_int>(output, STRDATA);
+        writeData<opcode>(output, opcode::STRDATA);
         writeData<string_size>(output, str.size());
         output.write(str.c_str(), str.size());
     }
@@ -106,9 +106,9 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
     m_strings.clear();
 
     while (input.peek() != EOF) {
-        opcode cmd = static_cast<opcode>(readData<command_int>(input));
+        opcode cmd = static_cast<opcode>(readData<opcode>(input));
         switch(cmd) {
-        case RDBOX:
+        case opcode::RDBOX:
         {
             pdf_rect box;
             box.type = BOX_RECTANGLE;
@@ -118,35 +118,35 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             box.y = readData<float>(input);
             box.w = readData<float>(input);
             box.h = readData<float>(input);
-            m_commands.emplace_back(RDBOX, std::move(box));
+            m_commands.emplace_back(cmd, std::move(box));
             break;
         }
-        case RDPAGE:
+        case opcode::RDPAGE:
         {
             pdf_rect box;
             box.type = BOX_PAGE;
             box.mode = static_cast<read_mode>(readData<byte_int>(input));
             box.page = readData<byte_int>(input);
-            m_commands.emplace_back(RDPAGE, std::move(box));
+            m_commands.emplace_back(cmd, std::move(box));
             break;
         }
-        case RDFILE:
+        case opcode::RDFILE:
         {
             pdf_rect box;
             box.type = BOX_FILE;
             box.mode = static_cast<read_mode>(readData<byte_int>(input));
-            m_commands.emplace_back(RDFILE, std::move(box));
+            m_commands.emplace_back(cmd, std::move(box));
             break;
         }
-        case CALL:
+        case opcode::CALL:
         {
             command_call call;
             call.name = readData<string_ref>(input);
             call.numargs = readData<byte_int>(input);
-            m_commands.emplace_back(CALL, std::move(call));
+            m_commands.emplace_back(cmd, std::move(call));
             break;
         }
-        case SELVAR:
+        case opcode::SELVAR:
         {
             variable_idx var_idx;
             var_idx.name = readData<string_ref>(input);
@@ -155,7 +155,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             m_commands.emplace_back(cmd, std::move(var_idx));
             break;
         }
-        case SELRANGE:
+        case opcode::SELRANGE:
         {
             variable_idx var_idx;
             var_idx.name = readData<string_ref>(input);
@@ -164,32 +164,32 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             m_commands.emplace_back(cmd, std::move(var_idx));
             break;
         }
-        case STRDATA:
+        case opcode::STRDATA:
             m_strings.push_back(readData<std::string>(input));
             break;
-        case PUSHSTR:
-        case SELVARTOP:
-        case SELRANGEALL:
-        case SELGLOBAL:
-        case SELRANGETOP:
+        case opcode::PUSHSTR:
+        case opcode::SELVARTOP:
+        case opcode::SELRANGEALL:
+        case opcode::SELGLOBAL:
+        case opcode::SELRANGETOP:
             m_commands.emplace_back(cmd, readData<string_ref>(input));
             break;
-        case PUSHFLOAT:
+        case opcode::PUSHFLOAT:
             m_commands.emplace_back(cmd, readData<float>(input));
             break;
-        case SETPAGE:
-        case MVBOX:
+        case opcode::SETPAGE:
+        case opcode::MVBOX:
             m_commands.emplace_back(cmd, readData<byte_int>(input));
             break;
-        case PUSHINT:
-        case INC:
-        case DEC:
+        case opcode::PUSHINT:
+        case opcode::INC:
+        case opcode::DEC:
             m_commands.emplace_back(cmd, readData<small_int>(input));
             break;
-        case JMP:
-        case JZ:
-        case JNZ:
-        case JTE:
+        case opcode::JMP:
+        case opcode::JZ:
+        case opcode::JNZ:
+        case opcode::JTE:
             m_commands.emplace_back(cmd, readData<jump_address>(input));
             break;
         default:

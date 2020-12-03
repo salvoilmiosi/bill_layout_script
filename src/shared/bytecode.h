@@ -5,7 +5,7 @@
 
 #include "layout.h"
 
-enum opcode {
+enum class opcode : uint8_t {
     NOP,        // nessuna operazione
     RDBOX,      // byte mode, byte page, string spacers, float x, float y, float w, float h -- legge il rettangolo e resetta content_stack
     RDPAGE,     // byte mode, byte page, string spacers -- legge la pagina e resetta content_stack
@@ -13,7 +13,7 @@ enum opcode {
     MVBOX,      // byte index -- pop, sposta il rettangolo a seconda dello spacer
     SETPAGE,    // byte page -- setta la pagina letta
     CALL,       // string fun_name, byte numargs -- pop * numargs, push della variabile ritornata
-    THROWERR,   // string message -- throw layout_error(error)
+    THROWERR,   // string message -- throw layout_error(message)
     PARSENUM,   // pop, push parse_num su top
     PARSEINT,   // pop, push parse_int su top
     EQ,         // pop * 2, push a == b
@@ -68,7 +68,6 @@ enum opcode {
     HLT=0xff,   // stop esecuzione
 };
 
-typedef uint8_t command_int;
 typedef int8_t byte_int;
 typedef int16_t small_int;
 typedef uint16_t string_ref;
@@ -106,7 +105,7 @@ struct command_args {
 
     const std::shared_ptr<void> data;
 
-    command_args(opcode command = NOP) : command(command) {}
+    command_args(opcode command = opcode::NOP) : command(command) {}
 
     template<typename T>
     command_args(opcode command, const T& data) : command(command), data(std::make_shared<T>(data)) {}
