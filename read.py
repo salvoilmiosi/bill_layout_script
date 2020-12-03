@@ -32,10 +32,8 @@ def read_pdf(pdf_file):
                     out.append(x)
                     skipped = True
 
-    if skipped: print(rel_path)
-    else: print('### New', rel_path)
-
     if not skipped:
+        print(rel_path)
         args = [layout_reader, '-p', pdf_file, '-s', controllo]
         proc = subprocess.run(args, capture_output=True, text=True)
 
@@ -49,18 +47,18 @@ def read_pdf(pdf_file):
                 file_obj['layout'] = json_out['globals']['layout']
                 file_obj['values'] = json_out['values']
         except:
-            file_obj['error'] = 'Errore {0}'.format(proc.returncode)
-            print('### Errore alla lettura di {0}'.format(rel_path))
+            file_obj['error'] = 'errore {0}'.format(proc.returncode)
+            print('### Errore',rel_path)
 
         out.append(file_obj)
 
-if len(sys.argv) < 2:
-    print('Argomenti richiesti: input_directory [script_controllo.out] [output.json]')
+if len(sys.argv) < 4:
+    print('Argomenti richiesti: input_directory [output] [controllo]')
     sys.exit()
 
 input_directory = Path(sys.argv[1])
-controllo = Path(sys.argv[2]) if len(sys.argv) >= 3 else app_dir.joinpath('layout/controllo.out')
-output_file = Path(sys.argv[3]) if len(sys.argv) >= 4 else Path('W:/letture/{0}.json'.format(input_directory.name))
+output_file = Path(sys.argv[2])
+controllo = Path(sys.argv[3])
 
 if output_file.exists():
     with open(output_file, 'r') as fin:

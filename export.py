@@ -142,9 +142,9 @@ def export_file(input_file):
 
     wb.save(input_file.with_suffix('.xlsx'))
 
-in_dir = Path("W:/letture")
-if len(sys.argv) > 1:
-    in_dir = Path(sys.argv[1])
-
-for f in in_dir.rglob('*.json'):
-    export_file(f)
+if __name__ == '__main__':
+    if len(sys.argv) <= 1:
+        print('Specificare il file di input')
+        sys.exit(0)
+    
+    export_file(Path(sys.argv[1]))

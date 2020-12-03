@@ -15,6 +15,8 @@ login = {'f':'login'}
 
 address = 'https://portale.bollettaetica.com'
 
+in_path = Path(input('File/cartella di input: '))
+
 while True:
     login['login'] = input('Nome utente: ')
     login['password'] = getpass('Password: ')
@@ -24,21 +26,20 @@ while True:
     if loginr['head']['status']['code'] == 1:
         break
 
-fix_conguagli = input('Fix Conguagli? S/n').lower()
+fix_conguagli = input('Fix Conguagli? S/n ').lower() in ('s','')
 
-if input('Proseguire? s/N ').lower() != 's': exit(0)
-
-in_dir = Path('W:/letture')
-if len(sys.argv) > 1:
-    in_dir = Path(sys.argv[1])
-
-in_file = Path(sys.argv[0])
-
-for f in in_dir.rglob('*.json'):
+def do_upload(f):
     with open(f, 'r') as file:
-        if fix_conguagli == '' or fix_conguagli == 's':
+        if fix_conguagli:
             data = json.dumps(skip_conguagli(json.loads(file.read())))
         else:
             data = file.read()
         uploadr = json.loads(session.put(address + '/zelda/fornitura.ws?f=importDatiFattureJSON', data).text)
         print(f, uploadr['head']['status']['type'])
+
+if input('Proseguire? S/n ').lower() in ('s',''):
+    if in_path.is_dir():
+        for f in in_path.rglob('*.json'):
+            do_upload(f)
+    else:
+        do_upload(in_path)

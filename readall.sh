@@ -1,13 +1,12 @@
-if [ -d "$1" ]; then
-    make layouts
-    make build=release reader
-    mkdir -p "/w/letture"
-    for d in $1/*; do
-        echo "======== $(basename "$d") ========"
-        python read.py "$d" "layout/controllo.out" "/w/letture/$(basename "$d").json"
-    done
-    echo "======== export ========"
-    python export.py
-else
-    echo "Specificare directory input"
-fi
+IN_DIR=/w/fatture
+OUT_DIR=/w/letture
+
+make layouts
+make build=release reader
+
+mkdir -p "$OUT_DIR"
+for d in $IN_DIR/*; do
+    echo "======== $(basename "$d") ========"
+    python read.py "$d" "$OUT_DIR/$(basename "$d").json" "layout/controllo.out"
+    python export.py "$OUT_DIR/$(basename "$d").json"
+done
