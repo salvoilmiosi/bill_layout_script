@@ -31,7 +31,7 @@ OUT_LAYOUT_TXT = 1
 INCLUDE = `wx-config --cxxflags` `pkg-config --cflags jsoncpp fmt`
 
 LIBS_SHARED = `pkg-config --libs jsoncpp fmt`
-LIBS_EDITOR = `wx-config --libs std,stc` $(LIBS_SHARED)
+LIBS_EDITOR = `wx-config --libs core,stc` $(LIBS_SHARED)
 LIBS_READER = `wx-config --libs base` $(LIBS_SHARED)
 LIBS_COMPILER = `wx-config --libs base` $(LIBS_SHARED)
 
@@ -72,7 +72,7 @@ release:
 layouts: $(LAYOUTS)
 
 clean:
-	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(BIN_DIR)/$(BIN_COMPILER) $(BIN_DIR)/$(BIN_SHARED) $(OBJECTS) $(RESOURCES) $(LAYOUTS) $(OBJECTS:.o=.d)
+	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(BIN_DIR)/$(BIN_COMPILER) $(BIN_DIR)/$(BIN_SHARED) $(OBJECTS) $(RESOURCES) $(LAYOUTS) $(LAYOUTS:.out=.txt) $(OBJECTS:.o=.d)
 
 .PHONY: all release clean editor reader compiler layouts
 
