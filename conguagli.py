@@ -48,6 +48,10 @@ if __name__ == '__main__':
     with open(in_file, 'r') as file:
         data = skip_conguagli(json.loads(file.read()))
     
-    out_file = in_file.with_name(in_file.stem + '-nocong').with_suffix(in_file.suffix)
+    if len(sys.argv) <= 2:
+        out_file = in_file.with_name(in_file.stem + '-nocong').with_suffix(in_file.suffix)
+    else:
+        out_file = sys.argv[2]
+    
     with open(out_file, 'w') as file:
         file.write(json.dumps(data))

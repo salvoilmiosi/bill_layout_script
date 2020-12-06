@@ -7,15 +7,19 @@ from getpass import getpass
 from conguagli import skip_conguagli
 import urllib3
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-session = requests.Session()
-
 login = {'f':'login'}
 
 address = 'https://portale.bollettaetica.com'
 
-in_path = Path(input('File/cartella di input: '))
+if len(sys.argv) <= 1:
+    print('Specificare cartella di input')
+    exit(0)
+
+in_path = Path(sys.argv[1])
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+session = requests.Session()
 
 while True:
     login['login'] = input('Nome utente: ')
