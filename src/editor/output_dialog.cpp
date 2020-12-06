@@ -97,7 +97,7 @@ wxThread::ExitCode reader_thread::Entry() {
 
     const char *args1[] = {
         cmd_str.c_str(),
-        "-o", temp_file.c_str(), "-",
+        "-q", "-o", temp_file.c_str(), "-",
         nullptr
     };
 #else
@@ -149,9 +149,10 @@ wxThread::ExitCode reader_thread::Entry() {
 #endif
 
     std::istringstream iss(process->read_all());
+    std::string str = iss.str();
     process.reset();
 
-    if (!iss.str().empty()) {
+    if (!str.empty()) {
         Json::Value json_output;
         iss >> json_output;
 
