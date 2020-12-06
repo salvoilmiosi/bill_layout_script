@@ -68,14 +68,14 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
         m_box_type->Append(str);
     }
     m_box_type->SetToolTip("Contenuto");
-    m_box_type->SetSelection(box.type);
+    m_box_type->SetSelection(static_cast<int>(box.type));
 
     m_box_mode = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     for (const char *str : read_mode_labels) {
         m_box_mode->Append(str);
     }
     m_box_mode->SetToolTip("Specifica il metodo di lettura");
-    m_box_mode->SetSelection(box.mode);
+    m_box_mode->SetSelection(static_cast<int>(box.mode));
 
     wxButton *testButton = new wxButton(this, BUTTON_TEST, "Leggi contenuto");
     addLabelAndCtrl("Opzioni:", 0, m_box_type, m_box_mode, testButton);

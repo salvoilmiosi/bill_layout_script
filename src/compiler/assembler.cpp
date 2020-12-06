@@ -37,7 +37,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("RDBOX"):
         {
             pdf_rect box;
-            box.type = BOX_RECTANGLE;
+            box.type = box_type::BOX_RECTANGLE;
             box.mode = static_cast<read_mode>(std::stoi(args[0]));
             box.page = std::stoi(args[1]);
             box.x = std::stof(args[2]);
@@ -50,7 +50,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("RDPAGE"):
         {
             pdf_rect box;
-            box.type = BOX_PAGE;
+            box.type = box_type::BOX_PAGE;
             box.mode = static_cast<read_mode>(std::stoi(args[0]));
             box.page = std::stoi(args[1]);
             add_command(opcode::RDPAGE, std::move(box));
@@ -59,7 +59,7 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("RDFILE"):
         {
             pdf_rect box;
-            box.type = BOX_FILE;
+            box.type = box_type::BOX_FILE;
             box.mode = static_cast<read_mode>(std::stoi(args[0]));
             add_command(opcode::RDFILE, std::move(box));
             break;
@@ -109,18 +109,21 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("SETVAR"):        add_command(opcode::SETVAR); break;
         case hash("RESETVAR"):      add_command(opcode::RESETVAR); break;
         case hash("COPYCONTENT"):   add_command(opcode::COPYCONTENT); break;
-        case hash("PUSHINT"): {
-            int32_t num = std::stoi(args[0]);
-            if (static_cast<int8_t>(num) == num) {
-                add_command(opcode::PUSHBYTE, static_cast<int8_t>(num));
-            } else if (static_cast<int16_t>(num) == num) {
-                add_command(opcode::PUSHSHORT, static_cast<int16_t>(num));
+        case hash("PUSHNUM"): {
+            if (args[0].find('.') == std::string::npos) {
+                int32_t num = std::stoi(args[0]);
+                if (static_cast<int8_t>(num) == num) {
+                    add_command(opcode::PUSHBYTE, static_cast<int8_t>(num));
+                } else if (static_cast<int16_t>(num) == num) {
+                    add_command(opcode::PUSHSHORT, static_cast<int16_t>(num));
+                } else {
+                    add_command(opcode::PUSHINT, num);
+                }
             } else {
-                add_command(opcode::PUSHINT, num);
+                add_command(opcode::PUSHFLOAT, std::stof(args[0]));
             }
             break;
         }
-        case hash("PUSHFLOAT"):     add_command(opcode::PUSHFLOAT, std::stof(args[0])); break;
         case hash("PUSHSTR"):
         {
             std::string str;
@@ -135,10 +138,8 @@ void assembler::read_lines(const std::vector<std::string> &lines) {
         case hash("JZ"):            add_command(opcode::JZ, getgotoindex(args[0])); break;
         case hash("JNZ"):           add_command(opcode::JNZ, getgotoindex(args[0])); break;
         case hash("JTE"):           add_command(opcode::JTE, getgotoindex(args[0])); break;
-        case hash("INCTOP"):        add_command(opcode::INCTOP); break;
-        case hash("INC"):           add_command(opcode::INC, static_cast<small_int>(std::stoi(args[0]))); break;
-        case hash("DECTOP"):        add_command(opcode::DECTOP); break;
-        case hash("DEC"):           add_command(opcode::DEC, static_cast<small_int>(std::stoi(args[0]))); break;
+        case hash("INC"):           add_command(opcode::INC); break;
+        case hash("DEC"):           add_command(opcode::DEC); break;
         case hash("ISSET"):         add_command(opcode::ISSET); break;
         case hash("GETSIZE"):       add_command(opcode::GETSIZE); break;
         case hash("PUSHCONTENT"):   add_command(opcode::PUSHCONTENT); break;

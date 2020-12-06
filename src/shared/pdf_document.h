@@ -3,11 +3,11 @@
 
 #include <string>
 
-enum box_type                              { BOX_RECTANGLE, BOX_PAGE, BOX_FILE, BOX_NO_READ };
+enum class box_type : uint8_t              { BOX_RECTANGLE, BOX_PAGE, BOX_FILE, BOX_NO_READ };
 constexpr const char *box_type_strings[] = { "RECTANGLE",   "PAGE",   "FILE",   "NOREAD" };
 constexpr const char *box_type_labels[] =  { "Rettangolo",  "Pagina", "File",   "Nessuna Lettura" };
 
-enum read_mode                              { MODE_DEFAULT, MODE_LAYOUT, MODE_RAW };
+enum class read_mode : uint8_t             { MODE_DEFAULT, MODE_LAYOUT, MODE_RAW };
 constexpr const char *read_mode_strings[] = { "DEFAULT",    "LAYOUT",    "RAW" };
 constexpr const char *read_mode_labels[] =  { "Default",    "Layout",    "Grezza" };
 constexpr const char *read_mode_options[] = { nullptr,      "-layout",   "-raw" };
@@ -16,8 +16,8 @@ struct pdf_rect {
     float x, y;
     float w, h;
     int page = 0;
-    read_mode mode = MODE_DEFAULT;
-    box_type type = BOX_RECTANGLE;
+    read_mode mode = read_mode::MODE_DEFAULT;
+    box_type type = box_type::BOX_RECTANGLE;
 };
 
 class pdf_document {

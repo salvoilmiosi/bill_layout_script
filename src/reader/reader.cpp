@@ -70,7 +70,7 @@ void reader::exec_command(const command_args &cmd) {
         read_box(cmd.get<pdf_rect>());
         break;
     case opcode::SETPAGE:
-        set_page(cmd.get<byte_int>());
+        set_page(cmd.get<small_int>());
         break;
     case opcode::CALL:
     {
@@ -151,20 +151,20 @@ void reader::exec_command(const command_args &cmd) {
     }
     case opcode::MVBOX:
     {
-        switch (static_cast<spacer_index>(cmd.get<byte_int>())) {
-        case SPACER_PAGE:
+        switch (cmd.get<spacer_index>()) {
+        case spacer_index::SPACER_PAGE:
             m_spacer.page += m_var_stack.top().as_int();
             break;
-        case SPACER_X:
+        case spacer_index::SPACER_X:
             m_spacer.x += m_var_stack.top().number().getAsDouble();
             break;
-        case SPACER_Y:
+        case spacer_index::SPACER_Y:
             m_spacer.y += m_var_stack.top().number().getAsDouble();
             break;
-        case SPACER_W:
+        case spacer_index::SPACER_W:
             m_spacer.w += m_var_stack.top().number().getAsDouble();
             break;
-        case SPACER_H:
+        case spacer_index::SPACER_H:
             m_spacer.h += m_var_stack.top().number().getAsDouble();
             break;
         }
@@ -221,22 +221,14 @@ void reader::exec_command(const command_args &cmd) {
             m_jumped = true;
         }
         break;
-    case opcode::INCTOP:
+    case opcode::INC:
         inc_ref(m_var_stack.top());
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
-    case opcode::INC:
-        inc_ref(cmd.get<small_int>());
-        m_ref_stack.pop();
-        break;
-    case opcode::DECTOP:
+    case opcode::DEC:
         inc_ref(- m_var_stack.top());
         m_var_stack.pop();
-        m_ref_stack.pop();
-        break;
-    case opcode::DEC:
-        inc_ref(- cmd.get<small_int>());
         m_ref_stack.pop();
         break;
     case opcode::ISSET:

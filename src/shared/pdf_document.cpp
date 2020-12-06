@@ -62,7 +62,7 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
         args[nargs++] = "-q";
 
         switch (rect.type) {
-        case BOX_RECTANGLE:
+        case box_type::BOX_RECTANGLE:
             args[nargs++] = "-r";
             args[nargs++] = r.c_str();
             args[nargs++] = "-x";
@@ -74,19 +74,19 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
             args[nargs++] = "-H";
             args[nargs++] = h.c_str();
             // fall through
-        case BOX_PAGE:
+        case box_type::BOX_PAGE:
             args[nargs++] = "-f";
             args[nargs++] = p.c_str();
             args[nargs++] = "-l";
             args[nargs++] = p.c_str();
             break;
-        case BOX_FILE:
+        case box_type::BOX_FILE:
             break;
         default:
             return "";
         }
 
-        if (read_mode_options[rect.mode]) args[nargs++] = read_mode_options[rect.mode];
+        if (read_mode_options[static_cast<int>(rect.mode)]) args[nargs++] = read_mode_options[static_cast<int>(rect.mode)];
         args[nargs++] = m_filename.c_str();
         args[nargs++] = "-";
         

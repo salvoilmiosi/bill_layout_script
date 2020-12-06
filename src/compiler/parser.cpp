@@ -29,21 +29,21 @@ void parser::read_box(const layout_box &box) {
         switch (hash(string_tolower(std::string(tokens.current().value)))) {
         case hash("p"):
         case hash("page"):
-            index = SPACER_PAGE;
+            index = spacer_index::SPACER_PAGE;
             break;
         case hash("x"):
-            index = SPACER_X;
+            index = spacer_index::SPACER_X;
             break;
         case hash("y"):
-            index = SPACER_Y;
+            index = spacer_index::SPACER_Y;
             break;
         case hash("w"):
         case hash("width"):
-            index = SPACER_W;
+            index = spacer_index::SPACER_W;
             break;
         case hash("h"):
         case hash("height"):
-            index = SPACER_H;
+            index = spacer_index::SPACER_H;
             break;
         default:
             throw tokens.unexpected_token();
@@ -66,16 +66,16 @@ void parser::read_box(const layout_box &box) {
 
     tokens = tokenizer(box.script);
     switch (box.type) {
-    case BOX_RECTANGLE:
+    case box_type::BOX_RECTANGLE:
         add_line("RDBOX {0},{1},{2:.{6}f},{3:.{6}f},{4:.{6}f},{5:.{6}f}", box.mode, box.page, box.x, box.y, box.w, box.h, FLOAT_PRECISION);
         break;
-    case BOX_PAGE:
+    case box_type::BOX_PAGE:
         add_line("RDPAGE {0},{1}", box.mode, box.page);
         break;
-    case BOX_FILE:
+    case box_type::BOX_FILE:
         add_line("RDFILE {0}", box.mode);
         break;
-    case BOX_NO_READ:
+    case box_type::BOX_NO_READ:
         add_line("SETPAGE {}", box.page);
         break;
     }
@@ -83,10 +83,8 @@ void parser::read_box(const layout_box &box) {
 }
 
 void parser::read_statement() {
-    std::string inc_amount;
-
     auto add_value = [&](int flags) {
-        if ((flags & VAR_NUMBER) && inc_amount.empty()) {
+        if (flags & VAR_NUMBER) {
             add_line("PARSENUM");
         }
 
@@ -95,17 +93,9 @@ void parser::read_statement() {
         } else if (flags & VAR_RESET) {
             add_line("RESETVAR");
         } else if (flags & VAR_INCREASE) {
-            if (inc_amount.empty()) {
-                add_line("INCTOP");
-            } else {
-                add_line("INC {}", inc_amount);
-            }
+            add_line("INC");
         } else if (flags & VAR_DECREASE) {
-            if (inc_amount.empty()) {
-                add_line("DECTOP");
-            } else {
-                add_line("DEC {}", inc_amount);
-            }
+            add_line("DEC");
         } else {
             add_line("SETVAR");
         }
@@ -134,15 +124,6 @@ void parser::read_statement() {
         switch (tokens.current().type) {
         case TOK_EQUALS:
             tokens.advance();
-            if (flags & (VAR_INCREASE | VAR_DECREASE)) {
-                tokens.peek();
-                if (tokens.current().type == TOK_INTEGER) {
-                    inc_amount = tokens.current().value;
-                    tokens.advance();
-                    add_value(flags);
-                    break;
-                }
-            }
             read_expression();
             add_value(flags);
             break;
@@ -168,10 +149,8 @@ void parser::read_expression() {
         tokens.next();
         switch (tokens.current().type) {
         case TOK_INTEGER:
-            add_line("PUSHINT -{0}", tokens.current().value);
-            break;
         case TOK_NUMBER:
-            add_line("PUSHFLOAT -{0}", tokens.current().value);
+            add_line("PUSHNUM -{0}", tokens.current().value);
             break;
         default:
             throw tokens.unexpected_token(TOK_NUMBER);
@@ -179,12 +158,9 @@ void parser::read_expression() {
         break;
     }
     case TOK_INTEGER:
-        tokens.advance();
-        add_line("PUSHINT {0}", tokens.current().value);
-        break;
     case TOK_NUMBER:
         tokens.advance();
-        add_line("PUSHFLOAT {0}", tokens.current().value);
+        add_line("PUSHNUM {0}", tokens.current().value);
         break;
     case TOK_STRING:
     case TOK_REGEXP:
@@ -261,7 +237,7 @@ int parser::read_variable(bool read_only) {
                         tokens.advance();
                         index_last = std::stoi(std::string(tokens.current().value));
                     } else { // variable[int:expr] -- seleziona range
-                        add_line("PUSHINT {0}", index);
+                        add_line("PUSHNUM {0}", index);
                         read_expression();
                         getindex = true;
                         getindexlast = true;
@@ -343,8 +319,8 @@ void parser::read_function() {
     case hash("isset"):     var_function("ISSET"); break;
     case hash("size"):      var_function("GETSIZE"); break;
     case hash("ate"):       void_function("ATE"); break;
-    case hash("boxwidth"):  void_function("PUSHFLOAT {0:.{1}f}", current_box->w, FLOAT_PRECISION); break;
-    case hash("boxheight"): void_function("PUSHFLOAT {0:.{1}f}", current_box->h, FLOAT_PRECISION); break;
+    case hash("boxwidth"):  void_function("PUSHNUM {0:.{1}f}", current_box->w, FLOAT_PRECISION); break;
+    case hash("boxheight"): void_function("PUSHNUM {0:.{1}f}", current_box->h, FLOAT_PRECISION); break;
     case hash("date"):
     case hash("month"):
         read_date_fun(fun_name);
@@ -452,7 +428,7 @@ void parser::read_date_fun(const std::string &fun_name) {
         string_replace(regex, "%D", date_regex);
         add_line("PUSHSTR {}", regex);
         if (idx >= 0) {
-            add_line("PUSHINT {}", idx);
+            add_line("PUSHNUM {}", idx);
             add_line("CALL {},4", fun_name);
         } else {
             add_line("CALL {},3", fun_name);

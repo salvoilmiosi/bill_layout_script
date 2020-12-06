@@ -15,8 +15,8 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script &layou
         output << '\n';
         output << "### Box\n";
         output << "### Name " << box->name << '\n';
-        output << "### Type " << box_type_strings[box->type] << '\n';
-        output << "### Mode " << read_mode_strings[box->mode] << '\n';
+        output << "### Type " << box_type_strings[static_cast<int>(box->type)] << '\n';
+        output << "### Mode " << read_mode_strings[static_cast<int>(box->mode)] << '\n';
         output << "### Page " << box->page << '\n';
         output << "### X " << box->x << '\n';
         output << "### Y " << box->y << '\n';

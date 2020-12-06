@@ -54,10 +54,8 @@ enum class opcode : uint8_t {
     JZ,         // short address -- pop, jump se top = 0
     JNZ,        // short address -- pop, jump se top != 0
     JTE,        // short address -- jump se top di content_stack a fine di token
-    INCTOP,     // pop, m_selected += top
-    INC,        // byte amount -- m_selected += amount
-    DECTOP,     // pop, m_selected -= top
-    DEC,        // m_selected -= amount
+    INC,        // pop, m_selected += top
+    DEC,        // pop, m_selected -= top
     ISSET,      // push m_selected.size() != 0
     GETSIZE,    // push m_selected.size()
     PUSHCONTENT,// pop, push top var_stack in content_stack
@@ -70,8 +68,7 @@ enum class opcode : uint8_t {
     HLT=0xff,   // stop esecuzione
 };
 
-typedef int8_t byte_int;
-typedef int16_t small_int;
+typedef uint8_t small_int;
 typedef uint16_t string_ref;
 typedef uint16_t jump_address;
 typedef uint16_t string_size;
@@ -81,10 +78,10 @@ constexpr int FLOAT_PRECISION = 10;
 
 struct command_call {
     string_ref name;
-    byte_int numargs;
+    small_int numargs;
 };
 
-enum spacer_index {
+enum class spacer_index: uint8_t {
     SPACER_PAGE,
     SPACER_X,
     SPACER_Y,
@@ -94,12 +91,12 @@ enum spacer_index {
 
 struct variable_idx {
     string_ref name;
-    byte_int index_first;
-    byte_int index_last;
+    small_int index_first;
+    small_int index_last;
 
     variable_idx() {}
-    variable_idx(const string_ref &name, byte_int index) : name(name), index_first(index), index_last(index) {}
-    variable_idx(const string_ref &name, byte_int index_first, byte_int index_last) : name(name), index_first(index_first), index_last(index_last) {}
+    variable_idx(const string_ref &name, small_int index) : name(name), index_first(index), index_last(index) {}
+    variable_idx(const string_ref &name, small_int index_first, small_int index_last) : name(name), index_first(index_first), index_last(index_last) {}
 };
 
 struct command_args {
