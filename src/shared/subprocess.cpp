@@ -4,13 +4,18 @@
 
 constexpr size_t BUFSIZE = 4096;
 
-std::string subprocess::read_all() {
+std::string subprocess::read_all(bool from_stderr) {
     std::string out;
 
     char buffer[BUFSIZE];
 
     while (true) {
-        size_t bytes_read = read(BUFSIZE, buffer);
+        size_t bytes_read;
+        if (from_stderr) {
+            bytes_read = read_stderr(BUFSIZE, buffer);
+        } else {
+            bytes_read = read_stdout(BUFSIZE, buffer);
+        }
         if (bytes_read <= 0) break;
 
         out.append(buffer, bytes_read);
@@ -29,7 +34,7 @@ int subprocess::write_all(const std::string &buffer) {
             it_end = buffer.end();
         }
 
-        bytes_written += write(it_end - it_begin, &(*it_begin));
+        bytes_written += write_stdin(it_end - it_begin, &(*it_begin));
 
         it_begin = it_end;
     }

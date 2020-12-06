@@ -92,6 +92,7 @@ reader_thread::~reader_thread() {
 wxThread::ExitCode reader_thread::Entry() {
     wxString cmd_str = get_app_path() + "layout_compiler";
 
+#if defined(WIN32) || defined(_WIN32)
     temp_file = wxFileName::CreateTempFileName("layout");
 
     const char *args1[] = {
@@ -99,24 +100,34 @@ wxThread::ExitCode reader_thread::Entry() {
         "-q", "-", "-o", temp_file.c_str(),
         nullptr
     };
+#else
+    const char *args1[] = {
+        cmd_str.c_str(),
+        "-q", "-o", "-", "-",
+        nullptr
+    };
+#endif
 
     process = open_process(args1);
     std::ostringstream oss;
     oss << layout;
-    process->write_all(oss.str());
+    std::string str = oss.str();
+    process->write_all(str);
     process->close();
     std::string compile_output = process->read_all();
+    std::string compile_error = process->read_all(true);
     process.reset();
 
-    if (!compile_output.empty()) {
+    if (!compile_error.empty()) {
         wxCriticalSectionLocker lock(parent->m_thread_cs);
-        parent->compile_output = compile_output;
+        parent->compile_error = compile_error;
         wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR));
         return (wxThread::ExitCode) 1;
     }
 
     cmd_str = get_app_path() + "layout_reader";
 
+#if defined(WIN32) || defined(_WIN32)
     const char *args2[] = {
         cmd_str.c_str(),
         "-p", pdf_filename.c_str(),
@@ -125,6 +136,18 @@ wxThread::ExitCode reader_thread::Entry() {
     };
 
     process = open_process(args2);
+#else
+    const char *args2[] = {
+        cmd_str.c_str(),
+        "-p", pdf_filename.c_str(),
+        "-d", "-",
+        nullptr
+    };
+
+    process = open_process(args2);
+    process->write_all(compile_output);
+#endif
+
     std::istringstream iss(process->read_all());
     process.reset();
 
@@ -167,7 +190,7 @@ void output_dialog::compileAndRead() {
 }
 
 void output_dialog::OnCompileError(wxCommandEvent &evt) {
-    CompileErrorDialog(this, compile_output).ShowModal();
+    CompileErrorDialog(this, compile_error).ShowModal();
 }
 
 void output_dialog::OnReadCompleted(wxCommandEvent &evt) {

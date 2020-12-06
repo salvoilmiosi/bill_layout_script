@@ -5,12 +5,13 @@
 #include <memory>
 
 struct subprocess {
-    virtual int read(size_t bytes, void *buffer) { return 0; }
-    virtual int write(size_t bytes, const void *buffer) { return 0; }
+    virtual int read_stdout(size_t bytes, void *buffer) { return 0; }
+    virtual int read_stderr(size_t bytes, void *buffer) { return 0; }
+    virtual int write_stdin(size_t bytes, const void *buffer) { return 0; }
     virtual void close() { }
     virtual void abort() { }
 
-    std::string read_all();
+    std::string read_all(bool from_stderr = false);
     int write_all(const std::string &buffer);
 };
 

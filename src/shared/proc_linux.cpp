@@ -14,13 +14,14 @@ public:
     ~unix_process();
 
 public:
-    virtual int read(size_t bytes, void *buffer) override;
-    virtual int write(size_t bytes, const void *buffer) override;
+    virtual int read_stdout(size_t bytes, void *buffer) override;
+    virtual int read_stderr(size_t bytes, void *buffer) override;
+    virtual int write_stdin(size_t bytes, const void *buffer) override;
     virtual void close() override;
     virtual void abort() override;
 
 private:
-    int pipe_stdin[2], pipe_stdout[2];
+    int pipe_stdin[2], pipe_stdout[2], pipe_stderr[2];
     int child_pid;
 };
 
@@ -28,29 +29,31 @@ unix_process::unix_process(const char *args[]) {
     if (pipe(pipe_stdout) < 0)
         throw process_error("Error creating stdout pipe");
 
-    if (pipe(pipe_stdin) < 0) {
-        ::close(pipe_stdout[PIPE_READ]);
-        ::close(pipe_stdout[PIPE_WRITE]);
-
+    if (pipe(pipe_stderr) < 0)
+        throw process_error("Error creating stderr pipe");
+    
+    if (pipe(pipe_stdin) < 0)
         throw process_error("Error creating stdin pipe");
-    }
 
     child_pid = fork();
     if (child_pid == 0) {
         if (dup2(pipe_stdin[PIPE_READ], STDIN_FILENO) == -1) exit(errno);
         if (dup2(pipe_stdout[PIPE_WRITE], STDOUT_FILENO) == -1) exit(errno);
-        if (dup2(pipe_stdout[PIPE_WRITE], STDERR_FILENO) == -1) exit(errno);
+        if (dup2(pipe_stderr[PIPE_WRITE], STDERR_FILENO) == -1) exit(errno);
 
         ::close(pipe_stdin[PIPE_READ]);
         ::close(pipe_stdin[PIPE_WRITE]);
         ::close(pipe_stdout[PIPE_READ]);
         ::close(pipe_stdout[PIPE_WRITE]);
+        ::close(pipe_stderr[PIPE_READ]);
+        ::close(pipe_stderr[PIPE_WRITE]);
 
         int result = execvp(args[0], const_cast<char *const*>(args));
 
         exit(result);
     } else {
         ::close(pipe_stdout[PIPE_WRITE]);
+        ::close(pipe_stderr[PIPE_WRITE]);
         ::close(pipe_stdin[PIPE_READ]);
     }
 }
@@ -58,13 +61,18 @@ unix_process::unix_process(const char *args[]) {
 unix_process::~unix_process() {
     ::close(pipe_stdin[PIPE_WRITE]);
     ::close(pipe_stdout[PIPE_READ]);
+    ::close(pipe_stderr[PIPE_READ]);
 }
 
-int unix_process::read(size_t bytes, void *buffer) {
+int unix_process::read_stdout(size_t bytes, void *buffer) {
     return ::read(pipe_stdout[PIPE_READ], buffer, bytes);
 }
 
-int unix_process::write(size_t bytes, const void *buffer) {
+int unix_process::read_stderr(size_t bytes, void *buffer) {
+    return ::read(pipe_stderr[PIPE_READ], buffer, bytes);
+}
+
+int unix_process::write_stdin(size_t bytes, const void *buffer) {
     return ::write(pipe_stdin[PIPE_WRITE], buffer, bytes);
 }
 

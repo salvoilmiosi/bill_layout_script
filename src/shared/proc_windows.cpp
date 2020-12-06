@@ -12,13 +12,14 @@ public:
     ~windows_process();
 
 public:
-    virtual int read(size_t bytes, void *buffer) override;
-    virtual int write(size_t bytes, const void *buffer) override;
+    virtual int read_stdout(size_t bytes, void *buffer) override;
+    virtual int read_stderr(size_t bytes, void *buffer) override;
+    virtual int write_stdin(size_t bytes, const void *buffer) override;
     virtual void close() override;
     virtual void abort() override;
 
 private:
-    HANDLE pipe_stdin[2], pipe_stdout[2];
+    HANDLE pipe_stdin[2], pipe_stdout[2], pipe_stderr[2];
     HANDLE process = nullptr;
 };
 
@@ -34,6 +35,10 @@ windows_process::windows_process(const char *args[]) {
         || !SetHandleInformation(pipe_stdout[PIPE_READ], HANDLE_FLAG_INHERIT, 0))
         throw process_error("Error creating stdout pipe");
 
+    if (!CreatePipe(&pipe_stderr[PIPE_READ], &pipe_stderr[PIPE_WRITE], &attrs, 0)
+        || !SetHandleInformation(pipe_stderr[PIPE_READ], HANDLE_FLAG_INHERIT, 0))
+        throw process_error("Error creating stdout pipe");
+
     if (!CreatePipe(&pipe_stdin[PIPE_READ], &pipe_stdin[PIPE_WRITE], &attrs, 0)
         || !SetHandleInformation(pipe_stdin[PIPE_WRITE], HANDLE_FLAG_INHERIT, 0))
         throw process_error("Error creating stdin pipe");
@@ -43,7 +48,7 @@ windows_process::windows_process(const char *args[]) {
 
     start_info.cb = sizeof(STARTUPINFOA);
     start_info.hStdInput = pipe_stdin[PIPE_READ];
-    start_info.hStdError = pipe_stdout[PIPE_WRITE];
+    start_info.hStdError = pipe_stderr[PIPE_WRITE];
     start_info.hStdOutput = pipe_stdout[PIPE_WRITE];
     start_info.dwFlags |= STARTF_USESTDHANDLES;
 
@@ -78,6 +83,7 @@ windows_process::windows_process(const char *args[]) {
         process = proc_info.hProcess;
         CloseHandle(proc_info.hThread);
         CloseHandle(pipe_stdout[PIPE_WRITE]);
+        CloseHandle(pipe_stderr[PIPE_WRITE]);
         CloseHandle(pipe_stdin[PIPE_READ]);
     }
 }
@@ -86,20 +92,28 @@ windows_process::~windows_process() {
     if (process) CloseHandle(process);
     CloseHandle(pipe_stdin[PIPE_WRITE]);
     CloseHandle(pipe_stdout[PIPE_READ]);
+    CloseHandle(pipe_stderr[PIPE_READ]);
 }
 
 void windows_process::abort() {
     TerminateProcess(process, 1);
 }
 
-int windows_process::read(size_t bytes, void *buffer) {
+int windows_process::read_stdout(size_t bytes, void *buffer) {
     DWORD bytes_read;
     if (!ReadFile(pipe_stdout[PIPE_READ], buffer, bytes, &bytes_read, nullptr))
         return 0;
     return bytes_read;
 }
 
-int windows_process::write(size_t bytes, const void *buffer) {
+int windows_process::read_stderr(size_t bytes, void *buffer) {
+    DWORD bytes_read;
+    if (!ReadFile(pipe_stderr[PIPE_READ], buffer, bytes, &bytes_read, nullptr))
+        return 0;
+    return bytes_read;
+}
+
+int windows_process::write_stdin(size_t bytes, const void *buffer) {
     DWORD bytes_written;
     if (!WriteFile(pipe_stdin[PIPE_WRITE], buffer, bytes, &bytes_written, nullptr))
         return 0;
