@@ -1,5 +1,5 @@
 #ifndef __LAYOUT_EXT_H__
-#define __LAYOUT_EXT__
+#define __LAYOUT_EXT_H__
 
 #include "layout.h"
 
@@ -12,7 +12,7 @@ std::pair<box_ptr, int> getBoxResizeNode(bill_layout_script &boxes, float x, flo
 bill_layout_script copyLayout(const bill_layout_script &layout);
 
 template<typename ... Ts>
-box_ptr &insertAfterSelected(bill_layout_script &layout, Ts && ... args) {
+static box_ptr &insertAfterSelected(bill_layout_script &layout, Ts && ... args) {
     auto it = std::find_if(layout.begin(), layout.end(), [](const box_ptr &ptr) {
         return ptr->selected;
     });
