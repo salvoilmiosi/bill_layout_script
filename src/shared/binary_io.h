@@ -30,20 +30,23 @@ T swap_endian(T u) {
 }
 
 template<typename T>
-T readData(std::istream &input) {
-    T buffer;
+void readData(std::istream &input, T &buffer) {
     input.read(reinterpret_cast<char *>(&buffer), sizeof(buffer));
-    if (is_big_endian()) {
-        return buffer;
-    } else {
-        return swap_endian(buffer);
+    if (!is_big_endian()) {
+        buffer = swap_endian(buffer);
     }
 }
 
-template<> std::string readData(std::istream &input) {
-    string_size len = readData<string_size>(input);
-    std::string buffer(len, '\0');
+template<> void readData(std::istream &input, std::string &buffer) {
+    string_size len;
+    readData(input, len);
+    buffer.resize(len, '\0');
     input.read(buffer.data(), len);
+}
+
+template<typename T> T readData(std::istream &input) {
+    T buffer;
+    readData(input, buffer);
     return buffer;
 }
 

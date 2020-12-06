@@ -118,12 +118,12 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         {
             pdf_rect box;
             box.type = box_type::BOX_RECTANGLE;
-            box.mode = readData<read_mode>(input);
-            box.page = readData<uint8_t>(input);
-            box.x = readData<float>(input);
-            box.y = readData<float>(input);
-            box.w = readData<float>(input);
-            box.h = readData<float>(input);
+            readData(input, box.mode);
+            readData(input, box.page);
+            readData(input, box.x);
+            readData(input, box.y);
+            readData(input, box.w);
+            readData(input, box.h);
             add_command(cmd, std::move(box));
             break;
         }
@@ -131,8 +131,8 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         {
             pdf_rect box;
             box.type = box_type::BOX_PAGE;
-            box.mode = readData<read_mode>(input);
-            box.page = readData<uint8_t>(input);
+            readData(input, box.mode);
+            readData(input, box.page);
             add_command(cmd, std::move(box));
             break;
         }
@@ -140,23 +140,23 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         {
             pdf_rect box;
             box.type = box_type::BOX_FILE;
-            box.mode = readData<read_mode>(input);
+            readData(input, box.mode);
             add_command(cmd, std::move(box));
             break;
         }
         case opcode::CALL:
         {
             command_call call;
-            call.name = readData<string_ref>(input);
-            call.numargs = readData<small_int>(input);
+            readData(input, call.name);
+            readData(input, call.numargs);
             add_command(cmd, std::move(call));
             break;
         }
         case opcode::SELVAR:
         {
             variable_idx var_idx;
-            var_idx.name = readData<string_ref>(input);
-            var_idx.index_first = readData<small_int>(input);
+            readData(input, var_idx.name);
+            readData(input, var_idx.index_first);
             var_idx.index_last = var_idx.index_first;
             add_command(cmd, std::move(var_idx));
             break;
@@ -164,9 +164,9 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         case opcode::SELRANGE:
         {
             variable_idx var_idx;
-            var_idx.name = readData<string_ref>(input);
-            var_idx.index_first = readData<small_int>(input);
-            var_idx.index_last = readData<small_int>(input);
+            readData(input, var_idx.name);
+            readData(input, var_idx.index_first);
+            readData(input, var_idx.index_last);
             add_command(cmd, std::move(var_idx));
             break;
         }
