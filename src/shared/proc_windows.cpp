@@ -37,7 +37,7 @@ windows_process::windows_process(const char *args[]) {
 
     if (!CreatePipe(&pipe_stderr[PIPE_READ], &pipe_stderr[PIPE_WRITE], &attrs, 0)
         || !SetHandleInformation(pipe_stderr[PIPE_READ], HANDLE_FLAG_INHERIT, 0))
-        throw process_error("Error creating stdout pipe");
+        throw process_error("Error creating stderr pipe");
 
     if (!CreatePipe(&pipe_stdin[PIPE_READ], &pipe_stdin[PIPE_WRITE], &attrs, 0)
         || !SetHandleInformation(pipe_stdin[PIPE_WRITE], HANDLE_FLAG_INHERIT, 0))
@@ -102,21 +102,21 @@ void windows_process::abort() {
 int windows_process::read_stdout(size_t bytes, void *buffer) {
     DWORD bytes_read;
     if (!ReadFile(pipe_stdout[PIPE_READ], buffer, bytes, &bytes_read, nullptr))
-        return 0;
+        return -1;
     return bytes_read;
 }
 
 int windows_process::read_stderr(size_t bytes, void *buffer) {
     DWORD bytes_read;
     if (!ReadFile(pipe_stderr[PIPE_READ], buffer, bytes, &bytes_read, nullptr))
-        return 0;
+        return -1;
     return bytes_read;
 }
 
 int windows_process::write_stdin(size_t bytes, const void *buffer) {
     DWORD bytes_written;
     if (!WriteFile(pipe_stdin[PIPE_WRITE], buffer, bytes, &bytes_written, nullptr))
-        return 0;
+        return -1;
     return bytes_written;
 }
 

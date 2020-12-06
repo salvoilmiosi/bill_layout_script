@@ -97,7 +97,7 @@ wxThread::ExitCode reader_thread::Entry() {
 
     const char *args1[] = {
         cmd_str.c_str(),
-        "-q", "-", "-o", temp_file.c_str(),
+        "-o", temp_file.c_str(), "-",
         nullptr
     };
 #else
