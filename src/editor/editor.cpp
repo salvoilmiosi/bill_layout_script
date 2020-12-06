@@ -55,9 +55,12 @@ DECLARE_RESOURCE(tool_deletebox_png)
 DECLARE_RESOURCE(tool_resize_png)
 DECLARE_RESOURCE(icon_editor_png)
 
+constexpr size_t MAX_HISTORY_SIZE = 20;
+constexpr size_t MAX_RECENT_FILES_HISTORY = 10;
+constexpr size_t MAX_RECENT_PDFS_HISTORY = 10;
+
 const wxString &get_app_path() {
-    static wxFileName f{wxStandardPaths::Get().GetExecutablePath()};
-    static auto path{f.GetPathWithSep()};
+    static auto path = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPathWithSep();
     return path;
 }
 
@@ -183,16 +186,6 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     currentHistory = history.begin();
 }
 
-template<typename Container, typename T>
-static typename Container::const_iterator find_in(const Container &con, const T &obj) {
-    for (auto it = con.begin(); it != con.end(); ++it) {
-        if (*it == obj) {
-            return it;
-        }
-    }
-    return con.end();
-}
-
 void frame_editor::openFile(const wxString &filename) {
     layout_filename = filename;
     std::ifstream ifs(layout_filename.ToStdString());
@@ -202,6 +195,7 @@ void frame_editor::openFile(const wxString &filename) {
         wxMessageBox("Impossibile aprire questo file", "Errore", wxOK | wxICON_ERROR);
         return;
     }
+    modified = false;
     ifs.close();
     history.clear();
     if (wxFileExists(m_doc.filename())) {
@@ -209,10 +203,7 @@ void frame_editor::openFile(const wxString &filename) {
     }
     updateLayout();
     
-    static constexpr size_t MAX_RECENT_FILES_HISTORY = 10;
-    if (auto it = find_in(recentFiles, layout_filename); it != recentFiles.end()) {
-        recentFiles.erase(it);
-    }
+    recentFiles.erase(std::find(recentFiles.begin(), recentFiles.end(), wxString(layout_filename)));
     recentFiles.push_front(layout_filename);
     if (recentFiles.size() > MAX_RECENT_FILES_HISTORY) {
         recentFiles.pop_back();
@@ -255,8 +246,6 @@ bool frame_editor::saveIfModified() {
     }
     return true;
 }
-
-static constexpr size_t MAX_HISTORY_SIZE = 20;
 
 void frame_editor::updateLayout(bool addToHistory) {
     m_list_boxes->Clear();
@@ -337,10 +326,7 @@ void frame_editor::loadPdf(const wxString &filename) {
         }
         setSelectedPage(1, true);
         
-        static constexpr size_t MAX_RECENT_PDFS_HISTORY = 10;
-        if (auto it = find_in(recentPdfs, m_doc.filename()); it != recentPdfs.end()) {
-            recentPdfs.erase(it);
-        }
+        recentPdfs.erase(std::find(recentPdfs.begin(), recentPdfs.end(), wxString(m_doc.filename())));
         recentPdfs.push_front(m_doc.filename());
         if (recentPdfs.size() > MAX_RECENT_PDFS_HISTORY) {
             recentPdfs.pop_back();

@@ -22,7 +22,7 @@ void frame_editor::OnNewFile(wxCommandEvent &evt) {
         layout_filename.clear();
         layout.clear();
         history.clear();
-        updateLayout();
+        updateLayout(false);
     }
 }
 
@@ -33,14 +33,12 @@ void frame_editor::OnOpenFile(wxCommandEvent &evt) {
         return;
 
     if (saveIfModified()) {
-        modified = false;
         openFile(diag.GetPath().ToStdString());
     }
 }
 
 void frame_editor::OnOpenRecent(wxCommandEvent &evt) {
     if (saveIfModified()) {
-        modified = false;
         openFile(recentFiles[evt.GetId() - MENU_OPEN_RECENT]);
     }
 }
@@ -97,15 +95,16 @@ void frame_editor::OnCopy(wxCommandEvent &evt) {
 }
 
 void frame_editor::OnPaste(wxCommandEvent &evt) {
-    if (layout_box clipboard; GetClipboard(clipboard)) {
-        if (clipboard.page != selected_page) {
-            clipboard.page = selected_page;
-        }
-        
-        auto &box = insertAfterSelected(layout, std::move(clipboard));
-        updateLayout();
-        selectBox(box);
+    layout_box clipboard;
+    if (!GetClipboard(clipboard)) return;
+    
+    if (clipboard.page != selected_page) {
+        clipboard.page = selected_page;
     }
+    
+    auto &box = insertAfterSelected(layout, std::move(clipboard));
+    updateLayout();
+    selectBox(box);
 }
 
 void frame_editor::OpenControlScript(wxCommandEvent &evt) {
@@ -187,7 +186,6 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
         if (output_layout.empty()) {
             wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
         } else if (saveIfModified()) {
-            modified = false;
             openFile(layout_path + wxFileName::GetPathSeparator() + output_layout + ".bls");
         }
     }
@@ -223,8 +221,8 @@ void frame_editor::OnChangeTool(wxCommandEvent &evt) {
 }
 
 void frame_editor::OnSelectBox(wxCommandEvent &evt) {
-    size_t selection = m_list_boxes->GetSelection();
-    if (selection >= 0 && selection < layout.size()) {
+    int selection = m_list_boxes->GetSelection();
+    if (selection >= 0 && selection < (int) layout.size()) {
         selectBox(layout[selection]);
     } else {
         selectBox(nullptr);
@@ -233,14 +231,14 @@ void frame_editor::OnSelectBox(wxCommandEvent &evt) {
 
 void frame_editor::EditSelectedBox(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0) {
+    if (selection >= 0 && selection < (int) layout.size()) {
         new box_dialog(this, *layout[selection]);
     }
 }
 
 void frame_editor::OnDelete(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0) {
+    if (selection >= 0 && selection < (int) layout.size()) {
         layout.erase(layout.begin() + selection);
         updateLayout();
     }

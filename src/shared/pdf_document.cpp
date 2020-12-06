@@ -10,7 +10,7 @@
 
 void pdf_document::open(const std::string &filename) {
     if (!std::filesystem::exists(filename)) {
-        throw pdf_error(fmt::format("File \"{0}\" does not exist", filename));
+        throw pdf_error(fmt::format("Impossibile aprire il file \"{0}\"", filename));
     }
 
     const char *args[] = {

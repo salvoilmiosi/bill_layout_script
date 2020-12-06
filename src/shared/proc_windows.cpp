@@ -91,9 +91,12 @@ windows_process::windows_process(const char *args[]) {
 }
 
 windows_process::~windows_process() {
-    if (process) CloseHandle(process);
+    CloseHandle(process);
     CloseHandle(pipe_stdin[PIPE_WRITE]);
+    CloseHandle(pipe_stdin[PIPE_READ]);
+    CloseHandle(pipe_stdout[PIPE_WRITE]);
     CloseHandle(pipe_stdout[PIPE_READ]);
+    CloseHandle(pipe_stdout[PIPE_WRITE]);
     CloseHandle(pipe_stderr[PIPE_READ]);
 }
 
