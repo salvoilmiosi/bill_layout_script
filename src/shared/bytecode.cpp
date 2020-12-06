@@ -124,7 +124,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             box.y = readData<float>(input);
             box.w = readData<float>(input);
             box.h = readData<float>(input);
-            m_commands.emplace_back(cmd, std::move(box));
+            add_command(cmd, std::move(box));
             break;
         }
         case opcode::RDPAGE:
@@ -133,7 +133,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             box.type = box_type::BOX_PAGE;
             box.mode = readData<read_mode>(input);
             box.page = readData<small_int>(input);
-            m_commands.emplace_back(cmd, std::move(box));
+            add_command(cmd, std::move(box));
             break;
         }
         case opcode::RDFILE:
@@ -141,7 +141,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             pdf_rect box;
             box.type = box_type::BOX_FILE;
             box.mode = readData<read_mode>(input);
-            m_commands.emplace_back(cmd, std::move(box));
+            add_command(cmd, std::move(box));
             break;
         }
         case opcode::CALL:
@@ -149,7 +149,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             command_call call;
             call.name = readData<string_ref>(input);
             call.numargs = readData<small_int>(input);
-            m_commands.emplace_back(cmd, std::move(call));
+            add_command(cmd, std::move(call));
             break;
         }
         case opcode::SELVAR:
@@ -158,7 +158,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             var_idx.name = readData<string_ref>(input);
             var_idx.index_first = readData<small_int>(input);
             var_idx.index_last = var_idx.index_first;
-            m_commands.emplace_back(cmd, std::move(var_idx));
+            add_command(cmd, std::move(var_idx));
             break;
         }
         case opcode::SELRANGE:
@@ -167,7 +167,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             var_idx.name = readData<string_ref>(input);
             var_idx.index_first = readData<small_int>(input);
             var_idx.index_last = readData<small_int>(input);
-            m_commands.emplace_back(cmd, std::move(var_idx));
+            add_command(cmd, std::move(var_idx));
             break;
         }
         case opcode::STRDATA:
@@ -178,34 +178,34 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         case opcode::SELRANGEALL:
         case opcode::SELGLOBAL:
         case opcode::SELRANGETOP:
-            m_commands.emplace_back(cmd, readData<string_ref>(input));
+            add_command(cmd, readData<string_ref>(input));
             break;
         case opcode::PUSHBYTE:
-            m_commands.emplace_back(cmd, readData<int8_t>(input));
+            add_command(cmd, readData<int8_t>(input));
             break;
         case opcode::PUSHSHORT:
-            m_commands.emplace_back(cmd, readData<int16_t>(input));
+            add_command(cmd, readData<int16_t>(input));
             break;
         case opcode::PUSHINT:
-            m_commands.emplace_back(cmd, readData<int32_t>(input));
+            add_command(cmd, readData<int32_t>(input));
             break;
         case opcode::PUSHFLOAT:
-            m_commands.emplace_back(cmd, readData<float>(input));
+            add_command(cmd, readData<float>(input));
             break;
         case opcode::SETPAGE:
-            m_commands.emplace_back(cmd, readData<small_int>(input));
+            add_command(cmd, readData<small_int>(input));
             break;
         case opcode::MVBOX:
-            m_commands.emplace_back(cmd, readData<spacer_index>(input));
+            add_command(cmd, readData<spacer_index>(input));
             break;
         case opcode::JMP:
         case opcode::JZ:
         case opcode::JNZ:
         case opcode::JTE:
-            m_commands.emplace_back(cmd, readData<jump_address>(input));
+            add_command(cmd, readData<jump_address>(input));
             break;
         default:
-            m_commands.emplace_back(cmd);
+            add_command(cmd);
         }
     }
     return input;

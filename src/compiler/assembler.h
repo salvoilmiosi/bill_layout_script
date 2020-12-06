@@ -13,14 +13,6 @@ struct assembly_error {
     assembly_error(const std::string &message) : message(message) {}
 };
 
-class assembler : public bytecode {
-public:
-    void read_lines(const std::vector<std::string> &lines);
-
-private:
-    template<typename ... Ts> command_args add_command(const Ts & ... args) {
-        return m_commands.emplace_back(args ...);
-    }
-};
+bytecode read_lines(const std::vector<std::string> &lines);
 
 #endif

@@ -64,7 +64,7 @@ int MainApp::OnRun() {
         }
     }
 
-    assembler m_asm;
+    bytecode out_code;
 
     try {
         if (!read_asm) {
@@ -85,7 +85,7 @@ int MainApp::OnRun() {
                 }
             }
             
-            m_asm.read_lines(my_parser.get_output_asm());
+            out_code = read_lines(my_parser.get_output_asm());
         } else {
             std::vector<std::string> lines;
             std::string line;
@@ -93,7 +93,7 @@ int MainApp::OnRun() {
                 lines.push_back(line);
             }
             
-            m_asm.read_lines(lines);
+            out_code = read_lines(lines);
         }
     } catch (const layout_error &error) {
         std::cerr << error.message << std::endl;
@@ -105,10 +105,10 @@ int MainApp::OnRun() {
     
     if (!debug && !output_file.empty()) {
         if (output_file == "-") {
-            m_asm.write_bytecode(std::cout);
+            out_code.write_bytecode(std::cout);
         } else {
             std::ofstream ofs(output_file.ToStdString(), std::ofstream::binary | std::ofstream::out);
-            m_asm.write_bytecode(ofs);
+            out_code.write_bytecode(ofs);
         }
     }
 

@@ -107,7 +107,7 @@ struct command_args {
     command_args(opcode command = opcode::NOP) : command(command) {}
 
     template<typename T>
-    command_args(opcode command, const T& data) : command(command), data(std::make_shared<T>(data)) {}
+    command_args(opcode command, const T &data) : command(command), data(std::make_shared<T>(data)) {}
     
     template<typename T> const T &get() const {
         return *std::static_pointer_cast<T>(data);
@@ -120,6 +120,10 @@ struct bytecode {
 
     std::ostream &write_bytecode(std::ostream &output);
     std::istream &read_bytecode(std::istream &input);
+    
+    template<typename ... Ts> command_args add_command(Ts && ... args) {
+        return m_commands.emplace_back(std::forward<Ts>(args) ...);
+    }
     
     string_ref add_string(const std::string &str);
     const std::string &get_string(string_ref ref);
