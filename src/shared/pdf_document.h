@@ -15,7 +15,7 @@ constexpr const char *read_mode_options[] = { nullptr,      "-layout",   "-raw" 
 struct pdf_rect {
     float x, y;
     float w, h;
-    int page = 0;
+    uint8_t page = 0;
     read_mode mode = read_mode::MODE_DEFAULT;
     box_type type = box_type::BOX_RECTANGLE;
 };

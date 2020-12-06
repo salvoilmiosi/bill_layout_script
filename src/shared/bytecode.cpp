@@ -119,7 +119,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             pdf_rect box;
             box.type = box_type::BOX_RECTANGLE;
             box.mode = readData<read_mode>(input);
-            box.page = readData<small_int>(input);
+            box.page = readData<uint8_t>(input);
             box.x = readData<float>(input);
             box.y = readData<float>(input);
             box.w = readData<float>(input);
@@ -132,7 +132,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             pdf_rect box;
             box.type = box_type::BOX_PAGE;
             box.mode = readData<read_mode>(input);
-            box.page = readData<small_int>(input);
+            box.page = readData<uint8_t>(input);
             add_command(cmd, std::move(box));
             break;
         }
