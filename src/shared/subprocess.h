@@ -4,14 +4,18 @@
 #include <string>
 #include <memory>
 
-struct subprocess {
+class subprocess {
+protected:
     virtual int read_stdout(size_t bytes, void *buffer) { return 0; }
     virtual int read_stderr(size_t bytes, void *buffer) { return 0; }
     virtual int write_stdin(size_t bytes, const void *buffer) { return 0; }
     virtual void close() { }
+
+public:
     virtual void abort() { }
 
-    std::string read_all(bool from_stderr = false);
+    std::string read_all_error();
+    std::string read_all();
     int write_all(const std::string &buffer);
 };
 

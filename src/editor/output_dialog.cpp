@@ -113,9 +113,8 @@ wxThread::ExitCode reader_thread::Entry() {
     oss << layout;
     std::string str = oss.str();
     process->write_all(str);
-    process->close();
     std::string compile_output = process->read_all();
-    std::string compile_error = process->read_all(true);
+    std::string compile_error = process->read_all_error();
     process.reset();
 
     if (!compile_error.empty()) {
@@ -149,10 +148,9 @@ wxThread::ExitCode reader_thread::Entry() {
 #endif
 
     std::istringstream iss(process->read_all());
-    std::string str = iss.str();
     process.reset();
 
-    if (!str.empty()) {
+    if (!iss.str().empty()) {
         Json::Value json_output;
         iss >> json_output;
 

@@ -13,11 +13,13 @@ public:
     unix_process(const char *args[]);
     ~unix_process();
 
-public:
+protected:
     virtual int read_stdout(size_t bytes, void *buffer) override;
     virtual int read_stderr(size_t bytes, void *buffer) override;
     virtual int write_stdin(size_t bytes, const void *buffer) override;
     virtual void close() override;
+
+public:
     virtual void abort() override;
 
 private:

@@ -4,21 +4,31 @@
 
 constexpr size_t BUFSIZE = 4096;
 
-std::string subprocess::read_all(bool from_stderr) {
+std::string subprocess::read_all() {
     std::string out;
 
     char buffer[BUFSIZE];
 
     while (true) {
-        int bytes_read;
-        if (from_stderr) {
-            bytes_read = read_stderr(BUFSIZE, buffer);
-        } else {
-            bytes_read = read_stdout(BUFSIZE, buffer);
+        int bytes_read = read_stdout(BUFSIZE, buffer);
+        if (bytes_read <= 0) {
+            break;
         }
-        if (bytes_read < 0) {
-            throw process_error("Impossibile leggere da processo");
-        } else if (bytes_read == 0) {
+
+        out.append(buffer, bytes_read);
+    }
+
+    return out;
+}
+
+std::string subprocess::read_all_error() {
+    std::string out;
+
+    char buffer[BUFSIZE];
+
+    while (true) {
+        int bytes_read = read_stderr(BUFSIZE, buffer);
+        if (bytes_read <= 0) {
             break;
         }
 
@@ -39,13 +49,14 @@ int subprocess::write_all(const std::string &buffer) {
         }
 
         int nbytes = write_stdin(it_end - it_begin, &(*it_begin));
-        if (nbytes < 0) {
-            throw process_error("Impossibile scrivere in processo");
+        if (nbytes <= 0) {
+            break;
         }
         bytes_written += nbytes;
 
         it_begin = it_end;
     }
 
+    close();
     return bytes_written;
 }

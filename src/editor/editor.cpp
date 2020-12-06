@@ -503,7 +503,6 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
         std::ostringstream str;
         str << layout;
         process->write_all(str.str());
-        process->close();
         
         std::string compile_output = process->read_all();
         if (!compile_output.empty()) {
