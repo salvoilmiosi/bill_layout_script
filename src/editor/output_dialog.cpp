@@ -1,7 +1,5 @@
 #include "output_dialog.h"
 
-#include <sstream>
-
 #include <wx/statline.h>
 #include <wx/filename.h>
 
@@ -124,9 +122,9 @@ wxThread::ExitCode reader_thread::Entry() {
 #endif
 
     auto proc_compiler = open_process(args_compiler);
-    std::ostringstream stream;
+    proc_ostream stream(*proc_compiler);
     stream << layout;
-    process->write_all(stream.str());
+    process->close();
 
     std::string compile_error = proc_compiler->read_all_error();
     if (!compile_error.empty()) {
@@ -145,7 +143,7 @@ wxThread::ExitCode reader_thread::Entry() {
 
     try {
         Json::Value json_output;
-        std::istringstream stream(process->read_all());
+        proc_istream stream(*process);
         stream >> json_output;
 
         if (json_output["error"].asBool()) {

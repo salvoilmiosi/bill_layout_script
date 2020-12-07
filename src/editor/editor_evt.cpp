@@ -1,13 +1,11 @@
 #include "editor.h"
 
-#include <sstream>
-
 #include <json/json.h>
 
 #include <wx/filename.h>
 #include <wx/config.h>
 
-#include "subprocess.h"
+#include "proc_stream.h"
 
 #include "layout_ext.h"
 #include "clipboard.h"
@@ -135,9 +133,9 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
         };
         auto process = open_process(args);
 
-        std::ostringstream str;
-        str << layout;
-        process->write_all(str.str());
+        proc_ostream stream(*process);
+        stream << layout;
+        process->close();
         
         std::string compile_output = process->read_all();
         if (!compile_output.empty()) {
@@ -174,10 +172,11 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
         nullptr
     };
 
-    std::istringstream iss(open_process(args)->read_all());
+    auto process = open_process(args);
+    proc_istream stream(*process);
 
     Json::Value json_output;
-    iss >> json_output;
+    stream >> json_output;
 
     if (json_output["error"].asBool()) {
         wxMessageBox("Impossibile leggere l'output: " + json_output["message"].asString(), "Errore", wxOK | wxICON_ERROR);
