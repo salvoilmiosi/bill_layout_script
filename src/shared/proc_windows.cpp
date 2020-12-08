@@ -3,8 +3,45 @@
 #include "subprocess.h"
 #include <windows.h>
 
-#define PIPE_READ 0
-#define PIPE_WRITE 1
+class windows_pipe : public pipe_t {
+public:
+    void create_pipe(SECURITY_ATTRIBUTES &attrs, bool is_write);
+
+    virtual int read(size_t bytes, void *buffer);
+    virtual int write(size_t bytes, const void *buffer);
+    virtual void close();
+
+private:
+    HANDLE m_read;
+    HANDLE m_write;
+
+    friend class windows_process;
+};
+
+void windows_pipe::create_pipe(SECURITY_ATTRIBUTES &attrs, bool is_write) {
+    if (!CreatePipe(&m_read, &m_write, &attrs, 0)
+        || !SetHandleInformation(is_write ? m_write : m_read, HANDLE_FLAG_INHERIT, 0))
+        throw process_error("Error creating pipe");
+}
+
+int windows_pipe::read(size_t bytes, void *buffer) {
+    DWORD bytes_read;
+    if (!ReadFile(m_read, buffer, bytes, &bytes_read, nullptr))
+        return -1;
+    return bytes_read;
+}
+
+int windows_pipe::write(size_t bytes, const void *buffer) {
+    DWORD bytes_written;
+    if (!WriteFile(m_write, buffer, bytes, &bytes_written, nullptr))
+        return -1;
+    return bytes_written;
+}
+
+void windows_pipe::close() {
+    CloseHandle(m_read);
+    CloseHandle(m_write);
+}
 
 class windows_process : public subprocess {
 public:
@@ -12,15 +49,11 @@ public:
     ~windows_process();
 
 public:
-    virtual int read_stdout(size_t bytes, void *buffer) override;
-    virtual int read_stderr(size_t bytes, void *buffer) override;
-    virtual int write_stdin(size_t bytes, const void *buffer) override;
-
-    virtual void close_stdin() override;
+    virtual int wait_finished() override;
     virtual void abort() override;
 
 private:
-    HANDLE pipe_stdin[2], pipe_stdout[2], pipe_stderr[2];
+    windows_pipe pipe_stdout, pipe_stderr, pipe_stdin;
     HANDLE process = nullptr;
 };
 
@@ -32,25 +65,17 @@ windows_process::windows_process(const char *args[]) {
     attrs.bInheritHandle = true;
     attrs.lpSecurityDescriptor = nullptr;
 
-    if (!CreatePipe(&pipe_stdout[PIPE_READ], &pipe_stdout[PIPE_WRITE], &attrs, 0)
-        || !SetHandleInformation(pipe_stdout[PIPE_READ], HANDLE_FLAG_INHERIT, 0))
-        throw process_error("Error creating stdout pipe");
-
-    if (!CreatePipe(&pipe_stderr[PIPE_READ], &pipe_stderr[PIPE_WRITE], &attrs, 0)
-        || !SetHandleInformation(pipe_stderr[PIPE_READ], HANDLE_FLAG_INHERIT, 0))
-        throw process_error("Error creating stderr pipe");
-
-    if (!CreatePipe(&pipe_stdin[PIPE_READ], &pipe_stdin[PIPE_WRITE], &attrs, 0)
-        || !SetHandleInformation(pipe_stdin[PIPE_WRITE], HANDLE_FLAG_INHERIT, 0))
-        throw process_error("Error creating stdin pipe");
+    pipe_stdout.create_pipe(attrs, false);
+    pipe_stderr.create_pipe(attrs, false);
+    pipe_stdin.create_pipe(attrs, true);
 
     STARTUPINFOA start_info;
     ZeroMemory(&start_info, sizeof(STARTUPINFOA));
 
     start_info.cb = sizeof(STARTUPINFOA);
-    start_info.hStdInput = pipe_stdin[PIPE_READ];
-    start_info.hStdError = pipe_stderr[PIPE_WRITE];
-    start_info.hStdOutput = pipe_stdout[PIPE_WRITE];
+    start_info.hStdInput = pipe_stdin.m_read;
+    start_info.hStdError = pipe_stderr.m_write;
+    start_info.hStdOutput = pipe_stdout.m_write;
     start_info.dwFlags |= STARTF_USESTDHANDLES;
 
     std::string cmdline;
@@ -83,49 +108,31 @@ windows_process::windows_process(const char *args[]) {
     } else {
         process = proc_info.hProcess;
         CloseHandle(proc_info.hThread);
-        CloseHandle(pipe_stdout[PIPE_WRITE]);
-        CloseHandle(pipe_stderr[PIPE_WRITE]);
-        CloseHandle(pipe_stdin[PIPE_READ]);
+        CloseHandle(pipe_stdout.m_write);
+        CloseHandle(pipe_stderr.m_write);
+        CloseHandle(pipe_stdin.m_read);
+
+        m_stdout = std::make_unique<proc_istream>(pipe_stdout);
+        m_stderr = std::make_unique<proc_istream>(pipe_stderr);
+        m_stdin = std::make_unique<proc_ostream>(pipe_stdin);
     }
 }
 
 windows_process::~windows_process() {
     CloseHandle(process);
-    CloseHandle(pipe_stdin[PIPE_WRITE]);
-    CloseHandle(pipe_stdin[PIPE_READ]);
-    CloseHandle(pipe_stdout[PIPE_WRITE]);
-    CloseHandle(pipe_stdout[PIPE_READ]);
-    CloseHandle(pipe_stdout[PIPE_WRITE]);
-    CloseHandle(pipe_stderr[PIPE_READ]);
+}
+
+int windows_process::wait_finished() {
+    WaitForSingleObject(process, INFINITE);
+    DWORD exit_code;
+    if (!GetExitCodeProcess(process, &exit_code)) {
+        throw process_error("Impossibile ottenere exit code");
+    }
+    return exit_code;
 }
 
 void windows_process::abort() {
     TerminateProcess(process, 1);
-}
-
-int windows_process::read_stdout(size_t bytes, void *buffer) {
-    DWORD bytes_read;
-    if (!ReadFile(pipe_stdout[PIPE_READ], buffer, bytes, &bytes_read, nullptr))
-        return -1;
-    return bytes_read;
-}
-
-int windows_process::read_stderr(size_t bytes, void *buffer) {
-    DWORD bytes_read;
-    if (!ReadFile(pipe_stderr[PIPE_READ], buffer, bytes, &bytes_read, nullptr))
-        return -1;
-    return bytes_read;
-}
-
-int windows_process::write_stdin(size_t bytes, const void *buffer) {
-    DWORD bytes_written;
-    if (!WriteFile(pipe_stdin[PIPE_WRITE], buffer, bytes, &bytes_written, nullptr))
-        return -1;
-    return bytes_written;
-}
-
-void windows_process::close_stdin() {
-    CloseHandle(pipe_stdin[PIPE_WRITE]);
 }
 
 std::unique_ptr<subprocess> open_process(const char *args[]) {

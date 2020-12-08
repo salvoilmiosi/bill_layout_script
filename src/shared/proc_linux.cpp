@@ -3,82 +3,91 @@
 #include "subprocess.h"
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <signal.h>
 
 #define PIPE_READ 0
 #define PIPE_WRITE 1
 
+class unix_pipe : public pipe_t {
+public:
+    virtual int write(size_t bytes, const void *buffer) override {
+        return ::write(m_handles[PIPE_WRITE], buffer, bytes);
+    }
+
+    virtual int read(size_t bytes, void *buffer) override {
+        return ::read(m_handles[PIPE_READ], buffer, bytes);
+    }
+
+    virtual void close() override {
+        ::close(m_handles[PIPE_READ]);
+        ::close(m_handles[PIPE_WRITE]);
+    }
+
+private:
+    int m_handles[2];
+
+    friend class unix_process;
+};
+
 class unix_process : public subprocess {
 public:
     unix_process(const char *args[]);
-    ~unix_process();
 
 public:
-    virtual int read_stdout(size_t bytes, void *buffer) override;
-    virtual int read_stderr(size_t bytes, void *buffer) override;
-    virtual int write_stdin(size_t bytes, const void *buffer) override;
-
-    virtual void close_stdin() override;
+    virtual int wait_finished() override;
     virtual void abort() override;
 
 private:
-    int pipe_stdin[2], pipe_stdout[2], pipe_stderr[2];
+    unix_pipe pipe_stdout, pipe_stdin, pipe_stderr;
     int child_pid;
 };
 
 unix_process::unix_process(const char *args[]) {
-    if (pipe(pipe_stdout) < 0)
+    if (pipe(pipe_stdout.m_handles) < 0)
         throw process_error("Error creating stdout pipe");
 
-    if (pipe(pipe_stderr) < 0)
+    if (pipe(pipe_stderr.m_handles) < 0)
         throw process_error("Error creating stderr pipe");
     
-    if (pipe(pipe_stdin) < 0)
+    if (pipe(pipe_stdin.m_handles) < 0)
         throw process_error("Error creating stdin pipe");
 
     child_pid = fork();
     if (child_pid == 0) {
-        if (dup2(pipe_stdin[PIPE_READ], STDIN_FILENO) == -1) exit(errno);
-        if (dup2(pipe_stdout[PIPE_WRITE], STDOUT_FILENO) == -1) exit(errno);
-        if (dup2(pipe_stderr[PIPE_WRITE], STDERR_FILENO) == -1) exit(errno);
+        if (dup2(pipe_stdin.m_handles[PIPE_READ], STDIN_FILENO) == -1) exit(errno);
+        if (dup2(pipe_stdout.m_handles[PIPE_WRITE], STDOUT_FILENO) == -1) exit(errno);
+        if (dup2(pipe_stderr.m_handles[PIPE_WRITE], STDERR_FILENO) == -1) exit(errno);
 
-        ::close(pipe_stdin[PIPE_READ]);
-        ::close(pipe_stdin[PIPE_WRITE]);
-        ::close(pipe_stdout[PIPE_READ]);
-        ::close(pipe_stdout[PIPE_WRITE]);
-        ::close(pipe_stderr[PIPE_READ]);
-        ::close(pipe_stderr[PIPE_WRITE]);
+        pipe_stdin.close();
+        pipe_stdout.close();
+        pipe_stderr.close();
 
         int result = execvp(args[0], const_cast<char *const*>(args));
 
         exit(result);
     } else {
-        ::close(pipe_stdout[PIPE_WRITE]);
-        ::close(pipe_stderr[PIPE_WRITE]);
-        ::close(pipe_stdin[PIPE_READ]);
+        ::close(pipe_stdout.m_handles[PIPE_WRITE]);
+        ::close(pipe_stderr.m_handles[PIPE_WRITE]);
+        ::close(pipe_stdin.m_handles[PIPE_READ]);
+
+        m_stdout = std::make_unique<proc_istream>(pipe_stdout);
+        m_stderr = std::make_unique<proc_istream>(pipe_stderr);
+        m_stdin = std::make_unique<proc_ostream>(pipe_stdin);
     }
 }
 
-unix_process::~unix_process() {
-    ::close(pipe_stdin[PIPE_WRITE]);
-    ::close(pipe_stdout[PIPE_READ]);
-    ::close(pipe_stderr[PIPE_READ]);
-}
+int unix_process::wait_finished() {
+    int status;
+    if (::waitpid(child_pid, &status, 0) == -1) {
+        throw process_error("Errore in waitpid");
+    }
 
-int unix_process::read_stdout(size_t bytes, void *buffer) {
-    return ::read(pipe_stdout[PIPE_READ], buffer, bytes);
-}
-
-int unix_process::read_stderr(size_t bytes, void *buffer) {
-    return ::read(pipe_stderr[PIPE_READ], buffer, bytes);
-}
-
-int unix_process::write_stdin(size_t bytes, const void *buffer) {
-    return ::write(pipe_stdin[PIPE_WRITE], buffer, bytes);
-}
-
-void unix_process::close_stdin() {
-    ::close(pipe_stdin[PIPE_WRITE]);
+    if (WIFEXITED(status)) {
+        return WEXITSTATUS(status);
+    } else {
+        throw process_error("Impossibile ottenere exit code");
+    }
 }
 
 void unix_process::abort() {

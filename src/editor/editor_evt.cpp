@@ -5,7 +5,7 @@
 #include <wx/filename.h>
 #include <wx/config.h>
 
-#include "proc_stream.h"
+#include "subprocess.h"
 
 #include "layout_ext.h"
 #include "clipboard.h"
@@ -133,11 +133,10 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
         };
         auto process = open_process(args);
 
-        proc_ostream stream(*process);
-        stream << layout;
+        process->stdin_stream() << layout;
         process->close_stdin();
         
-        std::string compile_output = process->read_all();
+        std::string compile_output(std::istreambuf_iterator<char>(process->stdout_stream()), std::istreambuf_iterator<char>());
         if (!compile_output.empty()) {
             CompileErrorDialog(this, compile_output).ShowModal();
         }
@@ -173,10 +172,9 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     };
 
     auto process = open_process(args);
-    proc_istream stream(*process);
 
     Json::Value json_output;
-    stream >> json_output;
+    process->stdout_stream() >> json_output;
 
     if (json_output["error"].asBool()) {
         wxMessageBox("Impossibile leggere l'output: " + json_output["message"].asString(), "Errore", wxOK | wxICON_ERROR);

@@ -8,7 +8,7 @@
 #include <json/json.h>
 
 #include "editor.h"
-#include "proc_stream.h"
+#include "subprocess.h"
 
 class output_dialog;
 

@@ -1,21 +1,31 @@
 #include "pdf_to_image.h"
 
 #include <wx/filename.h>
-#include <wx/mstream.h>
 
 #include "subprocess.h"
 
-class SubprocessStream : public wxInputStream {
+class myStdInputStreamAdapter : public wxInputStream {
 public:
-    SubprocessStream(subprocess &proc): proc(proc) {}
+    myStdInputStreamAdapter(std::istream &s): stream{s} {}
 
 protected:
-    virtual size_t OnSysRead(void *buffer, size_t bufsize) override {
-        return proc.read_stdout(bufsize, buffer);
-    }
+    std::istream &stream;
 
-private:
-    subprocess &proc;
+    virtual size_t OnSysRead(void *buffer, size_t bufsize) {
+        std::streamsize size = 0;
+
+        stream.peek();
+
+        if (stream.fail() || stream.bad()) {
+            m_lasterror = wxSTREAM_READ_ERROR;
+        } else if (stream.eof()) {
+            m_lasterror = wxSTREAM_EOF;
+        } else {
+            size = stream.readsome(static_cast<std::istream::char_type *>(buffer), bufsize);
+        }
+
+        return size;
+    }
 };
 
 wxImage pdf_to_image(const pdf_document &doc, int page) {
@@ -38,7 +48,9 @@ wxImage pdf_to_image(const pdf_document &doc, int page) {
     
     temp_file += ".png";
 
-    open_process(args)->read_all();
+    if (open_process(args)->wait_finished() != 0) {
+        throw pdf_error("Could not open image");
+    }
 
     if (wxFileExists(temp_file)) {
         wxImage img(temp_file, wxBITMAP_TYPE_PNG);
@@ -58,7 +70,7 @@ wxImage pdf_to_image(const pdf_document &doc, int page) {
     };
 
     auto process = open_process(args);
-    SubprocessStream stream(*process);
+    myStdInputStreamAdapter stream(process->stdout_stream());
     wxImage img(stream, wxBITMAP_TYPE_PNG);
     
     if (img.IsOk()) {
