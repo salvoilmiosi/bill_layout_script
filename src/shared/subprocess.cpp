@@ -2,7 +2,7 @@
 
 int pipe_istreambuf::underflow() {
     int nbytes;
-    nbytes = m_pipe.read(BUFSIZE, buffer);
+    nbytes = m_pipe->read(BUFSIZE, buffer);
     if (nbytes <= 0) {
         return std::char_traits<char>::eof();
     } else {
@@ -12,7 +12,7 @@ int pipe_istreambuf::underflow() {
 };
 
 int pipe_ostreambuf::overflow(int ch) {
-    if (m_pipe.write(1, &ch) == 1) {
+    if (m_pipe->write(1, &ch) == 1) {
         return ch;
     } else {
         return std::char_traits<char>::eof();
@@ -20,5 +20,5 @@ int pipe_ostreambuf::overflow(int ch) {
 }
 
 std::streamsize pipe_ostreambuf::xsputn(const char_type *s, std::streamsize n) {
-    return m_pipe.write(n, s);
+    return m_pipe->write(n, s);
 }

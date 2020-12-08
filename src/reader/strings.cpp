@@ -41,7 +41,7 @@ std::vector<std::string> search_regex_all(const std::string &format, const std::
     std::transform(
         std::sregex_iterator(value.begin(), value.end(), expression),
         std::sregex_iterator(),
-        std::inserter(ret, ret.begin()),
+        std::back_inserter(ret),
         [index](const auto &match) { return match.str(index); });
     return ret;
 }

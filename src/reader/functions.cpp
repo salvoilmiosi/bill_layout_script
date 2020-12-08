@@ -68,7 +68,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
             }
             std::vector<std::string> fmt_args;
             std::transform(std::next(args.begin()), args.end(),
-                std::inserter(fmt_args, fmt_args.begin()),
+                std::back_inserter(fmt_args),
                 [](const variable &var) { return var.str(); });
             return string_format(args.front().str(), fmt_args);
         }},

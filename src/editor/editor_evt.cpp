@@ -134,10 +134,10 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
         };
         auto process = open_process(args);
 
-        process->stdin_stream() << layout;
+        process->m_stdin << layout;
         process->close_stdin();
         
-        std::string compile_output = read_all(process->stdout_stream());
+        std::string compile_output = read_all(process->m_stdout);
         if (!compile_output.empty()) {
             CompileErrorDialog(this, compile_output).ShowModal();
         }
@@ -175,7 +175,7 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     auto process = open_process(args);
 
     Json::Value json_output;
-    process->stdout_stream() >> json_output;
+    process->m_stdout >> json_output;
 
     if (json_output["error"].asBool()) {
         wxMessageBox("Impossibile leggere l'output: " + json_output["message"].asString(), "Errore", wxOK | wxICON_ERROR);

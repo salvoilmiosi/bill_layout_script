@@ -123,10 +123,10 @@ wxThread::ExitCode reader_thread::Entry() {
 #endif
 
     auto proc_compiler = open_process(args_compiler);
-    proc_compiler->stdin_stream() << layout;
+    proc_compiler->m_stdin << layout;
     proc_compiler->close_stdin();
 
-    std::string compile_error = read_all(proc_compiler->stderr_stream());
+    std::string compile_error = read_all(proc_compiler->m_stderr);
     if (!compile_error.empty()) {
         parent->compile_error = compile_error;
         wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR));
@@ -136,15 +136,17 @@ wxThread::ExitCode reader_thread::Entry() {
     proc_reader = open_process(args_reader);
 
 #if !defined(WIN32) && !defined(_WIN32)
-    std::copy(std::istreambuf_iterator<char>(
-        proc_compiler->stdout_stream()), std::istreambuf_iterator<char>(),
-        std::ostreambuf_iterator<char>(proc_reader->stdin_stream()));
+    std::copy(
+        std::istreambuf_iterator<char>(proc_compiler->m_stdout),
+        std::istreambuf_iterator<char>(),
+        std::ostreambuf_iterator<char>(proc_reader->m_stdin)
+    );
     proc_reader->close_stdin();
 #endif
 
     try {
         Json::Value json_output;
-        proc_reader->stdout_stream() >> json_output;
+        proc_reader->m_stdout >> json_output;
 
         if (json_output["error"].asBool()) {
             wxMessageBox("Errore in lettura:\n" + json_output["message"].asString(), "Errore", wxICON_INFORMATION);

@@ -7,9 +7,13 @@ class windows_pipe : public pipe_t {
 public:
     void create_pipe(SECURITY_ATTRIBUTES &attrs, bool is_write);
 
-    virtual int read(size_t bytes, void *buffer);
-    virtual int write(size_t bytes, const void *buffer);
-    virtual void close();
+    virtual int read(size_t bytes, void *buffer) override;
+    virtual int write(size_t bytes, const void *buffer) override;
+    
+    virtual void close() override {
+        CloseHandle(m_read);
+        CloseHandle(m_write);
+    }
 
 private:
     HANDLE m_read;
@@ -36,11 +40,6 @@ int windows_pipe::write(size_t bytes, const void *buffer) {
     if (!WriteFile(m_write, buffer, bytes, &bytes_written, nullptr))
         return -1;
     return bytes_written;
-}
-
-void windows_pipe::close() {
-    CloseHandle(m_read);
-    CloseHandle(m_write);
 }
 
 class windows_process : public subprocess {
@@ -119,9 +118,9 @@ windows_process::windows_process(const char *args[]) {
         CloseHandle(pipe_stderr.m_write);
         CloseHandle(pipe_stdin.m_read);
 
-        m_stdout = std::make_unique<pipe_istream>(pipe_stdout);
-        m_stderr = std::make_unique<pipe_istream>(pipe_stderr);
-        m_stdin = std::make_unique<pipe_ostream>(pipe_stdin);
+        m_stdout.init(pipe_stdout);
+        m_stderr.init(pipe_stderr);
+        m_stdin.init(pipe_stdin);
     }
 }
 

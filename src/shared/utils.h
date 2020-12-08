@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+constexpr size_t BUFSIZE = 4096;
+
 // divide una stringa per separatore
 std::vector<std::string> string_split(const std::string &str, char separator = ',');
 

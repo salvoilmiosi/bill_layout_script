@@ -70,7 +70,7 @@ wxImage pdf_to_image(const pdf_document &doc, int page) {
     };
 
     auto process = open_process(args);
-    myStdInputStreamAdapter stream(process->stdout_stream());
+    myStdInputStreamAdapter stream(process->m_stdout);
     wxImage img(stream, wxBITMAP_TYPE_PNG);
     
     if (img.IsOk()) {

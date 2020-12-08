@@ -78,9 +78,9 @@ unix_process::unix_process(const char *args[]) {
         ::close(pipe_stderr.m_handles[PIPE_WRITE]);
         ::close(pipe_stdin.m_handles[PIPE_READ]);
 
-        m_stdout = std::make_unique<pipe_istream>(pipe_stdout);
-        m_stderr = std::make_unique<pipe_istream>(pipe_stderr);
-        m_stdin = std::make_unique<pipe_ostream>(pipe_stdin);
+        m_stdout.init(pipe_stdout);
+        m_stderr.init(pipe_stderr);
+        m_stdin.init(pipe_stdin);
     }
 }
 
