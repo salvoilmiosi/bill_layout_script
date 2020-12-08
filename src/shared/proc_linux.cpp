@@ -36,7 +36,14 @@ public:
 
 public:
     virtual int wait_finished() override;
-    virtual void abort() override;
+
+    virtual void close_stdin() override {
+        pipe_stdin.close();
+    }
+    
+    virtual void abort() override {
+        ::kill(child_pid, SIGTERM);
+    }
 
 private:
     unix_pipe pipe_stdout, pipe_stdin, pipe_stderr;
@@ -71,9 +78,9 @@ unix_process::unix_process(const char *args[]) {
         ::close(pipe_stderr.m_handles[PIPE_WRITE]);
         ::close(pipe_stdin.m_handles[PIPE_READ]);
 
-        m_stdout = std::make_unique<proc_istream>(pipe_stdout);
-        m_stderr = std::make_unique<proc_istream>(pipe_stderr);
-        m_stdin = std::make_unique<proc_ostream>(pipe_stdin);
+        m_stdout = std::make_unique<pipe_istream>(pipe_stdout);
+        m_stderr = std::make_unique<pipe_istream>(pipe_stderr);
+        m_stdin = std::make_unique<pipe_ostream>(pipe_stdin);
     }
 }
 
@@ -88,10 +95,6 @@ int unix_process::wait_finished() {
     } else {
         throw process_error("Impossibile ottenere exit code");
     }
-}
-
-void unix_process::abort() {
-    ::kill(child_pid, SIGTERM);
 }
 
 std::unique_ptr<subprocess> open_process(const char *args[]) {

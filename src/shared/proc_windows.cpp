@@ -50,7 +50,14 @@ public:
 
 public:
     virtual int wait_finished() override;
-    virtual void abort() override;
+    
+    virtual void close_stdin() override {
+        pipe_stdin.close();
+    }
+
+    virtual void abort() override {
+        TerminateProcess(process, 1);
+    }
 
 private:
     windows_pipe pipe_stdout, pipe_stderr, pipe_stdin;
@@ -112,9 +119,9 @@ windows_process::windows_process(const char *args[]) {
         CloseHandle(pipe_stderr.m_write);
         CloseHandle(pipe_stdin.m_read);
 
-        m_stdout = std::make_unique<proc_istream>(pipe_stdout);
-        m_stderr = std::make_unique<proc_istream>(pipe_stderr);
-        m_stdin = std::make_unique<proc_ostream>(pipe_stdin);
+        m_stdout = std::make_unique<pipe_istream>(pipe_stdout);
+        m_stderr = std::make_unique<pipe_istream>(pipe_stderr);
+        m_stdin = std::make_unique<pipe_ostream>(pipe_stdin);
     }
 }
 
@@ -129,10 +136,6 @@ int windows_process::wait_finished() {
         throw process_error("Impossibile ottenere exit code");
     }
     return exit_code;
-}
-
-void windows_process::abort() {
-    TerminateProcess(process, 1);
 }
 
 std::unique_ptr<subprocess> open_process(const char *args[]) {
