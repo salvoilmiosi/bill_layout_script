@@ -90,33 +90,45 @@ reader_thread::~reader_thread() {
 }
 
 wxThread::ExitCode reader_thread::Entry() {
-    wxString cmd_str = get_app_path() + "layout_compiler";
+    wxString cmd_compiler = get_app_path() + "layout_compiler";
+    wxString cmd_reader = get_app_path() + "layout_reader";
 
 #if defined(WIN32) || defined(_WIN32)
     temp_file = wxFileName::CreateTempFileName("layout");
 
-    const char *args1[] = {
-        cmd_str.c_str(),
+    const char *args_compiler[] = {
+        cmd_compiler.c_str(),
         "-q", "-o", temp_file.c_str(), "-",
         nullptr
     };
+
+    const char *args_reader[] = {
+        cmd_reader.c_str(),
+        "-p", pdf_filename.c_str(),
+        "-d", temp_file.c_str(),
+        nullptr
+    };
 #else
-    const char *args1[] = {
-        cmd_str.c_str(),
+    const char *args_compiler[] = {
+        cmd_compiler.c_str(),
         "-q", "-o", "-", "-",
+        nullptr
+    };
+
+    const char *args_reader[] = {
+        cmd_reader.c_str(),
+        "-p", pdf_filename.c_str(),
+        "-d", "-",
         nullptr
     };
 #endif
 
-    process = open_process(args1);
-    std::ostringstream oss;
-    oss << layout;
-    std::string str = oss.str();
-    process->write_all(str);
-    std::string compile_output = process->read_all();
-    std::string compile_error = process->read_all_error();
-    process.reset();
+    auto proc_compiler = open_process(args_compiler);
+    std::ostringstream stream;
+    stream << layout;
+    process->write_all(stream.str());
 
+    std::string compile_error = proc_compiler->read_all_error();
     if (!compile_error.empty()) {
         wxCriticalSectionLocker lock(parent->m_thread_cs);
         parent->compile_error = compile_error;
@@ -124,48 +136,34 @@ wxThread::ExitCode reader_thread::Entry() {
         return (wxThread::ExitCode) 1;
     }
 
-    cmd_str = get_app_path() + "layout_reader";
+    process = open_process(args_reader);
 
-#if defined(WIN32) || defined(_WIN32)
-    const char *args2[] = {
-        cmd_str.c_str(),
-        "-p", pdf_filename.c_str(),
-        "-d", temp_file.c_str(),
-        nullptr
-    };
-
-    process = open_process(args2);
-#else
-    const char *args2[] = {
-        cmd_str.c_str(),
-        "-p", pdf_filename.c_str(),
-        "-d", "-",
-        nullptr
-    };
-
-    process = open_process(args2);
-    process->write_all(compile_output);
+#if !defined(WIN32) && !defined(_WIN32)
+    proc_compiler->write_to(process);
+    process->close();
 #endif
 
-    std::istringstream iss(process->read_all());
-    process.reset();
-
-    if (!iss.str().empty()) {
+    try {
         Json::Value json_output;
-        iss >> json_output;
+        std::istringstream stream(process->read_all());
+        stream >> json_output;
 
         if (json_output["error"].asBool()) {
             wxMessageBox("Errore in lettura:\n" + json_output["message"].asString(), "Errore", wxICON_INFORMATION);
+            process.reset();
             return (wxThread::ExitCode) 1;
         } else {
             wxCriticalSectionLocker lock(parent->m_thread_cs);
             parent->json_output = json_output;
 
             wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
+            process.reset();
             return (wxThread::ExitCode) 0;
         }
+    } catch (std::exception &) {
+        process.reset();
+        return (wxThread::ExitCode) 1;
     }
-    return (wxThread::ExitCode) 1;
 }
 
 void reader_thread::abort() {

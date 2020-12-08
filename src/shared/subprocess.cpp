@@ -60,3 +60,16 @@ int subprocess::write_all(const std::string &buffer) {
     close();
     return bytes_written;
 }
+
+void subprocess::write_to(subprocess &proc) {
+    char buffer[BUFSIZE];
+
+    while (true) {
+        int bytes_read = read_stdout(BUFSIZE, buffer);
+        if (bytes_read <= 0) {
+            break;
+        }
+
+        proc.write_stdin(bytes_read, buffer);
+    }
+}
