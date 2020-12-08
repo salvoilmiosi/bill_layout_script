@@ -89,7 +89,7 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
         args[nargs++] = "-";
         
         auto process = open_process(args);
-        return string_trim(std::string(std::istreambuf_iterator<char>(process->stdout_stream()), std::istreambuf_iterator<char>()));
+        return string_trim(read_all(process->stdout_stream()));
     } catch (const process_error &error) {
         throw pdf_error(error.message);
     }

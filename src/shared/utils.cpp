@@ -1,6 +1,7 @@
 #include "utils.h"
 
 #include <algorithm>
+#include <iostream>
 
 std::vector<std::string> string_split(const std::string &str, char separator) {
     std::vector<std::string> ret;
@@ -55,4 +56,8 @@ int string_replace(std::string &str, const std::string &from, const std::string 
         ++count;
     }
     return count;
+}
+
+std::string read_all(std::istream &stream) {
+    return std::string(std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
 }

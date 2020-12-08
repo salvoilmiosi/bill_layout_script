@@ -6,6 +6,7 @@
 #include "resources.h"
 #include "editor.h"
 #include "compile_error_diag.h"
+#include "utils.h"
 
 enum {
     CTL_DEBUG,
@@ -125,7 +126,7 @@ wxThread::ExitCode reader_thread::Entry() {
     proc_compiler->stdin_stream() << layout;
     proc_compiler->close_stdin();
 
-    std::string compile_error(std::istreambuf_iterator<char>(proc_compiler->stderr_stream()), std::istreambuf_iterator<char>());
+    std::string compile_error = read_all(proc_compiler->stderr_stream());
     if (!compile_error.empty()) {
         parent->compile_error = compile_error;
         wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR));

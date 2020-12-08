@@ -19,6 +19,9 @@ std::string string_tolower(std::string str);
 // elimina gli spazi in eccesso
 std::string string_trim(std::string str);
 
+// legge tutta la stringa da uno stream
+std::string read_all(std::istream &stream);
+
 struct hasher {
     size_t constexpr operator() (char const *input) const {
         return *input ? static_cast<unsigned int>(*input) + 33 * (*this)(input + 1) : 5381;

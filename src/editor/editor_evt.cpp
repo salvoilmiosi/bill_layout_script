@@ -6,6 +6,7 @@
 #include <wx/config.h>
 
 #include "subprocess.h"
+#include "utils.h"
 
 #include "layout_ext.h"
 #include "clipboard.h"
@@ -136,7 +137,7 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
         process->stdin_stream() << layout;
         process->close_stdin();
         
-        std::string compile_output(std::istreambuf_iterator<char>(process->stdout_stream()), std::istreambuf_iterator<char>());
+        std::string compile_output = read_all(process->stdout_stream());
         if (!compile_output.empty()) {
             CompileErrorDialog(this, compile_output).ShowModal();
         }
