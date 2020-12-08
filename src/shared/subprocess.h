@@ -5,13 +5,15 @@
 #include <memory>
 #include <streambuf>
 
+constexpr size_t BUFSIZE = 4096;
+
 class subprocess {
 public:
     virtual int read_stdout(size_t bytes, void *buffer) { return 0; }
     virtual int read_stderr(size_t bytes, void *buffer) { return 0; }
     virtual int write_stdin(size_t bytes, const void *buffer) { return 0; }
 
-    virtual void close() { }
+    virtual void close_stdin() { }
     virtual void abort() { }
 
     std::string read_all_error();

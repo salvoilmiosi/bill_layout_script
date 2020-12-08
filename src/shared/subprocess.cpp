@@ -2,8 +2,6 @@
 
 #include <algorithm>
 
-constexpr size_t BUFSIZE = 4096;
-
 std::string subprocess::read_all() {
     std::string out;
 
@@ -57,7 +55,6 @@ int subprocess::write_all(const std::string &buffer) {
         it_begin = it_end;
     }
 
-    close();
     return bytes_written;
 }
 

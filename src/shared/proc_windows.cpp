@@ -16,7 +16,7 @@ public:
     virtual int read_stderr(size_t bytes, void *buffer) override;
     virtual int write_stdin(size_t bytes, const void *buffer) override;
 
-    virtual void close() override;
+    virtual void close_stdin() override;
     virtual void abort() override;
 
 private:
@@ -124,7 +124,7 @@ int windows_process::write_stdin(size_t bytes, const void *buffer) {
     return bytes_written;
 }
 
-void windows_process::close() {
+void windows_process::close_stdin() {
     CloseHandle(pipe_stdin[PIPE_WRITE]);
 }
 

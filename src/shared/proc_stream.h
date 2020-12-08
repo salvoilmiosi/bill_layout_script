@@ -5,25 +5,24 @@
 #include <iostream>
 #include "subprocess.h"
 
-class proc_streambuf : public std::streambuf {
+class proc_istreambuf : public std::streambuf {
 public:
-    proc_streambuf(subprocess &proc) : proc(proc) {}
+    proc_istreambuf(subprocess &proc) : proc(proc) {}
 
 protected:
-    virtual std::streambuf *setbuf(char *, std::streamsize) override {
-        return nullptr;
-    }
-
-    virtual std::streamsize xsgetn(char *s, std::streamsize n) override {
-        return proc.read_stdout(n, s);
-    };
-
-    virtual std::streamsize xsputn(const char *s, std::streamsize n) override {
-        return proc.write_stdin(n, s);
+    virtual int underflow() override {
+        int nbytes = proc.read_stdout(BUFSIZE, buffer);
+        if (nbytes <= 0) {
+            return std::char_traits<char>::eof();
+        } else {
+            setg(buffer, buffer, buffer + nbytes);
+            return std::char_traits<char>::to_int_type(*gptr());
+        }
     };
 
 private:
     subprocess &proc;
+    char buffer[BUFSIZE];
 };
 
 class proc_istream : public std::istream {
@@ -33,7 +32,20 @@ public:
     }
 
 private:
-    proc_streambuf buffer;
+    proc_istreambuf buffer;
+};
+
+class proc_ostreambuf : public std::streambuf {
+public:
+    proc_ostreambuf(subprocess &proc) : proc(proc) {}
+
+protected:
+    virtual std::streamsize xsputn(const char_type *s, std::streamsize n) override {
+        return proc.write_stdin(n, s);
+    }
+
+private:
+    subprocess &proc;
 };
 
 class proc_ostream : public std::ostream {
@@ -43,7 +55,7 @@ public:
     }
 
 private:
-    proc_streambuf buffer;
+    proc_ostreambuf buffer;
 };
 
 #endif

@@ -18,7 +18,7 @@ public:
     virtual int read_stderr(size_t bytes, void *buffer) override;
     virtual int write_stdin(size_t bytes, const void *buffer) override;
 
-    virtual void close() override;
+    virtual void close_stdin() override;
     virtual void abort() override;
 
 private:
@@ -77,7 +77,7 @@ int unix_process::write_stdin(size_t bytes, const void *buffer) {
     return ::write(pipe_stdin[PIPE_WRITE], buffer, bytes);
 }
 
-void unix_process::close() {
+void unix_process::close_stdin() {
     ::close(pipe_stdin[PIPE_WRITE]);
 }
 

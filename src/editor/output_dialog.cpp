@@ -124,7 +124,7 @@ wxThread::ExitCode reader_thread::Entry() {
     auto proc_compiler = open_process(args_compiler);
     proc_ostream stream(*proc_compiler);
     stream << layout;
-    process->close();
+    proc_compiler->close_stdin();
 
     std::string compile_error = proc_compiler->read_all_error();
     if (!compile_error.empty()) {
@@ -138,7 +138,7 @@ wxThread::ExitCode reader_thread::Entry() {
 
 #if !defined(WIN32) && !defined(_WIN32)
     proc_compiler->write_to(process);
-    process->close();
+    process->close_stdin();
 #endif
 
     try {
