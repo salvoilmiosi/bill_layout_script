@@ -128,44 +128,39 @@ wxThread::ExitCode reader_thread::Entry() {
 
     std::string compile_error = proc_compiler->read_all_error();
     if (!compile_error.empty()) {
-        wxCriticalSectionLocker lock(parent->m_thread_cs);
         parent->compile_error = compile_error;
         wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR));
         return (wxThread::ExitCode) 1;
     }
 
-    process = open_process(args_reader);
+    proc_reader = open_process(args_reader);
 
 #if !defined(WIN32) && !defined(_WIN32)
-    proc_compiler->write_to(process);
-    process->close_stdin();
+    proc_compiler->write_to(*proc_reader);
+    proc_reader->close_stdin();
 #endif
 
     try {
         Json::Value json_output;
-        proc_istream stream(*process);
+        proc_istream stream(*proc_reader);
         stream >> json_output;
 
         if (json_output["error"].asBool()) {
             wxMessageBox("Errore in lettura:\n" + json_output["message"].asString(), "Errore", wxICON_INFORMATION);
-            process.reset();
             return (wxThread::ExitCode) 1;
         } else {
-            wxCriticalSectionLocker lock(parent->m_thread_cs);
             parent->json_output = json_output;
 
             wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
-            process.reset();
             return (wxThread::ExitCode) 0;
         }
     } catch (std::exception &) {
-        process.reset();
         return (wxThread::ExitCode) 1;
     }
 }
 
 void reader_thread::abort() {
-    process->abort();
+    proc_reader->abort();
 }
 
 void output_dialog::compileAndRead() {
@@ -189,14 +184,11 @@ void output_dialog::OnCompileError(wxCommandEvent &evt) {
 }
 
 void output_dialog::OnReadCompleted(wxCommandEvent &evt) {
-    {
-        wxCriticalSectionLocker lock(m_thread_cs);
-        m_page->Append("Globali");
-        for (int i=1; i <= (int)json_output["values"].size(); ++i) {
-            m_page->Append(wxString::Format("%i", i));
-        }
-        m_page->SetSelection(json_output["values"].size() > 0 ? 1 : 0);
+    m_page->Append("Globali");
+    for (int i=1; i <= (int)json_output["values"].size(); ++i) {
+        m_page->Append(wxString::Format("%i", i));
     }
+    m_page->SetSelection(json_output["values"].size() > 0 ? 1 : 0);
     updateItems();
 }
 
@@ -205,8 +197,6 @@ void output_dialog::OnUpdate(wxCommandEvent &evt) {
 }
 
 void output_dialog::updateItems() {
-    wxCriticalSectionLocker lock(m_thread_cs);
-
     m_list_ctrl->ClearAll();
 
     auto col_name = m_list_ctrl->AppendColumn("Nome", wxLIST_FORMAT_LEFT, 150);

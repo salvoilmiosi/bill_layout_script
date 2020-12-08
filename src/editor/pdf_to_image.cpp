@@ -1,10 +1,22 @@
 #include "pdf_to_image.h"
 
-#include <iostream>
 #include <wx/filename.h>
 #include <wx/mstream.h>
 
 #include "subprocess.h"
+
+class SubprocessStream : public wxInputStream {
+public:
+    SubprocessStream(subprocess &proc): proc(proc) {}
+
+protected:
+    virtual size_t OnSysRead(void *buffer, size_t bufsize) override {
+        return proc.read_stdout(bufsize, buffer);
+    }
+
+private:
+    subprocess &proc;
+};
 
 wxImage pdf_to_image(const pdf_document &doc, int page) {
     auto page_str = std::to_string(page);
@@ -45,9 +57,9 @@ wxImage pdf_to_image(const pdf_document &doc, int page) {
         nullptr
     };
 
-    std::string data = open_process(args)->read_all();
-    wxMemoryInputStream mis(data.data(), data.size());
-    wxImage img(mis, wxBITMAP_TYPE_PNG);
+    auto process = open_process(args);
+    SubprocessStream stream(*process);
+    wxImage img(stream, wxBITMAP_TYPE_PNG);
     
     if (img.IsOk()) {
         return img;

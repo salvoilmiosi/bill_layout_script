@@ -24,7 +24,7 @@ protected:
     virtual ExitCode Entry();
 
 private:
-    std::unique_ptr<subprocess> process;
+    std::unique_ptr<subprocess> proc_reader;
 
     wxString temp_file;
 
