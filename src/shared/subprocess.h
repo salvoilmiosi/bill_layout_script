@@ -6,7 +6,6 @@
 #include <streambuf>
 #include <iostream>
 
-
 constexpr size_t BUFSIZE = 4096;
 
 struct process_error {
@@ -31,16 +30,7 @@ public:
     pipe_istreambuf(pipe_t &m_pipe) : m_pipe(m_pipe) {}
 
 protected:
-    virtual int underflow() override {
-        int nbytes;
-        nbytes = m_pipe.read(BUFSIZE, buffer);
-        if (nbytes <= 0) {
-            return std::char_traits<char>::eof();
-        } else {
-            setg(buffer, buffer, buffer + nbytes);
-            return std::char_traits<char>::to_int_type(*gptr());
-        }
-    };
+    virtual int underflow() override;
 
 private:
     pipe_t &m_pipe;
@@ -62,17 +52,9 @@ public:
     pipe_ostreambuf(pipe_t &m_pipe) : m_pipe(m_pipe) {}
 
 protected:
-    virtual int overflow(int ch) override {
-        if (m_pipe.write(1, &ch) == 1) {
-            return ch;
-        } else {
-            return std::char_traits<char>::eof();
-        }
-    }
+    virtual int overflow(int ch) override;
 
-    virtual std::streamsize xsputn(const char_type *s, std::streamsize n) override {
-        return m_pipe.write(n, s);
-    }
+    virtual std::streamsize xsputn(const char_type *s, std::streamsize n) override;
 
 private:
     pipe_t &m_pipe;
