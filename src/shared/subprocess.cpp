@@ -1,24 +1,44 @@
 #include "subprocess.h"
 
 int pipe_istreambuf::underflow() {
-    int nbytes;
-    nbytes = m_pipe->read(BUFSIZE, buffer);
+    int nbytes = m_pipe->read(BUFSIZE, buffer);
     if (nbytes <= 0) {
-        return std::char_traits<char>::eof();
-    } else {
-        setg(buffer, buffer, buffer + nbytes);
-        return std::char_traits<char>::to_int_type(*gptr());
+        return EOF;
     }
+    setg(buffer, buffer, buffer + nbytes);
+    return *buffer;
 };
 
 int pipe_ostreambuf::overflow(int ch) {
-    if (m_pipe->write(1, &ch) == 1) {
-        return ch;
+    if (pbase() == NULL) {
+        // save one byte for next overflow
+        setp(buffer, buffer + BUFSIZE - 1);
+        if (ch != EOF) {
+            ch = sputc(ch);
+        } else {
+            ch = 0;
+        }
     } else {
-        return std::char_traits<char>::eof();
+        char* end = pptr();
+        if (ch != EOF) {
+            *end++ = ch;
+        }
+        if (m_pipe->write(end - pbase(), pbase()) <= 0) {
+            ch = EOF;
+        } else if (ch == EOF) {
+            ch = 0;
+        }
+        setp(buffer, buffer + BUFSIZE - 1);
     }
+    return ch;
 }
 
-std::streamsize pipe_ostreambuf::xsputn(const char_type *s, std::streamsize n) {
-    return m_pipe->write(n, s);
+int pipe_ostreambuf::sync() {
+    if (pptr() != pbase()) {
+        if (m_pipe->write(pptr() - pbase(), pbase()) <= 0) {
+            return -1;
+        }
+        m_pipe->close();
+    }
+    return 0;
 }

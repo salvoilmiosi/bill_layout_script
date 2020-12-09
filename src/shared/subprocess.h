@@ -8,6 +8,11 @@
 
 #include "utils.h"
 
+#define PIPE_READ 0
+#define PIPE_WRITE 1
+
+constexpr size_t BUFSIZE = 4096;
+
 struct process_error {
     const std::string message;
 
@@ -22,7 +27,7 @@ public:
 
     virtual int read(size_t bytes, void *buffer) = 0;
     virtual int write(size_t bytes, const void *buffer) = 0;
-    virtual void close() {}
+    virtual void close(int which = -1) {}
 };
 
 class pipe_istreambuf : public std::streambuf {
@@ -59,10 +64,11 @@ public:
 protected:
     virtual int overflow(int ch) override;
 
-    virtual std::streamsize xsputn(const char_type *s, std::streamsize n) override;
+    virtual int sync() override;
 
 private:
     pipe_t *m_pipe;
+    char buffer[BUFSIZE];
 };
 
 class pipe_ostream : public std::ostream {
@@ -81,8 +87,6 @@ public:
     virtual int wait_finished() = 0;
 
     virtual void abort() = 0;
-
-    virtual void close_stdin() = 0;
 
     pipe_istream m_stdout, m_stderr;
     pipe_ostream m_stdin;

@@ -123,8 +123,7 @@ wxThread::ExitCode reader_thread::Entry() {
 #endif
 
     auto proc_compiler = open_process(args_compiler);
-    proc_compiler->m_stdin << layout;
-    proc_compiler->close_stdin();
+    proc_compiler->m_stdin << layout << std::flush;
 
     std::string compile_error = read_all(proc_compiler->m_stderr);
     if (!compile_error.empty()) {
@@ -141,7 +140,7 @@ wxThread::ExitCode reader_thread::Entry() {
         std::istreambuf_iterator<char>(),
         std::ostreambuf_iterator<char>(proc_reader->m_stdin)
     );
-    proc_reader->close_stdin();
+    proc_reader->m_stdin.flush();
 #endif
 
     try {

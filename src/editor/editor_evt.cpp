@@ -134,8 +134,7 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
         };
         auto process = open_process(args);
 
-        process->m_stdin << layout;
-        process->close_stdin();
+        process->m_stdin << layout << std::flush;
         
         std::string compile_output = read_all(process->m_stdout);
         if (!compile_output.empty()) {

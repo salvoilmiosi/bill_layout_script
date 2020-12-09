@@ -5,39 +5,44 @@
 
 class windows_pipe : public pipe_t {
 public:
-    void create_pipe(SECURITY_ATTRIBUTES &attrs, bool is_write);
+    void create_pipe(SECURITY_ATTRIBUTES &attrs, int which);
 
     virtual int read(size_t bytes, void *buffer) override;
     virtual int write(size_t bytes, const void *buffer) override;
     
-    virtual void close() override {
-        CloseHandle(m_read);
-        CloseHandle(m_write);
+    virtual void close(int which) override {
+        if (which != PIPE_WRITE && m_handles[PIPE_READ]) {
+            CloseHandle(m_handles[PIPE_READ]);
+            m_handles[PIPE_READ] = nullptr;
+        }
+        if (which != PIPE_READ && m_handles[PIPE_WRITE]) {
+            CloseHandle(m_handles[PIPE_WRITE]);
+            m_handles[PIPE_WRITE] = nullptr;
+        }
     }
 
 private:
-    HANDLE m_read;
-    HANDLE m_write;
+    HANDLE m_handles[2];
 
     friend class windows_process;
 };
 
-void windows_pipe::create_pipe(SECURITY_ATTRIBUTES &attrs, bool is_write) {
-    if (!CreatePipe(&m_read, &m_write, &attrs, 0)
-        || !SetHandleInformation(is_write ? m_write : m_read, HANDLE_FLAG_INHERIT, 0))
+void windows_pipe::create_pipe(SECURITY_ATTRIBUTES &attrs, int which) {
+    if (!CreatePipe(&m_handles[PIPE_READ], &m_handles[PIPE_WRITE], &attrs, 0)
+        || !SetHandleInformation(m_handles[which], HANDLE_FLAG_INHERIT, 0))
         throw process_error("Error creating pipe");
 }
 
 int windows_pipe::read(size_t bytes, void *buffer) {
     DWORD bytes_read;
-    if (!ReadFile(m_read, buffer, bytes, &bytes_read, nullptr))
+    if (!ReadFile(m_handles[PIPE_READ], buffer, bytes, &bytes_read, nullptr))
         return -1;
     return bytes_read;
 }
 
 int windows_pipe::write(size_t bytes, const void *buffer) {
     DWORD bytes_written;
-    if (!WriteFile(m_write, buffer, bytes, &bytes_written, nullptr))
+    if (!WriteFile(m_handles[PIPE_WRITE], buffer, bytes, &bytes_written, nullptr))
         return -1;
     return bytes_written;
 }
@@ -49,10 +54,6 @@ public:
 
 public:
     virtual int wait_finished() override;
-    
-    virtual void close_stdin() override {
-        pipe_stdin.close();
-    }
 
     virtual void abort() override {
         TerminateProcess(process, 1);
@@ -71,17 +72,17 @@ windows_process::windows_process(const char *args[]) {
     attrs.bInheritHandle = true;
     attrs.lpSecurityDescriptor = nullptr;
 
-    pipe_stdout.create_pipe(attrs, false);
-    pipe_stderr.create_pipe(attrs, false);
-    pipe_stdin.create_pipe(attrs, true);
+    pipe_stdout.create_pipe(attrs, PIPE_READ);
+    pipe_stderr.create_pipe(attrs, PIPE_READ);
+    pipe_stdin.create_pipe(attrs, PIPE_WRITE);
 
     STARTUPINFOA start_info;
     ZeroMemory(&start_info, sizeof(STARTUPINFOA));
 
     start_info.cb = sizeof(STARTUPINFOA);
-    start_info.hStdInput = pipe_stdin.m_read;
-    start_info.hStdError = pipe_stderr.m_write;
-    start_info.hStdOutput = pipe_stdout.m_write;
+    start_info.hStdInput = pipe_stdin.m_handles[PIPE_READ];
+    start_info.hStdError = pipe_stderr.m_handles[PIPE_WRITE];
+    start_info.hStdOutput = pipe_stdout.m_handles[PIPE_WRITE];
     start_info.dwFlags |= STARTF_USESTDHANDLES;
 
     std::string cmdline;
@@ -114,9 +115,10 @@ windows_process::windows_process(const char *args[]) {
     } else {
         process = proc_info.hProcess;
         CloseHandle(proc_info.hThread);
-        CloseHandle(pipe_stdout.m_write);
-        CloseHandle(pipe_stderr.m_write);
-        CloseHandle(pipe_stdin.m_read);
+
+        pipe_stdout.close(PIPE_WRITE);
+        pipe_stderr.close(PIPE_WRITE);
+        pipe_stdin.close(PIPE_READ);
 
         m_stdout.init(pipe_stdout);
         m_stderr.init(pipe_stderr);

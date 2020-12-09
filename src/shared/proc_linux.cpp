@@ -6,9 +6,6 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-#define PIPE_READ 0
-#define PIPE_WRITE 1
-
 class unix_pipe : public pipe_t {
 public:
     virtual int write(size_t bytes, const void *buffer) override {
@@ -19,9 +16,15 @@ public:
         return ::read(m_handles[PIPE_READ], buffer, bytes);
     }
 
-    virtual void close() override {
-        ::close(m_handles[PIPE_READ]);
-        ::close(m_handles[PIPE_WRITE]);
+    virtual void close(int which) override {
+        if ((which != PIPE_WRITE) && m_handles[PIPE_READ]) {
+            ::close(m_handles[PIPE_READ]);
+            m_handles[PIPE_READ] = 0;
+        }
+        if ((which != PIPE_READ) && m_handles[PIPE_WRITE]) {
+            ::close(m_handles[PIPE_WRITE]);
+            m_handles[PIPE_WRITE] = 0;
+        }
     }
 
 private:
@@ -36,10 +39,6 @@ public:
 
 public:
     virtual int wait_finished() override;
-
-    virtual void close_stdin() override {
-        pipe_stdin.close();
-    }
     
     virtual void abort() override {
         ::kill(child_pid, SIGTERM);
@@ -74,9 +73,9 @@ unix_process::unix_process(const char *args[]) {
 
         exit(result);
     } else {
-        ::close(pipe_stdout.m_handles[PIPE_WRITE]);
-        ::close(pipe_stderr.m_handles[PIPE_WRITE]);
-        ::close(pipe_stdin.m_handles[PIPE_READ]);
+        pipe_stdout.close(PIPE_WRITE);
+        pipe_stderr.close(PIPE_WRITE);
+        pipe_stdin.close(PIPE_READ);
 
         m_stdout.init(pipe_stdout);
         m_stderr.init(pipe_stderr);
