@@ -38,7 +38,9 @@ std::string string_tolower(std::string str) {
 }
 
 std::string string_trim(std::string str) {
+#if defined(WIN32) || defined(_WIN32)
     string_replace(str, "\r\n", "\n");
+#endif
     str.erase(0, str.find_first_not_of("\t\n\v\f\r "));
     str.erase(str.find_last_not_of("\t\n\v\f\r ") + 1);
     return str;

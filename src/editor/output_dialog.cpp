@@ -83,31 +83,12 @@ void output_dialog::OnClickAbort(wxCommandEvent &) {
 reader_thread::~reader_thread() {
     wxCriticalSectionLocker lock(parent->m_thread_cs);
     parent->m_thread = nullptr;
-    if (wxFileExists(temp_file)) {
-        wxRemoveFile(temp_file);
-    }
 }
 
 wxThread::ExitCode reader_thread::Entry() {
     wxString cmd_compiler = get_app_path() + "layout_compiler";
     wxString cmd_reader = get_app_path() + "layout_reader";
 
-#if defined(WIN32) || defined(_WIN32)
-    temp_file = wxFileName::CreateTempFileName("layout");
-
-    const char *args_compiler[] = {
-        cmd_compiler.c_str(),
-        "-q", "-o", temp_file.c_str(), "-",
-        nullptr
-    };
-
-    const char *args_reader[] = {
-        cmd_reader.c_str(),
-        "-p", pdf_filename.c_str(),
-        "-d", temp_file.c_str(),
-        nullptr
-    };
-#else
     const char *args_compiler[] = {
         cmd_compiler.c_str(),
         "-q", "-o", "-", "-",
@@ -120,7 +101,6 @@ wxThread::ExitCode reader_thread::Entry() {
         "-d", "-",
         nullptr
     };
-#endif
 
     subprocess proc_compiler(args_compiler);
     proc_compiler.stream_in << layout << std::flush;
@@ -134,14 +114,12 @@ wxThread::ExitCode reader_thread::Entry() {
 
     proc_reader = std::make_unique<subprocess>(args_reader);
 
-#if !defined(WIN32) && !defined(_WIN32)
     std::copy(
         std::istreambuf_iterator<char>(proc_compiler.stream_out),
         std::istreambuf_iterator<char>(),
-        std::ostreambuf_iterator<char>(proc_reader.stream_in)
+        std::ostreambuf_iterator<char>(proc_reader->stream_in)
     );
-    proc_reader.stream_in.flush();
-#endif
+    proc_reader->stream_in.flush();
 
     try {
         Json::Value json_output;

@@ -26,8 +26,6 @@ protected:
 private:
     std::unique_ptr<subprocess> proc_reader;
 
-    wxString temp_file;
-
     output_dialog *parent;
 
     Json::Value json_values;
