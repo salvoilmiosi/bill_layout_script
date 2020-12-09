@@ -2,6 +2,8 @@
 
 #include "proc_windows.h"
 
+#include "utils.h"
+
 void windows_pipe::init(SECURITY_ATTRIBUTES &attrs, int which) {
     if (!CreatePipe(&m_handles[PIPE_READ], &m_handles[PIPE_WRITE], &attrs, 0)
         || !SetHandleInformation(m_handles[which], HANDLE_FLAG_INHERIT, 0))
@@ -33,7 +35,9 @@ void windows_pipe::close(int which) {
     }
 }
 
-windows_process::windows_process(const char *args[]) {
+windows_process::windows_process(const char *args[]) :
+    stream_out(pipe_stdout), stream_err(pipe_stderr), stream_in(pipe_stdin)
+{
     SECURITY_ATTRIBUTES attrs;
     ZeroMemory(&attrs, sizeof(SECURITY_ATTRIBUTES));
 
@@ -100,10 +104,6 @@ windows_process::windows_process(const char *args[]) {
         pipe_stdout.close(PIPE_WRITE);
         pipe_stderr.close(PIPE_WRITE);
         pipe_stdin.close(PIPE_READ);
-
-        stream_out.init(pipe_stdout);
-        stream_err.init(pipe_stderr);
-        stream_in.init(pipe_stdin);
     }
 }
 

@@ -7,16 +7,16 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-void linux_pipe::init() {
+linux_pipe::linux_pipe() {
     if (::pipe(m_handles) < 0) {
         throw process_error("Errore nella creazione della pipe");
     }
 }
 
 void linux_pipe::redirect(int from, int to) {
-    if (::dup2(m_handles[from], to) < 0) {
+    if (::dup2(m_handles[from], to) < 0)
         ::exit(errno);
-    }
+    close();
 }
 
 int linux_pipe::write(size_t bytes, const void *buffer) {
@@ -38,20 +38,14 @@ void linux_pipe::close(int which) {
     }
 }
 
-linux_process::linux_process(const char *args[]) {
-    pipe_stdout.init();
-    pipe_stderr.init();
-    pipe_stdin.init();
-
+linux_process::linux_process(const char *args[]) :
+    stream_out(pipe_stdout), stream_err(pipe_stderr), stream_in(pipe_stdin)
+{
     child_pid = fork();
     if (child_pid == 0) {
         pipe_stdin.redirect(PIPE_READ, STDIN_FILENO);
         pipe_stdout.redirect(PIPE_WRITE, STDOUT_FILENO);
         pipe_stderr.redirect(PIPE_WRITE, STDERR_FILENO);
-
-        pipe_stdin.close();
-        pipe_stdout.close();
-        pipe_stderr.close();
 
         int result = execvp(args[0], const_cast<char *const*>(args));
 
@@ -60,10 +54,6 @@ linux_process::linux_process(const char *args[]) {
         pipe_stdout.close(PIPE_WRITE);
         pipe_stderr.close(PIPE_WRITE);
         pipe_stdin.close(PIPE_READ);
-
-        stream_out.init(pipe_stdout);
-        stream_err.init(pipe_stderr);
-        stream_in.init(pipe_stdin);
     }
 }
 

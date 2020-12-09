@@ -103,7 +103,8 @@ wxThread::ExitCode reader_thread::Entry() {
     };
 
     subprocess proc_compiler(args_compiler);
-    proc_compiler.stream_in << layout << std::flush;
+    proc_compiler.stream_in << layout;
+    proc_compiler.stream_in.close();
 
     std::string compile_error = read_all(proc_compiler.stream_err);
     if (!compile_error.empty()) {
@@ -119,7 +120,7 @@ wxThread::ExitCode reader_thread::Entry() {
         std::istreambuf_iterator<char>(),
         std::ostreambuf_iterator<char>(proc_reader->stream_in)
     );
-    proc_reader->stream_in.flush();
+    proc_reader->stream_in.close();
 
     try {
         Json::Value json_output;

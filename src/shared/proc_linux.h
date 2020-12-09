@@ -3,36 +3,41 @@
 
 #ifdef __linux__
 
-#include "proc_stream.h"
+#include "pipe_io.h"
 
-class linux_pipe : public pipe_t {
+class linux_pipe {
 public:
-    void init();
-
+    linux_pipe();
+    
     void redirect(int from, int to);
 
-    virtual int write(size_t bytes, const void *buffer) override;
+    ~linux_pipe() {
+        close();
+    }
 
-    virtual int read(size_t bytes, void *buffer) override;
-
-    virtual void close(int which = -1) override;
+    int write(size_t bytes, const void *buffer);
+    int read(size_t bytes, void *buffer);
+    void close(int which = -1);
 
 private:
     int m_handles[2];
 };
 
-class linux_process : public subprocess_base {
+class linux_process {
 public:
     linux_process(const char *args[]);
 
 public:
-    virtual int wait_finished() override;
-    
-    virtual void abort() override;
+    int wait_finished();
+    void abort();
 
 private:
     linux_pipe pipe_stdout, pipe_stdin, pipe_stderr;
     int child_pid;
+
+public:
+    pipe_istream<linux_pipe> stream_out, stream_err;
+    pipe_ostream<linux_pipe> stream_in;
 };
 
 #endif
