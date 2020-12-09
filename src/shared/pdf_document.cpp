@@ -18,12 +18,12 @@ void pdf_document::open(const std::string &filename) {
     };
 
     try {
-        auto process = open_process(args);
+        subprocess process(args);
 
         m_filename = filename;
 
         std::string line;
-        while (std::getline(process->m_stdout, line)) {
+        while (std::getline(process.m_stdout, line)) {
             std::smatch match;
             
             if (std::regex_search(line, match, std::regex("Pages: +([0-9]+)"))) {
@@ -88,8 +88,8 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
         args[nargs++] = m_filename.c_str();
         args[nargs++] = "-";
         
-        auto process = open_process(args);
-        return string_trim(read_all(process->m_stdout));
+        subprocess process(args);
+        return string_trim(read_all(process.m_stdout));
     } catch (const process_error &error) {
         throw pdf_error(error.message);
     }

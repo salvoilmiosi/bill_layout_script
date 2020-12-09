@@ -1,31 +1,6 @@
-#if defined(WIN32) || defined(_WIN32) && !defined(__linux__)
+#if defined(WIN32) || defined(_WIN32)
 
-#include "subprocess.h"
-#include <windows.h>
-
-class windows_pipe : public pipe_t {
-public:
-    void create_pipe(SECURITY_ATTRIBUTES &attrs, int which);
-
-    virtual int read(size_t bytes, void *buffer) override;
-    virtual int write(size_t bytes, const void *buffer) override;
-    
-    virtual void close(int which) override {
-        if (which != PIPE_WRITE && m_handles[PIPE_READ]) {
-            CloseHandle(m_handles[PIPE_READ]);
-            m_handles[PIPE_READ] = nullptr;
-        }
-        if (which != PIPE_READ && m_handles[PIPE_WRITE]) {
-            CloseHandle(m_handles[PIPE_WRITE]);
-            m_handles[PIPE_WRITE] = nullptr;
-        }
-    }
-
-private:
-    HANDLE m_handles[2];
-
-    friend class windows_process;
-};
+#include "proc_windows.h"
 
 void windows_pipe::create_pipe(SECURITY_ATTRIBUTES &attrs, int which) {
     if (!CreatePipe(&m_handles[PIPE_READ], &m_handles[PIPE_WRITE], &attrs, 0)
@@ -47,22 +22,16 @@ int windows_pipe::write(size_t bytes, const void *buffer) {
     return bytes_written;
 }
 
-class windows_process : public subprocess {
-public:
-    windows_process(const char *args[]);
-    ~windows_process();
-
-public:
-    virtual int wait_finished() override;
-
-    virtual void abort() override {
-        TerminateProcess(process, 1);
+void windows_pipe::close(int which) {
+    if (which != PIPE_WRITE && m_handles[PIPE_READ]) {
+        CloseHandle(m_handles[PIPE_READ]);
+        m_handles[PIPE_READ] = nullptr;
     }
-
-private:
-    windows_pipe pipe_stdout, pipe_stderr, pipe_stdin;
-    HANDLE process = nullptr;
-};
+    if (which != PIPE_READ && m_handles[PIPE_WRITE]) {
+        CloseHandle(m_handles[PIPE_WRITE]);
+        m_handles[PIPE_WRITE] = nullptr;
+    }
+}
 
 windows_process::windows_process(const char *args[]) {
     SECURITY_ATTRIBUTES attrs;
@@ -137,10 +106,6 @@ int windows_process::wait_finished() {
         throw process_error("Impossibile ottenere exit code");
     }
     return exit_code;
-}
-
-std::unique_ptr<subprocess> open_process(const char *args[]) {
-    return std::make_unique<windows_process>(args);
 }
 
 #endif

@@ -122,25 +122,25 @@ wxThread::ExitCode reader_thread::Entry() {
     };
 #endif
 
-    auto proc_compiler = open_process(args_compiler);
-    proc_compiler->m_stdin << layout << std::flush;
+    subprocess proc_compiler(args_compiler);
+    proc_compiler.m_stdin << layout << std::flush;
 
-    std::string compile_error = read_all(proc_compiler->m_stderr);
+    std::string compile_error = read_all(proc_compiler.m_stderr);
     if (!compile_error.empty()) {
         parent->compile_error = compile_error;
         wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR));
         return (wxThread::ExitCode) 1;
     }
 
-    proc_reader = open_process(args_reader);
+    proc_reader = std::make_unique<subprocess>(args_reader);
 
 #if !defined(WIN32) && !defined(_WIN32)
     std::copy(
-        std::istreambuf_iterator<char>(proc_compiler->m_stdout),
+        std::istreambuf_iterator<char>(proc_compiler.m_stdout),
         std::istreambuf_iterator<char>(),
-        std::ostreambuf_iterator<char>(proc_reader->m_stdin)
+        std::ostreambuf_iterator<char>(proc_reader.m_stdin)
     );
-    proc_reader->m_stdin.flush();
+    proc_reader.m_stdin.flush();
 #endif
 
     try {

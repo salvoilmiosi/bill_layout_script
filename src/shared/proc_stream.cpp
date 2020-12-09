@@ -1,4 +1,4 @@
-#include "subprocess.h"
+#include "proc_stream.h"
 
 int pipe_istreambuf::underflow() {
     int nbytes = m_pipe->read(BUFSIZE, buffer);

@@ -48,7 +48,7 @@ wxImage pdf_to_image(const pdf_document &doc, int page) {
     
     temp_file += ".png";
 
-    if (open_process(args)->wait_finished() != 0) {
+    if (subprocess(args).wait_finished() != 0) {
         throw pdf_error("Could not open image");
     }
 
@@ -69,8 +69,8 @@ wxImage pdf_to_image(const pdf_document &doc, int page) {
         nullptr
     };
 
-    auto process = open_process(args);
-    myStdInputStreamAdapter stream(process->m_stdout);
+    subprocess process(args);
+    myStdInputStreamAdapter stream(process.m_stdout);
     wxImage img(stream, wxBITMAP_TYPE_PNG);
     
     if (img.IsOk()) {
