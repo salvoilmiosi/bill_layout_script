@@ -30,20 +30,22 @@ std::string string_join(const std::vector<std::string> &vec, const std::string &
 };
 
 std::string string_tolower(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(),
-        [](unsigned char c) {
-            return std::tolower(c);
-        });
+    std::transform(str.begin(), str.end(), str.begin(), [](auto ch) {
+        return std::tolower(ch);
+    });
     return str;
 }
 
-std::string string_trim(std::string str) {
+void string_trim(std::string &str) {
 #if defined(WIN32) || defined(_WIN32)
-    string_replace(str, "\r\n", "\n");
+    str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
 #endif
-    str.erase(0, str.find_first_not_of("\t\n\v\f\r "));
-    str.erase(str.find_last_not_of("\t\n\v\f\r ") + 1);
-    return str;
+    str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](auto ch) {
+        return !std::isspace(ch);
+    }));
+    str.erase(std::find_if(str.rbegin(), str.rend(), [](auto ch) {
+        return !std::isspace(ch);
+    }).base(), str.end());
 }
 
 int string_replace(std::string &str, const std::string &from, const std::string &to) {

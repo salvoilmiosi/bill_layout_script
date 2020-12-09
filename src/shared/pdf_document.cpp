@@ -89,7 +89,9 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
         args[nargs++] = "-";
         
         subprocess process(args);
-        return string_trim(read_all(process.stream_out));
+        std::string str = read_all(process.stream_out);
+        string_trim(str);
+        return str;
     } catch (const process_error &error) {
         throw pdf_error(error.message);
     }

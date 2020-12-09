@@ -17,7 +17,7 @@ int string_replace(std::string &str, const std::string &from, const std::string 
 std::string string_tolower(std::string str);
 
 // elimina gli spazi in eccesso
-std::string string_trim(std::string str);
+void string_trim(std::string &str);
 
 // legge tutta la stringa da uno stream
 std::string read_all(std::istream &stream);

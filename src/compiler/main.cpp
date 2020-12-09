@@ -105,9 +105,9 @@ int MainApp::OnRun() {
     
     if (!debug && !output_file.empty()) {
         if (output_file == "-") {
-#if         defined(WIN32) || defined(_WIN32)
+#if defined(WIN32) || defined(_WIN32)
             _setmode(_fileno(stdout), _O_BINARY);
-#           endif
+#endif
             out_code.write_bytecode(std::cout);
         } else {
             std::ofstream ofs(output_file.ToStdString(), std::ofstream::binary | std::ofstream::out);

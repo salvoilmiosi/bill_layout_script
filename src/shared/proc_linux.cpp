@@ -2,7 +2,12 @@
 
 #include "proc_linux.h"
 
-void linux_pipe::create_pipe() {
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <signal.h>
+
+void linux_pipe::init() {
     if (::pipe(m_handles) < 0) {
         throw process_error("Errore nella creazione della pipe");
     }
@@ -34,9 +39,9 @@ void linux_pipe::close(int which) {
 }
 
 linux_process::linux_process(const char *args[]) {
-    pipe_stdout.create_pipe();
-    pipe_stderr.create_pipe();
-    pipe_stdin.create_pipe();
+    pipe_stdout.init();
+    pipe_stderr.init();
+    pipe_stdin.init();
 
     child_pid = fork();
     if (child_pid == 0) {
@@ -73,6 +78,10 @@ int linux_process::wait_finished() {
     } else {
         throw process_error("Impossibile ottenere exit code");
     }
+}
+
+void linux_process::void abort() {
+    ::kill(child_pid, SIGTERM);
 }
 
 #endif

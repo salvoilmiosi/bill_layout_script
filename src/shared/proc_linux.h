@@ -5,14 +5,9 @@
 
 #include "proc_stream.h"
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <signal.h>
-
 class linux_pipe : public pipe_t {
 public:
-    void create_pipe();
+    void init();
 
     void redirect(int from, int to);
 
@@ -20,7 +15,7 @@ public:
 
     virtual int read(size_t bytes, void *buffer) override;
 
-    virtual void close(int which) override;
+    virtual void close(int which = -1) override;
 
 private:
     int m_handles[2];
@@ -33,9 +28,7 @@ public:
 public:
     virtual int wait_finished() override;
     
-    virtual void abort() override {
-        ::kill(child_pid, SIGTERM);
-    }
+    virtual void abort() override;
 
 private:
     linux_pipe pipe_stdout, pipe_stdin, pipe_stderr;

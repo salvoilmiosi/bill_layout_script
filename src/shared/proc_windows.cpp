@@ -2,10 +2,10 @@
 
 #include "proc_windows.h"
 
-void windows_pipe::create_pipe(SECURITY_ATTRIBUTES &attrs, int which) {
+void windows_pipe::init(SECURITY_ATTRIBUTES &attrs, int which) {
     if (!CreatePipe(&m_handles[PIPE_READ], &m_handles[PIPE_WRITE], &attrs, 0)
         || !SetHandleInformation(m_handles[which], HANDLE_FLAG_INHERIT, 0))
-        throw process_error("Error creating pipe");
+        throw process_error("Errore nella creazione della pipe");
 }
 
 int windows_pipe::read(size_t bytes, void *buffer) {
@@ -41,9 +41,9 @@ windows_process::windows_process(const char *args[]) {
     attrs.bInheritHandle = true;
     attrs.lpSecurityDescriptor = nullptr;
 
-    pipe_stdout.create_pipe(attrs, PIPE_READ);
-    pipe_stderr.create_pipe(attrs, PIPE_READ);
-    pipe_stdin.create_pipe(attrs, PIPE_WRITE);
+    pipe_stdout.init(attrs, PIPE_READ);
+    pipe_stderr.init(attrs, PIPE_READ);
+    pipe_stdin.init(attrs, PIPE_WRITE);
 
     STARTUPINFOA start_info;
     ZeroMemory(&start_info, sizeof(STARTUPINFOA));
@@ -118,6 +118,10 @@ int windows_process::wait_finished() {
         throw process_error("Impossibile ottenere exit code");
     }
     return exit_code;
+}
+
+void windows_process::abort() {
+    TerminateProcess(process, 1);
 }
 
 #endif
