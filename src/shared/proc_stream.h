@@ -87,8 +87,8 @@ public:
 
     virtual void abort() = 0;
 
-    pipe_istream m_stdout, m_stderr;
-    pipe_ostream m_stdin;
+    pipe_istream stream_out, stream_err;
+    pipe_ostream stream_in;
 };
 
 #endif // __SUBPROCESS_H__

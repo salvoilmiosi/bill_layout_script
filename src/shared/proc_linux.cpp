@@ -56,9 +56,9 @@ linux_process::linux_process(const char *args[]) {
         pipe_stderr.close(PIPE_WRITE);
         pipe_stdin.close(PIPE_READ);
 
-        m_stdout.init(pipe_stdout);
-        m_stderr.init(pipe_stderr);
-        m_stdin.init(pipe_stdin);
+        stream_out.init(pipe_stdout);
+        stream_err.init(pipe_stderr);
+        stream_in.init(pipe_stdin);
     }
 }
 
