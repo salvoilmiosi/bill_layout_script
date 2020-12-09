@@ -54,31 +54,43 @@ windows_process::windows_process(const char *args[]) {
     start_info.hStdOutput = pipe_stdout.m_handles[PIPE_WRITE];
     start_info.dwFlags |= STARTF_USESTDHANDLES;
 
-    std::string cmdline;
-    for (const char **cmd = args; *cmd != nullptr; ++cmd) {
-        if (cmd != args) {
-            cmdline += ' ';
+    std::string command;
+    command.reserve(1024);
+
+    std::string arg;
+    while (true) {
+        arg = *args++;
+
+        bool quote;
+        if (arg.empty()) {
+            // we need to quote empty arguments, otherwise they'd just
+            // disappear
+            quote = true;
+        } else { // non-empty
+            // escape any quotes present in the string to avoid interfering
+            // with the command line parsing in the child process
+            string_replace(arg, "\"", "\\\"");
+
+            // and quote any arguments containing the spaces to prevent them from
+            // being broken down
+            quote = arg.find_first_of(" \t") != std::string::npos;
         }
-        cmdline += '\"';
-        for (const char *c = *cmd; *c != '\0'; ++c) {
-            switch (*c) {
-            case '\\':
-                cmdline += '\\';
-                // fall through
-            default:
-                cmdline += *c;
-            }
-        }
-        if (cmd == args) {
-            cmdline += ".exe";
-        }
-        cmdline += '\"';
+
+        if (quote)
+            command += '\"' + arg + '\"';
+        else
+            command += arg;
+
+        if (!*args)
+            break;
+
+        command += ' ';
     }
 
     PROCESS_INFORMATION proc_info;
     ZeroMemory(&proc_info, sizeof(PROCESS_INFORMATION));
 
-    if (!CreateProcessA(nullptr, cmdline.data(), nullptr, nullptr, true,
+    if (!CreateProcessA(nullptr, command.data(), nullptr, nullptr, true,
             CREATE_NO_WINDOW, nullptr, nullptr, &start_info, &proc_info)) {
         throw process_error("Could not open child process");
     } else {
