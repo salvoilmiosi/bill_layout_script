@@ -37,9 +37,6 @@ std::string string_tolower(std::string str) {
 }
 
 void string_trim(std::string &str) {
-#if defined(WIN32) || defined(_WIN32)
-    str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
-#endif
     str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](auto ch) {
         return !std::isspace(ch);
     }));

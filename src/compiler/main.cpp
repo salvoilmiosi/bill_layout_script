@@ -105,8 +105,8 @@ int MainApp::OnRun() {
     
     if (!debug && !output_file.empty()) {
         if (output_file == "-") {
-#if defined(WIN32) || defined(_WIN32)
-            _setmode(_fileno(stdout), _O_BINARY);
+#ifdef _WIN32
+            setmode(fileno(stdout), O_BINARY);
 #endif
             out_code.write_bytecode(std::cout);
         } else {

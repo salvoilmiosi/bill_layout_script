@@ -70,8 +70,8 @@ int MainApp::OnRun() {
     bool in_file_layout = true;
 
     if (input_file == "-") {
-#if defined(WIN32) || defined(_WIN32)
-        _setmode(_fileno(stdin), _O_BINARY);
+#ifdef _WIN32
+        setmode(fileno(stdin), O_BINARY);
 #endif
         input_stdin = true;
     } else {

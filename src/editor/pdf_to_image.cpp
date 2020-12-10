@@ -31,7 +31,7 @@ protected:
 wxImage pdf_to_image(const pdf_document &doc, int page) {
     auto page_str = std::to_string(page);
 
-#if defined(WIN32) || defined(_WIN32)
+#if defined(_WIN32) && !defined(POPPLER_FIX)
     // bisogna su windows creare un file temporaneo
     // perchè windows converte tutti i \n in \r\n nelle pipe, corrompendo i dati
     

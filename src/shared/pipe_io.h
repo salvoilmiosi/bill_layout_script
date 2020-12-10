@@ -28,6 +28,8 @@ private:
     pipe_t &m_pipe;
     char buffer[BUFSIZE];
 
+    bool m_clear_cr = false;
+
     template<typename T>
     friend class pipe_istream;
 };
@@ -38,7 +40,11 @@ int pipe_istreambuf<pipe_t>::underflow() {
     if (nbytes <= 0) {
         return EOF;
     }
-    setg(buffer, buffer, buffer + nbytes);
+    if (m_clear_cr) {
+        setg(buffer, buffer, std::remove(buffer, buffer + nbytes, '\r'));
+    } else {
+        setg(buffer, buffer, buffer + nbytes);
+    }
     return *buffer;
 }
 
@@ -51,6 +57,10 @@ public:
 
     void close() {
         buffer.m_pipe.close();
+    }
+
+    void set_clear_cr(bool value) {
+        buffer.m_clear_cr = value;
     }
 
 private:

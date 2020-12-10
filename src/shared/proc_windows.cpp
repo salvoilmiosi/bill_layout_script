@@ -1,4 +1,4 @@
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 #include "proc_windows.h"
 

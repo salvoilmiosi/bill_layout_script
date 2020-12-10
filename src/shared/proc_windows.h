@@ -1,7 +1,7 @@
 #ifndef __PROC_WINDOWS_H__
 #define __PROC_WINDOWS_H__
 
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 #include "pipe_io.h"
 #include <windows.h>

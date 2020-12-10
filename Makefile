@@ -13,8 +13,8 @@ ifndef build
 endif
 
 ifeq ($(build),release)
-  CXXFLAGS += -O2
-  LDFLAGS += -s -DNDEBUG
+  CXXFLAGS += -O2 -DNDEBUG
+  LDFLAGS += -s
 else ifeq ($(build),debug)
   CXXFLAGS += -g -DDEBUG
 else
