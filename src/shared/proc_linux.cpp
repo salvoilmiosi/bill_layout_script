@@ -70,7 +70,7 @@ int linux_process::wait_finished() {
     }
 }
 
-void linux_process::void abort() {
+void linux_process::abort() {
     ::kill(child_pid, SIGTERM);
 }
 

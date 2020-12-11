@@ -4,6 +4,7 @@
 #include <string>
 #include <streambuf>
 #include <iostream>
+#include <algorithm>
 
 #define PIPE_READ 0
 #define PIPE_WRITE 1
