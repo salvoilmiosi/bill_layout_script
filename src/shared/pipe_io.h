@@ -23,7 +23,7 @@ public:
     pipe_istreambuf(pipe_t &m_pipe) : m_pipe(m_pipe) {}
 
 protected:
-    virtual int underflow() override;
+    virtual std::streambuf::int_type underflow() override;
 
 private:
     pipe_t &m_pipe;
@@ -34,20 +34,6 @@ private:
     template<typename T>
     friend class pipe_istream;
 };
-
-template<typename pipe_t>
-int pipe_istreambuf<pipe_t>::underflow() {
-    int nbytes = m_pipe.read(BUFSIZE, buffer);
-    if (nbytes <= 0) {
-        return EOF;
-    }
-    if (m_clear_cr) {
-        setg(buffer, buffer, std::remove(buffer, buffer + nbytes, '\r'));
-    } else {
-        setg(buffer, buffer, buffer + nbytes);
-    }
-    return *buffer;
-}
 
 template<typename pipe_t>
 class pipe_istream : public std::istream {
@@ -74,7 +60,7 @@ public:
     pipe_ostreambuf(pipe_t &m_pipe) : m_pipe(m_pipe) {}
 
 protected:
-    virtual int overflow(int ch) override;
+    virtual std::streambuf::int_type overflow(std::streambuf::int_type ch) override;
 
     virtual int sync() override;
 
@@ -85,41 +71,6 @@ private:
     template<typename T>
     friend class pipe_ostream;
 };
-
-template<typename pipe_t>
-int pipe_ostreambuf<pipe_t>::overflow(int ch) {
-    if (pbase() == NULL) {
-        // save one byte for next overflow
-        setp(buffer, buffer + BUFSIZE - 1);
-        if (ch != EOF) {
-            ch = sputc(ch);
-        } else {
-            ch = 0;
-        }
-    } else {
-        char* end = pptr();
-        if (ch != EOF) {
-            *end++ = ch;
-        }
-        if (m_pipe.write(end - pbase(), pbase()) <= 0) {
-            ch = EOF;
-        } else if (ch == EOF) {
-            ch = 0;
-        }
-        setp(buffer, buffer + BUFSIZE - 1);
-    }
-    return ch;
-}
-
-template<typename pipe_t>
-int pipe_ostreambuf<pipe_t>::sync() {
-    if (pptr() != pbase()) {
-        if (m_pipe.write(pptr() - pbase(), pbase()) <= 0) {
-            return -1;
-        }
-    }
-    return 0;
-}
 
 template<typename pipe_t>
 class pipe_ostream : public std::ostream {
@@ -136,5 +87,36 @@ public:
 private:
     pipe_ostreambuf<pipe_t> buffer;
 };
+
+template<typename pipe_t>
+std::streambuf::int_type pipe_istreambuf<pipe_t>::underflow() {
+    int nbytes = m_pipe.read(BUFSIZE, buffer);
+    if (nbytes <= 0) {
+        return traits_type::eof();
+    }
+    if (m_clear_cr) {
+        setg(buffer, buffer, std::remove(buffer, buffer + nbytes, '\r'));
+    } else {
+        setg(buffer, buffer, buffer + nbytes);
+    }
+    return traits_type::to_int_type(*gptr());
+}
+
+template<typename pipe_t>
+std::streambuf::int_type pipe_ostreambuf<pipe_t>::overflow(std::streambuf::int_type ch) {
+    int write = pptr() - pbase();
+    if (write && m_pipe.write(pptr() - pbase(), pbase()) != write) {
+        return traits_type::eof();
+    }
+
+    setp(buffer, buffer + BUFSIZE);
+    if (!traits_type::eq_int_type(ch, traits_type::eof())) sputc(ch);
+    return traits_type::not_eof(ch);
+}
+
+template<typename pipe_t>
+int pipe_ostreambuf<pipe_t>::sync() {
+    return pptr() != pbase() && m_pipe.write(pptr() - pbase(), pbase()) <= 0 ? -1 : 0;
+}
 
 #endif // __SUBPROCESS_H__
