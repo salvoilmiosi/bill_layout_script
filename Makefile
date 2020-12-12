@@ -1,5 +1,7 @@
+CC = gcc
 CXX = g++
-CXXFLAGS = -Wall --std=c++17 -Isrc/shared
+CFLAGS = -Isrc/shared -Wall
+CXXFLAGS = $(CFLAGS) --std=c++17
 LDFLAGS = 
 
 SRC_DIR = src
@@ -13,12 +15,16 @@ ifndef build
 endif
 
 ifeq ($(build),release)
-  CXXFLAGS += -O2 -DNDEBUG
+  CFLAGS += -O2 -DNDEBUG
   LDFLAGS += -s
 else ifeq ($(build),debug)
-  CXXFLAGS += -g -DDEBUG
+  CFLAGS += -g -DDEBUG
 else
   $(error "Unknown build option $(build)")
+endif
+
+ifneq ($(findstring $(shell pdfinfo -v 2>&1),20.12.1)),)
+  CFLAGS += -DPOPPLER_FIX
 endif
 
 BIN_SHARED = layout_shared.so
@@ -35,19 +41,22 @@ LIBS_EDITOR = `wx-config --libs core,stc` $(LIBS_SHARED)
 LIBS_READER = `wx-config --libs base` $(LIBS_SHARED)
 LIBS_COMPILER = `wx-config --libs base` $(LIBS_SHARED)
 
-SOURCES_SHARED = $(wildcard $(SRC_DIR)/shared/*.cpp $(SRC_DIR)/shared/**/*.cpp)
+rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
+
+SOURCES_SHARED = $(call rwildcard,$(SRC_DIR)/shared,*.cpp *.c)
 OBJECTS_SHARED = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_SHARED)))
 
-SOURCES_EDITOR = $(wildcard $(SRC_DIR)/editor/*.cpp $(SRC_DIR)/editor/**/*.cpp)
+SOURCES_EDITOR = $(call rwildcard,$(SRC_DIR)/editor,*.cpp *.c)
 OBJECTS_EDITOR = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_EDITOR)))
 
-SOURCES_READER = $(wildcard $(SRC_DIR)/reader/*.cpp $(SRC_DIR)/reader/**/*.cpp)
+SOURCES_READER = $(call rwildcard,$(SRC_DIR)/reader,*.cpp *.c)
 OBJECTS_READER = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_READER)))
 
-SOURCES_COMPILER = $(wildcard $(SRC_DIR)/compiler/*.cpp $(SRC_DIR)/compiler/**/*.cpp)
+SOURCES_COMPILER = $(call rwildcard,$(SRC_DIR)/compiler,*.cpp *.c)
 OBJECTS_COMPILER = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%.o,$(basename $(SOURCES_COMPILER)))
 
-LAYOUTS = $(patsubst $(BLS_DIR)/%.bls,$(LAYOUT_DIR)/%.out,$(wildcard $(BLS_DIR)/*.bls))
+SOURCES_BLS = $(call rwildcard,$(BLS_DIR),*.bls)
+LAYOUTS = $(patsubst $(BLS_DIR)/%.bls,$(LAYOUT_DIR)/%.out,$(SOURCES_BLS))
 
 SOURCES = $(SOURCES_SHARED) $(SOURCES_EDITOR) $(SOURCES_READER) $(SOURCES_COMPILER)
 OBJECTS = $(OBJECTS_SHARED) $(OBJECTS_EDITOR) $(OBJECTS_READER) $(OBJECTS_COMPILER)
@@ -109,6 +118,12 @@ $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp $(OBJ_DIR)/%.d
 	@mkdir -p $(dir $@)
 	$(CXX) $(DEPFLAGS) $(if $(filter $(SOURCES_SHARED),$<),-fPIC) $(CXXFLAGS) -c $(INCLUDE) -o $@ $<
+	@mv -f $(OBJ_DIR)/$*.Td $(OBJ_DIR)/$*.d && touch $@
+
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(OBJ_DIR)/%.d
+	@mkdir -p $(dir $@)
+	$(CC) $(DEPFLAGS) $(if $(filter $(SOURCES_SHARED),$<),-fPIC) $(CFLAGS) -c $(INCLUDE) -o $@ $<
 	@mv -f $(OBJ_DIR)/$*.Td $(OBJ_DIR)/$*.d && touch $@
 
 $(OBJ_DIR)/%.d: ;
