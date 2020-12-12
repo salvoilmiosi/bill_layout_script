@@ -108,8 +108,9 @@ wxThread::ExitCode reader_thread::Entry() {
 
     std::string compile_error = read_all(proc_compiler.stream_err);
     if (!compile_error.empty()) {
-        parent->compile_error = compile_error;
-        wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR));
+        auto *evt = new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR);
+        evt->SetString(compile_error);
+        wxQueueEvent(parent, evt);
         return (wxThread::ExitCode) 1;
     }
 
@@ -131,7 +132,6 @@ wxThread::ExitCode reader_thread::Entry() {
             return (wxThread::ExitCode) 1;
         } else {
             parent->json_output = json_output;
-
             wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
             return (wxThread::ExitCode) 0;
         }
@@ -161,7 +161,7 @@ void output_dialog::compileAndRead() {
 }
 
 void output_dialog::OnCompileError(wxCommandEvent &evt) {
-    CompileErrorDialog(this, compile_error).ShowModal();
+    CompileErrorDialog(this, evt.GetString()).ShowModal();
 }
 
 void output_dialog::OnReadCompleted(wxCommandEvent &evt) {

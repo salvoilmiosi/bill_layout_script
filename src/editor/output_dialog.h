@@ -28,8 +28,6 @@ private:
 
     output_dialog *parent;
 
-    Json::Value json_values;
-
     bill_layout_script layout;
     wxString pdf_filename;
 };
@@ -48,7 +46,6 @@ private:
 
     reader_thread *m_thread = nullptr;
     Json::Value json_output;
-    wxString compile_error;
     
     wxCriticalSection m_thread_cs;
 
