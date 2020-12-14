@@ -3,6 +3,7 @@
 #include <wx/filename.h>
 
 #include "subprocess.h"
+#include "arguments.h"
 
 class myStdInputStreamAdapter : public wxInputStream {
 public:
@@ -37,20 +38,17 @@ wxImage pdf_to_image(const pdf_document &doc, int page) {
     
     wxString temp_file = wxFileName::CreateTempFileName("pdf");
     wxRenameFile(temp_file, temp_file + ".png"); // pdftocairo aggiunge l'estensione al nome file
-
-    const char *args[] = {
-        "pdftocairo",
-        "-f", page_str.c_str(), "-l", page_str.c_str(),
-        "-png", "-singlefile",
-        doc.filename().c_str(), temp_file.c_str(),
-        nullptr
-    };
     
-    temp_file += ".png";
-
-    if (subprocess(args).wait_finished() != 0) {
+    if (subprocess(arguments(
+        "pdftocairo",
+        "-f", page_str, "-l", page_str,
+        "-png", "-singlefile",
+        doc.filename(), temp_file
+    )).wait_finished() != 0) {
         throw pdf_error("Could not open image");
     }
+
+    temp_file += ".png";
 
     if (wxFileExists(temp_file)) {
         wxImage img(temp_file, wxBITMAP_TYPE_PNG);
@@ -61,15 +59,12 @@ wxImage pdf_to_image(const pdf_document &doc, int page) {
         }
     }
 #else
-    const char *args[] = {
+    subprocess process(arguments(
         "pdftocairo", "-q",
-        "-f", page_str.c_str(), "-l", page_str.c_str(),
+        "-f", page_str, "-l", page_str,
         "-png", "-singlefile",
-        doc.filename().c_str(), "-",
-        nullptr
-    };
-
-    subprocess process(args);
+        doc.filename(), "-"
+    ));
     myStdInputStreamAdapter stream(process.stream_out);
     wxImage img(stream, wxBITMAP_TYPE_PNG);
     

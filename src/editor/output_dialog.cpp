@@ -6,6 +6,7 @@
 #include "resources.h"
 #include "editor.h"
 #include "compile_error_diag.h"
+#include "arguments.h"
 #include "utils.h"
 
 enum {
@@ -89,20 +90,10 @@ wxThread::ExitCode reader_thread::Entry() {
     wxString cmd_compiler = get_app_path() + "layout_compiler";
     wxString cmd_reader = get_app_path() + "layout_reader";
 
-    const char *args_compiler[] = {
-        cmd_compiler.c_str(),
-        "-q", "-o", "-", "-",
-        nullptr
-    };
-
-    const char *args_reader[] = {
-        cmd_reader.c_str(),
-        "-p", pdf_filename.c_str(),
-        "-d", "-",
-        nullptr
-    };
-
-    subprocess proc_compiler(args_compiler);
+    subprocess proc_compiler(arguments(
+        cmd_compiler,
+        "-q", "-o", "-", "-"
+    ));
     proc_compiler.stream_in << layout;
     proc_compiler.stream_in.close();
 
@@ -114,7 +105,11 @@ wxThread::ExitCode reader_thread::Entry() {
         return (wxThread::ExitCode) 1;
     }
 
-    proc_reader = std::make_unique<subprocess>(args_reader);
+    proc_reader = std::make_unique<subprocess>(arguments(
+        cmd_reader,
+        "-p", pdf_filename,
+        "-d", "-"
+    ));
 
     std::copy(
         std::istreambuf_iterator<char>(proc_compiler.stream_out),

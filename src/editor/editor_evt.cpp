@@ -6,6 +6,7 @@
 #include <wx/config.h>
 
 #include "subprocess.h"
+#include "arguments.h"
 #include "utils.h"
 
 #include "layout_ext.h"
@@ -125,15 +126,12 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
     wxString output_file = diag.GetPath().ToStdString();
     try {
         wxString cmd_str = get_app_path() + "layout_compiler";
-        const char *args[] = {
-            cmd_str.c_str(),
-            "-o",
-            output_file.c_str(),
-            "-",
-            nullptr
-        };
         
-        subprocess process(args);
+        subprocess process(arguments(
+            cmd_str,
+            "-o", output_file,
+            "-"
+        ));
         process.stream_in << layout;
         process.stream_in.close();
         
@@ -165,14 +163,11 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
         if (layout_path.empty()) return;
     }
 
-    const char *args[] = {
-        cmd_str.c_str(),
-        "-p", m_doc.filename().c_str(),
-        control_script_filename.c_str(),
-        nullptr
-    };
-
-    subprocess process(args);
+    subprocess process(arguments(
+        cmd_str,
+        "-p", m_doc.filename(),
+        control_script_filename
+    ));
 
     Json::Value json_output;
     process.stream_out >> json_output;

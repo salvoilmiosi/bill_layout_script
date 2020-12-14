@@ -6,6 +6,7 @@
 #include <fmt/format.h>
 
 #include "subprocess.h"
+#include "arguments.h"
 #include "utils.h"
 
 void pdf_document::open(const std::string &filename) {
@@ -13,12 +14,10 @@ void pdf_document::open(const std::string &filename) {
         throw pdf_error(fmt::format("Impossibile aprire il file \"{0}\"", filename));
     }
 
-    const char *args[] = {
-        "pdfinfo", filename.c_str(), nullptr
-    };
-
     try {
-        subprocess process(args);
+        subprocess process(arguments(
+            "pdfinfo", filename
+        ));
 
         m_filename = filename;
 
@@ -46,8 +45,7 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
     if (rect.page > m_num_pages) return "";
 
     try {
-        const char *args[30] = {"pdftotext", "-q", "-eol", "unix"};
-        size_t nargs = 4;
+        arguments<30> args("pdftotext", "-q", "-eol", "unix");
 
         auto p = std::to_string(rect.page);
         auto x = std::to_string((int)(m_width * rect.x * resolution_factor));
@@ -58,22 +56,10 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
 
         switch (rect.type) {
         case box_type::BOX_RECTANGLE:
-            args[nargs++] = "-r";
-            args[nargs++] = r.c_str();
-            args[nargs++] = "-x";
-            args[nargs++] = x.c_str();
-            args[nargs++] = "-y";
-            args[nargs++] = y.c_str();
-            args[nargs++] = "-W";
-            args[nargs++] = w.c_str();
-            args[nargs++] = "-H";
-            args[nargs++] = h.c_str();
+            args.add_args("-r", r, "-x", x, "-y", y, "-W", w, "-H", h);
             // fall through
         case box_type::BOX_PAGE:
-            args[nargs++] = "-f";
-            args[nargs++] = p.c_str();
-            args[nargs++] = "-l";
-            args[nargs++] = p.c_str();
+            args.add_args("-f", p, "-l", p);
             break;
         case box_type::BOX_FILE:
             break;
@@ -81,9 +67,8 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
             return "";
         }
 
-        if (read_mode_options[static_cast<int>(rect.mode)]) args[nargs++] = read_mode_options[static_cast<int>(rect.mode)];
-        args[nargs++] = m_filename.c_str();
-        args[nargs++] = "-";
+        if (read_mode_options[static_cast<int>(rect.mode)]) args.add_args(read_mode_options[static_cast<int>(rect.mode)]);
+        args.add_args(m_filename, "-");
         
         subprocess process(args);
         std::string str = read_all(process.stream_out);
