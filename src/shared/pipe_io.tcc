@@ -6,11 +6,7 @@ std::streambuf::int_type pipe_istreambuf<pipe_t>::underflow() {
     if (nbytes <= 0) {
         return traits_type::eof();
     }
-    if (m_clear_cr) {
-        setg(buffer, buffer, std::remove(buffer, buffer + nbytes, '\r'));
-    } else {
-        setg(buffer, buffer, buffer + nbytes);
-    }
+    setg(buffer, buffer, buffer + nbytes);
     return traits_type::to_int_type(*gptr());
 }
 

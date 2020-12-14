@@ -29,8 +29,6 @@ private:
     pipe_t &m_pipe;
     char buffer[BUFSIZE];
 
-    bool m_clear_cr = false;
-
     template<typename T>
     friend class pipe_istream;
 };
@@ -44,10 +42,6 @@ public:
 
     void close() {
         buffer.m_pipe.close();
-    }
-
-    void set_clear_cr(bool value) {
-        buffer.m_clear_cr = value;
     }
 
 private:

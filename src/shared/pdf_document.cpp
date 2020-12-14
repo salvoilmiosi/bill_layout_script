@@ -46,8 +46,8 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
     if (rect.page > m_num_pages) return "";
 
     try {
-        const char *args[30] = {0};
-        size_t nargs = 0;
+        const char *args[30] = {"pdftotext", "-q", "-eol", "unix"};
+        size_t nargs = 4;
 
         auto p = std::to_string(rect.page);
         auto x = std::to_string((int)(m_width * rect.x * resolution_factor));
@@ -55,9 +55,6 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
         auto w = std::to_string((int)(m_width * rect.w * resolution_factor));
         auto h = std::to_string((int)(m_height * rect.h * resolution_factor));
         auto r = std::to_string((int)(RESOLUTION));
-
-        args[nargs++] = "pdftotext";
-        args[nargs++] = "-q";
 
         switch (rect.type) {
         case box_type::BOX_RECTANGLE:
@@ -89,9 +86,6 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
         args[nargs++] = "-";
         
         subprocess process(args);
-#ifdef _WIN32
-        process.stream_out.set_clear_cr(true);
-#endif
         std::string str = read_all(process.stream_out);
         string_trim(str);
         return str;
