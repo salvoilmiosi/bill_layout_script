@@ -6,66 +6,66 @@
 #include "layout.h"
 
 enum class opcode : uint8_t {
-    NOP,        // nessuna operazione
-    RDBOX,      // byte mode, byte page, string spacers, float x, float y, float w, float h -- legge il rettangolo e resetta content_stack
-    RDPAGE,     // byte mode, byte page, string spacers -- legge la pagina e resetta content_stack
-    RDFILE,     // byte mode -- legge l'intero file e resetta content_stack
-    MVBOX,      // byte index -- pop, sposta il rettangolo a seconda dello spacer
-    SETPAGE,    // byte page -- setta la pagina letta
-    CALL,       // string fun_name, byte numargs -- pop * numargs, push della variabile ritornata
-    THROWERR,   // string message -- throw layout_error(message)
-    PARSENUM,   // pop, push parse_num su top
-    PARSEINT,   // pop, push parse_int su top
-    EQ,         // pop * 2, push a == b
-    NEQ,        // pop * 2, push a != b
-    AND,        // pop * 2, push a && b
-    OR,         // pop * 2, push a || b
-    NEG,        // pop, push -a
-    NOT,        // pop, push !a
-    ADD,        // pop * 2, push a + b
-    SUB,        // pop * 2, push a - b
-    MUL,        // pop * 2, push a * b
-    DIV,        // pop * 2, push a / b
-    GT,         // pop * 2, push a > b
-    LT,         // pop * 2, push a < b
-    GEQ,        // pop * 2, push a >= b
-    LEQ,        // pop * 2, push a <= b
-    MAX,        // pop * 2, push max (a, b)
-    MIN,        // pop * 2, push min (a, b)
-    SELGLOBAL,  // string name -- m_selected = (name) VAR_GLOBAL
-    SELVAR,     // string name, byte index -- m_selected = (name, index, index)
-    SELVARTOP,  // string name -- pop, m_selected = (name, top)
-    SELRANGE,   // string name, bye idxfrom, byte idxto = (name, idxfrom, idxto)
-    SELRANGETOP,// string name -- pop, pop, m_selected = (name, top-1, top)
-    SELRANGEALL,// string name -- m_selected = (name), set flag range_all
-    SETDEBUG,   // setta flag debug su top di ref_stack
-    CLEAR,      // m_selected.clear()
-    APPEND,     // pop, m_selected.append(top)
-    SETVAR,     // pop, m_selected = top
-    RESETVAR,   // m_selected.clear(), setvar
-    COPYCONTENT,// push copia top di content_stack su var_stack
-    PUSHBYTE,   // byte number, push number su var_stack
-    PUSHSHORT,  // byte*2 number, push number su var_stack
-    PUSHINT,    // byte*4 number, push number su var_stack
-    PUSHFLOAT,  // float number, push number su var_stack
-    PUSHSTR,    // string str, push str su var_stack
-    PUSHVAR,    // push m_selected su var_stack
-    JMP,        // short address -- jump incondizionale
-    JZ,         // short address -- pop, jump se top = 0
-    JNZ,        // short address -- pop, jump se top != 0
-    JTE,        // short address -- jump se top di content_stack a fine di token
-    INC,        // pop, m_selected += top
-    DEC,        // pop, m_selected -= top
-    ISSET,      // push m_selected.size() != 0
-    GETSIZE,    // push m_selected.size()
-    PUSHCONTENT,// pop, push top var_stack in content_stack
-    NEXTLINE,   // avanza di un token newline nel top di content_stack
-    NEXTTOKEN,  // avanza di un token spazio nel top di content_stack
-    POPCONTENT, // pop da content_stack
+    NOP,        // no operation
+    RDBOX,      // byte mode, byte page, string spacers, float x, float y, float w, float h -- pdftotext -> content_stack
+    RDPAGE,     // byte mode, byte page, string spacers -- pdftotext -> content_stack
+    RDFILE,     // byte mode -- pdftotext -> content_stack
+    MVBOX,      // byte index -- var_stack -> spacer[index]
+    SETPAGE,    // byte page -- m_ate = page > num pdf pages
+    CALL,       // string fun_name, byte numargs -- var_stack * numargs -> fun_name -> var_stack
+    THROWERR,   // var_stack -> throw
+    PARSENUM,   // var_stack -> parse_num -> var_stack
+    PARSEINT,   // var_stack -> parse_int -> var_stack
+    EQ,         // var_stack * 2 -> a == b -> var_stack
+    NEQ,        // var_stack * 2 -> a != b -> var_stack
+    AND,        // var_stack * 2 -> a && b -> var_stack
+    OR,         // var_stack * 2 -> a == b -> var_stack
+    NEG,        // var_stack -> -top -> var_stack
+    NOT,        // var_stack -> !top -> var_stack
+    ADD,        // var_stack * 2 -> a + b -> var_stack
+    SUB,        // var_stack * 2 -> a - b -> var_stack
+    MUL,        // var_stack * 2 -> a * b -> var_stack
+    DIV,        // var_stack * 2 -> a / b -> var_stack
+    GT,         // var_stack * 2 -> a > b -> var_stack
+    LT,         // var_stack * 2 -> a < b -> var_stack
+    GEQ,        // var_stack * 2 -> a >= b -> var_stack
+    LEQ,        // var_stack * 2 -> a >= b -> var_stack
+    MAX,        // var_stack * 2 -> max(a,b) -> var_stack
+    MIN,        // var_stack * 2 -> min(a,b) -> var_stack
+    SELGLOBAL,  // string name -- (name, global) -> ref_stack
+    SELVAR,     // string name, byte index -- (name, index, index) -> ref_stack
+    SELVARTOP,  // string name -- var_stack -> (name, top, top) -> ref_stack
+    SELRANGE,   // string name, bye idxfrom, byte idxto = (name, idxfrom, idxto) -> ref_stack
+    SELRANGETOP,// string name -- var_stack * 2 -> (name, top-1, top) -> ref_stack
+    SELRANGEALL,// string name -- (name, range_all) -> ref_stack
+    SETDEBUG,   // ref_stack.top.debug = 1
+    CLEAR,      // ref_stack -> clear
+    APPEND,     // ref_stack, var_stack -> append
+    SETVAR,     // ref_stack, var_stack -> set
+    RESETVAR,   // ref_stack, var_stack -> reset
+    COPYCONTENT,// content_stack (copy) -> var_stack
+    PUSHBYTE,   // byte number -- number -> var_stack
+    PUSHSHORT,  // byte*2 number -- number -> var_stack
+    PUSHINT,    // byte*4 number -- number -> var_stack
+    PUSHFLOAT,  // float number -- number -> var_stack
+    PUSHSTR,    // string str -- str -> var_stack
+    PUSHVAR,    // ref_stack -> var_stack
+    JMP,        // short address -- unconditional jump
+    JZ,         // short address -- var_stack -> jump if top == 0
+    JNZ,        // short address -- var_stack -> jump if top != 0
+    JTE,        // short address -- jump if content_stack.top at token end
+    INC,        // ref_stack, var_stack -> += top
+    DEC,        // ref_stack, var_stack -> -= top
+    ISSET,      // ref_stack -> size() != 0 -> var_stack
+    GETSIZE,    // ref_stack -> size() -> var_stack
+    PUSHCONTENT,// var_stack -> content_stack
+    NEXTLINE,   // content_stack.top.next_token('/n')
+    NEXTTOKEN,  // content_stack.top.next_token(' ')
+    POPCONTENT, // content_stack.pop()
     NEXTPAGE,   // m_page_num++
-    ATE,        // push 1 se a fine file, 0 altrimenti
-    STRDATA,    // short len, (byte * len) data -- dati stringa
-    HLT=0xff,   // stop esecuzione
+    ATE,        // m_ate -> var_stack
+    STRDATA,    // short len, (byte * len) data -- string data (strings are represented by 2 byte addresses)
+    HLT=0xff,   // halt execution
 };
 
 typedef uint8_t small_int;
