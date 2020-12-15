@@ -41,6 +41,11 @@ public:
     int as_int() const;
     bool as_bool() const;
 
+    operator std::string() const { return str(); }
+    operator fixed_point() const { return number(); }
+    operator int() const { return as_int(); }
+    operator bool() const { return as_bool(); }
+
     bool empty() const;
 
     static variable str_to_number(const std::string &str);

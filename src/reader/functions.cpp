@@ -8,30 +8,47 @@
 #include "functions.h"
 #include "utils.h"
 
-struct opt_variable : public variable {
-    opt_variable(const variable &var) : variable(var) {}
-};
-
 using arg_list = std::vector<variable>;
 
-template<typename T> constexpr bool is_variable = std::is_same_v<T, variable>;
-template<typename T> constexpr bool is_opt = std::is_same_v<T, opt_variable>;
-template<typename T> constexpr bool is_list = std::is_same_v<T, arg_list>;
+template<typename T> struct is_variable_impl {
+    static constexpr bool value = std::is_convertible_v<variable, std::remove_reference_t<T>>;
+};
+template<typename T> struct is_variable_impl<std::optional<T>> {
+    static constexpr bool value = false;
+};
+template<typename T> constexpr bool is_variable = is_variable_impl<T>::value;
 
-template<typename T, typename ... Ts> struct count_types {};
-template<typename T, typename ... Ts> constexpr size_t count_types_v = count_types<T, Ts...>::value;
+template<typename T> struct is_opt_impl {
+    static constexpr bool value = false;
+};
+template<typename T> struct is_opt_impl<std::optional<T>> {
+    static constexpr bool value = is_variable<T>;
+};
+template<typename T> constexpr bool is_opt = is_opt_impl<T>::value;
 
-template<typename T> struct count_types<T> {
+template<typename T> constexpr bool is_list = std::is_convertible_v<std::remove_reference_t<T>, arg_list>;
+
+template<typename ... Ts> struct count_required_impl {};
+template<typename ... Ts> constexpr size_t count_required = count_required_impl<Ts ...>::value;
+
+template<> struct count_required_impl<> {
     static constexpr size_t value = 0;
 };
 
-template<typename T, typename First, typename ... Ts>
-struct count_types<T, First, Ts...> {
-    static constexpr size_t value = std::is_same_v<T, First> + count_types_v<T, Ts ...>;
+template<typename First, typename ... Ts> struct count_required_impl<First, Ts ...> {
+    static constexpr size_t value = is_variable<First> + count_required<Ts ...>;
 };
 
-template<typename ... Ts> constexpr size_t count_required = count_types_v<variable, Ts ...>;
-template<typename ... Ts> constexpr bool has_varargs = count_types_v<arg_list, Ts ...> != 0;
+template<typename ... Ts> struct has_varargs_impl {};
+template<typename ... Ts> constexpr bool has_varargs = has_varargs_impl<Ts ...>::value;
+
+template<> struct has_varargs_impl<> {
+    static constexpr bool value = false;
+};
+
+template<typename First, typename ... Ts> struct has_varargs_impl<First, Ts ...> {
+    static constexpr size_t value = is_list<First> || has_varargs<Ts ...>;
+};
 
 template<bool Opt, typename ... Ts> struct verify_args_impl {};
 
@@ -48,26 +65,36 @@ struct verify_args_impl<Opt, First, Ts...> {
 
 template<typename ... Ts> constexpr bool verify_args = verify_args_impl<false, Ts ...>::value;
 
-inline const opt_variable &get_arg(const arg_list &args, size_t index) {
+inline std::optional<variable> get_opt(const arg_list &args, size_t index) {
     if (args.size() <= index) {
-        return variable::null_var();
+        return std::nullopt;
     } else {
         return args[index];
     }
 }
 
-template<typename Function, std::size_t ... Is>
-inline variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is...>) {
-    return fun(get_arg(args, Is)...);
+template<typename Function, std::size_t ... Is, std::size_t ... Os>
+inline variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is...>, std::index_sequence<Os...>) {
+    return fun(args[Is]..., get_opt(args, Os)...);
 }
 
-template<typename Function, std::size_t ... Is>
-inline variable exec_helper_varargs(Function fun, const arg_list &args, std::index_sequence<Is...>) {
-    return fun(get_arg(args, Is)..., arg_list(
-        std::make_move_iterator(args.begin() + sizeof...(Is)),
+template<typename Function, std::size_t ... Is, std::size_t ... Os>
+inline variable exec_helper_varargs(Function fun, const arg_list &args, std::index_sequence<Is...>, std::index_sequence<Os...>) {
+    return fun(args[Is]..., get_opt(args, Os)..., arg_list(
+        std::make_move_iterator(args.begin() + sizeof...(Is) + sizeof...(Os)),
         std::make_move_iterator(args.end())
     ));
 }
+
+template<size_t Offset, typename T> struct offset_sequence_impl {};
+
+template<size_t Offset, size_t ... Is>
+struct offset_sequence_impl<Offset, std::index_sequence<Is ...>> {
+    using type = std::index_sequence<Offset + Is...>;
+};
+
+template<size_t From, size_t To>
+using make_offset_sequence = typename offset_sequence_impl<From, std::make_index_sequence<To - From>>::type;
 
 struct invalid_numargs {
     size_t numargs;
@@ -78,7 +105,7 @@ struct invalid_numargs {
 using function_handler = std::function<variable(const arg_list &)>;
 
 template<typename T, typename ... Ts>
-function_handler create_function(T (*fun)(const Ts & ...)) {
+function_handler create_function(T (*fun)(Ts ...)) {
     static_assert(verify_args<Ts...>);
 
     static constexpr size_t minargs = count_required<Ts...>;
@@ -88,12 +115,12 @@ function_handler create_function(T (*fun)(const Ts & ...)) {
             if (vars.size() < minargs) {
                 throw invalid_numargs{vars.size(), minargs, (size_t) -1};
             }
-            return exec_helper_varargs(fun, vars, std::make_index_sequence<maxargs - 1>{});
+            return exec_helper_varargs(fun, vars, std::make_index_sequence<minargs>{}, make_offset_sequence<minargs, maxargs - 1>{});
         } else {
             if (vars.size() < minargs || vars.size() > maxargs) {
                 throw invalid_numargs{vars.size(), minargs, maxargs};
             }
-            return exec_helper(fun, vars, std::make_index_sequence<maxargs>{});
+            return exec_helper(fun, vars, std::make_index_sequence<minargs>{}, make_offset_sequence<minargs, maxargs>{});
         }
     };
 }
@@ -110,69 +137,67 @@ inline std::pair<std::string, function_handler> function_pair(const std::string 
 
 void reader::call_function(const std::string &name, size_t numargs) {
     static const std::map<std::string, function_handler> dispatcher {
-        function_pair("search", [](const variable &str, const variable &regex, const opt_variable &index) {
-            return search_regex(regex.str(), str.str(), index.empty() ? 1 : index.as_int());
+        function_pair("search", [](const std::string &str, const std::string &regex, std::optional<int> index) {
+            return search_regex(regex, str, index.value_or(1));
         }),
-        function_pair("searchall", [](const variable &str, const variable &regex, const opt_variable &index) {
-            return string_join(search_regex_all(regex.str(), str.str(), index.empty() ? 1 : index.as_int()), "\n");
+        function_pair("searchall", [](const std::string &str, const std::string &regex, std::optional<int> index) {
+            return string_join(search_regex_all(regex, str, index.value_or(1)), "\n");
         }),
-        function_pair("date", [](const variable &str, const variable &format, const opt_variable &regex, const opt_variable &index) {
-            return parse_date(format.str(), str.str(), regex.str(), index.empty() ? 1 : index.as_int());
+        function_pair("date", [](const std::string &str, const std::string &format, const std::optional<std::string> &regex, std::optional<int> index) {
+            return parse_date(format, str, regex.value_or(""), index.value_or(1));
         }),
-        function_pair("month", [](const variable &str, const opt_variable &format, const opt_variable &regex, const opt_variable &index) {
-            return parse_month(format.str(), str.str(), regex.str(), index.empty() ? 1 : index.as_int());
+        function_pair("month", [](const std::string &str, const std::string &format, const std::optional<std::string> &regex, std::optional<int> index) {
+            return parse_month(format, str, regex.value_or(""), index.value_or(1));
         }),
-        function_pair("replace", [](const variable &value, const variable &regex, const variable &to) {
-            std::string str = value.str();
-            string_replace_regex(str, regex.str(), to.str());
-            return str;
+        function_pair("replace", [](std::string value, const std::string &regex, const std::string &to) {
+            string_replace_regex(value, regex, to);
+            return value;
         }),
-        function_pair("date_format", [](const variable &month, const variable &format) {
-            return date_format(month.str(), format.str());
+        function_pair("date_format", [](const std::string &month, const std::string &format) {
+            return date_format(month, format);
         }),
-        function_pair("month_add", [](const variable &month, const variable &num) {
-            return date_month_add(month.str(), num.as_int());
+        function_pair("month_add", [](const std::string &month, int num) {
+            return date_month_add(month, num);
         }),
-        function_pair("nonewline", [](const variable &str) {
-            return nonewline(str.str());
+        function_pair("nonewline", [](const std::string &str) {
+            return nonewline(str);
         }),
-        function_pair("if", [](const variable &condition, const variable &var_if, const opt_variable &var_else) {
-            return condition.as_bool() ? var_if : var_else;
+        function_pair("if", [](bool condition, const variable &var_if, const std::optional<variable> &var_else) {
+            return condition ? var_if : var_else.value_or(variable::null_var());
         }),
-        function_pair("ifnot", [](const variable &condition, const variable &var_if, const opt_variable &var_else) {
-            return condition.as_bool() ? var_else : var_if;
+        function_pair("ifnot", [](bool condition, const variable &var_if, const std::optional<variable> &var_else) {
+            return condition ? var_else.value_or(variable::null_var()) : var_if;
         }),
-        function_pair("contains", [](const variable &str, const variable &str2) {
-            return str.str().find(str2.str()) != std::string::npos;
+        function_pair("contains", [](const std::string &str, const std::string &str2) {
+            return str.find(str2) != std::string::npos;
         }),
-        function_pair("substr", [](const variable &str, const variable &pos, const opt_variable &count) {
-            if ((size_t) pos.as_int() < str.str().size()) {
-                return variable(str.str().substr(pos.as_int(), count.empty() ? std::string::npos : count.as_int()));
+        function_pair("substr", [](const std::string &str, int pos, std::optional<int> count) {
+            if ((size_t) pos < str.size()) {
+                return variable(str.substr(pos, count.value_or(std::string::npos)));
             }
             return variable::null_var();
         }),
-        function_pair("strlen", [](const variable &str) {
-            return (int) str.str().size();
+        function_pair("strlen", [](const std::string &str) {
+            return (int) str.size();
         }),
-        function_pair("strfind", [](const variable &str, const variable &value, const opt_variable &index) {
-            return (int) string_tolower(str.str()).find(string_tolower(value.str()), index.as_int());
+        function_pair("strfind", [](const std::string &str, const std::string &value, std::optional<int> index) {
+            return (int) string_tolower(str).find(string_tolower(value), index.value_or(0));
         }),
         function_pair("isempty", [](const variable &str) {
             return str.empty();
         }),
-        function_pair("percent", [](const variable &str) {
+        function_pair("percent", [](const std::string &str) {
             if (!str.empty()) {
-                return variable(str.str() + "%");
+                return variable(str + "%");
             } else {
                 return variable::null_var();
             }
         }),
-        function_pair("format", [](const variable &format, const arg_list &args) {
-            std::string str = format.str();
+        function_pair("format", [](std::string format, const arg_list &args) {
             for (size_t i=0; i<args.size(); ++i) {
-                string_replace(str, fmt::format("${}", i), args[i].str());
+                string_replace(format, fmt::format("${}", i), args[i].str());
             }
-            return str;
+            return format;
         }),
         function_pair("coalesce", [](const arg_list &args) {
             for (auto &arg : args) {
