@@ -2,10 +2,72 @@
 
 #include <functional>
 #include <regex>
+#include <optional>
 #include <fmt/format.h>
 
 #include "functions.h"
 #include "utils.h"
+
+struct opt_variable : public variable {
+    opt_variable(const variable &var) : variable(var) {}
+};
+
+using arg_list = std::vector<variable>;
+
+template<typename T> constexpr bool is_variable = std::is_same_v<T, variable>;
+template<typename T> constexpr bool is_opt = std::is_same_v<T, opt_variable>;
+template<typename T> constexpr bool is_list = std::is_same_v<T, arg_list>;
+
+template<typename T, typename ... Ts> struct count_types {};
+template<typename T, typename ... Ts> constexpr size_t count_types_v = count_types<T, Ts...>::value;
+
+template<typename T> struct count_types<T> {
+    static constexpr size_t value = 0;
+};
+
+template<typename T, typename First, typename ... Ts>
+struct count_types<T, First, Ts...> {
+    static constexpr size_t value = std::is_same_v<T, First> + count_types_v<T, Ts ...>;
+};
+
+template<typename ... Ts> constexpr size_t count_required = count_types_v<variable, Ts ...>;
+template<typename ... Ts> constexpr bool has_varargs = count_types_v<arg_list, Ts ...> != 0;
+
+template<bool Opt, typename ... Ts> struct verify_args_impl {};
+
+template<bool Opt> struct verify_args_impl<Opt> {
+    static constexpr bool value = true;
+};
+
+template<bool Opt, typename First, typename ... Ts>
+struct verify_args_impl<Opt, First, Ts...> {
+    static constexpr bool value = is_variable<First> ? (!Opt && verify_args_impl<false, Ts...>::value)
+        : is_opt<First> ? verify_args_impl<true, Ts...>::value
+            : is_list<First> && sizeof...(Ts) == 0;
+};
+
+template<typename ... Ts> constexpr bool verify_args = verify_args_impl<false, Ts ...>::value;
+
+inline const opt_variable &get_arg(const arg_list &args, size_t index) {
+    if (args.size() <= index) {
+        return variable::null_var();
+    } else {
+        return args[index];
+    }
+}
+
+template<typename Function, std::size_t ... Is>
+inline variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is...>) {
+    return fun(get_arg(args, Is)...);
+}
+
+template<typename Function, std::size_t ... Is>
+inline variable exec_helper_varargs(Function fun, const arg_list &args, std::index_sequence<Is...>) {
+    return fun(get_arg(args, Is)..., arg_list(
+        std::make_move_iterator(args.begin() + sizeof...(Is)),
+        std::make_move_iterator(args.end())
+    ));
+}
 
 struct invalid_numargs {
     size_t numargs;
@@ -13,49 +75,32 @@ struct invalid_numargs {
     size_t maxargs;
 };
 
-struct opt_variable : public variable {
-    opt_variable(const variable &var) : variable(var) {}
-};
-
-template<typename ... Ts> struct count_required {};
-
-template<typename ... Ts> constexpr size_t count_required_v = count_required<Ts...>::value;
-
-template<typename T>
-struct count_required<T> {
-    static constexpr size_t value = ! std::is_base_of_v<opt_variable, T>;
-};
-
-template<typename First, typename ... Ts>
-struct count_required<First, Ts...> {
-    static constexpr size_t value = count_required_v<First> + count_required_v<Ts ...>;
-};
-
-using arg_list = std::vector<variable>;
 using function_handler = std::function<variable(const arg_list &)>;
-
-template<typename Function, std::size_t ... Is>
-variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is...>) {
-    auto get_arg = [](const arg_list &args, size_t index) -> const variable & {
-        if (args.size() <= index) {
-            return variable::null_var();
-        } else {
-            return args[index];
-        }
-    };
-    return fun(get_arg(args, Is)...);
-}
 
 template<typename T, typename ... Ts>
 function_handler create_function(T (*fun)(const Ts & ...)) {
-    static constexpr size_t minargs = count_required_v<Ts...>;
+    static_assert(verify_args<Ts...>);
+
+    static constexpr size_t minargs = count_required<Ts...>;
     static constexpr size_t maxargs = sizeof...(Ts);
     return [fun](const arg_list &vars) {
-        if (vars.size() < minargs || vars.size() > maxargs) {
-            throw invalid_numargs{vars.size(), minargs, maxargs};
+        if constexpr (has_varargs<Ts...>) {
+            if (vars.size() < minargs) {
+                throw invalid_numargs{vars.size(), minargs, (size_t) -1};
+            }
+            return exec_helper_varargs(fun, vars, std::make_index_sequence<maxargs - 1>{});
+        } else {
+            if (vars.size() < minargs || vars.size() > maxargs) {
+                throw invalid_numargs{vars.size(), minargs, maxargs};
+            }
+            return exec_helper(fun, vars, std::make_index_sequence<maxargs>{});
         }
-        return exec_helper(fun, vars, std::make_index_sequence<maxargs>{});
     };
+}
+
+template<typename T>
+function_handler create_function(T (*fun)(const arg_list &args)) {
+    return fun;
 }
 
 template<typename Function>
@@ -122,29 +167,26 @@ void reader::call_function(const std::string &name, size_t numargs) {
                 return variable::null_var();
             }
         }),
-        {"format", [](const arg_list &args) {
-            if (args.size() < 1) {
-                throw layout_error("La funzione format richiede almeno 1 argomento");
+        function_pair("format", [](const variable &format, const arg_list &args) {
+            std::string str = format.str();
+            for (size_t i=0; i<args.size(); ++i) {
+                string_replace(str, fmt::format("${}", i), args[i].str());
             }
-            std::vector<std::string> fmt_args;
-            std::transform(std::next(args.begin()), args.end(),
-                std::back_inserter(fmt_args),
-                [](const variable &var) { return var.str(); });
-            return string_format(args.front().str(), fmt_args);
-        }},
-        {"coalesce", [](const arg_list &args) {
+            return str;
+        }),
+        function_pair("coalesce", [](const arg_list &args) {
             for (auto &arg : args) {
                 if (!arg.empty()) return arg;
             }
             return variable::null_var();
-        }},
-        {"strcat", [](const arg_list &args) {
+        }),
+        function_pair("strcat", [](const arg_list &args) {
             std::string var;
             for (auto &arg : args) {
                 var += arg.str();
             }
             return var;
-        }}
+        })
     };
 
     try {
@@ -160,7 +202,9 @@ void reader::call_function(const std::string &name, size_t numargs) {
             throw layout_error(fmt::format("Funzione sconosciuta: {0}", name));
         }
     } catch (const invalid_numargs &error) {
-        if (error.minargs == error.maxargs) {
+        if (error.maxargs == (size_t) -1) {
+            throw layout_error(fmt::format("La funzione {0} richiede minimo {1} argomenti", name, error.minargs));
+        } else if (error.minargs == error.maxargs) {
             throw layout_error(fmt::format("La funzione {0} richiede {1} argomenti", name, error.minargs));
         } else {
             throw layout_error(fmt::format("La funzione {0} richiede {1}-{2} argomenti", name, error.minargs, error.maxargs));
