@@ -69,18 +69,18 @@ inline std::optional<variable> get_opt(const arg_list &args, size_t index) {
     if (args.size() <= index) {
         return std::nullopt;
     } else {
-        return args[index];
+        return std::move(args[index]);
     }
 }
 
 template<typename Function, std::size_t ... Is, std::size_t ... Os>
-inline variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is...>, std::index_sequence<Os...>) {
-    return fun(args[Is]..., get_opt(args, Os)...);
+constexpr variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is...>, std::index_sequence<Os...>) {
+    return fun(std::move(args[Is])..., get_opt(args, Os)...);
 }
 
 template<typename Function, std::size_t ... Is, std::size_t ... Os>
-inline variable exec_helper_varargs(Function fun, const arg_list &args, std::index_sequence<Is...>, std::index_sequence<Os...>) {
-    return fun(args[Is]..., get_opt(args, Os)..., arg_list(
+constexpr variable exec_helper_varargs(Function fun, const arg_list &args, std::index_sequence<Is...>, std::index_sequence<Os...>) {
+    return fun(std::move(args[Is])..., get_opt(args, Os)..., arg_list(
         std::make_move_iterator(args.begin() + sizeof...(Is) + sizeof...(Os)),
         std::make_move_iterator(args.end())
     ));
@@ -105,11 +105,11 @@ struct invalid_numargs {
 using function_handler = std::function<variable(const arg_list &)>;
 
 template<typename T, typename ... Ts>
-function_handler create_function(T (*fun)(Ts ...)) {
+constexpr function_handler create_function(T (*fun)(Ts ...)) {
     static_assert(verify_args<Ts...>);
 
-    static constexpr size_t minargs = count_required<Ts...>;
-    static constexpr size_t maxargs = sizeof...(Ts);
+    constexpr size_t minargs = count_required<Ts...>;
+    constexpr size_t maxargs = sizeof...(Ts);
     return [fun](const arg_list &vars) {
         if constexpr (has_varargs<Ts...>) {
             if (vars.size() < minargs) {
@@ -126,12 +126,12 @@ function_handler create_function(T (*fun)(Ts ...)) {
 }
 
 template<typename T>
-function_handler create_function(T (*fun)(const arg_list &args)) {
+constexpr function_handler create_function(T (*fun)(const arg_list &args)) {
     return fun;
 }
 
 template<typename Function>
-inline std::pair<std::string, function_handler> function_pair(const std::string &name, Function fun) {
+constexpr std::pair<std::string, function_handler> function_pair(const std::string &name, Function fun) {
     return {name, create_function(+fun)};
 }
 
