@@ -16,6 +16,15 @@ enum variable_type {
 };
 
 class variable {
+private:
+    template<typename T, typename = void> struct signed_type {
+        using type = T;
+    };
+    template<typename T>
+    struct signed_type<T, typename std::enable_if_t<std::is_unsigned_v<T> && ! std::is_same_v<bool, T>>> {
+        using type = std::make_signed_t<T>;
+    };
+
 public:
     variable() {}
 
@@ -23,8 +32,9 @@ public:
     variable(std::string_view value) : m_value(std::string(value)), m_type(VAR_STRING) {}
 
     variable(const fixed_point &value) : m_value(value), m_type(VAR_NUMBER) {}
+
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    variable(T value) : m_value(fixed_point(value)), m_type(VAR_NUMBER) {}
+    variable(T value) : m_value(fixed_point((typename signed_type<T>::type) value)), m_type(VAR_NUMBER) {}
 
     static const variable &null_var() {
         static const variable VAR_NULL;

@@ -177,10 +177,10 @@ static const std::map<std::string, function_handler> dispatcher {
         return variable::null_var();
     }),
     function_pair("strlen", [](const std::string &str) {
-        return (int) str.size();
+        return str.size();
     }),
     function_pair("strfind", [](const std::string &str, const std::string &value, std::optional<int> index) {
-        return (int) string_tolower(str).find(string_tolower(value), index.value_or(0));
+        return string_tolower(str).find(string_tolower(value), index.value_or(0));
     }),
     function_pair("isempty", [](const variable &str) {
         return str.empty();
