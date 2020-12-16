@@ -23,7 +23,8 @@ public:
     variable(std::string_view value) : m_value(std::string(value)), m_type(VAR_STRING) {}
 
     variable(const fixed_point &value) : m_value(value), m_type(VAR_NUMBER) {}
-    template<typename T> variable(T value) : m_value(fixed_point(value)), m_type(VAR_NUMBER) {}
+    template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+    variable(T value) : m_value(fixed_point(value)), m_type(VAR_NUMBER) {}
 
     static const variable &null_var() {
         static const variable VAR_NULL;
