@@ -8,7 +8,7 @@
 #include "functions.h"
 #include "utils.h"
 
-using arg_list = std::vector<variable>;
+using var_list = std::vector<variable>;
 
 template<typename T> struct is_variable_impl {
     static constexpr bool value = std::is_convertible_v<variable, std::remove_reference_t<T>>;
@@ -26,7 +26,7 @@ template<typename T> struct is_opt_impl<std::optional<T>> {
 };
 template<typename T> constexpr bool is_opt = is_opt_impl<T>::value;
 
-template<typename T> constexpr bool is_list = std::is_convertible_v<std::remove_reference_t<T>, arg_list>;
+template<typename T> constexpr bool is_list = std::is_convertible_v<std::remove_reference_t<T>, var_list>;
 
 template<typename ... Ts> struct count_required_impl {};
 template<typename ... Ts> constexpr size_t count_required = count_required_impl<Ts ...>::value;
@@ -65,7 +65,7 @@ struct verify_args_impl<Opt, First, Ts...> {
 
 template<typename ... Ts> constexpr bool verify_args = verify_args_impl<false, Ts ...>::value;
 
-inline std::optional<variable> get_opt(const arg_list &args, size_t index) {
+inline std::optional<variable> get_opt(var_list &args, size_t index) {
     if (args.size() <= index) {
         return std::nullopt;
     } else {
@@ -74,13 +74,13 @@ inline std::optional<variable> get_opt(const arg_list &args, size_t index) {
 }
 
 template<typename Function, std::size_t ... Is, std::size_t ... Os>
-constexpr variable exec_helper(Function fun, const arg_list &args, std::index_sequence<Is...>, std::index_sequence<Os...>) {
+constexpr variable exec_helper(Function fun, var_list &args, std::index_sequence<Is...>, std::index_sequence<Os...>) {
     return fun(std::move(args[Is])..., get_opt(args, Os)...);
 }
 
 template<typename Function, std::size_t ... Is, std::size_t ... Os>
-constexpr variable exec_helper_varargs(Function fun, const arg_list &args, std::index_sequence<Is...>, std::index_sequence<Os...>) {
-    return fun(std::move(args[Is])..., get_opt(args, Os)..., arg_list(
+constexpr variable exec_helper_varargs(Function fun, var_list &args, std::index_sequence<Is...>, std::index_sequence<Os...>) {
+    return fun(std::move(args[Is])..., get_opt(args, Os)..., var_list(
         std::make_move_iterator(args.begin() + sizeof...(Is) + sizeof...(Os)),
         std::make_move_iterator(args.end())
     ));
@@ -102,7 +102,7 @@ struct invalid_numargs {
     size_t maxargs;
 };
 
-using function_handler = std::function<variable(const arg_list &)>;
+using function_handler = std::function<variable(var_list &&)>;
 
 template<typename T, typename ... Ts>
 constexpr function_handler create_function(T (*fun)(Ts ...)) {
@@ -110,7 +110,7 @@ constexpr function_handler create_function(T (*fun)(Ts ...)) {
 
     constexpr size_t minargs = count_required<Ts...>;
     constexpr size_t maxargs = sizeof...(Ts);
-    return [fun](const arg_list &vars) {
+    return [fun](var_list &&vars) {
         if constexpr (has_varargs<Ts...>) {
             if (vars.size() < minargs) {
                 throw invalid_numargs{vars.size(), minargs, (size_t) -1};
@@ -126,7 +126,7 @@ constexpr function_handler create_function(T (*fun)(Ts ...)) {
 }
 
 template<typename T>
-constexpr function_handler create_function(T (*fun)(const arg_list &args)) {
+constexpr function_handler create_function(T (*fun)(const var_list &args)) {
     return fun;
 }
 
@@ -135,94 +135,94 @@ constexpr std::pair<std::string, function_handler> function_pair(const std::stri
     return {name, create_function(+fun)};
 }
 
-void reader::call_function(const std::string &name, size_t numargs) {
-    static const std::map<std::string, function_handler> dispatcher {
-        function_pair("search", [](const std::string &str, const std::string &regex, std::optional<int> index) {
-            return search_regex(regex, str, index.value_or(1));
-        }),
-        function_pair("searchall", [](const std::string &str, const std::string &regex, std::optional<int> index) {
-            return string_join(search_regex_all(regex, str, index.value_or(1)), "\n");
-        }),
-        function_pair("date", [](const std::string &str, const std::string &format, const std::optional<std::string> &regex, std::optional<int> index) {
-            return parse_date(format, str, regex.value_or(""), index.value_or(1));
-        }),
-        function_pair("month", [](const std::string &str, const std::string &format, const std::optional<std::string> &regex, std::optional<int> index) {
-            return parse_month(format, str, regex.value_or(""), index.value_or(1));
-        }),
-        function_pair("replace", [](std::string value, const std::string &regex, const std::string &to) {
-            string_replace_regex(value, regex, to);
-            return value;
-        }),
-        function_pair("date_format", [](const std::string &month, const std::string &format) {
-            return date_format(month, format);
-        }),
-        function_pair("month_add", [](const std::string &month, int num) {
-            return date_month_add(month, num);
-        }),
-        function_pair("nonewline", [](const std::string &str) {
-            return nonewline(str);
-        }),
-        function_pair("if", [](bool condition, const variable &var_if, const std::optional<variable> &var_else) {
-            return condition ? var_if : var_else.value_or(variable::null_var());
-        }),
-        function_pair("ifnot", [](bool condition, const variable &var_if, const std::optional<variable> &var_else) {
-            return condition ? var_else.value_or(variable::null_var()) : var_if;
-        }),
-        function_pair("contains", [](const std::string &str, const std::string &str2) {
-            return str.find(str2) != std::string::npos;
-        }),
-        function_pair("substr", [](const std::string &str, int pos, std::optional<int> count) {
-            if ((size_t) pos < str.size()) {
-                return variable(str.substr(pos, count.value_or(std::string::npos)));
-            }
+static const std::map<std::string, function_handler> dispatcher {
+    function_pair("search", [](const std::string &str, const std::string &regex, std::optional<int> index) {
+        return search_regex(regex, str, index.value_or(1));
+    }),
+    function_pair("searchall", [](const std::string &str, const std::string &regex, std::optional<int> index) {
+        return string_join(search_regex_all(regex, str, index.value_or(1)), "\n");
+    }),
+    function_pair("date", [](const std::string &str, const std::string &format, const std::optional<std::string> &regex, std::optional<int> index) {
+        return parse_date(format, str, regex.value_or(""), index.value_or(1));
+    }),
+    function_pair("month", [](const std::string &str, const std::string &format, const std::optional<std::string> &regex, std::optional<int> index) {
+        return parse_month(format, str, regex.value_or(""), index.value_or(1));
+    }),
+    function_pair("replace", [](std::string value, const std::string &regex, const std::string &to) {
+        string_replace_regex(value, regex, to);
+        return value;
+    }),
+    function_pair("date_format", [](const std::string &month, const std::string &format) {
+        return date_format(month, format);
+    }),
+    function_pair("month_add", [](const std::string &month, int num) {
+        return date_month_add(month, num);
+    }),
+    function_pair("nonewline", [](const std::string &str) {
+        return nonewline(str);
+    }),
+    function_pair("if", [](bool condition, const variable &var_if, const std::optional<variable> &var_else) {
+        return condition ? var_if : var_else.value_or(variable::null_var());
+    }),
+    function_pair("ifnot", [](bool condition, const variable &var_if, const std::optional<variable> &var_else) {
+        return condition ? var_else.value_or(variable::null_var()) : var_if;
+    }),
+    function_pair("contains", [](const std::string &str, const std::string &str2) {
+        return str.find(str2) != std::string::npos;
+    }),
+    function_pair("substr", [](const std::string &str, int pos, std::optional<int> count) {
+        if ((size_t) pos < str.size()) {
+            return variable(str.substr(pos, count.value_or(std::string::npos)));
+        }
+        return variable::null_var();
+    }),
+    function_pair("strlen", [](const std::string &str) {
+        return (int) str.size();
+    }),
+    function_pair("strfind", [](const std::string &str, const std::string &value, std::optional<int> index) {
+        return (int) string_tolower(str).find(string_tolower(value), index.value_or(0));
+    }),
+    function_pair("isempty", [](const variable &str) {
+        return str.empty();
+    }),
+    function_pair("percent", [](const std::string &str) {
+        if (!str.empty()) {
+            return variable(str + "%");
+        } else {
             return variable::null_var();
-        }),
-        function_pair("strlen", [](const std::string &str) {
-            return (int) str.size();
-        }),
-        function_pair("strfind", [](const std::string &str, const std::string &value, std::optional<int> index) {
-            return (int) string_tolower(str).find(string_tolower(value), index.value_or(0));
-        }),
-        function_pair("isempty", [](const variable &str) {
-            return str.empty();
-        }),
-        function_pair("percent", [](const std::string &str) {
-            if (!str.empty()) {
-                return variable(str + "%");
-            } else {
-                return variable::null_var();
-            }
-        }),
-        function_pair("format", [](std::string format, const arg_list &args) {
-            for (size_t i=0; i<args.size(); ++i) {
-                string_replace(format, fmt::format("${}", i), args[i].str());
-            }
-            return format;
-        }),
-        function_pair("coalesce", [](const arg_list &args) {
-            for (auto &arg : args) {
-                if (!arg.empty()) return arg;
-            }
-            return variable::null_var();
-        }),
-        function_pair("strcat", [](const arg_list &args) {
-            std::string var;
-            for (auto &arg : args) {
-                var += arg.str();
-            }
-            return var;
-        })
-    };
+        }
+    }),
+    function_pair("format", [](std::string format, const var_list &args) {
+        for (size_t i=0; i<args.size(); ++i) {
+            string_replace(format, fmt::format("${}", i), args[i].str());
+        }
+        return format;
+    }),
+    function_pair("coalesce", [](const var_list &args) {
+        for (auto &arg : args) {
+            if (!arg.empty()) return arg;
+        }
+        return variable::null_var();
+    }),
+    function_pair("strcat", [](const var_list &args) {
+        std::string var;
+        for (auto &arg : args) {
+            var += arg.str();
+        }
+        return var;
+    })
+};
 
+void reader::call_function(const std::string &name, size_t numargs) {
     try {
         auto it = dispatcher.find(name);
         if (it != dispatcher.end()) {
-            arg_list vars(numargs);
+            var_list vars(numargs);
             for (size_t i=0; i<numargs; ++i) {
                 vars[numargs - i - 1] = std::move(m_var_stack.top());
                 m_var_stack.pop();
             }
-            m_var_stack.push(it->second(vars));
+            m_var_stack.push(it->second(std::move(vars)));
         } else {
             throw layout_error(fmt::format("Funzione sconosciuta: {0}", name));
         }
