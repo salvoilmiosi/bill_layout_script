@@ -102,7 +102,7 @@ struct invalid_numargs {
     size_t maxargs;
 };
 
-using function_handler = std::function<variable(var_list &&)>;
+using function_handler = std::function<variable(var_list &)>;
 
 template<typename T, typename ... Ts>
 constexpr function_handler create_function(T (*fun)(Ts ...)) {
@@ -110,7 +110,7 @@ constexpr function_handler create_function(T (*fun)(Ts ...)) {
 
     constexpr size_t minargs = count_required<Ts...>;
     constexpr size_t maxargs = sizeof...(Ts);
-    return [fun](var_list &&vars) {
+    return [fun](var_list &vars) {
         if constexpr (has_varargs<Ts...>) {
             if (vars.size() < minargs) {
                 throw invalid_numargs{vars.size(), minargs, (size_t) -1};
@@ -149,8 +149,7 @@ static const std::map<std::string, function_handler> dispatcher {
         return parse_month(format, str, regex.value_or(""), index.value_or(1));
     }),
     function_pair("replace", [](std::string value, const std::string &regex, const std::string &to) {
-        string_replace_regex(value, regex, to);
-        return value;
+        return string_replace_regex(value, regex, to);
     }),
     function_pair("date_format", [](const std::string &month, const std::string &format) {
         return date_format(month, format);
@@ -222,7 +221,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
                 vars[numargs - i - 1] = std::move(m_var_stack.top());
                 m_var_stack.pop();
             }
-            m_var_stack.push(it->second(std::move(vars)));
+            m_var_stack.push(it->second(vars));
         } else {
             throw layout_error(fmt::format("Funzione sconosciuta: {0}", name));
         }
