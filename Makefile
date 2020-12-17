@@ -1,6 +1,6 @@
 CC = gcc
 CXX = g++
-CFLAGS = -Isrc/shared -Wall
+CFLAGS = -Isrc/shared -Wall $(shell wx-config --cflags) $(shell pkg-config --cflags jsoncpp fmt)
 CXXFLAGS = $(CFLAGS) --std=c++17
 LDFLAGS = 
 
@@ -23,7 +23,7 @@ else
   $(error "Unknown build option $(build)")
 endif
 
-ifneq ($(findstring $(shell pdfinfo -v 2>&1),20.12.1)),)
+ifneq (,$(findstring 20.12.1,$(shell pdfinfo -v 2>&1)))
   CFLAGS += -DPOPPLER_FIX
 endif
 
@@ -34,12 +34,10 @@ BIN_COMPILER = layout_compiler
 
 OUT_LAYOUT_TXT = 1
 
-INCLUDE = `wx-config --cxxflags` `pkg-config --cflags jsoncpp fmt`
-
-LIBS_SHARED = `pkg-config --libs jsoncpp fmt`
-LIBS_EDITOR = `wx-config --libs core,stc` $(LIBS_SHARED)
-LIBS_READER = `wx-config --libs base` $(LIBS_SHARED)
-LIBS_COMPILER = `wx-config --libs base` $(LIBS_SHARED)
+LIBS_SHARED = $(shell pkg-config --libs jsoncpp fmt)
+LIBS_EDITOR = $(shell wx-config --libs core,stc) $(LIBS_SHARED)
+LIBS_READER = $(shell wx-config --libs base) $(LIBS_SHARED)
+LIBS_COMPILER = $(shell wx-config --libs base) $(LIBS_SHARED)
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -102,7 +100,7 @@ $(OBJ_DIR)/images.o : $(IMAGES)
 	$(LD) -r -b binary -o $@ $^
 
 $(OBJ_DIR)/%.res : resources/%.rc
-	`wx-config --rescomp` -O coff -o $@ -i $< 
+	$(shell wx-config --rescomp) -O coff -o $@ -i $< 
 
 reader: $(BIN_DIR)/$(BIN_READER)
 $(BIN_DIR)/$(BIN_READER): $(OBJECTS_READER) $(BIN_DIR)/$(BIN_SHARED)
@@ -117,13 +115,13 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJ_DIR)/$*.Td
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp $(OBJ_DIR)/%.d
 	@mkdir -p $(dir $@)
-	$(CXX) $(DEPFLAGS) $(if $(filter $(SOURCES_SHARED),$<),-fPIC) $(CXXFLAGS) -c $(INCLUDE) -o $@ $<
+	$(CXX) $(DEPFLAGS) $(if $(filter $(SOURCES_SHARED),$<),-fPIC) $(CXXFLAGS) -c -o $@ $<
 	@mv -f $(OBJ_DIR)/$*.Td $(OBJ_DIR)/$*.d && touch $@
 
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(OBJ_DIR)/%.d
 	@mkdir -p $(dir $@)
-	$(CC) $(DEPFLAGS) $(if $(filter $(SOURCES_SHARED),$<),-fPIC) $(CFLAGS) -c $(INCLUDE) -o $@ $<
+	$(CC) $(DEPFLAGS) $(if $(filter $(SOURCES_SHARED),$<),-fPIC) $(CFLAGS) -c -o $@ $<
 	@mv -f $(OBJ_DIR)/$*.Td $(OBJ_DIR)/$*.d && touch $@
 
 $(OBJ_DIR)/%.d: ;
