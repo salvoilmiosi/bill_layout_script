@@ -6,7 +6,6 @@
 #include "resources.h"
 #include "editor.h"
 #include "compile_error_diag.h"
-#include "arguments.h"
 #include "utils.h"
 
 enum {
@@ -87,56 +86,37 @@ reader_thread::~reader_thread() {
 }
 
 wxThread::ExitCode reader_thread::Entry() {
-    wxString cmd_compiler = get_app_path() + "layout_compiler";
-    wxString cmd_reader = get_app_path() + "layout_reader";
-
-    subprocess proc_compiler(arguments(
-        cmd_compiler,
-        "-q", "-o", "-", "-"
-    ));
-    proc_compiler.stream_in << layout;
-    proc_compiler.stream_in.close();
-
-    std::string compile_error = read_all(proc_compiler.stream_err);
-    if (!compile_error.empty()) {
-        auto *evt = new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR);
-        evt->SetString(compile_error);
-        wxQueueEvent(parent, evt);
-        return (wxThread::ExitCode) 1;
-    }
-
-    proc_reader = std::make_unique<subprocess>(arguments(
-        cmd_reader,
-        "-p", pdf_filename,
-        "-d", "-"
-    ));
-
-    std::copy(
-        std::istreambuf_iterator<char>(proc_compiler.stream_out),
-        std::istreambuf_iterator<char>(),
-        std::ostreambuf_iterator<char>(proc_reader->stream_in)
-    );
-    proc_reader->stream_in.close();
-
     try {
+        wxString cmd_reader = get_app_path() + "layout_reader";
+
+        proc_reader.open(arguments(
+            cmd_reader,
+            "-p", pdf_filename,
+            "-c", "-d", "-"
+        ));
+        proc_reader.stream_in << layout;
+        proc_reader.stream_in.close();
+
         Json::Value json_output;
-        proc_reader->stream_out >> json_output;
+        proc_reader.stream_out >> json_output;
 
         if (json_output["error"].asBool()) {
-            wxMessageBox("Errore in lettura:\n" + json_output["message"].asString(), "Errore", wxICON_INFORMATION);
-            return (wxThread::ExitCode) 1;
+            auto *evt = new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR);
+            evt->SetString(json_output["message"].asString());
+            wxQueueEvent(parent, evt);
         } else {
             parent->json_output = json_output;
             wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
             return (wxThread::ExitCode) 0;
         }
-    } catch (std::exception &) {
-        return (wxThread::ExitCode) 1;
-    }
+    } catch (const process_error &error) {
+        wxMessageBox(error.message, "Errore", wxICON_ERROR);
+    } catch (std::exception &) { }
+    return (wxThread::ExitCode) 1;
 }
 
 void reader_thread::abort() {
-    proc_reader->abort();
+    proc_reader.abort();
 }
 
 void output_dialog::compileAndRead() {

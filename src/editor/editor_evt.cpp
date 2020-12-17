@@ -6,7 +6,6 @@
 #include <wx/config.h>
 
 #include "subprocess.h"
-#include "arguments.h"
 #include "utils.h"
 
 #include "layout_ext.h"

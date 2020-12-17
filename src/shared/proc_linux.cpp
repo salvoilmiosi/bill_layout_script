@@ -7,7 +7,8 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-linux_pipe::linux_pipe() {
+void linux_pipe::init() {
+    close();
     if (::pipe(m_handles) < 0) {
         throw process_error("Errore nella creazione della pipe");
     }
@@ -38,9 +39,17 @@ void linux_pipe::close(int which) {
     }
 }
 
-linux_process::linux_process(const char *args[]) :
-    stream_out(pipe_stdout), stream_err(pipe_stderr), stream_in(pipe_stdin)
-{
+linux_process::linux_process() : stream_out(pipe_stdout), stream_err(pipe_stderr), stream_in(pipe_stdin) {}
+
+linux_process::linux_process(const char *args[]) : linux_process() {
+    open(args);
+}
+
+void linux_process::open(const char *args[]) {
+    pipe_stdin.init();
+    pipe_stdout.init();
+    pipe_stderr.init();
+    
     child_pid = fork();
     if (child_pid == 0) {
         pipe_stdin.redirect(PIPE_READ, STDIN_FILENO);
@@ -55,6 +64,10 @@ linux_process::linux_process(const char *args[]) :
         pipe_stderr.close(PIPE_WRITE);
         pipe_stdin.close(PIPE_READ);
     }
+}
+
+void linux_process::close() {
+    child_pid = 0;
 }
 
 int linux_process::wait_finished() {

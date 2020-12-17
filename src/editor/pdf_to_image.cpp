@@ -3,7 +3,6 @@
 #include <wx/filename.h>
 
 #include "subprocess.h"
-#include "arguments.h"
 
 class myStdInputStreamAdapter : public wxInputStream {
 public:

@@ -19,17 +19,20 @@ public:
     void close(int which = -1);
 
 private:
-    HANDLE m_handles[2];
+    HANDLE m_handles[2] = {0};
 
     friend class windows_process;
 };
 
 class windows_process {
 public:
+    windows_process();
     windows_process(const char *args[]);
     ~windows_process();
 
 public:
+    void open(const char *args[]);
+    void close();
     int wait_finished();
     void abort();
 

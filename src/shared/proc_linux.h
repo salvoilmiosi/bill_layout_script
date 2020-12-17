@@ -7,7 +7,7 @@
 
 class linux_pipe {
 public:
-    linux_pipe();
+    void init();
     
     void redirect(int from, int to);
 
@@ -20,20 +20,23 @@ public:
     void close(int which = -1);
 
 private:
-    int m_handles[2];
+    int m_handles[2] = {0};
 };
 
 class linux_process {
 public:
+    linux_process();
     linux_process(const char *args[]);
 
 public:
+    void open(const char *args[]);
+    void close();
     int wait_finished();
     void abort();
 
 private:
     linux_pipe pipe_stdout, pipe_stdin, pipe_stderr;
-    int child_pid;
+    int child_pid = 0;
 
 public:
     pipe_istream<linux_pipe> stream_out, stream_err;

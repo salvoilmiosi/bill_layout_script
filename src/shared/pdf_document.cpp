@@ -6,7 +6,6 @@
 #include <fmt/format.h>
 
 #include "subprocess.h"
-#include "arguments.h"
 #include "utils.h"
 
 void pdf_document::open(const std::string &filename) {

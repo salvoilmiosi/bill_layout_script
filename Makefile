@@ -86,7 +86,7 @@ clean:
 $(shell mkdir -p $(BIN_DIR) >/dev/null)
 
 $(LAYOUT_DIR)/%.out: $(BLS_DIR)/%.bls $(BIN_DIR)/$(BIN_COMPILER)
-	$(BIN_DIR)/$(BIN_COMPILER) -o $@ $< $(if $(filter $(OUT_LAYOUT_TXT),1),> $(@:.out=.txt),-q)
+	$(BIN_DIR)/$(BIN_COMPILER) -o $@ $< $(if $(filter $(OUT_LAYOUT_TXT),1),-t $(@:.out=.txt))
 
 shared: $(BIN_DIR)/$(BIN_SHARED)
 $(BIN_DIR)/$(BIN_SHARED): $(OBJECTS_SHARED)

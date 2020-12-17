@@ -17,7 +17,7 @@ public:
 private:
     wxString input_file;
     wxString output_file;
-    bool quiet = false;
+    wxString output_asm;
     bool debug = false;
     bool read_asm = false;
 };
@@ -26,9 +26,9 @@ wxIMPLEMENT_APP_CONSOLE(MainApp);
 
 static const wxCmdLineEntryDesc g_cmdline_desc[] = {
     { wxCMD_LINE_OPTION, "o", "output", "output layout", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_OPTION, "t", "output-asm", "output assembler", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_SWITCH, "d", "debug", "debug", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
-    { wxCMD_LINE_SWITCH, "q", "quiet", "quiet mode", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
-    { wxCMD_LINE_SWITCH, "s", "assembler", "assembler", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_SWITCH, "s", "input-asm", "input assempler", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_PARAM, nullptr, nullptr, "input bls", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
     { wxCMD_LINE_NONE }
 };
@@ -41,8 +41,8 @@ void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
 bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     if (parser.GetParamCount() >= 1) input_file = parser.GetParam(0);
     parser.Found("o", &output_file);
+    parser.Found("t", &output_asm);
     debug = parser.Found("d");
-    quiet = parser.Found("q");
     read_asm = parser.Found("s");
     return true;
 }
@@ -79,10 +79,18 @@ int MainApp::OnRun() {
             parser my_parser;
             my_parser.read_layout(layout);
 
-            if (!quiet) {
+            auto print_asm = [&](std::ostream &out) {
                 for (auto &line : my_parser.get_output_asm()) {
-                    std::cout << line << std::endl;
+                    out << line << std::endl;
                 }
+            };
+
+            if (output_asm == "-") {
+                print_asm(std::cout);
+            } else if (!output_asm.empty()) {
+                std::ofstream ofs(output_asm.ToStdString());
+                print_asm(ofs);
+                ofs.close();
             }
             
             out_code = read_lines(my_parser.get_output_asm());

@@ -24,7 +24,7 @@ protected:
     virtual ExitCode Entry();
 
 private:
-    std::unique_ptr<subprocess> proc_reader;
+    subprocess proc_reader;
 
     output_dialog *parent;
 

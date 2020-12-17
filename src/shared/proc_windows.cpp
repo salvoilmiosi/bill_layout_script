@@ -5,6 +5,7 @@
 #include "utils.h"
 
 void windows_pipe::init(SECURITY_ATTRIBUTES &attrs, int which) {
+    close();
     if (!CreatePipe(&m_handles[PIPE_READ], &m_handles[PIPE_WRITE], &attrs, 0)
         || !SetHandleInformation(m_handles[which], HANDLE_FLAG_INHERIT, 0))
         throw process_error("Errore nella creazione della pipe");
@@ -35,9 +36,15 @@ void windows_pipe::close(int which) {
     }
 }
 
-windows_process::windows_process(const char *args[]) :
-    stream_out(pipe_stdout), stream_err(pipe_stderr), stream_in(pipe_stdin)
-{
+windows_process::windows_process() : stream_out(pipe_stdout), stream_err(pipe_stderr), stream_in(pipe_stdin) {}
+
+windows_process::windows_process(const char *args[]) : windows_process() {
+    open(args);
+}
+
+void windows_process::open(const char *args[]) {
+    close();
+    
     SECURITY_ATTRIBUTES attrs;
     ZeroMemory(&attrs, sizeof(SECURITY_ATTRIBUTES));
 
@@ -107,8 +114,15 @@ windows_process::windows_process(const char *args[]) :
     }
 }
 
+void windows_process::close() {
+    if (process) {
+        CloseHandle(process);
+        process = nullptr;
+    }
+}
+
 windows_process::~windows_process() {
-    CloseHandle(process);
+    close();
 }
 
 int windows_process::wait_finished() {
