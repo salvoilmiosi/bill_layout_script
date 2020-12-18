@@ -240,11 +240,7 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.pop();
         break;
     case opcode::PUSHCONTENT:
-        if (m_var_stack.top().type() == VAR_STRING) {
-            m_content_stack.emplace(std::move(m_var_stack.top().strref()));
-        } else {
-            m_content_stack.push(m_var_stack.top().str());
-        }
+        m_content_stack.push(std::move(m_var_stack.top().str()));
         m_var_stack.pop();
         break;
     case opcode::POPCONTENT: m_content_stack.pop(); break;

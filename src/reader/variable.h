@@ -2,7 +2,6 @@
 #define __VARIABLE_H__
 
 #include <string>
-#include <variant>
 
 #include "decimal.h"
 #include "bytecode.h"
@@ -28,38 +27,33 @@ private:
 public:
     variable() {}
 
-    variable(const std::string &value) : m_value(value), m_type(VAR_STRING) {}
-    variable(std::string_view value) : m_value(std::string(value)), m_type(VAR_STRING) {}
+    variable(const std::string &value) { set_string(value); }
+    variable(std::string_view value) { set_string(std::string(value)); }
 
-    variable(const fixed_point &value) : m_value(value), m_type(VAR_NUMBER) {}
+    variable(const fixed_point &value) { set_number(value); }
 
     template<typename T> requires(std::is_arithmetic_v<T>)
-    variable(T value) : m_value(fixed_point((typename signed_type<T>::type) value)), m_type(VAR_NUMBER) {}
+    variable(T value) { set_number(fixed_point((typename signed_type<T>::type) value)); }
 
     static const variable &null_var() {
         static const variable VAR_NULL;
         return VAR_NULL;
     }
 
-    std::string str() const;
-    std::string &strref();
-
-    variable_type type() const {
-        return m_type;
-    }
-
-    fixed_point number() const;
-    int as_int() const;
-    bool as_bool() const;
-
-    operator std::string() const { return str(); }
-    operator fixed_point() const { return number(); }
-    operator int() const { return as_int(); }
-    operator bool() const { return as_bool(); }
-
-    bool empty() const;
-
     static variable str_to_number(const std::string &str);
+    
+    variable_type type() const { return m_type; }
+
+    std::string str() const { return m_str; }
+    std::string &str() { return m_str; }
+
+    fixed_point number() const { return m_num; }
+    fixed_point &number() { return m_num; }
+
+    int as_int() const { return m_num.getAsInteger(); }
+    bool as_bool() const { return m_num != fixed_point(0); }
+
+    bool empty() const { return m_str.empty(); }
     
     bool operator == (const variable &other) const;
     bool operator != (const variable &other) const;
@@ -82,8 +76,12 @@ public:
     variable &operator += (const variable &other);
 
 private:
-    std::variant<std::string, fixed_point> m_value;
+    std::string m_str;
+    fixed_point m_num;
     variable_type m_type = VAR_UNDEFINED;
+
+    void set_string(const std::string &str);
+    void set_number(const fixed_point &num);
 };
 
 #endif

@@ -10,8 +10,48 @@
 
 using arg_list = std::vector<variable>;
 
+template<typename T> struct converter {};
+
+template<> struct converter<variable> {
+    static variable convert(variable &var) {
+        return std::move(var);
+    }
+};
+
+template<> struct converter<std::string> {
+    static std::string convert(variable &var) {
+        return std::move(var.str());
+    }
+};
+
+template<> struct converter<fixed_point> {
+    static fixed_point convert(variable &var) {
+        return std::move(var.number());
+    }
+};
+
+template<> struct converter<int> {
+    static int convert(variable &var) {
+        return var.as_int();
+    }
+};
+
+template<> struct converter<bool> {
+    static int convert(variable &var) {
+        return var.as_bool();
+    }
+};
+
+template<typename T> struct converter<std::optional<T>> {
+    static std::optional<T> convert(variable &var) {
+        return converter<T>::convert(var);
+    }
+};
+
 template<typename T> struct is_variable_impl {
-    static constexpr bool value = std::is_convertible_v<variable, T>;
+    static constexpr bool value = requires {
+        converter<T>::convert;
+    };
 };
 template<typename T> struct is_variable_impl<std::optional<T>> {
     static constexpr bool value = false;
@@ -74,31 +114,44 @@ inline std::optional<variable> get_opt(arg_list &args, size_t index) {
     }
 }
 
-template<typename Function, std::size_t ... Is, std::size_t ... Os>
-constexpr variable exec_helper(Function &fun, arg_list &args, std::index_sequence<Is...>, std::index_sequence<Os...>) {
-    return fun(std::move(args[Is])..., get_opt(args, Os)...);
-}
+template<typename ... Ts> struct type_list {};
 
-template<typename VarT, typename Function, std::size_t ... Is, std::size_t ... Os>
-constexpr variable exec_helper_varargs(Function &fun, arg_list &args, std::index_sequence<Is...>, std::index_sequence<Os...>) {
-    if constexpr (std::is_same_v<variable, VarT> && (sizeof...(Is) + sizeof...(Os)) == 0) {
-        return fun(std::move(args));
-    }
-    return fun(std::move(args[Is])..., get_opt(args, Os)..., std::vector<VarT>(
-        std::make_move_iterator(args.begin() + sizeof...(Is) + sizeof...(Os)),
-        std::make_move_iterator(args.end())
-    ));
-}
-
-template<size_t Offset, typename T> struct offset_sequence_impl {};
-
-template<size_t Offset, size_t ... Is>
-struct offset_sequence_impl<Offset, std::index_sequence<Is ...>> {
-    using type = std::index_sequence<Offset + Is...>;
+template<size_t N, typename ... Ts> struct arg_type_impl {
+    using type = void;
 };
 
-template<size_t From, size_t To>
-using make_offset_sequence = typename offset_sequence_impl<From, std::make_index_sequence<To - From>>::type;
+template<size_t N, typename First, typename ... Ts> struct arg_type_impl<N, First, Ts...> {
+    using type = std::conditional_t<N==0, First, typename arg_type_impl<N-1,Ts...>::type>;
+};
+
+template<size_t N, typename TypeList> struct get_arg_type_impl {};
+template<size_t N, typename ... Ts> struct get_arg_type_impl<N, type_list<Ts ...>> {
+    using type = typename arg_type_impl<N, Ts ...>::type;
+};
+
+template<size_t N, typename TypeList> using get_arg_type = typename get_arg_type_impl<N, TypeList>::type;
+
+template<typename TypeList, typename Function, std::size_t ... Is>
+constexpr variable exec_helper(Function &fun, arg_list &args, std::index_sequence<Is...>) {
+    return fun(converter<get_arg_type<Is, TypeList>>::convert(args[Is])...);
+}
+
+template<typename VarT, typename TypeList, typename Function, std::size_t ... Is>
+constexpr variable exec_helper_varargs(Function &fun, arg_list &args, std::index_sequence<Is...>) {
+    if constexpr (std::is_same_v<variable, VarT> && sizeof...(Is) == 0) {
+        return fun(std::move(args));
+    }
+    std::vector<VarT> varargs;
+    std::transform(
+        args.begin() + sizeof...(Is),
+        args.end(),
+        std::back_inserter(varargs),
+        [](variable &var) {
+            return converter<VarT>::convert(var);
+        }
+    );
+    return fun(converter<get_arg_type<Is, TypeList>>::convert(args[Is])..., std::move(varargs));
+}
 
 struct invalid_numargs {
     size_t numargs;
@@ -115,6 +168,7 @@ struct check_args<T (*)(Ts ...)> {
     static_assert(verify_args<Ts...>);
     static constexpr size_t minargs = count_required<Ts...>;
     static constexpr size_t maxargs = sizeof...(Ts);
+    using types = type_list<std::decay_t<Ts>...>;
     using varargs_type = get_varargs_type<Ts...>;
 };
 
@@ -126,16 +180,14 @@ constexpr std::pair<std::string, function_handler> create_function(const std::st
             if (vars.size() < fun_args::minargs) {
                 throw invalid_numargs{vars.size(), fun_args::minargs, (size_t) -1};
             }
-            return exec_helper_varargs<typename fun_args::varargs_type>(fun, vars,
-                std::make_index_sequence<fun_args::minargs>{},
-                make_offset_sequence<fun_args::minargs, fun_args::maxargs - 1>{});
+            return exec_helper_varargs<typename fun_args::varargs_type, typename fun_args::types>(fun, vars,
+                std::make_index_sequence<fun_args::maxargs - 1>{});
         } else {
             if (vars.size() < fun_args::minargs || vars.size() > fun_args::maxargs) {
                 throw invalid_numargs{vars.size(), fun_args::minargs, fun_args::maxargs};
             }
-            return exec_helper(fun, vars,
-                std::make_index_sequence<fun_args::minargs>{},
-                make_offset_sequence<fun_args::minargs, fun_args::maxargs>{});
+            return exec_helper<typename fun_args::types>(fun, vars,
+                std::make_index_sequence<fun_args::maxargs>{});
         }
     }};
 }

@@ -3,75 +3,20 @@
 
 #include "functions.h"
 
-std::string variable::str() const {
-    switch (m_type) {
-    case VAR_STRING:
-        return std::get<std::string>(m_value);
-    case VAR_NUMBER:
-    {
-        std::string s = dec::toString(std::get<fixed_point>(m_value));
-        auto it = s.rbegin();
-        for (; *it == '0' && it != s.rend(); ++it);
-        if (*it == '.') ++it;
-
-        s.resize(s.size() - (it - s.rbegin()));
-        return s;
-    }
-    default:
-        return "";
-    }
+void variable::set_string(const std::string &str) {
+    m_type = VAR_STRING;
+    m_str = str;
+    m_num = fixed_point(str);
 }
 
-std::string &variable::strref() {
-    return std::get<std::string>(m_value);
-}
+void variable::set_number(const fixed_point &num) {
+    m_type = VAR_NUMBER;
+    m_str = dec::toString(num);
+    auto it = m_str.rbegin();
+    for (; *it == '0' && it != m_str.rend(); ++it);
+    if (*it == '.') ++it;
 
-fixed_point variable::number() const {
-    switch (m_type) {
-    case VAR_STRING:
-        return fixed_point(std::get<std::string>(m_value));
-    case VAR_NUMBER:
-        return std::get<fixed_point>(m_value);
-    default:
-        return fixed_point(0);
-    }
-}
-
-int variable::as_int() const {
-    switch (m_type) {
-    case VAR_STRING:
-        try {
-            return std::stoi(std::get<std::string>(m_value));
-        } catch (const std::invalid_argument &) {
-            return 0;
-        }
-    case VAR_NUMBER:
-        return std::get<fixed_point>(m_value).getAsInteger();
-    default:
-        return 0;
-    }
-}
-
-bool variable::as_bool() const {
-    switch(m_type) {
-    case VAR_STRING:
-        return ! std::get<std::string>(m_value).empty();
-    case VAR_NUMBER:
-        return std::get<fixed_point>(m_value) != fixed_point(0);
-    default:
-        return false;
-    }
-}
-
-bool variable::empty() const {
-    switch (m_type) {
-    case VAR_STRING:
-        return std::get<std::string>(m_value).empty();
-    case VAR_NUMBER:
-        return false;
-    default:
-        return true;
-    }
+    m_str.erase(it.base(), m_str.end());
 }
 
 variable variable::str_to_number(const std::string &str) {
@@ -83,7 +28,17 @@ variable variable::str_to_number(const std::string &str) {
 }
 
 bool variable::operator == (const variable &other) const {
-    return m_type == other.m_type && (m_type == VAR_UNDEFINED || m_value == other.m_value);
+    if (m_type == other.m_type) {
+        switch (m_type) {
+        case VAR_STRING:
+            return str() == other.str();
+        case VAR_NUMBER:
+            return number() == other.number();
+        default:
+            return true;
+        }
+    }
+    return false;
 }
 
 bool variable::operator != (const variable &other) const {
@@ -105,7 +60,7 @@ bool variable::operator ! () const {
 bool variable::operator < (const variable &other) const {
     switch(m_type) {
     case VAR_STRING:
-        return std::get<std::string>(m_value) < other.str();
+        return str() < other.str();
     default:
         return number() < other.number();
     }
@@ -114,7 +69,7 @@ bool variable::operator < (const variable &other) const {
 bool variable::operator > (const variable &other) const {
     switch(m_type) {
     case VAR_STRING:
-        return std::get<std::string>(m_value) > other.str();
+        return str() > other.str();
     default:
         return number() > other.number();
     }
@@ -123,7 +78,7 @@ bool variable::operator > (const variable &other) const {
 bool variable::operator <= (const variable &other) const {
     switch(m_type) {
     case VAR_STRING:
-        return std::get<std::string>(m_value) <= other.str();
+        return str() <= other.str();
     default:
         return number() <= other.number();
     }
@@ -132,7 +87,7 @@ bool variable::operator <= (const variable &other) const {
 bool variable::operator >= (const variable &other) const {
     switch(m_type) {
     case VAR_STRING:
-        return std::get<std::string>(m_value) >= other.str();
+        return str() >= other.str();
     default:
         return number() >= other.number();
     }
@@ -161,12 +116,10 @@ variable variable::operator / (const variable &other) const {
 variable &variable::operator += (const variable &other) {
     switch (other.m_type) {
     case VAR_STRING:
-        m_value = str() + other.str();
-        m_type = VAR_STRING;
+        set_string(str() + other.str());
         break;
     case VAR_NUMBER:
-        m_value = number() + other.number();
-        m_type = VAR_NUMBER;
+        set_number(number() + other.number());
         break;
     default:
         *this = other;
