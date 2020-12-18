@@ -105,10 +105,11 @@ struct invalid_numargs {
 
 using function_handler = std::function<variable(arg_list &)>;
 
-template<typename Function, typename = void> struct check_args{};
+template<typename Function> struct check_args{};
 
 template<typename T, typename ... Ts>
-struct check_args<T (*)(Ts ...), std::enable_if_t<verify_args<Ts ...>>> {
+struct check_args<T (*)(Ts ...)> {
+    static_assert(verify_args<Ts...>);
     static constexpr size_t minargs = count_required<Ts...>;
     static constexpr size_t maxargs = sizeof...(Ts);
     using varargs_type = get_varargs_type<Ts...>;

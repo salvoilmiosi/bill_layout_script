@@ -1,7 +1,7 @@
 CC = gcc
 CXX = g++
 CFLAGS = -Isrc/shared -Wall $(shell wx-config --cflags) $(shell pkg-config --cflags jsoncpp fmt)
-CXXFLAGS = $(CFLAGS) --std=c++17
+CXXFLAGS = $(CFLAGS) --std=c++20
 LDFLAGS = 
 
 SRC_DIR = src
