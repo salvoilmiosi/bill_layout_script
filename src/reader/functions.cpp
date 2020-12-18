@@ -39,7 +39,7 @@ template<> struct count_required_impl<> {
     static constexpr size_t value = 0;
 };
 template<typename First, typename ... Ts> struct count_required_impl<First, Ts ...> {
-    static constexpr size_t value = is_variable<First> + count_required_impl<Ts ...>::value;
+    static constexpr size_t value = is_variable<First> ? 1 + count_required_impl<Ts ...>::value : 0;
 };
 template<typename ... Ts> constexpr size_t count_required = count_required_impl<Ts ...>::value;
 
@@ -81,6 +81,9 @@ constexpr variable exec_helper(Function &fun, arg_list &args, std::index_sequenc
 
 template<typename VarT, typename Function, std::size_t ... Is, std::size_t ... Os>
 constexpr variable exec_helper_varargs(Function &fun, arg_list &args, std::index_sequence<Is...>, std::index_sequence<Os...>) {
+    if constexpr (std::is_same_v<variable, VarT> && (sizeof...(Is) + sizeof...(Os)) == 0) {
+        return fun(std::move(args));
+    }
     return fun(std::move(args[Is])..., get_opt(args, Os)..., std::vector<VarT>(
         std::make_move_iterator(args.begin() + sizeof...(Is) + sizeof...(Os)),
         std::make_move_iterator(args.end())
@@ -138,74 +141,74 @@ constexpr std::pair<std::string, function_handler> create_function(const std::st
 }
 
 static const std::map<std::string, function_handler> dispatcher {
-    create_function("search", [](const std::string &str, const std::string &regex, std::optional<int> index) {
+    create_function("search", [](std::string str, std::string regex, std::optional<int> index) {
         return search_regex(regex, str, index.value_or(1));
     }),
-    create_function("searchall", [](const std::string &str, const std::string &regex, std::optional<int> index) {
+    create_function("searchall", [](std::string str, std::string regex, std::optional<int> index) {
         return string_join(search_regex_all(regex, str, index.value_or(1)), "\n");
     }),
-    create_function("date", [](const std::string &str, const std::string &format, const std::optional<std::string> &regex, std::optional<int> index) {
+    create_function("date", [](std::string str, std::string format, std::optional<std::string> regex, std::optional<int> index) {
         return parse_date(format, str, regex.value_or(""), index.value_or(1));
     }),
-    create_function("month", [](const std::string &str, const std::string &format, const std::optional<std::string> &regex, std::optional<int> index) {
+    create_function("month", [](std::string str, std::string format, std::optional<std::string> regex, std::optional<int> index) {
         return parse_month(format, str, regex.value_or(""), index.value_or(1));
     }),
-    create_function("replace", [](std::string value, const std::string &regex, const std::string &to) {
+    create_function("replace", [](std::string value, std::string regex, std::string to) {
         return string_replace_regex(value, regex, to);
     }),
-    create_function("date_format", [](const std::string &month, const std::string &format) {
+    create_function("date_format", [](std::string month, std::string format) {
         return date_format(month, format);
     }),
-    create_function("month_add", [](const std::string &month, int num) {
+    create_function("month_add", [](std::string month, int num) {
         return date_month_add(month, num);
     }),
-    create_function("nonewline", [](const std::string &str) {
+    create_function("nonewline", [](std::string str) {
         return nonewline(str);
     }),
-    create_function("if", [](bool condition, const variable &var_if, const std::optional<variable> &var_else) {
+    create_function("if", [](bool condition, variable var_if, std::optional<variable> var_else) {
         return condition ? var_if : var_else.value_or(variable::null_var());
     }),
-    create_function("ifnot", [](bool condition, const variable &var_if, const std::optional<variable> &var_else) {
+    create_function("ifnot", [](bool condition, variable var_if, std::optional<variable> var_else) {
         return condition ? var_else.value_or(variable::null_var()) : var_if;
     }),
-    create_function("contains", [](const std::string &str, const std::string &str2) {
+    create_function("contains", [](std::string str, std::string str2) {
         return str.find(str2) != std::string::npos;
     }),
-    create_function("substr", [](const std::string &str, int pos, std::optional<int> count) {
+    create_function("substr", [](std::string str, int pos, std::optional<int> count) {
         if ((size_t) pos < str.size()) {
             return variable(str.substr(pos, count.value_or(std::string::npos)));
         }
         return variable::null_var();
     }),
-    create_function("strlen", [](const std::string &str) {
+    create_function("strlen", [](std::string str) {
         return str.size();
     }),
-    create_function("strfind", [](const std::string &str, const std::string &value, std::optional<int> index) {
+    create_function("strfind", [](std::string str, std::string value, std::optional<int> index) {
         return string_tolower(str).find(string_tolower(value), index.value_or(0));
     }),
-    create_function("isempty", [](const variable &str) {
-        return str.empty();
+    create_function("isempty", [](variable var) {
+        return var.empty();
     }),
-    create_function("percent", [](const std::string &str) {
+    create_function("percent", [](std::string str) {
         if (!str.empty()) {
             return variable(str + "%");
         } else {
             return variable::null_var();
         }
     }),
-    create_function("format", [](std::string format, const std::vector<std::string> &args) {
+    create_function("format", [](std::string format, std::vector<std::string> args) {
         for (size_t i=0; i<args.size(); ++i) {
             string_replace(format, fmt::format("${}", i), args[i]);
         }
         return format;
     }),
-    create_function("coalesce", [](const arg_list &args) {
+    create_function("coalesce", [](std::vector<variable> args) {
         for (auto &arg : args) {
             if (!arg.empty()) return arg;
         }
         return variable::null_var();
     }),
-    create_function("strcat", [](const std::vector<std::string> &args) {
+    create_function("strcat", [](std::vector<std::string> args) {
         std::string var;
         for (auto &arg : args) {
             var += arg;
