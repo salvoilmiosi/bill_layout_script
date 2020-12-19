@@ -10,53 +10,24 @@
 
 using arg_list = std::vector<variable>;
 
-template<typename T> struct converter {};
+template<typename T> T convert_var(variable &var) = delete;
 
-template<> struct converter<variable> {
-    static variable convert(variable &var) {
-        return std::move(var);
-    }
-};
+template<> const variable    &convert_var<const variable &>    (variable &var) { return var; }
+template<> const std::string &convert_var<const std::string &> (variable &var) { return var.str(); }
+template<> const fixed_point &convert_var<const fixed_point &> (variable &var) { return var.number(); }
 
-template<> struct converter<std::string> {
-    static std::string convert(variable &var) {
-        return std::move(var.str());
-    }
-};
+template<> variable     convert_var<variable>   (variable &var) { return std::move(var); }
+template<> std::string  convert_var<std::string>(variable &var) { return std::move(var.str()); }
+template<> fixed_point  convert_var<fixed_point>(variable &var) { return std::move(var.number()); }
 
-template<> struct converter<fixed_point> {
-    static fixed_point convert(variable &var) {
-        return std::move(var.number());
-    }
-};
+template<> int          convert_var<int>        (variable &var) { return var.as_int(); }
+template<> float        convert_var<float>      (variable &var) { return var.number().getAsDouble(); }
+template<> double       convert_var<double>     (variable &var) { return var.number().getAsDouble(); }
+template<> bool         convert_var<bool>       (variable &var) { return var.as_bool(); }
 
-template<> struct converter<int> {
-    static int convert(variable &var) {
-        return var.as_int();
-    }
+template<typename T> constexpr bool is_variable = requires(variable v) {
+    convert_var<std::decay_t<T>>(v);
 };
-
-template<> struct converter<bool> {
-    static int convert(variable &var) {
-        return var.as_bool();
-    }
-};
-
-template<typename T> struct converter<std::optional<T>> {
-    static std::optional<T> convert(variable &var) {
-        return converter<T>::convert(var);
-    }
-};
-
-template<typename T> struct is_variable_impl {
-    static constexpr bool value = requires {
-        converter<T>::convert;
-    };
-};
-template<typename T> struct is_variable_impl<std::optional<T>> {
-    static constexpr bool value = false;
-};
-template<typename T> constexpr bool is_variable = is_variable_impl<std::decay_t<T>>::value;
 
 template<typename T> struct is_optional_impl {
     static constexpr bool value = false;
@@ -123,28 +94,26 @@ template<size_t N, typename ... Ts> struct get_type_n_impl<N, type_list<Ts ...>>
 
 template<size_t N, typename TypeList> using get_type_n = typename get_type_n_impl<N, TypeList>::type;
 
-template<typename TypeList, size_t I> auto get_arg(arg_list &args) {
+template<typename TypeList, size_t I> get_type_n<I, TypeList> get_arg(arg_list &args) {
     using type = get_type_n<I, TypeList>;
     if constexpr (is_optional<type>) {
         if (I >= args.size()) {
-            return type(std::nullopt);
+            return std::nullopt;
         } else {
-            return converter<type>::convert(args[I]);
+            return convert_var<typename std::decay_t<type>::value_type>(args[I]);
         }
     } else if constexpr (is_vector<type>) {
-        using vararg_type = typename type::value_type;
+        using vararg_type = typename std::decay_t<type>::value_type;
         std::vector<vararg_type> varargs;
         std::transform(
-            args.begin() + I,
-            args.end(),
-            std::back_inserter(varargs),
+            args.begin() + I, args.end(), std::back_inserter(varargs),
             [](variable &var) {
-                return converter<vararg_type>::convert(var);
+                return convert_var<vararg_type>(var);
             }
         );
         return varargs;
     } else {
-        return converter<type>::convert(args[I]);
+        return convert_var<type>(args[I]);
     }
 }
 
@@ -167,7 +136,7 @@ template<typename T, typename ... Ts> requires(verify_args<Ts...>)
 struct check_args<T (*)(Ts ...)>  {
     static constexpr size_t minargs = count_required<Ts...>;
     static constexpr size_t maxargs = has_varargs<Ts...> ? (size_t) -1 : sizeof...(Ts);
-    using types = type_list<std::decay_t<Ts>...>;
+    using types = type_list<Ts...>;
 };
 
 template<typename Function>
@@ -244,7 +213,7 @@ static const std::map<std::string, function_handler> dispatcher {
         }
         return format;
     }),
-    create_function("coalesce", [](const std::vector<variable> &args) {
+    create_function("coalesce", [](std::vector<variable> args) {
         for (auto &arg : args) {
             if (!arg.empty()) return arg;
         }
