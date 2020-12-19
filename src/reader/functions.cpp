@@ -183,55 +183,55 @@ constexpr std::pair<std::string, function_handler> create_function(const std::st
 }
 
 static const std::map<std::string, function_handler> dispatcher {
-    create_function("search", [](std::string str, std::string regex, std::optional<int> index) {
+    create_function("search", [](const std::string &str, const std::string &regex, std::optional<int> index) {
         return search_regex(regex, str, index.value_or(1));
     }),
-    create_function("searchall", [](std::string str, std::string regex, std::optional<int> index) {
+    create_function("searchall", [](const std::string &str, const std::string &regex, std::optional<int> index) {
         return string_join(search_regex_all(regex, str, index.value_or(1)), "\n");
     }),
-    create_function("date", [](std::string str, std::string format, std::optional<std::string> regex, std::optional<int> index) {
+    create_function("date", [](const std::string &str, const std::string &format, std::optional<std::string> regex, std::optional<int> index) {
         return parse_date(format, str, regex.value_or(""), index.value_or(1));
     }),
-    create_function("month", [](std::string str, std::string format, std::optional<std::string> regex, std::optional<int> index) {
+    create_function("month", [](const std::string &str, const std::string &format, std::optional<std::string> regex, std::optional<int> index) {
         return parse_month(format, str, regex.value_or(""), index.value_or(1));
     }),
-    create_function("replace", [](std::string value, std::string regex, std::string to) {
+    create_function("replace", [](std::string value, const std::string &regex, const std::string &to) {
         return string_replace_regex(value, regex, to);
     }),
-    create_function("date_format", [](std::string month, std::string format) {
+    create_function("date_format", [](const std::string &month, const std::string &format) {
         return date_format(month, format);
     }),
-    create_function("month_add", [](std::string month, int num) {
+    create_function("month_add", [](const std::string &month, int num) {
         return date_month_add(month, num);
     }),
-    create_function("nonewline", [](std::string str) {
+    create_function("nonewline", [](const std::string &str) {
         return nonewline(str);
     }),
-    create_function("if", [](bool condition, variable var_if, std::optional<variable> var_else) {
+    create_function("if", [](bool condition, const variable &var_if, std::optional<variable> var_else) {
         return condition ? var_if : var_else.value_or(variable::null_var());
     }),
-    create_function("ifnot", [](bool condition, variable var_if, std::optional<variable> var_else) {
+    create_function("ifnot", [](bool condition, const variable &var_if, std::optional<variable> var_else) {
         return condition ? var_else.value_or(variable::null_var()) : var_if;
     }),
-    create_function("contains", [](std::string str, std::string str2) {
+    create_function("contains", [](const std::string &str, const std::string &str2) {
         return str.find(str2) != std::string::npos;
     }),
-    create_function("substr", [](std::string str, int pos, std::optional<int> count) {
+    create_function("substr", [](const std::string &str, int pos, std::optional<int> count) {
         if ((size_t) pos < str.size()) {
             return variable(str.substr(pos, count.value_or(std::string::npos)));
         }
         return variable::null_var();
     }),
-    create_function("strlen", [](std::string str) {
+    create_function("strlen", [](const std::string &str) {
         return str.size();
     }),
-    create_function("strfind", [](std::string str, std::string value, std::optional<int> index) {
+    create_function("strfind", [](const std::string &str, const std::string &value, std::optional<int> index) {
         return string_tolower(str).find(string_tolower(value), index.value_or(0));
     }),
-    create_function("isempty", [](variable var) {
+    create_function("isempty", [](const variable &var) {
         return var.empty();
     }),
-    create_function("percent", [](std::string str) {
+    create_function("percent", [](const std::string &str) {
         if (!str.empty()) {
             return variable(str + "%");
         } else {
@@ -244,7 +244,7 @@ static const std::map<std::string, function_handler> dispatcher {
         }
         return format;
     }),
-    create_function("coalesce", [](std::vector<variable> args) {
+    create_function("coalesce", [](const std::vector<variable> &args) {
         for (auto &arg : args) {
             if (!arg.empty()) return arg;
         }
