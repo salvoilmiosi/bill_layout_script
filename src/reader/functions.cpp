@@ -8,8 +8,6 @@
 #include "functions.h"
 #include "utils.h"
 
-using arg_list = std::vector<variable>;
-
 template<typename T> T convert_var(variable &var) = delete;
 
 template<> const variable    &convert_var<const variable &>    (variable &var) { return var; }
@@ -45,73 +43,81 @@ template<typename T> struct is_vector_impl<std::vector<T>> {
 };
 template<typename T> constexpr bool is_vector = is_vector_impl<std::decay_t<T>>::value;
 
-template<typename ... Ts> struct count_required_impl {};
-template<> struct count_required_impl<> {
-    static constexpr size_t value = 0;
-};
-template<typename First, typename ... Ts> struct count_required_impl<First, Ts ...> {
-    static constexpr size_t value = is_variable<First> ? 1 + count_required_impl<Ts ...>::value : 0;
-};
-template<typename ... Ts> constexpr size_t count_required = count_required_impl<Ts ...>::value;
+template<typename ... Ts> class type_list {
+private:
+    template<size_t N, typename ... Rs> struct get_impl {
+        using type = void;
+    };
 
-template<bool Opt, typename ... Ts> struct verify_args_impl {};
-template<bool Opt> struct verify_args_impl<Opt> {
-    static constexpr bool value = true;
-};
-template<bool Opt, typename First, typename ... Ts>
-struct verify_args_impl<Opt, First, Ts...> {
-    static constexpr bool value = is_variable<First> ? (!Opt && verify_args_impl<false, Ts...>::value)
-        : is_optional<First> ? verify_args_impl<true, Ts...>::value
-            : is_vector<First> && sizeof...(Ts) == 0;
-};
-template<typename ... Ts> constexpr bool verify_args = verify_args_impl<false, Ts ...>::value;
+    template<size_t N, typename First, typename ... Rs> struct get_impl<N, First, Rs ...> {
+        using type = std::conditional_t<N==0, First, typename get_impl<N-1, Rs...>::type>;
+    };
 
-template<typename ... Ts> struct has_varargs_impl {};
-template<> struct has_varargs_impl<> {
-    static constexpr bool value = false;
-};
-template<typename First, typename ... Ts> struct has_varargs_impl<First, Ts ...> {
-    static constexpr bool value = is_vector<First> || has_varargs_impl<Ts ...>::value;
-};
-template<typename ... Ts> constexpr bool has_varargs = has_varargs_impl<std::decay_t<Ts> ...>::value;
-
-template<size_t N, typename ... Ts> struct arg_type_impl {
-    using type = void;
-};
-
-template<size_t N, typename First, typename ... Ts> struct arg_type_impl<N, First, Ts...> {
-    using type = std::conditional_t<N==0, First, typename arg_type_impl<N-1,Ts...>::type>;
-};
-
-template<typename ... Ts> struct type_list {
+public:
     static constexpr size_t size = sizeof...(Ts);
+    template<size_t I> using get = typename get_impl<I, Ts ...>::type;
 };
 
-template<size_t N, typename TypeList> struct get_type_n_impl {};
-template<size_t N, typename ... Ts> struct get_type_n_impl<N, type_list<Ts ...>> {
-    using type = typename arg_type_impl<N, Ts ...>::type;
+template<bool Req, typename ... Ts> struct check_args_impl {};
+template<bool Req> struct check_args_impl<Req> {
+    static constexpr bool minargs = 0;
+    static constexpr bool maxargs = 0;
+
+    static constexpr bool valid = true;
 };
 
-template<size_t N, typename TypeList> using get_type_n = typename get_type_n_impl<N, TypeList>::type;
+template<bool Req, typename First, typename ... Ts>
+class check_args_impl<Req, First, Ts...> {
+private:
+    static constexpr bool var = is_variable<First>;
+    static constexpr bool opt = is_optional<First>;
+    static constexpr bool vec = is_vector<First>;
 
-template<typename TypeList, size_t I> get_type_n<I, TypeList> get_arg(arg_list &args) {
-    using type = get_type_n<I, TypeList>;
+    using recursive = check_args_impl<Req ? var : !opt, Ts...>;
+
+public:
+    static constexpr size_t minargs = Req && var ? 1 + recursive::minargs : 0;
+    static constexpr size_t maxargs = (vec || recursive::maxargs == -1) ? -1 : 1 + recursive::maxargs;
+
+    static constexpr bool valid = vec ? sizeof...(Ts) == 0 : (Req || opt) && recursive::valid;
+};
+template<typename Function> struct check_args {};
+template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : public check_args_impl<true, Ts...> {
+    using types = type_list<Ts ...>;
+};
+
+using arg_list = std::vector<variable>;
+using function_handler = std::function<variable(arg_list &)>;
+
+struct invalid_numargs {
+    size_t numargs;
+    size_t minargs;
+    size_t maxargs;
+};
+
+template<typename TypeList, size_t I> typename TypeList::get<I> get_arg(arg_list &args) {
+    using type = typename TypeList::get<I>;
     if constexpr (is_optional<type>) {
+        using opt_type = typename std::decay_t<type>::value_type;
         if (I >= args.size()) {
             return std::nullopt;
         } else {
-            return convert_var<typename std::decay_t<type>::value_type>(args[I]);
+            return convert_var<opt_type>(args[I]);
         }
     } else if constexpr (is_vector<type>) {
-        using vararg_type = typename std::decay_t<type>::value_type;
-        std::vector<vararg_type> varargs;
-        std::transform(
-            args.begin() + I, args.end(), std::back_inserter(varargs),
-            [](variable &var) {
-                return convert_var<vararg_type>(var);
-            }
-        );
-        return varargs;
+        using vec_type = typename std::decay_t<type>::value_type;
+        if constexpr (std::is_same_v<vec_type, variable> && I==0) {
+            return std::move(args);
+        } else {
+            std::vector<vec_type> varargs;
+            std::transform(
+                args.begin() + I, args.end(), std::back_inserter(varargs),
+                [](variable &var) {
+                    return convert_var<vec_type>(var);
+                }
+            );
+            return varargs;
+        }
     } else {
         return convert_var<type>(args[I]);
     }
@@ -122,26 +128,10 @@ constexpr variable exec_helper(Function &fun, arg_list &args, std::index_sequenc
     return fun(get_arg<TypeList, Is>(args)...);
 }
 
-struct invalid_numargs {
-    size_t numargs;
-    size_t minargs;
-    size_t maxargs;
-};
-
-using function_handler = std::function<variable(arg_list &)>;
-
-template<typename Function> struct check_args{};
-
-template<typename T, typename ... Ts> requires(verify_args<Ts...>)
-struct check_args<T (*)(Ts ...)>  {
-    static constexpr size_t minargs = count_required<Ts...>;
-    static constexpr size_t maxargs = has_varargs<Ts...> ? (size_t) -1 : sizeof...(Ts);
-    using types = type_list<Ts...>;
-};
-
 template<typename Function>
 constexpr std::pair<std::string, function_handler> create_function(const std::string &name, Function fun) {
     using fun_args = check_args<decltype(+fun)>;
+    static_assert(fun_args::valid);
     return {name, [fun](arg_list &vars) {
         if (vars.size() < fun_args::minargs || vars.size() > fun_args::maxargs) {
             throw invalid_numargs{vars.size(), fun_args::minargs, fun_args::maxargs};
@@ -243,7 +233,7 @@ void reader::call_function(const std::string &name, size_t numargs) {
         }
     } catch (const invalid_numargs &error) {
         if (error.maxargs == (size_t) -1) {
-            throw layout_error(fmt::format("La funzione {0} richiede minimo {1} argomenti", name, error.minargs));
+            throw layout_error(fmt::format("La funzione {0} richiede almeno {1} argomenti", name, error.minargs));
         } else if (error.minargs == error.maxargs) {
             throw layout_error(fmt::format("La funzione {0} richiede {1} argomenti", name, error.minargs));
         } else {
