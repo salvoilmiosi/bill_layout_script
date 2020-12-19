@@ -11,6 +11,7 @@ void variable::set_string(const std::string &str) {
 
 void variable::set_number(const fixed_point &num) {
     m_type = VAR_NUMBER;
+    m_num = num;
     m_str = dec::toString(num);
     auto it = m_str.rbegin();
     for (; *it == '0' && it != m_str.rend(); ++it);

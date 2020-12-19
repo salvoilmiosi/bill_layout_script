@@ -33,7 +33,7 @@ public:
     variable(const fixed_point &value) { set_number(value); }
 
     template<typename T> requires(std::is_arithmetic_v<T>)
-    variable(T value) { set_number(fixed_point((typename signed_type<T>::type) value)); }
+    variable(T value) { set_number(fixed_point(typename signed_type<T>::type(value))); }
 
     static const variable &null_var() {
         static const variable VAR_NULL;

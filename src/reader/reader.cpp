@@ -325,13 +325,17 @@ void reader::set_ref(bool clear) {
     if (ref.flags & VAR_DEBUG) var.m_debug = true;
     if (ref.flags & VAR_RANGE_ALL) {
         for (auto &x : var) { 
-            x = std::move(value);
+            x = value;
         }
     } else {
         if (clear) var.clear();
         while (var.size() <= ref.index_last) var.emplace_back();
-        for (size_t i=ref.index_first; i<=ref.index_last; ++i) {
-            var[i] = std::move(value);
+        if (ref.index_last == ref.index_first) {
+            var[ref.index_first] = std::move(value);
+        } else {
+            for (size_t i=ref.index_first; i<=ref.index_last; ++i) {
+                var[i] = value;
+            }
         }
     }
 }
