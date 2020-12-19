@@ -108,7 +108,7 @@ void reader::exec_command(const command_args &cmd) {
         ref.index_first = m_var_stack.top().as_int();
         ref.index_last = ref.index_first;
         m_var_stack.pop();
-        m_ref_stack.emplace(std::move(ref));
+        m_ref_stack.push(std::move(ref));
         break;
     }
     case opcode::SELRANGEALL:
@@ -116,7 +116,7 @@ void reader::exec_command(const command_args &cmd) {
         variable_ref ref;
         ref.name = get_string_ref();
         ref.flags |= VAR_RANGE_ALL;
-        m_ref_stack.emplace(std::move(ref));
+        m_ref_stack.push(std::move(ref));
         break;
     }
     case opcode::SELVAR:
@@ -127,7 +127,7 @@ void reader::exec_command(const command_args &cmd) {
         ref.name = m_code.get_string(var_idx.name);
         ref.index_first = var_idx.index_first;
         ref.index_last = var_idx.index_last;
-        m_ref_stack.emplace(std::move(ref));
+        m_ref_stack.push(std::move(ref));
         break;
     }
     case opcode::SELRANGETOP:
@@ -138,7 +138,7 @@ void reader::exec_command(const command_args &cmd) {
         m_var_stack.pop();
         ref.index_first = m_var_stack.top().as_int();
         m_var_stack.pop();
-        m_ref_stack.emplace(std::move(ref));
+        m_ref_stack.push(std::move(ref));
         break;
     }
     case opcode::SELGLOBAL:
@@ -146,7 +146,7 @@ void reader::exec_command(const command_args &cmd) {
         variable_ref ref;
         ref.name = get_string_ref();
         ref.flags |= VAR_GLOBAL;
-        m_ref_stack.emplace(std::move(ref));
+        m_ref_stack.push(std::move(ref));
         break;
     }
     case opcode::MVBOX:

@@ -4,12 +4,12 @@
 #include <iostream>
 #include <map>
 #include <vector>
-#include <stack>
 #include <memory>
 #include <json/json.h>
 
 #include "variable.h"
 #include "bytecode.h"
+#include "stack.h"
 
 struct content_view {
     std::string text;
@@ -90,7 +90,7 @@ private:
     bytecode m_code;
 
     template<typename T>
-    using stack_t = std::stack<T>;
+    using stack_t = my_stack<T>;
 
     stack_t<variable> m_var_stack;
     stack_t<content_view> m_content_stack;

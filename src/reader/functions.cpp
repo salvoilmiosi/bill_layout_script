@@ -88,8 +88,7 @@ template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : public c
     using types = type_list<Ts ...>;
 };
 
-using arg_list = std::vector<variable>;
-using function_handler = std::function<variable(arg_list &)>;
+using arg_list = my_stack<variable>::range;
 
 template<typename TypeList, size_t I> typename TypeList::get<I> get_arg(arg_list &args) {
     using type = typename TypeList::get<I>;
@@ -102,18 +101,14 @@ template<typename TypeList, size_t I> typename TypeList::get<I> get_arg(arg_list
         }
     } else if constexpr (is_vector<type>) {
         using vec_type = typename std::decay_t<type>::value_type;
-        if constexpr (std::is_same_v<vec_type, variable> && I==0) {
-            return std::move(args);
-        } else {
-            std::vector<vec_type> varargs;
-            std::transform(
-                args.begin() + I, args.end(), std::back_inserter(varargs),
-                [](variable &var) {
-                    return convert_var<vec_type>(var);
-                }
-            );
-            return varargs;
-        }
+        std::vector<vec_type> varargs;
+        std::transform(
+            args.begin() + I, args.end(), std::back_inserter(varargs),
+            [](variable &var) {
+                return convert_var<vec_type>(var);
+            }
+        );
+        return varargs;
     } else {
         return convert_var<type>(args[I]);
     }
@@ -136,11 +131,13 @@ void check_numargs(const std::string &name, size_t numargs, size_t minargs, size
     }
 }
 
+using function_handler = std::function<variable(arg_list&&)>;
+
 template<typename Function>
 constexpr std::pair<std::string, function_handler> create_function(const std::string &name, Function fun) {
     using fun_args = check_args<decltype(+fun)>;
     static_assert(fun_args::valid);
-    return {name, [name, fun](arg_list &args) {
+    return {name, [name, fun](arg_list &&args) {
         check_numargs(name, args.size(), fun_args::minargs, fun_args::maxargs);
         return exec_helper<typename fun_args::types>(fun, args,
             std::make_index_sequence<fun_args::types::size>{});
@@ -227,12 +224,9 @@ static const std::map<std::string, function_handler> lookup {
 void reader::call_function(const std::string &name, size_t numargs) {
     auto it = lookup.find(name);
     if (it != lookup.end()) {
-        arg_list vars(numargs);
-        for (size_t i=0; i<numargs; ++i) {
-            vars[numargs - i - 1] = std::move(m_var_stack.top());
-            m_var_stack.pop();
-        }
-        m_var_stack.push(it->second(vars));
+        variable ret = it->second(m_var_stack.top_view(numargs));
+        m_var_stack.resize(m_var_stack.size() - numargs);
+        m_var_stack.push(std::move(ret));
     } else {
         throw layout_error(fmt::format("Funzione sconosciuta: {0}", name));
     }
