@@ -45,12 +45,14 @@ template<typename T> constexpr bool is_vector = is_vector_impl<std::decay_t<T>>:
 
 template<typename ... Ts> class type_list {
 private:
-    template<size_t N, typename ... Rs> struct get_impl {
-        using type = void;
+    template<size_t N, typename ... Rs> struct get_impl {};
+
+    template<size_t N, typename First, typename ... Rs> requires(N==0) struct get_impl<N, First, Rs ...> {
+        using type = First;
     };
 
     template<size_t N, typename First, typename ... Rs> struct get_impl<N, First, Rs ...> {
-        using type = std::conditional_t<N==0, First, typename get_impl<N-1, Rs...>::type>;
+        using type = typename get_impl<N-1, Rs ...>::type;
     };
 
 public:
@@ -67,13 +69,13 @@ template<bool Req> struct check_args_impl<Req> {
 };
 
 template<bool Req, typename First, typename ... Ts>
-class check_args_impl<Req, First, Ts...> {
+class check_args_impl<Req, First, Ts ...> {
 private:
     static constexpr bool var = is_variable<First>;
     static constexpr bool opt = is_optional<First>;
     static constexpr bool vec = is_vector<First>;
 
-    using recursive = check_args_impl<Req ? var : !opt, Ts...>;
+    using recursive = check_args_impl<Req ? var : !opt, Ts ...>;
 
 public:
     static constexpr size_t minargs = Req && var ? 1 + recursive::minargs : 0;
@@ -82,18 +84,12 @@ public:
     static constexpr bool valid = vec ? sizeof...(Ts) == 0 : (Req || opt) && recursive::valid;
 };
 template<typename Function> struct check_args {};
-template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : public check_args_impl<true, Ts...> {
+template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : public check_args_impl<true, Ts ...> {
     using types = type_list<Ts ...>;
 };
 
 using arg_list = std::vector<variable>;
 using function_handler = std::function<variable(arg_list &)>;
-
-struct invalid_numargs {
-    size_t numargs;
-    size_t minargs;
-    size_t maxargs;
-};
 
 template<typename TypeList, size_t I> typename TypeList::get<I> get_arg(arg_list &args) {
     using type = typename TypeList::get<I>;
@@ -124,24 +120,34 @@ template<typename TypeList, size_t I> typename TypeList::get<I> get_arg(arg_list
 }
 
 template<typename TypeList, typename Function, std::size_t ... Is>
-constexpr variable exec_helper(Function &fun, arg_list &args, std::index_sequence<Is...>) {
+constexpr variable exec_helper(Function fun, arg_list &args, std::index_sequence<Is ...>) {
     return fun(get_arg<TypeList, Is>(args)...);
+}
+
+void check_numargs(const std::string &name, size_t numargs, size_t minargs, size_t maxargs) {
+    if (numargs < minargs || numargs > maxargs) {
+        if (maxargs == (size_t) -1) {
+            throw layout_error(fmt::format("La funzione {0} richiede almeno {1} argomenti", name, minargs));
+        } else if (minargs == maxargs) {
+            throw layout_error(fmt::format("La funzione {0} richiede {1} argomenti", name, minargs));
+        } else {
+            throw layout_error(fmt::format("La funzione {0} richiede {1}-{2} argomenti", name, minargs, maxargs));
+        }
+    }
 }
 
 template<typename Function>
 constexpr std::pair<std::string, function_handler> create_function(const std::string &name, Function fun) {
     using fun_args = check_args<decltype(+fun)>;
     static_assert(fun_args::valid);
-    return {name, [fun](arg_list &vars) {
-        if (vars.size() < fun_args::minargs || vars.size() > fun_args::maxargs) {
-            throw invalid_numargs{vars.size(), fun_args::minargs, fun_args::maxargs};
-        }
-        return exec_helper<typename fun_args::types>(fun, vars,
+    return {name, [name, fun](arg_list &args) {
+        check_numargs(name, args.size(), fun_args::minargs, fun_args::maxargs);
+        return exec_helper<typename fun_args::types>(fun, args,
             std::make_index_sequence<fun_args::types::size>{});
     }};
 }
 
-static const std::map<std::string, function_handler> dispatcher {
+static const std::map<std::string, function_handler> lookup {
     create_function("search", [](const std::string &str, const std::string &regex, std::optional<int> index) {
         return search_regex(regex, str, index.value_or(1));
     }),
@@ -219,25 +225,15 @@ static const std::map<std::string, function_handler> dispatcher {
 };
 
 void reader::call_function(const std::string &name, size_t numargs) {
-    try {
-        auto it = dispatcher.find(name);
-        if (it != dispatcher.end()) {
-            arg_list vars(numargs);
-            for (size_t i=0; i<numargs; ++i) {
-                vars[numargs - i - 1] = std::move(m_var_stack.top());
-                m_var_stack.pop();
-            }
-            m_var_stack.push(it->second(vars));
-        } else {
-            throw layout_error(fmt::format("Funzione sconosciuta: {0}", name));
+    auto it = lookup.find(name);
+    if (it != lookup.end()) {
+        arg_list vars(numargs);
+        for (size_t i=0; i<numargs; ++i) {
+            vars[numargs - i - 1] = std::move(m_var_stack.top());
+            m_var_stack.pop();
         }
-    } catch (const invalid_numargs &error) {
-        if (error.maxargs == (size_t) -1) {
-            throw layout_error(fmt::format("La funzione {0} richiede almeno {1} argomenti", name, error.minargs));
-        } else if (error.minargs == error.maxargs) {
-            throw layout_error(fmt::format("La funzione {0} richiede {1} argomenti", name, error.minargs));
-        } else {
-            throw layout_error(fmt::format("La funzione {0} richiede {1}-{2} argomenti", name, error.minargs, error.maxargs));
-        }
+        m_var_stack.push(it->second(vars));
+    } else {
+        throw layout_error(fmt::format("Funzione sconosciuta: {0}", name));
     }
 }
