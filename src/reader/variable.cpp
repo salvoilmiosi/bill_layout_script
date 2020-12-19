@@ -28,6 +28,17 @@ variable variable::str_to_number(const std::string &str) {
     }
 }
 
+bool variable::as_bool() const {
+    switch (m_type) {
+    case VAR_STRING:
+        return !empty();
+    case VAR_NUMBER:
+        return number() != fixed_point(0);
+    default:
+        return false;
+    }
+}
+
 bool variable::operator == (const variable &other) const {
     if (m_type == other.m_type) {
         switch (m_type) {

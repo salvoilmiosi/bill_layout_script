@@ -51,7 +51,7 @@ public:
     fixed_point &number() { return m_num; }
 
     int as_int() const { return m_num.getAsInteger(); }
-    bool as_bool() const { return m_num != fixed_point(0); }
+    bool as_bool() const;
 
     bool empty() const { return m_str.empty(); }
     
