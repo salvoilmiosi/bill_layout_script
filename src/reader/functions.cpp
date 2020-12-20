@@ -43,21 +43,17 @@ template<typename T> struct is_vector_impl<std::vector<T>> {
 };
 template<typename T> constexpr bool is_vector = is_vector_impl<T>::value;
 
-template<typename ... Ts> class type_list {
-private:
-    template<size_t N, typename ... Rs> struct get_impl {};
+template<size_t N, typename First, typename ... Ts> struct get_nth {
+    using type = typename get_nth<N-1, Ts ...>::type;
+};
 
-    template<size_t N, typename First, typename ... Rs> requires(N==0) struct get_impl<N, First, Rs ...> {
-        using type = First;
-    };
+template<typename First, typename ... Ts> struct get_nth<0, First, Ts ...> {
+    using type = First;
+};
 
-    template<size_t N, typename First, typename ... Rs> struct get_impl<N, First, Rs ...> {
-        using type = typename get_impl<N-1, Rs ...>::type;
-    };
-
-public:
+template<typename ... Ts> struct type_list {
     static constexpr size_t size = sizeof...(Ts);
-    template<size_t I> using get = typename get_impl<I, Ts ...>::type;
+    template<size_t I> using get = typename get_nth<I, Ts ...>::type;
 };
 
 template<bool Req, typename ... Ts> struct check_args_impl {};
@@ -96,8 +92,9 @@ template<typename T> using convert_type =
 template<typename T, typename InputIt, typename Function>
 constexpr std::vector<T> transformed_vector(InputIt begin, InputIt end, Function fun) {
     std::vector<T> ret;
-    ret.reserve(end - begin);
-    std::transform(begin, end, std::back_inserter(ret), fun);
+    for (; begin != end; ++begin) {
+        ret.push_back(fun(*begin));
+    }
     return ret;
 }
 

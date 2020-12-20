@@ -9,11 +9,12 @@
 #include <wx/intl.h>
 
 std::string parse_number(const std::string &str) {
+    static char decimal_point = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER).at(0);
     std::string out;
     for (char c : str) {
         if (std::isdigit(c) || c == '-') {
             out += c;
-        } else if (c == wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER)) {
+        } else if (c == decimal_point) {
             out += '.';
         }
     }
