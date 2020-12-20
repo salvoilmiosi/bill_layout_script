@@ -192,7 +192,10 @@ static const std::map<std::string, function_handler> lookup {
         return str.size();
     }),
     create_function("strfind", [](const std::string &str, const std::string &value, std::optional<int> index) {
-        return string_tolower(str).find(string_tolower(value), index.value_or(0));
+        return str.find(value, index.value_or(0));
+    }),
+    create_function("tolower", [](const std::string &str) {
+        return string_tolower(str);
     }),
     create_function("isempty", [](const variable &var) {
         return var.empty();

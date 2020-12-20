@@ -221,7 +221,7 @@ $goto(lettura_spese)
 ### H 0.0307867676
 ### Goto Label parsing_spese
 ### Script
-!con_begin=$strfind(contenuto_spese,$date_format(mese_fattura,"%B %Y"))
+!con_begin=$strfind($tolower(contenuto_spese),$tolower($date_format(mese_fattura,"%B %Y")))
 !con_end=$strfind(contenuto_spese,"TOT. \u20ac",$add(con_begin,150))
 $with($substr(contenuto_spese,con_begin,$sub(con_end,con_begin))) {
   %imponibile=$search(@,/TOT\. \u20ac (%N)/)
