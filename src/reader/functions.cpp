@@ -10,9 +10,9 @@
 
 template<typename T> T convert_var(variable &var) = delete;
 
-template<> inline const variable    &convert_var<const variable &>    (variable &var) { return var; }
-template<> inline const std::string &convert_var<const std::string &> (variable &var) { return var.str(); }
-template<> inline const fixed_point &convert_var<const fixed_point &> (variable &var) { return var.number(); }
+template<> inline variable    &convert_var<variable &>    (variable &var) { return var; }
+template<> inline std::string &convert_var<std::string &> (variable &var) { return var.str(); }
+template<> inline fixed_point &convert_var<fixed_point &> (variable &var) { return var.number(); }
 
 template<> inline variable     convert_var<variable>   (variable &var) { return std::move(var); }
 template<> inline std::string  convert_var<std::string>(variable &var) { return std::move(var.str()); }
@@ -86,13 +86,16 @@ template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : public c
 
 using arg_list = my_stack<variable>::range;
 
-template<typename T> using convert_type =
-    std::conditional_t<is_variable<T>,T,std::decay_t<T>>;
+template<typename T> using convert_type = std::conditional_t<is_variable<T>,T,std::decay_t<T>>;
+
+template<typename T> using convert_ref = convert_type<std::add_lvalue_reference_t<T>>;
 
 template<typename T, typename InputIt, typename Function>
 constexpr std::vector<T> transformed_vector(InputIt begin, InputIt end, Function fun) {
     std::vector<T> ret;
-    std::transform(begin, end, std::back_inserter(ret), fun);
+    for (;begin!=end; ++begin) {
+        ret.emplace_back(std::move(fun(*begin)));
+    }
     return ret;
 }
 
@@ -107,7 +110,7 @@ template<typename TypeList, size_t I> inline convert_type<typename TypeList::get
         }
     } else if constexpr (is_vector<type>) {
         using vec_type = typename type::value_type;
-        return transformed_vector<vec_type>(args.begin() + I, args.end(), convert_var<vec_type>);
+        return transformed_vector<vec_type>(args.begin() + I, args.end(), convert_var<convert_ref<vec_type>>);
     } else {
         return convert_var<type>(args[I]);
     }
