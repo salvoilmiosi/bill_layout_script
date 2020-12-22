@@ -86,7 +86,13 @@ template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : public c
 
 using arg_list = my_stack<variable>::range;
 
-template<typename T> using convert_type = std::conditional_t<is_variable<T>,T,std::decay_t<T>>;
+template<typename T> using no_const = std::conditional_t<
+	std::is_const_v<std::remove_reference_t<T>>,
+	std::add_lvalue_reference_t<std::decay_t<T>>,
+	T>;
+
+template<typename T> using convert_type = std::conditional_t<
+    is_variable<no_const<T>>,no_const<T>,std::decay_t<T>>;
 
 template<typename T> using convert_ref = convert_type<std::add_lvalue_reference_t<T>>;
 
