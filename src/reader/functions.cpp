@@ -80,12 +80,18 @@ private:
     static constexpr bool opt = is_optional<First>;
     static constexpr bool vec = is_vector<First>;
 
+    // Req è false se è stato trovato un optional<T>
     using recursive = check_args_impl<Req ? var : !opt, Ts ...>;
 
 public:
+    // Conta il numero di tipi che non sono optional<T>
     static constexpr size_t minargs = Req && var ? 1 + recursive::minargs : 0;
+    // Conta il numero totale di tipi o -1 se l'ultimo è vector<T>
+    // maxargs è unsigned quindi -1 è implicitamente MAX_INT
     static constexpr size_t maxargs = (vec || recursive::maxargs == -1) ? -1 : 1 + recursive::maxargs;
 
+    // true solo se i tipi seguono il pattern (var*N, opt*M, [vec])
+    // Se Req==false e var==true, valid=false
     static constexpr bool valid = vec ? sizeof...(Ts) == 0 : (Req || opt) && recursive::valid;
 };
 
@@ -149,7 +155,13 @@ using function_handler = std::function<variable(arg_list&&)>;
 template<typename Function>
 constexpr std::pair<string, function_handler> create_function(const string &name, Function fun) {
     using fun_args = check_args<decltype(+fun)>;
+    // l'operatore unario + converte una funzione lambda senza capture
+    // in puntatore a funzione. In questo modo il compilatore può
+    // dedurre i tipi dei parametri della funzione tramite i template
     static_assert(fun_args::valid);
+    // Viene creata una closure che automaticamente controlla
+    // il numero di argomenti passati alla funzione e li passa
+    // negli argomenti di fun, convertendoli nei tipi giusti
     return {name, [name, fun](arg_list &&args) {
         check_numargs(name, args.size(), fun_args::minargs, fun_args::maxargs);
         return exec_helper<typename fun_args::types>(fun, args,
