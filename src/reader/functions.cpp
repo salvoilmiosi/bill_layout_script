@@ -61,6 +61,10 @@ template<typename ... Ts> struct type_list {
     template<size_t I> using get = typename get_nth<I, Ts ...>::type;
 };
 
+template<> struct type_list<> {
+    static constexpr size_t size = 0;
+};
+
 template<bool Req, typename ... Ts> struct check_args_impl {};
 template<bool Req> struct check_args_impl<Req> {
     static constexpr bool minargs = 0;
@@ -230,6 +234,9 @@ static const std::map<string, function_handler> lookup {
             var += arg;
         }
         return var;
+    }),
+    create_function("null", []{
+        return variable::null_var();
     })
 };
 
