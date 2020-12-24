@@ -9,10 +9,14 @@
 #include "functions.h"
 #include "utils.h"
 
+using std::string;
+using std::optional;
+using std::vector;
+
 template<typename T> T convert_var(variable &var) = delete;
 
 template<> inline variable    &convert_var<variable &>    (variable &var) { return var; }
-template<> inline std::string &convert_var<std::string &> (variable &var) { return var.str(); }
+template<> inline string      &convert_var<string &>      (variable &var) { return var.str(); }
 template<> inline fixed_point &convert_var<fixed_point &> (variable &var) { return var.number(); }
 
 template<> inline int          convert_var<int>        (variable &var) { return var.as_int(); }
@@ -31,7 +35,7 @@ template<typename T> constexpr bool is_variable =
 template<typename T> struct is_optional_impl {
     static constexpr bool value = false;
 };
-template<typename T> struct is_optional_impl<std::optional<T>> {
+template<typename T> struct is_optional_impl<optional<T>> {
     static constexpr bool value = is_variable<T>;
 };
 template<typename T> constexpr bool is_optional = is_optional_impl<std::decay_t<T>>::value;
@@ -39,7 +43,7 @@ template<typename T> constexpr bool is_optional = is_optional_impl<std::decay_t<
 template<typename T> struct is_vector_impl {
     static constexpr bool value = false;
 };
-template<typename T> struct is_vector_impl<std::vector<T>> {
+template<typename T> struct is_vector_impl<vector<T>> {
     static constexpr bool value = is_variable<T>;
 };
 template<typename T> constexpr bool is_vector = is_vector_impl<std::decay_t<T>>::value;
@@ -94,8 +98,8 @@ template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : public c
 };
 
 template<typename T, typename InputIt, typename Function>
-constexpr std::vector<T> transformed_vector(InputIt begin, InputIt end, Function fun) {
-    std::vector<T> ret;
+constexpr vector<T> transformed_vector(InputIt begin, InputIt end, Function fun) {
+    vector<T> ret;
     for (;begin!=end; ++begin) {
         ret.emplace_back(std::move(fun(*begin)));
     }
@@ -124,7 +128,7 @@ constexpr variable exec_helper(Function fun, arg_list &args, std::index_sequence
     return fun(get_arg<TypeList, Is>(args)...);
 }
 
-void check_numargs(const std::string &name, size_t numargs, size_t minargs, size_t maxargs) {
+void check_numargs(const string &name, size_t numargs, size_t minargs, size_t maxargs) {
     if (numargs < minargs || numargs > maxargs) {
         if (maxargs == (size_t) -1) {
             throw layout_error(fmt::format("La funzione {0} richiede almeno {1} argomenti", name, minargs));
@@ -139,7 +143,7 @@ void check_numargs(const std::string &name, size_t numargs, size_t minargs, size
 using function_handler = std::function<variable(arg_list&&)>;
 
 template<typename Function>
-constexpr std::pair<std::string, function_handler> create_function(const std::string &name, Function fun) {
+constexpr std::pair<string, function_handler> create_function(const string &name, Function fun) {
     using fun_args = check_args<decltype(+fun)>;
     static_assert(fun_args::valid);
     return {name, [name, fun](arg_list &&args) {
@@ -149,79 +153,79 @@ constexpr std::pair<std::string, function_handler> create_function(const std::st
     }};
 }
 
-static const std::map<std::string, function_handler> lookup {
-    create_function("search", [](const std::string &str, const std::string &regex, std::optional<int> index) {
+static const std::map<string, function_handler> lookup {
+    create_function("search", [](const string &str, const string &regex, optional<int> index) {
         return search_regex(regex, str, index.value_or(1));
     }),
-    create_function("searchall", [](const std::string &str, const std::string &regex, std::optional<int> index) {
+    create_function("searchall", [](const string &str, const string &regex, optional<int> index) {
         return string_join(search_regex_all(regex, str, index.value_or(1)), "\n");
     }),
-    create_function("date", [](const std::string &str, const std::string &format, std::optional<std::string> regex, std::optional<int> index) {
+    create_function("date", [](const string &str, const string &format, optional<string> regex, optional<int> index) {
         return parse_date(format, str, regex.value_or(""), index.value_or(1));
     }),
-    create_function("month", [](const std::string &str, std::optional<std::string> format, std::optional<std::string> regex, std::optional<int> index) {
+    create_function("month", [](const string &str, optional<string> format, optional<string> regex, optional<int> index) {
         return parse_month(format.value_or(""), str, regex.value_or(""), index.value_or(1));
     }),
-    create_function("replace", [](std::string value, const std::string &regex, const std::string &to) {
+    create_function("replace", [](string value, const string &regex, const string &to) {
         return string_replace_regex(value, regex, to);
     }),
-    create_function("date_format", [](const std::string &month, const std::string &format) {
+    create_function("date_format", [](const string &month, const string &format) {
         return date_format(month, format);
     }),
-    create_function("month_add", [](const std::string &month, int num) {
+    create_function("month_add", [](const string &month, int num) {
         return date_month_add(month, num);
     }),
-    create_function("nonewline", [](const std::string &str) {
+    create_function("nonewline", [](const string &str) {
         return nonewline(str);
     }),
-    create_function("if", [](bool condition, const variable &var_if, std::optional<variable> var_else) {
+    create_function("if", [](bool condition, const variable &var_if, optional<variable> var_else) {
         return condition ? var_if : var_else.value_or(variable::null_var());
     }),
-    create_function("ifnot", [](bool condition, const variable &var_if, std::optional<variable> var_else) {
+    create_function("ifnot", [](bool condition, const variable &var_if, optional<variable> var_else) {
         return condition ? var_else.value_or(variable::null_var()) : var_if;
     }),
-    create_function("contains", [](const std::string &str, const std::string &str2) {
-        return str.find(str2) != std::string::npos;
+    create_function("contains", [](const string &str, const string &str2) {
+        return str.find(str2) != string::npos;
     }),
-    create_function("substr", [](const std::string &str, int pos, std::optional<int> count) {
+    create_function("substr", [](const string &str, int pos, optional<int> count) {
         if ((size_t) pos < str.size()) {
-            return variable(str.substr(pos, count.value_or(std::string::npos)));
+            return variable(str.substr(pos, count.value_or(string::npos)));
         }
         return variable::null_var();
     }),
-    create_function("strlen", [](const std::string &str) {
+    create_function("strlen", [](const string &str) {
         return str.size();
     }),
-    create_function("strfind", [](const std::string &str, const std::string &value, std::optional<int> index) {
+    create_function("strfind", [](const string &str, const string &value, optional<int> index) {
         return str.find(value, index.value_or(0));
     }),
-    create_function("tolower", [](const std::string &str) {
+    create_function("tolower", [](const string &str) {
         return string_tolower(str);
     }),
     create_function("isempty", [](const variable &var) {
         return var.empty();
     }),
-    create_function("percent", [](const std::string &str) {
+    create_function("percent", [](const string &str) {
         if (!str.empty()) {
             return variable(str + "%");
         } else {
             return variable::null_var();
         }
     }),
-    create_function("format", [](std::string format, std::vector<std::string> args) {
+    create_function("format", [](string format, vector<string> args) {
         for (size_t i=0; i<args.size(); ++i) {
             string_replace(format, fmt::format("${}", i), args[i]);
         }
         return format;
     }),
-    create_function("coalesce", [](std::vector<variable> args) {
+    create_function("coalesce", [](vector<variable> args) {
         for (auto &arg : args) {
             if (!arg.empty()) return arg;
         }
         return variable::null_var();
     }),
-    create_function("strcat", [](std::vector<std::string> args) {
-        std::string var;
+    create_function("strcat", [](vector<string> args) {
+        string var;
         for (auto &arg : args) {
             var += arg;
         }
@@ -229,7 +233,7 @@ static const std::map<std::string, function_handler> lookup {
     })
 };
 
-void reader::call_function(const std::string &name, size_t numargs) {
+void reader::call_function(const string &name, size_t numargs) {
     auto it = lookup.find(name);
     if (it != lookup.end()) {
         variable ret = it->second(m_var_stack.top_view(numargs));
