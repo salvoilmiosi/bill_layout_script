@@ -18,6 +18,7 @@ private:
     wxString input_file;
     wxString output_file;
     wxString output_asm;
+    bool no_out = false;
     bool debug = false;
     bool read_asm = false;
 };
@@ -27,7 +28,8 @@ wxIMPLEMENT_APP_CONSOLE(MainApp);
 static const wxCmdLineEntryDesc g_cmdline_desc[] = {
     { wxCMD_LINE_OPTION, "o", "output", "output layout", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_OPTION, "t", "output-asm", "output assembler", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
-    { wxCMD_LINE_SWITCH, "d", "debug", "debug", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_SWITCH, "d", "no-output", "no output", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_SWITCH, "g", "debug", "debug", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_SWITCH, "s", "input-asm", "input assempler", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_PARAM, nullptr, nullptr, "input bls", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
     { wxCMD_LINE_NONE }
@@ -42,8 +44,9 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     if (parser.GetParamCount() >= 1) input_file = parser.GetParam(0);
     parser.Found("o", &output_file);
     parser.Found("t", &output_asm);
-    debug = parser.Found("d");
+    no_out = parser.Found("d");
     read_asm = parser.Found("s");
+    debug = parser.Found("g");
     return true;
 }
 
@@ -57,7 +60,7 @@ int MainApp::OnRun() {
         }
         ifs.open(input_file.ToStdString());
 
-        if (!debug && output_file.empty()) {
+        if (!no_out && output_file.empty()) {
             wxFileName f(input_file);
             f.SetExt("out");
             output_file = f.GetFullPath();
@@ -93,7 +96,7 @@ int MainApp::OnRun() {
                 ofs.close();
             }
             
-            out_code = read_lines(my_parser.get_output_asm());
+            out_code = read_lines(my_parser.get_output_asm(), debug);
         } else {
             std::vector<std::string> lines;
             std::string line;
@@ -101,7 +104,7 @@ int MainApp::OnRun() {
                 lines.push_back(line);
             }
             
-            out_code = read_lines(lines);
+            out_code = read_lines(lines, debug);
         }
     } catch (const layout_error &error) {
         std::cerr << error.message << std::endl;
@@ -111,7 +114,7 @@ int MainApp::OnRun() {
         return 1;
     }
     
-    if (!debug && !output_file.empty()) {
+    if (!no_out && !output_file.empty()) {
         if (output_file == "-") {
 #ifdef _WIN32
             setmode(fileno(stdout), O_BINARY);

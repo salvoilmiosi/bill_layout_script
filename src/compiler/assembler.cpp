@@ -8,7 +8,7 @@
 #include "binary_io.h"
 #include "parsestr.h"
 
-bytecode read_lines(const std::vector<std::string> &lines) {
+bytecode read_lines(const std::vector<std::string> &lines, bool add_debug) {
     bytecode ret;
     std::map<std::string, jump_address> labels;
 
@@ -29,6 +29,9 @@ bytecode read_lines(const std::vector<std::string> &lines) {
 
     try {
         for (auto &line : lines) {
+            if (add_debug) {
+                ret.add_command(opcode::DBGDATA, line);
+            }
             size_t space_pos = line.find_first_of(' ');
             std::string cmd = line.substr(0, space_pos);
             auto arg_str = line.substr(space_pos + 1);
