@@ -25,9 +25,15 @@ private:
     };
 
 public:
-    variable() {}
+    variable() = default;
+    variable(const variable &) = default;
+    variable(variable &&) = default;
+
+    variable &operator = (const variable &) = default;
+    variable &operator = (variable &&) = default;
 
     variable(const std::string &value) { set_string(value); }
+    variable(std::string &&value) { set_string(value); }
     variable(std::string_view value) { set_string(std::string(value)); }
 
     variable(const fixed_point &value) { set_number(value); }
@@ -80,7 +86,13 @@ private:
     fixed_point m_num;
     variable_type m_type = VAR_UNDEFINED;
 
-    void set_string(const std::string &str);
+    template<typename T>
+    void set_string(T &&str) {
+        m_type = VAR_STRING;
+        m_num = fixed_point(str);
+        m_str = std::forward<T>(str);
+    }
+
     void set_number(const fixed_point &num);
 };
 

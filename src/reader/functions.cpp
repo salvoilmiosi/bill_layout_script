@@ -3,7 +3,6 @@
 #include <functional>
 #include <regex>
 #include <optional>
-#include <type_traits>
 #include <fmt/format.h>
 
 #include "functions.h"
@@ -169,7 +168,7 @@ constexpr std::pair<string, function_handler> create_function(const string &name
     }};
 }
 
-static const std::map<string, function_handler> lookup {
+static const std::unordered_map<string, function_handler> lookup {
     create_function("search", [](const string &str, const string &regex, optional<int> index) {
         return search_regex(regex, str, index.value_or(1));
     }),

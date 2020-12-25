@@ -95,7 +95,7 @@ struct variable_idx {
     small_int index_first;
     small_int index_last;
 
-    variable_idx() {}
+    variable_idx() = default;
     variable_idx(const string_ref &name, small_int index) : name(name), index_first(index), index_last(index) {}
     variable_idx(const string_ref &name, small_int index_first, small_int index_last) : name(name), index_first(index_first), index_last(index_last) {}
 };

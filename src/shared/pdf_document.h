@@ -22,7 +22,7 @@ struct pdf_rect {
 
 class pdf_document {
 public:
-    pdf_document() {}
+    pdf_document() = default;
     explicit pdf_document(const std::string &filename) {
         open(filename);
     }
