@@ -3,6 +3,7 @@
 #include <functional>
 #include <regex>
 #include <optional>
+#include <span>
 #include <fmt/format.h>
 
 #include "functions.h"
@@ -94,7 +95,7 @@ public:
     static constexpr bool valid = vec ? sizeof...(Ts) == 0 : (Req || opt) && recursive::valid;
 };
 
-using arg_list = my_stack<variable>::range;
+using arg_list = std::span<variable>;
 
 template<typename T> using convert_type = std::conditional_t<
     is_convertible<std::add_lvalue_reference_t<std::decay_t<T>>>,
@@ -254,7 +255,9 @@ static const std::unordered_map<string, function_handler> lookup {
 void reader::call_function(const string &name, size_t numargs) {
     auto it = lookup.find(name);
     if (it != lookup.end()) {
-        variable ret = it->second(m_var_stack.top_view(numargs));
+        variable ret = it->second(arg_list(
+            m_var_stack.end() - numargs,
+            m_var_stack.end()));
         m_var_stack.resize(m_var_stack.size() - numargs);
         m_var_stack.push(std::move(ret));
     } else {
