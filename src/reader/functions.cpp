@@ -86,9 +86,9 @@ private:
 public:
     // Conta il numero di tipi che non sono optional<T>
     static constexpr size_t minargs = Req && var ? 1 + recursive::minargs : 0;
-    // Conta il numero totale di tipi o -1 se l'ultimo è vector<T>
-    // maxargs è unsigned quindi -1 è implicitamente MAX_INT
-    static constexpr size_t maxargs = (vec || recursive::maxargs == -1) ? -1 : 1 + recursive::maxargs;
+    // Conta il numero totale di tipi o -1 (INT_MAX) se l'ultimo è vector<T>
+    static constexpr size_t maxargs = (vec || recursive::maxargs == std::numeric_limits<size_t>::max()) ?
+        std::numeric_limits<size_t>::max() : 1 + recursive::maxargs;
 
     // true solo se i tipi seguono il pattern (var*N, opt*M, [vec])
     // Se Req==false e var==true, valid=false
@@ -140,7 +140,7 @@ constexpr variable exec_helper(Function fun, arg_list &args, std::index_sequence
 
 void check_numargs(const string &name, size_t numargs, size_t minargs, size_t maxargs) {
     if (numargs < minargs || numargs > maxargs) {
-        if (maxargs == (size_t) -1) {
+        if (maxargs == std::numeric_limits<size_t>::max()) {
             throw layout_error(fmt::format("La funzione {0} richiede almeno {1} argomenti", name, minargs));
         } else if (minargs == maxargs) {
             throw layout_error(fmt::format("La funzione {0} richiede {1} argomenti", name, minargs));
