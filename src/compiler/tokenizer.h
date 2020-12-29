@@ -71,7 +71,7 @@ struct token {
 
 class tokenizer {
 public:
-    tokenizer() {}
+    tokenizer() = default;
     tokenizer(const std::string_view &script);
 
     bool next();

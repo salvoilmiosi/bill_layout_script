@@ -11,7 +11,7 @@
 
 struct spacer {
     float w = 0, h = 0;
-    spacer() {}
+    spacer() = default;
     spacer(float w, float h) : w(w), h(h) {}
 };
 

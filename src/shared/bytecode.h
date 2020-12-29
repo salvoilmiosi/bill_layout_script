@@ -6,7 +6,7 @@
 #include "layout.h"
 
 enum class opcode : uint8_t {
-    NOP,        // no operation
+    NOP=0x00,   // no operation
     RDBOX,      // byte mode, byte page, string spacers, float x, float y, float w, float h -- pdftotext -> content_stack
     RDPAGE,     // byte mode, byte page, string spacers -- pdftotext -> content_stack
     RDFILE,     // byte mode -- pdftotext -> content_stack
@@ -64,7 +64,8 @@ enum class opcode : uint8_t {
     POPCONTENT, // content_stack.pop()
     NEXTPAGE,   // m_page_num++
     ATE,        // m_ate -> var_stack
-    STRDATA,    // short len, (byte * len) data -- string data (strings are represented by 2 byte addresses)
+    STRDATA=0xfd,// short len, (byte * len) data -- string data (strings are represented by 2 byte addresses)
+    DBGDATA=0xfe,// short len, (byte * len) data -- string debug data
     HLT=0xff,   // halt execution
 };
 
@@ -94,7 +95,7 @@ struct variable_idx {
     small_int index_first;
     small_int index_last;
 
-    variable_idx() {}
+    variable_idx() = default;
     variable_idx(const string_ref &name, small_int index) : name(name), index_first(index), index_last(index) {}
     variable_idx(const string_ref &name, small_int index_first, small_int index_last) : name(name), index_first(index_first), index_last(index_last) {}
 };

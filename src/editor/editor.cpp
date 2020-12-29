@@ -203,7 +203,10 @@ void frame_editor::openFile(const wxString &filename) {
     }
     updateLayout();
     
-    recentFiles.erase(std::find(recentFiles.begin(), recentFiles.end(), wxString(layout_filename)));
+    auto it = std::find(recentFiles.begin(), recentFiles.end(), wxString(layout_filename));
+    if (it != recentFiles.end()) {
+        recentFiles.erase(it);
+    }
     recentFiles.push_front(layout_filename);
     if (recentFiles.size() > MAX_RECENT_FILES_HISTORY) {
         recentFiles.pop_back();
@@ -326,7 +329,10 @@ void frame_editor::loadPdf(const wxString &filename) {
         }
         setSelectedPage(1, true);
         
-        recentPdfs.erase(std::find(recentPdfs.begin(), recentPdfs.end(), wxString(m_doc.filename())));
+        auto it = std::find(recentPdfs.begin(), recentPdfs.end(), wxString(m_doc.filename()));
+        if (it != recentPdfs.end()) {
+            recentPdfs.erase(it);
+        }
         recentPdfs.push_front(m_doc.filename());
         if (recentPdfs.size() > MAX_RECENT_PDFS_HISTORY) {
             recentPdfs.pop_back();

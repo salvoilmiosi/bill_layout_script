@@ -3,12 +3,6 @@
 
 #include "functions.h"
 
-void variable::set_string(const std::string &str) {
-    m_type = VAR_STRING;
-    m_str = str;
-    m_num = fixed_point(str);
-}
-
 void variable::set_number(const fixed_point &num) {
     m_type = VAR_NUMBER;
     m_num = num;

@@ -89,6 +89,9 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
         case opcode::JTE:
             writeData(output, line.get<jump_address>());
             break;
+        case opcode::DBGDATA:
+            writeData<std::string>(output, line.get<std::string>());
+            break;
         default:
             break;
         }
@@ -96,8 +99,7 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
 
     for (const auto &str : m_strings) {
         writeData<opcode>(output, opcode::STRDATA);
-        writeData<string_size>(output, str.size());
-        output.write(str.c_str(), str.size());
+        writeData<std::string>(output, str);
     }
     return output;
 }
@@ -170,6 +172,9 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             add_command(cmd, std::move(var_idx));
             break;
         }
+        case opcode::DBGDATA:
+            readData<std::string>(input);
+            break;
         case opcode::STRDATA:
             m_strings.push_back(readData<std::string>(input));
             break;

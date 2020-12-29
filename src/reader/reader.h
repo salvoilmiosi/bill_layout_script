@@ -48,7 +48,7 @@ struct box_spacer {
 template<typename T>
 struct with_debug : public T {
     bool m_debug = false;
-    with_debug() {}
+    with_debug() = default;
     with_debug(const T &obj) : T(obj) {}
 };
 

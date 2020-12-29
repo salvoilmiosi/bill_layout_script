@@ -19,6 +19,7 @@ ifeq ($(build),release)
   LDFLAGS += -s
 else ifeq ($(build),debug)
   CFLAGS += -g -DDEBUG
+  LAYOUT_FLAGS = -g
 else
   $(error "Unknown build option $(build)")
 endif
@@ -31,8 +32,6 @@ BIN_SHARED = layout_shared.so
 BIN_EDITOR = layout_editor
 BIN_READER = layout_reader
 BIN_COMPILER = layout_compiler
-
-OUT_LAYOUT_TXT = 1
 
 LIBS_SHARED = $(shell pkg-config --libs jsoncpp fmt)
 LIBS_EDITOR = $(shell wx-config --libs core,stc) $(LIBS_SHARED)
@@ -79,14 +78,15 @@ release:
 layouts: $(LAYOUTS)
 
 clean:
-	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(BIN_DIR)/$(BIN_COMPILER) $(BIN_DIR)/$(BIN_SHARED) $(OBJECTS) $(RESOURCES) $(LAYOUTS) $(LAYOUTS:.out=.txt) $(OBJECTS:.o=.d)
+	rm -f $(BIN_DIR)/$(BIN_EDITOR) $(BIN_DIR)/$(BIN_READER) $(BIN_DIR)/$(BIN_COMPILER) $(BIN_DIR)/$(BIN_SHARED) $(OBJECTS) $(RESOURCES) $(LAYOUTS) $(OBJECTS:.o=.d)
 
 .PHONY: all release clean editor reader compiler layouts
 
 $(shell mkdir -p $(BIN_DIR) >/dev/null)
 
 $(LAYOUT_DIR)/%.out: $(BLS_DIR)/%.bls $(BIN_DIR)/$(BIN_COMPILER)
-	$(BIN_DIR)/$(BIN_COMPILER) -o $@ $< $(if $(filter $(OUT_LAYOUT_TXT),1),-t $(@:.out=.txt))
+	@mkdir -p $(dir $@)
+	$(BIN_DIR)/$(BIN_COMPILER) $(LAYOUT_FLAGS) -o $@ $<
 
 shared: $(BIN_DIR)/$(BIN_SHARED)
 $(BIN_DIR)/$(BIN_SHARED): $(OBJECTS_SHARED)
