@@ -215,8 +215,8 @@ static const std::unordered_map<string, function_handler> lookup {
     create_function("strfind", [](const string &str, const string &value, optional<int> index) {
         return str.find(value, index.value_or(0));
     }),
-    create_function("tolower", [](const string &str) {
-        return string_tolower(str);
+    create_function("tolower", [](string &&str) {
+        return string_tolower(std::move(str));
     }),
     create_function("isempty", [](const variable &var) {
         return var.empty();

@@ -54,7 +54,14 @@ public:
     fixed_point number() const { return m_num; }
     fixed_point &number() { return m_num; }
 
-    int as_int() const { return m_num.getAsInteger(); }
+    int as_int() const {
+        return number().getAsInteger();
+    }
+
+    double as_double() const {
+        return number().getAsDouble();
+    }
+
     bool as_bool() const;
 
     bool empty() const { return m_str.empty(); }

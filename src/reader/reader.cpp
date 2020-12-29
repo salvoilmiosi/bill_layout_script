@@ -157,16 +157,16 @@ void reader::exec_command(const command_args &cmd) {
             m_spacer.page += m_var_stack.top().as_int();
             break;
         case spacer_index::SPACER_X:
-            m_spacer.x += m_var_stack.top().number().getAsDouble();
+            m_spacer.x += m_var_stack.top().as_double();
             break;
         case spacer_index::SPACER_Y:
-            m_spacer.y += m_var_stack.top().number().getAsDouble();
+            m_spacer.y += m_var_stack.top().as_double();
             break;
         case spacer_index::SPACER_W:
-            m_spacer.w += m_var_stack.top().number().getAsDouble();
+            m_spacer.w += m_var_stack.top().as_double();
             break;
         case spacer_index::SPACER_H:
-            m_spacer.h += m_var_stack.top().number().getAsDouble();
+            m_spacer.h += m_var_stack.top().as_double();
             break;
         }
         m_var_stack.pop();
