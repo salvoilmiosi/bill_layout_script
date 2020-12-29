@@ -47,7 +47,7 @@ enum class opcode : uint8_t {
     PUSHBYTE,   // byte number -- number -> var_stack
     PUSHSHORT,  // byte*2 number -- number -> var_stack
     PUSHINT,    // byte*4 number -- number -> var_stack
-    PUSHFLOAT,  // float number -- number -> var_stack
+    PUSHDECIMAL,// fixed_point number -- number -> var_stack
     PUSHSTR,    // string str -- str -> var_stack
     PUSHVAR,    // ref_stack -> var_stack
     JMP,        // short address -- unconditional jump
@@ -75,7 +75,6 @@ typedef uint16_t jump_address;
 typedef uint16_t string_size;
 
 constexpr int32_t MAGIC = 0xb011377a;
-constexpr int FLOAT_PRECISION = 10;
 
 struct command_call {
     string_ref name;

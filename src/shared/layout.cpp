@@ -1,5 +1,6 @@
 #include "layout.h"
 #include "bytecode.h"
+#include "decimal.h"
 
 #include <iostream>
 #include <iomanip>
@@ -7,7 +8,7 @@
 std::ostream &operator << (std::ostream &output, const bill_layout_script &layout) {
     std::ios orig_state(nullptr);
     orig_state.copyfmt(output);
-    output << std::fixed << std::setprecision(FLOAT_PRECISION);
+    output << std::fixed << std::setprecision(fixed_point::decimal_points);
 
     output << "### Bill Layout Script\n";
 

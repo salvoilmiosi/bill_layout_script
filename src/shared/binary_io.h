@@ -2,6 +2,8 @@
 #define __BINARY_IO_H__
 
 #include "bytecode.h"
+#include "decimal.h"
+
 #include <iostream>
 
 constexpr bool is_big_endian() {
@@ -44,6 +46,12 @@ template<> void readData(std::istream &input, std::string &buffer) {
     input.read(buffer.data(), len);
 }
 
+template<> void readData(std::istream &input, fixed_point &buffer) {
+    dec::int64 num;
+    readData(input, num);
+    buffer.setUnbiased(num);
+}
+
 template<typename T> T readData(std::istream &input) {
     T buffer;
     readData(input, buffer);
@@ -63,6 +71,10 @@ void writeData(std::ostream &output, const T &data) {
 template<> void writeData<std::string>(std::ostream &output, const std::string &str) {
     writeData<string_size>(output, str.size());
     output.write(str.c_str(), str.size());
+}
+
+template<> void writeData<fixed_point>(std::ostream &output, const fixed_point &num) {
+    writeData<dec::int64>(output, num.getUnbiased());
 }
 
 #endif

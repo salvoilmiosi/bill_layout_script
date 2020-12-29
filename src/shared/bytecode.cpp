@@ -1,5 +1,6 @@
 #include "bytecode.h"
 #include "binary_io.h"
+#include "decimal.h"
 
 #include <algorithm>
 
@@ -74,8 +75,8 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
         case opcode::PUSHINT:
             writeData(output, line.get<int32_t>());
             break;
-        case opcode::PUSHFLOAT:
-            writeData(output, line.get<float>());
+        case opcode::PUSHDECIMAL:
+            writeData(output, line.get<fixed_point>());
             break;
         case opcode::SETPAGE:
             writeData(output, line.get<small_int>());
@@ -194,8 +195,8 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         case opcode::PUSHINT:
             add_command(cmd, readData<int32_t>(input));
             break;
-        case opcode::PUSHFLOAT:
-            add_command(cmd, readData<float>(input));
+        case opcode::PUSHDECIMAL:
+            add_command(cmd, readData<fixed_point>(input));
             break;
         case opcode::SETPAGE:
             add_command(cmd, readData<small_int>(input));

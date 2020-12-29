@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "binary_io.h"
 #include "parsestr.h"
+#include "decimal.h"
 
 bytecode read_lines(const std::vector<std::string> &lines, bool add_debug) {
     bytecode ret;
@@ -125,7 +126,7 @@ bytecode read_lines(const std::vector<std::string> &lines, bool add_debug) {
                         ret.add_command(opcode::PUSHINT, num);
                     }
                 } else {
-                    ret.add_command(opcode::PUSHFLOAT, std::stof(args[0]));
+                    ret.add_command(opcode::PUSHDECIMAL, fixed_point(args[0]));
                 }
                 break;
             }

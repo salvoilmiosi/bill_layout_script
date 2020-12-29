@@ -6,8 +6,6 @@
 #include "decimal.h"
 #include "bytecode.h"
 
-using fixed_point = dec::decimal<FLOAT_PRECISION>;
-
 enum variable_type {
     VAR_UNDEFINED,
     VAR_STRING,

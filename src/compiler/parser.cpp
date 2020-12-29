@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "bytecode.h"
 #include "parsestr.h"
+#include "decimal.h"
 
 void parser::read_layout(const bill_layout_script &layout) {
     try {
@@ -67,7 +68,7 @@ void parser::read_box(const layout_box &box) {
     tokens = tokenizer(box.script);
     switch (box.type) {
     case box_type::BOX_RECTANGLE:
-        add_line("RDBOX {0},{1},{2:.{6}f},{3:.{6}f},{4:.{6}f},{5:.{6}f}", box.mode, box.page, box.x, box.y, box.w, box.h, FLOAT_PRECISION);
+        add_line("RDBOX {0},{1},{2:.{6}f},{3:.{6}f},{4:.{6}f},{5:.{6}f}", box.mode, box.page, box.x, box.y, box.w, box.h, fixed_point::decimal_points);
         break;
     case box_type::BOX_PAGE:
         add_line("RDPAGE {0},{1}", box.mode, box.page);
@@ -319,8 +320,8 @@ void parser::read_function() {
     case hash("isset"):     var_function("ISSET"); break;
     case hash("size"):      var_function("GETSIZE"); break;
     case hash("ate"):       void_function("ATE"); break;
-    case hash("boxwidth"):  void_function("PUSHNUM {0:.{1}f}", current_box->w, FLOAT_PRECISION); break;
-    case hash("boxheight"): void_function("PUSHNUM {0:.{1}f}", current_box->h, FLOAT_PRECISION); break;
+    case hash("boxwidth"):  void_function("PUSHNUM {0:.{1}f}", current_box->w, fixed_point::decimal_points); break;
+    case hash("boxheight"): void_function("PUSHNUM {0:.{1}f}", current_box->h, fixed_point::decimal_points); break;
     case hash("date"):
     case hash("month"):
         read_date_fun(fun_name);
