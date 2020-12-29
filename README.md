@@ -4,14 +4,14 @@ Questo programma ti permette di specificare un layout per leggere file pdf ed es
 
 ## Librerie Utilizzate
 
-Il programma è stato scritto in C++17 con le seguenti librerie:
+Il programma è stato scritto in C++20 con le seguenti librerie:
 
-[wxWidgets](https://www.wxwidgets.org/)
+[wxWidgets](https://github.com/wxWidgets/wxWidgets)
 
-[Poppler](https://poppler.freedesktop.org/)
+[Poppler](https://github.com/freedesktop/poppler)
 
 [decimal_for_cpp](https://github.com/vpiotr/decimal_for_cpp)
 
 [jsoncpp](https://github.com/open-source-parsers/jsoncpp)
 
-[fmt](https://fmt.dev/latest/index.html)
+[fmt](https://github.com/fmtlib/fmt)
