@@ -5,13 +5,13 @@
 template<typename T, typename Container = std::vector<T>> struct my_stack : public Container {
     using base = Container;
     
-    T &top() { return base::back(); }
-    const T &top() const { return base::back(); }
+    constexpr T &top() { return base::back(); }
+    constexpr const T &top() const { return base::back(); }
 
-    void push(const T &value) { base::push_back(value); }
-    void push(T &&value) { base::push_back(std::move(value)); }
+    constexpr void push(const T &value) { base::push_back(value); }
+    constexpr void push(T &&value) { base::push_back(std::move(value)); }
 
-    void pop() { base::pop_back(); }
+    constexpr void pop() { base::pop_back(); }
 };
 
 #endif

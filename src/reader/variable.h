@@ -24,40 +24,40 @@ private:
     };
 
 public:
-    variable() = default;
-    ~variable() = default;
+    variable() noexcept = default;
+    ~variable() noexcept = default;
 
-    variable(const variable &) = default;
-    variable(variable &&) = default;
+    variable(const variable &) noexcept = default;
+    variable(variable &&) noexcept = default;
 
-    variable &operator = (const variable &other);
-    variable &operator = (variable &&other);
+    variable &operator = (const variable &other) noexcept;
+    variable &operator = (variable &&other) noexcept;
 
-    variable(const std::string &value) : m_type(VAR_STRING), m_str(value) {};
-    variable(std::string &&value) : m_type(VAR_STRING), m_str(std::move(value)) {};
+    variable(const std::string &value) noexcept : m_type(VAR_STRING), m_str(value) {}
+    variable(std::string &&value) noexcept : m_type(VAR_STRING), m_str(std::move(value)) {}
 
-    variable(std::string_view value) : m_type(VAR_STRING), m_view(value) {};
+    variable(std::string_view value) noexcept : m_type(VAR_STRING), m_view(value) {}
 
-    variable(fixed_point value) : m_type(VAR_NUMBER), m_num(value) {}
+    variable(fixed_point value) noexcept : m_type(VAR_NUMBER), m_num(value) {}
 
     template<typename T> requires(std::is_arithmetic_v<T>)
-    variable(T value) : m_type(VAR_NUMBER), m_num(fixed_point(typename signed_type<T>::type(value))) {}
+    variable(T value) noexcept : m_type(VAR_NUMBER), m_num(fixed_point(typename signed_type<T>::type(value))) {}
 
-    static const variable &null_var() {
+    static const variable &null_var() noexcept {
         static const variable VAR_NULL;
         return VAR_NULL;
     }
 
-    static variable str_to_number(const std::string &str);
+    static variable str_to_number(const std::string &str) noexcept;
     
-    variable_type type() const { return m_type; }
+    variable_type type() const noexcept { return m_type; }
 
-    std::string &str() const {
+    std::string &str() const noexcept {
         set_string();
         return m_str;
     }
 
-    std::string_view str_view() const {
+    std::string_view str_view() const noexcept {
         if (m_view.empty()) {
             set_string();
             return m_str;
@@ -65,39 +65,55 @@ public:
         return m_view;
     }
 
-    const fixed_point &number() const {
+    const fixed_point &number() const noexcept {
         set_number();
         return m_num;
     }
 
-    int as_int() const {
+    int as_int() const noexcept {
         return number().getAsInteger();
     }
 
-    double as_double() const {
+    double as_double() const noexcept {
         return number().getAsDouble();
     }
 
-    bool as_bool() const;
+    bool as_bool() const noexcept;
 
-    bool empty() const;
+    bool empty() const noexcept;
 
-    std::partial_ordering operator <=> (const variable &other) const;
-    bool operator == (const variable &other) const {
+    std::partial_ordering operator <=> (const variable &other) const noexcept;
+    bool operator == (const variable &other) const noexcept {
         return std::partial_ordering::equivalent == *this <=> other;
     }
 
-    bool operator && (const variable &other) const;
-    bool operator || (const variable &other) const;
-    bool operator ! () const;
+    bool operator && (const variable &other) const noexcept {
+        return as_bool() && other.as_bool();
+    }
+    bool operator || (const variable &other) const noexcept {
+        return as_bool() || other.as_bool();
+    }
+    bool operator ! () const noexcept {
+        return !as_bool();
+    }
 
-    variable operator - () const;
-    variable operator + (const variable &other) const;
-    variable operator - (const variable &other) const;
-    variable operator * (const variable &other) const;
-    variable operator / (const variable &other) const;
+    variable operator - () const noexcept {
+        return -number();
+    }
+    variable operator + (const variable &other) const noexcept {
+        return number() + other.number();
+    }
+    variable operator - (const variable &other) const noexcept {
+        return number() - other.number();
+    }
+    variable operator * (const variable &other) const noexcept {
+        return number() * other.number();
+    }
+    variable operator / (const variable &other) const noexcept {
+        return number() / other.number();
+    }
 
-    variable &operator += (const variable &other);
+    variable &operator += (const variable &other) noexcept;
 
 private:
     variable_type m_type = VAR_UNDEFINED;
@@ -106,8 +122,8 @@ private:
     mutable std::string_view m_view;
     mutable fixed_point m_num;
 
-    void set_string() const;
-    void set_number() const;
+    void set_string() const noexcept;
+    void set_number() const noexcept;
 };
 
 #endif

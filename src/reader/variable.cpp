@@ -3,7 +3,7 @@
 
 #include "functions.h"
 
-variable &variable::operator = (const variable &other) {
+variable &variable::operator = (const variable &other) noexcept {
     m_type = other.m_type;
     if (other.m_view.empty()) {
         m_str = other.m_str;
@@ -15,7 +15,7 @@ variable &variable::operator = (const variable &other) {
     return *this;
 }
 
-variable &variable::operator = (variable &&other) {
+variable &variable::operator = (variable &&other) noexcept {
     m_type = other.m_type;
     if (other.m_view.empty()) {
         m_str = std::move(other.m_str);
@@ -27,7 +27,7 @@ variable &variable::operator = (variable &&other) {
     return *this;
 }
 
-void variable::set_string() const {
+void variable::set_string() const noexcept {
     if (m_str.empty()) {
         switch (m_type) {
         case VAR_NUMBER:
@@ -51,7 +51,7 @@ void variable::set_string() const {
     }
 }
 
-void variable::set_number() const {
+void variable::set_number() const noexcept {
     if (m_type == VAR_STRING && m_num == fixed_point(0)) {
         if (m_str.empty() && !m_view.empty()) {
             m_str = m_view;
@@ -60,7 +60,7 @@ void variable::set_number() const {
     }
 }
 
-variable variable::str_to_number(const std::string &str) {
+variable variable::str_to_number(const std::string &str) noexcept {
     if (str.empty()) {
         return null_var();
     } else {
@@ -68,7 +68,7 @@ variable variable::str_to_number(const std::string &str) {
     }
 }
 
-bool variable::as_bool() const {
+bool variable::as_bool() const noexcept {
     switch (m_type) {
     case VAR_STRING:
         return !str_view().empty();
@@ -79,7 +79,7 @@ bool variable::as_bool() const {
     }
 }
 
-bool variable::empty() const {
+bool variable::empty() const noexcept {
     switch (m_type) {
     case VAR_STRING:
         return str_view().empty();
@@ -90,7 +90,7 @@ bool variable::empty() const {
     }
 }
 
-std::partial_ordering variable::operator <=> (const variable &other) const {
+std::partial_ordering variable::operator <=> (const variable &other) const noexcept {
     if (m_type == other.m_type) {
         switch (m_type) {
         case VAR_STRING:
@@ -104,39 +104,7 @@ std::partial_ordering variable::operator <=> (const variable &other) const {
     return std::partial_ordering::unordered;
 }
 
-bool variable::operator && (const variable &other) const {
-    return as_bool() && other.as_bool();
-}
-
-bool variable::operator || (const variable &other) const {
-    return as_bool() || other.as_bool();
-}
-
-bool variable::operator ! () const {
-    return ! as_bool();
-}
-
-variable variable::operator - () const {
-    return - number();
-}
-
-variable variable::operator + (const variable &other) const {
-    return number() + other.number();
-}
-
-variable variable::operator - (const variable &other) const {
-    return number() - other.number();
-}
-
-variable variable::operator * (const variable &other) const {
-    return number() * other.number();
-}
-
-variable variable::operator / (const variable &other) const {
-    return number() / other.number();
-}
-
-variable &variable::operator += (const variable &other) {
+variable &variable::operator += (const variable &other) noexcept {
     switch (other.m_type) {
     case VAR_NUMBER:
         return *this = number() + other.number();

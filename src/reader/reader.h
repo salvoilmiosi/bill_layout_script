@@ -49,7 +49,8 @@ template<typename T>
 struct with_debug : public T {
     bool m_debug = false;
     with_debug() = default;
-    with_debug(const T &obj) : T(obj) {}
+    template<typename U>
+    with_debug(U &&obj) : T(std::forward<U>(obj)) {}
 };
 
 class reader {
