@@ -49,7 +49,7 @@ static bool search_date(wxDateTime &dt, const std::string &format, const std::st
 }
 
 std::string parse_date(const std::string &format, const std::string &value, const std::string &regex, int index) {
-    wxDateTime dt;
+    wxDateTime dt(time_t(0));
     if(!search_date(dt, format, value, regex, index)) {
         return "";
     }
@@ -66,7 +66,7 @@ std::string parse_month(const std::string &format, const std::string &value, con
         date.day = 0;
         return date.to_string();
     } else {
-        wxDateTime dt;
+        wxDateTime dt(time_t(0));
         if (!search_date(dt, format, value, regex, index)) {
             return "";
         }
