@@ -90,22 +90,18 @@ bool variable::empty() const {
     }
 }
 
-bool variable::operator == (const variable &other) const {
+std::partial_ordering variable::operator <=> (const variable &other) const {
     if (m_type == other.m_type) {
         switch (m_type) {
         case VAR_STRING:
-            return str_view() == other.str_view();
+            return str_view() <=> other.str_view();
         case VAR_NUMBER:
-            return number() == other.number();
+            return number().getUnbiased() <=> other.number().getUnbiased();
         default:
-            return true;
+            return std::partial_ordering::equivalent;
         }
     }
-    return false;
-}
-
-bool variable::operator != (const variable &other) const {
-    return !(*this == other);
+    return std::partial_ordering::unordered;
 }
 
 bool variable::operator && (const variable &other) const {
@@ -118,42 +114,6 @@ bool variable::operator || (const variable &other) const {
 
 bool variable::operator ! () const {
     return ! as_bool();
-}
-
-bool variable::operator < (const variable &other) const {
-    switch(m_type) {
-    case VAR_STRING:
-        return str_view() < other.str_view();
-    default:
-        return number() < other.number();
-    }
-}
-
-bool variable::operator > (const variable &other) const {
-    switch(m_type) {
-    case VAR_STRING:
-        return str_view() > other.str_view();
-    default:
-        return number() > other.number();
-    }
-}
-
-bool variable::operator <= (const variable &other) const {
-    switch(m_type) {
-    case VAR_STRING:
-        return str_view() <= other.str_view();
-    default:
-        return number() <= other.number();
-    }
-}
-
-bool variable::operator >= (const variable &other) const {
-    switch(m_type) {
-    case VAR_STRING:
-        return str_view() >= other.str_view();
-    default:
-        return number() >= other.number();
-    }
 }
 
 variable variable::operator - () const {

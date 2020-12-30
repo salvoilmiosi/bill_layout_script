@@ -81,18 +81,15 @@ public:
     bool as_bool() const;
 
     bool empty() const;
-    
-    bool operator == (const variable &other) const;
-    bool operator != (const variable &other) const;
+
+    std::partial_ordering operator <=> (const variable &other) const;
+    bool operator == (const variable &other) const {
+        return std::partial_ordering::equivalent == *this <=> other;
+    }
 
     bool operator && (const variable &other) const;
     bool operator || (const variable &other) const;
     bool operator ! () const;
-    
-    bool operator < (const variable &other) const;
-    bool operator > (const variable &other) const;
-    bool operator <= (const variable &other) const;
-    bool operator >= (const variable &other) const;
 
     variable operator - () const;
     variable operator + (const variable &other) const;
