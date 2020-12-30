@@ -221,42 +221,44 @@ $goto(lettura_spese)
 ### H 0.0307867676
 ### Goto Label parsing_spese
 ### Script
-!con_begin=$strfind($tolower(contenuto_spese),$tolower($date_format(mese_fattura,"%B %Y")))
-!con_end=$strfind(contenuto_spese,"TOT. \u20ac",$add(con_begin,150))
-$with($substr(contenuto_spese,con_begin,$sub(con_end,con_begin))) {
-  %imponibile=$search(@,/TOT\. \u20ac (%N)/)
+$with(contenuto_spese) {
+  !con_begin=$strfind($tolower(@),$tolower($date_format(mese_fattura,"%B %Y")))
+  !con_end=$strfind(@,"TOT. \u20ac",$add(con_begin,150))
+  $with($substr(@,con_begin,$sub(con_end,con_begin))) {
+    %imponibile=$search(@,/TOT\. \u20ac (%N)/)
 
-  $tokens($search(@,/Prezzo Energia PEAK (%N kWh %N)/)) {
-    %energia_attiva[0] $skip() %prezzo_energia[0]
-  }
-  $tokens($search(@,/Prezzo Energia OFFPEAK (%N kWh %N)/)) {
-    %energia_attiva[1] $skip() %prezzo_energia[1]
-  }
+    $tokens($search(@,/Prezzo Energia PEAK (%N kWh %N)/)) {
+      %energia_attiva[0] $skip() %prezzo_energia[0]
+    }
+    $tokens($search(@,/Prezzo Energia OFFPEAK (%N kWh %N)/)) {
+      %energia_attiva[1] $skip() %prezzo_energia[1]
+    }
 
-  $tokens($search(@,/Prezzo Energia F1 (%N kWh %N)/)) {
-    %energia_attiva[0] $skip() %prezzo_energia[0]
-  }
-  $tokens($search(@,/Prezzo Energia F2 (%N kWh %N)/)) {
-    %energia_attiva[1] $skip() %prezzo_energia[1]
-  }
-  $tokens($search(@,/Prezzo Energia F3 (%N kWh %N)/)) {
-    %energia_attiva[2] $skip() %prezzo_energia[2]
-  }
+    $tokens($search(@,/Prezzo Energia F1 (%N kWh %N)/)) {
+      %energia_attiva[0] $skip() %prezzo_energia[0]
+    }
+    $tokens($search(@,/Prezzo Energia F2 (%N kWh %N)/)) {
+      %energia_attiva[1] $skip() %prezzo_energia[1]
+    }
+    $tokens($search(@,/Prezzo Energia F3 (%N kWh %N)/)) {
+      %energia_attiva[2] $skip() %prezzo_energia[2]
+    }
 
-  %pcv=$search(@,/Prezzo Commercializzazione e Vendita .+\u20ac (%N)/)
-  %sbilanciamento=$search(@,/Gestione sbilanciamento %N kWh (%N)/)
-  %potenza[0:2]=$search(@,/Quota Potenza (%N) kW/)
+    %pcv=$search(@,/Prezzo Commercializzazione e Vendita .+\u20ac (%N)/)
+    %sbilanciamento=$search(@,/Gestione sbilanciamento %N kWh (%N)/)
+    %potenza[0:2]=$search(@,/Quota Potenza (%N) kW/)
 
-  %penale_reattiva_inf75 =$search(@,/Energia Reattiva tra il 33 e il 75%.+ (%N)\n/)
-  %penale_reattiva_inf75 =$search(@,/Energia Reattiva tra il 33 e il 75% F1.+ (%N)\n/)
-  %penale_reattiva_inf75+=$search(@,/Energia Reattiva tra il 33 e il 75% F2.+ (%N)\n/)
-  %penale_reattiva_inf75+=$search(@,/Energia Reattiva tra il 33 e il 75% F3.+ (%N)\n/)
-  %penale_reattiva_sup75 =$search(@,/Energia Reattiva oltre il 75%.+ (%N)\n/)
-  %penale_reattiva_sup75 =$search(@,/Energia Reattiva oltre il 75% F1.+ (%N)\n/)
-  %penale_reattiva_sup75+=$search(@,/Energia Reattiva oltre il 75% F2.+ (%N)\n/)
-  %penale_reattiva_sup75+=$search(@,/Energia Reattiva oltre il 75% F3.+ (%N)\n/)
+    %penale_reattiva_inf75 =$search(@,/Energia Reattiva tra il 33 e il 75%.+ (%N)\n/)
+    %penale_reattiva_inf75 =$search(@,/Energia Reattiva tra il 33 e il 75% F1.+ (%N)\n/)
+    %penale_reattiva_inf75+=$search(@,/Energia Reattiva tra il 33 e il 75% F2.+ (%N)\n/)
+    %penale_reattiva_inf75+=$search(@,/Energia Reattiva tra il 33 e il 75% F3.+ (%N)\n/)
+    %penale_reattiva_sup75 =$search(@,/Energia Reattiva oltre il 75%.+ (%N)\n/)
+    %penale_reattiva_sup75 =$search(@,/Energia Reattiva oltre il 75% F1.+ (%N)\n/)
+    %penale_reattiva_sup75+=$search(@,/Energia Reattiva oltre il 75% F2.+ (%N)\n/)
+    %penale_reattiva_sup75+=$search(@,/Energia Reattiva oltre il 75% F3.+ (%N)\n/)
 
-  %accise=$search(@,/Imposta Erariale .+ \u20ac\/kWh.+ (%N)\n/)
+    %accise=$search(@,/Imposta Erariale .+ \u20ac\/kWh.+ (%N)\n/)
+  }
 }
 ### End Script
 ### End Box
