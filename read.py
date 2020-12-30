@@ -4,6 +4,8 @@ import json
 import datetime
 import time
 import os
+import threading
+import queue
 from pathlib import Path
 
 out = []
@@ -33,12 +35,10 @@ def read_pdf(pdf_file):
                     skipped = True
 
     if not skipped:
-        print(rel_path)
         args = [layout_reader, '-p', pdf_file, '-s', controllo]
         proc = subprocess.run(args, capture_output=True, text=True)
 
         file_obj = {'filename':str(rel_path), 'lastmodified':os.stat(str(path)).st_mtime}
-
         try:
             json_out = json.loads(proc.stdout)
             if json_out['error']:
@@ -46,34 +46,51 @@ def read_pdf(pdf_file):
             elif 'layout' in json_out['globals']:
                 file_obj['layout'] = json_out['globals']['layout']
                 file_obj['values'] = json_out['values']
+            print(rel_path)
         except:
-            file_obj['error'] = 'errore {0}'.format(proc.returncode)
-            print('### Errore',rel_path)
+            file_obj['error'] = f'errore {proc.returncode}'
+            print(f'### Errore {rel_path}')
 
         out.append(file_obj)
 
-if len(sys.argv) < 4:
+if len(sys.argv) < 3:
     print('Argomenti richiesti: input_directory [output] [controllo]')
     sys.exit()
 
 input_directory = Path(sys.argv[1])
 output_file = Path(sys.argv[2])
-controllo = Path(sys.argv[3])
+controllo = Path(sys.argv[3] if len(sys.argv) >= 4 else 'layout/controllo.out')
+nthreads = int(sys.argv[4]) if len(sys.argv) >= 5 else 5
 
 if output_file.exists():
     with open(output_file, 'r') as fin:
         old_out = json.loads(fin.read())
 
 if not input_directory.exists():
-    print('La directory {0} non esiste'.format(input_directory))
+    print(f'La directory {input_directory} non esiste')
     sys.exit(1)
 
 if not controllo.exists():
-    print('Il file di layout {0} non esiste'.format(controllo))
+    print(f'Il file di layout {controllo} non esiste')
     sys.exit(1)
 
+q = queue.Queue()
 for path in input_directory.rglob('*.pdf'):
-    read_pdf(path)
+    q.put_nowait(path)
+
+def worker():
+    while True:
+        try:
+            file = q.get(timeout=1)
+            read_pdf(file)
+            q.task_done()
+        except queue.Empty:
+            return
+
+for _ in range(nthreads):
+    threading.Thread(target=worker).start()
+
+q.join()
 
 with open(output_file, 'w') as fout:
     fout.write(json.dumps(out))
