@@ -10,6 +10,7 @@
 #include "utils.h"
 
 using std::string;
+using std::string_view;
 using std::optional;
 using std::vector;
 
@@ -17,8 +18,9 @@ template<typename T> T convert_var(variable &var) = delete;
 
 template<> inline variable    &convert_var<variable &>    (variable &var) { return var; }
 template<> inline string      &convert_var<string &>      (variable &var) { return var.str(); }
-template<> inline fixed_point &convert_var<fixed_point &> (variable &var) { return var.number(); }
 
+template<> inline string_view  convert_var<string_view> (variable &var) { return var.str_view(); }
+template<> inline fixed_point  convert_var<fixed_point> (variable &var) { return var.number(); }
 template<> inline int          convert_var<int>        (variable &var) { return var.as_int(); }
 template<> inline float        convert_var<float>      (variable &var) { return var.number().getAsDouble(); }
 template<> inline double       convert_var<double>     (variable &var) { return var.number().getAsDouble(); }
@@ -170,29 +172,29 @@ constexpr std::pair<string, function_handler> create_function(const string &name
 }
 
 static const std::unordered_map<string, function_handler> lookup {
-    create_function("search", [](const string &str, const string &regex, optional<int> index) {
+    create_function("search", [](string_view str, const string &regex, optional<int> index) {
         return search_regex(regex, str, index.value_or(1));
     }),
-    create_function("searchall", [](const string &str, const string &regex, optional<int> index) {
+    create_function("searchall", [](string_view str, const string &regex, optional<int> index) {
         return string_join(search_regex_all(regex, str, index.value_or(1)), "\n");
     }),
-    create_function("date", [](const string &str, const string &format, optional<string> regex, optional<int> index) {
+    create_function("date", [](string_view str, const string &format, optional<string> regex, optional<int> index) {
         return parse_date(format, str, regex.value_or(""), index.value_or(1));
     }),
-    create_function("month", [](const string &str, optional<string> format, optional<string> regex, optional<int> index) {
+    create_function("month", [](string_view str, optional<string> format, optional<string> regex, optional<int> index) {
         return parse_month(format.value_or(""), str, regex.value_or(""), index.value_or(1));
     }),
-    create_function("replace", [](string value, const string &regex, const string &to) {
+    create_function("replace", [](string &&value, const string &regex, const string &to) {
         return string_replace_regex(value, regex, to);
     }),
-    create_function("date_format", [](const string &month, const string &format) {
-        return date_format(month, format);
+    create_function("date_format", [](string_view date, const string &format) {
+        return date_format(date, format);
     }),
-    create_function("month_add", [](const string &month, int num) {
+    create_function("month_add", [](string_view month, int num) {
         return date_month_add(month, num);
     }),
-    create_function("nonewline", [](const string &str) {
-        return nonewline(str);
+    create_function("nonewline", [](string &&str) {
+        return nonewline(std::move(str));
     }),
     create_function("if", [](bool condition, const variable &var_if, optional<variable> var_else) {
         return condition ? var_if : var_else.value_or(variable::null_var());
@@ -200,19 +202,19 @@ static const std::unordered_map<string, function_handler> lookup {
     create_function("ifnot", [](bool condition, const variable &var_if, optional<variable> var_else) {
         return condition ? var_else.value_or(variable::null_var()) : var_if;
     }),
-    create_function("contains", [](const string &str, const string &str2) {
-        return str.find(str2) != string::npos;
+    create_function("contains", [](string_view str, string_view str2) {
+        return str.find(str2) != string_view::npos;
     }),
-    create_function("substr", [](const string &str, int pos, optional<int> count) {
+    create_function("substr", [](string_view str, int pos, optional<int> count) {
         if ((size_t) pos < str.size()) {
-            return variable(str.substr(pos, count.value_or(string::npos)));
+            return variable(std::string(str.substr(pos, count.value_or(string_view::npos))));
         }
         return variable::null_var();
     }),
-    create_function("strlen", [](const string &str) {
+    create_function("strlen", [](string_view str) {
         return str.size();
     }),
-    create_function("strfind", [](const string &str, const string &value, optional<int> index) {
+    create_function("strfind", [](string_view str, string_view value, optional<int> index) {
         return str.find(value, index.value_or(0));
     }),
     create_function("tolower", [](string &&str) {

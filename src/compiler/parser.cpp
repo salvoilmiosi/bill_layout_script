@@ -130,7 +130,7 @@ void parser::read_statement() {
             break;
         case TOK_END_OF_FILE:
         default:
-            add_line("COPYCONTENT");
+            add_line("PUSHVIEW");
             add_value(flags);
             break;
         }
@@ -170,7 +170,7 @@ void parser::read_expression() {
         break;
     case TOK_CONTENT:
         tokens.advance();
-        add_line("COPYCONTENT");
+        add_line("PUSHVIEW");
         break;
     default:
         read_variable(true);

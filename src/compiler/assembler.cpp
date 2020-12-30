@@ -114,7 +114,7 @@ bytecode read_lines(const std::vector<std::string> &lines, bool add_debug) {
             case hash("APPEND"):        ret.add_command(opcode::APPEND); break;
             case hash("SETVAR"):        ret.add_command(opcode::SETVAR); break;
             case hash("RESETVAR"):      ret.add_command(opcode::RESETVAR); break;
-            case hash("COPYCONTENT"):   ret.add_command(opcode::COPYCONTENT); break;
+            case hash("PUSHVIEW"):      ret.add_command(opcode::PUSHVIEW); break;
             case hash("PUSHNUM"): {
                 if (args[0].find('.') == std::string::npos) {
                     int32_t num = std::stoi(args[0]);

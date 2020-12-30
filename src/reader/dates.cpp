@@ -12,14 +12,14 @@ struct date_t {
     int day = 0;
     
     std::string to_string();
-    bool from_string(const std::string &str);
+    bool from_string(std::string_view str);
 };
 
-bool date_t::from_string(const std::string &str) {
+bool date_t::from_string(std::string_view str) {
     static std::regex expression("^(\\d{4})-(\\d{2})(-(\\d{2}))?$");
     try {
-        std::smatch match;
-        if (std::regex_search(str, match, expression)) {
+        std::cmatch match;
+        if (std::regex_search(str.begin(), str.end(), match, expression)) {
             year = std::stoi(match.str(1));
             month = std::stoi(match.str(2));
             if (month > 12) {
@@ -43,12 +43,12 @@ std::string date_t::to_string() {
     }
 }
 
-static bool search_date(wxDateTime &dt, const std::string &format, const std::string &value, const std::string &regex, int index) {
+static bool search_date(wxDateTime &dt, const std::string &format, std::string_view value, const std::string &regex, int index) {
     wxString::const_iterator end;
     return dt.ParseFormat(search_regex(regex, value, index), format, &end);
 }
 
-std::string parse_date(const std::string &format, const std::string &value, const std::string &regex, int index) {
+std::string parse_date(const std::string &format, std::string_view value, const std::string &regex, int index) {
     wxDateTime dt(time_t(0));
     if(!search_date(dt, format, value, regex, index)) {
         return "";
@@ -57,7 +57,7 @@ std::string parse_date(const std::string &format, const std::string &value, cons
     return date_t{dt.GetYear(), dt.GetMonth() + 1, dt.GetDay()}.to_string();
 }
 
-std::string parse_month(const std::string &format, const std::string &value, const std::string &regex, int index) {
+std::string parse_month(const std::string &format, std::string_view value, const std::string &regex, int index) {
     if (format.empty()) {
         date_t date;
         if (!date.from_string(value)) {
@@ -75,7 +75,7 @@ std::string parse_month(const std::string &format, const std::string &value, con
     }
 }
 
-std::string date_month_add(const std::string &str, int num) {
+std::string date_month_add(std::string_view str, int num) {
     date_t date;
     if (!date.from_string(str)) {
         return "";
@@ -89,7 +89,7 @@ std::string date_month_add(const std::string &str, int num) {
     return date.to_string();
 }
 
-std::string date_format(const std::string &str, const std::string &format) {
+std::string date_format(std::string_view str, const std::string &format) {
     date_t date;
     if (!date.from_string(str)) {
         return "";

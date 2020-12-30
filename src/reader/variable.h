@@ -2,6 +2,7 @@
 #define __VARIABLE_H__
 
 #include <string>
+#include <string_view>
 
 #include "decimal.h"
 #include "bytecode.h"
@@ -24,20 +25,23 @@ private:
 
 public:
     variable() = default;
+    ~variable() = default;
+
     variable(const variable &) = default;
     variable(variable &&) = default;
 
-    variable &operator = (const variable &) = default;
-    variable &operator = (variable &&) = default;
+    variable &operator = (const variable &other);
+    variable &operator = (variable &&other);
 
-    variable(const std::string &value) { set_string(value); }
-    variable(std::string &&value) { set_string(value); }
-    variable(std::string_view value) { set_string(std::string(value)); }
+    variable(const std::string &value) : m_type(VAR_STRING), m_str(value) {};
+    variable(std::string &&value) : m_type(VAR_STRING), m_str(std::move(value)) {};
 
-    variable(const fixed_point &value) { set_number(value); }
+    variable(std::string_view value) : m_type(VAR_STRING), m_view(value) {};
+
+    variable(fixed_point value) : m_type(VAR_NUMBER), m_num(value) {}
 
     template<typename T> requires(std::is_arithmetic_v<T>)
-    variable(T value) { set_number(fixed_point(typename signed_type<T>::type(value))); }
+    variable(T value) : m_type(VAR_NUMBER), m_num(fixed_point(typename signed_type<T>::type(value))) {}
 
     static const variable &null_var() {
         static const variable VAR_NULL;
@@ -48,11 +52,23 @@ public:
     
     variable_type type() const { return m_type; }
 
-    std::string str() const { return m_str; }
-    std::string &str() { return m_str; }
+    std::string &str() const {
+        set_string();
+        return m_str;
+    }
 
-    fixed_point number() const { return m_num; }
-    fixed_point &number() { return m_num; }
+    std::string_view str_view() const {
+        if (m_view.empty()) {
+            set_string();
+            return m_str;
+        }
+        return m_view;
+    }
+
+    const fixed_point &number() const {
+        set_number();
+        return m_num;
+    }
 
     int as_int() const {
         return number().getAsInteger();
@@ -64,7 +80,7 @@ public:
 
     bool as_bool() const;
 
-    bool empty() const { return m_str.empty(); }
+    bool empty() const;
     
     bool operator == (const variable &other) const;
     bool operator != (const variable &other) const;
@@ -87,18 +103,14 @@ public:
     variable &operator += (const variable &other);
 
 private:
-    std::string m_str;
-    fixed_point m_num;
     variable_type m_type = VAR_UNDEFINED;
 
-    template<typename T>
-    void set_string(T &&str) {
-        m_type = VAR_STRING;
-        m_num = fixed_point(str);
-        m_str = std::forward<T>(str);
-    }
+    mutable std::string m_str;
+    mutable std::string_view m_view;
+    mutable fixed_point m_num;
 
-    void set_number(const fixed_point &num);
+    void set_string() const;
+    void set_number() const;
 };
 
 #endif

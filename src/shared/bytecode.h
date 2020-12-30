@@ -43,7 +43,7 @@ enum class opcode : uint8_t {
     APPEND,     // ref_stack, var_stack -> append
     SETVAR,     // ref_stack, var_stack -> set
     RESETVAR,   // ref_stack, var_stack -> reset
-    COPYCONTENT,// content_stack (copy) -> var_stack
+    PUSHVIEW,   // content_stack -> var_stack
     PUSHBYTE,   // byte number -- number -> var_stack
     PUSHSHORT,  // byte*2 number -- number -> var_stack
     PUSHINT,    // byte*4 number -- number -> var_stack
