@@ -191,7 +191,7 @@ $with($search(@,/Energia Reattiva oltre 75%\n((dal.+\n)+)/)) {
 %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO IMPORTO \u20ac (%N)/)
 %oneri=$search(@,/ONERI DI SISTEMA IMPORTO \u20ac (%N)/)
 
-%potenza[0:2]=$search(@,$format(/al \d\d\.$0 Euro\/kW %N (%N)/,_mese))
+%potenza[0:3]=$search(@,$format(/al \d\d\.$0 Euro\/kW %N (%N)/,_mese))
 $with($search(@,/Imposta erariale di consumo \(accisa\)\n[^]*?((dal.+\n)+)/)) {
   %accise=$search(@,$format(/al \d\d\.$0 Euro\/kWh %N %N (%N)/,_mese))
 }

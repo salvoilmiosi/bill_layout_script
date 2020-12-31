@@ -217,7 +217,7 @@ data_scadenza=$date(@,"%d.%m.%Y")
 ### W 0.0607549548
 ### H 0.0305674970
 ### Script
-%potenza[0:2]
+%potenza[0:3]
 ### End Script
 ### End Box
 

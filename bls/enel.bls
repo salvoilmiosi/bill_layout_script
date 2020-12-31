@@ -105,7 +105,7 @@ fornitore="Enel Energia"
 ### H 0.1603952795
 ### Script
 indirizzo_fornitura=$search($nonewline(@),/Forniamo energia in (.+) Denominazione/)
-%potenza[0:2]=$coalesce(
+%potenza[0:3]=$coalesce(
   $search(@,/Potenza contrattualmente impegnata (%N)/),
   $search(@,/Livello massimo di potenza (%N)/))
 ### End Script
@@ -308,7 +308,7 @@ $with(*_dettaglio) {
       $lines($searchall(@,/mesi.?1 (%N)/)) %trasporto_gestione+
       $lines($searchall(@,/\/kWh %N %N (%N)/)) %trasporto_gestione+
       $lines($searchall(@,/\/kVarh %N %N (%N)/)) %trasporto_gestione+
-      %potenza[0:2]=$search(@,/kW (%N)/)
+      %potenza[0:3]=$search(@,/kW (%N)/)
     }
   }
   $with($search(@,/SPESA ONERI DI SISTEMA([^]+Totale) spesa oneri di sistema/)) {

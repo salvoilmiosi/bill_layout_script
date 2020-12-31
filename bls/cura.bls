@@ -161,7 +161,7 @@ p+*page_offset
 %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE (%N)/)
 %oneri=$search(@,/SPESA PER ONERI DI SISTEMA (%N)/)
 %accise=$search(@,/Imposta erariale.+kWh %N %N (%N)/)
-%prezzo_energia[0:2]   =$search(@,/Onere per consumo energia kWh %N (%N)/)
+%prezzo_energia[0:3]   =$search(@,/Onere per consumo energia kWh %N (%N)/)
 %penale_reattiva_inf75 =$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F1 33-75% kVARh %N %N (%N)/)
 %penale_reattiva_inf75+=$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F2 33-75% kVARh %N %N (%N)/)
 %penale_reattiva_inf75+=$search(@,/Onere per servizi di distribuzione - penali en\. Reattiva F3 33-75% kVARh %N %N (%N)/)

@@ -166,7 +166,7 @@ p+*page_offset
 %penale_reattiva_sup75=$search(@,/reattiva oltre 75% .+ Euro %N (%N)/)
 %imponibile=$search(@,/Totale periodo (%N)/)
 %pcv=$search(@,/PCV .+Euro (%N)/)
-%potenza[0:2]=$search(@,/Trasporto Quota Potenza \u20ac\/kW (%N)/)
+%potenza[0:3]=$search(@,/Trasporto Quota Potenza \u20ac\/kW (%N)/)
 ### End Script
 ### End Box
 
