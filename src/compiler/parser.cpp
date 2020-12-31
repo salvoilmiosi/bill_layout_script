@@ -84,24 +84,6 @@ void parser::read_box(const layout_box &box) {
 }
 
 void parser::read_statement() {
-    auto add_value = [&](int flags) {
-        if (flags & VAR_NUMBER) {
-            add_line("PARSENUM");
-        }
-
-        if (flags & VAR_APPEND) {
-            add_line("APPEND");
-        } else if (flags & VAR_RESET) {
-            add_line("RESETVAR");
-        } else if (flags & VAR_INCREASE) {
-            add_line("INC");
-        } else if (flags & VAR_DECREASE) {
-            add_line("DEC");
-        } else {
-            add_line("SETVAR");
-        }
-    };
-
     tokens.peek();
     switch (tokens.current().type) {
     case TOK_BRACE_BEGIN:
@@ -121,18 +103,33 @@ void parser::read_statement() {
     default:
     {
         int flags = read_variable(false);
+        
         tokens.peek();
         switch (tokens.current().type) {
         case TOK_EQUALS:
             tokens.advance();
             read_expression();
-            add_value(flags);
             break;
         case TOK_END_OF_FILE:
         default:
             add_line("PUSHVIEW");
-            add_value(flags);
             break;
+        }
+
+        if (flags & VAR_NUMBER) {
+            add_line("PARSENUM");
+        }
+
+        if (flags & VAR_APPEND) {
+            add_line("APPEND");
+        } else if (flags & VAR_RESET) {
+            add_line("RESETVAR");
+        } else if (flags & VAR_INCREASE) {
+            add_line("INC");
+        } else if (flags & VAR_DECREASE) {
+            add_line("DEC");
+        } else {
+            add_line("SETVAR");
         }
     }
     }

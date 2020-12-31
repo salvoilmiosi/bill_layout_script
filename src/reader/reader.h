@@ -14,8 +14,7 @@
 
 enum variable_flags {
     VAR_GLOBAL = 1 << 0,
-    VAR_DEBUG = 1 << 1,
-    VAR_RANGE_ALL = 1 << 2,
+    VAR_RANGE_ALL = 1 << 1,
 };
 
 struct variable_ref {

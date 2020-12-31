@@ -19,7 +19,9 @@ public:
     }
 
     void setend(size_t n) {
-        if (n != std::string::npos) {
+        if (n == std::string::npos) {
+            m_end = std::string::npos;
+        } else {
             m_end = m_begin + n;
         }
     }

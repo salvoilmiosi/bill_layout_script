@@ -154,8 +154,8 @@ void reader::exec_command(const command_args &cmd) {
     }
     case opcode::CLEAR: clear_ref(); break;
     case opcode::APPEND:
-        m_ref_stack.top().index_first = get_ref_size();
-        m_ref_stack.top().index_last = m_ref_stack.top().index_first;
+        m_ref_stack.top().index_first = 
+        m_ref_stack.top().index_last = get_ref_size();
         // fall through
     case opcode::SETVAR:
         set_ref(false);
