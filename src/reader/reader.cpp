@@ -27,26 +27,6 @@ void reader::exec_program(std::istream &input) {
     }
 }
 
-void content_view::next_token(const std::string &separator) {
-    if (token_start == (size_t) -1) {
-        token_start = token_end = 0;
-    }
-    token_start = text.find_first_not_of(separator, token_end);
-    if (token_start == std::string::npos) {
-        token_start = token_end = text.size();
-    } else {
-        token_end = text.find_first_of(separator, token_start);
-    }
-}
-
-std::string_view content_view::view() const {
-    if (token_start == (size_t) -1) {
-        return std::string_view(text);
-    } else {
-        return std::string_view(text).substr(token_start, token_end - token_start);
-    }
-}
-
 void reader::exec_command(const command_args &cmd) {
     auto exec_operator = [&](auto op) {
         auto var2 = std::move(m_var_stack.top());
@@ -216,7 +196,7 @@ void reader::exec_command(const command_args &cmd) {
         m_var_stack.pop();
         break;
     case opcode::JTE:
-        if (m_content_stack.top().token_start == m_content_stack.top().text.size()) {
+        if (m_content_stack.top().token_end()) {
             m_programcounter = cmd.get<jump_address>();
             m_jumped = true;
         }
@@ -244,6 +224,14 @@ void reader::exec_command(const command_args &cmd) {
         m_var_stack.pop();
         break;
     case opcode::POPCONTENT: m_content_stack.pop(); break;
+    case opcode::SETBEGIN:
+        m_content_stack.top().setbegin(m_var_stack.top().as_int());
+        m_var_stack.pop();
+        break;
+    case opcode::SETEND:
+        m_content_stack.top().setend(m_var_stack.top().as_int());
+        m_var_stack.pop();
+        break;
     case opcode::NEXTLINE: m_content_stack.top().next_token("\n"); break;
     case opcode::NEXTTOKEN: m_content_stack.top().next_token("\t\n\v\f\r "); break;
     case opcode::NEXTPAGE: ++m_page_num; break;

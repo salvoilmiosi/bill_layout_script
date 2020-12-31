@@ -10,19 +10,7 @@
 #include "variable.h"
 #include "bytecode.h"
 #include "stack.h"
-
-struct content_view {
-    std::string text;
-    size_t token_start = -1;
-    size_t token_end = -1;
-
-    template<typename T>
-    content_view(T &&_text) : text(std::forward<T>(_text)) {}
-    
-    void next_token(const std::string &separator);
-
-    std::string_view view() const;
-};
+#include "content_view.h"
 
 enum variable_flags {
     VAR_GLOBAL = 1 << 0,

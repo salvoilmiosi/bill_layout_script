@@ -7,6 +7,9 @@
 // Converte la stringa data in un numero dato il locale
 std::string parse_number(const std::string &str);
 
+// Cerca la posizione di str2 in str senza fare differenza tra maiuscole-minuscole
+size_t string_findicase(std::string_view str, std::string_view str2, size_t index);
+
 // Formatta la stringa data
 std::string string_format(std::string str, const std::vector<std::string> &fmt_args);
 

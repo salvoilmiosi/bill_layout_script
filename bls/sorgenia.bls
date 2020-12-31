@@ -30,7 +30,8 @@ p+*page_offset
 ### End Spacers
 ### Script
 $ifnot($or($contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA"),$ate())) {
-  *!contenuto_dettaglio+=$strcat(@,"\n")
+  !*contenuto_dettaglio+=@
+   *contenuto_dettaglio+="\n"
   *page_offset+=1
   $goto(lettura_dati)
 }

@@ -148,6 +148,13 @@ void parser::read_keyword() {
         add_line("POPCONTENT");
         break;
     }
+    case hash("setbegin"):
+    case hash("setend"):
+        tokens.require(TOK_PAREN_BEGIN);
+        read_expression();
+        tokens.require(TOK_PAREN_END);
+        add_line(name == "setbegin" ? "SETBEGIN" : "SETEND");
+        break;
     case hash("clear"):
         tokens.require(TOK_PAREN_BEGIN);
         read_variable(true);
