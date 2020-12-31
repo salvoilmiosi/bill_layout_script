@@ -50,7 +50,7 @@ private:
     void set_ref(bool reset = false);
     void inc_ref(const variable &value);
     void clear_ref();
-    size_t get_ref_size();
+    size_t get_ref_size(variable_ref &ref);
 
 private:
     using variable_page = std::map<std::string, std::vector<variable>>;

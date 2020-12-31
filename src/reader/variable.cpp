@@ -107,15 +107,15 @@ std::partial_ordering variable::operator <=> (const variable &other) const noexc
 variable &variable::operator += (const variable &other) noexcept {
     switch (other.m_type) {
     case VAR_NUMBER:
-        m_type = VAR_NUMBER;
         set_number();
+        m_type = VAR_NUMBER;
         m_num += other.number();
         m_str.clear();
         break;
     case VAR_STRING:
     {
-        m_type = VAR_STRING;
         set_string();
+        m_type = VAR_STRING;
         auto view = other.str_view();
         m_str.append(view.begin(), view.end());
         m_num = fixed_point(0);

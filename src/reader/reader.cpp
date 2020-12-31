@@ -97,7 +97,7 @@ void reader::exec_command(const command_args &cmd) {
         variable_ref ref;
         ref.name = get_string_ref();
         ref.index = 0;
-        ref.range_len = get_ref_size();
+        ref.range_len = get_ref_size(ref);
         m_ref_stack.push(std::move(ref));
         break;
     }
@@ -155,7 +155,7 @@ void reader::exec_command(const command_args &cmd) {
     }
     case opcode::CLEAR: clear_ref(); break;
     case opcode::APPEND:
-        m_ref_stack.top().index = get_ref_size();
+        m_ref_stack.top().index = get_ref_size(m_ref_stack.top());
         // fall through
     case opcode::SETVAR:
         set_ref(false);
@@ -212,11 +212,11 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.pop();
         break;
     case opcode::ISSET:
-        m_var_stack.push(get_ref_size() != 0);
+        m_var_stack.push(get_ref_size(m_ref_stack.top()) != 0);
         m_ref_stack.pop();
         break;
     case opcode::GETSIZE:
-        m_var_stack.push((int) get_ref_size());
+        m_var_stack.push(get_ref_size(m_ref_stack.top()));
         m_ref_stack.pop();
         break;
     case opcode::PUSHCONTENT:
@@ -324,8 +324,7 @@ void reader::inc_ref(const variable &value) {
     if (value.empty()) return;
     auto &ref = m_ref_stack.top();
     if (ref.isglobal) {
-        auto &var = m_globals[ref.name];
-        var += value;
+        m_globals[ref.name] += value;
         return;
     }
 
@@ -354,8 +353,7 @@ void reader::clear_ref() {
     }
 }
 
-size_t reader::get_ref_size() {
-    auto &ref = m_ref_stack.top();
+size_t reader::get_ref_size(variable_ref &ref) {
     if (ref.isglobal) {
         return m_globals.find(ref.name) != m_globals.end();
     }
