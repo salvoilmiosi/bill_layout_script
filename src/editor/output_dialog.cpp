@@ -165,7 +165,7 @@ void output_dialog::updateItems() {
 
         size_t n=0;
         for (Json::ValueConstIterator it = json_object.begin(); it != json_object.end(); ++it) {
-            if (!m_show_debug->GetValue() && it.name().front() == '!') {
+            if (!m_show_debug->GetValue() && it.name().front() == '_') {
                 continue;
             }
             wxListItem item;
@@ -196,7 +196,7 @@ void output_dialog::updateItems() {
 
         size_t n=0;
         for (Json::ValueConstIterator it = json_object.begin(); it != json_object.end(); ++it) {
-            if (!m_show_debug->GetValue() && it.name().front() == '!') {
+            if (!m_show_debug->GetValue() && it.name().front() == '_') {
                 continue;
             }
             for (size_t i=0; i < it->size(); ++i) {
