@@ -96,9 +96,6 @@ bool tokenizer::next() {
     case '%':
         tok.type = TOK_PERCENT;
         break;
-    case '!':
-        tok.type = TOK_DEBUG;
-        break;
     case '*':
         tok.type = TOK_GLOBAL;
         break;

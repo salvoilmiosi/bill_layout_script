@@ -38,7 +38,6 @@ enum class opcode : uint8_t {
     SELRANGE,   // string name, bye idxfrom, byte idxto = (name, idxfrom, idxto) -> ref_stack
     SELRANGETOP,// string name -- var_stack * 2 -> (name, top-1, top) -> ref_stack
     SELRANGEALL,// string name -- (name, range_all) -> ref_stack
-    SETDEBUG,   // ref_stack.top.debug = 1
     CLEAR,      // ref_stack -> clear
     APPEND,     // ref_stack, var_stack -> append
     SETVAR,     // ref_stack, var_stack -> set

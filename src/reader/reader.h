@@ -45,14 +45,6 @@ struct box_spacer {
     int page = 0;
 };
 
-template<typename T>
-struct with_debug : public T {
-    bool m_debug = false;
-    with_debug() = default;
-    template<typename U>
-    with_debug(U &&obj) : T(std::forward<U>(obj)) {}
-};
-
 class reader {
 public:
     void open_pdf(const std::string &filename) {
@@ -79,11 +71,9 @@ private:
     size_t get_ref_size();
 
 private:
-    using variable_array = with_debug<std::vector<variable>>;
-    using variable_global = with_debug<variable>;
-    using variable_page = std::map<std::string, variable_array>;
+    using variable_page = std::map<std::string, std::vector<variable>>;
 
-    std::map<std::string, variable_global> m_globals;
+    std::map<std::string, variable> m_globals;
     std::vector<variable_page> m_pages;
 
 private:

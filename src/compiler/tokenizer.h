@@ -23,7 +23,6 @@ enum token_type {
     TOK_EQUALS,             // =
     TOK_PERCENT,            // %
     TOK_GLOBAL,             // *
-    TOK_DEBUG,              // !
     TOK_COLON,              // :
     TOK_CONTENT,            // @
     TOK_PLUS,               // +
@@ -50,7 +49,6 @@ constexpr const char *TOKEN_NAMES[] = {
     "'='",
     "'%'",
     "'*'",
-    "'!'",
     "':'",
     "'@'",
     "'+'",

@@ -181,7 +181,6 @@ void parser::read_expression() {
 int parser::read_variable(bool read_only) {
     int flags = 0;
     bool isglobal = false;
-    bool isdebug = false;
     bool getindex = false;
     bool getindexlast = false;
     bool rangeall = false;
@@ -193,10 +192,6 @@ int parser::read_variable(bool read_only) {
         switch (tokens.current().type) {
         case TOK_GLOBAL:
             isglobal = true;
-            break;
-        case TOK_DEBUG:
-            if (read_only) throw tokens.unexpected_token(TOK_IDENTIFIER);
-            isdebug = true;
             break;
         case TOK_PERCENT:
             if (read_only) throw tokens.unexpected_token(TOK_IDENTIFIER);
@@ -295,7 +290,6 @@ int parser::read_variable(bool read_only) {
         add_line("SELVAR {0},{1}", name, index);
     }
 
-    if (isdebug) add_line("SETDEBUG");
     return flags;
 }
 

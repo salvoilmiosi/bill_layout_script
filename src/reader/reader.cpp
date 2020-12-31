@@ -172,7 +172,6 @@ void reader::exec_command(const command_args &cmd) {
         m_var_stack.pop();
         break;
     }
-    case opcode::SETDEBUG: m_ref_stack.top().flags |= VAR_DEBUG; break;
     case opcode::CLEAR: clear_ref(); break;
     case opcode::APPEND:
         m_ref_stack.top().index_first = get_ref_size();
@@ -315,15 +314,13 @@ void reader::set_ref(bool clear) {
     if (value.empty()) return;
     auto &ref = m_ref_stack.top();
     if (ref.flags & VAR_GLOBAL) {
-        auto &var = m_globals[ref.name] = std::move(value);
-        if (ref.flags & VAR_DEBUG) var.m_debug = true;
+        m_globals[ref.name] = std::move(value);
         return;
     }
 
     while (m_pages.size() <= m_page_num) m_pages.emplace_back();
     auto &page = m_pages[m_page_num];
     auto &var = page[ref.name];
-    if (ref.flags & VAR_DEBUG) var.m_debug = true;
     if (ref.flags & VAR_RANGE_ALL) {
         for (auto &x : var) { 
             x = value;
@@ -347,14 +344,12 @@ void reader::inc_ref(const variable &value) {
     if (ref.flags & VAR_GLOBAL) {
         auto &var = m_globals[ref.name];
         var += value;
-        if (ref.flags & VAR_DEBUG) var.m_debug = true;
         return;
     }
 
     while (m_pages.size() <= m_page_num) m_pages.emplace_back();
     auto &page = m_pages[m_page_num];
     auto &var = page[ref.name];
-    if (ref.flags & VAR_DEBUG) var.m_debug = true;
     if (ref.flags & VAR_RANGE_ALL) {
         for (auto &x : var) { 
             x += value;
@@ -407,12 +402,8 @@ void reader::save_output(Json::Value &root, bool debug) {
         auto &page_values = values.append(Json::objectValue);
         for (auto &pair : page) {
             std::string name = pair.first;
-            if (pair.second.m_debug) {
-                if (debug) {
-                    name = "!" + name;
-                } else {
-                    continue;
-                }
+            if (name.front() == '_' && !debug) {
+                continue;
             }
             auto &json_arr = page_values[name] = Json::arrayValue;
             for (auto &val : pair.second) {
@@ -424,12 +415,8 @@ void reader::save_output(Json::Value &root, bool debug) {
     Json::Value &globals = root["globals"] = Json::objectValue;
     for (auto &pair : m_globals) {
         std::string name = pair.first;
-        if (pair.second.m_debug) {
-            if (debug) {
-                name = "!" + name;
-            } else {
-                continue;
-            }
+        if (name.front() == '_' && !debug) {
+            continue;
         }
         globals[name] = pair.second.str();
     }
