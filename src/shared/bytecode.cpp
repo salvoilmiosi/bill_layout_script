@@ -45,15 +45,15 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
         {
             const auto &var_idx = line.get<variable_idx>();
             writeData(output, var_idx.name);
-            writeData(output, var_idx.index_first);
+            writeData(output, var_idx.index);
             break;
         }
         case opcode::SELRANGE:
         {
             const auto &var_idx = line.get<variable_idx>();
             writeData(output, var_idx.name);
-            writeData(output, var_idx.index_first);
-            writeData(output, var_idx.index_last);
+            writeData(output, var_idx.index);
+            writeData(output, var_idx.range_len);
             break;
         }
         case opcode::STRDATA:
@@ -159,8 +159,8 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         {
             variable_idx var_idx;
             readData(input, var_idx.name);
-            readData(input, var_idx.index_first);
-            var_idx.index_last = var_idx.index_first;
+            readData(input, var_idx.index);
+            var_idx.range_len = 1;
             add_command(cmd, std::move(var_idx));
             break;
         }
@@ -168,8 +168,8 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         {
             variable_idx var_idx;
             readData(input, var_idx.name);
-            readData(input, var_idx.index_first);
-            readData(input, var_idx.index_last);
+            readData(input, var_idx.index);
+            readData(input, var_idx.range_len);
             add_command(cmd, std::move(var_idx));
             break;
         }

@@ -86,8 +86,8 @@ void reader::exec_command(const command_args &cmd) {
     {
         variable_ref ref;
         ref.name = get_string_ref();
-        ref.index_first = m_var_stack.top().as_int();
-        ref.index_last = ref.index_first;
+        ref.index = m_var_stack.top().as_int();
+        ref.range_len = 1;
         m_var_stack.pop();
         m_ref_stack.push(std::move(ref));
         break;
@@ -96,7 +96,8 @@ void reader::exec_command(const command_args &cmd) {
     {
         variable_ref ref;
         ref.name = get_string_ref();
-        ref.flags |= VAR_RANGE_ALL;
+        ref.index = 0;
+        ref.range_len = get_ref_size();
         m_ref_stack.push(std::move(ref));
         break;
     }
@@ -106,8 +107,8 @@ void reader::exec_command(const command_args &cmd) {
         variable_ref ref;
         const auto &var_idx = cmd.get<variable_idx>();
         ref.name = m_code.get_string(var_idx.name);
-        ref.index_first = var_idx.index_first;
-        ref.index_last = var_idx.index_last;
+        ref.index = var_idx.index;
+        ref.range_len = var_idx.range_len;
         m_ref_stack.push(std::move(ref));
         break;
     }
@@ -115,9 +116,9 @@ void reader::exec_command(const command_args &cmd) {
     {
         variable_ref ref;
         ref.name = get_string_ref();
-        ref.index_last = m_var_stack.top().as_int();
+        ref.index = m_var_stack.top().as_int();
         m_var_stack.pop();
-        ref.index_first = m_var_stack.top().as_int();
+        ref.range_len = m_var_stack.top().as_int();
         m_var_stack.pop();
         m_ref_stack.push(std::move(ref));
         break;
@@ -126,7 +127,7 @@ void reader::exec_command(const command_args &cmd) {
     {
         variable_ref ref;
         ref.name = get_string_ref();
-        ref.flags |= VAR_GLOBAL;
+        ref.isglobal = true;
         m_ref_stack.push(std::move(ref));
         break;
     }
@@ -154,8 +155,7 @@ void reader::exec_command(const command_args &cmd) {
     }
     case opcode::CLEAR: clear_ref(); break;
     case opcode::APPEND:
-        m_ref_stack.top().index_first = 
-        m_ref_stack.top().index_last = get_ref_size();
+        m_ref_stack.top().index = get_ref_size();
         // fall through
     case opcode::SETVAR:
         set_ref(false);
@@ -290,10 +290,10 @@ const variable &reader::get_variable(const std::string &name, size_t index, size
 }
 
 const variable &reader::get_ref() const {
-    if (m_ref_stack.top().flags & VAR_GLOBAL) {
+    if (m_ref_stack.top().isglobal) {
         return get_global(m_ref_stack.top().name);
     } else {
-        return get_variable(m_ref_stack.top().name, m_ref_stack.top().index_first, m_page_num);
+        return get_variable(m_ref_stack.top().name, m_ref_stack.top().index, m_page_num);
     }
 }
 
@@ -301,7 +301,7 @@ void reader::set_ref(bool clear) {
     auto &value = m_var_stack.top();
     if (value.empty()) return;
     auto &ref = m_ref_stack.top();
-    if (ref.flags & VAR_GLOBAL) {
+    if (ref.isglobal) {
         m_globals[ref.name] = std::move(value);
         return;
     }
@@ -309,19 +309,13 @@ void reader::set_ref(bool clear) {
     while (m_pages.size() <= m_page_num) m_pages.emplace_back();
     auto &page = m_pages[m_page_num];
     auto &var = page[ref.name];
-    if (ref.flags & VAR_RANGE_ALL) {
-        for (auto &x : var) { 
-            x = value;
-        }
+    if (clear) var.clear();
+    while (var.size() < ref.index + ref.range_len) var.emplace_back();
+    if (ref.range_len == 1) {
+        var[ref.index] = std::move(value);
     } else {
-        if (clear) var.clear();
-        while (var.size() <= ref.index_last) var.emplace_back();
-        if (ref.index_last == ref.index_first) {
-            var[ref.index_first] = std::move(value);
-        } else {
-            for (size_t i=ref.index_first; i<=ref.index_last; ++i) {
-                var[i] = value;
-            }
+        for (size_t i=ref.index; i < ref.index + ref.range_len; ++i) {
+            var[i] = value;
         }
     }
 }
@@ -329,7 +323,7 @@ void reader::set_ref(bool clear) {
 void reader::inc_ref(const variable &value) {
     if (value.empty()) return;
     auto &ref = m_ref_stack.top();
-    if (ref.flags & VAR_GLOBAL) {
+    if (ref.isglobal) {
         auto &var = m_globals[ref.name];
         var += value;
         return;
@@ -338,21 +332,15 @@ void reader::inc_ref(const variable &value) {
     while (m_pages.size() <= m_page_num) m_pages.emplace_back();
     auto &page = m_pages[m_page_num];
     auto &var = page[ref.name];
-    if (ref.flags & VAR_RANGE_ALL) {
-        for (auto &x : var) { 
-            x += value;
-        }
-    } else {
-        while (var.size() <= ref.index_last) var.emplace_back();
-        for (size_t i=ref.index_first; i<=ref.index_last; ++i) {
-            var[i] += value;
-        }
+    while (var.size() < ref.index + ref.range_len) var.emplace_back();
+    for (size_t i=ref.index; i < ref.index + ref.range_len; ++i) {
+        var[i] += value;
     }
 }
 
 void reader::clear_ref() {
     auto &ref = m_ref_stack.top();
-    if (ref.flags & VAR_GLOBAL) {
+    if (ref.isglobal) {
         auto it = m_globals.find(ref.name);
         if (it != m_globals.end()) {
             m_globals.erase(it);
@@ -368,7 +356,7 @@ void reader::clear_ref() {
 
 size_t reader::get_ref_size() {
     auto &ref = m_ref_stack.top();
-    if (ref.flags & VAR_GLOBAL) {
+    if (ref.isglobal) {
         return m_globals.find(ref.name) != m_globals.end();
     }
     if (m_pages.size() <= m_page_num) {

@@ -12,16 +12,11 @@
 #include "stack.h"
 #include "content_view.h"
 
-enum variable_flags {
-    VAR_GLOBAL = 1 << 0,
-    VAR_RANGE_ALL = 1 << 1,
-};
-
 struct variable_ref {
     std::string name;
-    size_t index_first = 0;
-    size_t index_last = 0;
-    int flags = 0;
+    size_t index = 0;
+    size_t range_len = 0;
+    bool isglobal = false;
 };
 
 struct box_spacer {

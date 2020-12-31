@@ -92,12 +92,12 @@ enum class spacer_index: uint8_t {
 
 struct variable_idx {
     string_ref name;
-    small_int index_first;
-    small_int index_last;
+    small_int index = 0;
+    small_int range_len = 1;
 
     variable_idx() = default;
-    variable_idx(const string_ref &name, small_int index) : name(name), index_first(index), index_last(index) {}
-    variable_idx(const string_ref &name, small_int index_first, small_int index_last) : name(name), index_first(index_first), index_last(index_last) {}
+    variable_idx(const string_ref &name, small_int index, small_int range_len = 1) :
+        name(name), index(index), range_len(range_len) {}
 };
 
 struct command_args {
