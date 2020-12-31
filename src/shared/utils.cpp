@@ -36,6 +36,13 @@ std::string string_tolower(std::string str) {
     return str;
 }
 
+std::string string_toupper(std::string str) {
+    std::transform(str.begin(), str.end(), str.begin(), [](auto ch) {
+        return std::toupper(ch);
+    });
+    return str;
+}
+
 void string_trim(std::string &str) {
     str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](auto ch) {
         return !std::isspace(ch);

@@ -21,6 +21,15 @@ std::string parse_number(const std::string &str) {
     return out;
 }
 
+size_t string_findicase(std::string_view str, std::string_view str2, size_t index) {
+    auto it = std::search(
+        str.begin(), str.end(),
+        str2.begin(), str2.end(),
+        [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
+    );
+    return it - str.begin();
+}
+
 std::string string_format(std::string str, const std::vector<std::string> &fmt_args) {
     for (size_t i=0; i<fmt_args.size(); ++i) {
         string_replace(str, fmt::format("${}", i), fmt_args[i]);

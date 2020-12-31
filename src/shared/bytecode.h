@@ -59,6 +59,8 @@ enum class opcode : uint8_t {
     ISSET,      // ref_stack -> size() != 0 -> var_stack
     GETSIZE,    // ref_stack -> size() -> var_stack
     PUSHCONTENT,// var_stack -> content_stack
+    SETBEGIN,   // var_stack -> content_stack.top.token_start
+    SETEND,     // var_stack -> content_stack.top.token_end
     NEXTLINE,   // content_stack.top.next_token('/n')
     NEXTTOKEN,  // content_stack.top.next_token(' ')
     POPCONTENT, // content_stack.pop()
