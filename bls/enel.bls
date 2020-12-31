@@ -53,7 +53,8 @@ $if($ate()) {
 p+*offset_dettaglio y-*spacer_dettaglio h+*spacer_dettaglio
 ### End Spacers
 ### Script
-*!contenuto_dettaglio_costi+=$strcat(@,"\n")
+!*contenuto_dettaglio+=@
+ *contenuto_dettaglio+="\n"
 ### End Script
 ### End Box
 
@@ -270,10 +271,10 @@ $if($contains(@,"Energia reattiva")) {
 ### Page 3
 ### X 0.0903737992
 ### Y 0.0063137496
-### W 0.1046302319
-### H 0.0793790072
+### W 0.0530589223
+### H 0.0347352810
 ### Script
-$with(*contenuto_dettaglio_costi) {
+$with(*contenuto_dettaglio) {
   $tokens($search(@,$format(/Energia fascia F1 dal \d\d\/$0.+kWh (%N %N)/,mese))) {
     %prezzo_energia[0] %energia_attiva[0]
   }
@@ -296,37 +297,25 @@ $with(*contenuto_dettaglio_costi) {
   %pcv=$search(@,$format(/Commercializzazione vendita dal \d\d\/$0.+mesi 1 (%N)/,mese))
   %sbilanciamento=$search(@,$format(/Corrispettivo di Sbilanciamento dal \d\d\/$0.+kWh (%N)/,mese))
   %accise=$search(@,$format(/Accisa sull'energia elettrica \(entro 200000\) dal \d\d\/$0.+kWh %N %N (%N)/,mese))
-}
-### End Script
-### End Box
 
-### Box
-### Name Parse Dettaglio Totali
-### Type NOREAD
-### Mode DEFAULT
-### Page 3
-### X 0.1999628395
-### Y 0.0079817194
-### W 0.1012830585
-### H 0.0759582892
-### Script
-$with($search(*contenuto_dettaglio_costi,/SPESA PER L'ENERGIA([^]+Totale) spesa per l'energia/)) {
-  $lines($searchall(@,$format(/al \d\d\/$0([^]+?)(dal|Totale)/,mese))) {
-    %spesa_materia_energia+=$search(@,/(%N)$/)
+  $with($search(@,/SPESA PER L'ENERGIA([^]+Totale) spesa per l'energia/)) {
+    $lines($searchall(@,$format(/al \d\d\/$0([^]+?)(dal|Totale)/,mese))) {
+      %spesa_materia_energia+=$search(@,/(%N)$/)
+    }
   }
-}
-$with($search(*contenuto_dettaglio_costi,/SPESA PER IL TRASPORTO DELL'ENERGIA ELETTRICA E LA GESTIONE DEL CONTATORE([^]+Totale) spesa per il trasporto/)) {
-  $with($searchall($nonewline(@),$format(/al \d\d\/$0([^]+?)(dal|Totale)/,mese))) {
-    $lines($searchall(@,/mesi.?1 (%N)/)) %trasporto_gestione+
-    $lines($searchall(@,/\/kWh %N %N (%N)/)) %trasporto_gestione+
-    $lines($searchall(@,/\/kVarh %N %N (%N)/)) %trasporto_gestione+
-    %potenza[0:2]=$search(@,/kW (%N)/)
+  $with($search(@,/SPESA PER IL TRASPORTO DELL'ENERGIA ELETTRICA E LA GESTIONE DEL CONTATORE([^]+Totale) spesa per il trasporto/)) {
+    $with($searchall($nonewline(@),$format(/al \d\d\/$0([^]+?)(dal|Totale)/,mese))) {
+      $lines($searchall(@,/mesi.?1 (%N)/)) %trasporto_gestione+
+      $lines($searchall(@,/\/kWh %N %N (%N)/)) %trasporto_gestione+
+      $lines($searchall(@,/\/kVarh %N %N (%N)/)) %trasporto_gestione+
+      %potenza[0:2]=$search(@,/kW (%N)/)
+    }
   }
-}
-$with($search(*contenuto_dettaglio_costi,/SPESA ONERI DI SISTEMA([^]+Totale) spesa oneri di sistema/)) {
-  $lines($searchall($nonewline(@),$format(/al \d\d\/$0([^]+?)(dal|Totale)/,mese))) {
-    %oneri+=$search(@,/mesi.?1 (%N)/)
-    %oneri+=$search(@,/\/kWh %N %N (%N)/)
+  $with($search(@,/SPESA ONERI DI SISTEMA([^]+Totale) spesa oneri di sistema/)) {
+    $lines($searchall($nonewline(@),$format(/al \d\d\/$0([^]+?)(dal|Totale)/,mese))) {
+      %oneri+=$search(@,/mesi.?1 (%N)/)
+      %oneri+=$search(@,/\/kWh %N %N (%N)/)
+    }
   }
 }
 ### End Script
@@ -337,8 +326,8 @@ $with($search(*contenuto_dettaglio_costi,/SPESA ONERI DI SISTEMA([^]+Totale) spe
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 3
-### X 0.3150969148
-### Y 0.0100496812
+### X 0.1507133543
+### Y 0.0089094304
 ### W 0.0419016927
 ### H 0.0285062715
 ### Script
