@@ -203,7 +203,7 @@ static const std::unordered_map<string, function_handler> lookup {
         return condition ? var_else.value_or(variable::null_var()) : var_if;
     }),
     create_function("contains", [](string_view str, string_view str2) {
-        return str.find(str2) != string_view::npos;
+        return string_findicase(str, str2, 0) < str.size();
     }),
     create_function("substr", [](string_view str, int pos, optional<int> count) {
         if ((size_t) pos < str.size()) {
@@ -214,10 +214,7 @@ static const std::unordered_map<string, function_handler> lookup {
     create_function("strlen", [](string_view str) {
         return str.size();
     }),
-    create_function("strfind", [](string_view str, string_view value, optional<int> index) {
-        return str.find(value, index.value_or(0));
-    }),
-    create_function("strfindicase", [](string_view str, string_view value, optional<int> index) {
+    create_function("indexof", [](string_view str, string_view value, optional<int> index) {
         return string_findicase(str, value, index.value_or(0));
     }),
     create_function("tolower", [](string &&str) {

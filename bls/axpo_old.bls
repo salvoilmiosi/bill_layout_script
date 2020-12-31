@@ -223,8 +223,8 @@ $goto(lettura_spese)
 ### Goto Label parsing_spese
 ### Script
 $with(_dettaglio) {
-  $setbegin($strfindicase(@,$date_format(mese_fattura,"%B %Y")))
-  $setend($strfind(@,"TOT. \u20ac", 150))
+  $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")))
+  $setend($indexof(@,"TOT. \u20ac", 150))
 
   %imponibile=$search(@,/TOT\. \u20ac (%N)/)
 
