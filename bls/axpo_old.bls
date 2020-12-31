@@ -204,8 +204,8 @@ p+*spacer_multipod p+*next_page
 $if($or($ate(),$search(@,"(Comunicazioni|Dati di fornitura)"))) {
   $goto(parsing_spese)
 }
-!contenuto_dettaglio+=@
- contenuto_dettaglio+="\n"
+_dettaglio+=@
+_dettaglio+="\n"
 *next_page+=1
 $goto(lettura_spese)
 ### End Script
@@ -222,7 +222,7 @@ $goto(lettura_spese)
 ### H 0.0307867676
 ### Goto Label parsing_spese
 ### Script
-$with(contenuto_dettaglio) {
+$with(_dettaglio) {
   $setbegin($strfindicase(@,$date_format(mese_fattura,"%B %Y")))
   $setend($strfind(@,"TOT. \u20ac", 150))
 

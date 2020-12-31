@@ -182,14 +182,14 @@ $tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese
 ### W 0.9153138995
 ### H 0.2722168565
 ### Script
-!mese=$date_format(mese_fattura,"%m/%Y")
+_mese=$date_format(mese_fattura,"%m/%Y")
 $with($search(@,/Componente di Generazione.+\n((Dal.+\n)+)/)) {
-  %prezzo_energia[0]=$search(@,$format(/F1 .+\d\d\/$0 \u20ac\/kWh (%N)/,mese))
-  %prezzo_energia[1]=$search(@,$format(/F2 .+\d\d\/$0 \u20ac\/kWh (%N)/,mese))
-  %prezzo_energia[2]=$search(@,$format(/F3 .+\d\d\/$0 \u20ac\/kWh (%N)/,mese))
+  %prezzo_energia[0]=$search(@,$format(/F1 .+\d\d\/$0 \u20ac\/kWh (%N)/,_mese))
+  %prezzo_energia[1]=$search(@,$format(/F2 .+\d\d\/$0 \u20ac\/kWh (%N)/,_mese))
+  %prezzo_energia[2]=$search(@,$format(/F3 .+\d\d\/$0 \u20ac\/kWh (%N)/,_mese))
 }
 $with($search(@,/Prezzo commercializzazione vendita.+\n((Dal.+\n)+)/)) {
-  %pcv=$search(@,$format(/\d\d\/$0 .+ Mese (%N)/,mese))
+  %pcv=$search(@,$format(/\d\d\/$0 .+ _mese (%N)/,_mese))
 }
 ### End Script
 ### End Box

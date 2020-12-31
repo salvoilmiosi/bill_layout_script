@@ -76,7 +76,7 @@ numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
 indirizzo_fornitura=$search($nonewline(@),/FORNIAMO ENERGIA IN (.+) CODICE POD/)
 *multipod=$isempty(codice_pod)
-!mese=$date_format(mese_fattura,"%m.%Y")
+_mese=$date_format(mese_fattura,"%m.%Y")
 ### End Script
 ### End Box
 
@@ -133,7 +133,7 @@ p+*page_offset p+*pod_offset
 %imponibile=$search(@,/TOTALE IMPONIBILE (%N)/)
 $if($contains(@,"Energia Reattiva")) {
   $with($search(@,/CONSUMI E LETTURE([^]+)Consumi fatturati/)) {
-    %energia_reattiva=$search(@,$format(/\d\d\.$0.+ (%N)\n/,mese))
+    %energia_reattiva=$search(@,$format(/\d\d\.$0.+ (%N)\n/,_mese))
   }
 }
 ### End Script
@@ -154,46 +154,46 @@ p+*page_offset
 ### End Spacers
 ### Script
 $with($search(@,/Sbilanciamento\n((dal.+\n)+)/)) {
-  %sbilanciamento=$search(@,$format(/al \d\d\.$0 Euro\/kWh (%N)/,mese))
+  %sbilanciamento=$search(@,$format(/al \d\d\.$0 Euro\/kWh (%N)/,_mese))
 }
 $with($search(@,/Prezzo Commercializzazione Vendita\n((dal.+\n)+)/)) {
-  %pcv=$search(@,$format(/al \d\d\.$0 euro\/\w+ %N %N (%N)/,mese))
+  %pcv=$search(@,$format(/al \d\d\.$0 euro\/\w+ %N %N (%N)/,_mese))
 }
 $with(
 $coalesce(
   $search(@,/Prezzo Energia\n((dal.+\n)+)/),
   $search(@,/Prezzo Indicizzato\n((dal.+\n)+)/))
 ){
-  $tokens($search(@,$format(/al \d\d\.$0 F1 Euro\/kWh (%N %N)/,mese)))
+  $tokens($search(@,$format(/al \d\d\.$0 F1 Euro\/kWh (%N %N)/,_mese)))
     { %prezzo_energia[0] %energia_attiva[0] }
-  $tokens($search(@,$format(/al \d\d\.$0 F2 Euro\/kWh (%N %N)/,mese)))
+  $tokens($search(@,$format(/al \d\d\.$0 F2 Euro\/kWh (%N %N)/,_mese)))
     { %prezzo_energia[1] %energia_attiva[1] }
-  $tokens($search(@,$format(/al \d\d\.$0 F3 Euro\/kWh (%N %N)/,mese)))
+  $tokens($search(@,$format(/al \d\d\.$0 F3 Euro\/kWh (%N %N)/,_mese)))
     { %prezzo_energia[2] %energia_attiva[2] }
 
-  $tokens($search(@,$format(/al \d\d\.$0 PEAK Euro\/kWh (%N %N)/,mese)))
+  $tokens($search(@,$format(/al \d\d\.$0 PEAK Euro\/kWh (%N %N)/,_mese)))
     { %prezzo_energia[0] %energia_attiva[0] }
-  $tokens($search(@,$format(/al \d\d\.$0 OFFPEAK Euro\/kWh (%N %N)/,mese)))
+  $tokens($search(@,$format(/al \d\d\.$0 OFFPEAK Euro\/kWh (%N %N)/,_mese)))
     { %prezzo_energia[1] %energia_attiva[1] }
 }
 
 $with($search(@,/Energia Reattiva entro 75%\n((dal.+\n)+)/)) {
-  %penale_reattiva_inf75+=$search(@,$format(/al \d\d\.$0 F1 Euro\/kVarh %N %N (%N)/,mese))
-  %penale_reattiva_inf75+=$search(@,$format(/al \d\d\.$0 F2 Euro\/kVarh %N %N (%N)/,mese))
-  %penale_reattiva_inf75+=$search(@,$format(/al \d\d\.$0 F3 Euro\/kVarh %N %N (%N)/,mese))
+  %penale_reattiva_inf75+=$search(@,$format(/al \d\d\.$0 F1 Euro\/kVarh %N %N (%N)/,_mese))
+  %penale_reattiva_inf75+=$search(@,$format(/al \d\d\.$0 F2 Euro\/kVarh %N %N (%N)/,_mese))
+  %penale_reattiva_inf75+=$search(@,$format(/al \d\d\.$0 F3 Euro\/kVarh %N %N (%N)/,_mese))
 }
 $with($search(@,/Energia Reattiva oltre 75%\n((dal.+\n)+)/)) {
-  %penale_reattiva_sup75+=$search(@,$format(/al \d\d\.$0 F1 Euro\/kVarh %N %N (%N)/,mese))
-  %penale_reattiva_sup75+=$search(@,$format(/al \d\d\.$0 F2 Euro\/kVarh %N %N (%N)/,mese))
-  %penale_reattiva_sup75+=$search(@,$format(/al \d\d\.$0 F3 Euro\/kVarh %N %N (%N)/,mese))
+  %penale_reattiva_sup75+=$search(@,$format(/al \d\d\.$0 F1 Euro\/kVarh %N %N (%N)/,_mese))
+  %penale_reattiva_sup75+=$search(@,$format(/al \d\d\.$0 F2 Euro\/kVarh %N %N (%N)/,_mese))
+  %penale_reattiva_sup75+=$search(@,$format(/al \d\d\.$0 F3 Euro\/kVarh %N %N (%N)/,_mese))
 }
 %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA IMPORTO \u20ac (%N)/)
 %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO IMPORTO \u20ac (%N)/)
 %oneri=$search(@,/ONERI DI SISTEMA IMPORTO \u20ac (%N)/)
 
-%potenza[0:2]=$search(@,$format(/al \d\d\.$0 Euro\/kW %N (%N)/,mese))
+%potenza[0:2]=$search(@,$format(/al \d\d\.$0 Euro\/kW %N (%N)/,_mese))
 $with($search(@,/Imposta erariale di consumo \(accisa\)\n[^]*?((dal.+\n)+)/)) {
-  %accise=$search(@,$format(/al \d\d\.$0 Euro\/kWh %N %N (%N)/,mese))
+  %accise=$search(@,$format(/al \d\d\.$0 Euro\/kWh %N %N (%N)/,_mese))
 }
 ### End Script
 ### End Box

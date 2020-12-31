@@ -30,8 +30,8 @@ p+*page_offset
 ### End Spacers
 ### Script
 $ifnot($or($contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA"),$ate())) {
-  !*contenuto_dettaglio+=@
-   *contenuto_dettaglio+="\n"
+  *_dettaglio+=@
+  *_dettaglio+="\n"
   *page_offset+=1
   $goto(lettura_dati)
 }
@@ -248,7 +248,7 @@ $with($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
 ### W 0.0579877123
 ### H 0.0390942991
 ### Script
-$with(*contenuto_dettaglio) {
+$with(*_dettaglio) {
   $with($search(@,$format(/$0([^]+?FORNITURA DI $0 euro %N)/,$date_format(mese_fattura,"%B %Y")))) {
 
     %pcv=$search(@,/PCV euro\/cliente\/mese %N %N (%N)/)

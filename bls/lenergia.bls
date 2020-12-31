@@ -28,7 +28,7 @@ numero_cliente=$search(@,/Codice Cliente: (.+)\n/)
 numero_fattura=$search(@,/fattura n\. (\d+) /)
 data_fattura=$date(@,"%d/%m/%Y",/fattura n\. \d+ del (%D)/)
 mese_fattura=$month(@,"%d/%m/%Y",/Periodo %D - (%D)/)
-!mese=$date_format(mese_fattura,"%m/%Y")
+_mese=$date_format(mese_fattura,"%m/%Y")
 ### End Script
 ### End Box
 
@@ -130,13 +130,13 @@ codice_pod=$search(@,/Codice punto di erogazione \(POD\): ([a-zA-Z0-9]+)/)
 ### W 0.9235171676
 ### H 0.6100174785
 ### Script
-$tokens($search(@,$format(/\d\d\/$0 Energia Attiva kWh (%N %N %N)/,mese))) {
+$tokens($search(@,$format(/\d\d\/$0 Energia Attiva kWh (%N %N %N)/,_mese))) {
     %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]
 }
-$tokens($search(@,$format(/\d\d\/$0 Energia Reattiva kvarh (%N %N %N)/,mese))) {
+$tokens($search(@,$format(/\d\d\/$0 Energia Reattiva kvarh (%N %N %N)/,_mese))) {
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
 }
-$tokens($search(@,$format(/\d\d\/$0 Potenza kW (%N %N %N)/,mese))) {
+$tokens($search(@,$format(/\d\d\/$0 Potenza kW (%N %N %N)/,_mese))) {
     %potenza[0] %potenza[1] %potenza[2]
 }
 ### End Script
@@ -156,18 +156,18 @@ $tokens($search(@,$format(/\d\d\/$0 Potenza kW (%N %N %N)/,mese))) {
 p+*page_offset
 ### End Spacers
 ### Script
-$tokens($search(@,$format(/Indice mese di competenza F1 .+ \d\d\/$0 \u20ac\/kWh (%N %N)/,mese))) {
+$tokens($search(@,$format(/Indice _mese di competenza F1 .+ \d\d\/$0 \u20ac\/kWh (%N %N)/,_mese))) {
   %prezzo_energia[0] %energia_attiva[0]
 }
-$tokens($search(@,$format(/Indice mese di competenza F2 .+ \d\d\/$0 \u20ac\/kWh (%N %N)/,mese))) {
+$tokens($search(@,$format(/Indice _mese di competenza F2 .+ \d\d\/$0 \u20ac\/kWh (%N %N)/,_mese))) {
   %prezzo_energia[1] %energia_attiva[1]
 }
-$tokens($search(@,$format(/Indice mese di competenza F3 .+ \d\d\/$0 \u20ac\/kWh (%N %N)/,mese))) {
+$tokens($search(@,$format(/Indice _mese di competenza F3 .+ \d\d\/$0 \u20ac\/kWh (%N %N)/,_mese))) {
   %prezzo_energia[2] %energia_attiva[2]
 }
 
-%pcv=$search(@,$format(/PCV .+ \d\d\/$0 \u20ac\/Pdp\/mese %N %N (%N)/,mese))
-%accise=$search(@,$format(/Imposta erariale di consumo .+ \d\d\/$0 \u20ac\/kWh %N %N (%N)/,mese))
+%pcv=$search(@,$format(/PCV .+ \d\d\/$0 \u20ac\/Pdp\/_mese %N %N (%N)/,_mese))
+%accise=$search(@,$format(/Imposta erariale di consumo .+ \d\d\/$0 \u20ac\/kWh %N %N (%N)/,_mese))
 %penale_reattiva_inf75=$search(@,/Penale Reattiva 33%.+kvarh %N %N (%N)/)
 %penale_reattiva_sup75=$search(@,/Penale Reattiva 75%.+kvarh %N %N (%N)/)
 ### End Script
