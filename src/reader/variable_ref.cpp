@@ -50,7 +50,7 @@ size_t variable_ref::size() const {
 bool variable_ref::isset() const {
     if (page_idx == PAGE_GLOBAL || page_idx < parent.m_pages.size()) {
         auto &page = parent.get_page(page_idx);
-        return page.find(name) != page.end();
+        return page.contains(name);
     }
     return false;
 }

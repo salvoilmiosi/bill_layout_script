@@ -29,14 +29,12 @@ void reader::exec_program(std::istream &input) {
 
 void reader::exec_command(const command_args &cmd) {
     auto exec_operator = [&](auto op) {
-        auto var2 = std::move(m_var_stack.top());
-        m_var_stack.pop();
-        auto var1 = std::move(m_var_stack.top());
-        m_var_stack.pop();
-        m_var_stack.push(op(var1, var2));
+        auto ret = op(*(m_var_stack.rbegin() + 1), m_var_stack.top());
+        m_var_stack.resize(m_var_stack.size() - 2);
+        m_var_stack.push(std::move(ret));
     };
 
-    auto get_string_ref = [&]() {
+    auto read_str_ref = [&]() {
         return m_code.get_string(cmd.get<string_ref>());
     };
 
@@ -85,7 +83,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SELVARTOP:
     {
         variable_ref ref(*this);
-        ref.name = get_string_ref();
+        ref.name = read_str_ref();
         ref.index = m_var_stack.top().as_int();
         ref.range_len = 1;
         ref.page_idx = m_page_num;
@@ -96,7 +94,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SELRANGEALL:
     {
         variable_ref ref(*this);
-        ref.name = get_string_ref();
+        ref.name = read_str_ref();
         ref.index = 0;
         ref.page_idx = m_page_num;
         ref.range_len = ref.size();
@@ -118,7 +116,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SELRANGETOP:
     {
         variable_ref ref(*this);
-        ref.name = get_string_ref();
+        ref.name = read_str_ref();
         ref.index = m_var_stack.top().as_int();
         m_var_stack.pop();
         ref.range_len = m_var_stack.top().as_int();
@@ -174,7 +172,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHSHORT: m_var_stack.push(cmd.get<int16_t>()); break;
     case opcode::PUSHINT:   m_var_stack.push(cmd.get<int32_t>()); break;
     case opcode::PUSHDECIMAL: m_var_stack.push(cmd.get<fixed_point>()); break;
-    case opcode::PUSHSTR:   m_var_stack.push(get_string_ref()); break;
+    case opcode::PUSHSTR:   m_var_stack.push(read_str_ref()); break;
     case opcode::PUSHVAR:
         m_var_stack.push(m_ref_stack.top().get_value());
         m_ref_stack.pop();
