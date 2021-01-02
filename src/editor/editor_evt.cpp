@@ -174,7 +174,7 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     if (json_output["error"].asBool()) {
         wxMessageBox("Impossibile leggere l'output: " + json_output["message"].asString(), "Errore", wxOK | wxICON_ERROR);
     } else {
-        wxString output_layout = json_output["globals"]["layout"].asString();
+        wxString output_layout = json_output["globals"]["layout"][0].asString();
         if (output_layout.empty()) {
             wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
         } else if (saveIfModified()) {

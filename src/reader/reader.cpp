@@ -84,53 +84,52 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::MIN: exec_operator([](const auto &a, const auto &b) { return a < b ? a : b; }); break;
     case opcode::SELVARTOP:
     {
-        variable_ref ref;
+        variable_ref ref(*this);
         ref.name = get_string_ref();
         ref.index = m_var_stack.top().as_int();
         ref.range_len = 1;
+        ref.page_idx = m_page_num;
         m_var_stack.pop();
         m_ref_stack.push(std::move(ref));
         break;
     }
     case opcode::SELRANGEALL:
     {
-        variable_ref ref;
+        variable_ref ref(*this);
         ref.name = get_string_ref();
         ref.index = 0;
-        ref.range_len = get_ref_size(ref);
+        ref.page_idx = m_page_num;
+        ref.range_len = ref.size();
         m_ref_stack.push(std::move(ref));
         break;
     }
     case opcode::SELVAR:
     case opcode::SELRANGE:
     {
-        variable_ref ref;
+        variable_ref ref(*this);
         const auto &var_idx = cmd.get<variable_idx>();
         ref.name = m_code.get_string(var_idx.name);
         ref.index = var_idx.index;
         ref.range_len = var_idx.range_len;
+        ref.page_idx = m_page_num;
         m_ref_stack.push(std::move(ref));
         break;
     }
     case opcode::SELRANGETOP:
     {
-        variable_ref ref;
+        variable_ref ref(*this);
         ref.name = get_string_ref();
         ref.index = m_var_stack.top().as_int();
         m_var_stack.pop();
         ref.range_len = m_var_stack.top().as_int();
         m_var_stack.pop();
+        ref.page_idx = m_page_num;
         m_ref_stack.push(std::move(ref));
         break;
     }
     case opcode::SELGLOBAL:
-    {
-        variable_ref ref;
-        ref.name = get_string_ref();
-        ref.isglobal = true;
-        m_ref_stack.push(std::move(ref));
+        m_ref_stack.top().page_idx = PAGE_GLOBAL;
         break;
-    }
     case opcode::MVBOX:
     {
         switch (cmd.get<spacer_index>()) {
@@ -153,17 +152,20 @@ void reader::exec_command(const command_args &cmd) {
         m_var_stack.pop();
         break;
     }
-    case opcode::CLEAR: clear_ref(); break;
+    case opcode::CLEAR:
+        m_ref_stack.top().clear();
+        m_ref_stack.pop();
+        break;
     case opcode::APPEND:
-        m_ref_stack.top().index = get_ref_size(m_ref_stack.top());
+        m_ref_stack.top().index = m_ref_stack.top().size();
         // fall through
     case opcode::SETVAR:
-        set_ref(false);
+        m_ref_stack.top().set_value(std::move(m_var_stack.top()), SET_ASSIGN);
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
     case opcode::RESETVAR:
-        set_ref(true);
+        m_ref_stack.top().set_value(std::move(m_var_stack.top()), SET_RESET);
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
@@ -174,7 +176,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHDECIMAL: m_var_stack.push(cmd.get<fixed_point>()); break;
     case opcode::PUSHSTR:   m_var_stack.push(get_string_ref()); break;
     case opcode::PUSHVAR:
-        m_var_stack.push(get_ref());
+        m_var_stack.push(m_ref_stack.top().get_value());
         m_ref_stack.pop();
         break;
     case opcode::JMP:
@@ -202,21 +204,21 @@ void reader::exec_command(const command_args &cmd) {
         }
         break;
     case opcode::INC:
-        inc_ref(m_var_stack.top());
+        m_ref_stack.top().set_value(std::move(m_var_stack.top()), SET_INCREASE);
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
     case opcode::DEC:
-        inc_ref(- m_var_stack.top());
+        m_ref_stack.top().set_value(- m_var_stack.top(), SET_INCREASE);
         m_var_stack.pop();
         m_ref_stack.pop();
         break;
     case opcode::ISSET:
-        m_var_stack.push(get_ref_size(m_ref_stack.top()) != 0);
+        m_var_stack.push(m_ref_stack.top().isset());
         m_ref_stack.pop();
         break;
     case opcode::GETSIZE:
-        m_var_stack.push(get_ref_size(m_ref_stack.top()));
+        m_var_stack.push(m_ref_stack.top().size());
         m_ref_stack.pop();
         break;
     case opcode::PUSHCONTENT:
@@ -266,132 +268,35 @@ void reader::read_box(pdf_rect box) {
     }
 }
 
-const variable &reader::get_global(const std::string &name) const {
-    auto it = m_globals.find(name);
-    if (it == m_globals.end()) {
-        return variable::null_var();
+variable_page &reader::get_page(size_t page_idx) {
+    if (page_idx == PAGE_GLOBAL) {
+        return m_globals;
     } else {
-        return it->second;
-    }
-}
-
-const variable &reader::get_variable(const std::string &name, size_t index, size_t page_idx) const {
-    if (m_pages.size() <= m_page_num) {
-        return variable::null_var();
-    }
-
-    auto &page = m_pages[page_idx];
-    auto it = page.find(name);
-    if (it == page.end() || it->second.size() <= index) {
-        return variable::null_var();
-    } else {
-        return it->second[index];
-    }
-}
-
-const variable &reader::get_ref() const {
-    if (m_ref_stack.top().isglobal) {
-        return get_global(m_ref_stack.top().name);
-    } else {
-        return get_variable(m_ref_stack.top().name, m_ref_stack.top().index, m_page_num);
-    }
-}
-
-void reader::set_ref(bool clear) {
-    auto &value = m_var_stack.top();
-    if (value.empty()) return;
-    auto &ref = m_ref_stack.top();
-    if (ref.isglobal) {
-        m_globals[ref.name] = std::move(value);
-        return;
-    }
-
-    while (m_pages.size() <= m_page_num) m_pages.emplace_back();
-    auto &page = m_pages[m_page_num];
-    auto &var = page[ref.name];
-    if (clear) var.clear();
-    while (var.size() < ref.index + ref.range_len) var.emplace_back();
-    if (ref.range_len == 1) {
-        var[ref.index] = std::move(value);
-    } else {
-        for (size_t i=ref.index; i < ref.index + ref.range_len; ++i) {
-            var[i] = value;
-        }
-    }
-}
-
-void reader::inc_ref(const variable &value) {
-    if (value.empty()) return;
-    auto &ref = m_ref_stack.top();
-    if (ref.isglobal) {
-        m_globals[ref.name] += value;
-        return;
-    }
-
-    while (m_pages.size() <= m_page_num) m_pages.emplace_back();
-    auto &page = m_pages[m_page_num];
-    auto &var = page[ref.name];
-    while (var.size() < ref.index + ref.range_len) var.emplace_back();
-    for (size_t i=ref.index; i < ref.index + ref.range_len; ++i) {
-        var[i] += value;
-    }
-}
-
-void reader::clear_ref() {
-    auto &ref = m_ref_stack.top();
-    if (ref.isglobal) {
-        auto it = m_globals.find(ref.name);
-        if (it != m_globals.end()) {
-            m_globals.erase(it);
-        }
-    } else if (m_page_num < m_pages.size()) {
-        auto &page = m_pages[m_page_num];
-        auto it = page.find(ref.name);
-        if (it != page.end()) {
-            page.erase(it);
-        }
-    }
-}
-
-size_t reader::get_ref_size(variable_ref &ref) {
-    if (ref.isglobal) {
-        return m_globals.find(ref.name) != m_globals.end();
-    }
-    if (m_pages.size() <= m_page_num) {
-        return 0;
-    }
-    auto &page = m_pages[m_page_num];
-    auto it = page.find(ref.name);
-    if (it == page.end()) {
-        return 0;
-    } else {
-        return it->second.size();
+        while (m_pages.size() <= page_idx) m_pages.emplace_back();
+        return m_pages[page_idx];
     }
 }
 
 void reader::save_output(Json::Value &root, bool debug) {
-    Json::Value &values = root["values"] = Json::arrayValue;
-
-    for (auto &page : m_pages) {
-        auto &page_values = values.append(Json::objectValue);
+    auto write_page = [&](const variable_page &page) {
+        Json::Value ret = Json::objectValue;
         for (auto &pair : page) {
             std::string name = pair.first;
             if (name.front() == '_' && !debug) {
                 continue;
             }
-            auto &json_arr = page_values[name] = Json::arrayValue;
+            auto &json_arr = ret[name] = Json::arrayValue;
             for (auto &val : pair.second) {
                 json_arr.append(val.str());
             }
         }
-    }
+        return ret;
+    };
 
-    Json::Value &globals = root["globals"] = Json::objectValue;
-    for (auto &pair : m_globals) {
-        std::string name = pair.first;
-        if (name.front() == '_' && !debug) {
-            continue;
-        }
-        globals[name] = pair.second.str();
+    root["globals"] = write_page(m_globals);
+    
+    Json::Value &values = root["values"] = Json::arrayValue;
+    for (auto &page : m_pages) {
+        values.append(write_page(page));
     }
 }

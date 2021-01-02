@@ -27,7 +27,7 @@ def read_pdf(pdf_file):
                 proc = subprocess.run(args, capture_output=True, text=True)
                 json_out = json.loads(proc.stdout)
                 if not json_out['error'] and 'layout' in json_out['globals']:
-                    x['layout'] = json_out['globals']['layout']
+                    x['layout'] = json_out['globals']['layout'][0]
             if 'layout' in x and 'values' in x:
                 layout_file = controllo.parent.joinpath('../bls/{0}.bls'.format(x['layout']))
                 if os.path.getmtime(str(layout_file)) < os.path.getmtime(str(output_file)):
@@ -44,7 +44,7 @@ def read_pdf(pdf_file):
             if json_out['error']:
                 file_obj['error'] = json_out['message']
             elif 'layout' in json_out['globals']:
-                file_obj['layout'] = json_out['globals']['layout']
+                file_obj['layout'] = json_out['globals']['layout'][0]
                 file_obj['values'] = json_out['values']
             print(rel_path)
         except:

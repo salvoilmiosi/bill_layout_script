@@ -12,13 +12,6 @@
 #include "stack.h"
 #include "content_view.h"
 
-struct variable_ref {
-    std::string name;
-    size_t index = 0;
-    size_t range_len = 0;
-    bool isglobal = false;
-};
-
 struct box_spacer {
     float x = 0;
     float y = 0;
@@ -26,6 +19,39 @@ struct box_spacer {
     float h = 0;
     int page = 0;
 };
+
+enum set_flags {
+    SET_ASSIGN = 0,
+    SET_RESET = 1 << 0,
+    SET_INCREASE = 1 << 1
+};
+
+class variable_ref {
+private:
+    class reader &parent;
+
+public:
+    std::string name;
+    size_t index = 0;
+    size_t range_len = 0;
+    size_t page_idx = 0;
+
+public:
+    explicit variable_ref(class reader &parent) : parent(parent) {}
+    variable_ref(class reader &parent, const std::string &name, size_t page_idx, size_t index = 0, size_t range_len = 0) :
+        parent(parent), name(name), index(index), range_len(range_len), page_idx(page_idx) {}
+
+public:
+    const variable &get_value() const;
+    void set_value(variable &&value, set_flags flags = SET_ASSIGN);
+    void clear();
+    size_t size() const;
+    bool isset() const;
+};
+
+using variable_page = std::map<std::string, std::vector<variable>>;
+
+static constexpr size_t PAGE_GLOBAL = -1;
 
 class reader {
 public:
@@ -35,10 +61,11 @@ public:
     
     void exec_program(std::istream &input);
 
-    const variable &get_global(const std::string &name) const;
-    const variable &get_variable(const std::string &name, size_t index = 0, size_t page_idx = 0) const;
-
     void save_output(Json::Value &output, bool debug);
+
+    variable_ref create_ref(const std::string &name, size_t page_idx, size_t index = 0, size_t range_len = 0) {
+        return variable_ref(*this, name, page_idx, index, range_len);
+    }
 
 private:
     void exec_command(const command_args &cmd);
@@ -46,17 +73,13 @@ private:
     void read_box(pdf_rect box);
     void call_function(const std::string &name, size_t numargs);
 
-    const variable &get_ref() const;
-    void set_ref(bool reset = false);
-    void inc_ref(const variable &value);
-    void clear_ref();
-    size_t get_ref_size(variable_ref &ref);
-
 private:
-    using variable_page = std::map<std::string, std::vector<variable>>;
+    variable_page &get_page(size_t page_idx);
 
-    std::map<std::string, variable> m_globals;
+    variable_page m_globals;
     std::vector<variable_page> m_pages;
+
+    friend class variable_ref;
 
 private:
     pdf_document m_doc;

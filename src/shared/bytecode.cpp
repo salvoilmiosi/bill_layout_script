@@ -63,7 +63,6 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
         case opcode::SELVARTOP:
         case opcode::SELRANGEALL:
         case opcode::SELRANGETOP:
-        case opcode::SELGLOBAL:
             writeData(output, line.get<string_ref>());
             break;
         case opcode::PUSHBYTE:
@@ -182,7 +181,6 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
         case opcode::PUSHSTR:
         case opcode::SELVARTOP:
         case opcode::SELRANGEALL:
-        case opcode::SELGLOBAL:
         case opcode::SELRANGETOP:
             add_command(cmd, readData<string_ref>(input));
             break;

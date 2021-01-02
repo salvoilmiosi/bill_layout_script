@@ -204,51 +204,49 @@ int parser::read_variable(bool read_only) {
     
     std::string name(tokens.current().value);
 
-    if (!isglobal) {
+    tokens.peek();
+    if (tokens.current().type == TOK_BRACKET_BEGIN) { // variable[
+        tokens.advance();
         tokens.peek();
-        if (tokens.current().type == TOK_BRACKET_BEGIN) { // variable[
+        switch (tokens.current().type) {
+        case TOK_BRACKET_END: // variable[] -- aggiunge alla fine
+            if (read_only) throw tokens.unexpected_token(TOK_INTEGER);
+            flags |= VAR_APPEND;
+            break;
+        case TOK_COLON: // variable[:] -- seleziona range intero
+            if (read_only) throw tokens.unexpected_token(TOK_INTEGER);
             tokens.advance();
+            rangeall = true;
+            break;
+        case TOK_INTEGER: // variable[int
+            tokens.advance();
+            index = std::stoi(std::string(tokens.current().value));
             tokens.peek();
-            switch (tokens.current().type) {
-            case TOK_BRACKET_END: // variable[] -- aggiunge alla fine
-                if (read_only) throw tokens.unexpected_token(TOK_INTEGER);
-                flags |= VAR_APPEND;
-                break;
-            case TOK_COLON: // variable[:] -- seleziona range intero
-                if (read_only) throw tokens.unexpected_token(TOK_INTEGER);
+            if (!read_only && tokens.current().type == TOK_COLON) { // variable[int:
                 tokens.advance();
-                rangeall = true;
-                break;
-            case TOK_INTEGER: // variable[int
-                tokens.advance();
-                index = std::stoi(std::string(tokens.current().value));
                 tokens.peek();
-                if (!read_only && tokens.current().type == TOK_COLON) { // variable[int:
+                if (tokens.current().type == TOK_INTEGER) { // variable[a:b] -- seleziona range
                     tokens.advance();
-                    tokens.peek();
-                    if (tokens.current().type == TOK_INTEGER) { // variable[a:b] -- seleziona range
-                        tokens.advance();
-                        index_last = std::stoi(std::string(tokens.current().value));
-                    } else { // variable[int:expr] -- seleziona range
-                        add_line("PUSHNUM {0}", index);
-                        read_expression();
-                        getindex = true;
-                        getindexlast = true;
-                    }
-                }
-                break;
-            default: // variable[expr
-                read_expression();
-                getindex = true;
-                tokens.peek();
-                if (!read_only && tokens.current().type == TOK_COLON) { // variable[expr:expr]
-                    tokens.advance();
+                    index_last = std::stoi(std::string(tokens.current().value));
+                } else { // variable[int:expr] -- seleziona range
+                    add_line("PUSHNUM {0}", index);
                     read_expression();
+                    getindex = true;
                     getindexlast = true;
                 }
             }
-            tokens.require(TOK_BRACKET_END);
+            break;
+        default: // variable[expr
+            read_expression();
+            getindex = true;
+            tokens.peek();
+            if (!read_only && tokens.current().type == TOK_COLON) { // variable[expr:expr]
+                tokens.advance();
+                read_expression();
+                getindexlast = true;
+            }
         }
+        tokens.require(TOK_BRACKET_END);
     }
 
     if (!read_only) {
@@ -271,9 +269,7 @@ int parser::read_variable(bool read_only) {
         }
     }
 
-    if (isglobal) {
-        add_line("SELGLOBAL {0}", name);
-    } else if (rangeall) {
+    if (rangeall) {
         add_line("SELRANGEALL {0}", name);
     } else if (getindex) {
         if (getindexlast) {
@@ -285,6 +281,9 @@ int parser::read_variable(bool read_only) {
         add_line("SELRANGE {0},{1},{2}", name, index, index_last);
     } else {
         add_line("SELVAR {0},{1}", name, index);
+    }
+    if (isglobal) {
+        add_line("SELGLOBAL");
     }
 
     return flags;

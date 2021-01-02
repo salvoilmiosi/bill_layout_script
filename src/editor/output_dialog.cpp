@@ -158,44 +158,9 @@ void output_dialog::updateItems() {
     auto col_name = m_list_ctrl->AppendColumn("Nome", wxLIST_FORMAT_LEFT, 150);
     auto col_value = m_list_ctrl->AppendColumn("Valore", wxLIST_FORMAT_LEFT, 150);
 
-    if (m_page->GetValue() == "Globali") {
-        m_page->SetSelection(0);
-        
-        auto &json_object = json_output["globals"];
-
+    auto display_page = [&](const Json::Value &page) {
         size_t n=0;
-        for (Json::ValueConstIterator it = json_object.begin(); it != json_object.end(); ++it) {
-            if (!m_show_debug->GetValue() && it.name().front() == '_') {
-                continue;
-            }
-            wxListItem item;
-            item.SetId(n);
-            m_list_ctrl->InsertItem(item);
-
-            m_list_ctrl->SetItem(n, col_name, it.name());
-            m_list_ctrl->SetItem(n, col_value, wxString(it->asCString(), wxConvUTF8));
-            ++n;
-        }
-
-    } else {
-        long selected_page;
-        if (!m_page->GetValue().ToLong(&selected_page)) {
-            wxBell();
-            return;
-        }
-
-        if (selected_page > (int)json_output["values"].size() || selected_page <= 0) {
-            wxBell();
-            return;
-        }
-
-        m_page->SetSelection(selected_page);
-        --selected_page;
-
-        auto &json_object = json_output["values"][static_cast<int>(selected_page)];
-
-        size_t n=0;
-        for (Json::ValueConstIterator it = json_object.begin(); it != json_object.end(); ++it) {
+        for (Json::ValueConstIterator it = page.begin(); it != page.end(); ++it) {
             if (!m_show_debug->GetValue() && it.name().front() == '_') {
                 continue;
             }
@@ -211,5 +176,27 @@ void output_dialog::updateItems() {
                 ++n;
             }
         }
+    };
+
+    if (m_page->GetValue() == "Globali") {
+        m_page->SetSelection(0);
+        
+        display_page(json_output["globals"]);
+    } else {
+        long selected_page;
+        if (!m_page->GetValue().ToLong(&selected_page)) {
+            wxBell();
+            return;
+        }
+
+        if (selected_page > (int)json_output["values"].size() || selected_page <= 0) {
+            wxBell();
+            return;
+        }
+
+        m_page->SetSelection(selected_page);
+        --selected_page;
+
+        display_page(json_output["values"][static_cast<int>(selected_page)]);
     }
 }
