@@ -15,7 +15,7 @@ void reader::exec_program(std::istream &input) {
     m_spacer = {};
     m_programcounter = 0;
     m_jumped = false;
-    m_ate = false;
+    m_box_page = 0;
 
     while (m_programcounter < m_code.m_commands.size()) {
         exec_command(m_code.m_commands[m_programcounter]);
@@ -235,7 +235,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::NEXTLINE: m_content_stack.top().next_token("\n"); break;
     case opcode::NEXTTOKEN: m_content_stack.top().next_token("\t\n\v\f\r "); break;
     case opcode::NEXTPAGE: ++m_page_num; break;
-    case opcode::ATE: m_var_stack.push(m_ate); break;
+    case opcode::ATE: m_var_stack.push(m_box_page > m_doc.num_pages()); break;
     case opcode::HLT: m_programcounter = m_code.m_commands.size(); break;
     }
 }
@@ -243,7 +243,7 @@ void reader::exec_command(const command_args &cmd) {
 void reader::set_page(int page) {
     page += m_spacer.page;
     m_spacer = {};
-    m_ate = page > m_doc.num_pages();
+    m_box_page = page;
     m_content_stack = {};
 }
 
@@ -255,7 +255,7 @@ void reader::read_box(pdf_rect box) {
     box.h += m_spacer.h;
     m_spacer = {};
 
-    m_ate = box.page > m_doc.num_pages();
+    m_box_page = box.page;
 
     m_content_stack = {};
 

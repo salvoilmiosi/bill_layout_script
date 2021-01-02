@@ -70,10 +70,10 @@ private:
     stack_t<variable_ref> m_ref_stack;
     box_spacer m_spacer;
 
+    int m_box_page = 0;
     size_t m_page_num = 0;
     size_t m_programcounter = 0;
     bool m_jumped = false;
-    bool m_ate = false;
 };
 
 #endif
