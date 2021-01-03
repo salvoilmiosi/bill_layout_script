@@ -219,7 +219,7 @@ void reader::exec_command(const command_args &cmd) {
         m_var_stack.push(m_ref_stack.top().size());
         m_ref_stack.pop();
         break;
-    case opcode::PUSHCONTENT:
+    case opcode::MOVCONTENT:
         m_content_stack.push(std::move(m_var_stack.top().str()));
         m_var_stack.pop();
         break;

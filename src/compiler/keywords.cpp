@@ -106,7 +106,7 @@ void parser::read_keyword() {
         tokens.require(TOK_PAREN_BEGIN);
         read_expression();
         tokens.require(TOK_PAREN_END);
-        add_line("PUSHCONTENT");
+        add_line("MOVCONTENT");
         add_line("LABEL {0}", lines_label);
         add_line("NEXTLINE");
         add_line("JTE {0}", endlines_label);
@@ -121,7 +121,7 @@ void parser::read_keyword() {
         tokens.require(TOK_PAREN_BEGIN);
         read_expression();
         tokens.require(TOK_PAREN_END);
-        add_line("PUSHCONTENT");
+        add_line("MOVCONTENT");
         read_statement();
         add_line("POPCONTENT");
         break;
@@ -131,7 +131,7 @@ void parser::read_keyword() {
         tokens.require(TOK_PAREN_BEGIN);
         read_expression();
         tokens.require(TOK_PAREN_END);
-        add_line("PUSHCONTENT");
+        add_line("MOVCONTENT");
 
         tokens.require(TOK_BRACE_BEGIN);
 

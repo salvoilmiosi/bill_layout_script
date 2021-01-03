@@ -148,7 +148,7 @@ bytecode read_lines(const std::vector<std::string> &lines, bool add_debug) {
             case hash("DEC"):           ret.add_command(opcode::DEC); break;
             case hash("ISSET"):         ret.add_command(opcode::ISSET); break;
             case hash("GETSIZE"):       ret.add_command(opcode::GETSIZE); break;
-            case hash("PUSHCONTENT"):   ret.add_command(opcode::PUSHCONTENT); break;
+            case hash("MOVCONTENT"):   ret.add_command(opcode::MOVCONTENT); break;
             case hash("SETBEGIN"):      ret.add_command(opcode::SETBEGIN); break;
             case hash("SETEND"):        ret.add_command(opcode::SETEND); break;
             case hash("NEXTLINE"):      ret.add_command(opcode::NEXTLINE); break;
