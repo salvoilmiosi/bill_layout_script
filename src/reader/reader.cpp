@@ -145,7 +145,7 @@ void reader::exec_command(const command_args &cmd) {
         break;
     case opcode::APPEND:
         m_ref_stack.top().index = m_ref_stack.top().size();
-        // fall through
+        break;
     case opcode::SETVAR:
         m_ref_stack.top().set_value(std::move(m_var_stack.top()), SET_ASSIGN);
         m_var_stack.pop();

@@ -122,7 +122,9 @@ void parser::read_statement() {
 
         if (flags & VAR_APPEND) {
             add_line("APPEND");
-        } else if (flags & VAR_RESET) {
+        }
+        
+        if (flags & VAR_RESET) {
             add_line("RESETVAR");
         } else if (flags & VAR_INCREASE) {
             add_line("INC");
