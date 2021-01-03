@@ -274,7 +274,7 @@ $if($contains(@,"Energia reattiva")) {
 ### W 0.0530589223
 ### H 0.0347352810
 ### Script
-$with(*_dettaglio) {
+$with(*&_dettaglio) {
   $tokens($search(@,$format(/Energia fascia F1 dal \d\d\/$0.+kWh (%N %N)/,_mese))) {
     %prezzo_energia[0] %energia_attiva[0]
   }

@@ -222,7 +222,7 @@ $goto(lettura_spese)
 ### H 0.0307867676
 ### Goto Label parsing_spese
 ### Script
-$with(_dettaglio) {
+$with(&_dettaglio) {
   $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")))
   $setend($indexof(@,"TOT. \u20ac", 150))
 
