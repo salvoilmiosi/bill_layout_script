@@ -269,6 +269,9 @@ int parser::read_variable(bool read_only) {
         }
     }
 
+    if (isglobal) {
+        add_line("SELGLOBAL");
+    }
     if (rangeall) {
         add_line("SELRANGEALL {0}", name);
     } else if (getindex) {
@@ -281,9 +284,6 @@ int parser::read_variable(bool read_only) {
         add_line("SELRANGE {0},{1},{2}", name, index, index_last);
     } else {
         add_line("SELVAR {0},{1}", name, index);
-    }
-    if (isglobal) {
-        add_line("SELGLOBAL");
     }
 
     return flags;

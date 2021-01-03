@@ -8,6 +8,7 @@
 #include <json/json.h>
 
 #include "variable.h"
+#include "variable_ref.h"
 #include "bytecode.h"
 #include "stack.h"
 #include "content_view.h"
@@ -18,35 +19,6 @@ struct box_spacer {
     float w = 0;
     float h = 0;
     int page = 0;
-};
-
-enum set_flags {
-    SET_ASSIGN = 0,
-    SET_RESET = 1 << 0,
-    SET_INCREASE = 1 << 1
-};
-
-class variable_ref {
-private:
-    class reader &parent;
-
-public:
-    std::string name;
-    size_t index = 0;
-    size_t range_len = 0;
-    size_t page_idx = 0;
-
-public:
-    explicit variable_ref(class reader &parent) : parent(parent) {}
-    variable_ref(class reader &parent, const std::string &name, size_t page_idx, size_t index = 0, size_t range_len = 0) :
-        parent(parent), name(name), index(index), range_len(range_len), page_idx(page_idx) {}
-
-public:
-    const variable &get_value() const;
-    void set_value(variable &&value, set_flags flags = SET_ASSIGN);
-    void clear();
-    size_t size() const;
-    bool isset() const;
 };
 
 using variable_page = std::multimap<std::string, variable>;
@@ -64,7 +36,7 @@ public:
     void save_output(Json::Value &output, bool debug);
 
     variable_ref create_ref(const std::string &name, size_t page_idx, size_t index = 0, size_t range_len = 0) {
-        return variable_ref(*this, name, page_idx, index, range_len);
+        return variable_ref(get_page(page_idx), name, index, range_len);
     }
 
 private:
@@ -96,6 +68,7 @@ private:
     int m_box_page = 0;
     size_t m_page_num = 0;
     size_t m_programcounter = 0;
+    bool m_global_flag = false;
     bool m_jumped = false;
 };
 
