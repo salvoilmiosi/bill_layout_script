@@ -87,6 +87,14 @@ public:
         }
     }
 
+    bool move_into (variable &out) {
+        if (index < size()) {
+            out = std::move(std::next(begin(), index)->second);
+            return true;
+        }
+        return false;
+    }
+
     void set_value(variable &&value, set_flags flags = SET_ASSIGN) {
         if (value.empty()) return;
 

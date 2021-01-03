@@ -167,6 +167,16 @@ void reader::exec_command(const command_args &cmd) {
         m_var_stack.push(m_ref_stack.top().get_value());
         m_ref_stack.pop();
         break;
+    case opcode::MOVEVAR:
+    {
+        variable buf;
+        if (m_ref_stack.top().move_into(buf)) {
+            m_ref_stack.top().clear();
+        }
+        m_var_stack.push(std::move(buf));
+        m_ref_stack.pop();
+        break;
+    }
     case opcode::JMP:
         m_programcounter = cmd.get<jump_address>();
         m_jumped = true;

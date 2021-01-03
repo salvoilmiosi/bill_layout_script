@@ -13,6 +13,7 @@ enum token_type {
     TOK_NUMBER,             // 123.4
     TOK_INTEGER,            // 123
     TOK_FUNCTION,           // $funzione
+    TOK_MOVE,               // &
     TOK_PAREN_BEGIN,        // (
     TOK_PAREN_END,          // )
     TOK_COMMA,              // ,
@@ -38,7 +39,8 @@ constexpr const char *TOKEN_NAMES[] = {
     "regexp",
     "numero",
     "numero intero",
-    "'$'",
+    "$funzione",
+    "'&'",
     "'('",
     "')'",
     "','",

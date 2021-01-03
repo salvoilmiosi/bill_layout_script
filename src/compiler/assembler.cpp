@@ -139,6 +139,7 @@ bytecode read_lines(const std::vector<std::string> &lines, bool add_debug) {
                 break;
             }
             case hash("PUSHVAR"):       ret.add_command(opcode::PUSHVAR); break;
+            case hash("MOVEVAR"):       ret.add_command(opcode::MOVEVAR); break;
             case hash("JMP"):           ret.add_command(opcode::JMP, getgotoindex(args[0])); break;
             case hash("JZ"):            ret.add_command(opcode::JZ, getgotoindex(args[0])); break;
             case hash("JNZ"):           ret.add_command(opcode::JNZ, getgotoindex(args[0])); break;

@@ -49,6 +49,7 @@ enum class opcode : uint8_t {
     PUSHDECIMAL,// fixed_point number -- number -> var_stack
     PUSHSTR,    // string str -- str -> var_stack
     PUSHVAR,    // ref_stack -> var_stack
+    MOVEVAR,    // ref_stack -> (move) var_stack
     JMP,        // short address -- unconditional jump
     JZ,         // short address -- var_stack -> jump if top == 0
     JNZ,        // short address -- var_stack -> jump if top != 0

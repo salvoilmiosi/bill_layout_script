@@ -99,6 +99,9 @@ bool tokenizer::next() {
     case '*':
         tok.type = TOK_GLOBAL;
         break;
+    case '&':
+        tok.type = TOK_MOVE;
+        break;
     case '#':
         tok.type = TOK_COMMENT;
         ok = readComment();

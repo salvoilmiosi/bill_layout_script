@@ -172,8 +172,14 @@ void parser::read_expression() {
         add_line("PUSHVIEW");
         break;
     default:
-        read_variable(true);
-        add_line("PUSHVAR");
+    {
+        int flags = read_variable(true);
+        if (flags & VAR_MOVE) {
+            add_line("MOVEVAR");
+        } else {
+            add_line("PUSHVAR");
+        }
+    }
     }
 }
 
@@ -195,6 +201,10 @@ int parser::read_variable(bool read_only) {
         case TOK_PERCENT:
             if (read_only) throw tokens.unexpected_token(TOK_IDENTIFIER);
             flags |= VAR_NUMBER;
+            break;
+        case TOK_MOVE:
+            if (!read_only) throw tokens.unexpected_token(TOK_IDENTIFIER);
+            flags |= VAR_MOVE;
             break;
         case TOK_IDENTIFIER:
             in_loop = false;
