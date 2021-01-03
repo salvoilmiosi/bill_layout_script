@@ -279,14 +279,13 @@ void reader::save_output(Json::Value &root, bool debug) {
     auto write_page = [&](const variable_page &page) {
         Json::Value ret = Json::objectValue;
         for (auto &pair : page) {
-            std::string name = pair.first;
+            const std::string &name = pair.first;
             if (name.front() == '_' && !debug) {
                 continue;
             }
-            auto &json_arr = ret[name] = Json::arrayValue;
-            for (auto &val : pair.second) {
-                json_arr.append(val.str());
-            }
+            auto &json_arr = ret[name];
+            if (json_arr.isNull()) json_arr = Json::arrayValue;
+            json_arr.append(pair.second.str());
         }
         return ret;
     };

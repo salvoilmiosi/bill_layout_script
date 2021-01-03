@@ -49,7 +49,7 @@ public:
     bool isset() const;
 };
 
-using variable_page = std::map<std::string, std::vector<variable>>;
+using variable_page = std::multimap<std::string, variable>;
 
 static constexpr size_t PAGE_GLOBAL = -1;
 
