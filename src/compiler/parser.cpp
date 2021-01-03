@@ -356,6 +356,7 @@ void parser::read_function() {
         case hash("and"): call_op(2, "AND"); break;
         case hash("or"):  call_op(2, "OR"); break;
         case hash("not"): call_op(1, "NOT"); break;
+        case hash("neg"): call_op(1, "NEG"); break;
         case hash("add"): call_op(2, "ADD"); break;
         case hash("sub"): call_op(2, "SUB"); break;
         case hash("mul"): call_op(2, "MUL"); break;

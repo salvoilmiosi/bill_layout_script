@@ -25,7 +25,7 @@ private:
 
 public:
     multimap_range(map_type &map, const key_type &key) : m_map(map), m_key(key) {
-        auto range = m_map.equal_range(key);
+        auto range = m_map.equal_range(m_key);
         m_begin = range.first;
         m_end = range.second;
         m_len = std::distance(m_begin, m_end);
@@ -43,8 +43,7 @@ public:
     }
 
     void clear() {
-        m_map.erase(m_begin, m_end);
-        m_begin = m_end = m_map.end();
+        m_begin = m_end = m_map.erase(m_begin, m_end);
         m_len = 0;
     }
 

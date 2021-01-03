@@ -120,7 +120,7 @@ int MainApp::OnRun() {
             in_file_layout = false;
         }
         if (!layout_dir.empty()) {
-            const auto &layout_path = m_reader.create_ref("layout", PAGE_GLOBAL).get_value();
+            const auto &layout_path = m_reader.get_global("layout");
             if (!layout_path.empty()) {
                 wxFileName input_file2 = layout_dir + wxFileName::GetPathSeparator() + layout_path.str();
                 input_file2.SetExt("out");

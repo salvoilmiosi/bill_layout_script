@@ -32,14 +32,14 @@ enum class opcode : uint8_t {
     LEQ,        // var_stack * 2 -> a >= b -> var_stack
     MAX,        // var_stack * 2 -> max(a,b) -> var_stack
     MIN,        // var_stack * 2 -> min(a,b) -> var_stack
-    SELGLOBAL,  // string name -- (name, global) -> ref_stack
+    SELGLOBAL,  // m_global_flag = true
     SELVAR,     // string name, byte index -- (name, index, index) -> ref_stack
     SELVARTOP,  // string name -- var_stack -> (name, top, top) -> ref_stack
     SELRANGE,   // string name, bye idxfrom, byte idxto = (name, idxfrom, idxto) -> ref_stack
     SELRANGETOP,// string name -- var_stack * 2 -> (name, top-1, top) -> ref_stack
     SELRANGEALL,// string name -- (name, range_all) -> ref_stack
     CLEAR,      // ref_stack -> clear
-    APPEND,     // ref_stack, var_stack -> append
+    APPEND,     // ref_stack.top.index = ref_stack.top.size
     SETVAR,     // ref_stack, var_stack -> set
     RESETVAR,   // ref_stack, var_stack -> reset
     PUSHVIEW,   // content_stack -> var_stack

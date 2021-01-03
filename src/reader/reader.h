@@ -23,8 +23,6 @@ struct box_spacer {
 
 using variable_page = std::multimap<std::string, variable>;
 
-static constexpr size_t PAGE_GLOBAL = -1;
-
 class reader {
 public:
     void open_pdf(const std::string &filename) {
@@ -35,8 +33,8 @@ public:
 
     void save_output(Json::Value &output, bool debug);
 
-    variable_ref create_ref(const std::string &name, size_t page_idx, size_t index = 0, size_t range_len = 0) {
-        return variable_ref(get_page(page_idx), name, index, range_len);
+    const variable &get_global(const std::string &name, size_t index = 0) {
+        return variable_ref(m_globals, name, index).get_value();
     }
 
 private:
@@ -46,7 +44,7 @@ private:
     void call_function(const std::string &name, size_t numargs);
 
 private:
-    variable_page &get_page(size_t page_idx);
+    variable_page &current_page();
 
     variable_page m_globals;
     std::vector<variable_page> m_pages;

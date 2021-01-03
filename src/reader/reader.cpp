@@ -15,6 +15,7 @@ void reader::exec_program(std::istream &input) {
     m_spacer = {};
     m_programcounter = 0;
     m_jumped = false;
+    m_global_flag = false;
     m_box_page = 0;
 
     while (m_programcounter < m_code.m_commands.size()) {
@@ -82,7 +83,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::MIN: exec_operator([](const auto &a, const auto &b) { return a < b ? a : b; }); break;
     case opcode::SELVARTOP:
     {
-        variable_ref ref(get_page(m_page_num), read_str_ref(),
+        variable_ref ref(current_page(), read_str_ref(),
             m_var_stack.top().as_int(), 1);
         m_var_stack.pop();
         m_ref_stack.push(std::move(ref));
@@ -90,7 +91,7 @@ void reader::exec_command(const command_args &cmd) {
     }
     case opcode::SELRANGEALL:
     {
-        variable_ref ref(get_page(m_page_num), read_str_ref());
+        variable_ref ref(current_page(), read_str_ref());
         ref.range_len = ref.size();
         m_ref_stack.push(std::move(ref));
         break;
@@ -99,14 +100,14 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SELRANGE:
     {
         const auto &var_idx = cmd.get<variable_idx>();
-        variable_ref ref(get_page(m_page_num), m_code.get_string(var_idx.name),
+        variable_ref ref(current_page(), m_code.get_string(var_idx.name),
             var_idx.index, var_idx.range_len);
         m_ref_stack.push(std::move(ref));
         break;
     }
     case opcode::SELRANGETOP:
     {
-        variable_ref ref(get_page(m_page_num), read_str_ref());
+        variable_ref ref(current_page(), read_str_ref());
         ref.index = m_var_stack.top().as_int();
         m_var_stack.pop();
         ref.range_len = m_var_stack.top().as_int();
@@ -255,13 +256,13 @@ void reader::read_box(pdf_rect box) {
     }
 }
 
-variable_page &reader::get_page(size_t page_idx) {
-    if (page_idx == PAGE_GLOBAL || m_global_flag) {
+variable_page &reader::current_page() {
+    if (m_global_flag) {
         m_global_flag = false;
         return m_globals;
     } else {
-        while (m_pages.size() <= page_idx) m_pages.emplace_back();
-        return m_pages[page_idx];
+        while (m_pages.size() <= m_page_num) m_pages.emplace_back();
+        return m_pages[m_page_num];
     }
 }
 
