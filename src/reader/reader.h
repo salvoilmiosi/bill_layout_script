@@ -23,6 +23,24 @@ struct box_spacer {
 
 using variable_page = std::multimap<std::string, variable>;
 
+template<typename T>
+using stack_t = my_stack<T>;
+
+struct context {
+    stack_t<variable> vars;
+    stack_t<content_view> contents;
+    stack_t<variable_ref> refs;
+
+    box_spacer spacer;
+    int last_box_page = 0;
+
+    size_t current_page = 0;
+    bool global_page = false;
+
+    size_t program_counter = 0;
+    bool jumped = false;
+};
+
 class reader {
 public:
     void open_pdf(const std::string &filename) {
@@ -49,25 +67,10 @@ private:
     variable_page m_globals;
     std::vector<variable_page> m_pages;
 
-    friend class variable_ref;
-
 private:
     pdf_document m_doc;
     bytecode m_code;
-
-    template<typename T>
-    using stack_t = my_stack<T>;
-
-    stack_t<variable> m_var_stack;
-    stack_t<content_view> m_content_stack;
-    stack_t<variable_ref> m_ref_stack;
-    box_spacer m_spacer;
-
-    int m_box_page = 0;
-    size_t m_page_num = 0;
-    size_t m_programcounter = 0;
-    bool m_global_flag = false;
-    bool m_jumped = false;
+    context m_con;
 };
 
 #endif

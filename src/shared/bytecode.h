@@ -108,7 +108,7 @@ struct command_args {
     command_args(opcode command = opcode::NOP) : command(command) {}
 
     template<typename T>
-    command_args(opcode command, const T &data) : command(command), data(std::make_shared<T>(data)) {}
+    command_args(opcode command, T &&data) : command(command), data(std::make_shared<std::decay_t<T>>(std::forward<T>(data))) {}
     
     template<typename T> const T &get() const {
         return *std::static_pointer_cast<T>(data);

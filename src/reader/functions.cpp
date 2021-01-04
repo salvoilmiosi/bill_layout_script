@@ -261,10 +261,10 @@ void reader::call_function(const string &name, size_t numargs) {
     auto it = lookup.find(name);
     if (it != lookup.end()) {
         variable ret = it->second(arg_list(
-            m_var_stack.end() - numargs,
-            m_var_stack.end()));
-        m_var_stack.resize(m_var_stack.size() - numargs);
-        m_var_stack.push(std::move(ret));
+            m_con.vars.end() - numargs,
+            m_con.vars.end()));
+        m_con.vars.resize(m_con.vars.size() - numargs);
+        m_con.vars.push(std::move(ret));
     } else {
         throw layout_error(fmt::format("Funzione sconosciuta: {0}", name));
     }
