@@ -83,10 +83,9 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::MIN: exec_operator([](const auto &a, const auto &b) { return a < b ? a : b; }); break;
     case opcode::SELVARTOP:
     {
-        variable_ref ref(current_page(), read_str_ref(),
+        m_ref_stack.emplace_back(current_page(), read_str_ref(),
             m_var_stack.top().as_int(), 1);
         m_var_stack.pop();
-        m_ref_stack.push(std::move(ref));
         break;
     }
     case opcode::SELRANGEALL:
@@ -102,6 +101,9 @@ void reader::exec_command(const command_args &cmd) {
         const auto &var_idx = cmd.get<variable_idx>();
         variable_ref ref(current_page(), m_code.get_string(var_idx.name),
             var_idx.index, var_idx.range_len);
+        if (var_idx.index == (small_int) -1) {
+            ref.index = ref.size();
+        }
         m_ref_stack.push(std::move(ref));
         break;
     }
@@ -144,9 +146,6 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.top().clear();
         m_ref_stack.pop();
         break;
-    case opcode::APPEND:
-        m_ref_stack.top().index = m_ref_stack.top().size();
-        break;
     case opcode::SETVAR:
         m_ref_stack.top().set_value(std::move(m_var_stack.top()), SET_ASSIGN);
         m_var_stack.pop();
@@ -168,15 +167,9 @@ void reader::exec_command(const command_args &cmd) {
         m_ref_stack.pop();
         break;
     case opcode::MOVEVAR:
-    {
-        variable buf;
-        if (m_ref_stack.top().move_into(buf)) {
-            m_ref_stack.top().clear();
-        }
-        m_var_stack.push(std::move(buf));
+        m_var_stack.push(m_ref_stack.top().get_moved());
         m_ref_stack.pop();
         break;
-    }
     case opcode::JMP:
         m_programcounter = cmd.get<jump_address>();
         m_jumped = true;

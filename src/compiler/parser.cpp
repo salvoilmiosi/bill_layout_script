@@ -119,10 +119,6 @@ void parser::read_statement() {
         if (flags & VAR_NUMBER) {
             add_line("PARSENUM");
         }
-
-        if (flags & VAR_APPEND) {
-            add_line("APPEND");
-        }
         
         if (flags & VAR_RESET) {
             add_line("RESETVAR");
@@ -223,7 +219,7 @@ int parser::read_variable(bool read_only) {
         switch (tokens.current().type) {
         case TOK_BRACKET_END: // variable[] -- aggiunge alla fine
             if (read_only) throw tokens.unexpected_token(TOK_INTEGER);
-            flags |= VAR_APPEND;
+            index = -1;
             break;
         case TOK_COLON: // variable[:] -- seleziona range intero
             if (read_only) throw tokens.unexpected_token(TOK_INTEGER);

@@ -39,7 +39,6 @@ enum class opcode : uint8_t {
     SELRANGETOP,// string name -- var_stack * 2 -> (name, top-1, top) -> ref_stack
     SELRANGEALL,// string name -- (name, range_all) -> ref_stack
     CLEAR,      // ref_stack -> clear
-    APPEND,     // ref_stack.top.index = ref_stack.top.size
     SETVAR,     // ref_stack, var_stack -> set
     RESETVAR,   // ref_stack, var_stack -> reset
     PUSHVIEW,   // content_stack -> var_stack

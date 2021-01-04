@@ -110,7 +110,6 @@ bytecode read_lines(const std::vector<std::string> &lines, bool add_debug) {
             case hash("SELRANGETOP"):   ret.add_command(opcode::SELRANGETOP, ret.add_string(args[0])); break;
             case hash("SELRANGEALL"):   ret.add_command(opcode::SELRANGEALL, ret.add_string(args[0])); break;
             case hash("CLEAR"):         ret.add_command(opcode::CLEAR); break;
-            case hash("APPEND"):        ret.add_command(opcode::APPEND); break;
             case hash("SETVAR"):        ret.add_command(opcode::SETVAR); break;
             case hash("RESETVAR"):      ret.add_command(opcode::RESETVAR); break;
             case hash("PUSHVIEW"):      ret.add_command(opcode::PUSHVIEW); break;

@@ -87,12 +87,12 @@ public:
         }
     }
 
-    bool move_into (variable &out) {
+    variable get_moved() {
         if (index < size()) {
-            out = std::move(std::next(begin(), index)->second);
-            return true;
+            return std::move(std::next(begin(), index)->second);
+        } else {
+            return variable();
         }
-        return false;
     }
 
     void set_value(variable &&value, set_flags flags = SET_ASSIGN) {
