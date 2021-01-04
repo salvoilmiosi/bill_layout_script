@@ -35,7 +35,6 @@ struct context {
     int last_box_page = 0;
 
     size_t current_page = 0;
-    bool global_page = false;
 
     size_t program_counter = 0;
     bool jumped = false;
@@ -62,8 +61,6 @@ private:
     void call_function(const std::string &name, size_t numargs);
 
 private:
-    variable_page &current_page();
-
     variable_page m_globals;
     std::vector<variable_page> m_pages;
 

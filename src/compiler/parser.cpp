@@ -278,7 +278,7 @@ int parser::read_variable(bool read_only) {
     }
 
     if (isglobal) {
-        add_line("SELGLOBAL");
+        name = "*" + name;
     }
     if (rangeall) {
         add_line("SELRANGEALL {0}", name);

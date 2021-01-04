@@ -32,6 +32,15 @@ void reader::exec_command(const command_args &cmd) {
         return m_code.get_string(cmd.get<string_ref>());
     };
 
+    auto create_ref = [&](const std::string &name, auto ... args) {
+        if (name.front() == '*') {
+            return variable_ref(m_globals, name.substr(1), args ...);
+        } else {
+            while (m_pages.size() <= m_con.current_page) m_pages.emplace_back();
+            return variable_ref(m_pages[m_con.current_page], name, args ...);
+        }
+    };
+
     switch(cmd.command) {
     case opcode::NOP:
     case opcode::DBGDATA:
@@ -76,14 +85,14 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::MIN: exec_operator([](const auto &a, const auto &b) { return a < b ? a : b; }); break;
     case opcode::SELVARTOP:
     {
-        m_con.refs.emplace_back(current_page(), read_str_ref(),
-            m_con.vars.top().as_int(), 1);
+        m_con.refs.emplace_back(create_ref(read_str_ref(),
+            m_con.vars.top().as_int(), 1));
         m_con.vars.pop();
         break;
     }
     case opcode::SELRANGEALL:
     {
-        variable_ref ref(current_page(), read_str_ref());
+        auto ref = create_ref(read_str_ref());
         ref.range_len = ref.size();
         m_con.refs.push(std::move(ref));
         break;
@@ -92,7 +101,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SELRANGE:
     {
         const auto &var_idx = cmd.get<variable_idx>();
-        variable_ref ref(current_page(), m_code.get_string(var_idx.name),
+        auto ref = create_ref(m_code.get_string(var_idx.name),
             var_idx.index, var_idx.range_len);
         if (var_idx.index == (small_int) -1) {
             ref.index = ref.size();
@@ -102,7 +111,7 @@ void reader::exec_command(const command_args &cmd) {
     }
     case opcode::SELRANGETOP:
     {
-        variable_ref ref(current_page(), read_str_ref());
+        auto ref = create_ref(read_str_ref());
         ref.index = m_con.vars.top().as_int();
         m_con.vars.pop();
         ref.range_len = m_con.vars.top().as_int();
@@ -110,9 +119,6 @@ void reader::exec_command(const command_args &cmd) {
         m_con.refs.push(std::move(ref));
         break;
     }
-    case opcode::SELGLOBAL:
-        m_con.global_page = true;
-        break;
     case opcode::MVBOX:
     {
         switch (cmd.get<spacer_index>()) {
@@ -249,16 +255,6 @@ void reader::read_box(pdf_rect box) {
         m_con.contents.push(m_doc.get_text(box));
     } catch (const pdf_error &error) {
         throw layout_error(error.message);
-    }
-}
-
-variable_page &reader::current_page() {
-    if (m_con.global_page) {
-        m_con.global_page = false;
-        return m_globals;
-    } else {
-        while (m_pages.size() <= m_con.current_page) m_pages.emplace_back();
-        return m_pages[m_con.current_page];
     }
 }
 
