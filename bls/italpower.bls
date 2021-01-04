@@ -1,6 +1,22 @@
 ### Bill Layout Script
 
 ### Box
+### Name Spacer prima pagina
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.0161290690
+### Y 0.1549857557
+### W 0.2145161033
+### H 0.0683760718
+### Script
+$ifnot($contains(@,"Informazioni e reclami")) {
+  *spacer_p1=$boxheight()
+}
+### End Script
+### End Box
+
+### Box
 ### Name Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
@@ -9,6 +25,9 @@
 ### Y 0.2746438980
 ### W 0.7097657323
 ### H 0.0239315927
+### Spacers
+y-*spacer_p1
+### End Spacers
 ### Script
 $ifnot($contains(@,"FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA"))
   $error("Layout Invalido")
@@ -39,6 +58,9 @@ fornitore="Italpower"
 ### Y 0.3109084070
 ### W 0.2950705290
 ### H 0.0763326287
+### Spacers
+y-*spacer_p1
+### End Spacers
 ### Script
 numero_fattura=$search(@,/Fattura Numero: (.+)\n/)
 data_fattura=$date(@,"%d/%m/%Y",/Data Fattura: (%D)/)
@@ -55,6 +77,9 @@ data_scadenza=$date(@,"%d/%m/%Y",/Scadenza Fattura: (%D)/)
 ### Y 0.3014754057
 ### W 0.6560779810
 ### H 0.2798797488
+### Spacers
+y-*spacer_p1
+### End Spacers
 ### Script
 %totale_fattura=$search(@,/Totale Fattura \u20ac (%N)/)
 iva=$search(@,/IVA (\d+%)/)
@@ -70,6 +95,9 @@ iva=$search(@,/IVA (\d+%)/)
 ### Y 0.5803877115
 ### W 0.4864683747
 ### H 0.2518473864
+### Spacers
+y-*spacer_p1
+### End Spacers
 ### Script
 numero_cliente=$search(@,/Codice cliente (.+)\n/)
 ragione_sociale=$search(@,/Ragione sociale (.+)\n/)
