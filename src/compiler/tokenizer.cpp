@@ -137,7 +137,7 @@ bool tokenizer::nextImpl(bool writeDebug) {
         ok = readComment();
         if (ok) {
             // skip comments
-            return next();
+            return nextImpl(writeDebug);
         }
         break;
     case '@':
