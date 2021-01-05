@@ -89,7 +89,7 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
         case opcode::JTE:
             writeData(output, line.get<jump_address>());
             break;
-        case opcode::DBGDATA:
+        case opcode::COMMENT:
             writeData<std::string>(output, line.get<std::string>());
             break;
         default:
@@ -172,7 +172,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             add_command(cmd, std::move(var_idx));
             break;
         }
-        case opcode::DBGDATA:
+        case opcode::COMMENT:
             readData<std::string>(input);
             break;
         case opcode::STRDATA:

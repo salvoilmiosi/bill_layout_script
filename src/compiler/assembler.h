@@ -13,6 +13,6 @@ struct assembly_error {
     assembly_error(const std::string &message) : message(message) {}
 };
 
-bytecode read_lines(const std::vector<std::string> &lines, bool add_debug = false);
+bytecode read_lines(const std::vector<std::string> &lines);
 
 #endif

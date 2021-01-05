@@ -9,7 +9,7 @@
 #include "parsestr.h"
 #include "decimal.h"
 
-bytecode read_lines(const std::vector<std::string> &lines, bool add_debug) {
+bytecode read_lines(const std::vector<std::string> &lines) {
     bytecode ret;
     std::map<std::string, jump_address> labels;
 
@@ -30,15 +30,15 @@ bytecode read_lines(const std::vector<std::string> &lines, bool add_debug) {
 
     try {
         for (auto &line : lines) {
-            if (add_debug) {
-                ret.add_command(opcode::DBGDATA, line);
-            }
             size_t space_pos = line.find_first_of(' ');
             std::string cmd = line.substr(0, space_pos);
             auto arg_str = line.substr(space_pos + 1);
             auto args = string_split(arg_str, ',');
             switch (hash(cmd)) {
             case hash("LABEL"):
+                break;
+            case hash("COMMENT"):
+                ret.add_command(opcode::COMMENT, arg_str);
                 break;
             case hash("RDBOX"):
             {

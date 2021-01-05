@@ -43,7 +43,7 @@ void reader::exec_command(const command_args &cmd) {
 
     switch(cmd.command) {
     case opcode::NOP:
-    case opcode::DBGDATA:
+    case opcode::COMMENT:
     case opcode::STRDATA:
         break;
     case opcode::RDBOX:

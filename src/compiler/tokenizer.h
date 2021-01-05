@@ -2,6 +2,7 @@
 #define __TOKENIZER_H__
 
 #include <string>
+#include <vector>
 
 enum token_type {
     TOK_END_OF_FILE = 0,
@@ -71,10 +72,13 @@ struct token {
 
 class tokenizer {
 public:
-    tokenizer() = default;
-    tokenizer(const std::string_view &script);
+    tokenizer(class parser &parent) : parent(parent) {}
+    
+    void setScript(std::string_view str);
 
-    bool next();
+    bool next() {
+        return nextImpl(true);
+    }
     token require(token_type type);
 
     bool peek();
@@ -86,7 +90,7 @@ public:
     void gotoTok(const token &tok);
 
     bool ate() {
-        return _current == script.end();
+        return m_current == script.end();
     }
 
     const token &current() const {
@@ -96,13 +100,21 @@ public:
     std::string getLocation(const token &tok);
 
 private:
+    class parser &parent;
+    size_t last_debug_line;
+    std::vector<std::string> debug_lines;
+
     std::string_view script;
 
-    std::string_view::iterator _current;
+    std::string_view::iterator m_current;
     token tok;
 
     char nextChar();
     void skipSpaces();
+    
+    bool nextImpl(bool writeDebug);
+    void addDebugData();
+    void flushDebugData();
 
     bool readIdentifier();
     bool readString();

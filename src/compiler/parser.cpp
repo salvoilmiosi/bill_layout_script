@@ -22,7 +22,7 @@ void parser::read_box(const layout_box &box) {
     current_box = &box;
     if (!box.goto_label.empty()) add_line("LABEL {0}", box.goto_label);
 
-    tokens = tokenizer(box.spacers);
+    tokens.setScript(box.spacers);
 
     while(!tokens.ate()) {
         tokens.require(TOK_IDENTIFIER);
@@ -65,7 +65,7 @@ void parser::read_box(const layout_box &box) {
         add_line("MVBOX {0}", index);
     }
 
-    tokens = tokenizer(box.script);
+    tokens.setScript(box.script);
     switch (box.type) {
     case box_type::BOX_RECTANGLE:
         add_line("RDBOX {0},{1},{2:.{6}f},{3:.{6}f},{4:.{6}f},{5:.{6}f}", box.mode, box.page, box.x, box.y, box.w, box.h, fixed_point::decimal_points);
@@ -99,6 +99,9 @@ void parser::read_statement() {
         break;
     case TOK_FUNCTION:
         read_keyword();
+        break;
+    case TOK_END_OF_FILE:
+        tokens.advance();
         break;
     default:
     {

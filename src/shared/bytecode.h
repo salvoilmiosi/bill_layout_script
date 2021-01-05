@@ -65,7 +65,7 @@ enum class opcode : uint8_t {
     NEXTPAGE,   // m_page_num++
     ATE,        // m_ate -> var_stack
     STRDATA=0xfd,// short len, (byte * len) data -- string data (strings are represented by 2 byte addresses)
-    DBGDATA=0xfe,// short len, (byte * len) data -- string debug data
+    COMMENT=0xfe,// short len, (byte * len) data -- string debug data
     HLT=0xff,   // halt execution
 };
 

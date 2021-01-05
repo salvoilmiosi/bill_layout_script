@@ -23,8 +23,19 @@ enum variable_flags {
     VAR_MOVE        = 1 << 4,
 };
 
+enum parser_flags {
+    FLAGS_NONE = 0,
+    FLAGS_DEBUG = 1 << 0,
+};
+
 class parser {
 public:
+    parser() : tokens(*this) {}
+
+    void add_flags(parser_flags flag) {
+        m_flags |= flag;
+    }
+
     void read_layout(const bill_layout_script &layout);
     const auto &get_output_asm() {
         return output_asm;
@@ -52,6 +63,10 @@ private:
     }
 
     tokenizer tokens;
+
+    uint8_t m_flags = FLAGS_NONE;
+
+    friend class tokenizer;
 };
 
 #endif

@@ -80,6 +80,7 @@ int MainApp::OnRun() {
             }
 
             parser my_parser;
+            if (debug) my_parser.add_flags(FLAGS_DEBUG);
             my_parser.read_layout(layout);
 
             auto print_asm = [&](std::ostream &out) {
@@ -96,7 +97,7 @@ int MainApp::OnRun() {
                 ofs.close();
             }
             
-            out_code = read_lines(my_parser.get_output_asm(), debug);
+            out_code = read_lines(my_parser.get_output_asm());
         } else {
             std::vector<std::string> lines;
             std::string line;
@@ -104,7 +105,7 @@ int MainApp::OnRun() {
                 lines.push_back(line);
             }
             
-            out_code = read_lines(lines, debug);
+            out_code = read_lines(lines);
         }
     } catch (const layout_error &error) {
         std::cerr << error.message << std::endl;

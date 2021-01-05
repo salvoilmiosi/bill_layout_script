@@ -1,26 +1,33 @@
 #include "tokenizer.h"
 
 #include <fmt/format.h>
+#include "parser.h"
 #include "layout.h"
 
-tokenizer::tokenizer(const std::string_view &_script) : script(_script) {
-    _current = script.begin();
+void tokenizer::setScript(std::string_view str) {
+    script = str;
+    m_current = script.begin();
+
+    last_debug_line = -1;
+    addDebugData();
+    flushDebugData();
 }
 
 char tokenizer::nextChar() {
-    if (_current == script.end())
+    if (m_current == script.end())
         return '\0';
-    return *_current++;
+    return *m_current++;
 }
 
 void tokenizer::skipSpaces() {
-    while (_current != script.end()) {
-        switch (*_current) {
-        case ' ':
-        case '\t':
+    while (m_current != script.end()) {
+        switch (*m_current) {
         case '\r':
         case '\n':
-            ++_current;
+            addDebugData();
+        case ' ':
+        case '\t':
+            ++m_current;
             break;
         default:
             return;
@@ -28,10 +35,32 @@ void tokenizer::skipSpaces() {
     }
 }
 
-bool tokenizer::next() {
+void tokenizer::addDebugData() {
+    if (parent.m_flags & FLAGS_DEBUG) {
+        size_t begin = script.find_first_not_of(" \t\r\n", m_current - script.begin());
+        if (begin != std::string::npos && begin != last_debug_line) {
+            last_debug_line = begin;
+            size_t endline = script.find_first_of("\r\n", begin);
+            auto line = script.substr(begin, endline == std::string_view::npos ? std::string_view::npos : endline - begin);
+            debug_lines.push_back(std::string(line));
+        }
+    }
+}
+
+void tokenizer::flushDebugData() {
+    for (auto &line : debug_lines) {
+        parent.add_line("COMMENT {}", line);
+    }
+    debug_lines.clear();
+}
+
+bool tokenizer::nextImpl(bool writeDebug) {
     skipSpaces();
+    if (writeDebug) {
+        flushDebugData();
+    }
     
-    auto start = _current;
+    auto start = m_current;
 
     char c = nextChar();
     bool ok = true;
@@ -63,7 +92,7 @@ bool tokenizer::next() {
     case '8':
     case '9':
         ok = readNumber();
-        if (std::find(start, _current, '.') == _current) {
+        if (std::find(start, m_current, '.') == m_current) {
             tok.type = TOK_INTEGER;
         } else {
             tok.type = TOK_NUMBER;
@@ -129,7 +158,7 @@ bool tokenizer::next() {
     }
 
     if (!ok) tok.type = TOK_ERROR;
-    tok.value = std::string_view(start, _current - start);
+    tok.value = std::string_view(start, m_current - start);
 
     return ok;
 }
@@ -143,18 +172,19 @@ token tokenizer::require(token_type type) {
 }
 
 bool tokenizer::peek() {
-    auto pos = _current;
-    bool ret = next();
-    _current = pos;
+    auto pos = m_current;
+    bool ret = nextImpl(false);
+    m_current = pos;
     return ret;
 }
 
 void tokenizer::advance() {
-    _current = tok.value.begin() + tok.value.size();
+    flushDebugData();
+    m_current = tok.value.begin() + tok.value.size();
 }
 
 void tokenizer::gotoTok(const token &tok) {
-    _current = tok.value.begin();
+    m_current = tok.value.begin();
 }
 
 parsing_error tokenizer::unexpected_token(token_type type) {
@@ -190,13 +220,13 @@ std::string tokenizer::getLocation(const token &tok) {
 }
 
 bool tokenizer::readIdentifier() {
-    const char *p = _current;
+    const char *p = m_current;
     char c = *p;
     while ((c >= '0' && c <= '9') ||
         (c >= 'a' && c <= 'z') ||
         (c >= 'A' && c <= 'Z') ||
         c == '_') {
-        c = (_current = p) < script.end() ? *p++ : '\0';
+        c = (m_current = p) < script.end() ? *p++ : '\0';
     }
     return true;
 }
@@ -234,10 +264,10 @@ bool tokenizer::readRegexp() {
 }
 
 bool tokenizer::readNumber() {
-    const char *p = _current;
+    const char *p = m_current;
     char c = *p;
     while ((c >= '0' && c <= '9') || c == '.') {
-        c = (_current = p) < script.end() ? *p++ : '\0';
+        c = (m_current = p) < script.end() ? *p++ : '\0';
     }
     return true;
 }
