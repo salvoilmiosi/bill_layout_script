@@ -56,7 +56,7 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
         switch (rect.type) {
         case box_type::BOX_RECTANGLE:
             args.add_args("-r", r, "-x", x, "-y", y, "-W", w, "-H", h);
-            // fall through
+            [[fallthrough]];
         case box_type::BOX_PAGE:
             args.add_args("-f", p, "-l", p);
             break;

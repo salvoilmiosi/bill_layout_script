@@ -25,6 +25,7 @@ void tokenizer::skipSpaces() {
         case '\r':
         case '\n':
             addDebugData();
+            [[fallthrough]];
         case ' ':
         case '\t':
             ++m_current;
