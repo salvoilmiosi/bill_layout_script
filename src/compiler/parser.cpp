@@ -19,6 +19,9 @@ void parser::read_layout(const bill_layout_script &layout) {
 }
 
 void parser::read_box(const layout_box &box) {
+    if (m_flags & FLAGS_DEBUG) {
+        add_line("COMMENT ## {}", box.name);
+    }
     current_box = &box;
     if (!box.goto_label.empty()) add_line("LABEL {0}", box.goto_label);
 
@@ -65,7 +68,6 @@ void parser::read_box(const layout_box &box) {
         add_line("MVBOX {0}", index);
     }
 
-    tokens.setScript(box.script);
     switch (box.type) {
     case box_type::BOX_RECTANGLE:
         add_line("RDBOX {0},{1},{2:.{6}f},{3:.{6}f},{4:.{6}f},{5:.{6}f}", box.mode, box.page, box.x, box.y, box.w, box.h, fixed_point::decimal_points);
@@ -80,6 +82,8 @@ void parser::read_box(const layout_box &box) {
         add_line("SETPAGE {}", box.page);
         break;
     }
+
+    tokens.setScript(box.script);
     while (!tokens.ate()) read_statement();
 }
 

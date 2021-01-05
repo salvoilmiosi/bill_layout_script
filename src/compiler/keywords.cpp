@@ -78,15 +78,12 @@ void parser::read_keyword() {
         read_expression();
         add_line("JZ {0}", endfor_label);
         tokens.require(TOK_COMMA);
-        size_t from = output_asm.size();
+        size_t increase_stmt_begin = output_asm.size();
         read_statement();
-        size_t to = output_asm.size();
+        size_t increase_stmt_end = output_asm.size();
         tokens.require(TOK_PAREN_END);
         read_statement();
-        for (size_t i=from; i<to; ++i) {
-            output_asm.push_back(output_asm[i]);
-        }
-        output_asm.erase(output_asm.begin() + from, output_asm.begin() + to);
+        vector_move_to_end(output_asm, increase_stmt_begin, increase_stmt_end);
         add_line("JMP {0}", for_label);
         add_line("LABEL {0}", endfor_label);
         break;

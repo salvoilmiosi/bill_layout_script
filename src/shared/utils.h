@@ -25,6 +25,15 @@ void string_trim(std::string &str);
 // legge tutta la stringa da uno stream
 std::string read_all(std::istream &stream);
 
+// sposta il range indicato alla fine del vettore
+template<typename T>
+void vector_move_to_end(std::vector<T> &vec, size_t begin, size_t end) {
+    for (size_t i=begin; i<end; ++i) {
+        vec.push_back(vec[i]);
+    }
+    vec.erase(vec.begin() + begin, vec.begin() + end);
+}
+
 struct hasher {
     size_t constexpr operator() (char const *input) const {
         return *input ? static_cast<unsigned int>(*input) + 33 * (*this)(input + 1) : 5381;
