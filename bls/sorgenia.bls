@@ -10,7 +10,7 @@
 ### W 0.8291960359
 ### H 0.0248280428
 ### Script
-$ifnot($eq(@,"BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO"))
+$if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
   $error("Layout Invalido")
 ### End Script
 ### End Box
@@ -26,13 +26,13 @@ $ifnot($eq(@,"BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO"
 ### H 0.8643101454
 ### Goto Label lettura_dati
 ### Spacers
-p+*page_offset
+p+::page_offset
 ### End Spacers
 ### Script
-$ifnot($or($contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA"),$ate())) {
-  *_dettaglio+=@
-  *_dettaglio+="\n"
-  *page_offset+=1
+$ifnot($contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA") || $ate()) {
+  ::_dettaglio+=@
+  ::_dettaglio+="\n"
+  ::page_offset+=1
   $goto(lettura_dati)
 }
 ### End Script
@@ -121,7 +121,7 @@ data_fattura=$date(@,"%d/%m/%Y")
 ### Script
 mese_fattura=$month(@,"%B %Y")
 mese_fine=$month(@,"%B %Y",/%D\/(%D)/)
-mese_fattura=$month_add(mese_fattura,*calc_mese)
+mese_fattura=$month_add(mese_fattura,::calc_mese)
 $ifnot($isset(mese_fattura)) {
   $error("Layout Invalido")
 }
@@ -248,7 +248,7 @@ $with($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
 ### W 0.0579877123
 ### H 0.0390942991
 ### Script
-$with(*&_dettaglio) {
+$with(::&_dettaglio) {
   $with($search(@,$format(/$0([^]+?FORNITURA DI $0 euro %N)/,$date_format(mese_fattura,"%B %Y")))) {
 
     %pcv=$search(@,/PCV euro\/cliente\/mese %N %N (%N)/)
@@ -306,8 +306,8 @@ $with(*&_dettaglio) {
 ### H 0.0447955690
 ### Script
 $if($isset(mese_fine)) {
-  $if($neq(mese_fattura,mese_fine)) {
-    *calc_mese+=1
+  $if(mese_fattura != mese_fine) {
+    ::calc_mese+=1
     $nextpage()
     $goto(nome_fornitore)
   }

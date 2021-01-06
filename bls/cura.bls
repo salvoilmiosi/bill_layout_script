@@ -110,11 +110,11 @@ iva=$search(@,/IVA vendite (\d+%)/)
 ### W 0.9255583286
 ### H 0.1920884103
 ### Spacers
-p+*page_offset p+*pod_offset
+p+ ::page_offset + ::pod_offset
 ### End Spacers
 ### Script
 codice_pod=$search(@,/POD: ([0-9A-Z]+) /)
-indirizzo_fornitura=$substr($search(@,/Fornitura: (.+)\n/),$add(1,$strlen(ragione_sociale)))
+indirizzo_fornitura=$substr($search(@,/Fornitura: (.+)\n/), $strlen(ragione_sociale) + 1)
 ### End Script
 ### End Box
 
@@ -128,7 +128,7 @@ indirizzo_fornitura=$substr($search(@,/Fornitura: (.+)\n/),$add(1,$strlen(ragion
 ### W 0.7943548560
 ### H 0.0741163045
 ### Spacers
-p+*page_offset p+*pod_offset
+p+ ::page_offset + ::pod_offset
 ### End Spacers
 ### Script
 $tokens($search(@,/Energia attiva kWh %N %N (%N %N %N)/)) {
@@ -154,7 +154,7 @@ $tokens($search(@,/Potenza prelevata kW (%N %N %N)/)) {
 ### H 0.7297605276
 ### Goto Label dati_costi
 ### Spacers
-p+*page_offset
+p+::page_offset
 ### End Spacers
 ### Script
 %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA PRIMA - ENERGIA (%N)/)
@@ -182,12 +182,12 @@ p+*page_offset
 ### W 0.9072580338
 ### H 0.0855188221
 ### Spacers
-p+*page_offset
+p+::page_offset
 ### End Spacers
 ### Script
-*pod_offset=1
-*page_offset+=1
-$if($or($contains(@,"RIEPILOGO IMPORTI"),$ate())) {
+::pod_offset=1
+::page_offset+=1
+$if($contains(@,"RIEPILOGO IMPORTI") || $ate()) {
   $goto(dati_costi)
 } $elif($contains(@,"DATI FORNITURA")) {
   $nextpage()

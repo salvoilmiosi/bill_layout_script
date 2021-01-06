@@ -24,7 +24,7 @@ fornitore="MetaEnergia"
 ### W 0.7538145781
 ### H 0.0266671572
 ### Script
-$ifnot($eq(@,"FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA - MERCATO LIBERO")) {
+$if(@ != "FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA - MERCATO LIBERO") {
   $error("Layout Invalido")
 }
 ### End Script
@@ -120,13 +120,13 @@ numero_cliente = $search(@,/Codice cliente: (.+)\n/)
 ### H 0.8370541930
 ### Goto Label lettura_dettaglio
 ### Spacers
-p+*next_page
+p+::next_page
 ### End Spacers
 ### Script
 $ifnot($contains(@,"Comunicazioni finali")) {
   _dettaglio+=@
   _dettaglio+="\n"
-  *next_page+=1
+  ::next_page+=1
   $goto(lettura_dettaglio)
 }
 ### End Script
@@ -198,7 +198,7 @@ $with(&_dettaglio) {
 ### Script
 $lines($searchall(@,/(IVA \d+% su imponibile di \u20ac %N)/)) {
   %_imp=$search(@,/imponibile di \u20ac (%N)/)
-  $if($gt(_imp,$coalesce(imponibile,0))) {
+  $if(_imp > $coalesce(imponibile,0)) {
     imponibile=_imp
     iva=$search(@,/IVA (\d\d%)/)
   }

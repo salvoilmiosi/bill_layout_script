@@ -71,7 +71,7 @@ data_scadenza=$date(@,"%d/%m/%Y")
 ### H 0.0551734008
 ### Script
 ragione_sociale=$search(@,/^(.+)\n/)
-indirizzo_fornitura=$substr($search($nonewline(@),/(.+)C\.F\./),$add(1,$strlen(ragione_sociale)))
+indirizzo_fornitura=$substr($search($nonewline(@),/(.+)C\.F\./),$strlen(ragione_sociale) + 1)
 ### End Script
 ### End Box
 
@@ -153,7 +153,7 @@ $tokens($search(@,$format(/\d\d\/$0 Potenza kW (%N %N %N)/,_mese))) {
 ### H 0.8831908703
 ### Goto Label quadro_dettaglio
 ### Spacers
-p+*page_offset
+p+::page_offset
 ### End Spacers
 ### Script
 $tokens($search(@,$format(/Indice _mese di competenza F1 .+ \d\d\/$0 \u20ac\/kWh (%N %N)/,_mese))) {
@@ -183,11 +183,11 @@ $tokens($search(@,$format(/Indice _mese di competenza F3 .+ \d\d\/$0 \u20ac\/kWh
 ### W 0.0338189304
 ### H 0.0238948651
 ### Spacers
-p+*page_offset
+p+::page_offset
 ### End Spacers
 ### Script
 $ifnot($ate()) {
-  *page_offset+=1
+  ::page_offset+=1
   $goto(quadro_dettaglio)
 }
 ### End Script

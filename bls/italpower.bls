@@ -11,7 +11,7 @@
 ### H 0.0683760718
 ### Script
 $ifnot($contains(@,"Informazioni e reclami")) {
-  *spacer_p1=$boxheight()
+  ::spacer_p1=$boxheight()
 }
 ### End Script
 ### End Box
@@ -26,7 +26,7 @@ $ifnot($contains(@,"Informazioni e reclami")) {
 ### W 0.7097657323
 ### H 0.0239315927
 ### Spacers
-y-*spacer_p1
+y-::spacer_p1
 ### End Spacers
 ### Script
 $ifnot($contains(@,"FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA"))
@@ -59,7 +59,7 @@ fornitore="Italpower"
 ### W 0.2950705290
 ### H 0.0763326287
 ### Spacers
-y-*spacer_p1
+y-::spacer_p1
 ### End Spacers
 ### Script
 numero_fattura=$search(@,/Fattura Numero: (.+)\n/)
@@ -78,7 +78,7 @@ data_scadenza=$date(@,"%d/%m/%Y",/Scadenza Fattura: (%D)/)
 ### W 0.6560779810
 ### H 0.2798797488
 ### Spacers
-y-*spacer_p1
+y-::spacer_p1
 ### End Spacers
 ### Script
 %totale_fattura=$search(@,/Totale Fattura \u20ac (%N)/)
@@ -96,7 +96,7 @@ iva=$search(@,/IVA (\d+%)/)
 ### W 0.4864683747
 ### H 0.2518473864
 ### Spacers
-y-*spacer_p1
+y-::spacer_p1
 ### End Spacers
 ### Script
 numero_cliente=$search(@,/Codice cliente (.+)\n/)
@@ -114,7 +114,7 @@ ragione_sociale=$search(@,/Ragione sociale (.+)\n/)
 ### W 0.9661290050
 ### H 0.0376282781
 ### Spacers
-p+*page_offset
+p+::page_offset
 ### End Spacers
 ### Script
 mese_fattura=$month(@,"%B %Y",/Dettaglio consumi mese di (%D)/)
@@ -131,7 +131,7 @@ mese_fattura=$month(@,"%B %Y",/Dettaglio consumi mese di (%D)/)
 ### W 0.4836530089
 ### H 0.1122068539
 ### Spacers
-p+*page_offset
+p+::page_offset
 ### End Spacers
 ### Script
 codice_pod=$search(@,/Codice POD (.+)\n/)
@@ -149,7 +149,7 @@ indirizzo_fornitura=$search($nonewline(@),/Indirizzo fornitura (.+) Opzione/)
 ### W 0.4249513149
 ### H 0.0671801865
 ### Spacers
-p+*page_offset
+p+::page_offset
 ### End Spacers
 ### Script
 $tokens($search(@,/Misura (%N %N %N)/)) {
@@ -174,7 +174,7 @@ $tokens($search(@,/Energia Reattiva \(kVar\) (%N %N %N)/)) {
 ### W 0.9758064747
 ### H 0.6935900450
 ### Spacers
-p+*page_offset
+p+::page_offset
 ### End Spacers
 ### Script
 %spesa_materia_energia=$search(@,/Servizi di Vendita (%N)/)
@@ -208,11 +208,11 @@ p+*page_offset
 ### W 0.9612903595
 ### H 0.0262257699
 ### Spacers
-p+*page_offset
+p+::page_offset
 ### End Spacers
 ### Script
 $if($contains(@,"Dettaglio consumi")) {
-  *page_offset+=1
+  ::page_offset+=1
   $nextpage()
   $goto(nome_fornitore)
 }

@@ -10,7 +10,7 @@
 ### W 0.2030620426
 ### H 0.0763968080
 ### Script
-$ifnot($eq(@,"BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero"))
+$if(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero")
   $error("Layout Invalido")
 ### End Script
 ### End Box
@@ -75,7 +75,7 @@ mese_fattura=$month(@,"%d.%m.%Y",/PERIODO %D - (%D)/)
 numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
 indirizzo_fornitura=$search($nonewline(@),/FORNIAMO ENERGIA IN (.+) CODICE POD/)
-*multipod=$isempty(codice_pod)
+::multipod=$isempty(codice_pod)
 _mese=$date_format(mese_fattura,"%m.%Y")
 ### End Script
 ### End Box
@@ -91,7 +91,7 @@ _mese=$date_format(mese_fattura,"%m.%Y")
 ### H 0.2384654284
 ### Script
 iva=$search(@,/Importo IVA (\d+%)/)
-$ifnot(*multipod) {
+$ifnot(::multipod) {
   %imponibile=$search(@,/imponibile di (%N)/)
 }
 ### End Script
@@ -107,10 +107,10 @@ $ifnot(*multipod) {
 ### W 0.2274193615
 ### H 0.1132463813
 ### Spacers
-p+*page_offset p+*pod_offset
+p+ ::page_offset + ::pod_offset
 ### End Spacers
 ### Script
-$if(*multipod) {
+$if(::multipod) {
   codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
   indirizzo_fornitura=$search($nonewline(@),/FORNIAMO ENERGIA IN (.+)/)
 }
@@ -127,7 +127,7 @@ $if(*multipod) {
 ### W 0.0470148847
 ### H 0.0330672562
 ### Spacers
-p+*page_offset p+*pod_offset
+p+ ::page_offset + ::pod_offset
 ### End Spacers
 ### Script
 %imponibile=$search(@,/TOTALE IMPONIBILE (%N)/)
@@ -150,7 +150,7 @@ $if($contains(@,"Energia Reattiva")) {
 ### H 0.0263221338
 ### Goto Label quadro_dettaglio
 ### Spacers
-p+*page_offset
+p+::page_offset
 ### End Spacers
 ### Script
 $with($search(@,/Sbilanciamento\n((dal.+\n)+)/)) {
@@ -192,7 +192,7 @@ $with($search(@,/Energia Reattiva oltre 75%\n((dal.+\n)+)/)) {
 %oneri=$search(@,/ONERI DI SISTEMA IMPORTO \u20ac (%N)/)
 
 %potenza[0:3]=$search(@,$format(/al \d\d\.$0 Euro\/kW %N (%N)/,_mese))
-$with($search(@,/Imposta erariale di consumo \(accisa\)\n[^]*?((dal.+\n)+)/)) {
+$with($search(@,/Imposta erariale di consumo \(accisa\)\n[^]::?((dal.+\n)+)/)) {
   %accise=$search(@,$format(/al \d\d\.$0 Euro\/kWh %N %N (%N)/,_mese))
 }
 ### End Script
@@ -208,11 +208,11 @@ $with($search(@,/Imposta erariale di consumo \(accisa\)\n[^]*?((dal.+\n)+)/)) {
 ### W 0.0483870953
 ### H 0.0342075229
 ### Spacers
-p+*page_offset
+p+::page_offset
 ### End Spacers
 ### Script
-*page_offset+=1
-*pod_offset=1
+::page_offset+=1
+::pod_offset=1
 $ifnot($ate()) {
   $if($contains(@,"DATI FORNITURA")) {
     $nextpage()

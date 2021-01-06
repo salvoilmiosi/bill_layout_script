@@ -27,13 +27,13 @@ $ifnot($contains(@,"Enel Energia - Mercato libero dell'energia")) {
 ### H 0.0271905977
 ### Goto Label calcolo_offset
 ### Spacers
-p+*offset_dettaglio
+p+::offset_dettaglio
 ### End Spacers
 ### Script
-$if($ate()) {
+$if ($ate()) {
   $error("Layout Invalido: Dettaglio Importi Mancante")
-} $elif($neq(@,"DETTAGLIO IMPORTI IN BOLLETTA")) {
-  *offset_dettaglio+=1
+} $elif (@ != "DETTAGLIO IMPORTI IN BOLLETTA") {
+  ::offset_dettaglio+=1
   $goto(calcolo_offset)
 }
 ### End Script
@@ -50,11 +50,11 @@ $if($ate()) {
 ### H 0.7604700327
 ### Goto Label dettaglio_costi
 ### Spacers
-p+*offset_dettaglio y-*spacer_dettaglio h+*spacer_dettaglio
+p+::offset_dettaglio y-::spacer_dettaglio h+::spacer_dettaglio
 ### End Spacers
 ### Script
-*_dettaglio+=@
-*_dettaglio+="\n"
+::_dettaglio+=@
+::_dettaglio+="\n"
 ### End Script
 ### End Box
 
@@ -68,12 +68,12 @@ p+*offset_dettaglio y-*spacer_dettaglio h+*spacer_dettaglio
 ### W 0.0322320722
 ### H 0.2098061591
 ### Spacers
-p+*offset_dettaglio
+p+::offset_dettaglio
 ### End Spacers
 ### Script
-*spacer_dettaglio=$boxheight()
+::spacer_dettaglio=$boxheight()
 $ifnot($ate()) {
-  *offset_dettaglio+=1
+  ::offset_dettaglio+=1
   $goto(dettaglio_costi)
 }
 ### End Script
@@ -183,8 +183,8 @@ data_scadenza=$date(@,"%d/%m/%Y")
 mese_fattura=$month(@,"%b. %Y")
 mese_fine=$month(@,"%b. %Y",/%D - (%D)/)
 $if($isset(mese_fine)) {
-  mese_fattura=$month_add(mese_fattura,*calc_mese)
-  *calc_mese+=1
+  mese_fattura=$month_add(mese_fattura,::calc_mese)
+  ::calc_mese+=1
 }
 _mese=$date_format(mese_fattura,"%m/%y")
 ### End Script
@@ -274,7 +274,7 @@ $if($contains(@,"Energia reattiva")) {
 ### W 0.0530589223
 ### H 0.0347352810
 ### Script
-$with(*&_dettaglio) {
+$with(::&_dettaglio) {
   $tokens($search(@,$format(/Energia fascia F1 dal \d\d\/$0.+kWh (%N %N)/,_mese))) {
     %prezzo_energia[0] %energia_attiva[0]
   }
@@ -290,7 +290,7 @@ $with(*&_dettaglio) {
   $tokens($search(@,$format(/Energia( ore di)? fuori picco dal \d\d\/$0.+kWh (%N %N)/,_mese),2)) {
     %prezzo_energia[1] %energia_attiva[1]
   }
-  $with($search(@,$format(/Energia attiva dal \d\d\/$0.+\n((.*Energia Reattiva.*\n)+)/,_mese))) {
+  $with($search(@,$format(/Energia attiva dal \d\d\/$0.+\n((.::Energia Reattiva.::\n)+)/,_mese))) {
     %penale_reattiva_inf75=$search(@,/entro il 75%.+ (%N)\n/)
     %penale_reattiva_sup75=$search(@,/oltre il 75%.+ (%N)\n/)
   }
@@ -331,8 +331,8 @@ $with(*&_dettaglio) {
 ### W 0.0419016927
 ### H 0.0285062715
 ### Script
-$if($isset(mese_fine)) {
-  $if($neq(mese_fattura,mese_fine)) {
+$if ($isset(mese_fine)) {
+  $if (mese_fattura != mese_fine) {
     $nextpage()
     $goto(nome_fornitore)
   }

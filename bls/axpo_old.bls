@@ -10,7 +10,7 @@
 ### W 0.3545528054
 ### H 0.0558722913
 ### Script
-$ifnot($eq(@,"Bolletta Energia Elettrica\nFornitura del Mercato Libero"))
+$if(@ != "Bolletta Energia Elettrica\nFornitura del Mercato Libero")
   $error("Layout Invalido")
 ### End Script
 ### End Box
@@ -118,7 +118,7 @@ $if($contains(@,"Dati di fornitura")) {
   codice_pod=$search(@,/POD (.+)\n/)
   %potenza[0:3]=$search(@,/Potenza Impegnata (%N)/)
 } $else {
-  *spacer_multipod=1
+  ::spacer_multipod=1
 }
 ### End Script
 ### End Box
@@ -134,7 +134,7 @@ $if($contains(@,"Dati di fornitura")) {
 ### H 0.2335467935
 ### Script
 iva=$search(@,/IVA (\d%)/)
-$ifnot(*spacer_multipod) {
+$ifnot(::spacer_multipod) {
   %spesa_materia_energia=$search(@,/Corrispettivi energia (%N)/)
   %spesa_materia_energia=$search(@,/Spese per l'energia (%N)/)
   %trasporto_gestione=$search(@,/Trasporto (%N)/)
@@ -154,10 +154,10 @@ $ifnot(*spacer_multipod) {
 ### H 0.2409129739
 ### Goto Label dati_fattura_multipod
 ### Spacers
-p+*next_page
+p+::next_page
 ### End Spacers
 ### Script
-$if(*spacer_multipod) {
+$if(::spacer_multipod) {
   indirizzo_fornitura=$search($nonewline(@),/Indirizzo (.+\d{5}.+\(.{2}\))/)
   codice_pod=$search(@,/POD (.+)\n/)
   %potenza[0:3]=$search(@,/Potenza Impegnata (%N)/)
@@ -175,10 +175,10 @@ $if(*spacer_multipod) {
 ### W 0.4564516246
 ### H 0.1641961187
 ### Spacers
-p+*next_page
+p+::next_page
 ### End Spacers
 ### Script
-$if(*spacer_multipod) {
+$if(::spacer_multipod) {
   %spesa_materia_energia=$search(@,/Corrispettivi energia \u20ac (%N)/)
   %spesa_materia_energia=$search(@,/Spese per l'energia \u20ac (%N)/)
   %trasporto_gestione=$search(@,/Trasporto \u20ac (%N)/)
@@ -198,15 +198,15 @@ $if(*spacer_multipod) {
 ### H 0.8700114489
 ### Goto Label lettura_spese
 ### Spacers
-p+*spacer_multipod p+*next_page
+p+ ::spacer_multipod + ::next_page
 ### End Spacers
 ### Script
-$if($or($ate(),$search(@,"(Comunicazioni|Dati di fornitura)"))) {
+$if($contains(@,"Comunicazioni") || $contains(@,"Dati di fornitura") || $ate()) {
   $goto(parsing_spese)
 }
 _dettaglio+=@
 _dettaglio+="\n"
-*next_page+=1
+::next_page+=1
 $goto(lettura_spese)
 ### End Script
 ### End Box
@@ -273,12 +273,12 @@ $with(&_dettaglio) {
 ### W 0.2030620426
 ### H 0.0296465214
 ### Spacers
-p+*spacer_multipod p+*next_page
+p+ ::spacer_multipod + ::next_page
 ### End Spacers
 ### Script
-$if(*spacer_multipod) {
-  $if($eq(@,"Dati di fornitura")) {
-    *next_page+=1
+$if(::spacer_multipod) {
+  $if(@ == "Dati di fornitura") {
+    ::next_page+=1
     $nextpage()
     $goto(nome_fornitore)
   }
