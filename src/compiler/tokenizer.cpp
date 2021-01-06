@@ -79,17 +79,8 @@ bool tokenizer::nextImpl(bool writeDebug) {
         ok = readString();
         break;
     case '/':
-    {
-        auto c_next = m_current;
-        if (readRegexp()) {
-            ok = true;
-            tok.type = TOK_REGEXP;
-        } else {
-            m_current = c_next;
-            tok.type = TOK_SLASH;
-        }
+        tok.type = TOK_SLASH;
         break;
-    }
     case '0':
     case '1':
     case '2':
@@ -217,6 +208,22 @@ bool tokenizer::nextImpl(bool writeDebug) {
     tok.value = std::string_view(start, m_current - start);
 
     return ok;
+}
+
+bool tokenizer::nextRegexp() {
+    if (tok.type != TOK_SLASH) {
+        return false;
+    }
+    auto begin = m_current;
+    nextChar();
+    if (readRegexp()) {
+        tok.value = std::string_view(begin, m_current - begin);
+        tok.type = TOK_REGEXP;
+        return true;
+    } else {
+        tok.type = TOK_ERROR;
+        return false;
+    }
 }
 
 token tokenizer::require(token_type type) {

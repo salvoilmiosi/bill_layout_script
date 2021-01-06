@@ -100,6 +100,8 @@ public:
     bool next() {
         return nextImpl(true);
     }
+    bool nextRegexp();
+    
     token require(token_type type);
 
     bool peek();

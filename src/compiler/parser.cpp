@@ -177,8 +177,12 @@ void parser::read_expression(const char *line_before_ops) {
         tokens.advance();
         add_line("PUSHNUM {0}", tokens.current().value);
         break;
+    case TOK_SLASH:
+        if (!tokens.nextRegexp()) {
+            throw tokens.unexpected_token(TOK_REGEXP);
+        }
+        [[fallthrough]];
     case TOK_STRING:
-    case TOK_REGEXP:
         tokens.advance();
         add_line("PUSHSTR {0}", tokens.current().value);
         break;
@@ -216,6 +220,11 @@ void parser::read_expression(const char *line_before_ops) {
         tokens.advance();
         read_expression();
         add_line("ADD");
+        break;
+    case TOK_MINUS:
+        tokens.advance();
+        read_expression();
+        add_line("SUB");
         break;
     case TOK_ASTERISK:
         tokens.advance();
@@ -460,7 +469,11 @@ void parser::read_date_fun(const std::string &fun_name) {
         switch (tokens.current().type) {
         case TOK_COMMA:
         {
-            regex = std::string(tokens.require(TOK_REGEXP).value);
+            tokens.require(TOK_SLASH);
+            if (!tokens.nextRegexp()) {
+                throw tokens.unexpected_token(TOK_REGEXP);
+            }
+            regex = std::string(tokens.current().value);
             tokens.next();
             switch (tokens.current().type) {
             case TOK_INTEGER:
