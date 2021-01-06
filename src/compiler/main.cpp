@@ -85,6 +85,10 @@ int MainApp::OnRun() {
 
             auto print_asm = [&](std::ostream &out) {
                 for (auto &line : my_parser.get_output_asm()) {
+                    auto cmd = line.substr(0, line.find_first_of(' '));
+                    if (cmd != "COMMENT" && cmd != "LABEL") {
+                        out << '\t';
+                    }
                     out << line << std::endl;
                 }
             };
@@ -102,7 +106,7 @@ int MainApp::OnRun() {
             std::vector<std::string> lines;
             std::string line;
             while(std::getline(ifs.is_open() ? ifs : std::cin, line)) {
-                lines.push_back(line);
+                lines.push_back(line.substr(line.find_first_not_of(" \t")));
             }
             
             out_code = read_lines(lines);

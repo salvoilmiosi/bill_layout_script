@@ -31,7 +31,7 @@ bytecode read_lines(const std::vector<std::string> &lines) {
     try {
         for (auto &line : lines) {
             size_t space_pos = line.find_first_of(' ');
-            std::string cmd = line.substr(0, space_pos);
+            auto cmd = line.substr(0, space_pos);
             auto arg_str = line.substr(space_pos + 1);
             auto args = string_split(arg_str, ',');
             switch (hash(cmd)) {

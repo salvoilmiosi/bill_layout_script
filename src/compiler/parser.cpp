@@ -19,7 +19,7 @@ void parser::read_layout(const bill_layout_script &layout) {
 }
 
 void parser::read_box(const layout_box &box) {
-    if (m_flags & FLAGS_DEBUG) {
+    if (m_flags & FLAGS_DEBUG && !box.name.empty()) {
         add_line("COMMENT ## {}", box.name);
     }
     current_box = &box;

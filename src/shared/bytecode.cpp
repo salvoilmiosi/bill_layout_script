@@ -173,7 +173,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             break;
         }
         case opcode::COMMENT:
-            readData<std::string>(input);
+            add_command(cmd, readData<std::string>(input));
             break;
         case opcode::STRDATA:
             m_strings.push_back(readData<std::string>(input));
