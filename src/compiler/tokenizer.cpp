@@ -20,18 +20,28 @@ char tokenizer::nextChar() {
 }
 
 void tokenizer::skipSpaces() {
+    bool comment = false;
     while (m_current != script.end()) {
         switch (*m_current) {
         case '\r':
         case '\n':
+            comment = false;
             addDebugData();
             [[fallthrough]];
         case ' ':
         case '\t':
             ++m_current;
             break;
+        case '#': // Skip comments
+            comment = true;
+            ++m_current;
+            break;
         default:
-            return;
+            if (comment) {
+                ++m_current;
+            } else {
+                return;
+            }
         }
     }
 }
@@ -55,9 +65,9 @@ void tokenizer::flushDebugData() {
     debug_lines.clear();
 }
 
-bool tokenizer::nextImpl(bool writeDebug) {
+const token &tokenizer::next(bool do_advance) {
     skipSpaces();
-    if (writeDebug) {
+    if (do_advance) {
         flushDebugData();
     }
     
@@ -146,7 +156,7 @@ bool tokenizer::nextImpl(bool writeDebug) {
             nextChar();
             tok.type = TOK_OR;
         } else {
-            tok.type = TOK_ERROR;
+            ok = false;
         }
         break;
     case '!':
@@ -155,14 +165,6 @@ bool tokenizer::nextImpl(bool writeDebug) {
             tok.type = TOK_NOT_EQUALS;
         } else {
             tok.type = TOK_NOT;
-        }
-        break;
-    case '#':
-        tok.type = TOK_COMMENT;
-        ok = readComment();
-        if (ok) {
-            // skip comments
-            return nextImpl(writeDebug);
         }
         break;
     case '@':
@@ -199,55 +201,50 @@ bool tokenizer::nextImpl(bool writeDebug) {
         }
         break;
     default:
-        tok.type = TOK_IDENTIFIER;
-        ok = readIdentifier();
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_') {
+            tok.type = TOK_IDENTIFIER;
+            ok = readIdentifier();
+        } else {
+            ok = false;
+        }
         break;
     }
 
     if (!ok) tok.type = TOK_ERROR;
     tok.value = std::string_view(start, m_current - start);
 
-    return ok;
-}
+    if (!do_advance) {
+        m_current = start;
+    }
 
-bool tokenizer::nextRegexp() {
-    if (tok.type != TOK_SLASH) {
-        return false;
-    }
-    auto begin = m_current;
-    nextChar();
-    if (readRegexp()) {
-        tok.value = std::string_view(begin, m_current - begin);
-        tok.type = TOK_REGEXP;
-        return true;
-    } else {
-        tok.type = TOK_ERROR;
-        return false;
-    }
+    return tok;
 }
 
 token tokenizer::require(token_type type) {
-    next();
+    if (type == TOK_REGEXP) {
+        if (tok.type != TOK_SLASH) {
+            require(TOK_SLASH);
+        }
+        auto begin = m_current;
+        nextChar();
+        if (readRegexp()) {
+            tok.value = std::string_view(begin, m_current - begin);
+            tok.type = TOK_REGEXP;
+        } else {
+            tok.type = TOK_ERROR;
+        }
+    } else {
+        next();
+    }
     if (current().type != type) {
         throw unexpected_token(type);
     }
     return current();
 }
 
-bool tokenizer::peek() {
-    auto pos = m_current;
-    bool ret = nextImpl(false);
-    m_current = pos;
-    return ret;
-}
-
 void tokenizer::advance() {
     flushDebugData();
     m_current = tok.value.begin() + tok.value.size();
-}
-
-void tokenizer::gotoTok(const token &tok) {
-    m_current = tok.value.begin();
 }
 
 parsing_error tokenizer::unexpected_token(token_type type) {
@@ -331,17 +328,6 @@ bool tokenizer::readNumber() {
     char c = *p;
     while ((c >= '0' && c <= '9') || c == '.') {
         c = (m_current = p) < script.end() ? *p++ : '\0';
-    }
-    return true;
-}
-
-bool tokenizer::readComment() {
-    while (true) {
-        switch(nextChar()) {
-        case '\n':
-        case '\0':
-            return true;
-        }
     }
     return true;
 }

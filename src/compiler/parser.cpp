@@ -28,9 +28,8 @@ void parser::read_box(const layout_box &box) {
     tokens.setScript(box.spacers);
 
     while(!tokens.ate()) {
-        tokens.require(TOK_IDENTIFIER);
         spacer_index index;
-        switch (hash(string_tolower(std::string(tokens.current().value)))) {
+        switch (hash(tokens.require(TOK_IDENTIFIER).value)) {
         case hash("p"):
         case hash("page"):
             index = spacer_index::SPACER_PAGE;
@@ -52,9 +51,8 @@ void parser::read_box(const layout_box &box) {
         default:
             throw tokens.unexpected_token();
         }
-        tokens.next();
         bool negative = false;
-        switch (tokens.current().type) {
+        switch (tokens.next().type) {
         case TOK_PLUS:
             break;
         case TOK_MINUS:
@@ -88,13 +86,11 @@ void parser::read_box(const layout_box &box) {
 }
 
 void parser::read_statement() {
-    tokens.peek();
-    switch (tokens.current().type) {
+    switch (tokens.next(false).type) {
     case TOK_BRACE_BEGIN:
         tokens.advance();
         while (true) {
-            tokens.peek();
-            if (tokens.current().type == TOK_BRACE_END) {
+            if (tokens.next(false).type == TOK_BRACE_END) {
                 tokens.advance();
                 break;
             }
@@ -111,8 +107,7 @@ void parser::read_statement() {
     {
         int flags = read_variable(false);
         
-        tokens.peek();
-        switch (tokens.current().type) {
+        switch (tokens.next(false).type) {
         case TOK_ASSIGN:
             tokens.advance();
             read_expression();
@@ -190,8 +185,7 @@ void parser::read_expression() {
     std::vector<token_type> op_stack;
     
     while (true) {
-        tokens.peek();
-        token_type op_type = tokens.current().type;
+        token_type op_type = tokens.next(false).type;
         if (op_prec(op_type) > 0) {
             tokens.advance();
             if (!op_stack.empty() && op_prec(op_stack.back()) >= op_prec(op_type)) {
@@ -212,8 +206,7 @@ void parser::read_expression() {
 }
 
 void parser::sub_expression() {
-    tokens.peek();
-    switch (tokens.current().type) {
+    switch (tokens.next(false).type) {
     case TOK_PAREN_BEGIN:
         tokens.advance();
         read_expression();
@@ -230,8 +223,7 @@ void parser::sub_expression() {
     case TOK_MINUS:
     {
         tokens.advance();
-        tokens.peek();
-        switch (tokens.current().type) {
+        switch (tokens.next(false).type) {
         case TOK_INTEGER:
         case TOK_NUMBER:
             tokens.advance();
@@ -249,9 +241,7 @@ void parser::sub_expression() {
         add_line("PUSHNUM {0}", tokens.current().value);
         break;
     case TOK_SLASH:
-        if (!tokens.nextRegexp()) {
-            throw tokens.unexpected_token(TOK_REGEXP);
-        }
+        tokens.require(TOK_REGEXP);
         [[fallthrough]];
     case TOK_STRING:
         tokens.advance();
@@ -283,8 +273,8 @@ int parser::read_variable(bool read_only) {
     int index_last = -1;
 
     bool in_loop = true;
-    while (in_loop && tokens.next()) {
-        switch (tokens.current().type) {
+    while (in_loop) {
+        switch (tokens.next().type) {
         case TOK_GLOBAL:
             isglobal = true;
             break;
@@ -306,11 +296,9 @@ int parser::read_variable(bool read_only) {
     
     std::string name(tokens.current().value);
 
-    tokens.peek();
-    if (tokens.current().type == TOK_BRACKET_BEGIN) { // variable[
+    if (tokens.next(false).type == TOK_BRACKET_BEGIN) { // variable[
         tokens.advance();
-        tokens.peek();
-        switch (tokens.current().type) {
+        switch (tokens.next(false).type) {
         case TOK_BRACKET_END: // variable[] -- aggiunge alla fine
             if (read_only) throw tokens.unexpected_token(TOK_INTEGER);
             index = -1;
@@ -323,11 +311,9 @@ int parser::read_variable(bool read_only) {
         case TOK_INTEGER: // variable[int
             tokens.advance();
             index = std::stoi(std::string(tokens.current().value));
-            tokens.peek();
-            if (!read_only && tokens.current().type == TOK_COLON) { // variable[int:
+            if (tokens.next(false).type == TOK_COLON && !read_only) { // variable[int:
                 tokens.advance();
-                tokens.peek();
-                if (tokens.current().type == TOK_INTEGER) { // variable[a:b] -- seleziona range
+                if (tokens.next(false).type == TOK_INTEGER) { // variable[a:b] -- seleziona range
                     tokens.advance();
                     index_last = std::stoi(std::string(tokens.current().value));
                 } else { // variable[int:expr] -- seleziona range
@@ -341,8 +327,7 @@ int parser::read_variable(bool read_only) {
         default: // variable[expr
             read_expression();
             getindex = true;
-            tokens.peek();
-            if (!read_only && tokens.current().type == TOK_COLON) { // variable[expr:expr]
+            if (tokens.next(false).type == TOK_COLON && !read_only) { // variable[expr:expr]
                 tokens.advance();
                 read_expression();
                 getindexlast = true;
@@ -352,8 +337,7 @@ int parser::read_variable(bool read_only) {
     }
 
     if (!read_only) {
-        tokens.peek();
-        switch(tokens.current().type) {
+        switch(tokens.next(false).type) {
         case TOK_PLUS:
             flags |= VAR_INCREASE;
             tokens.advance();
@@ -424,15 +408,13 @@ void parser::read_function() {
         tokens.require(TOK_PAREN_BEGIN);
         bool in_fun_loop = true;
         while (in_fun_loop) {
-            tokens.peek();
-            if (tokens.current().type == TOK_PAREN_END) {
+            if (tokens.next(false).type == TOK_PAREN_END) {
                 tokens.advance();
                 break;
             }
             ++num_args;
             read_expression();
-            tokens.next();
-            switch (tokens.current().type) {
+            switch (tokens.next().type) {
             case TOK_COMMA:
                 break;
             case TOK_PAREN_END:
@@ -461,25 +443,19 @@ void parser::read_function() {
 void parser::read_date_fun(const std::string &fun_name) {
     tokens.require(TOK_PAREN_BEGIN);
     read_expression();
-    tokens.next();
-    switch (tokens.current().type) {
+    switch (tokens.next().type) {
     case TOK_COMMA:
     {
         auto date_fmt = tokens.require(TOK_STRING).value;
         add_line("PUSHSTR {}", date_fmt);
         std::string regex = "/(%D)/";
         int idx = -1;
-        tokens.next();
-        switch (tokens.current().type) {
+        switch (tokens.next().type) {
         case TOK_COMMA:
         {
-            tokens.require(TOK_SLASH);
-            if (!tokens.nextRegexp()) {
-                throw tokens.unexpected_token(TOK_REGEXP);
-            }
+            tokens.require(TOK_REGEXP);
             regex = std::string(tokens.current().value);
-            tokens.next();
-            switch (tokens.current().type) {
+            switch (tokens.next().type) {
             case TOK_INTEGER:
                 idx = std::stoi(std::string(tokens.current().value));
                 break;

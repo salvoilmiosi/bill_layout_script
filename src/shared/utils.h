@@ -35,12 +35,12 @@ void vector_move_to_end(std::vector<T> &vec, size_t begin, size_t end) {
 }
 
 struct hasher {
-    size_t constexpr operator() (char const *input) const {
-        return *input ? static_cast<unsigned int>(*input) + 33 * (*this)(input + 1) : 5381;
+    constexpr size_t operator() (const char *begin, const char *end) const {
+        return begin != end ? static_cast<unsigned int>(*begin) + 33 * (*this)(begin + 1, end) : 5381;
     }
     
-    size_t operator() (const std::string& str) const {
-        return (*this)(str.c_str());
+    constexpr size_t operator() (std::string_view str) const {
+        return (*this)(str.begin(), str.end());
     }
 };
 

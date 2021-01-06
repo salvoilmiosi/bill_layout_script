@@ -7,7 +7,6 @@
 enum token_type {
     TOK_END_OF_FILE = 0,
     TOK_ERROR,
-    TOK_COMMENT,            // # commento
     TOK_IDENTIFIER,         // [a-bA-B_][a-bA-B0-9_]*
     TOK_STRING,             // "xyz"
     TOK_REGEXP,             // /xyz/
@@ -45,7 +44,6 @@ enum token_type {
 constexpr const char *TOKEN_NAMES[] = {
     "eof",
     "errore",
-    "commento",
     "identificatore",
     "stringa",
     "regexp",
@@ -97,20 +95,14 @@ public:
     
     void setScript(std::string_view str);
 
-    bool next() {
-        return nextImpl(true);
-    }
-    bool nextRegexp();
+    const token &next(bool do_advance = true);
     
     token require(token_type type);
 
-    bool peek();
     void advance();
 
     parsing_error unexpected_token(token_type type);
     parsing_error unexpected_token();
-
-    void gotoTok(const token &tok);
 
     bool ate() {
         return m_current == script.end();
@@ -135,7 +127,6 @@ private:
     char nextChar();
     void skipSpaces();
     
-    bool nextImpl(bool writeDebug);
     void addDebugData();
     void flushDebugData();
 
@@ -143,7 +134,6 @@ private:
     bool readString();
     bool readRegexp();
     bool readNumber();
-    bool readComment();
 };
 
 #endif

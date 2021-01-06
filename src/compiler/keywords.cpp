@@ -4,15 +4,15 @@
 
 void parser::read_keyword() {
     auto tok_name = tokens.require(TOK_FUNCTION);
-    std::string name(tok_name.value.substr(1));
+    auto fun_name = tok_name.value.substr(1);
 
-    switch(hash(name)) {
+    switch(hash(fun_name)) {
     case hash("if"):
     case hash("ifnot"):
     {
         std::string endelse_label = fmt::format("__endelse_{0}", output_asm.size());
         std::string endif_label;
-        bool condition_positive = name == "if";
+        bool condition_positive = fun_name == "if";
         bool in_loop = true;
         bool has_endelse = false;
         while (in_loop) {
@@ -23,9 +23,9 @@ void parser::read_keyword() {
             tokens.require(TOK_PAREN_END);
             add_line(condition_positive ? "JZ {0}" : "JNZ {0}", endif_label);
             read_statement();
-            tokens.peek();
-            if (tokens.current().type == TOK_FUNCTION) {
-                switch (hash(std::string(tokens.current().value.substr(1)))) {
+            if (tokens.next(false).type == TOK_FUNCTION) {
+                fun_name = tokens.current().value.substr(1);
+                switch (hash(fun_name)) {
                 case hash("else"):
                     tokens.next();
                     has_endelse = true;
@@ -38,7 +38,7 @@ void parser::read_keyword() {
                 case hash("elif"):
                 case hash("elifnot"):
                     tokens.next();
-                    condition_positive = tokens.current().value.substr(1) == "elif";
+                    condition_positive = fun_name == "elif";
                     has_endelse = true;
                     add_line("JMP {0}", endelse_label);
                     break;
@@ -91,8 +91,7 @@ void parser::read_keyword() {
     case hash("goto"):
     {
         tokens.require(TOK_PAREN_BEGIN);
-        tokens.require(TOK_IDENTIFIER);
-        add_line("JMP {0}", tokens.current().value);
+        add_line("JMP {0}", tokens.require(TOK_IDENTIFIER).value);
         tokens.require(TOK_PAREN_END);
         break;
     }
@@ -133,8 +132,7 @@ void parser::read_keyword() {
         tokens.require(TOK_BRACE_BEGIN);
 
         while (true) {
-            tokens.peek();
-            if (tokens.current().type == TOK_BRACE_END) {
+            if (tokens.next(false).type == TOK_BRACE_END) {
                 tokens.advance();
                 break;
             }
@@ -150,7 +148,7 @@ void parser::read_keyword() {
         tokens.require(TOK_PAREN_BEGIN);
         read_expression();
         tokens.require(TOK_PAREN_END);
-        add_line(name == "setbegin" ? "SETBEGIN" : "SETEND");
+        add_line(fun_name == "setbegin" ? "SETBEGIN" : "SETEND");
         break;
     case hash("clear"):
         tokens.require(TOK_PAREN_BEGIN);
@@ -179,6 +177,6 @@ void parser::read_keyword() {
         add_line("HLT");
         break;
     default:
-        throw parsing_error(fmt::format("Parola chiave sconosciuta: {0}", name), tokens.getLocation(tok_name));
+        throw parsing_error(fmt::format("Parola chiave sconosciuta: {0}", fun_name), tokens.getLocation(tok_name));
     }
 }
