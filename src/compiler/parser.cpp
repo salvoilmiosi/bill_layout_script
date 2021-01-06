@@ -140,7 +140,78 @@ void parser::read_statement() {
     }
 }
 
-void parser::read_expression(const char *line_before_ops) {
+void parser::read_expression() {
+    auto op_prec = [](token_type op_type) {
+        switch (op_type) {
+        case TOK_ASTERISK:
+        case TOK_SLASH:
+            return 6;
+        case TOK_PLUS:
+        case TOK_MINUS:
+            return 5;
+        case TOK_LESS:
+        case TOK_LESS_EQ:
+        case TOK_GREATER:
+        case TOK_GREATER_EQ:
+            return 4;
+        case TOK_EQUALS:
+        case TOK_NOT_EQUALS:
+            return 3;
+        case TOK_AND:
+            return 2;
+        case TOK_OR:
+            return 1;
+        default:
+            return 0;
+        }
+    };
+
+    auto op_opcode = [](token_type op_type) {
+        switch (op_type) {
+        case TOK_ASTERISK:      return "MUL";
+        case TOK_SLASH:         return "DIV";
+        case TOK_PLUS:          return "ADD";
+        case TOK_MINUS:         return "SUB";
+        case TOK_LESS:          return "LT";
+        case TOK_LESS_EQ:       return "LEQ";
+        case TOK_GREATER:       return "GT";
+        case TOK_GREATER_EQ:    return "GEQ";
+        case TOK_EQUALS:        return "EQ";
+        case TOK_NOT_EQUALS:    return "NEQ";
+        case TOK_AND:           return "AND";
+        case TOK_OR:            return "OR";
+        default:
+            throw layout_error("Operatore non valido");
+        }
+    };
+
+    sub_expression();
+
+    std::vector<token_type> op_stack;
+    
+    while (true) {
+        tokens.peek();
+        token_type op_type = tokens.current().type;
+        if (op_prec(op_type) > 0) {
+            tokens.advance();
+            if (!op_stack.empty() && op_prec(op_stack.back()) >= op_prec(op_type)) {
+                add_line(op_opcode(op_stack.back()));
+                op_stack.pop_back();
+            }
+            op_stack.push_back(op_type);
+            sub_expression();
+        } else {
+            break;
+        }
+    }
+
+    while (!op_stack.empty()) {
+        add_line(op_opcode(op_stack.back()));
+        op_stack.pop_back();
+    }
+}
+
+void parser::sub_expression() {
     tokens.peek();
     switch (tokens.current().type) {
     case TOK_PAREN_BEGIN:
@@ -153,7 +224,7 @@ void parser::read_expression(const char *line_before_ops) {
         break;
     case TOK_NOT:
         tokens.advance();
-        read_expression();
+        sub_expression();
         add_line("NOT");
         break;
     case TOK_MINUS:
@@ -167,7 +238,7 @@ void parser::read_expression(const char *line_before_ops) {
             add_line("PUSHNUM -{0}", tokens.current().value);
             break;
         default:
-            read_expression();
+            sub_expression();
             add_line("NEG");
         }
         break;
@@ -199,73 +270,6 @@ void parser::read_expression(const char *line_before_ops) {
             add_line("PUSHVAR");
         }
     }
-    }
-
-    if (line_before_ops) {
-        add_line(line_before_ops);
-    }
-
-    tokens.peek();
-    switch (tokens.current().type) {
-    case TOK_AND:
-        tokens.advance();
-        read_expression("AND");
-        break;
-    case TOK_OR:
-        tokens.advance();
-        read_expression();
-        add_line("OR");
-        break;
-    case TOK_PLUS:
-        tokens.advance();
-        read_expression();
-        add_line("ADD");
-        break;
-    case TOK_MINUS:
-        tokens.advance();
-        read_expression();
-        add_line("SUB");
-        break;
-    case TOK_ASTERISK:
-        tokens.advance();
-        read_expression("MUL");
-        break;
-    case TOK_SLASH:
-        tokens.advance();
-        read_expression("DIV");
-        break;
-    case TOK_EQUALS:
-        tokens.advance();
-        read_expression();
-        add_line("EQ");
-        break;
-    case TOK_NOT_EQUALS:
-        tokens.advance();
-        read_expression();
-        add_line("NEQ");
-        break;
-    case TOK_GREATER:
-        tokens.advance();
-        read_expression();
-        add_line("GT");
-        break;
-    case TOK_GREATER_EQ:
-        tokens.advance();
-        read_expression();
-        add_line("GEQ");
-        break;
-    case TOK_LESS:
-        tokens.advance();
-        read_expression();
-        add_line("LT");
-        break;
-    case TOK_LESS_EQ:
-        tokens.advance();
-        read_expression();
-        add_line("LEQ");
-        break;
-    default:
-        break;
     }
 }
 
