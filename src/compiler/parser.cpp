@@ -113,7 +113,7 @@ void parser::read_statement() {
         
         tokens.peek();
         switch (tokens.current().type) {
-        case TOK_EQUALS:
+        case TOK_ASSIGN:
             tokens.advance();
             read_expression();
             break;
@@ -140,23 +140,35 @@ void parser::read_statement() {
     }
 }
 
-void parser::read_expression() {
+void parser::read_expression(const char *line_before_ops) {
     tokens.peek();
     switch (tokens.current().type) {
+    case TOK_PAREN_BEGIN:
+        tokens.advance();
+        read_expression();
+        tokens.require(TOK_PAREN_END);
+        break;
     case TOK_FUNCTION:
         read_function();
+        break;
+    case TOK_NOT:
+        tokens.advance();
+        read_expression();
+        add_line("NOT");
         break;
     case TOK_MINUS:
     {
         tokens.advance();
-        tokens.next();
+        tokens.peek();
         switch (tokens.current().type) {
         case TOK_INTEGER:
         case TOK_NUMBER:
+            tokens.advance();
             add_line("PUSHNUM -{0}", tokens.current().value);
             break;
         default:
-            throw tokens.unexpected_token(TOK_NUMBER);
+            read_expression();
+            add_line("NEG");
         }
         break;
     }
@@ -184,6 +196,68 @@ void parser::read_expression() {
         }
     }
     }
+
+    if (line_before_ops) {
+        add_line(line_before_ops);
+    }
+
+    tokens.peek();
+    switch (tokens.current().type) {
+    case TOK_AND:
+        tokens.advance();
+        read_expression("AND");
+        break;
+    case TOK_OR:
+        tokens.advance();
+        read_expression();
+        add_line("OR");
+        break;
+    case TOK_PLUS:
+        tokens.advance();
+        read_expression();
+        add_line("ADD");
+        break;
+    case TOK_ASTERISK:
+        tokens.advance();
+        read_expression("MUL");
+        break;
+    case TOK_SLASH:
+        tokens.advance();
+        read_expression("DIV");
+        break;
+    case TOK_EQUALS:
+        tokens.advance();
+        read_expression();
+        add_line("EQ");
+        break;
+    case TOK_NOT_EQUALS:
+        tokens.advance();
+        read_expression();
+        add_line("NEQ");
+        break;
+    case TOK_GREATER:
+        tokens.advance();
+        read_expression();
+        add_line("GT");
+        break;
+    case TOK_GREATER_EQ:
+        tokens.advance();
+        read_expression();
+        add_line("GEQ");
+        break;
+    case TOK_LESS:
+        tokens.advance();
+        read_expression();
+        add_line("LT");
+        break;
+    case TOK_LESS_EQ:
+        tokens.advance();
+        read_expression();
+        add_line("LEQ");
+        break;
+    default:
+        break;
+    }
 }
 
 int parser::read_variable(bool read_only) {
@@ -205,7 +279,7 @@ int parser::read_variable(bool read_only) {
             if (read_only) throw tokens.unexpected_token(TOK_IDENTIFIER);
             flags |= VAR_NUMBER;
             break;
-        case TOK_MOVE:
+        case TOK_AMPERSAND:
             if (!read_only) throw tokens.unexpected_token(TOK_IDENTIFIER);
             flags |= VAR_MOVE;
             break;
@@ -364,22 +438,6 @@ void parser::read_function() {
         switch (hash(fun_name)) {
         case hash("num"): call_op(1, "PARSENUM"); break;
         case hash("int"): call_op(1, "PARSEINT"); break;
-        case hash("eq"):  call_op(2, "EQ"); break;
-        case hash("neq"): call_op(2, "NEQ"); break;
-        case hash("and"): call_op(2, "AND"); break;
-        case hash("or"):  call_op(2, "OR"); break;
-        case hash("not"): call_op(1, "NOT"); break;
-        case hash("neg"): call_op(1, "NEG"); break;
-        case hash("add"): call_op(2, "ADD"); break;
-        case hash("sub"): call_op(2, "SUB"); break;
-        case hash("mul"): call_op(2, "MUL"); break;
-        case hash("div"): call_op(2, "DIV"); break;
-        case hash("gt"):  call_op(2, "GT"); break;
-        case hash("lt"):  call_op(2, "LT"); break;
-        case hash("geq"): call_op(2, "GEQ"); break;
-        case hash("leq"): call_op(2, "LEQ"); break;
-        case hash("max"): call_op(2, "MAX"); break;
-        case hash("min"): call_op(2, "MIN"); break;
         default:
             add_line("CALL {0},{1}", fun_name,num_args);
         }

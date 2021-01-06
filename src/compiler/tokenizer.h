@@ -14,7 +14,7 @@ enum token_type {
     TOK_NUMBER,             // 123.4
     TOK_INTEGER,            // 123
     TOK_FUNCTION,           // $funzione
-    TOK_MOVE,               // &
+    TOK_AMPERSAND,          // &
     TOK_PAREN_BEGIN,        // (
     TOK_PAREN_END,          // )
     TOK_COMMA,              // ,
@@ -22,13 +22,24 @@ enum token_type {
     TOK_BRACKET_END,        // ]
     TOK_BRACE_BEGIN,        // {
     TOK_BRACE_END,          // }
-    TOK_EQUALS,             // =
-    TOK_PERCENT,            // %
-    TOK_GLOBAL,             // *
-    TOK_COLON,              // :
+    TOK_ASSIGN,             // =
     TOK_CONTENT,            // @
+    TOK_COLON,              // :
+    TOK_GLOBAL,             // ::
+    TOK_PERCENT,            // %
+    TOK_ASTERISK,           // *
+    TOK_SLASH,              // /
     TOK_PLUS,               // +
     TOK_MINUS,              // -
+    TOK_AND,                // &&
+    TOK_OR,                 // ||
+    TOK_NOT,                // !
+    TOK_EQUALS,             // ==
+    TOK_NOT_EQUALS,         // !=
+    TOK_GREATER,            // >
+    TOK_LESS,               // <
+    TOK_GREATER_EQ,         // >=
+    TOK_LESS_EQ,            // <=
 };
 
 constexpr const char *TOKEN_NAMES[] = {
@@ -50,12 +61,22 @@ constexpr const char *TOKEN_NAMES[] = {
     "'{'",
     "'}'",
     "'='",
+    "'@'",
+    "':'",
     "'%'",
     "'*'",
-    "':'",
-    "'@'",
+    "'/'",
     "'+'",
     "'-'",
+    "'&&'",
+    "'||'",
+    "'!'",
+    "'=='",
+    "'!='",
+    "'>'",
+    "'<'",
+    "'>='",
+    "'<='"
 };
 
 struct parsing_error {

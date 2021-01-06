@@ -1,6 +1,7 @@
 #include "reader.h"
 
 #include <functional>
+#include <algorithm>
 #include <regex>
 #include <optional>
 #include <span>
@@ -251,6 +252,18 @@ static const std::unordered_map<string, function_handler> lookup {
             var += arg;
         }
         return var;
+    }),
+    create_function("max", [](vector<variable> args) {
+        if (args.empty()) {
+            return variable::null_var();
+        }
+        return std::move(*std::max_element(args.begin(), args.end()));
+    }),
+    create_function("min", [](vector<variable> args) {
+        if (args.empty()) {
+            return variable::null_var();
+        }
+        return std::move(*std::min_element(args.begin(), args.end()));
     }),
     create_function("null", []{
         return variable::null_var();

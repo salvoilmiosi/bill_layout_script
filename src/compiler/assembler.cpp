@@ -101,8 +101,6 @@ bytecode read_lines(const std::vector<std::string> &lines) {
             case hash("LT"):            ret.add_command(opcode::LT); break;
             case hash("GEQ"):           ret.add_command(opcode::GEQ); break;
             case hash("LEQ"):           ret.add_command(opcode::LEQ); break;
-            case hash("MAX"):           ret.add_command(opcode::MAX); break;
-            case hash("MIN"):           ret.add_command(opcode::MIN); break;
             case hash("SELVAR"):        ret.add_command(opcode::SELVAR, variable_idx(ret.add_string(args[0]), std::stoi(args[1]))); break;
             case hash("SELVARTOP"):     ret.add_command(opcode::SELVARTOP, ret.add_string(args[0])); break;
             case hash("SELRANGE"):      ret.add_command(opcode::SELRANGE, variable_idx(ret.add_string(args[0]), std::stoi(args[1]), std::stoi(args[2]))); break;

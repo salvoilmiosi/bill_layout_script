@@ -79,9 +79,17 @@ bool tokenizer::nextImpl(bool writeDebug) {
         ok = readString();
         break;
     case '/':
-        tok.type = TOK_REGEXP;
-        ok = readRegexp();
+    {
+        auto c_next = m_current;
+        if (readRegexp()) {
+            ok = true;
+            tok.type = TOK_REGEXP;
+        } else {
+            m_current = c_next;
+            tok.type = TOK_SLASH;
+        }
         break;
+    }
     case '0':
     case '1':
     case '2':
@@ -121,16 +129,42 @@ bool tokenizer::nextImpl(bool writeDebug) {
         tok.type = TOK_BRACE_END;
         break;
     case '=':
-        tok.type = TOK_EQUALS;
+        if (*m_current == '=') {
+            nextChar();
+            tok.type = TOK_EQUALS;
+        } else {
+            tok.type = TOK_ASSIGN;
+        }
         break;
     case '%':
         tok.type = TOK_PERCENT;
         break;
     case '*':
-        tok.type = TOK_GLOBAL;
+        tok.type = TOK_ASTERISK;
         break;
     case '&':
-        tok.type = TOK_MOVE;
+        if (*m_current == '&') {
+            nextChar();
+            tok.type = TOK_AND;
+        } else {
+            tok.type = TOK_AMPERSAND;
+        }
+        break;
+    case '|':
+        if (*m_current == '|') {
+            nextChar();
+            tok.type = TOK_OR;
+        } else {
+            tok.type = TOK_ERROR;
+        }
+        break;
+    case '!':
+        if (*m_current == '=') {
+            nextChar();
+            tok.type = TOK_NOT_EQUALS;
+        } else {
+            tok.type = TOK_NOT;
+        }
         break;
     case '#':
         tok.type = TOK_COMMENT;
@@ -144,13 +178,34 @@ bool tokenizer::nextImpl(bool writeDebug) {
         tok.type = TOK_CONTENT;
         break;
     case ':':
-        tok.type = TOK_COLON;
+        if (*m_current == ':') {
+            nextChar();
+            tok.type = TOK_GLOBAL;
+        } else {
+            tok.type = TOK_COLON;
+        }
         break;
     case '+':
         tok.type = TOK_PLUS;
         break;
     case '-':
         tok.type = TOK_MINUS;
+        break;
+    case '>':
+        if (*m_current == '=') {
+            nextChar();
+            tok.type = TOK_GREATER_EQ;
+        } else {
+            tok.type = TOK_GREATER;
+        }
+        break;
+    case '<':
+        if (*m_current == '=') {
+            nextChar();
+            tok.type = TOK_LESS_EQ;
+        } else {
+            tok.type = TOK_LESS;
+        }
         break;
     default:
         tok.type = TOK_IDENTIFIER;

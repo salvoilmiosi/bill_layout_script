@@ -81,8 +81,6 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::LT:  exec_operator([](const auto &a, const auto &b) { return a < b; }); break;
     case opcode::GEQ: exec_operator([](const auto &a, const auto &b) { return a >= b; }); break;
     case opcode::LEQ: exec_operator([](const auto &a, const auto &b) { return a <= b; }); break;
-    case opcode::MAX: exec_operator([](const auto &a, const auto &b) { return a > b ? a : b; }); break;
-    case opcode::MIN: exec_operator([](const auto &a, const auto &b) { return a < b ? a : b; }); break;
     case opcode::SELVARTOP:
     {
         m_con.refs.emplace_back(create_ref(read_str_ref(),
