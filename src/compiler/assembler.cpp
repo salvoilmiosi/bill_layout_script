@@ -150,7 +150,7 @@ bytecode read_lines(const std::vector<std::string> &lines) {
             case hash("NEXTLINE"):      ret.add_command(opcode::NEXTLINE); break;
             case hash("NEXTTOKEN"):     ret.add_command(opcode::NEXTTOKEN); break;
             case hash("POPCONTENT"):    ret.add_command(opcode::POPCONTENT); break;
-            case hash("NEXTPAGE"):      ret.add_command(opcode::NEXTPAGE); break;
+            case hash("NEWVALUES"):      ret.add_command(opcode::NEWVALUES); break;
             case hash("ATE"):           ret.add_command(opcode::ATE); break;
             case hash("HLT"):           ret.add_command(opcode::HLT); break;
             default:

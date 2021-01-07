@@ -36,8 +36,8 @@ void reader::exec_command(const command_args &cmd) {
         if (name.front() == '*') {
             return variable_ref(m_globals, name.substr(1), args ...);
         } else {
-            while (m_pages.size() <= m_con.current_page) m_pages.emplace_back();
-            return variable_ref(m_pages[m_con.current_page], name, args ...);
+            while (m_values.size() <= m_con.current_vmap) m_values.emplace_back();
+            return variable_ref(m_values[m_con.current_vmap], name, args ...);
         }
     };
 
@@ -224,7 +224,7 @@ void reader::exec_command(const command_args &cmd) {
         break;
     case opcode::NEXTLINE: m_con.contents.top().next_token("\n"); break;
     case opcode::NEXTTOKEN: m_con.contents.top().next_token("\t\n\v\f\r "); break;
-    case opcode::NEXTPAGE: ++m_con.current_page; break;
+    case opcode::NEWVALUES: ++m_con.current_vmap; break;
     case opcode::ATE: m_con.vars.push(m_con.last_box_page > m_doc.num_pages()); break;
     case opcode::HLT: m_con.program_counter = m_code.m_commands.size(); break;
     }
@@ -257,7 +257,7 @@ void reader::read_box(pdf_rect box) {
 }
 
 void reader::save_output(Json::Value &root, bool debug) {
-    auto write_page = [&](const variable_page &page) {
+    auto write_values = [&](const variable_map &page) {
         Json::Value ret = Json::objectValue;
         for (auto &pair : page) {
             const std::string &name = pair.first;
@@ -271,10 +271,10 @@ void reader::save_output(Json::Value &root, bool debug) {
         return ret;
     };
 
-    root["globals"] = write_page(m_globals);
+    root["globals"] = write_values(m_globals);
     
     Json::Value &values = root["values"] = Json::arrayValue;
-    for (auto &page : m_pages) {
-        values.append(write_page(page));
+    for (auto &v : m_values) {
+        values.append(write_values(v));
     }
 }

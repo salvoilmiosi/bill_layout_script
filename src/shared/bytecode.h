@@ -60,7 +60,7 @@ enum class opcode : uint8_t {
     NEXTLINE,   // content_stack.top.next_token('\n')
     NEXTTOKEN,  // content_stack.top.next_token(' ')
     POPCONTENT, // content_stack.pop()
-    NEXTPAGE,   // m_page_num++
+    NEWVALUES,    // current_vmap++
     ATE,        // m_ate -> var_stack
     STRDATA=0xfd,// short len, (byte * len) data -- string data (strings are represented by 2 byte addresses)
     COMMENT=0xfe,// short len, (byte * len) data -- string debug data

@@ -215,7 +215,7 @@ p+::page_offset
 ::pod_offset=1
 $ifnot($ate()) {
   $if($contains(@,"DATI FORNITURA")) {
-    $nextpage()
+    $newvalues()
     $goto(nome_fornitore)
   } $else {
     $goto(quadro_dettaglio)

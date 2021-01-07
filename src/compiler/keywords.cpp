@@ -152,10 +152,10 @@ void parser::read_keyword() {
         tokens.require(TOK_PAREN_END);
         add_line("CLEAR");
         break;
-    case hash("nextpage"):
+    case hash("newvalues"):
         tokens.require(TOK_PAREN_BEGIN);
         tokens.require(TOK_PAREN_END);
-        add_line("NEXTPAGE");
+        add_line("NEWVALUES");
         break;
     case hash("error"):
         tokens.require(TOK_PAREN_BEGIN);

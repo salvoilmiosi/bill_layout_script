@@ -8,9 +8,9 @@ def skip_conguagli(json_data):
     for x in json_data:
         if 'error' in x:
             continue
-        for page in x['values']:
-            if all(y in page for y in ('mese_fattura', 'data_fattura', 'codice_pod')):
-                sorted_data.append({'filename': x['filename'], 'lastmodified': x['lastmodified'], 'layout': x['layout'], 'values': [page]})
+        for v in x['values']:
+            if all(y in v for y in ('mese_fattura', 'data_fattura', 'codice_pod')):
+                sorted_data.append({'filename': x['filename'], 'lastmodified': x['lastmodified'], 'layout': x['layout'], 'values': [v]})
         
     sorted_data.sort(key = lambda obj : (
         obj['values'][0]['codice_pod'][0],

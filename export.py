@@ -68,7 +68,7 @@ def export_file(input_file):
         if 'error' in json_data:
             out_err.append([filename, json_data['error']])
             return
-        for json_page in json_data['values']:
+        for v in json_data['values']:
             row = []
 
             for obj in table_values:
@@ -78,7 +78,7 @@ def export_file(input_file):
                     row.append({'value':datetime.date.fromtimestamp(lastmodified), 'number_format':'DD/MM/YY'})
                 else:
                     try:
-                        value = json_page[obj.value][obj.index]
+                        value = v[obj.value][obj.index]
                         if obj.type == 'str':
                             row.append({'value': value, 'number_format': '@'})
                         elif obj.type == 'date':

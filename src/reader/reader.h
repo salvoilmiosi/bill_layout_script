@@ -21,7 +21,7 @@ struct box_spacer {
     int page = 0;
 };
 
-using variable_page = std::multimap<std::string, variable>;
+using variable_map = std::multimap<std::string, variable>;
 
 template<typename T>
 using stack_t = my_stack<T>;
@@ -34,7 +34,7 @@ struct context {
     box_spacer spacer;
     int last_box_page = 0;
 
-    size_t current_page = 0;
+    size_t current_vmap = 0;
 
     size_t program_counter = 0;
     bool jumped = false;
@@ -61,8 +61,8 @@ private:
     void call_function(const std::string &name, size_t numargs);
 
 private:
-    variable_page m_globals;
-    std::vector<variable_page> m_pages;
+    variable_map m_globals;
+    std::vector<variable_map> m_values;
 
 private:
     pdf_document m_doc;
