@@ -45,7 +45,7 @@ private:
     void read_box(const layout_box &box);
     const layout_box *current_box = nullptr;
     
-    void read_statement();
+    bool read_statement();
     void read_expression();
     void sub_expression();
 

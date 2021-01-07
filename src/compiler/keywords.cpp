@@ -23,11 +23,11 @@ void parser::read_keyword() {
             tokens.require(TOK_PAREN_END);
             add_line(condition_positive ? "JZ {0}" : "JNZ {0}", endif_label);
             read_statement();
-            if (tokens.next(false).type == TOK_FUNCTION) {
+            if (tokens.peek().type == TOK_FUNCTION) {
                 fun_name = tokens.current().value.substr(1);
                 switch (hash(fun_name)) {
                 case hash("else"):
-                    tokens.next();
+                    tokens.advance();
                     has_endelse = true;
                     has_endif = true;
                     add_line("JMP {0}", endelse_label);
@@ -37,7 +37,7 @@ void parser::read_keyword() {
                     break;
                 case hash("elif"):
                 case hash("elifnot"):
-                    tokens.next();
+                    tokens.advance();
                     condition_positive = fun_name == "elif";
                     has_endelse = true;
                     add_line("JMP {0}", endelse_label);
@@ -131,11 +131,7 @@ void parser::read_keyword() {
 
         tokens.require(TOK_BRACE_BEGIN);
 
-        while (true) {
-            if (tokens.next(false).type == TOK_BRACE_END) {
-                tokens.advance();
-                break;
-            }
+        while (!tokens.check_next(TOK_BRACE_END)) {
             add_line("NEXTTOKEN");
 
             read_statement();

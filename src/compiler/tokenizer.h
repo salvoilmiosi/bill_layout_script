@@ -87,6 +87,10 @@ struct parsing_error {
 struct token {
     token_type type;
     std::string_view value;
+
+    operator bool () {
+        return type != TOK_ERROR;
+    }
 };
 
 class tokenizer {
@@ -96,8 +100,13 @@ public:
     void setScript(std::string_view str);
 
     const token &next(bool do_advance = true);
+    const token &peek() {
+        return next(false);
+    }
     
     token require(token_type type);
+
+    token check_next(token_type type);
 
     void advance();
 

@@ -82,18 +82,14 @@ void parser::read_box(const layout_box &box) {
     }
 
     tokens.setScript(box.script);
-    while (!tokens.ate()) read_statement();
+    while (read_statement());
 }
 
-void parser::read_statement() {
-    switch (tokens.next(false).type) {
+bool parser::read_statement() {
+    switch (tokens.peek().type) {
     case TOK_BRACE_BEGIN:
         tokens.advance();
-        while (true) {
-            if (tokens.next(false).type == TOK_BRACE_END) {
-                tokens.advance();
-                break;
-            }
+        while (!tokens.check_next(TOK_BRACE_END)) {
             read_statement();
         }
         break;
@@ -101,18 +97,16 @@ void parser::read_statement() {
         read_keyword();
         break;
     case TOK_END_OF_FILE:
-        tokens.advance();
-        break;
+        return false;
     default:
     {
         int flags = read_variable(false);
         
-        switch (tokens.next(false).type) {
+        switch (tokens.peek().type) {
         case TOK_ASSIGN:
             tokens.advance();
             read_expression();
             break;
-        case TOK_END_OF_FILE:
         default:
             add_line("PUSHVIEW");
             break;
@@ -133,6 +127,7 @@ void parser::read_statement() {
         }
     }
     }
+    return true;
 }
 
 void parser::read_expression() {
@@ -185,7 +180,7 @@ void parser::read_expression() {
     std::vector<token_type> op_stack;
     
     while (true) {
-        token_type op_type = tokens.next(false).type;
+        token_type op_type = tokens.peek().type;
         if (op_prec(op_type) > 0) {
             tokens.advance();
             if (!op_stack.empty() && op_prec(op_stack.back()) >= op_prec(op_type)) {
@@ -206,7 +201,7 @@ void parser::read_expression() {
 }
 
 void parser::sub_expression() {
-    switch (tokens.next(false).type) {
+    switch (tokens.peek().type) {
     case TOK_PAREN_BEGIN:
         tokens.advance();
         read_expression();
@@ -223,7 +218,7 @@ void parser::sub_expression() {
     case TOK_MINUS:
     {
         tokens.advance();
-        switch (tokens.next(false).type) {
+        switch (tokens.peek().type) {
         case TOK_INTEGER:
         case TOK_NUMBER:
             tokens.advance();
@@ -296,9 +291,8 @@ int parser::read_variable(bool read_only) {
     
     std::string name(tokens.current().value);
 
-    if (tokens.next(false).type == TOK_BRACKET_BEGIN) { // variable[
-        tokens.advance();
-        switch (tokens.next(false).type) {
+    if (tokens.check_next(TOK_BRACKET_BEGIN)) { // variable[
+        switch (tokens.peek().type) {
         case TOK_BRACKET_END: // variable[] -- aggiunge alla fine
             if (read_only) throw tokens.unexpected_token(TOK_INTEGER);
             index = -1;
@@ -311,10 +305,8 @@ int parser::read_variable(bool read_only) {
         case TOK_INTEGER: // variable[int
             tokens.advance();
             index = std::stoi(std::string(tokens.current().value));
-            if (tokens.next(false).type == TOK_COLON && !read_only) { // variable[int:
-                tokens.advance();
-                if (tokens.next(false).type == TOK_INTEGER) { // variable[a:b] -- seleziona range
-                    tokens.advance();
+            if (tokens.check_next(TOK_COLON) && !read_only) { // variable[int:
+                if (tokens.check_next(TOK_INTEGER)) { // variable[a:b] -- seleziona range
                     index_last = std::stoi(std::string(tokens.current().value));
                 } else { // variable[int:expr] -- seleziona range
                     add_line("PUSHNUM {0}", index);
@@ -327,8 +319,7 @@ int parser::read_variable(bool read_only) {
         default: // variable[expr
             read_expression();
             getindex = true;
-            if (tokens.next(false).type == TOK_COLON && !read_only) { // variable[expr:expr]
-                tokens.advance();
+            if (tokens.check_next(TOK_COLON) && !read_only) { // variable[expr:expr]
                 read_expression();
                 getindexlast = true;
             }
@@ -337,7 +328,7 @@ int parser::read_variable(bool read_only) {
     }
 
     if (!read_only) {
-        switch(tokens.next(false).type) {
+        switch(tokens.peek().type) {
         case TOK_PLUS:
             flags |= VAR_INCREASE;
             tokens.advance();
@@ -406,24 +397,14 @@ void parser::read_function() {
     {
         int num_args = 0;
         tokens.require(TOK_PAREN_BEGIN);
-        bool in_fun_loop = true;
-        while (in_fun_loop) {
-            if (tokens.next(false).type == TOK_PAREN_END) {
-                tokens.advance();
-                break;
-            }
+        while (!tokens.check_next(TOK_PAREN_END)) {
             ++num_args;
             read_expression();
-            switch (tokens.next().type) {
-            case TOK_COMMA:
-                break;
-            case TOK_PAREN_END:
-                in_fun_loop=false;
-                break;
-            default:
+            if (!tokens.check_next(TOK_COMMA) && tokens.current().type != TOK_PAREN_END) {
                 throw tokens.unexpected_token(TOK_PAREN_END);
             }
         }
+
         auto call_op = [&](int should_be, auto & ... args) {
             if (num_args != should_be) {
                 throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", fun_name, should_be), tokens.getLocation(tok_fun_name));

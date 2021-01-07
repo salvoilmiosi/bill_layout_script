@@ -242,6 +242,16 @@ token tokenizer::require(token_type type) {
     return current();
 }
 
+token tokenizer::check_next(token_type type) {
+    token tok = peek();
+    if (tok.type != type) {
+        tok.type = TOK_ERROR;
+    } else {
+        advance();
+    }
+    return tok;
+}
+
 void tokenizer::advance() {
     flushDebugData();
     m_current = tok.value.begin() + tok.value.size();
