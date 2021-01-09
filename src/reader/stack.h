@@ -2,7 +2,7 @@
 #define __STACK_H__
 
 #include <vector>
-template<typename T, typename Container = std::vector<T>> struct my_stack : public Container {
+template<typename T, typename Container = std::vector<T>> struct simple_stack : public Container {
     using base = Container;
     
     constexpr T &top() { return base::back(); }

@@ -77,7 +77,7 @@ int MainApp::OnRun() {
     bool in_file_layout = true;
 
     if (compile) {
-        auto cmd_str = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPathWithSep() + "layout_compiler";
+        auto cmd_str = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPathWithSep() + "compiler";
         proc_compiler.open(arguments(cmd_str, "-o", "-", input_file));
         if (input_file == "-") {
             std::copy(

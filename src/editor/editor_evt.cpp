@@ -124,7 +124,7 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
 
     wxString output_file = diag.GetPath().ToStdString();
     try {
-        wxString cmd_str = get_app_path() + "layout_compiler";
+        wxString cmd_str = get_app_path() + "compiler";
         
         subprocess process(arguments(
             cmd_str,
@@ -155,7 +155,7 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
         if (control_script_filename.empty()) return;
     }
     
-    wxString cmd_str = get_app_path() + "layout_reader";
+    wxString cmd_str = get_app_path() + "reader";
     wxString layout_path = wxConfig::Get()->Read("LayoutPath");
     if (layout_path.empty()) {
         layout_path = getLayoutPath();

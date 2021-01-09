@@ -23,13 +23,10 @@ struct box_spacer {
 
 using variable_map = std::multimap<std::string, variable>;
 
-template<typename T>
-using stack_t = my_stack<T>;
-
 struct context {
-    stack_t<variable> vars;
-    stack_t<content_view> contents;
-    stack_t<variable_ref> refs;
+    simple_stack<variable> vars;
+    simple_stack<content_view> contents;
+    simple_stack<variable_ref> refs;
 
     box_spacer spacer;
     int last_box_page = 0;

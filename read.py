@@ -12,7 +12,7 @@ out = []
 old_out = []
 
 app_dir = Path(sys.argv[0]).parent
-layout_reader = app_dir.joinpath('bin/release/layout_reader')
+layout_reader = app_dir.joinpath('bin/release/reader')
 
 def read_pdf(pdf_file):
     rel_path = pdf_file.relative_to(input_directory)

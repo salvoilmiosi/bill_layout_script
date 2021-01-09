@@ -1,8 +1,8 @@
 #ifndef __RESOURCES_H__
 #define __RESOURCES_H__
 
-#define BINARY_START(name) _binary_resources_##name##_start
-#define BINARY_END(name) _binary_resources_##name##_end
+#define BINARY_START(name) _binary_##name##_start
+#define BINARY_END(name) _binary_##name##_end
 #define BINARY_SIZE(name) (BINARY_END(name) - BINARY_START(name))
 
 #define DECLARE_RESOURCE(name) extern char BINARY_START(name)[]; extern char BINARY_END(name)[];

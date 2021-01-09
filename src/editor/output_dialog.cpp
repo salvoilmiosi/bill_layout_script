@@ -87,7 +87,7 @@ reader_thread::~reader_thread() {
 
 wxThread::ExitCode reader_thread::Entry() {
     try {
-        wxString cmd_reader = get_app_path() + "layout_reader";
+        wxString cmd_reader = get_app_path() + "reader";
 
         proc_reader.open(arguments(
             cmd_reader,
