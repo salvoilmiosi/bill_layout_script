@@ -1,16 +1,16 @@
-cd build
-make compiler
-cd ..
+./makelayouts.sh
 
-mkdir -p work/layouts
-for f in layouts/*.bls; do
-    out_file="work/layouts/$(basename "$f" .bls).out"
-    [ "$f" -nt "$out_file" ] && build/compiler -o "$out_file" "$f"
-done
+IN_DIR=work/fatture
+OUT_DIR=work/letture
 
-mkdir -p work/letture
-for d in work/fatture/*; do
+start=$(date +%s)
+
+mkdir -p $OUT_DIR
+for d in $IN_DIR/*; do
     echo "======== $(basename "$d") ========"
     python read.py "$d" "$OUT_DIR/$(basename "$d").json"
     python export.py "$OUT_DIR/$(basename "$d").json"
 done
+
+runtime=$(($(date +%s)-start))
+echo "======== Finito in $((runtime/60))m $((runtime%60))s ========"

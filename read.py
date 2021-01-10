@@ -80,7 +80,7 @@ for path in input_directory.rglob('*.pdf'):
     q.put_nowait(path)
 
 def worker():
-    while True:
+    while not q.empty():
         try:
             file = q.get(timeout=1)
             read_pdf(file)
