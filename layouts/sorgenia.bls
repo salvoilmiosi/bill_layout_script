@@ -61,7 +61,7 @@ fornitore="Sorgenia"
 ### X 0.4848197401
 ### Y 0.0104361940
 ### W 0.4648956358
-### H 0.0771346167
+### H 0.1047291458
 ### Script
 numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 ### End Script

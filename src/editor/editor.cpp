@@ -344,7 +344,7 @@ void frame_editor::loadPdf(const wxString &filename) {
 }
 
 wxString frame_editor::getControlScript() {
-    wxFileDialog diag(this, "Apri script di controllo", wxEmptyString, wxEmptyString, "File output (*.out)|*.out|Tutti i file (*.*)|*.*");
+    wxFileDialog diag(this, "Apri script di controllo", wxEmptyString, wxEmptyString, "File bls (*.bls)|*.bls|Tutti i file (*.*)|*.*");
 
     if (diag.ShowModal() == wxID_CANCEL)
         return wxString();

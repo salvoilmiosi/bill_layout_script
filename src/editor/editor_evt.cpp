@@ -164,7 +164,7 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
 
     subprocess process(arguments(
         cmd_str,
-        "-p", m_doc.filename(),
+        "-cp", m_doc.filename(),
         control_script_filename
     ));
 

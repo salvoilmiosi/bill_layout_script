@@ -12,7 +12,7 @@ out = []
 old_out = []
 
 app_dir = Path(sys.argv[0]).parent
-layout_reader = app_dir.joinpath('bin/release/reader')
+layout_reader = app_dir.joinpath('build/reader')
 
 def read_pdf(pdf_file):
     rel_path = pdf_file.relative_to(input_directory)
@@ -29,7 +29,7 @@ def read_pdf(pdf_file):
                 if not json_out['error'] and 'layout' in json_out['globals']:
                     x['layout'] = json_out['globals']['layout'][0]
             if 'layout' in x and 'values' in x:
-                layout_file = controllo.parent.joinpath('../bls/{0}.bls'.format(x['layout']))
+                layout_file = controllo.parent.joinpath('{0}.out'.format(x['layout']))
                 if os.path.getmtime(str(layout_file)) < os.path.getmtime(str(output_file)):
                     out.append(x)
                     skipped = True
@@ -60,7 +60,7 @@ if len(sys.argv) < 3:
 
 input_directory = Path(sys.argv[1])
 output_file = Path(sys.argv[2])
-controllo = Path(sys.argv[3] if len(sys.argv) >= 4 else 'layout/controllo.out')
+controllo = Path(sys.argv[3] if len(sys.argv) >= 4 else 'work/layouts/controllo.out')
 nthreads = int(sys.argv[4]) if len(sys.argv) >= 5 else 5
 
 if output_file.exists():

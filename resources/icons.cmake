@@ -1,0 +1,9 @@
+set(ICONS_PNG
+resources/icon_editor.png
+resources/tool_abort.png
+resources/tool_deletebox.png
+resources/tool_newbox.png
+resources/tool_reload.png
+resources/tool_resize.png
+resources/tool_select.png
+)

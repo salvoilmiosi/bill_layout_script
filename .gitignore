@@ -1,11 +1,6 @@
 .vscode/*
 build/*
-bin/*
-obj/*
-out/*
-layout/*
 work/*
-*.sh
 *.exe
 *.dll
 *.so

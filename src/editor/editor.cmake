@@ -1,0 +1,12 @@
+set(SOURCES_EDITOR
+src/editor/box_dialog.cpp
+src/editor/box_editor_panel.cpp
+src/editor/clipboard.cpp
+src/editor/editor.cpp
+src/editor/editor_evt.cpp
+src/editor/image_panel.cpp
+src/editor/layout_ext.cpp
+src/editor/main.cpp
+src/editor/output_dialog.cpp
+src/editor/pdf_to_image.cpp
+)
