@@ -33,7 +33,7 @@ function(embed_resource resource_file_name source_file_name variable_name)
 
     string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1, " content "${content}")
 
-    string(REGEX REPLACE ", $" "" content "${content}")
+    string(REGEX REPLACE ", \n?$" "" content "${content}")
 
     set(array_definition "const char ${variable_name}[${content_size}] = {\n${content}\n};")
     set(length_definition "const int ${variable_name}_length = ${content_size};")
