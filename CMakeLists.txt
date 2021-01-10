@@ -23,21 +23,43 @@ include(src/reader/reader.cmake)
 add_executable(reader ${SOURCES_READER})
 target_link_libraries(reader ${wxWidgets_LIBRARIES} shared)
 
-find_package(wxWidgets REQUIRED COMPONENTS core stc)
+function(embed_resource resource_file_name source_file_name variable_name)
+
+    file(READ ${resource_file_name} hex_content HEX)
+    file(SIZE ${resource_file_name} content_size)
+
+    string(REPEAT "[0-9a-f]" 32 column_pattern)
+    string(REGEX REPLACE "(${column_pattern})" "\\1\n" content "${hex_content}")
+
+    string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1, " content "${content}")
+
+    string(REGEX REPLACE ", $" "" content "${content}")
+
+    set(array_definition "const char ${variable_name}[${content_size}] = {\n${content}\n};")
+    set(length_definition "const int ${variable_name}_length = ${content_size};")
+
+    set(source "// Auto generated file.\n${array_definition}\n${length_definition}\n")
+
+    file(WRITE "${source_file_name}" "${source}")
+
+endfunction()
 
 include(resources/icons.cmake)
-foreach(_f ${ICONS_PNG})
-    file(RELATIVE_PATH _r ${PROJECT_SOURCE_DIR}/resources ${PROJECT_SOURCE_DIR}/${_f})
-    list(APPEND ICONS_PNG_RELATIVE ${_r})
+foreach(file ${ICONS_PNG})
+    get_filename_component(basename "${file}" NAME)
+    string(MAKE_C_IDENTIFIER basename "${basename}")
+    string(REPLACE "." "_" basename "${basename}")
+
+    set(file_png_c "${CMAKE_BINARY_DIR}/${file}.c")
+    list(APPEND ICONS_PNG_C "${file_png_c}")
+
+    embed_resource("${CMAKE_SOURCE_DIR}/${file}" "${file_png_c}" "__resource__${basename}")
 endforeach()
-add_custom_command(
-    OUTPUT images.o
-    COMMAND ld -r -b binary -o ${PROJECT_BINARY_DIR}/images.o ${ICONS_PNG_RELATIVE}
-    DEPENDS ${ICONS_PNG}
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/resources)
+
+find_package(wxWidgets REQUIRED COMPONENTS core stc)
 
 include(src/editor/editor.cmake)
-add_executable(editor ${SOURCES_EDITOR} images.o resources/resources.rc)
+add_executable(editor ${SOURCES_EDITOR} ${ICONS_PNG_C} resources/resources.rc)
 target_link_libraries(editor ${wxWidgets_LIBRARIES} shared)
 
 set(CMAKE_CXX_STANDARD 20)

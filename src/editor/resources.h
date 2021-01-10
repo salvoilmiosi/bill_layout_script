@@ -1,19 +1,16 @@
 #ifndef __RESOURCES_H__
 #define __RESOURCES_H__
 
-#define BINARY_START(name) _binary_##name##_start
-#define BINARY_END(name) _binary_##name##_end
-#define BINARY_SIZE(name) (BINARY_END(name) - BINARY_START(name))
+#define RESOURCE_DATA(name) __resource__##name
+#define RESOURCE_LENGTH(name) __resource__##name##_length
 
-#define DECLARE_RESOURCE(name) extern char BINARY_START(name)[]; extern char BINARY_END(name)[];
+#define DECLARE_RESOURCE(name) extern const char RESOURCE_DATA(name)[]; extern const int RESOURCE_LENGTH(name);
 
 struct binary_resource {
-    const void *data;
-    const size_t len;
-
-    binary_resource(const void *data, size_t len) : data(data), len(len) {}
+    const char *data;
+    const int len;
 };
 
-#define GET_RESOURCE(name) binary_resource(BINARY_START(name), BINARY_SIZE(name))
+#define GET_RESOURCE(name) binary_resource{RESOURCE_DATA(name), RESOURCE_LENGTH(name)}
 
 #endif
