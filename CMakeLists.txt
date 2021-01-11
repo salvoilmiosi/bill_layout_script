@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(layout_bolletta VERSION 0.1.0)
 
+set(CMAKE_CXX_STANDARD 20)
+
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(DEPS REQUIRED jsoncpp fmt)
 
 find_package(wxWidgets REQUIRED COMPONENTS base)
 include(${wxWidgets_USE_FILE})
 
-set(INCLUDES ${wxWidgets_INCLUDE_DIRS} ${DEPS_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/src/shared)
-
-include_directories(${INCLUDES})
+include_directories(${DEPS_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/src/shared)
 
 include(src/shared/shared.cmake)
 add_library(shared SHARED ${SOURCES_SHARED})
@@ -62,5 +62,7 @@ include(src/editor/editor.cmake)
 add_executable(editor ${SOURCES_EDITOR} ${ICONS_PNG_C} resources/resources.rc)
 target_link_libraries(editor ${wxWidgets_LIBRARIES} shared)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++20")
+pkg_check_modules(POPPLER poppler>=21.01.0)
+if("${POPPLER_FOUND}")
+    target_compile_definitions(editor PUBLIC POPPLER_FIX)
+endif()
