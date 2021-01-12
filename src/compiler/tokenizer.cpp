@@ -222,10 +222,10 @@ const token &tokenizer::next(bool do_advance) {
 
 token tokenizer::require(token_type type) {
     if (type == TOK_REGEXP) {
+        auto begin = m_current;
         if (tok.type != TOK_SLASH) {
             require(TOK_SLASH);
         }
-        auto begin = m_current;
         nextChar();
         if (readRegexp()) {
             tok.value = std::string_view(begin, m_current - begin);
