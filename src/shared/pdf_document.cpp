@@ -5,75 +5,81 @@
 
 #include <fmt/format.h>
 
+#include <poppler/cpp/poppler-page.h>
+
 #include "subprocess.h"
 #include "utils.h"
 
 void pdf_document::open(const std::string &filename) {
-    if (!std::filesystem::exists(filename)) {
-        throw pdf_error(fmt::format("Impossibile aprire il file \"{0}\"", filename));
+    m_document.reset(poppler::document::load_from_file(filename));
+    if (!m_document) {
+        throw pdf_error(fmt::format("Impossibile aprire il file {}", filename));
     }
 
-    try {
-        subprocess process(arguments(
-            "pdfinfo", filename
-        ));
+    m_filename = filename;
 
-        m_filename = filename;
+    m_pages.clear();
+    m_num_pages = m_document->pages();
 
-        std::string line;
-        while (std::getline(process.stream_out, line)) {
-            std::smatch match;
-            
-            if (std::regex_search(line, match, std::regex("Pages: +([0-9]+)"))) {
-                m_num_pages = std::stoi(match.str(1));
-            } else if (std::regex_search(line, match, std::regex("Page size: +([0-9\\.]+) x ([0-9\\.]+)"))) {
-                m_width = std::stof(match.str(1));
-                m_height = std::stof(match.str(2));
-            }
-        }
-    } catch (const process_error &error) {
-        throw pdf_error(error.message);
+    for (size_t i=0; i<m_num_pages; ++i) {
+        m_pages.emplace_back(m_document->create_page(i));
     }
+
+    if (m_num_pages == 0) {
+        throw pdf_error(fmt::format("Errore: Il file {} contiene 0 pagine", filename));
+    }
+
+    auto rect = m_pages.front()->page_rect();
+    m_width = rect.width();
+    m_height = rect.height();
 }
-
-constexpr float RESOLUTION = 300;
-constexpr float resolution_factor = RESOLUTION / 72.f;
 
 std::string pdf_document::get_text(const pdf_rect &rect) const {
     if (!isopen()) return "";
     if (rect.page > m_num_pages) return "";
 
-    try {
-        arguments<30> args("pdftotext", "-q", "-eol", "unix");
-
-        auto p = std::to_string(rect.page);
-        auto x = std::to_string((int)(m_width * rect.x * resolution_factor));
-        auto y = std::to_string((int)(m_height * rect.y * resolution_factor));
-        auto w = std::to_string((int)(m_width * rect.w * resolution_factor));
-        auto h = std::to_string((int)(m_height * rect.h * resolution_factor));
-        auto r = std::to_string((int)(RESOLUTION));
-
-        switch (rect.type) {
-        case box_type::BOX_RECTANGLE:
-            args.add_args("-r", r, "-x", x, "-y", y, "-W", w, "-H", h);
-            [[fallthrough]];
-        case box_type::BOX_PAGE:
-            args.add_args("-f", p, "-l", p);
-            break;
-        case box_type::BOX_FILE:
-            break;
-        default:
-            return "";
-        }
-
-        if (read_mode_options[static_cast<int>(rect.mode)]) args.add_args(read_mode_options[static_cast<int>(rect.mode)]);
-        args.add_args(m_filename, "-");
-        
-        subprocess process(args);
-        std::string str = read_all(process.stream_out);
-        string_trim(str);
-        return str;
-    } catch (const process_error &error) {
-        throw pdf_error(error.message);
+    poppler::page::text_layout_enum poppler_mode;
+    switch (rect.mode) {
+    case read_mode::MODE_DEFAULT:
+        poppler_mode = poppler::page::text_layout_enum::non_raw_non_physical_layout;
+        break;
+    case read_mode::MODE_LAYOUT: 
+        poppler_mode = poppler::page::text_layout_enum::physical_layout;
+        break;
+    case read_mode::MODE_RAW:
+        poppler_mode = poppler::page::text_layout_enum::raw_order_layout;
+        break;
     }
+
+    std::string ret;
+
+    auto to_string = [](const poppler::ustring &str) {
+        auto arr = str.to_utf8();
+        return std::string(arr.begin(), arr.end());
+    };
+
+    switch (rect.type) {
+    case box_type::BOX_RECTANGLE:
+    {
+        poppler::rectf poppler_rect(rect.x * m_width, rect.y * m_height, rect.w * m_width, rect.h * m_height);
+        ret = to_string(get_page(rect.page).text(poppler_rect, poppler_mode));
+        break;
+    }
+    case box_type::BOX_PAGE:
+        ret = to_string(get_page(rect.page).text(poppler::rectf(), poppler_mode));
+        break;
+    case box_type::BOX_FILE:
+    {
+        for (auto &page : m_pages) {
+            ret.append(to_string(page->text(poppler::rectf(), poppler_mode)));
+            ret += '\n';
+        }
+        break;
+    }
+    default:
+        break;
+    }
+
+    string_trim(ret);
+    return ret;
 }

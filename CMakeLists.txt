@@ -4,7 +4,7 @@ project(layout_bolletta VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(DEPS REQUIRED jsoncpp fmt)
+pkg_check_modules(DEPS REQUIRED jsoncpp fmt poppler-cpp)
 
 find_package(wxWidgets REQUIRED COMPONENTS base)
 include(${wxWidgets_USE_FILE})
@@ -61,8 +61,3 @@ find_package(wxWidgets REQUIRED COMPONENTS core stc)
 include(src/editor/editor.cmake)
 add_executable(editor ${SOURCES_EDITOR} ${ICONS_PNG_C} resources/resources.rc)
 target_link_libraries(editor ${wxWidgets_LIBRARIES} shared)
-
-pkg_check_modules(POPPLER poppler>=21.01.0)
-if("${POPPLER_FOUND}")
-    target_compile_definitions(editor PUBLIC POPPLER_FIX)
-endif()

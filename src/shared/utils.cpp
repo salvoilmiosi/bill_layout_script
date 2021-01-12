@@ -44,6 +44,7 @@ std::string string_toupper(std::string str) {
 }
 
 void string_trim(std::string &str) {
+    str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
     str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](auto ch) {
         return !std::isspace(ch);
     }));

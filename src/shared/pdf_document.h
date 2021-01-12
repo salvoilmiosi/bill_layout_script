@@ -1,7 +1,12 @@
 #ifndef __PDF_DOCUMENT_H__
 #define __PDF_DOCUMENT_H__
 
+#include <vector>
 #include <string>
+#include <memory>
+
+#include <poppler/cpp/poppler-document.h>
+#include <poppler/cpp/poppler-page.h>
 
 enum class box_type : uint8_t              { BOX_RECTANGLE, BOX_PAGE, BOX_FILE, BOX_NO_READ };
 constexpr const char *box_type_strings[] = { "RECTANGLE",   "PAGE",   "FILE",   "NOREAD" };
@@ -10,7 +15,6 @@ constexpr const char *box_type_labels[] =  { "Rettangolo",  "Pagina", "File",   
 enum class read_mode : uint8_t             { MODE_DEFAULT, MODE_LAYOUT, MODE_RAW };
 constexpr const char *read_mode_strings[] = { "DEFAULT",    "LAYOUT",    "RAW" };
 constexpr const char *read_mode_labels[] =  { "Default",    "Layout",    "Grezza" };
-constexpr const char *read_mode_options[] = { nullptr,      "-layout",   "-raw" };
 
 struct pdf_rect {
     float x, y;
@@ -23,13 +27,14 @@ struct pdf_rect {
 class pdf_document {
 public:
     pdf_document() = default;
+
     explicit pdf_document(const std::string &filename) {
         open(filename);
     }
 
     void open(const std::string &filename);
     bool isopen() const {
-        return !m_filename.empty();
+        return m_document != nullptr;
     }
 
     std::string get_text(const pdf_rect &rect) const;
@@ -38,12 +43,19 @@ public:
     int num_pages() const { return m_num_pages; }
     float width() const { return m_width; }
     float height() const { return m_height; }
+
+    const poppler::page &get_page(int page) const {
+        return *m_pages[page - 1];
+    }
     
 private:
     std::string m_filename;
     int m_num_pages = 0;
     float m_width = 0;
     float m_height = 0;
+
+    std::unique_ptr<poppler::document> m_document;
+    std::vector<std::unique_ptr<poppler::page>> m_pages;
 };
 
 struct pdf_error {
