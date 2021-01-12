@@ -41,8 +41,6 @@ public:
 
     const std::string &filename() const { return m_filename; }
     int num_pages() const { return m_num_pages; }
-    float width() const { return m_width; }
-    float height() const { return m_height; }
 
     const poppler::page &get_page(int page) const {
         return *m_pages[page - 1];
@@ -51,8 +49,6 @@ public:
 private:
     std::string m_filename;
     int m_num_pages = 0;
-    float m_width = 0;
-    float m_height = 0;
 
     std::unique_ptr<poppler::document> m_document;
     std::vector<std::unique_ptr<poppler::page>> m_pages;

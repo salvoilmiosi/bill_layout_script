@@ -24,14 +24,6 @@ void pdf_document::open(const std::string &filename) {
     for (size_t i=0; i<m_num_pages; ++i) {
         m_pages.emplace_back(m_document->create_page(i));
     }
-
-    if (m_num_pages == 0) {
-        throw pdf_error(fmt::format("Errore: Il file {} contiene 0 pagine", filename));
-    }
-
-    auto rect = m_pages.front()->page_rect();
-    m_width = rect.width();
-    m_height = rect.height();
 }
 
 std::string pdf_document::get_text(const pdf_rect &rect) const {
@@ -61,8 +53,10 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
     switch (rect.type) {
     case box_type::BOX_RECTANGLE:
     {
-        poppler::rectf poppler_rect(rect.x * m_width, rect.y * m_height, rect.w * m_width, rect.h * m_height);
-        return to_stdstring(get_page(rect.page).text(poppler_rect, poppler_mode));
+        auto &page = get_page(rect.page);
+        auto pgrect = page.page_rect();
+        poppler::rectf poppler_rect(rect.x * pgrect.width(), rect.y * pgrect.height(), rect.w * pgrect.width(), rect.h * pgrect.height());
+        return to_stdstring(page.text(poppler_rect, poppler_mode));
     }
     case box_type::BOX_PAGE:
         return to_stdstring(get_page(rect.page).text(poppler::rectf(), poppler_mode));

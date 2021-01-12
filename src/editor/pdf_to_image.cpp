@@ -16,10 +16,15 @@ wxImage pdf_to_image(const pdf_document &doc, int page) {
     static constexpr double resolution = 150.0;
 
     poppler::image output = renderer.render_page(&doc.get_page(page), resolution, resolution);
+    const char *src_ptr = output.const_data();
 
-    size_t data_len = output.bytes_per_row() * output.height();
-    unsigned char *data = (unsigned char *)malloc(data_len);
-    std::memcpy(data, output.const_data(), data_len);
+    unsigned char *data = (unsigned char *) malloc(output.width() * output.height() * 3);
+    unsigned char *dst_ptr = data;
+    for (size_t i=0; i<output.height(); ++i) {
+        std::memcpy(dst_ptr, src_ptr, output.width() * 3);
+        src_ptr += output.bytes_per_row();
+        dst_ptr += output.width() * 3;
+    }
 
-    return wxImage(output.bytes_per_row() / 3, output.height(), data);
+    return wxImage(output.width(), output.height(), data);
 }
