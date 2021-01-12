@@ -20,8 +20,6 @@ bool MainApp::OnInit() {
         return false;
     }
 
-    wxImage::AddHandler(new wxPNGHandler);
-
     editor = new frame_editor();
 
     if (!filename.empty()) {
