@@ -65,7 +65,7 @@ bool box_editor_panel::render(wxDC &dc) {
 void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
     float xx = (evt.GetX() + scrollx) / scaled_width;
     float yy = (evt.GetY() + scrolly) / scaled_height;
-    if (getImage() && !mouseIsDown) {
+    if (raw_image.IsOk() && !mouseIsDown) {
         switch (selected_tool) {
         case TOOL_SELECT:
             selected_box = getBoxAt(app->layout, xx, yy, app->getSelectedPage());

@@ -17,33 +17,25 @@ wxImagePanel::wxImagePanel(wxWindow *parent) : wxScrolledWindow(parent) {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
 }
 
-wxImagePanel::~wxImagePanel() {
-    if (image)
-        delete image;
-    image = nullptr;
-}
-
 void wxImagePanel::setImage(const wxImage &new_image) {
-    if (image)
-        delete image;
-    image = new wxImage(new_image);
+    raw_image = new_image;
     rescale(scale, wxIMAGE_QUALITY_HIGH);
 }
 
 void wxImagePanel::rescale(float factor, wxImageResizeQuality quality) {
     scale = factor;
-    if (image) {
-        scaled_width = image->GetWidth() * scale;
-        scaled_height = image->GetHeight() * scale;
+    if (raw_image.IsOk()) {
+        scaled_width = raw_image.GetWidth() * scale;
+        scaled_height = raw_image.GetHeight() * scale;
         SetVirtualSize(scaled_width, scaled_height);
-        scaled_image = image->Scale(image->GetWidth() * scale, image->GetHeight() * scale, quality);
+        scaled_image = raw_image.Scale(raw_image.GetWidth() * scale, raw_image.GetHeight() * scale, quality);
         Refresh();
     }
 }
 
 bool wxImagePanel::render(wxDC &dc) {
     dc.Clear();
-    if (image) {
+    if (raw_image.IsOk()) {
         scrollx = GetScrollPos(wxHORIZONTAL) * SCROLL_RATE_X;
         scrolly = GetScrollPos(wxVERTICAL) * SCROLL_RATE_Y;
 

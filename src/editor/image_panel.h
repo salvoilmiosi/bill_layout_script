@@ -7,11 +7,7 @@
 class wxImagePanel : public wxScrolledWindow {
 public:
     wxImagePanel(wxWindow *parent);
-    ~wxImagePanel();
 
-    wxImage *getImage() {
-        return image;
-    }
     void setImage(const wxImage &new_image);
 
     void rescale(float factor, wxImageResizeQuality quality = wxIMAGE_QUALITY_NORMAL);
@@ -27,9 +23,8 @@ protected:
 
     float scale = 0.5f;
 
-private:
-    wxImage *image = nullptr;
-    wxImage scaled_image;
+protected:
+    wxImage raw_image, scaled_image;
     
     void OnPaint(wxPaintEvent &evt);
     
