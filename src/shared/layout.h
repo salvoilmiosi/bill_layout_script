@@ -22,8 +22,6 @@ struct layout_box : public pdf_rect {
 
 struct layout_error {
     std::string message;
-
-    layout_error(const std::string &message) : message(message) {}
 };
 
 using box_ptr = std::shared_ptr<layout_box>;

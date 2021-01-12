@@ -60,8 +60,6 @@ private:
 
 struct pdf_error {
     const std::string message;
-
-    pdf_error(const std::string &message) : message(message) {}
 };
 
 #endif // __PDF_DOCUMENT_H__

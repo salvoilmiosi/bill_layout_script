@@ -257,16 +257,15 @@ void reader::read_box(pdf_rect box) {
 }
 
 void reader::save_output(Json::Value &root, bool debug) {
-    auto write_values = [&](const variable_map &page) {
+    auto write_values = [&](const variable_map &values) {
         Json::Value ret = Json::objectValue;
-        for (auto &pair : page) {
-            const std::string &name = pair.first;
+        for (auto &[name, var] : values) {
             if (name.front() == '_' && !debug) {
                 continue;
             }
             auto &json_arr = ret[name];
             if (json_arr.isNull()) json_arr = Json::arrayValue;
-            json_arr.append(pair.second.str());
+            json_arr.append(var.str());
         }
         return ret;
     };
