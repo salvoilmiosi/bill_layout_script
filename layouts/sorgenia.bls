@@ -248,7 +248,7 @@ $with($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
 ### W 0.0579877123
 ### H 0.0390942991
 ### Script
-$with(::&_dettaglio) {
+$with(::_dettaglio) {
   $with($search(@,$format(/$0([^]+?FORNITURA DI $0 euro %N)/,$date_format(mese_fattura,"%B %Y")))) {
 
     %pcv=$search(@,/PCV euro\/cliente\/mese %N %N (%N)/)
