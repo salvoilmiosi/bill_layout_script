@@ -6,9 +6,9 @@
 ### Mode DEFAULT
 ### Page 1
 ### X 0.0338709690
-### Y 0.0285062715
+### Y 0.0969213247
 ### W 0.3403225839
-### H 0.1128848344
+### H 0.0444697738
 ### Script
 $ifnot($contains(@,"Enel Energia - Mercato libero dell'energia")) {
   $error("Layout Invalido")
@@ -84,10 +84,10 @@ $ifnot($ate()) {
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
-### X 0.0425488055
-### Y 0.0355231985
-### W 0.0429901481
-### H 0.0285062715
+### X 0.0387096778
+### Y 0.0307867732
+### W 0.2209677398
+### H 0.0615735427
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Enel Energia"
@@ -122,9 +122,7 @@ indirizzo_fornitura=$search($nonewline(@),/Forniamo energia in (.+) Denominazion
 ### H 0.1694756299
 ### Script
 %cts=$search(@,/CORRISPETTIVO TARIFFARIO SPECIFICO.+ (%N)/)
-iva=$search(@,/IVA (\d+%)/)
-iva=$search(@,/IVA Scissione Pagamenti (\d+%)/)
-%imponibile=$search(@,/imponibile di euro (%N)/)
+iva=$search(@,/IVA.* (\d+%)/)
 ### End Script
 ### End Box
 
@@ -317,6 +315,8 @@ $with(::_dettaglio) {
       %oneri+=$search(@,/\/kWh %N %N (%N)/)
     }
   }
+	
+  imponibile = spesa_materia_energia + trasporto_gestione + oneri + accise
 }
 ### End Script
 ### End Box
