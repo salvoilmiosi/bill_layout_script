@@ -133,12 +133,12 @@ $ifnot($isset(mese_fattura)) {
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.7068310976
-### Y 0.4594540298
+### X 0.7051532269
+### Y 0.4358669817
 ### W 0.2348197252
-### H 0.0234757531
+### H 0.0494381189
 ### Script
-data_scadenza=$date(@,"%d/%m/%Y")
+data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
 ### End Script
 ### End Box
 
