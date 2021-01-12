@@ -13,7 +13,7 @@ wxImage pdf_to_image(const pdf_document &doc, int page) {
     renderer.set_render_hint(poppler::page_renderer::antialiasing);
     renderer.set_render_hint(poppler::page_renderer::text_antialiasing);
 
-    static constexpr double resolution = 144.0;
+    static constexpr double resolution = 150.0;
 
     poppler::image output = renderer.render_page(&doc.get_page(page), resolution, resolution);
 
@@ -21,5 +21,5 @@ wxImage pdf_to_image(const pdf_document &doc, int page) {
     unsigned char *data = (unsigned char *)malloc(data_len);
     std::memcpy(data, output.const_data(), data_len);
 
-    return wxImage(output.width() + 1, output.height(), data);
+    return wxImage(output.bytes_per_row() / 3, output.height(), data);
 }
