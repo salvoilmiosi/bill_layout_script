@@ -51,34 +51,31 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
         break;
     }
 
-    std::string ret;
-
-    auto to_string = [](const poppler::ustring &str) {
-        auto arr = str.to_utf8();
-        return std::string(arr.begin(), arr.end());
+    auto to_stdstring = [](const poppler::ustring &ustr) {
+        auto arr = ustr.to_utf8();
+        std::string str(arr.begin(), arr.end());
+        string_trim(str);
+        return str;
     };
 
     switch (rect.type) {
     case box_type::BOX_RECTANGLE:
     {
         poppler::rectf poppler_rect(rect.x * m_width, rect.y * m_height, rect.w * m_width, rect.h * m_height);
-        ret = to_string(get_page(rect.page).text(poppler_rect, poppler_mode));
-        break;
+        return to_stdstring(get_page(rect.page).text(poppler_rect, poppler_mode));
     }
     case box_type::BOX_PAGE:
-        ret = to_string(get_page(rect.page).text(poppler::rectf(), poppler_mode));
-        break;
+        return to_stdstring(get_page(rect.page).text(poppler::rectf(), poppler_mode));
     case box_type::BOX_FILE:
     {
+        poppler::ustring ret;
         for (auto &page : m_pages) {
-            ret.append(to_string(page->text(poppler::rectf(), poppler_mode)));
+            ret.append(page->text(poppler::rectf(), poppler_mode));
         }
-        break;
+        return to_stdstring(ret);
     }
     default:
-        break;
+        return "";
     }
 
-    string_trim(ret);
-    return ret;
 }
