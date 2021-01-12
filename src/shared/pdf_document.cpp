@@ -72,7 +72,6 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
     {
         for (auto &page : m_pages) {
             ret.append(to_string(page->text(poppler::rectf(), poppler_mode)));
-            ret += '\n';
         }
         break;
     }
