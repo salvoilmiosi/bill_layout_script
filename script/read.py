@@ -11,7 +11,7 @@ from pathlib import Path
 old_out = []
 
 app_dir = Path(sys.argv[0]).parent
-layout_reader = app_dir.joinpath('build/reader')
+layout_reader = app_dir.joinpath('../build/reader')
 
 def read_pdf(pdf_file):
     rel_path = pdf_file.relative_to(input_directory)
@@ -54,7 +54,7 @@ if len(sys.argv) < 3:
 
 input_directory = Path(sys.argv[1])
 output_file = Path(sys.argv[2])
-controllo = Path(sys.argv[3] if len(sys.argv) >= 4 else app_dir.joinpath('work/layouts/controllo.out'))
+controllo = Path(sys.argv[3] if len(sys.argv) >= 4 else app_dir.joinpath('../work/layouts/controllo.out'))
 
 try:
     nthreads = int(sys.argv[4]) if len(sys.argv) >= 5 else cpu_count()

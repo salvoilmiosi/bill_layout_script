@@ -1,7 +1,12 @@
+#!/bin/bash
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+
+cd "$parent_path"
+
 ./makelayouts.sh
 
-IN_DIR=work/fatture
-OUT_DIR=work/letture
+IN_DIR=../work/fatture
+OUT_DIR=../work/letture
 
 start=$(date +%s)
 
