@@ -3,7 +3,7 @@ import datetime
 import sys
 import json
 
-def skip_conguagli(json_data):
+def skip_conguagli(json_data, delete_conguagli = True):
     sorted_data = []
     for x in json_data:
         if 'error' in x:
@@ -27,9 +27,9 @@ def skip_conguagli(json_data):
         new_datafatt = datetime.datetime.strptime(x['values'][0]['data_fattura'][0], '%Y-%m-%d').date()
 
         if old_pod == new_pod and old_mesefatt == new_mesefatt and new_datafatt > old_datafatt:
-            print(x['filename'], new_pod, new_mesefatt, new_datafatt, '### Conguaglio')
-        else:
-            print(x['filename'], new_pod, new_mesefatt, new_datafatt)
+            x['conguaglio'] = True
+        
+        if not (delete_conguagli and 'conguaglio' in x):
             new_data.append(x)
 
         old_pod = new_pod

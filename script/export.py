@@ -7,6 +7,7 @@ from pathlib import Path
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import PatternFill, Border, Side
+from conguagli import skip_conguagli
 
 class TableValue:
     def __init__(self, title, value, index=0, type='str', number_format='', column_width=None, obligatory=False):
@@ -57,6 +58,8 @@ table_values = [
     TableValue('Disp. Var',             'disp_var',                  type='number', number_format='0.00000000', column_width=11)
 ]
 
+old_pod = None
+
 def export_file(input_file):
     out = []
     out_err = []
@@ -68,7 +71,9 @@ def export_file(input_file):
         if 'error' in json_data:
             out_err.append([filename, json_data['error']])
             return
+        
         for v in json_data['values']:
+            global old_pod
             row = []
 
             for obj in table_values:
@@ -101,10 +106,12 @@ def export_file(input_file):
                         else:
                             row.append({'value': '', 'number_format': ''})
 
-            out.append(row)
+            new_pod = v['codice_pod'] if 'codice_pod' in v else None
+            out.append({'row':row,'conguaglio':'conguaglio' in json_data,'new_pod':new_pod != old_pod})
+            old_pod = new_pod
 
     with open(input_file, 'r') as fin:
-        for r in json.loads(fin.read()):
+        for r in skip_conguagli(json.loads(fin.read()), False):
             add_rows(r)
 
     wb = Workbook()
@@ -115,28 +122,18 @@ def export_file(input_file):
         if obj.column_width != None:
             ws.column_dimensions[get_column_letter(i)].width = obj.column_width
 
-    indices = {x.title:i for i,x in enumerate(table_values)}
-
-    out.sort(key = lambda obj: (obj[indices['POD']]['value'], obj[indices['Mese']]['value'], obj[indices['Data Emissione']]['value']))
-
-    old_pod = None
-    old_date = None
     for i, row in enumerate(out, 2):
-        new_pod = row[indices['POD']]['value']
-        new_date = row[indices['Mese']]['value']
-        for j, c in enumerate(row, 1):
+        for j, c in enumerate(row['row'], 1):
             cell = ws.cell(row=i, column=j)
-            if old_pod != None and new_pod != old_pod:
+            if row['new_pod']:
                 cell.border = Border(top=Side(border_style='thin', color='000000'))
-            if new_date == old_date:
+            if row['conguaglio']:
                 cell.fill = PatternFill(patternType='solid', fgColor='ffff00')
             try:
                 cell.number_format = c['number_format']
                 cell.value = c['value']
             except (KeyError, IndexError, ValueError):
                 pass
-        old_pod = new_pod
-        old_date = new_date
 
     for row in out_err:
         ws.append(row)
