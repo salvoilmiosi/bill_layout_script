@@ -30,14 +30,9 @@ while True:
     if loginr['head']['status']['code'] == 1:
         break
 
-fix_conguagli = input('Fix Conguagli? S/n ').lower() in ('s','')
-
 def do_upload(f):
     with open(f, 'r') as file:
-        if fix_conguagli:
-            data = json.dumps(skip_conguagli(json.loads(file.read())))
-        else:
-            data = file.read()
+        data = json.dumps(skip_conguagli(json.loads(file.read()), delete_conguagli=True))
         uploadr = json.loads(session.put(address + '/zelda/fornitura.ws?f=importDatiFattureJSON', data).text)
         if (uploadr['head']['status']['code'] == 0):
             print(f)

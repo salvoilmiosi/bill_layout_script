@@ -3,14 +3,16 @@ import datetime
 import sys
 import json
 
-def skip_conguagli(json_data, delete_conguagli = True):
+def skip_conguagli(json_data, delete_conguagli = False):
     sorted_data = []
+    error_data = []
     for x in json_data:
         if 'error' in x:
+            error_data.append({'filename': x['filename'], 'error': x['error'], 'values': []})
             continue
         for v in x['values']:
             if all(y in v for y in ('mese_fattura', 'data_fattura', 'codice_pod')):
-                sorted_data.append({'filename': x['filename'], 'lastmodified': x['lastmodified'], 'layout': x['layout'], 'values': [v]})
+                sorted_data.append({'filename': x['filename'], 'layout': x['layout'], 'values': [v]})
         
     sorted_data.sort(key = lambda obj : (
         obj['values'][0]['codice_pod'][0],
@@ -35,6 +37,8 @@ def skip_conguagli(json_data, delete_conguagli = True):
         old_pod = new_pod
         old_mesefatt = new_mesefatt
         old_datafatt = new_datafatt
+
+    new_data.extend(error_data)
 
     return new_data
 

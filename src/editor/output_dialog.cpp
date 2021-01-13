@@ -100,9 +100,9 @@ wxThread::ExitCode reader_thread::Entry() {
         Json::Value json_output;
         proc_reader.stream_out >> json_output;
 
-        if (json_output["error"].asBool()) {
+        if (json_output.isMember("error")) {
             auto *evt = new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR);
-            evt->SetString(json_output["message"].asString());
+            evt->SetString(json_output["error"].asString());
             wxQueueEvent(parent, evt);
         } else {
             parent->json_output = json_output;

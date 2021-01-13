@@ -171,8 +171,8 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     Json::Value json_output;
     process.stream_out >> json_output;
 
-    if (json_output["error"].asBool()) {
-        wxMessageBox("Impossibile leggere l'output: " + json_output["message"].asString(), "Errore", wxOK | wxICON_ERROR);
+    if (json_output.isMember("error")) {
+        wxMessageBox("Impossibile leggere l'output: " + json_output["error"].asString(), "Errore", wxOK | wxICON_ERROR);
     } else {
         wxString output_layout = json_output["globals"]["layout"][0].asString();
         if (output_layout.empty()) {

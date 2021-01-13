@@ -23,7 +23,7 @@ def read_pdf(pdf_file):
             args = [layout_reader, '-p', pdf_file, controllo]
             proc = subprocess.run(args, capture_output=True, text=True)
             json_out = json.loads(proc.stdout)
-            if not json_out['error'] and 'layout' in json_out['globals']:
+            if not 'error' in json_out and 'layout' in json_out['globals']:
                 old_obj['layout'] = json_out['globals']['layout'][0]
         if 'layout' in old_obj and 'values' in old_obj:
             layout_file = controllo.parent.joinpath('{0}.out'.format(old_obj['layout']))
@@ -33,11 +33,11 @@ def read_pdf(pdf_file):
     args = [layout_reader, '-p', pdf_file, '-s', controllo]
     proc = subprocess.run(args, capture_output=True, text=True)
 
-    file_obj = {'filename':str(rel_path), 'lastmodified':os.stat(str(pdf_file)).st_mtime}
+    file_obj = {'filename':str(rel_path)}
     try:
         json_out = json.loads(proc.stdout)
-        if json_out['error']:
-            error_message = json_out['message']
+        if 'error' in json_out:
+            error_message = json_out['error']
             file_obj['error'] = error_message
             print(colored(f'{rel_path} ### {error_message}','red'))
         elif 'layout' in json_out['globals']:

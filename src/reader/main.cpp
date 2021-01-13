@@ -56,11 +56,9 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
 
 int MainApp::OnRun() {
     Json::Value result = Json::objectValue;
-    result["error"] = false;
 
     auto output_error = [&](const std::string &message) {
-        result["error"] = true;
-        result["message"] = message;
+        result["error"] = message;
         std::cout << result;
         return 1;
     };

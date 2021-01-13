@@ -21,7 +21,6 @@ class TableValue:
 
 table_values = [
     TableValue('File',                  'filename'),
-    TableValue('Ultima Modifica',       'lastmodified',             type='date'),
     TableValue('POD',                   'codice_pod', column_width=16,            obligatory=True),
     TableValue('Mese',                  'mese_fattura',             type='month', obligatory=True),
     TableValue('Fornitore',             'fornitore',                              obligatory=True),
@@ -66,7 +65,6 @@ def export_file(input_file):
 
     def add_rows(json_data):
         filename = json_data['filename']
-        lastmodified = json_data['lastmodified']
 
         if 'error' in json_data:
             out_err.append([filename, json_data['error']])
@@ -79,8 +77,6 @@ def export_file(input_file):
             for obj in table_values:
                 if obj.value == 'filename':
                     row.append({'value':filename, 'number_format': ''})
-                elif obj.value == 'lastmodified':
-                    row.append({'value':datetime.date.fromtimestamp(lastmodified), 'number_format':'DD/MM/YY'})
                 else:
                     try:
                         value = v[obj.value][obj.index]
@@ -111,7 +107,7 @@ def export_file(input_file):
             old_pod = new_pod
 
     with open(input_file, 'r') as fin:
-        for r in skip_conguagli(json.loads(fin.read()), False):
+        for r in skip_conguagli(json.loads(fin.read())):
             add_rows(r)
 
     wb = Workbook()
