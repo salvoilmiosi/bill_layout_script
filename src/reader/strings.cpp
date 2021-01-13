@@ -23,7 +23,7 @@ std::string parse_number(const std::string &str) {
 
 size_t string_findicase(std::string_view str, std::string_view str2, size_t index) {
     return std::distance(str.begin(), std::search(
-        str.begin(), str.end(),
+        str.begin() + index, str.end(),
         str2.begin(), str2.end(),
         [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
     ));

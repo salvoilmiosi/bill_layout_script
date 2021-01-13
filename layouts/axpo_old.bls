@@ -224,7 +224,7 @@ $goto(lettura_spese)
 ### Script
 $with(&_dettaglio) {
   $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")))
-  $setend($indexof(@,"TOT. \u20ac", 150))
+  $setend($indexof(@,"TOT. \u20ac", $indexof(@,"\n")))
 
   %imponibile=$search(@,/TOT\. \u20ac (%N)/)
 
