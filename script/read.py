@@ -9,6 +9,7 @@ from multiprocessing import cpu_count
 from pathlib import Path
 from termcolor import colored
 
+out = []
 old_out = []
 
 app_dir = Path(sys.argv[0]).parent
@@ -16,6 +17,8 @@ layout_reader = app_dir.joinpath('../build/reader')
 
 def read_pdf(pdf_file):
     rel_path = pdf_file.relative_to(input_directory)
+
+    ignore = False
 
     # Rilegge i vecchi file solo se il layout e' stato ricompilato
     for old_obj in filter(lambda x: x['filename'] == str(rel_path), old_out):
@@ -28,8 +31,11 @@ def read_pdf(pdf_file):
         if 'layout' in old_obj and 'values' in old_obj:
             layout_file = controllo.parent.joinpath('{0}.out'.format(old_obj['layout']))
             if os.path.getmtime(str(layout_file)) < os.path.getmtime(str(output_file)):
-                return old_obj
+                out.append(old_obj)
+                ignore = True
 
+    if ignore: return
+    
     args = [layout_reader, '-p', pdf_file, '-s', controllo]
     proc = subprocess.run(args, capture_output=True, text=True)
 
@@ -49,7 +55,7 @@ def read_pdf(pdf_file):
         file_obj['error'] = error_message
         print(colored(f'{rel_path} ### {error_message}','red'))
 
-    return file_obj
+    out.append(file_obj)
 
 if len(sys.argv) < 3:
     print('Argomenti richiesti: input_directory [output] [controllo] [nthreads]')
@@ -79,7 +85,7 @@ if not controllo.exists():
 files = list(input_directory.rglob('*.pdf'))
 
 with ThreadPool(min(len(files), nthreads)) as pool:
-    out = pool.map(read_pdf, files)
+    pool.map(read_pdf, files)
 
 with open(output_file, 'w') as fout:
     fout.write(json.dumps(out))
