@@ -7,6 +7,7 @@ import os
 from multiprocessing.pool import ThreadPool
 from multiprocessing import cpu_count
 from pathlib import Path
+from termcolor import colored
 
 old_out = []
 
@@ -37,14 +38,14 @@ def read_pdf(pdf_file):
         json_out = json.loads(proc.stdout)
         if json_out['error']:
             file_obj['error'] = json_out['message']
-            print(f'### Errore {rel_path}')
+            print(colored(f'{rel_path} ### Errore','red'))
         elif 'layout' in json_out['globals']:
             file_obj['layout'] = json_out['globals']['layout'][0]
             file_obj['values'] = json_out['values']
             print(rel_path)
     except:
         file_obj['error'] = f'errore {proc.returncode}'
-        print(f'### Errore {rel_path}')
+        print(colored(f'{rel_path} ### Errore','red'))
 
     return file_obj
 
