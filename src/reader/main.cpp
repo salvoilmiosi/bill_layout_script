@@ -140,12 +140,11 @@ int MainApp::OnRun() {
         }
     } catch (const layout_error &error) {
         return output_error(error.message);
-    }
-#ifdef NDEBUG
-    catch (...) {
+    } catch (const std::exception &error) {
+        return output_error(error.what());
+    } catch (...) {
         return output_error("Errore sconosciuto");
     }
-#endif
 
     m_reader.save_output(result, debug);
     std::cout << result;

@@ -37,15 +37,17 @@ def read_pdf(pdf_file):
     try:
         json_out = json.loads(proc.stdout)
         if json_out['error']:
-            file_obj['error'] = json_out['message']
-            print(colored(f'{rel_path} ### Errore','red'))
+            error_message = json_out['message']
+            file_obj['error'] = error_message
+            print(colored(f'{rel_path} ### {error_message}','red'))
         elif 'layout' in json_out['globals']:
             file_obj['layout'] = json_out['globals']['layout'][0]
             file_obj['values'] = json_out['values']
             print(rel_path)
     except:
-        file_obj['error'] = f'errore {proc.returncode}'
-        print(colored(f'{rel_path} ### Errore','red'))
+        error_message = f'Return code {proc.returncode}'
+        file_obj['error'] = error_message
+        print(colored(f'{rel_path} ### {error_message}','red'))
 
     return file_obj
 
