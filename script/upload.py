@@ -39,7 +39,10 @@ def do_upload(f):
         else:
             data = file.read()
         uploadr = json.loads(session.put(address + '/zelda/fornitura.ws?f=importDatiFattureJSON', data).text)
-        print(f, uploadr['head']['status']['type'])
+        if (uploadr['head']['status']['code'] == 0):
+            print(f)
+        else:
+            print(f, uploadr['head']['status']['message'])
 
 if input('Proseguire? S/n ').lower() in ('s',''):
     if in_path.is_dir():
