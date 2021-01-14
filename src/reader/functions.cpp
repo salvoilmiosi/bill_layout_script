@@ -31,42 +31,36 @@ template<typename T> constexpr bool is_convertible = requires(variable &v) {
     convert_var<T>(v);
 };
 
-template<typename T> constexpr bool is_variable =
+template<typename T> using convert_type = std::conditional_t<
+    is_convertible<std::add_lvalue_reference_t<std::decay_t<T>>>,
+        std::add_lvalue_reference_t<std::decay_t<T>>,
+        std::decay_t<T>>;
+
+template<typename T> struct is_variable : std::bool_constant<
     is_convertible<std::decay_t<T>> ||
-    is_convertible<std::add_lvalue_reference_t<std::decay_t<T>>>;
+    is_convertible<std::add_lvalue_reference_t<std::decay_t<T>>>> {};
 
-template<typename T> struct is_optional_impl {
-    static constexpr bool value = false;
-};
-template<typename T> struct is_optional_impl<optional<T>> {
-    static constexpr bool value = is_variable<T>;
-};
-template<typename T> constexpr bool is_optional = is_optional_impl<std::decay_t<T>>::value;
+template<typename T> struct is_optional : std::false_type {};
+template<typename T> struct is_optional<optional<T>> : std::bool_constant<is_variable<T>{}> {};
 
-template<typename T> struct is_vector_impl {
-    static constexpr bool value = false;
-};
-template<typename T> struct is_vector_impl<vector<T>> {
-    static constexpr bool value = is_variable<T>;
-};
-template<typename T> constexpr bool is_vector = is_vector_impl<std::decay_t<T>>::value;
-
-template<size_t N, typename First, typename ... Ts> struct get_nth {
-    using type = typename get_nth<N-1, Ts ...>::type;
-};
-
-template<typename First, typename ... Ts> struct get_nth<0, First, Ts ...> {
-    using type = First;
-};
+template<typename T> struct is_vector : std::false_type {};
+template<typename T> struct is_vector<vector<T>> : std::bool_constant<is_variable<T>{}> {};
 
 template<typename ... Ts> struct type_list {
     static constexpr size_t size = sizeof...(Ts);
-    template<size_t I> using get = typename get_nth<I, Ts ...>::type;
 };
 
-template<> struct type_list<> {
-    static constexpr size_t size = 0;
+template<size_t N, typename TypeList> struct get_nth {};
+
+template<size_t N, typename First, typename ... Ts> struct get_nth<N, type_list<First, Ts...>> {
+    using type = typename get_nth<N-1, type_list<Ts ...>>::type;
 };
+
+template<typename First, typename ... Ts> struct get_nth<0, type_list<First, Ts ...>> {
+    using type = First;
+};
+
+template<size_t I, typename TypeList> using get_nth_t = typename get_nth<I, TypeList>::type;
 
 template<bool Req, typename ... Ts> struct check_args_impl {};
 template<bool Req> struct check_args_impl<Req> {
@@ -79,9 +73,9 @@ template<bool Req> struct check_args_impl<Req> {
 template<bool Req, typename First, typename ... Ts>
 class check_args_impl<Req, First, Ts ...> {
 private:
-    static constexpr bool var = is_variable<First>;
-    static constexpr bool opt = is_optional<First>;
-    static constexpr bool vec = is_vector<First>;
+    static constexpr bool var = is_variable<First>{};
+    static constexpr bool opt = is_optional<First>{};
+    static constexpr bool vec = is_vector<First>{};
 
     // Req è false se è stato trovato un optional<T>
     using recursive = check_args_impl<Req ? var : !opt, Ts ...>;
@@ -98,13 +92,6 @@ public:
     static constexpr bool valid = vec ? sizeof...(Ts) == 0 : (Req || opt) && recursive::valid;
 };
 
-using arg_list = std::span<variable>;
-
-template<typename T> using convert_type = std::conditional_t<
-    is_convertible<std::add_lvalue_reference_t<std::decay_t<T>>>,
-        std::add_lvalue_reference_t<std::decay_t<T>>,
-        std::decay_t<T>>;
-
 template<typename Function> struct check_args {};
 template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : public check_args_impl<true, Ts ...> {
     using types = type_list<Ts ...>;
@@ -119,16 +106,18 @@ constexpr vector<T> transformed_vector(InputIt begin, InputIt end, Function fun)
     return ret;
 }
 
-template<typename TypeList, size_t I> inline typename TypeList::get<I> get_arg(arg_list &args) {
-    using type = convert_type<typename TypeList::get<I>>;
-    if constexpr (is_optional<type>) {
+using arg_list = std::span<variable>;
+
+template<typename TypeList, size_t I> inline get_nth_t<I, TypeList> get_arg(arg_list &args) {
+    using type = convert_type<get_nth_t<I, TypeList>>;
+    if constexpr (is_optional<type>{}) {
         using opt_type = typename type::value_type;
         if (I >= args.size()) {
             return std::nullopt;
         } else {
             return std::move(convert_var<convert_type<opt_type>>(args[I]));
         }
-    } else if constexpr (is_vector<type>) {
+    } else if constexpr (is_vector<type>{}) {
         using vec_type = typename type::value_type;
         return transformed_vector<vec_type>(args.begin() + I, args.end(), convert_var<convert_type<vec_type>>);
     } else {
@@ -137,7 +126,7 @@ template<typename TypeList, size_t I> inline typename TypeList::get<I> get_arg(a
 }
 
 template<typename TypeList, typename Function, std::size_t ... Is>
-constexpr variable exec_helper(Function fun, arg_list &args, std::index_sequence<Is ...>) {
+inline variable exec_helper(Function fun, arg_list &args, std::index_sequence<Is ...>) {
     return fun(get_arg<TypeList, Is>(args)...);
 }
 
