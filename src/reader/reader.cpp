@@ -61,6 +61,10 @@ void reader::exec_command(const command_args &cmd) {
         break;
     }
     case opcode::THROWERR: throw layout_error(m_con.vars.top().str()); break;
+    case opcode::ADDWARNING:
+        m_warnings.push_back(std::move(m_con.vars.top().str()));
+        m_con.vars.pop();
+        break;
     case opcode::PARSENUM:
         if (m_con.vars.top().type() == VAR_STRING) {
             m_con.vars.top() = variable::str_to_number(parse_number(m_con.vars.top().str()));
@@ -275,5 +279,11 @@ void reader::save_output(Json::Value &root, bool debug) {
     Json::Value &values = root["values"] = Json::arrayValue;
     for (auto &v : m_values) {
         values.append(write_values(v));
+    }
+
+    for (auto &v : m_warnings) {
+        Json::Value &warnings = root["warnings"];
+        if (warnings.isNull()) warnings = Json::arrayValue;
+        warnings.append(v);
     }
 }

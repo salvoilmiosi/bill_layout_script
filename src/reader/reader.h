@@ -60,6 +60,7 @@ private:
 private:
     variable_map m_globals;
     std::vector<variable_map> m_values;
+    std::vector<std::string> m_warnings;
 
 private:
     pdf_document m_doc;

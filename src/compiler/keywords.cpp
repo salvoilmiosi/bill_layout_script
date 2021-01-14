@@ -163,6 +163,12 @@ void parser::read_keyword() {
         tokens.require(TOK_PAREN_END);
         add_line("THROWERR");
         break;
+    case hash("warning"):
+        tokens.require(TOK_PAREN_BEGIN);
+        read_expression();
+        tokens.require(TOK_PAREN_END);
+        add_line("ADDWARNING");
+        break;
     case hash("skip"):
         tokens.require(TOK_PAREN_BEGIN);
         tokens.require(TOK_PAREN_END);

@@ -85,6 +85,7 @@ bytecode read_lines(const std::vector<std::string> &lines) {
             }
             case hash("MVBOX"):         ret.add_command(opcode::MVBOX, std::stoi(arg_str)); break;
             case hash("THROWERR"):      ret.add_command(opcode::THROWERR); break;
+            case hash("ADDWARNING"):    ret.add_command(opcode::ADDWARNING); break;
             case hash("PARSENUM"):      ret.add_command(opcode::PARSENUM); break;
             case hash("PARSEINT"):      ret.add_command(opcode::PARSEINT); break;
             case hash("EQ"):            ret.add_command(opcode::EQ); break;

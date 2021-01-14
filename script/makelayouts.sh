@@ -10,7 +10,7 @@ mkdir -p $OUT_DIR
 for f in $IN_DIR/*.bls; do
     out_file="$OUT_DIR/$(basename "$f" .bls).out"
     if [[ "$f" -nt "$out_file" ]]; then
-        echo "Compiling $(basename "$f")"
+        echo "Compilo $(basename "$f")"
         ../build/compiler -o "$out_file" "$f"
     fi
 done

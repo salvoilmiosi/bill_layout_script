@@ -14,6 +14,7 @@ enum class opcode : uint8_t {
     SETPAGE,    // byte page -- m_ate = page > num pdf pages
     CALL,       // string fun_name, byte numargs -- var_stack * numargs -> fun_name -> var_stack
     THROWERR,   // var_stack -> throw
+    ADDWARNING, // var_stack -> warnings
     PARSENUM,   // var_stack -> parse_num -> var_stack
     PARSEINT,   // var_stack -> parse_int -> var_stack
     EQ,         // var_stack * 2 -> a == b -> var_stack
