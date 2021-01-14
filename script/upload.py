@@ -4,7 +4,6 @@ import requests
 import json
 from pathlib import Path
 from getpass import getpass
-from conguagli import skip_conguagli
 import urllib3
 
 login = {'f':'login'}
@@ -30,9 +29,15 @@ while True:
     if loginr['head']['status']['code'] == 1:
         break
 
+delete_conguagli = input('Salta conguagli? S/n').lower() in ('s','')
+
 def do_upload(f):
     with open(f, 'r') as file:
-        data = json.dumps(skip_conguagli(json.loads(file.read()), delete_conguagli=True))
+        data = json.loads(file.read())
+        if delete_conguagli:
+            for x in data:
+                if 'conguaglio' in x:
+                    x['values'] = []
         uploadr = json.loads(session.put(address + '/zelda/fornitura.ws?f=importDatiFattureJSON', data).text)
         if (uploadr['head']['status']['code'] == 0):
             print(f)

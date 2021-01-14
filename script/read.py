@@ -9,19 +9,55 @@ from multiprocessing import cpu_count
 from pathlib import Path
 from termcolor import colored
 
-out = []
-old_out = []
+in_data = []
+results = []
 
 app_dir = Path(sys.argv[0]).parent
 layout_reader = app_dir.joinpath('../build/reader')
 
+def check_conguagli():
+    sorted_data = []
+    error_data = []
+    for x in results:
+        if 'error' in x:
+            error_data.append({'filename': x['filename'], 'error': x['error'], 'values': []})
+            continue
+        for v in x['values']:
+            if all(y in v for y in ('mese_fattura', 'data_fattura', 'codice_pod')):
+                sorted_data.append({'filename': x['filename'], 'layout': x['layout'], 'values': [v]})
+        
+    sorted_data.sort(key = lambda obj : (
+        obj['values'][0]['codice_pod'][0],
+        datetime.datetime.strptime(obj['values'][0]['mese_fattura'][0], '%Y-%m').date(),
+        datetime.datetime.strptime(obj['values'][0]['data_fattura'][0], '%Y-%m-%d').date()))
+    new_data = []
+
+    old_pod = None
+    old_mesefatt = None
+    old_datafatt = None
+    for x in sorted_data:
+        new_pod = x['values'][0]['codice_pod'][0]
+        new_mesefatt = datetime.datetime.strptime(x['values'][0]['mese_fattura'][0], '%Y-%m').date()
+        new_datafatt = datetime.datetime.strptime(x['values'][0]['data_fattura'][0], '%Y-%m-%d').date()
+
+        if old_pod == new_pod and old_mesefatt == new_mesefatt and new_datafatt > old_datafatt:
+            x['conguaglio'] = True
+        
+        new_data.append(x)
+
+        old_pod = new_pod
+        old_mesefatt = new_mesefatt
+        old_datafatt = new_datafatt
+
+    return new_data + error_data
+
 def read_pdf(pdf_file):
     rel_path = pdf_file.relative_to(input_directory)
 
-    ignore = False
-
     # Rilegge i vecchi file solo se il layout e' stato ricompilato
-    for old_obj in filter(lambda x: x['filename'] == str(rel_path), old_out):
+    ignore = False
+    
+    for old_obj in filter(lambda x: x['filename'] == str(rel_path), in_data):
         if not 'layout' in old_obj:
             args = [layout_reader, '-p', pdf_file, controllo]
             proc = subprocess.run(args, capture_output=True, text=True)
@@ -31,7 +67,7 @@ def read_pdf(pdf_file):
         if 'layout' in old_obj and 'values' in old_obj:
             layout_file = controllo.parent.joinpath('{0}.out'.format(old_obj['layout']))
             if os.path.getmtime(str(layout_file)) < os.path.getmtime(str(output_file)):
-                out.append(old_obj)
+                results.append(old_obj)
                 ignore = True
 
     if ignore: return
@@ -55,7 +91,7 @@ def read_pdf(pdf_file):
         file_obj['error'] = error_message
         print(colored(f'{rel_path} ### {error_message}','red'))
 
-    out.append(file_obj)
+    results.append(file_obj)
 
 if len(sys.argv) < 3:
     print('Argomenti richiesti: input_directory [output] [controllo] [nthreads]')
@@ -72,7 +108,7 @@ except NotImplementedError:
 
 if output_file.exists():
     with open(output_file, 'r') as fin:
-        old_out = json.loads(fin.read())
+        in_data = json.loads(fin.read())
 
 if not input_directory.exists():
     print(f'La directory {input_directory} non esiste')
@@ -88,4 +124,4 @@ with ThreadPool(min(len(files), nthreads)) as pool:
     pool.map(read_pdf, files)
 
 with open(output_file, 'w') as fout:
-    fout.write(json.dumps(out))
+    fout.write(json.dumps(check_conguagli()))

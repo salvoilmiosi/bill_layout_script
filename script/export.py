@@ -7,7 +7,6 @@ from pathlib import Path
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import PatternFill, Border, Side
-from conguagli import skip_conguagli
 
 class TableValue:
     def __init__(self, title, value, index=0, type='str', number_format='', column_width=None, obligatory=False):
@@ -107,7 +106,7 @@ def export_file(input_file):
             old_pod = new_pod
 
     with open(input_file, 'r') as fin:
-        for r in skip_conguagli(json.loads(fin.read())):
+        for r in json.loads(fin.read()):
             add_rows(r)
 
     wb = Workbook()
