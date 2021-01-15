@@ -31,20 +31,17 @@ template<typename T> constexpr bool is_convertible = requires(variable &v) {
     convert_var<T>(v);
 };
 
-template<typename T> using convert_type = std::conditional_t<
-    is_convertible<std::add_lvalue_reference_t<std::decay_t<T>>>,
-        std::add_lvalue_reference_t<std::decay_t<T>>,
-        std::decay_t<T>>;
-
 template<typename T> struct is_variable : std::bool_constant<
     is_convertible<std::decay_t<T>> ||
     is_convertible<std::add_lvalue_reference_t<std::decay_t<T>>>> {};
 
-template<typename T> struct is_optional : std::false_type {};
-template<typename T> struct is_optional<optional<T>> : std::bool_constant<is_variable<T>{}> {};
+template<typename T> struct is_optional_impl : std::false_type {};
+template<typename T> struct is_optional_impl<optional<T>> : std::bool_constant<is_variable<T>{}> {};
+template<typename T> struct is_optional : is_optional_impl<std::decay_t<T>> {};
 
-template<typename T> struct is_vector : std::false_type {};
-template<typename T> struct is_vector<vector<T>> : std::bool_constant<is_variable<T>{}> {};
+template<typename T> struct is_vector_impl : std::false_type {};
+template<typename T> struct is_vector_impl<vector<T>> : std::bool_constant<is_variable<T>{}> {};
+template<typename T> struct is_vector : is_vector_impl<std::decay_t<T>> {};
 
 template<typename ... Ts> struct type_list {
     static constexpr size_t size = sizeof...(Ts);
@@ -93,7 +90,7 @@ public:
 };
 
 template<typename Function> struct check_args {};
-template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : public check_args_impl<true, Ts ...> {
+template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : check_args_impl<true, Ts ...> {
     using types = type_list<Ts ...>;
 };
 
@@ -107,6 +104,11 @@ constexpr vector<T> transformed_vector(InputIt begin, InputIt end, Function fun)
 }
 
 using arg_list = std::span<variable>;
+
+template<typename T> using convert_type = std::conditional_t<
+    is_convertible<std::add_lvalue_reference_t<std::decay_t<T>>>,
+        std::add_lvalue_reference_t<std::decay_t<T>>,
+        std::decay_t<T>>;
 
 template<typename TypeList, size_t I> inline get_nth_t<I, TypeList> get_arg(arg_list &args) {
     using type = convert_type<get_nth_t<I, TypeList>>;
