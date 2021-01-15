@@ -29,7 +29,7 @@ $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
 p+::page_offset
 ### End Spacers
 ### Script
-$ifnot($contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA") || $ate()) {
+$ifnot($ate() || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
   ::_dettaglio+=@
   ::_dettaglio+="\n"
   ::page_offset+=1

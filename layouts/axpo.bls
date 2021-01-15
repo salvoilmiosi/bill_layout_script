@@ -213,13 +213,11 @@ p+::page_offset
 ### Script
 ::page_offset+=1
 ::pod_offset=1
-$ifnot($ate()) {
-  $if($contains(@,"DATI FORNITURA")) {
-    $newvalues()
-    $goto(nome_fornitore)
-  } $else {
-    $goto(quadro_dettaglio)
-  }
+$if($contains(@,"DATI FORNITURA")) {
+  $newvalues()
+  $goto(nome_fornitore)
+} $elif(! $ate()) {
+  $goto(quadro_dettaglio)
 }
 ### End Script
 ### End Box

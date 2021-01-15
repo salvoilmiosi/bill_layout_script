@@ -123,7 +123,7 @@ numero_cliente = $search(@,/Codice cliente: (.+)\n/)
 p+::next_page
 ### End Spacers
 ### Script
-$ifnot($contains(@,"Comunicazioni finali")) {
+$ifnot($ate() || $contains(@,"Comunicazioni finali")) {
   _dettaglio+=@
   _dettaglio+="\n"
   ::next_page+=1

@@ -31,7 +31,7 @@ p+::offset_dettaglio
 ### End Spacers
 ### Script
 $if ($ate()) {
-  $error("Layout Invalido: Dettaglio Importi Mancante")
+  $error("Layout Invalido")
 } $elif (@ != "DETTAGLIO IMPORTI IN BOLLETTA") {
   ::offset_dettaglio+=1
   $goto(calcolo_offset)

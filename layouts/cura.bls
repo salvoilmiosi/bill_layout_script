@@ -187,7 +187,7 @@ p+::page_offset
 ### Script
 ::pod_offset=1
 ::page_offset+=1
-$if($contains(@,"RIEPILOGO IMPORTI") || $ate()) {
+$if($ate() || $contains(@,"RIEPILOGO IMPORTI")) {
   $goto(dati_costi)
 } $elif($contains(@,"DATI FORNITURA")) {
   $newvalues()

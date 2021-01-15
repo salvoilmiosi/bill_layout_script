@@ -201,7 +201,7 @@ $if(::spacer_multipod) {
 p+ ::spacer_multipod + ::next_page
 ### End Spacers
 ### Script
-$if($contains(@,"Comunicazioni") || $contains(@,"Dati di fornitura") || $ate()) {
+$if($ate() || $contains(@,"Comunicazioni") || $contains(@,"Dati di fornitura")) {
   $goto(parsing_spese)
 }
 _dettaglio+=@
