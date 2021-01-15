@@ -16,21 +16,26 @@ app_dir = Path(sys.argv[0]).parent
 layout_reader = app_dir.joinpath('../build/reader')
 
 def check_conguagli():
+    global results
     sorted_data = []
     error_data = []
     for x in results:
         if 'error' in x:
             error_data.append({'filename': x['filename'], 'error': x['error'], 'values': []})
             continue
+        if len(x['values']) == 0:
+            error_data.append({'filename': x['filename'], 'error': 'Output vuoto', 'values': []})
+            continue
         for v in x['values']:
             if all(y in v for y in ('mese_fattura', 'data_fattura', 'codice_pod')):
                 sorted_data.append({'filename': x['filename'], 'layout': x['layout'], 'values': [v]})
+            else:
+                error_data.append({'filename': x['filename'], 'error': 'Dati mancanti', 'values': []})
         
     sorted_data.sort(key = lambda obj : (
         obj['values'][0]['codice_pod'][0],
         datetime.datetime.strptime(obj['values'][0]['mese_fattura'][0], '%Y-%m').date(),
         datetime.datetime.strptime(obj['values'][0]['data_fattura'][0], '%Y-%m-%d').date()))
-    new_data = []
 
     old_pod = None
     old_mesefatt = None
@@ -42,14 +47,12 @@ def check_conguagli():
 
         if old_pod == new_pod and old_mesefatt == new_mesefatt and new_datafatt > old_datafatt:
             x['conguaglio'] = True
-        
-        new_data.append(x)
 
         old_pod = new_pod
         old_mesefatt = new_mesefatt
         old_datafatt = new_datafatt
 
-    return new_data + error_data
+    results = sorted_data + error_data
 
 def read_pdf(pdf_file):
     rel_path = pdf_file.relative_to(input_directory)
@@ -80,19 +83,21 @@ def read_pdf(pdf_file):
         json_out = json.loads(proc.stdout)
         if 'error' in json_out:
             file_obj['error'] = json_out['error']
-            print(rel_path, colored('### ' + json_out['error'],'red'))
+            print(colored('{0} ### {1}'.format(rel_path, json_out['error']),'red'))
         else:
             file_obj['values'] = json_out['values']
             if 'layout' in json_out['globals']:
                 file_obj['layout'] = json_out['globals']['layout'][0]
             if 'warnings' in json_out:
                 file_obj['warnings'] = json_out['warnings']
-                print(rel_path, colored('### ' + ', '.join(json_out['warnings']), 'yellow'))
+                print(colored('{0} ### {1}'.format(rel_path, ', '.join(json_out['warnings'])), 'yellow'))
+            elif 'layout' in file_obj:
+                print('{0} ### {1}'.format(rel_path, file_obj['layout']))
             else:
                 print(rel_path)
     except:
         file_obj['error'] = f'Return code {proc.returncode}'
-        print(rel_path, colored('### ' + file_obj['error'], 'red'))
+        print(colored('{0} ### {1}'.format(rel_path, file_obj['error']), 'blue'))
 
     results.append(file_obj)
 
@@ -126,5 +131,7 @@ files = list(input_directory.rglob('*.pdf'))
 with ThreadPool(min(len(files), nthreads)) as pool:
     pool.map(read_pdf, files)
 
+check_conguagli()
+
 with open(output_file, 'w') as fout:
-    fout.write(json.dumps(check_conguagli()))
+    fout.write(json.dumps(results))
