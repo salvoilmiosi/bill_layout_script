@@ -198,9 +198,6 @@ void frame_editor::openFile(const wxString &filename) {
     modified = false;
     ifs.close();
     history.clear();
-    if (wxFileExists(m_doc.filename())) {
-        loadPdf(m_doc.filename());
-    }
     updateLayout();
     
     auto it = std::find(recentFiles.begin(), recentFiles.end(), wxString(layout_filename));

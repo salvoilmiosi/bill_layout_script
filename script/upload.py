@@ -4,17 +4,14 @@ import requests
 import json
 from pathlib import Path
 from getpass import getpass
+from termcolor import colored
 import urllib3
 
 login = {'f':'login'}
 
 address = 'https://portale.bollettaetica.com'
 
-if len(sys.argv) <= 1:
-    print('Specificare cartella di input')
-    exit(0)
-
-in_path = Path(sys.argv[1])
+in_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(sys.argv[0]).parent.joinpath('../work/letture')
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -38,11 +35,12 @@ def do_upload(f):
             for x in data:
                 if 'conguaglio' in x:
                     x['values'] = []
-        uploadr = json.loads(session.put(address + '/zelda/fornitura.ws?f=importDatiFattureJSON', data).text)
+        response = session.put(address + '/zelda/fornitura.ws?f=importDatiFattureJSON', json.dumps(data))
+        uploadr = json.loads(response.text)
         if (uploadr['head']['status']['code'] == 0):
             print(f)
         else:
-            print(f, uploadr['head']['status']['message'])
+            print(f, colored(uploadr['head']['status']['message'],'red'))
 
 if input('Proseguire? S/n ').lower() in ('s',''):
     if in_path.is_dir():

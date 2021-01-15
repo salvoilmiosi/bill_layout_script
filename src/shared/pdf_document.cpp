@@ -5,8 +5,6 @@
 
 #include <fmt/format.h>
 
-#include <poppler/cpp/poppler-page.h>
-
 #include "subprocess.h"
 #include "utils.h"
 
@@ -19,16 +17,14 @@ void pdf_document::open(const std::string &filename) {
     m_filename = filename;
 
     m_pages.clear();
-    m_num_pages = m_document->pages();
-
-    for (size_t i=0; i<m_num_pages; ++i) {
+    for (size_t i=0; i < m_document->pages(); ++i) {
         m_pages.emplace_back(m_document->create_page(i));
     }
 }
 
 std::string pdf_document::get_text(const pdf_rect &rect) const {
     if (!isopen()) return "";
-    if (rect.page > m_num_pages) return "";
+    if (rect.page > num_pages()) return "";
 
     auto poppler_mode = [](read_mode mode) {
         switch (mode) {

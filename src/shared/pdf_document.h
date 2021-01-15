@@ -5,8 +5,8 @@
 #include <string>
 #include <memory>
 
-#include <poppler/cpp/poppler-document.h>
-#include <poppler/cpp/poppler-page.h>
+#include <poppler-document.h>
+#include <poppler-page.h>
 
 enum class box_type : uint8_t              { BOX_RECTANGLE, BOX_PAGE, BOX_FILE, BOX_NO_READ };
 constexpr const char *box_type_strings[] = { "RECTANGLE",   "PAGE",   "FILE",   "NOREAD" };
@@ -40,7 +40,7 @@ public:
     std::string get_text(const pdf_rect &rect) const;
 
     const std::string &filename() const { return m_filename; }
-    int num_pages() const { return m_num_pages; }
+    int num_pages() const { return m_pages.size(); }
 
     const poppler::page &get_page(int page) const {
         return *m_pages[page - 1];
@@ -48,7 +48,6 @@ public:
     
 private:
     std::string m_filename;
-    int m_num_pages = 0;
 
     std::unique_ptr<poppler::document> m_document;
     std::vector<std::unique_ptr<poppler::page>> m_pages;

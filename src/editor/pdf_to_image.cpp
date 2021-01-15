@@ -2,7 +2,7 @@
 
 #include <wx/filename.h>
 
-#include <poppler/cpp/poppler-page-renderer.h>
+#include <poppler-page-renderer.h>
 
 #include <cstring>
 
