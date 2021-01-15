@@ -23,9 +23,6 @@ def check_conguagli():
         if 'error' in x:
             error_data.append({'filename': x['filename'], 'error': x['error'], 'values': []})
             continue
-        if len(x['values']) == 0:
-            error_data.append({'filename': x['filename'], 'error': 'Output vuoto', 'values': []})
-            continue
         for v in x['values']:
             if all(y in v for y in ('mese_fattura', 'data_fattura', 'codice_pod')):
                 sorted_data.append({'filename': x['filename'], 'layout': x['layout'], 'values': [v]})
