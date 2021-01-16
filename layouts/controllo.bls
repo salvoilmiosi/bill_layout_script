@@ -18,6 +18,6 @@ $elif($contains(@,"www.lenergia.eu")) ::layout="lenergia"
 $elif($contains(@,"Servizio Elettrico Nazionale SpA")) ::layout="sen"
 $elif($contains(@,"GREEN NETWORK S.p.A")) ::layout="greennetwork"
 $elif($contains(@,"MetaEnergia S.p.A")) ::layout="metaenergia"
-$else $warning("Impossibile determinare il layout")
+$else $warning("Nessun layout")
 ### End Script
 ### End Box
