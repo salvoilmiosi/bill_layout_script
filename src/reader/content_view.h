@@ -3,57 +3,71 @@
 
 #include <string>
 
+struct view_span {
+    size_t m_begin;
+    size_t m_end;
+
+    size_t size() const noexcept {
+        return m_end - m_begin;
+    }
+};
+
 class content_view {
 private:
     std::string m_text;
-    size_t m_begin = 0;
-    size_t m_end = std::string::npos;
-    bool tokenized = false;
+    std::vector<view_span> m_spans;
 
 public:
     template<typename T>
-    content_view(T &&text) : m_text(std::forward<T>(text)) {}
+    content_view(T &&text) : m_text(std::forward<T>(text)) {
+        m_spans.emplace_back(0, m_text.size());
+    }
 
     void setbegin(size_t n) {
-        m_begin += n;
+        m_spans.back().m_begin += n;
     }
 
     void setend(size_t n) {
-        if (n == std::string::npos) {
-            m_end = std::string::npos;
-        } else {
-            m_end = m_begin + n;
+        if (n < m_spans.back().size()) {
+            m_spans.back().m_end = m_spans.back().m_begin + n;
         }
     }
 
+    void new_view() {
+        m_spans.push_back(m_spans.back());
+    }
+
+    void new_tokens() {
+        m_spans.emplace_back(m_spans.back().m_begin, m_spans.back().m_begin);
+    }
+
     void reset_view() {
-        m_begin = 0;
-        m_end = std::string::npos;
-        tokenized = false;
+        if (m_spans.size() > 1) {
+            m_spans.pop_back();
+        }
     }
     
     void next_token(const std::string &separator) {
-        if (!tokenized) {
-            m_end = m_begin;
-            tokenized = true;
-        }
-        m_begin = m_text.find_first_not_of(separator, m_end);
-        if (m_begin == std::string::npos) {
-            m_end = std::string::npos;
-        } else {
-            m_end = m_text.find_first_of(separator, m_begin);
+        if (m_spans.size() > 1) {
+            m_spans.back().m_begin = m_text.find_first_not_of(separator, m_spans.back().m_end);
+            if (token_end()) {
+                m_spans.back().m_begin = m_spans.back().m_end = m_spans[m_spans.size() - 2].m_end;
+            } else {
+                m_spans.back().m_end = std::min(
+                    m_text.find_first_of(separator, m_spans.back().m_begin),
+                    m_spans[m_spans.size() - 2].m_end);
+            }
         }
     }
 
     bool token_end() {
-        return m_begin >= m_text.size();
+        return m_spans.size() > 1 && m_spans.back().m_begin >= m_spans[m_spans.size() - 2].m_end;
     }
 
     std::string_view view() const {
         return std::string_view(
-            m_text.c_str() + std::min(m_begin, m_text.size()),
-            m_text.c_str() + std::min(m_end, m_text.size())
-        );
+            m_text.data() + m_spans.back().m_begin,
+            m_spans.back().size());
     }
 };
 

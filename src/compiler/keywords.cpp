@@ -99,17 +99,25 @@ void parser::read_keyword() {
     {
         std::string lines_label = fmt::format("__lines_{0}", output_asm.size());
         std::string endlines_label = fmt::format("__endlines_{0}", output_asm.size());
-        tokens.require(TOK_PAREN_BEGIN);
-        read_expression();
-        tokens.require(TOK_PAREN_END);
-        add_line("MOVCONTENT");
+        bool pushed_content = false;
+        if (tokens.check_next(TOK_PAREN_BEGIN)) {
+            read_expression();
+            tokens.require(TOK_PAREN_END);
+            add_line("MOVCONTENT");
+            pushed_content = true;
+        }
+        add_line("NEWTOKENS");
         add_line("LABEL {0}", lines_label);
         add_line("NEXTLINE");
         add_line("JTE {0}", endlines_label);
         read_statement();
         add_line("JMP {0}", lines_label);
         add_line("LABEL {0}", endlines_label);
-        add_line("POPCONTENT");
+        if (pushed_content) {
+            add_line("POPCONTENT");
+        } else {
+            add_line("RESETVIEW");
+        }
         break;
     }
     case hash("with"):
@@ -124,6 +132,7 @@ void parser::read_keyword() {
     }
     case hash("between"):
     {
+        add_line("NEWVIEW");
         tokens.require(TOK_PAREN_BEGIN);
         add_line("PUSHVIEW");
         read_expression();
@@ -141,19 +150,27 @@ void parser::read_keyword() {
     }
     case hash("tokens"):
     {
-        tokens.require(TOK_PAREN_BEGIN);
-        read_expression();
-        tokens.require(TOK_PAREN_END);
-        add_line("MOVCONTENT");
+        bool pushed_content = false;
+        if (tokens.check_next(TOK_PAREN_BEGIN)) {
+            read_expression();
+            tokens.require(TOK_PAREN_END);
+            add_line("MOVCONTENT");
+            pushed_content = true;
+        }
 
+        add_line("NEWTOKENS");
+        
         tokens.require(TOK_BRACE_BEGIN);
-
         while (!tokens.check_next(TOK_BRACE_END)) {
             add_line("NEXTTOKEN");
-
             read_statement();
         }
-        add_line("POPCONTENT");
+
+        if (pushed_content) {
+            add_line("POPCONTENT");
+        } else {
+            add_line("RESETVIEW");
+        }
         break;
     }
     case hash("setbegin"):
@@ -162,6 +179,11 @@ void parser::read_keyword() {
         read_expression();
         tokens.require(TOK_PAREN_END);
         add_line(fun_name == "setbegin" ? "SETBEGIN" : "SETEND");
+        break;
+    case hash("newview"):
+        add_line("NEWVIEW");
+        read_statement();
+        add_line("RESETVIEW");
         break;
     case hash("clear"):
         tokens.require(TOK_PAREN_BEGIN);

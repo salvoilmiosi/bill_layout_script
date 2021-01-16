@@ -231,7 +231,7 @@ data_scadenza=$date(@,"%d.%m.%Y")
 ### W 0.0751961619
 ### H 0.0570125431
 ### Script
-$tokens(@) {
+$tokens {
   %prezzo_energia[0] %prezzo_energia[1] %prezzo_energia[2]
 }
 ### End Script

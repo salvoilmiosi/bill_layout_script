@@ -226,6 +226,8 @@ void reader::exec_command(const command_args &cmd) {
         m_con.contents.top().setend(m_con.vars.top().as_int());
         m_con.vars.pop();
         break;
+    case opcode::NEWVIEW: m_con.contents.top().new_view(); break;
+    case opcode::NEWTOKENS: m_con.contents.top().new_tokens(); break;
     case opcode::RESETVIEW: m_con.contents.top().reset_view(); break;
     case opcode::NEXTLINE: m_con.contents.top().next_token("\n"); break;
     case opcode::NEXTTOKEN: m_con.contents.top().next_token("\t\n\v\f\r "); break;
