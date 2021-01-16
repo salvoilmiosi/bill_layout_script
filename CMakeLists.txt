@@ -9,19 +9,21 @@ pkg_check_modules(DEPS REQUIRED jsoncpp fmt poppler-cpp)
 find_package(wxWidgets REQUIRED COMPONENTS base)
 include(${wxWidgets_USE_FILE})
 
-include_directories(${DEPS_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/src/shared)
+include_directories(${DEPS_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/src/shared ${PROJECT_SOURCE_DIR}/subprocess/src)
+
+add_subdirectory(subprocess)
 
 include(src/shared/shared.cmake)
-add_library(shared SHARED ${SOURCES_SHARED})
-target_link_libraries(shared ${DEPS_LIBRARIES})
+add_library(layout SHARED ${SOURCES_SHARED})
+target_link_libraries(layout ${DEPS_LIBRARIES})
 
 include(src/compiler/compiler.cmake)
 add_executable(compiler ${SOURCES_COMPILER})
-target_link_libraries(compiler ${wxWidgets_LIBRARIES} shared)
+target_link_libraries(compiler ${wxWidgets_LIBRARIES} layout)
 
 include(src/reader/reader.cmake)
 add_executable(reader ${SOURCES_READER})
-target_link_libraries(reader ${wxWidgets_LIBRARIES} shared)
+target_link_libraries(reader ${wxWidgets_LIBRARIES} layout subprocess)
 
 function(embed_resource resource_file_name source_file_name variable_name)
 
@@ -60,4 +62,4 @@ find_package(wxWidgets REQUIRED COMPONENTS core stc)
 
 include(src/editor/editor.cmake)
 add_executable(editor ${SOURCES_EDITOR} ${ICONS_PNG_C} resources/resources.rc)
-target_link_libraries(editor ${wxWidgets_LIBRARIES} shared)
+target_link_libraries(editor ${wxWidgets_LIBRARIES} layout subprocess)
