@@ -25,6 +25,12 @@ public:
             m_end = m_begin + n;
         }
     }
+
+    void reset_view() {
+        m_begin = 0;
+        m_end = std::string::npos;
+        tokenized = false;
+    }
     
     void next_token(const std::string &separator) {
         if (!tokenized) {

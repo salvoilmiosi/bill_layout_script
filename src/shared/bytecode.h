@@ -58,6 +58,7 @@ enum class opcode : uint8_t {
     MOVCONTENT, // var_stack -> content_stack
     SETBEGIN,   // var_stack -> content_stack.top.setbegin
     SETEND,     // var_stack -> content_stack.top.setend
+    RESETVIEW,  // content_stack.top.resetview
     NEXTLINE,   // content_stack.top.next_token('\n')
     NEXTTOKEN,  // content_stack.top.next_token(' ')
     POPCONTENT, // content_stack.pop()

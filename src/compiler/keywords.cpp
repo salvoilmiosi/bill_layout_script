@@ -122,6 +122,23 @@ void parser::read_keyword() {
         add_line("POPCONTENT");
         break;
     }
+    case hash("between"):
+    {
+        tokens.require(TOK_PAREN_BEGIN);
+        add_line("PUSHVIEW");
+        read_expression();
+        add_line("CALL indexof,2");
+        add_line("SETBEGIN");
+        tokens.require(TOK_COMMA);
+        add_line("PUSHVIEW");
+        read_expression();
+        add_line("CALL indexof,2");
+        add_line("SETEND");
+        tokens.require(TOK_PAREN_END);
+        read_statement();
+        add_line("RESETVIEW");
+        break;
+    }
     case hash("tokens"):
     {
         tokens.require(TOK_PAREN_BEGIN);
