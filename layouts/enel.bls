@@ -296,12 +296,16 @@ $with(::_dettaglio) {
   %sbilanciamento=$search(@,$format(/Corrispettivo di Sbilanciamento dal \d\d\/$0.+kWh (%N)/,_mese))
   %accise=$search(@,$format(/Accisa sull'energia elettrica \(entro 200000\) dal \d\d\/$0.+kWh %N %N (%N)/,_mese))
 
-  $with($search(@,/SPESA PER L'ENERGIA([^]+Totale) spesa per l'energia/)) {
+  $with(@) {
+    $setbegin($indexof(@,"SPESA PER L'ENERGIA"))
+    $setend($indexof(@,"Totale spesa per l'energia"))
     $lines($searchall(@,$format(/al \d\d\/$0([^]+?)(dal|Totale)/,_mese))) {
       %spesa_materia_energia+=$search(@,/(%N)$/)
     }
   }
-  $with($search(@,/SPESA PER IL TRASPORTO DELL'ENERGIA ELETTRICA E LA GESTIONE DEL CONTATORE([^]+Totale) spesa per il trasporto/)) {
+  $with(@) {
+    $setbegin($indexof(@,"SPESA PER IL TRASPORTO DELL'ENERGIA ELETTRICA E LA GESTIONE DEL CONTATORE"))
+    $setend($indexof(@,"Totale spesa per il trasporto"))
     $with($searchall($nonewline(@),$format(/al \d\d\/$0([^]+?)(dal|Totale)/,_mese))) {
       $lines($searchall(@,/mesi.?1 (%N)/)) %trasporto_gestione+
       $lines($searchall(@,/\/kWh %N %N (%N)/)) %trasporto_gestione+
@@ -309,7 +313,9 @@ $with(::_dettaglio) {
       %potenza[0:3]=$search(@,/kW (%N)/)
     }
   }
-  $with($search(@,/SPESA ONERI DI SISTEMA([^]+Totale) spesa oneri di sistema/)) {
+  $with(@) {
+    $setbegin($indexof(@,"SPESA ONERI DI SISTEMA"))
+    $setend($indexof(@,"Totale spesa oneri di sistema"))
     $lines($searchall($nonewline(@),$format(/al \d\d\/$0([^]+?)(dal|Totale)/,_mese))) {
       %oneri+=$search(@,/mesi.?1 (%N)/)
       %oneri+=$search(@,/\/kWh %N %N (%N)/)
