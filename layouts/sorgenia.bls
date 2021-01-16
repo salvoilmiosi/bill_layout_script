@@ -308,7 +308,7 @@ $with(::_dettaglio) {
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
     ::calc_mese+=1
-    $newvalues()
+    $nexttable()
     $goto(nome_fornitore)
   }
 }

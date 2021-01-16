@@ -185,7 +185,7 @@ p+::page_offset
 ### Script
 $if($contains(@,"Dettaglio consumi")) {
   ::page_offset+=1
-  $newvalues()
+  $nexttable()
   $goto(nome_fornitore)
 }
 ### End Script

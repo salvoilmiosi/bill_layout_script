@@ -39,8 +39,8 @@ std::string string_format(std::string str, const std::vector<std::string> &fmt_a
 std::regex create_regex(const std::string &format) {
     try {
         return std::regex(format, std::regex::icase);
-    } catch (std::regex_error &) {
-        throw layout_error(fmt::format("Espressione regolare non valida: {}", format));
+    } catch (const std::regex_error &error) {
+        throw layout_error(fmt::format("Espressione regolare non valida: {0}\n{1}", format, error.what()));
     }
 }
 

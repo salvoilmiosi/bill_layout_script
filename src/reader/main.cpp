@@ -136,8 +136,6 @@ int MainApp::OnRun() {
                 ifs.close();
             }
         }
-    } catch (const layout_error &error) {
-        return output_error(error.message);
     } catch (const std::exception &error) {
         return output_error(error.what());
     } catch (...) {

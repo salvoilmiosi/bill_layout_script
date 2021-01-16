@@ -111,11 +111,8 @@ int MainApp::OnRun() {
             
             out_code = read_lines(lines);
         }
-    } catch (const layout_error &error) {
-        std::cerr << error.message << std::endl;
-        return 1;
-    } catch (const assembly_error &error) {
-        std::cerr << error.message << std::endl;
+    } catch (const std::exception &error) {
+        std::cerr << error.what() << std::endl;
         return 1;
     }
     

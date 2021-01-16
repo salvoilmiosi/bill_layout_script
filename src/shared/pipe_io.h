@@ -11,8 +11,8 @@
 
 constexpr size_t BUFSIZE = 4096;
 
-struct process_error {
-    std::string message;
+struct process_error : std::runtime_error {
+    process_error(const std::string &message) : std::runtime_error(message) {}
 };
 
 template<typename pipe_t>

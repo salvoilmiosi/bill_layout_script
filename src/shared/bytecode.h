@@ -1,7 +1,7 @@
 #ifndef __BYTECODE_H__
 #define __BYTECODE_H__
 
-#include <memory>
+#include <any>
 
 #include "layout.h"
 
@@ -61,7 +61,7 @@ enum class opcode : uint8_t {
     NEXTLINE,   // content_stack.top.next_token('\n')
     NEXTTOKEN,  // content_stack.top.next_token(' ')
     POPCONTENT, // content_stack.pop()
-    NEWVALUES,    // current_vmap++
+    NEXTTABLE,  // current_table++
     ATE,        // m_ate -> var_stack
     STRDATA=0xfd,// short len, (byte * len) data -- string data (strings are represented by 2 byte addresses)
     COMMENT=0xfe,// short len, (byte * len) data -- string debug data
@@ -98,18 +98,23 @@ struct variable_idx {
         name(name), index(index), range_len(range_len) {}
 };
 
-struct command_args {
-    const opcode command;
+class command_args {
+private:
+    opcode m_command;
+    std::any m_data;
 
-    const std::shared_ptr<void> data;
-
-    command_args(opcode command = opcode::NOP) : command(command) {}
+public:
+    command_args(opcode command = opcode::NOP) : m_command(command) {}
 
     template<typename T>
-    command_args(opcode command, T &&data) : command(command), data(std::make_shared<std::decay_t<T>>(std::forward<T>(data))) {}
+    command_args(opcode command, T &&data) : m_command(command), m_data(std::forward<T>(data)) {}
+
+    opcode command() const {
+        return m_command;
+    }
     
-    template<typename T> const T &get() const {
-        return *std::static_pointer_cast<T>(data);
+    template<typename T> T get() const {
+        return std::any_cast<T>(m_data);
     }
 };
 

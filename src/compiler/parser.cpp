@@ -14,7 +14,8 @@ void parser::read_layout(const bill_layout_script &layout) {
         }
         add_line("HLT");
     } catch (const parsing_error &error) {
-        throw layout_error(fmt::format("In {0}: {1}\n{2}", current_box->name, error.message, error.line));
+        throw layout_error(fmt::format("In {0}: {1}\n{2}", current_box->name,
+            error.what(), tokens.tokenLocationInfo(error.location())));
     }
 }
 
@@ -407,7 +408,7 @@ void parser::read_function() {
 
         auto call_op = [&](int should_be, auto & ... args) {
             if (num_args != should_be) {
-                throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", fun_name, should_be), tokens.getLocation(tok_fun_name));
+                throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", fun_name, should_be), tok_fun_name);
             }
             add_line(args...);
         };

@@ -72,7 +72,7 @@ bytecode read_lines(const std::vector<std::string> &lines) {
             }
             case hash("SETPAGE"):
             {
-                ret.add_command(opcode::SETPAGE, std::stoi(args[0]));
+                ret.add_command(opcode::SETPAGE, static_cast<small_int>(std::stoi(args[0])));
                 break;
             }
             case hash("CALL"):
@@ -83,7 +83,7 @@ bytecode read_lines(const std::vector<std::string> &lines) {
                 ret.add_command(opcode::CALL, std::move(call));
                 break;
             }
-            case hash("MVBOX"):         ret.add_command(opcode::MVBOX, std::stoi(arg_str)); break;
+            case hash("MVBOX"):         ret.add_command(opcode::MVBOX, static_cast<spacer_index>(std::stoi(arg_str))); break;
             case hash("THROWERR"):      ret.add_command(opcode::THROWERR); break;
             case hash("ADDWARNING"):    ret.add_command(opcode::ADDWARNING); break;
             case hash("PARSENUM"):      ret.add_command(opcode::PARSENUM); break;
@@ -151,14 +151,14 @@ bytecode read_lines(const std::vector<std::string> &lines) {
             case hash("NEXTLINE"):      ret.add_command(opcode::NEXTLINE); break;
             case hash("NEXTTOKEN"):     ret.add_command(opcode::NEXTTOKEN); break;
             case hash("POPCONTENT"):    ret.add_command(opcode::POPCONTENT); break;
-            case hash("NEWVALUES"):      ret.add_command(opcode::NEWVALUES); break;
+            case hash("NEXTTABLE"):     ret.add_command(opcode::NEXTTABLE); break;
             case hash("ATE"):           ret.add_command(opcode::ATE); break;
             case hash("HLT"):           ret.add_command(opcode::HLT); break;
             default:
                 throw assembly_error(fmt::format("Comando sconosciuto: {0}", cmd));
             }
         }
-    } catch (std::invalid_argument &error) {
+    } catch (const std::invalid_argument &error) {
         throw assembly_error(error.what());
     }
     return ret;

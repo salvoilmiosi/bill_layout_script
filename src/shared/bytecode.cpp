@@ -8,8 +8,8 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
     writeData(output, MAGIC);
 
     for (const auto &line : m_commands) {
-        writeData<opcode>(output, line.command);
-        switch (line.command) {
+        writeData<opcode>(output, line.command());
+        switch (line.command()) {
         case opcode::RDBOX:
         {
             const auto &box = line.get<pdf_rect>();

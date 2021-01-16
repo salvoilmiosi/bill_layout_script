@@ -36,12 +36,12 @@ void reader::exec_command(const command_args &cmd) {
         if (name.front() == '*') {
             return variable_ref(m_globals, name.substr(1), args ...);
         } else {
-            while (m_values.size() <= m_con.current_vmap) m_values.emplace_back();
-            return variable_ref(m_values[m_con.current_vmap], name, args ...);
+            while (m_values.size() <= m_con.current_table) m_values.emplace_back();
+            return variable_ref(m_values[m_con.current_table], name, args ...);
         }
     };
 
-    switch(cmd.command) {
+    switch(cmd.command()) {
     case opcode::NOP:
     case opcode::COMMENT:
     case opcode::STRDATA:
@@ -228,7 +228,7 @@ void reader::exec_command(const command_args &cmd) {
         break;
     case opcode::NEXTLINE: m_con.contents.top().next_token("\n"); break;
     case opcode::NEXTTOKEN: m_con.contents.top().next_token("\t\n\v\f\r "); break;
-    case opcode::NEWVALUES: ++m_con.current_vmap; break;
+    case opcode::NEXTTABLE: ++m_con.current_table; break;
     case opcode::ATE: m_con.vars.push(m_con.last_box_page > m_doc.num_pages()); break;
     case opcode::HLT: m_con.program_counter = m_code.m_commands.size(); break;
     }
@@ -253,11 +253,7 @@ void reader::read_box(pdf_rect box) {
 
     m_con.contents = {};
 
-    try {
-        m_con.contents.push(m_doc.get_text(box));
-    } catch (const pdf_error &error) {
-        throw layout_error(error.message);
-    }
+    m_con.contents.push(m_doc.get_text(box));
 }
 
 void reader::save_output(Json::Value &root, bool debug) {

@@ -190,7 +190,7 @@ p+::page_offset
 $if($ate() || $contains(@,"RIEPILOGO IMPORTI")) {
   $goto(dati_costi)
 } $elif($contains(@,"DATI FORNITURA")) {
-  $newvalues()
+  $nexttable()
   $goto(nome_fornitore)
 }
 ### End Script

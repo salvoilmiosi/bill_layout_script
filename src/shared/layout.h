@@ -20,8 +20,8 @@ struct layout_box : public pdf_rect {
     std::string goto_label;
 };
 
-struct layout_error {
-    std::string message;
+struct layout_error : std::runtime_error {
+    layout_error(const std::string &message) : std::runtime_error(message) {}
 };
 
 using box_ptr = std::shared_ptr<layout_box>;

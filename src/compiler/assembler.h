@@ -7,8 +7,8 @@
 
 #include "bytecode.h"
 
-struct assembly_error {
-    std::string message;
+struct assembly_error : std::runtime_error {
+    assembly_error(const std::string &message) : std::runtime_error(message) {}
 };
 
 bytecode read_lines(const std::vector<std::string> &lines);

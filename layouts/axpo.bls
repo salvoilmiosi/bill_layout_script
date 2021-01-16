@@ -214,7 +214,7 @@ p+::page_offset
 ::page_offset+=1
 ::pod_offset=1
 $if($contains(@,"DATI FORNITURA")) {
-  $newvalues()
+  $nexttable()
   $goto(nome_fornitore)
 } $elif(! $ate()) {
   $goto(quadro_dettaglio)

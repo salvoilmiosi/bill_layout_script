@@ -279,7 +279,7 @@ p+ ::spacer_multipod + ::next_page
 $if(::spacer_multipod) {
   $if(@ == "Dati di fornitura") {
     ::next_page+=1
-    $newvalues()
+    $nexttable()
     $goto(nome_fornitore)
   }
 }

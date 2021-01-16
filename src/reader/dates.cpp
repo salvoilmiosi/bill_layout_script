@@ -29,7 +29,7 @@ bool date_t::from_string(std::string_view str) {
             if (!day.empty()) day = std::stoi(day);
             return true;
         }
-    } catch (std::invalid_argument &) {}
+    } catch (const std::invalid_argument &) {}
     return false;
 }
 

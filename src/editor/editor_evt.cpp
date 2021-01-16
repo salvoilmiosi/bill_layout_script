@@ -139,7 +139,7 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
             CompileErrorDialog(this, compile_output).ShowModal();
         }
     } catch (const process_error &error) {
-        wxMessageBox(error.message, "Errore", wxICON_ERROR);
+        wxMessageBox(error.what(), "Errore", wxICON_ERROR);
     }
 }
 

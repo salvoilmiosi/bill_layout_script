@@ -152,10 +152,10 @@ void parser::read_keyword() {
         tokens.require(TOK_PAREN_END);
         add_line("CLEAR");
         break;
-    case hash("newvalues"):
+    case hash("nexttable"):
         tokens.require(TOK_PAREN_BEGIN);
         tokens.require(TOK_PAREN_END);
-        add_line("NEWVALUES");
+        add_line("NEXTTABLE");
         break;
     case hash("error"):
         tokens.require(TOK_PAREN_BEGIN);
@@ -179,6 +179,6 @@ void parser::read_keyword() {
         add_line("HLT");
         break;
     default:
-        throw parsing_error(fmt::format("Parola chiave sconosciuta: {0}", fun_name), tokens.getLocation(tok_name));
+        throw parsing_error(fmt::format("Parola chiave sconosciuta: {0}", fun_name), tok_name);
     }
 }

@@ -336,7 +336,7 @@ void frame_editor::loadPdf(const wxString &filename) {
         }
         updateRecentFiles(true);
     } catch (const pdf_error &error) {
-        wxMessageBox(error.message, "Errore", wxICON_ERROR);
+        wxMessageBox(error.what(), "Errore", wxICON_ERROR);
     }
 }
 
@@ -367,12 +367,8 @@ void frame_editor::setSelectedPage(int page, bool force) {
     if (!m_doc.isopen()) return;
 
     m_page->SetSelection(page - 1);
-    try {
-        selected_page = page;
-        m_image->setImage(pdf_to_image(m_doc, page));
-    } catch (const pdf_error &error) {
-        wxMessageBox(error.message, "Errore", wxOK | wxICON_ERROR);
-    }
+    selected_page = page;
+    m_image->setImage(pdf_to_image(m_doc, page));
 }
 
 void frame_editor::selectBox(const box_ptr &box) {

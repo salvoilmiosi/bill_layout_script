@@ -31,7 +31,7 @@ struct context {
     box_spacer spacer;
     int last_box_page = 0;
 
-    size_t current_vmap = 0;
+    size_t current_table = 0;
 
     size_t program_counter = 0;
     bool jumped = false;

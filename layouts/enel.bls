@@ -333,7 +333,7 @@ $with(::_dettaglio) {
 ### Script
 $if ($isset(mese_fine)) {
   $if (mese_fattura != mese_fine) {
-    $newvalues()
+    $nexttable()
     $goto(nome_fornitore)
   }
 }

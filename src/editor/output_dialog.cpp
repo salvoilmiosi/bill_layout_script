@@ -109,9 +109,9 @@ wxThread::ExitCode reader_thread::Entry() {
             wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
             return (wxThread::ExitCode) 0;
         }
-    } catch (const process_error &error) {
-        wxMessageBox(error.message, "Errore", wxICON_ERROR);
-    } catch (std::exception &) { }
+    } catch (const std::exception &error) {
+        wxMessageBox(error.what(), "Errore", wxICON_ERROR);
+    }
     return (wxThread::ExitCode) 1;
 }
 

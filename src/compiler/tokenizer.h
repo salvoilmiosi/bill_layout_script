@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <stdexcept>
 
 enum token_type {
     TOK_END_OF_FILE = 0,
@@ -77,17 +78,24 @@ constexpr const char *TOKEN_NAMES[] = {
     "'<='"
 };
 
-struct parsing_error {
-    std::string message;
-    std::string line;
-};
-
 struct token {
     token_type type;
     std::string_view value;
 
     operator bool () {
         return type != TOK_ERROR;
+    }
+};
+
+class parsing_error : public std::runtime_error {
+protected:
+    token m_location;
+
+public:
+    parsing_error(const std::string &message, token location) : std::runtime_error(message), m_location(location) {}
+
+    token location() const noexcept {
+        return m_location;
     }
 };
 
@@ -119,7 +127,7 @@ public:
         return tok;
     }
 
-    std::string getLocation(const token &tok);
+    std::string tokenLocationInfo(const token &tok);
 
 private:
     class parser &parent;

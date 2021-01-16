@@ -53,8 +53,8 @@ private:
     std::vector<std::unique_ptr<poppler::page>> m_pages;
 };
 
-struct pdf_error {
-    const std::string message;
+struct pdf_error : std::runtime_error {
+    pdf_error(const std::string &message) : std::runtime_error(message) {}
 };
 
 #endif // __PDF_DOCUMENT_H__
