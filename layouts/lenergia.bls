@@ -71,7 +71,7 @@ data_scadenza=$date(@,"%d/%m/%Y")
 ### H 0.0551734008
 ### Script
 ragione_sociale=$search(@,/^(.+)\n/)
-indirizzo_fornitura=$substr($search($nonewline(@),/(.+)C\.F\./),$strlen(ragione_sociale) + 1)
+indirizzo_fornitura=$substr($search($singleline(@),/(.+)C\.F\./),$strlen(ragione_sociale) + 1)
 ### End Script
 ### End Box
 

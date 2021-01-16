@@ -104,7 +104,7 @@ fornitore="Enel Energia"
 ### W 0.4182795584
 ### H 0.1603952795
 ### Script
-indirizzo_fornitura=$search($nonewline(@),/Forniamo energia in (.+) Denominazione/)
+indirizzo_fornitura=$search($singleline(@),/Forniamo energia in (.+) Denominazione/)
 %potenza[0:3]=$coalesce(
   $search(@,/Potenza contrattualmente impegnata (%N)/),
   $search(@,/Livello massimo di potenza (%N)/))
@@ -296,21 +296,21 @@ $with(::_dettaglio) {
   %sbilanciamento=$search(@,$format(/Corrispettivo di Sbilanciamento dal \d\d\/$0.+kWh (%N)/,_mese))
   %accise=$search(@,$format(/Accisa sull'energia elettrica \(entro 200000\) dal \d\d\/$0.+kWh %N %N (%N)/,_mese))
 
-  $between("SPESA PER L'ENERGIA", "spesa per l'energia") {
-    $lines($searchall(@,$format(/al \d\d\/$0([^]+?)(dal|Totale)/,_mese))) {
+  $between("SPESA PER L'ENERGIA", "Totale spesa per l'energia") {
+    $lines($searchall(@,$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
       %spesa_materia_energia+=$search(@,/(%N)$/)
     }
   }
-  $between("SPESA PER IL TRASPORTO DELL'ENERGIA ELETTRICA E LA GESTIONE DEL CONTATORE", "spesa per il trasporto") {
-    $with($searchall($nonewline(@),$format(/al \d\d\/$0([^]+?)(dal|Totale)/,_mese))) {
+  $between("SPESA PER IL TRASPORTO", "Totale spesa per il trasporto") {
+    $with($searchall($singleline(@),$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
       $lines($searchall(@,/mesi.?1 (%N)/)) %trasporto_gestione+
       $lines($searchall(@,/\/kWh %N %N (%N)/)) %trasporto_gestione+
       $lines($searchall(@,/\/kVarh %N %N (%N)/)) %trasporto_gestione+
       %potenza[0:3]=$search(@,/kW (%N)/)
     }
   }
-  $between("SPESA ONERI DI SISTEMA", "spesa oneri di sistema") {
-    $lines($searchall($nonewline(@),$format(/al \d\d\/$0([^]+?)(dal|Totale)/,_mese))) {
+  $between("SPESA ONERI DI SISTEMA", "Totale spesa oneri di sistema") {
+    $lines($searchall($singleline(@),$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
       %oneri+=$search(@,/mesi.?1 (%N)/)
       %oneri+=$search(@,/\/kWh %N %N (%N)/)
     }

@@ -72,7 +72,7 @@ ragione_sociale=$search(@,/^(.+)\n/)
 ### W 0.4589093924
 ### H 0.1920779794
 ### Script
-indirizzo_fornitura=$search($nonewline(@),/Forniamo energia in (.+) Tariffa/)
+indirizzo_fornitura=$search($singleline(@),/Forniamo energia in (.+) Tariffa/)
 %potenza_disponibile=$search(@,/Potenza disponibile (%N)/)
 ### End Script
 ### End Box
