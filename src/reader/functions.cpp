@@ -185,8 +185,8 @@ static const std::unordered_map<string, function_handler> lookup {
     create_function("month_add", [](string_view month, int num) {
         return date_month_add(month, num);
     }),
-    create_function("nonewline", [](string &&str) {
-        return nonewline(std::move(str));
+    create_function("singleline", [](string &&str) {
+        return singleline(std::move(str));
     }),
     create_function("if", [](bool condition, const variable &var_if, optional<variable> var_else) {
         return condition ? var_if : var_else.value_or(variable::null_var());

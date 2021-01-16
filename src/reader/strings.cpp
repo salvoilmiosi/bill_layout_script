@@ -69,7 +69,7 @@ std::string &string_replace_regex(std::string &value, const std::string &format,
     return value = std::regex_replace(value, create_regex(format), str);
 }
 
-std::string nonewline(std::string input) {
+std::string singleline(std::string input) {
     size_t index = 0;
     while (true) {
         index = input.find_first_of("\t\r\n\v\f", index);

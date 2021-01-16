@@ -35,6 +35,6 @@ std::string search_regex(const std::string &format, std::string_view value, int 
 std::string &string_replace_regex(std::string &value, const std::string &format, const std::string &str);
 
 // trasforma ogni carattere di spazio in " "
-std::string nonewline(std::string input);
+std::string singleline(std::string input);
 
 #endif
