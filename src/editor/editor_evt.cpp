@@ -198,11 +198,7 @@ void frame_editor::OnPageSelect(wxCommandEvent &evt) {
 
     long selected_page;
     if (m_page->GetValue().ToLong(&selected_page)) {
-        if (selected_page > m_doc.num_pages() || selected_page <= 0) {
-            wxBell();
-        } else {
-            setSelectedPage(selected_page);
-        }
+        setSelectedPage(selected_page);
     } else {
         wxBell();
     }

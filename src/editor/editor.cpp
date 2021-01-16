@@ -366,8 +366,14 @@ void frame_editor::setSelectedPage(int page, bool force) {
     if (!force && page == selected_page) return;
     if (!m_doc.isopen()) return;
 
-    m_page->SetSelection(page - 1);
+    if (page > m_doc.num_pages() || page <= 0) {
+        wxBell();
+        return;
+    }
+    
     selected_page = page;
+
+    m_page->SetSelection(page - 1);
     m_image->setImage(pdf_to_image(m_doc, page));
 }
 

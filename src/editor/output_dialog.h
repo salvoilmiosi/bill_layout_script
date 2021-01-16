@@ -25,6 +25,7 @@ protected:
 
 private:
     subprocess proc_reader;
+    bool m_aborted = false;
 
     output_dialog *parent;
 

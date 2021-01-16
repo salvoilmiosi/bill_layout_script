@@ -89,6 +89,7 @@ wxThread::ExitCode reader_thread::Entry() {
     try {
         wxString cmd_reader = get_app_path() + "reader";
 
+        m_aborted = false;
         proc_reader.open(arguments(
             cmd_reader,
             "-p", pdf_filename,
@@ -110,12 +111,15 @@ wxThread::ExitCode reader_thread::Entry() {
             return (wxThread::ExitCode) 0;
         }
     } catch (const std::exception &error) {
-        wxMessageBox(error.what(), "Errore", wxICON_ERROR);
+        if (!m_aborted) {
+            wxMessageBox(error.what(), "Errore", wxICON_ERROR);
+        }
     }
     return (wxThread::ExitCode) 1;
 }
 
 void reader_thread::abort() {
+    m_aborted = true;
     proc_reader.abort();
 }
 
