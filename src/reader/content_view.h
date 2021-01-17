@@ -7,6 +7,9 @@ struct view_span {
     size_t m_begin;
     size_t m_end;
 
+    // Non necessario su c++20, ma clang da' errore se manca questa riga
+    view_span(size_t m_begin, size_t m_end) : m_begin(m_begin), m_end(m_end) {}
+    
     size_t size() const noexcept {
         return m_end - m_begin;
     }

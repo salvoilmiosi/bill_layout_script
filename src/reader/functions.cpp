@@ -147,7 +147,7 @@ void check_numargs(const string &name, size_t numargs, size_t minargs, size_t ma
 using function_handler = std::function<variable(arg_list&&)>;
 
 template<typename Function>
-constexpr std::pair<string, function_handler> create_function(const string &name, Function fun) {
+inline std::pair<string, function_handler> create_function(const string &name, Function fun) {
     using fun_args = check_args<decltype(+fun)>;
     // l'operatore unario + converte una funzione lambda senza capture
     // in puntatore a funzione. In questo modo il compilatore può

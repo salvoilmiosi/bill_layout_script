@@ -13,13 +13,14 @@ public:
     using value_type = Value;
 
     using map_type = std::multimap<key_type, value_type>;
+    using iterator_type = typename map_type::iterator;
 
 private:
     map_type &m_map;
     key_type m_key;
 
-    map_type::iterator m_begin;
-    map_type::iterator m_end;
+    iterator_type m_begin;
+    iterator_type m_end;
 
     size_t m_len;
 

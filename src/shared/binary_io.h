@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-constexpr bool is_big_endian() {
+inline bool is_big_endian() {
     union {
         uint32_t i;
         char c[4];
