@@ -7,7 +7,7 @@
 #include <fmt/core.h>
 
 #include "layout.h"
-#include "tokenizer.h"
+#include "lexer.h"
 
 struct spacer {
     float w = 0, h = 0;
@@ -30,7 +30,7 @@ enum parser_flags {
 
 class parser {
 public:
-    parser() : tokens(*this) {}
+    parser() : m_lexer(*this) {}
 
     void add_flags(parser_flags flag) {
         m_flags |= flag;
@@ -63,11 +63,11 @@ private:
         output_asm.push_back(fmt::format(args ...));
     }
 
-    tokenizer tokens;
+    lexer m_lexer;
 
     uint8_t m_flags = FLAGS_NONE;
 
-    friend class tokenizer;
+    friend class lexer;
 };
 
 #endif

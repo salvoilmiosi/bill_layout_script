@@ -15,7 +15,7 @@ void parser::read_layout(const bill_layout_script &layout) {
         add_line("HLT");
     } catch (const parsing_error &error) {
         throw layout_error(fmt::format("In {0}: {1}\n{2}", current_box->name,
-            error.what(), tokens.tokenLocationInfo(error.location())));
+            error.what(), m_lexer.tokenLocationInfo(error.location())));
     }
 }
 
@@ -26,11 +26,11 @@ void parser::read_box(const layout_box &box) {
     current_box = &box;
     if (!box.goto_label.empty()) add_line("LABEL {0}", box.goto_label);
 
-    tokens.setScript(box.spacers);
+    m_lexer.setScript(box.spacers);
 
-    while(!tokens.ate()) {
+    while(!m_lexer.ate()) {
         spacer_index index;
-        switch (hash(tokens.require(TOK_IDENTIFIER).value)) {
+        switch (hash(m_lexer.require(TOK_IDENTIFIER).value)) {
         case hash("p"):
         case hash("page"):
             index = spacer_index::SPACER_PAGE;
@@ -50,17 +50,17 @@ void parser::read_box(const layout_box &box) {
             index = spacer_index::SPACER_H;
             break;
         default:
-            throw tokens.unexpected_token();
+            throw m_lexer.unexpected_token();
         }
         bool negative = false;
-        switch (tokens.next().type) {
+        switch (m_lexer.next().type) {
         case TOK_PLUS:
             break;
         case TOK_MINUS:
             negative = true;
             break;
         default:
-            throw tokens.unexpected_token(TOK_PLUS);
+            throw m_lexer.unexpected_token(TOK_PLUS);
         }
         read_expression();
         if (negative) add_line("NEG");
@@ -82,15 +82,15 @@ void parser::read_box(const layout_box &box) {
         break;
     }
 
-    tokens.setScript(box.script);
+    m_lexer.setScript(box.script);
     while (read_statement());
 }
 
 bool parser::read_statement() {
-    switch (tokens.peek().type) {
+    switch (m_lexer.peek().type) {
     case TOK_BRACE_BEGIN:
-        tokens.advance();
-        while (!tokens.check_next(TOK_BRACE_END)) {
+        m_lexer.advance();
+        while (!m_lexer.check_next(TOK_BRACE_END)) {
             read_statement();
         }
         break;
@@ -103,9 +103,9 @@ bool parser::read_statement() {
     {
         int flags = read_variable(false);
         
-        switch (tokens.peek().type) {
+        switch (m_lexer.peek().type) {
         case TOK_ASSIGN:
-            tokens.advance();
+            m_lexer.advance();
             read_expression();
             break;
         default:
@@ -181,9 +181,9 @@ void parser::read_expression() {
     std::vector<token_type> op_stack;
     
     while (true) {
-        token_type op_type = tokens.peek().type;
+        token_type op_type = m_lexer.peek().type;
         if (op_prec(op_type) > 0) {
-            tokens.advance();
+            m_lexer.advance();
             if (!op_stack.empty() && op_prec(op_stack.back()) >= op_prec(op_type)) {
                 add_line(op_opcode(op_stack.back()));
                 op_stack.pop_back();
@@ -202,28 +202,28 @@ void parser::read_expression() {
 }
 
 void parser::sub_expression() {
-    switch (tokens.peek().type) {
+    switch (m_lexer.peek().type) {
     case TOK_PAREN_BEGIN:
-        tokens.advance();
+        m_lexer.advance();
         read_expression();
-        tokens.require(TOK_PAREN_END);
+        m_lexer.require(TOK_PAREN_END);
         break;
     case TOK_FUNCTION:
         read_function();
         break;
     case TOK_NOT:
-        tokens.advance();
+        m_lexer.advance();
         sub_expression();
         add_line("NOT");
         break;
     case TOK_MINUS:
     {
-        tokens.advance();
-        switch (tokens.peek().type) {
+        m_lexer.advance();
+        switch (m_lexer.peek().type) {
         case TOK_INTEGER:
         case TOK_NUMBER:
-            tokens.advance();
-            add_line("PUSHNUM -{0}", tokens.current().value);
+            m_lexer.advance();
+            add_line("PUSHNUM -{0}", m_lexer.current().value);
             break;
         default:
             sub_expression();
@@ -233,18 +233,18 @@ void parser::sub_expression() {
     }
     case TOK_INTEGER:
     case TOK_NUMBER:
-        tokens.advance();
-        add_line("PUSHNUM {0}", tokens.current().value);
+        m_lexer.advance();
+        add_line("PUSHNUM {0}", m_lexer.current().value);
         break;
     case TOK_SLASH:
-        tokens.require(TOK_REGEXP);
+        m_lexer.require(TOK_REGEXP);
         [[fallthrough]];
     case TOK_STRING:
-        tokens.advance();
-        add_line("PUSHSTR {0}", tokens.current().value);
+        m_lexer.advance();
+        add_line("PUSHSTR {0}", m_lexer.current().value);
         break;
     case TOK_CONTENT:
-        tokens.advance();
+        m_lexer.advance();
         add_line("PUSHVIEW");
         break;
     default:
@@ -270,45 +270,45 @@ int parser::read_variable(bool read_only) {
 
     bool in_loop = true;
     while (in_loop) {
-        switch (tokens.next().type) {
+        switch (m_lexer.next().type) {
         case TOK_GLOBAL:
             isglobal = true;
             break;
         case TOK_PERCENT:
-            if (read_only) throw tokens.unexpected_token(TOK_IDENTIFIER);
+            if (read_only) throw m_lexer.unexpected_token(TOK_IDENTIFIER);
             flags |= VAR_NUMBER;
             break;
         case TOK_AMPERSAND:
-            if (!read_only) throw tokens.unexpected_token(TOK_IDENTIFIER);
+            if (!read_only) throw m_lexer.unexpected_token(TOK_IDENTIFIER);
             flags |= VAR_MOVE;
             break;
         case TOK_IDENTIFIER:
             in_loop = false;
             break;
         default:
-            throw tokens.unexpected_token(TOK_IDENTIFIER);
+            throw m_lexer.unexpected_token(TOK_IDENTIFIER);
         }
     }
     
-    std::string name(tokens.current().value);
+    std::string name(m_lexer.current().value);
 
-    if (tokens.check_next(TOK_BRACKET_BEGIN)) { // variable[
-        switch (tokens.peek().type) {
+    if (m_lexer.check_next(TOK_BRACKET_BEGIN)) { // variable[
+        switch (m_lexer.peek().type) {
         case TOK_BRACKET_END: // variable[] -- aggiunge alla fine
-            if (read_only) throw tokens.unexpected_token(TOK_INTEGER);
+            if (read_only) throw m_lexer.unexpected_token(TOK_INTEGER);
             index = -1;
             break;
         case TOK_COLON: // variable[:] -- seleziona range intero
-            if (read_only) throw tokens.unexpected_token(TOK_INTEGER);
-            tokens.advance();
+            if (read_only) throw m_lexer.unexpected_token(TOK_INTEGER);
+            m_lexer.advance();
             rangeall = true;
             break;
         case TOK_INTEGER: // variable[int
-            tokens.advance();
-            index = std::stoi(std::string(tokens.current().value));
-            if (tokens.check_next(TOK_COLON) && !read_only) { // variable[int:
-                if (tokens.check_next(TOK_INTEGER)) { // variable[a:b] -- seleziona range
-                    index_last = std::stoi(std::string(tokens.current().value));
+            m_lexer.advance();
+            index = std::stoi(std::string(m_lexer.current().value));
+            if (m_lexer.check_next(TOK_COLON) && !read_only) { // variable[int:
+                if (m_lexer.check_next(TOK_INTEGER)) { // variable[a:b] -- seleziona range
+                    index_last = std::stoi(std::string(m_lexer.current().value));
                 } else { // variable[int:expr] -- seleziona range
                     add_line("PUSHNUM {0}", index);
                     read_expression();
@@ -320,27 +320,27 @@ int parser::read_variable(bool read_only) {
         default: // variable[expr
             read_expression();
             getindex = true;
-            if (tokens.check_next(TOK_COLON) && !read_only) { // variable[expr:expr]
+            if (m_lexer.check_next(TOK_COLON) && !read_only) { // variable[expr:expr]
                 read_expression();
                 getindexlast = true;
             }
         }
-        tokens.require(TOK_BRACKET_END);
+        m_lexer.require(TOK_BRACKET_END);
     }
 
     if (!read_only) {
-        switch(tokens.peek().type) {
+        switch(m_lexer.peek().type) {
         case TOK_PLUS:
             flags |= VAR_INCREASE;
-            tokens.advance();
+            m_lexer.advance();
             break;
         case TOK_MINUS:
             flags |= VAR_DECREASE;
-            tokens.advance();
+            m_lexer.advance();
             break;
         case TOK_COLON:
             flags |= VAR_RESET;
-            tokens.advance();
+            m_lexer.advance();
             break;
         default:
             break;
@@ -368,19 +368,19 @@ int parser::read_variable(bool read_only) {
 }
 
 void parser::read_function() {
-    auto tok_fun_name = tokens.require(TOK_FUNCTION);
+    auto tok_fun_name = m_lexer.require(TOK_FUNCTION);
     std::string fun_name(tok_fun_name.value.substr(1));
 
     auto var_function = [&](const auto & ... cmd) {
-        tokens.require(TOK_PAREN_BEGIN);
+        m_lexer.require(TOK_PAREN_BEGIN);
         read_variable(true);
-        tokens.require(TOK_PAREN_END);
+        m_lexer.require(TOK_PAREN_END);
         add_line(cmd ...);
     };
 
     auto void_function = [&](const auto & ... cmd) {
-        tokens.require(TOK_PAREN_BEGIN);
-        tokens.require(TOK_PAREN_END);
+        m_lexer.require(TOK_PAREN_BEGIN);
+        m_lexer.require(TOK_PAREN_END);
         add_line(cmd ...);
     };
 
@@ -397,12 +397,12 @@ void parser::read_function() {
     default:
     {
         int num_args = 0;
-        tokens.require(TOK_PAREN_BEGIN);
-        while (!tokens.check_next(TOK_PAREN_END)) {
+        m_lexer.require(TOK_PAREN_BEGIN);
+        while (!m_lexer.check_next(TOK_PAREN_END)) {
             ++num_args;
             read_expression();
-            if (!tokens.check_next(TOK_COMMA) && tokens.current().type != TOK_PAREN_END) {
-                throw tokens.unexpected_token(TOK_PAREN_END);
+            if (!m_lexer.check_next(TOK_COMMA) && m_lexer.current().type != TOK_PAREN_END) {
+                throw m_lexer.unexpected_token(TOK_PAREN_END);
             }
         }
 
@@ -423,35 +423,35 @@ void parser::read_function() {
 }
 
 void parser::read_date_fun(const std::string &fun_name) {
-    tokens.require(TOK_PAREN_BEGIN);
+    m_lexer.require(TOK_PAREN_BEGIN);
     read_expression();
-    switch (tokens.next().type) {
+    switch (m_lexer.next().type) {
     case TOK_COMMA:
     {
-        auto date_fmt = tokens.require(TOK_STRING).value;
+        auto date_fmt = m_lexer.require(TOK_STRING).value;
         add_line("PUSHSTR {}", date_fmt);
         std::string regex = "/(%D)/";
         int idx = -1;
-        switch (tokens.next().type) {
+        switch (m_lexer.next().type) {
         case TOK_COMMA:
         {
-            tokens.require(TOK_REGEXP);
-            regex = std::string(tokens.current().value);
-            switch (tokens.next().type) {
+            m_lexer.require(TOK_REGEXP);
+            regex = std::string(m_lexer.current().value);
+            switch (m_lexer.next().type) {
             case TOK_INTEGER:
-                idx = std::stoi(std::string(tokens.current().value));
+                idx = std::stoi(std::string(m_lexer.current().value));
                 break;
             case TOK_PAREN_END:
                 break;
             default:
-                throw tokens.unexpected_token(TOK_PAREN_END);
+                throw m_lexer.unexpected_token(TOK_PAREN_END);
             }
             break;
         }
         case TOK_PAREN_END:
             break;
         default:
-            throw tokens.unexpected_token(TOK_PAREN_END);
+            throw m_lexer.unexpected_token(TOK_PAREN_END);
         }
         
         std::string date_regex;
@@ -479,6 +479,6 @@ void parser::read_date_fun(const std::string &fun_name) {
         add_line("CALL {},1", fun_name);
         break;
     default:
-        throw tokens.unexpected_token(TOK_PAREN_END);
+        throw m_lexer.unexpected_token(TOK_PAREN_END);
     }
 }

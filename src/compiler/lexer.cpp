@@ -1,10 +1,10 @@
-#include "tokenizer.h"
+#include "lexer.h"
 
 #include <fmt/format.h>
 #include "parser.h"
 #include "layout.h"
 
-void tokenizer::setScript(std::string_view str) {
+void lexer::setScript(std::string_view str) {
     script = str;
     m_current = script.begin();
 
@@ -13,13 +13,13 @@ void tokenizer::setScript(std::string_view str) {
     flushDebugData();
 }
 
-char tokenizer::nextChar() {
+char lexer::nextChar() {
     if (m_current == script.end())
         return '\0';
     return *m_current++;
 }
 
-void tokenizer::skipSpaces() {
+void lexer::skipSpaces() {
     bool comment = false;
     while (m_current != script.end()) {
         switch (*m_current) {
@@ -46,7 +46,7 @@ void tokenizer::skipSpaces() {
     }
 }
 
-void tokenizer::addDebugData() {
+void lexer::addDebugData() {
     if (parent.m_flags & FLAGS_DEBUG) {
         size_t begin = script.find_first_not_of(" \t\r\n", m_current - script.begin());
         if (begin != std::string::npos && begin != last_debug_line) {
@@ -58,14 +58,14 @@ void tokenizer::addDebugData() {
     }
 }
 
-void tokenizer::flushDebugData() {
+void lexer::flushDebugData() {
     for (auto &line : debug_lines) {
         parent.add_line("COMMENT {}", line);
     }
     debug_lines.clear();
 }
 
-const token &tokenizer::next(bool do_advance) {
+const token &lexer::next(bool do_advance) {
     skipSpaces();
     if (do_advance) {
         flushDebugData();
@@ -220,7 +220,7 @@ const token &tokenizer::next(bool do_advance) {
     return tok;
 }
 
-token tokenizer::require(token_type type) {
+token lexer::require(token_type type) {
     if (type == TOK_REGEXP) {
         auto begin = m_current;
         if (tok.type != TOK_SLASH) {
@@ -242,7 +242,7 @@ token tokenizer::require(token_type type) {
     return current();
 }
 
-token tokenizer::check_next(token_type type) {
+token lexer::check_next(token_type type) {
     token tok = peek();
     if (tok.type != type) {
         tok.type = TOK_ERROR;
@@ -252,20 +252,20 @@ token tokenizer::check_next(token_type type) {
     return tok;
 }
 
-void tokenizer::advance() {
+void lexer::advance() {
     flushDebugData();
     m_current = tok.value.begin() + tok.value.size();
 }
 
-parsing_error tokenizer::unexpected_token(token_type type) {
+parsing_error lexer::unexpected_token(token_type type) {
     return parsing_error(fmt::format("Imprevisto '{0}', richiesto {1}", current().value, TOKEN_NAMES[type]), current());
 }
 
-parsing_error tokenizer::unexpected_token() {
+parsing_error lexer::unexpected_token() {
     return parsing_error(fmt::format("Imprevisto '{0}'", current().value), current());
 }
 
-std::string tokenizer::tokenLocationInfo(const token &tok) {
+std::string lexer::tokenLocationInfo(const token &tok) {
     size_t numline = 1;
     size_t loc = 1;
     bool found = false;
@@ -289,7 +289,7 @@ std::string tokenizer::tokenLocationInfo(const token &tok) {
     return fmt::format("{0}: Ln {1}, Col {2}:\n{3:->{2}}", line, numline, loc, '^');
 }
 
-bool tokenizer::readIdentifier() {
+bool lexer::readIdentifier() {
     const char *p = m_current;
     char c = *p;
     while ((c >= '0' && c <= '9') ||
@@ -301,7 +301,7 @@ bool tokenizer::readIdentifier() {
     return true;
 }
 
-bool tokenizer::readString() {
+bool lexer::readString() {
     while (true) {
         switch (nextChar()) {
         case '\\':
@@ -317,7 +317,7 @@ bool tokenizer::readString() {
     return false;
 }
 
-bool tokenizer::readRegexp() {
+bool lexer::readRegexp() {
     while (true) {
         switch (nextChar()) {
         case '\\':
@@ -333,7 +333,7 @@ bool tokenizer::readRegexp() {
     return false;
 }
 
-bool tokenizer::readNumber() {
+bool lexer::readNumber() {
     const char *p = m_current;
     char c = *p;
     while ((c >= '0' && c <= '9') || c == '.') {

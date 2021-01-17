@@ -4,5 +4,5 @@ src/compiler/keywords.cpp
 src/compiler/main.cpp
 src/compiler/parser.cpp
 src/compiler/parsestr.cpp
-src/compiler/tokenizer.cpp
+src/compiler/lexer.cpp
 )

@@ -1,5 +1,5 @@
-#ifndef __TOKENIZER_H__
-#define __TOKENIZER_H__
+#ifndef __LEXER_H__
+#define __LEXER_H__
 
 #include <string>
 #include <vector>
@@ -99,9 +99,9 @@ public:
     }
 };
 
-class tokenizer {
+class lexer {
 public:
-    tokenizer(class parser &parent) : parent(parent) {}
+    lexer(class parser &parent) : parent(parent) {}
     
     void setScript(std::string_view str);
 
