@@ -8,6 +8,10 @@
 #include "compile_error_diag.h"
 #include "utils.h"
 
+#include "parser.h"
+#include "assembler.h"
+#include "reader.h"
+
 enum {
     CTL_DEBUG,
     CTL_OUTPUT_PAGE,
@@ -72,7 +76,6 @@ void output_dialog::OnClickUpdate(wxCommandEvent &) {
 }
 
 void output_dialog::OnClickAbort(wxCommandEvent &) {
-    wxCriticalSectionLocker lock(m_thread_cs);
     if (m_thread) {
         m_thread->abort();
     } else {
@@ -81,54 +84,37 @@ void output_dialog::OnClickAbort(wxCommandEvent &) {
 }
 
 reader_thread::~reader_thread() {
-    wxCriticalSectionLocker lock(parent->m_thread_cs);
     parent->m_thread = nullptr;
 }
 
 wxThread::ExitCode reader_thread::Entry() {
     try {
-        wxString cmd_reader = get_app_path() + "reader";
-
-        m_aborted = false;
-        proc_reader.open(arguments(
-            cmd_reader,
-            "-p", pdf_filename,
-            "-c", "-d", "-"
-        ));
-        proc_reader.stream_in << layout;
-        proc_reader.stream_in.close();
-
-        Json::Value json_output;
-        proc_reader.stream_out >> json_output;
-
-        if (json_output.isMember("error")) {
-            auto *evt = new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR);
-            evt->SetString(json_output["error"].asString());
-            wxQueueEvent(parent, evt);
-        } else {
-            parent->json_output = json_output;
+        parser my_parser;
+        my_parser.read_layout(layout);
+        m_reader.exec_program(read_lines(my_parser.get_output_asm()));
+        if (!m_aborted) {
+            parent->m_output = m_reader.get_output();
             wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
             return (wxThread::ExitCode) 0;
         }
     } catch (const std::exception &error) {
-        if (!m_aborted) {
-            wxMessageBox(error.what(), "Errore", wxICON_ERROR);
-        }
+        auto *evt = new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR);
+        evt->SetString(error.what());
+        wxQueueEvent(parent, evt);
     }
     return (wxThread::ExitCode) 1;
 }
 
 void reader_thread::abort() {
     m_aborted = true;
-    proc_reader.abort();
+    m_reader.halt();
 }
 
 void output_dialog::compileAndRead() {
-    wxCriticalSectionLocker lock(m_thread_cs);
     if (m_thread || ! parent->getPdfDocument().isopen()) {
         wxBell();
     } else {
-        m_thread = new reader_thread(this, parent->layout, parent->getPdfDocument().filename());
+        m_thread = new reader_thread(this, parent->layout, parent->getPdfDocument());
         if (m_thread->Run() != wxTHREAD_NO_ERROR) {
             delete m_thread;
             m_thread = nullptr;
@@ -145,10 +131,10 @@ void output_dialog::OnCompileError(wxCommandEvent &evt) {
 
 void output_dialog::OnReadCompleted(wxCommandEvent &evt) {
     m_page->Append("Globali");
-    for (int i=1; i <= (int)json_output["values"].size(); ++i) {
+    for (int i=1; i <= m_output.values.size(); ++i) {
         m_page->Append(wxString::Format("%i", i));
     }
-    m_page->SetSelection(json_output["values"].size() > 0 ? 1 : 0);
+    m_page->SetSelection(m_output.values.size() > 0 ? 1 : 0);
     updateItems();
 }
 
@@ -162,30 +148,26 @@ void output_dialog::updateItems() {
     auto col_name = m_list_ctrl->AppendColumn("Nome", wxLIST_FORMAT_LEFT, 150);
     auto col_value = m_list_ctrl->AppendColumn("Valore", wxLIST_FORMAT_LEFT, 150);
 
-    auto display_page = [&](const Json::Value &page) {
+    auto display_page = [&](const variable_map &map) {
         size_t n=0;
-        for (Json::ValueConstIterator it = page.begin(); it != page.end(); ++it) {
-            if (!m_show_debug->GetValue() && it.name().front() == '_') {
+        for (auto &[name, var] : map) {
+            if (!m_show_debug->GetValue() && name.front() == '_') {
                 continue;
             }
-            for (size_t i=0; i < it->size(); ++i) {
-                wxListItem item;
-                item.SetId(n);
-                m_list_ctrl->InsertItem(item);
+            wxListItem item;
+            item.SetId(n);
+            m_list_ctrl->InsertItem(item);
 
-                if (i == 0) {
-                    m_list_ctrl->SetItem(n, col_name, it.name());
-                }
-                m_list_ctrl->SetItem(n, col_value, wxString((*it)[Json::Value::ArrayIndex(i)].asCString(), wxConvUTF8));
-                ++n;
-            }
+            m_list_ctrl->SetItem(n, col_name, name);
+            m_list_ctrl->SetItem(n, col_value, var.str());//wxString(var.str().c_str(), wxConvUTF8));
+            ++n;
         }
     };
 
     if (m_page->GetValue() == "Globali") {
         m_page->SetSelection(0);
         
-        display_page(json_output["globals"]);
+        display_page(m_output.globals);
     } else {
         long selected_page;
         if (!m_page->GetValue().ToLong(&selected_page)) {
@@ -193,7 +175,7 @@ void output_dialog::updateItems() {
             return;
         }
 
-        if (selected_page > (int)json_output["values"].size() || selected_page <= 0) {
+        if (selected_page > m_output.values.size() || selected_page <= 0) {
             wxBell();
             return;
         }
@@ -201,6 +183,6 @@ void output_dialog::updateItems() {
         m_page->SetSelection(selected_page);
         --selected_page;
 
-        display_page(json_output["values"][static_cast<int>(selected_page)]);
+        display_page(m_output.values[static_cast<int>(selected_page)]);
     }
 }

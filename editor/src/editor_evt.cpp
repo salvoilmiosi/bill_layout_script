@@ -1,7 +1,5 @@
 #include "editor.h"
 
-#include <json/json.h>
-
 #include <wx/filename.h>
 #include <wx/config.h>
 
@@ -150,7 +148,6 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
         if (control_script_filename.empty()) return;
     }
     
-    wxString cmd_str = get_app_path() + "reader";
     wxString layout_path = wxConfig::Get()->Read("LayoutPath");
     if (layout_path.empty()) {
         layout_path = getLayoutPath();
@@ -162,28 +159,14 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     bill_layout_script control;
     control_ifs >> control;
     my_parser.read_layout(control);
-    bytecode my_bytecode = read_lines(my_parser.get_output_asm());
-    reader my_reader;
-    my_reader.open_pdf(m_doc.filename());
+    reader my_reader(m_doc);
+    my_reader.exec_program(read_lines(my_parser.get_output_asm()));
 
-    subprocess process(arguments(
-        cmd_str,
-        "-cp", m_doc.filename(),
-        control_script_filename
-    ));
-
-    Json::Value json_output;
-    process.stream_out >> json_output;
-
-    if (json_output.isMember("error")) {
-        wxMessageBox("Impossibile leggere l'output: " + json_output["error"].asString(), "Errore", wxOK | wxICON_ERROR);
-    } else {
-        wxString output_layout = json_output["globals"]["layout"][0].asString();
-        if (output_layout.empty()) {
-            wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
-        } else if (saveIfModified()) {
-            openFile(layout_path + wxFileName::GetPathSeparator() + output_layout + ".bls");
-        }
+    std::string output_layout = my_reader.get_output().get_global("layout").str();
+    if (output_layout.empty()) {
+        wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
+    } else if (saveIfModified()) {
+        openFile(layout_path + wxFileName::GetPathSeparator() + output_layout + ".bls");
     }
 }
 

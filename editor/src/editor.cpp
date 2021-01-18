@@ -59,11 +59,6 @@ constexpr size_t MAX_HISTORY_SIZE = 20;
 constexpr size_t MAX_RECENT_FILES_HISTORY = 10;
 constexpr size_t MAX_RECENT_PDFS_HISTORY = 10;
 
-const wxString &get_app_path() {
-    static auto path = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPathWithSep();
-    return path;
-}
-
 frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxDefaultPosition, wxSize(900, 700)) {
     wxMenuBar *menuBar = new wxMenuBar();
     

@@ -5,7 +5,6 @@
 #include <map>
 #include <vector>
 #include <memory>
-#include <json/json.h>
 
 #include "variable.h"
 #include "variable_ref.h"
@@ -37,19 +36,26 @@ struct context {
     bool jumped = false;
 };
 
-class reader {
-public:
-    void open_pdf(const std::string &filename) {
-        m_doc.open(filename);
-    }
-    
-    void exec_program(std::istream &input);
-
-    void save_output(Json::Value &output, bool debug);
+struct reader_output {
+    variable_map globals;
+    std::vector<variable_map> values;
+    std::vector<std::string> warnings;
 
     const variable &get_global(const std::string &name, size_t index = 0) {
-        return variable_ref(m_globals, name, index).get_value();
+        return variable_ref(globals, name, index).get_value();
     }
+};
+
+class reader {
+public:
+    reader(const pdf_document &doc) : m_doc(doc) {}
+    
+    void exec_program(bytecode code);
+    reader_output &get_output() {
+        return m_out;
+    }
+
+    void halt();
 
 private:
     void exec_command(const command_args &cmd);
@@ -58,14 +64,11 @@ private:
     void call_function(const std::string &name, size_t numargs);
 
 private:
-    variable_map m_globals;
-    std::vector<variable_map> m_values;
-    std::vector<std::string> m_warnings;
-
-private:
-    pdf_document m_doc;
+    const pdf_document &m_doc;
     bytecode m_code;
+
     context m_con;
+    reader_output m_out;
 };
 
 #endif

@@ -6,7 +6,7 @@ import sys
 import json
 
 app_dir = Path(sys.argv[0]).parent
-layout_reader = app_dir.joinpath('../build/reader')
+layout_reader = app_dir.joinpath('../work/bin/reader')
 controllo = app_dir.joinpath('../work/layouts/controllo.out')
 input_directory = app_dir.joinpath('../work/fatture')
 

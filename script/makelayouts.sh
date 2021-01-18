@@ -11,6 +11,6 @@ for f in $IN_DIR/*.bls; do
     out_file="$OUT_DIR/$(basename "$f" .bls).out"
     if [[ "$f" -nt "$out_file" ]]; then
         echo "Compilo $(basename "$f")"
-        ../build/compiler -o "$out_file" "$f"
+        ../work/bin/compiler -o "$out_file" "$f"
     fi
 done

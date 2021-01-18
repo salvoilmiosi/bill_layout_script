@@ -113,7 +113,7 @@ bool parser::read_statement() {
             break;
         }
 
-        if (flags & VAR_NUMBER) {
+        if (flags & VAR_PARSENUM) {
             add_line("PARSENUM");
         }
         
@@ -276,7 +276,7 @@ int parser::read_variable(bool read_only) {
             break;
         case TOK_PERCENT:
             if (read_only) throw m_lexer.unexpected_token(TOK_IDENTIFIER);
-            flags |= VAR_NUMBER;
+            flags |= VAR_PARSENUM;
             break;
         case TOK_AMPERSAND:
             if (!read_only) throw m_lexer.unexpected_token(TOK_IDENTIFIER);

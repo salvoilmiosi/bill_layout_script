@@ -20,19 +20,22 @@ src/pdf_document.cpp
 src/utils.cpp
 )
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/decimal_for_cpp/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
-
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(DEPS REQUIRED jsoncpp fmt poppler-cpp)
+pkg_check_modules(DEPS REQUIRED fmt poppler-cpp)
 
 find_package(wxWidgets REQUIRED COMPONENTS base)
 include(${wxWidgets_USE_FILE})
 
-include_directories(${DEPS_INCLUDE_DIRS})
+set(liblayout_INCLUDE_DIRS
+${CMAKE_CURRENT_SOURCE_DIR}/src
+${CMAKE_CURRENT_SOURCE_DIR}/decimal_for_cpp/include)
+
+include_directories(${liblayout_INCLUDE_DIRS} ${DEPS_INCLUDE_DIRS})
 
 add_library(layout SHARED ${liblayout_SRCS})
 target_link_libraries(layout ${wxWidgets_LIBRARIES} ${DEPS_LIBRARIES})
 
 add_subdirectory(editor)
 add_subdirectory(utils)
+
+install(TARGETS layout)

@@ -5,16 +5,16 @@
 #include <wx/combobox.h>
 #include <wx/listctrl.h>
 #include <wx/thread.h>
-#include <json/json.h>
 
 #include "editor.h"
+#include "reader.h"
 
 class output_dialog;
 
 class reader_thread : public wxThread {
 public:
-    reader_thread(output_dialog *parent, const bill_layout_script &layout, const wxString &pdf_filename)
-        : parent(parent), layout(layout), pdf_filename(pdf_filename) {}
+    reader_thread(output_dialog *parent, const bill_layout_script &layout, const pdf_document &doc)
+        : parent(parent), layout(layout), m_reader(doc) {}
     ~reader_thread();
 
     void abort();
@@ -23,12 +23,11 @@ protected:
     virtual ExitCode Entry();
 
 private:
-    bool m_aborted = false;
-
     output_dialog *parent;
 
     bill_layout_script layout;
-    wxString pdf_filename;
+    reader m_reader;
+    bool m_aborted = false;
 };
 
 class output_dialog : public wxDialog {
@@ -44,9 +43,7 @@ private:
     wxListCtrl *m_list_ctrl;
 
     reader_thread *m_thread = nullptr;
-    Json::Value json_output;
-    
-    wxCriticalSection m_thread_cs;
+    reader_output m_output;
 
     void OnUpdate(wxCommandEvent &evt);
     void OnClickUpdate(wxCommandEvent &evt);

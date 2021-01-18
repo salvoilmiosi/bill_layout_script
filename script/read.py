@@ -13,7 +13,7 @@ in_data = []
 results = []
 
 app_dir = Path(sys.argv[0]).parent
-layout_reader = app_dir.joinpath('../build/reader')
+layout_reader = app_dir.joinpath('../work/bin/reader')
 
 def check_conguagli():
     global results

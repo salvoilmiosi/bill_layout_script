@@ -6,8 +6,6 @@
 #include <wx/stattext.h>
 #include <wx/msgdlg.h>
 
-#include <json/json.h>
-
 #include "editor.h"
 #include "utils.h"
 
@@ -173,6 +171,5 @@ void box_dialog::OnClickTest(wxCommandEvent &evt) {
     copy.type = static_cast<box_type>(m_box_type->GetSelection());
     copy.mode = static_cast<read_mode>(m_box_mode->GetSelection());
     std::string text = app->getPdfDocument().get_text(copy);
-    Json::Value value = text;
-    reader_output->ShowText(value.toStyledString());
+    reader_output->ShowText(text);
 }

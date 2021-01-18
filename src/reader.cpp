@@ -4,10 +4,8 @@
 #include "utils.h"
 #include "functions.h"
 
-void reader::exec_program(std::istream &input) {
-    if (m_code.read_bytecode(input).fail()) {
-        throw layout_error("File layout non riconosciuto");
-    }
+void reader::exec_program(bytecode code) {
+    m_code = code;
 
     m_con = {};
 
@@ -19,6 +17,10 @@ void reader::exec_program(std::istream &input) {
             m_con.jumped = false;
         }
     }
+}
+
+void reader::halt() {
+    m_con.program_counter = m_code.m_commands.size();
 }
 
 void reader::exec_command(const command_args &cmd) {
@@ -34,10 +36,10 @@ void reader::exec_command(const command_args &cmd) {
 
     auto create_ref = [&](const std::string &name, auto ... args) {
         if (name.front() == '*') {
-            return variable_ref(m_globals, name.substr(1), args ...);
+            return variable_ref(m_out.globals, name.substr(1), args ...);
         } else {
-            while (m_values.size() <= m_con.current_table) m_values.emplace_back();
-            return variable_ref(m_values[m_con.current_table], name, args ...);
+            while (m_out.values.size() <= m_con.current_table) m_out.values.emplace_back();
+            return variable_ref(m_out.values[m_con.current_table], name, args ...);
         }
     };
 
@@ -62,7 +64,7 @@ void reader::exec_command(const command_args &cmd) {
     }
     case opcode::THROWERR: throw layout_error(m_con.vars.top().str()); break;
     case opcode::ADDWARNING:
-        m_warnings.push_back(std::move(m_con.vars.top().str()));
+        m_out.warnings.push_back(std::move(m_con.vars.top().str()));
         m_con.vars.pop();
         break;
     case opcode::PARSENUM:
@@ -233,7 +235,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::NEXTTOKEN: m_con.contents.top().next_token("\t\n\v\f\r "); break;
     case opcode::NEXTTABLE: ++m_con.current_table; break;
     case opcode::ATE: m_con.vars.push(m_con.last_box_page > m_doc.num_pages()); break;
-    case opcode::HLT: m_con.program_counter = m_code.m_commands.size(); break;
+    case opcode::HLT: halt(); break;
     }
 }
 
@@ -257,32 +259,4 @@ void reader::read_box(pdf_rect box) {
     m_con.contents = {};
 
     m_con.contents.push(m_doc.get_text(box));
-}
-
-void reader::save_output(Json::Value &root, bool debug) {
-    auto write_values = [&](const variable_map &values) {
-        Json::Value ret = Json::objectValue;
-        for (auto &[name, var] : values) {
-            if (name.front() == '_' && !debug) {
-                continue;
-            }
-            auto &json_arr = ret[name];
-            if (json_arr.isNull()) json_arr = Json::arrayValue;
-            json_arr.append(var.str());
-        }
-        return ret;
-    };
-
-    root["globals"] = write_values(m_globals);
-    
-    Json::Value &values = root["values"] = Json::arrayValue;
-    for (auto &v : m_values) {
-        values.append(write_values(v));
-    }
-
-    for (auto &v : m_warnings) {
-        Json::Value &warnings = root["warnings"];
-        if (warnings.isNull()) warnings = Json::arrayValue;
-        warnings.append(v);
-    }
 }

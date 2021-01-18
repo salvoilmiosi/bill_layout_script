@@ -116,6 +116,4 @@ private:
     int selected_page = 0;
 };
 
-const wxString &get_app_path();
-
 #endif
