@@ -37,5 +37,6 @@ target_link_libraries(layout ${wxWidgets_LIBRARIES} ${DEPS_LIBRARIES})
 
 add_subdirectory(editor)
 add_subdirectory(utils)
+add_subdirectory(pyreader)
 
 install(TARGETS layout)
