@@ -2,7 +2,7 @@
 #define __BINARY_IO_H__
 
 #include "bytecode.h"
-#include "decimal.h"
+#include "fixed_point.h"
 
 #include <iostream>
 
@@ -39,14 +39,14 @@ void readData(std::istream &input, T &buffer) {
     }
 }
 
-template<> void readData(std::istream &input, std::string &buffer) {
+template<> inline void readData(std::istream &input, std::string &buffer) {
     string_size len;
     readData(input, len);
     buffer.resize(len, '\0');
     input.read(buffer.data(), len);
 }
 
-template<> void readData(std::istream &input, fixed_point &buffer) {
+template<> inline void readData(std::istream &input, fixed_point &buffer) {
     dec::int64 num;
     readData(input, num);
     buffer.setUnbiased(num);
@@ -68,12 +68,12 @@ void writeData(std::ostream &output, const T &data) {
     }
 }
 
-template<> void writeData<std::string>(std::ostream &output, const std::string &str) {
+template<> inline void writeData<std::string>(std::ostream &output, const std::string &str) {
     writeData<string_size>(output, str.size());
     output.write(str.c_str(), str.size());
 }
 
-template<> void writeData<fixed_point>(std::ostream &output, const fixed_point &num) {
+template<> inline void writeData<fixed_point>(std::ostream &output, const fixed_point &num) {
     writeData<dec::int64>(output, num.getUnbiased());
 }
 

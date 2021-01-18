@@ -4,7 +4,7 @@
 #include <string>
 #include <string_view>
 
-#include "decimal.h"
+#include "fixed_point.h"
 #include "bytecode.h"
 
 enum variable_type {

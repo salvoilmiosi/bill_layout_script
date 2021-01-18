@@ -1,6 +1,6 @@
 #include "layout.h"
 #include "bytecode.h"
-#include "decimal.h"
+#include "fixed_point.h"
 
 #include <iostream>
 #include <iomanip>

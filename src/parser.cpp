@@ -5,7 +5,7 @@
 #include "utils.h"
 #include "bytecode.h"
 #include "parsestr.h"
-#include "decimal.h"
+#include "fixed_point.h"
 
 void parser::read_layout(const bill_layout_script &layout) {
     try {

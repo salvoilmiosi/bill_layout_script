@@ -7,7 +7,7 @@
 #include "utils.h"
 #include "binary_io.h"
 #include "parsestr.h"
-#include "decimal.h"
+#include "fixed_point.h"
 
 bytecode read_lines(const std::vector<std::string> &lines) {
     bytecode ret;

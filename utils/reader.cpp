@@ -7,7 +7,6 @@
 #include <wx/stdpaths.h>
 
 #include "reader.h"
-#include "subprocess.h"
 #include "utils.h"
 
 class MainApp : public wxAppConsole {

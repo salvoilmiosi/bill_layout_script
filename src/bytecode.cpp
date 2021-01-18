@@ -1,6 +1,6 @@
 #include "bytecode.h"
 #include "binary_io.h"
-#include "decimal.h"
+#include "fixed_point.h"
 
 #include <algorithm>
 
