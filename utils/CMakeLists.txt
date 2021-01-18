@@ -1,3 +1,5 @@
+include_directories(${subprocess_INCLUDE_DIRS})
+
 add_executable(compiler compiler.cpp)
 target_link_libraries(compiler layout)
 

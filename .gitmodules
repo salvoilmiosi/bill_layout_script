@@ -1,6 +1,3 @@
 [submodule "decimal_for_cpp"]
 	path = decimal_for_cpp
 	url = https://github.com/vpiotr/decimal_for_cpp
-[submodule "subprocess"]
-	path = subprocess
-	url = http://github.com/salvoilmiosi/subprocess

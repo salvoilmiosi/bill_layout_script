@@ -8,7 +8,6 @@
 #include <json/json.h>
 
 #include "editor.h"
-#include "subprocess.h"
 
 class output_dialog;
 
@@ -24,7 +23,6 @@ protected:
     virtual ExitCode Entry();
 
 private:
-    subprocess proc_reader;
     bool m_aborted = false;
 
     output_dialog *parent;

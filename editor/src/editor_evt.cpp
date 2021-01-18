@@ -5,7 +5,8 @@
 #include <wx/filename.h>
 #include <wx/config.h>
 
-#include "subprocess.h"
+#include <fstream>
+
 #include "utils.h"
 
 #include "layout_ext.h"
@@ -14,6 +15,10 @@
 #include "box_editor_panel.h"
 #include "box_dialog.h"
 #include "output_dialog.h"
+
+#include "parser.h"
+#include "assembler.h"
+#include "reader.h"
 
 void frame_editor::OnNewFile(wxCommandEvent &evt) {
     if (saveIfModified()) {
@@ -122,24 +127,14 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
     if (diag.ShowModal() == wxID_CANCEL)
         return;
 
-    wxString output_file = diag.GetPath().ToStdString();
+    std::ofstream ofs(diag.GetPath().ToStdString(), std::ios::out | std::ios::binary);
     try {
-        wxString cmd_str = get_app_path() + "compiler";
-        
-        subprocess process(arguments(
-            cmd_str,
-            "-o", output_file,
-            "-"
-        ));
-        process.stream_in << layout;
-        process.stream_in.close();
-        
-        std::string compile_output = read_all(process.stream_out);
-        if (!compile_output.empty()) {
-            CompileErrorDialog(this, compile_output).ShowModal();
-        }
-    } catch (const process_error &error) {
-        wxMessageBox(error.what(), "Errore", wxICON_ERROR);
+        parser my_parser;
+        my_parser.read_layout(layout);
+        bytecode my_bytecode = read_lines(my_parser.get_output_asm());
+        my_bytecode.write_bytecode(ofs);
+    } catch (const std::exception &error) {
+        CompileErrorDialog(this, error.what()).ShowModal();
     }
 }
 
@@ -161,6 +156,15 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
         layout_path = getLayoutPath();
         if (layout_path.empty()) return;
     }
+
+    parser my_parser;
+    std::ifstream control_ifs(control_script_filename.ToStdString());
+    bill_layout_script control;
+    control_ifs >> control;
+    my_parser.read_layout(control);
+    bytecode my_bytecode = read_lines(my_parser.get_output_asm());
+    reader my_reader;
+    my_reader.open_pdf(m_doc.filename());
 
     subprocess process(arguments(
         cmd_str,

@@ -20,10 +20,7 @@ src/pdf_document.cpp
 src/utils.cpp
 )
 
-add_subdirectory(subprocess)
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/decimal_for_cpp/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/subprocess/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 find_package(PkgConfig REQUIRED)
