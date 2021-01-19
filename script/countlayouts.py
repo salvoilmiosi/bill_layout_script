@@ -2,12 +2,16 @@ from multiprocessing.pool import Pool
 from pathlib import Path
 from collections import Counter
 import sys
-import pyreader
+import os
 
 app_dir = Path(sys.argv[0]).parent
-layout_reader = app_dir.joinpath('../work/bin/reader')
-controllo = app_dir.joinpath('../work/layouts/controllo.out')
-input_directory = app_dir.joinpath('../work/fatture')
+bin_dir = str(app_dir / '../bin')
+sys.path.append(bin_dir)
+os.environ['PATH'] = bin_dir
+import pyreader
+
+controllo = app_dir / '../work/layouts/controllo.out'
+input_directory = app_dir / '../work/fatture'
 
 def check_layout(pdf_file):
     try:

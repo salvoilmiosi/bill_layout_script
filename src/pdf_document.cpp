@@ -3,19 +3,17 @@
 #include <fstream>
 #include <regex>
 
-#include <fmt/format.h>
-
 #include "utils.h"
 
 void pdf_document::open(const std::string &filename) {
     std::ifstream ifs(filename, std::ios::in | std::ios::binary);
     if (ifs.fail()) {
-        throw pdf_error(fmt::format("Impossibile aprire il file {}", filename));
+        throw pdf_error("Impossibile aprire il file");
     }
     std::vector<char> file_data{std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>()};
     m_document.reset(poppler::document::load_from_data(&file_data));
     if (!m_document) {
-        throw pdf_error(fmt::format("Impossibile aprire il file {}", filename));
+        throw pdf_error("Documento pdf invalido");
     }
 
     m_filename = filename;

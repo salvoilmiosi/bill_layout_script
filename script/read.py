@@ -1,21 +1,25 @@
-import pyreader
-import json
-import sys
-import datetime
-import time
-import os
 from multiprocessing import Pool, cpu_count
 from pathlib import Path
 from termcolor import colored
+import sys
+import os
+import json
+import datetime
+import time
+
+app_dir = Path(sys.argv[0]).parent
+bin_dir = str(app_dir / '../bin')
+sys.path.append(bin_dir)
+os.environ['PATH'] = bin_dir
+import pyreader
 
 if len(sys.argv) < 3:
     print('Argomenti richiesti: input_directory [output] [controllo] [nthreads]')
     sys.exit()
 
-app_dir = Path(sys.argv[0]).parent
 input_directory = Path(sys.argv[1])
 output_file = Path(sys.argv[2])
-controllo = Path(sys.argv[3] if len(sys.argv) >= 4 else app_dir.joinpath('../work/layouts/controllo.out'))
+controllo = Path(sys.argv[3] if len(sys.argv) >= 4 else app_dir / '../work/layouts/controllo.out')
 
 try:
     nthreads = int(sys.argv[4]) if len(sys.argv) >= 5 else cpu_count()
@@ -107,7 +111,7 @@ if __name__ == '__main__':
             rel_path = f.relative_to(input_directory)
             for old_obj in filter(lambda x: x['filename'] == str(rel_path), in_data):
                 if 'layout' in old_obj and 'values' in old_obj:
-                    layout_file = controllo.parent.joinpath('{0}.out'.format(old_obj['layout']))
+                    layout_file = controllo.parent / '{0}.out'.format(old_obj['layout'])
                     if os.path.getmtime(str(layout_file)) < os.path.getmtime(str(output_file)):
                         results.append(old_obj)
                         ignore = True

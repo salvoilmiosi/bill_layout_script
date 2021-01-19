@@ -61,4 +61,4 @@ include_directories(${liblayout_INCLUDE_DIRS})
 add_executable(editor ${editor_SRCS} ${editor_RESOURCES_C} resources/resources.rc)
 target_link_libraries(editor ${wxWidgets_LIBRARIES} layout)
 
-install(TARGETS editor)
+install(TARGETS editor DESTINATION "${CMAKE_SOURCE_DIR}/bin")

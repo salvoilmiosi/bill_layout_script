@@ -1,6 +1,7 @@
 .vscode/*
 build/*
 work/*
+bin/*
 *.exe
 *.dll
 *.so
@@ -9,3 +10,4 @@ work/*
 *.res
 *.pdf
 *.pyc
+*.pyd

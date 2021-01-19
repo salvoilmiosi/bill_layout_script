@@ -32,10 +32,10 @@ ${CMAKE_CURRENT_SOURCE_DIR}/decimal_for_cpp/include)
 
 include_directories(${liblayout_INCLUDE_DIRS} ${DEPS_INCLUDE_DIRS})
 
-add_library(layout STATIC ${liblayout_SRCS})
+add_library(layout SHARED ${liblayout_SRCS})
 target_link_libraries(layout ${wxWidgets_LIBRARIES} ${DEPS_LIBRARIES})
 
 add_subdirectory(editor)
 add_subdirectory(utils)
 
-install(TARGETS layout)
+install(TARGETS layout DESTINATION "${CMAKE_SOURCE_DIR}/bin")

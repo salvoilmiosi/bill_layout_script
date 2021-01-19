@@ -11,7 +11,7 @@ target_link_libraries(compiler layout)
 add_executable(reader reader.cpp)
 target_link_libraries(reader layout ${JSONCPP_LIBRARIES})
 
-install(TARGETS compiler reader)
+install(TARGETS compiler reader DESTINATION "${CMAKE_SOURCE_DIR}/bin")
 
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 find_package(PythonLibs REQUIRED)
@@ -20,4 +20,4 @@ include_directories(${PYTHON_INCLUDE_DIRS})
 Python3_add_library(pyreader pyreader.cpp)
 target_link_libraries(pyreader PRIVATE layout)
 
-install(TARGETS pyreader DESTINATION "${CMAKE_SOURCE_DIR}/script" COMPONENT "EXT")
+install(TARGETS pyreader DESTINATION "${CMAKE_SOURCE_DIR}/bin" COMPONENT "EXT")
