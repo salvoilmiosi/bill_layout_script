@@ -66,7 +66,7 @@ def read_pdf(pdf_file):
     ret = {'filename':str(rel_path)}
 
     try:
-        out_dict = pyreader.readpdf_autolayout(str(pdf_file), str(controllo))
+        out_dict = pyreader.readpdf_autolayout(pdf_file, controllo)
 
         ret['values'] = out_dict['values']
         if 'layout' in out_dict['globals']:

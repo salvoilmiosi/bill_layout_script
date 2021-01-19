@@ -12,9 +12,17 @@
 static PyObject *reader_error;
 
 static PyObject *pyreader_getlayout(PyObject *self, PyObject *args) {
-    const char *pdf_filename;
-    const char *code_filename;
-    PyArg_ParseTuple(args, "ss", &pdf_filename, &code_filename);
+    PyObject *obj_pdf_filename, *obj_code_filename;
+    char *pdf_filename, *code_filename;
+    if (!PyArg_ParseTuple(args, "O&O&", PyUnicode_FSConverter, &obj_pdf_filename, PyUnicode_FSConverter, &obj_code_filename)) {
+        return nullptr;
+    }
+
+    pdf_filename = PyBytes_AsString(obj_pdf_filename);
+    code_filename = PyBytes_AsString(obj_code_filename);
+
+    Py_DECREF(obj_pdf_filename);
+    Py_DECREF(obj_code_filename);
 
     try {
         pdf_document my_doc(pdf_filename);
@@ -77,9 +85,17 @@ static PyObject *to_pyoutput(const reader_output &my_output) {
 }
 
 static PyObject *pyreader_readpdf(PyObject *self, PyObject *args) {
-    const char *pdf_filename;
-    const char *code_filename;
-    PyArg_ParseTuple(args, "ss", &pdf_filename, &code_filename);
+    PyObject *obj_pdf_filename, *obj_code_filename;
+    char *pdf_filename, *code_filename;
+    if (!PyArg_ParseTuple(args, "O&O&", PyUnicode_FSConverter, &obj_pdf_filename, PyUnicode_FSConverter, &obj_code_filename)) {
+        return nullptr;
+    }
+
+    pdf_filename = PyBytes_AsString(obj_pdf_filename);
+    code_filename = PyBytes_AsString(obj_code_filename);
+
+    Py_DECREF(obj_pdf_filename);
+    Py_DECREF(obj_code_filename);
 
     try {
         pdf_document my_doc(pdf_filename);
@@ -90,14 +106,21 @@ static PyObject *pyreader_readpdf(PyObject *self, PyObject *args) {
     } catch (const std::exception &error) {
         PyErr_SetString(reader_error, error.what());
     }
-
     return nullptr;
 }
 
 static PyObject *pyreader_readpdf_autolayout(PyObject *self, PyObject *args) {
-    const char *pdf_filename;
-    const char *code_filename;
-    PyArg_ParseTuple(args, "ss", &pdf_filename, &code_filename);
+    PyObject *obj_pdf_filename, *obj_code_filename;
+    char *pdf_filename, *code_filename;
+    if (!PyArg_ParseTuple(args, "O&O&", PyUnicode_FSConverter, &obj_pdf_filename, PyUnicode_FSConverter, &obj_code_filename)) {
+        return nullptr;
+    }
+
+    pdf_filename = PyBytes_AsString(obj_pdf_filename);
+    code_filename = PyBytes_AsString(obj_code_filename);
+
+    Py_DECREF(obj_pdf_filename);
+    Py_DECREF(obj_code_filename);
 
     try {
         pdf_document my_doc(pdf_filename);
@@ -120,7 +143,6 @@ static PyObject *pyreader_readpdf_autolayout(PyObject *self, PyObject *args) {
     } catch (const std::exception &error) {
         PyErr_SetString(reader_error, error.what());
     }
-
     return nullptr;
 }
 

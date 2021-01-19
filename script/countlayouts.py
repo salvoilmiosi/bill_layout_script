@@ -16,7 +16,7 @@ input_directory = app_dir / '../work/fatture'
 def check_layout(pdf_file):
     try:
         print(pdf_file)
-        return pyreader.getlayout(str(pdf_file), str(controllo))
+        return pyreader.getlayout(pdf_file, controllo)
     except:
         return None
 
