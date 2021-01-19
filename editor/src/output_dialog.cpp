@@ -99,7 +99,7 @@ wxThread::ExitCode reader_thread::Entry() {
         }
     } catch (const std::exception &error) {
         auto *evt = new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR);
-        evt->SetString(error.what());
+        evt->SetString(wxString(error.what(), wxConvUTF8));
         wxQueueEvent(parent, evt);
     }
     return (wxThread::ExitCode) 1;
@@ -150,6 +150,7 @@ void output_dialog::updateItems() {
 
     auto display_page = [&](const variable_map &map) {
         size_t n=0;
+        std::string old_name;
         for (auto &[name, var] : map) {
             if (!m_show_debug->GetValue() && name.front() == '_') {
                 continue;
@@ -158,8 +159,11 @@ void output_dialog::updateItems() {
             item.SetId(n);
             m_list_ctrl->InsertItem(item);
 
-            m_list_ctrl->SetItem(n, col_name, name);
+            if (old_name != name) {
+                m_list_ctrl->SetItem(n, col_name, name);
+            }
             m_list_ctrl->SetItem(n, col_value, wxString(var.str().c_str(), wxConvUTF8));
+            old_name = name;
             ++n;
         }
     };

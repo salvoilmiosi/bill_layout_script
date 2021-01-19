@@ -171,5 +171,5 @@ void box_dialog::OnClickTest(wxCommandEvent &evt) {
     copy.type = static_cast<box_type>(m_box_type->GetSelection());
     copy.mode = static_cast<read_mode>(m_box_mode->GetSelection());
     std::string text = app->getPdfDocument().get_text(copy);
-    reader_output->ShowText(text);
+    reader_output->ShowText(wxString(text.c_str(), wxConvUTF8));
 }
