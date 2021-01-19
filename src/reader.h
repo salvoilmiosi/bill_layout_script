@@ -40,10 +40,6 @@ struct reader_output {
     variable_map globals;
     std::vector<variable_map> values;
     std::vector<std::string> warnings;
-
-    const variable &get_global(const std::string &name, size_t index = 0) {
-        return variable_ref(globals, name, index).get_value();
-    }
 };
 
 class reader {

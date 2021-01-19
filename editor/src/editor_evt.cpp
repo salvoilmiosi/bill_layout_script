@@ -162,11 +162,11 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     reader my_reader(m_doc);
     my_reader.exec_program(read_lines(my_parser.get_output_asm()));
 
-    std::string output_layout = my_reader.get_output().get_global("layout").str();
-    if (output_layout.empty()) {
+    auto layout_it = my_reader.get_output().globals.find("layout");
+    if (layout_it == my_reader.get_output().globals.end()) {
         wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
     } else if (saveIfModified()) {
-        openFile(layout_path + wxFileName::GetPathSeparator() + output_layout + ".bls");
+        openFile(layout_path + wxFileName::GetPathSeparator() + layout_it->second.str() + ".bls");
     }
 }
 
