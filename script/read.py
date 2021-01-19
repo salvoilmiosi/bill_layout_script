@@ -1,6 +1,6 @@
-import subprocess
-import sys
+import pyreader
 import json
+import sys
 import datetime
 import time
 import os
@@ -59,11 +59,12 @@ def read_pdf(pdf_file):
     
     for old_obj in filter(lambda x: x['filename'] == str(rel_path), in_data):
         if not 'layout' in old_obj:
-            args = [layout_reader, '-p', pdf_file, controllo]
-            proc = subprocess.run(args, capture_output=True, text=True)
-            json_out = json.loads(proc.stdout)
-            if not 'error' in json_out and 'layout' in json_out['globals']:
-                old_obj['layout'] = json_out['globals']['layout'][0]
+            try:
+                layout = pyreader.getlayout(str(pdf_file), str(controllo))
+                if layout is not None:
+                    old_obj['layout'] = layout
+            except:
+                pass
         if 'layout' in old_obj and 'values' in old_obj:
             layout_file = controllo.parent.joinpath('{0}.out'.format(old_obj['layout']))
             if os.path.getmtime(str(layout_file)) < os.path.getmtime(str(output_file)):
@@ -71,30 +72,27 @@ def read_pdf(pdf_file):
                 ignore = True
 
     if ignore: return
-    
-    args = [layout_reader, '-p', pdf_file, '-s', controllo]
-    proc = subprocess.run(args, capture_output=True, text=True)
 
     file_obj = {'filename':str(rel_path)}
     try:
-        json_out = json.loads(proc.stdout)
-        if 'error' in json_out:
-            file_obj['error'] = json_out['error']
-            print(colored('{0} ### {1}'.format(rel_path, json_out['error']),'red'))
+        out_dict = pyreader.readpdf_autolayout(str(pdf_file), str(controllo))
+
+        file_obj['values'] = out_dict['values']
+        if 'layout' in out_dict['globals']:
+            file_obj['layout'] = out_dict['globals']['layout'][0]
+        if 'warnings' in out_dict:
+            file_obj['warnings'] = out_dict['warnings']
+            print(colored('{0} ### {1}'.format(rel_path, ', '.join(out_dict['warnings'])), 'yellow'))
+        elif 'layout' in file_obj:
+            print('{0} ### {1}'.format(rel_path, file_obj['layout']))
         else:
-            file_obj['values'] = json_out['values']
-            if 'layout' in json_out['globals']:
-                file_obj['layout'] = json_out['globals']['layout'][0]
-            if 'warnings' in json_out:
-                file_obj['warnings'] = json_out['warnings']
-                print(colored('{0} ### {1}'.format(rel_path, ', '.join(json_out['warnings'])), 'yellow'))
-            elif 'layout' in file_obj:
-                print('{0} ### {1}'.format(rel_path, file_obj['layout']))
-            else:
-                print(rel_path)
+            print(rel_path)
+    except pyreader.error as err:
+        file_obj['error'] = str(err)
+        print(colored('{0} ### {1}'.format(rel_path, file_obj['error']), 'red'))
     except:
-        file_obj['error'] = f'Return code {proc.returncode}'
-        print(colored('{0} ### {1}'.format(rel_path, file_obj['error']), 'blue'))
+        file_obj['error'] = 'Errore sconosciuto'
+        print(colored('{0} ### {1}'.format(rel_path, file_obj['error']), 'magenta'))
 
     results.append(file_obj)
 

@@ -3,6 +3,7 @@
 #include "fixed_point.h"
 
 #include <algorithm>
+#include <fstream>
 
 std::ostream &bytecode::write_bytecode(std::ostream &output) {
     writeData(output, MAGIC);
@@ -235,4 +236,11 @@ const std::string &bytecode::get_string(string_ref ref) {
     } else {
         return m_strings[ref];
     }
+}
+
+bytecode bytecode::read_from_file(const std::string &filename) {
+    bytecode ret;
+    std::ifstream ifs(filename, std::ios::in | std::ios::binary);
+    ret.read_bytecode(ifs);
+    return ret;
 }
