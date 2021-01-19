@@ -1,20 +1,20 @@
 from multiprocessing import Pool, cpu_count
-from pathlib import Path
 from termcolor import colored
+from pathlib import Path
 import sys
 import os
 import json
 import datetime
 import time
 
-app_dir = Path(sys.argv[0]).parent
-os.environ['PATH'] = str(app_dir / '../bin')
+os.environ['PATH'] += os.pathsep + str(Path(sys.argv[0]).parent.joinpath('../bin'))
 import pyreader
 
 if len(sys.argv) < 3:
     print('Argomenti richiesti: input_directory [output] [controllo] [nthreads]')
     sys.exit()
 
+app_dir = Path(sys.argv[0]).parent
 input_directory = Path(sys.argv[1])
 output_file = Path(sys.argv[2])
 controllo = Path(sys.argv[3] if len(sys.argv) >= 4 else app_dir / '../work/layouts/controllo.out')

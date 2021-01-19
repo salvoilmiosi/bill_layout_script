@@ -1,13 +1,13 @@
 from multiprocessing.pool import Pool
-from pathlib import Path
 from collections import Counter
+from pathlib import Path
 import sys
 import os
 
-app_dir = Path(sys.argv[0]).parent
-os.environ['PATH'] = str(app_dir / '../bin')
+os.environ['PATH'] += os.pathsep + str(Path(sys.argv[0]).parent.joinpath('../bin'))
 import pyreader
 
+app_dir = Path(sys.argv[0]).parent
 controllo = app_dir / '../work/layouts/controllo.out'
 input_directory = app_dir / '../work/fatture'
 
