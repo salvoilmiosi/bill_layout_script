@@ -132,7 +132,7 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
         bytecode my_bytecode = read_lines(my_parser.get_output_asm());
         my_bytecode.write_bytecode(ofs);
     } catch (const std::exception &error) {
-        CompileErrorDialog(this, error.what()).ShowModal();
+        CompileErrorDialog(this, wxString(error.what(), wxConvUTF8)).ShowModal();
     }
 }
 

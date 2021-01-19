@@ -2,6 +2,7 @@
 #define __BYTECODE_H__
 
 #include <any>
+#include <filesystem>
 
 #include "layout.h"
 
@@ -128,7 +129,7 @@ struct bytecode {
     std::ostream &write_bytecode(std::ostream &output);
     std::istream &read_bytecode(std::istream &input);
 
-    static bytecode read_from_file(const std::string &filename);
+    static bytecode read_from_file(const std::filesystem::path &filename);
     
     template<typename ... Ts> command_args add_command(Ts && ... args) {
         return m_commands.emplace_back(std::forward<Ts>(args) ...);

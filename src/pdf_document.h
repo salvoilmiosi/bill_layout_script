@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <filesystem>
 
 #include <poppler-document.h>
 #include <poppler-page.h>
@@ -28,11 +29,11 @@ class pdf_document {
 public:
     pdf_document() = default;
 
-    explicit pdf_document(const std::string &filename) {
+    explicit pdf_document(const std::filesystem::path &filename) {
         open(filename);
     }
 
-    void open(const std::string &filename);
+    void open(const std::filesystem::path &filename);
     bool isopen() const {
         return m_document != nullptr;
     }

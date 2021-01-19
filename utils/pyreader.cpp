@@ -11,19 +11,24 @@
 
 static PyObject *reader_error;
 
-static PyObject *pyreader_getlayout(PyObject *self, PyObject *args) {
+static std::pair<char8_t *, char8_t *> get_filenames(PyObject *args) {
     PyObject *obj_pdf_filename, *obj_code_filename;
-    char *pdf_filename, *code_filename;
+    char8_t *pdf_filename, *code_filename;
     if (!PyArg_ParseTuple(args, "O&O&", PyUnicode_FSConverter, &obj_pdf_filename, PyUnicode_FSConverter, &obj_code_filename)) {
-        return nullptr;
+        return {nullptr, nullptr};
     }
 
-    pdf_filename = PyBytes_AsString(obj_pdf_filename);
-    code_filename = PyBytes_AsString(obj_code_filename);
+    pdf_filename = reinterpret_cast<char8_t *>(PyBytes_AsString(obj_pdf_filename));
+    code_filename = reinterpret_cast<char8_t *>(PyBytes_AsString(obj_code_filename));
 
     Py_DECREF(obj_pdf_filename);
     Py_DECREF(obj_code_filename);
+    return {pdf_filename, code_filename};
+}
 
+static PyObject *pyreader_getlayout(PyObject *self, PyObject *args) {
+    auto [pdf_filename, code_filename] = get_filenames(args);
+    
     try {
         pdf_document my_doc(pdf_filename);
         reader my_reader(my_doc);
@@ -85,17 +90,7 @@ static PyObject *to_pyoutput(const reader_output &my_output) {
 }
 
 static PyObject *pyreader_readpdf(PyObject *self, PyObject *args) {
-    PyObject *obj_pdf_filename, *obj_code_filename;
-    char *pdf_filename, *code_filename;
-    if (!PyArg_ParseTuple(args, "O&O&", PyUnicode_FSConverter, &obj_pdf_filename, PyUnicode_FSConverter, &obj_code_filename)) {
-        return nullptr;
-    }
-
-    pdf_filename = PyBytes_AsString(obj_pdf_filename);
-    code_filename = PyBytes_AsString(obj_code_filename);
-
-    Py_DECREF(obj_pdf_filename);
-    Py_DECREF(obj_code_filename);
+    auto [pdf_filename, code_filename] = get_filenames(args);
 
     try {
         pdf_document my_doc(pdf_filename);
@@ -110,17 +105,7 @@ static PyObject *pyreader_readpdf(PyObject *self, PyObject *args) {
 }
 
 static PyObject *pyreader_readpdf_autolayout(PyObject *self, PyObject *args) {
-    PyObject *obj_pdf_filename, *obj_code_filename;
-    char *pdf_filename, *code_filename;
-    if (!PyArg_ParseTuple(args, "O&O&", PyUnicode_FSConverter, &obj_pdf_filename, PyUnicode_FSConverter, &obj_code_filename)) {
-        return nullptr;
-    }
-
-    pdf_filename = PyBytes_AsString(obj_pdf_filename);
-    code_filename = PyBytes_AsString(obj_code_filename);
-
-    Py_DECREF(obj_pdf_filename);
-    Py_DECREF(obj_code_filename);
+    auto [pdf_filename, code_filename] = get_filenames(args);
 
     try {
         pdf_document my_doc(pdf_filename);

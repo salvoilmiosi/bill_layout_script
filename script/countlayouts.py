@@ -5,9 +5,7 @@ import sys
 import os
 
 app_dir = Path(sys.argv[0]).parent
-bin_dir = str(app_dir / '../bin')
-sys.path.append(bin_dir)
-os.environ['PATH'] = bin_dir
+os.environ['PATH'] = str(app_dir / '../bin')
 import pyreader
 
 controllo = app_dir / '../work/layouts/controllo.out'

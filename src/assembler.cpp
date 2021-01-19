@@ -44,12 +44,12 @@ bytecode read_lines(const std::vector<std::string> &lines) {
             {
                 pdf_rect box;
                 box.type = box_type::BOX_RECTANGLE;
-                box.mode = static_cast<read_mode>(std::stoi(args[0]));
-                box.page = std::stoi(args[1]);
-                box.x = std::stof(args[2]);
-                box.y = std::stof(args[3]);
-                box.w = std::stof(args[4]);
-                box.h = std::stof(args[5]);
+                box.mode = static_cast<read_mode>(cstoi(args[0]));
+                box.page = cstoi(args[1]);
+                box.x = cstof(args[2]);
+                box.y = cstof(args[3]);
+                box.w = cstof(args[4]);
+                box.h = cstof(args[5]);
                 ret.add_command(opcode::RDBOX, std::move(box));
                 break;
             }
@@ -57,8 +57,8 @@ bytecode read_lines(const std::vector<std::string> &lines) {
             {
                 pdf_rect box;
                 box.type = box_type::BOX_PAGE;
-                box.mode = static_cast<read_mode>(std::stoi(args[0]));
-                box.page = std::stoi(args[1]);
+                box.mode = static_cast<read_mode>(cstoi(args[0]));
+                box.page = cstoi(args[1]);
                 ret.add_command(opcode::RDPAGE, std::move(box));
                 break;
             }
@@ -66,24 +66,24 @@ bytecode read_lines(const std::vector<std::string> &lines) {
             {
                 pdf_rect box;
                 box.type = box_type::BOX_FILE;
-                box.mode = static_cast<read_mode>(std::stoi(args[0]));
+                box.mode = static_cast<read_mode>(cstoi(args[0]));
                 ret.add_command(opcode::RDFILE, std::move(box));
                 break;
             }
             case hash("SETPAGE"):
             {
-                ret.add_command(opcode::SETPAGE, static_cast<small_int>(std::stoi(args[0])));
+                ret.add_command(opcode::SETPAGE, static_cast<small_int>(cstoi(args[0])));
                 break;
             }
             case hash("CALL"):
             {
                 command_call call;
                 call.name = ret.add_string(args[0]);
-                call.numargs = std::stoi(args[1]);
+                call.numargs = cstoi(args[1]);
                 ret.add_command(opcode::CALL, std::move(call));
                 break;
             }
-            case hash("MVBOX"):         ret.add_command(opcode::MVBOX, static_cast<spacer_index>(std::stoi(arg_str))); break;
+            case hash("MVBOX"):         ret.add_command(opcode::MVBOX, static_cast<spacer_index>(cstoi(arg_str))); break;
             case hash("THROWERR"):      ret.add_command(opcode::THROWERR); break;
             case hash("ADDWARNING"):    ret.add_command(opcode::ADDWARNING); break;
             case hash("PARSENUM"):      ret.add_command(opcode::PARSENUM); break;
@@ -102,9 +102,9 @@ bytecode read_lines(const std::vector<std::string> &lines) {
             case hash("LT"):            ret.add_command(opcode::LT); break;
             case hash("GEQ"):           ret.add_command(opcode::GEQ); break;
             case hash("LEQ"):           ret.add_command(opcode::LEQ); break;
-            case hash("SELVAR"):        ret.add_command(opcode::SELVAR, variable_idx(ret.add_string(args[0]), std::stoi(args[1]))); break;
+            case hash("SELVAR"):        ret.add_command(opcode::SELVAR, variable_idx(ret.add_string(args[0]), cstoi(args[1]))); break;
             case hash("SELVARTOP"):     ret.add_command(opcode::SELVARTOP, ret.add_string(args[0])); break;
-            case hash("SELRANGE"):      ret.add_command(opcode::SELRANGE, variable_idx(ret.add_string(args[0]), std::stoi(args[1]), std::stoi(args[2]))); break;
+            case hash("SELRANGE"):      ret.add_command(opcode::SELRANGE, variable_idx(ret.add_string(args[0]), cstoi(args[1]), cstoi(args[2]))); break;
             case hash("SELRANGETOP"):   ret.add_command(opcode::SELRANGETOP, ret.add_string(args[0])); break;
             case hash("SELRANGEALL"):   ret.add_command(opcode::SELRANGEALL, ret.add_string(args[0])); break;
             case hash("CLEAR"):         ret.add_command(opcode::CLEAR); break;
@@ -113,7 +113,7 @@ bytecode read_lines(const std::vector<std::string> &lines) {
             case hash("PUSHVIEW"):      ret.add_command(opcode::PUSHVIEW); break;
             case hash("PUSHNUM"): {
                 if (args[0].find('.') == std::string::npos) {
-                    int32_t num = std::stoi(args[0]);
+                    int32_t num = cstoi(args[0]);
                     if (static_cast<int8_t>(num) == num) {
                         ret.add_command(opcode::PUSHBYTE, static_cast<int8_t>(num));
                     } else if (static_cast<int16_t>(num) == num) {

@@ -82,9 +82,10 @@ bool GetClipboard(layout_box &box) {
     if (wxTheClipboard->Open()) {
         if (BoxDataObject clip_data; wxTheClipboard->GetData(clip_data)) {
             box = clip_data.GetLayoutBox();
+            wxTheClipboard->Close();
+            return true;
         }
-        wxTheClipboard->Close();
-        return true;
     }
+    wxTheClipboard->Close();
     return false;
 }

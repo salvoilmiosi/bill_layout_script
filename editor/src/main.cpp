@@ -11,6 +11,8 @@ public:
 private:
     frame_editor *editor;
 
+    wxLocale loc = wxLANGUAGE_DEFAULT;
+
     std::string filename{};
 };
 wxIMPLEMENT_APP(MainApp);

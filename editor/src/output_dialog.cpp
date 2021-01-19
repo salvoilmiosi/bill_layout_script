@@ -159,7 +159,7 @@ void output_dialog::updateItems() {
             m_list_ctrl->InsertItem(item);
 
             m_list_ctrl->SetItem(n, col_name, name);
-            m_list_ctrl->SetItem(n, col_value, var.str());//wxString(var.str().c_str(), wxConvUTF8));
+            m_list_ctrl->SetItem(n, col_value, wxString(var.str().c_str(), wxConvUTF8));
             ++n;
         }
     };

@@ -20,4 +20,4 @@ include_directories(${PYTHON_INCLUDE_DIRS})
 Python3_add_library(pyreader pyreader.cpp)
 target_link_libraries(pyreader PRIVATE layout)
 
-install(TARGETS pyreader DESTINATION "${CMAKE_SOURCE_DIR}/bin" COMPONENT "EXT")
+install(TARGETS pyreader DESTINATION "${CMAKE_SOURCE_DIR}/script" COMPONENT "EXT")

@@ -1,13 +1,16 @@
 #include "layout.h"
 #include "bytecode.h"
 #include "fixed_point.h"
+#include "utils.h"
 
 #include <iostream>
 #include <iomanip>
+#include <locale>
 
 std::ostream &operator << (std::ostream &output, const bill_layout_script &layout) {
     std::ios orig_state(nullptr);
     orig_state.copyfmt(output);
+    output.imbue(std::locale("C"));
     output << std::fixed << std::setprecision(fixed_point::decimal_points);
 
     output << "### Bill Layout Script\n";
@@ -87,15 +90,15 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                             }
                         }
                     } else if (auto suf = suffix(line, "### Page")) {
-                        current->page = std::stoi(suf.value);
+                        current->page = cstoi(suf.value);
                     } else if (auto suf = suffix(line, "### X")) {
-                        current->x = std::stof(suf.value);
+                        current->x = cstof(suf.value);
                     } else if (auto suf = suffix(line, "### Y")) {
-                        current->y = std::stof(suf.value);
+                        current->y = cstof(suf.value);
                     } else if (auto suf = suffix(line, "### W")) {
-                        current->w = std::stof(suf.value);
+                        current->w = cstof(suf.value);
                     } else if (auto suf = suffix(line, "### H")) {
-                        current->h = std::stof(suf.value);
+                        current->h = cstof(suf.value);
                     } else if (auto suf = suffix(line, "### Goto Label")) {
                         current->goto_label = suf.value;
                     } else if (line == "### Spacers") {

@@ -305,10 +305,10 @@ int parser::read_variable(bool read_only) {
             break;
         case TOK_INTEGER: // variable[int
             m_lexer.advance();
-            index = std::stoi(std::string(m_lexer.current().value));
+            index = cstoi(std::string(m_lexer.current().value));
             if (m_lexer.check_next(TOK_COLON) && !read_only) { // variable[int:
                 if (m_lexer.check_next(TOK_INTEGER)) { // variable[a:b] -- seleziona range
-                    index_last = std::stoi(std::string(m_lexer.current().value));
+                    index_last = cstoi(std::string(m_lexer.current().value));
                 } else { // variable[int:expr] -- seleziona range
                     add_line("PUSHNUM {0}", index);
                     read_expression();
@@ -439,7 +439,7 @@ void parser::read_date_fun(const std::string &fun_name) {
             regex = std::string(m_lexer.current().value);
             switch (m_lexer.next().type) {
             case TOK_INTEGER:
-                idx = std::stoi(std::string(m_lexer.current().value));
+                idx = cstoi(std::string(m_lexer.current().value));
                 break;
             case TOK_PAREN_END:
                 break;

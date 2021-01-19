@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
 
 // divide una stringa per separatore
 std::vector<std::string> string_split(const std::string &str, char separator = ',');
@@ -24,6 +25,17 @@ void string_trim(std::string &str);
 
 // legge tutta la stringa da uno stream
 std::string read_all(std::istream &stream);
+
+template<typename T> inline T cread_simple(const std::string &str) {
+    std::istringstream iss(str);
+    iss.imbue(std::locale("C"));
+    T val;
+    iss >> val;
+    return val;
+}
+
+inline int   cstoi(const std::string &str) { return cread_simple<int>(str); }
+inline float cstof(const std::string &str) { return cread_simple<float>(str); }
 
 // sposta il range indicato alla fine del vettore
 template<typename T>

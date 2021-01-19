@@ -20,13 +20,13 @@ bool date_t::from_string(std::string_view str) {
     try {
         std::cmatch match;
         if (std::regex_search(str.begin(), str.end(), match, expression)) {
-            year = std::stoi(match.str(1));
-            month = std::stoi(match.str(2));
+            year = cstoi(match.str(1));
+            month = cstoi(match.str(2));
             if (month > 12) {
                 return false;
             }
             auto day = match.str(4);
-            if (!day.empty()) day = std::stoi(day);
+            if (!day.empty()) day = cstoi(day);
             return true;
         }
     } catch (const std::invalid_argument &) {}

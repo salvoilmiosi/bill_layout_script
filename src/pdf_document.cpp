@@ -5,10 +5,10 @@
 
 #include "utils.h"
 
-void pdf_document::open(const std::string &filename) {
+void pdf_document::open(const std::filesystem::path &filename) {
     std::ifstream ifs(filename, std::ios::in | std::ios::binary);
     if (ifs.fail()) {
-        throw pdf_error("Impossibile aprire il file \"" + filename + "\"");
+        throw pdf_error("Impossibile aprire il file");
     }
     std::vector<char> file_data{std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>()};
     m_document.reset(poppler::document::load_from_data(&file_data));
@@ -16,7 +16,7 @@ void pdf_document::open(const std::string &filename) {
         throw pdf_error("Documento pdf invalido");
     }
 
-    m_filename = filename;
+    m_filename = filename.string();
 
     m_pages.clear();
     for (size_t i=0; i < m_document->pages(); ++i) {
