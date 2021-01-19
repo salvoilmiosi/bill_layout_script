@@ -5,7 +5,6 @@ import sys
 import os
 import json
 import datetime
-import time
 
 os.environ['PATH'] += os.pathsep + str(Path(sys.argv[0]).parent.joinpath('../bin'))
 import pyreader
@@ -61,7 +60,7 @@ def check_conguagli(results):
 
 def read_pdf(pdf_file):
     rel_path = pdf_file.relative_to(input_directory)
-    ret = {'filename':str(rel_path)}
+    ret = {'filename':str(pdf_file.resolve())}
 
     try:
         out_dict = pyreader.readpdf_autolayout(pdf_file, controllo)
@@ -106,11 +105,11 @@ if __name__ == '__main__':
         in_files = []
         for f in files:
             ignore = False
-            rel_path = f.relative_to(input_directory)
-            for old_obj in filter(lambda x: x['filename'] == str(rel_path), in_data):
+            abs_path = str(f.resolve())
+            for old_obj in filter(lambda x: x['filename'] == abs_path, in_data):
                 if 'layout' in old_obj and 'values' in old_obj:
                     layout_file = controllo.parent / '{0}.out'.format(old_obj['layout'])
-                    if os.path.getmtime(str(layout_file)) < os.path.getmtime(str(output_file)):
+                    if layout_file.stat().st_mtime < output_file.stat().st_mtime:
                         results.append(old_obj)
                         ignore = True
             if not ignore:
