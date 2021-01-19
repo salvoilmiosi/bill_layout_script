@@ -81,7 +81,7 @@ _mese=$date_format(mese_fattura,"%m.%Y")
 ### End Box
 
 ### Box
-### Name Imponibile / IVA
+### Name Dettaglio Costi
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
@@ -92,6 +92,10 @@ _mese=$date_format(mese_fattura,"%m.%Y")
 ### Script
 iva=$search(@,/Importo IVA (\d+%)/)
 $ifnot(::multipod) {
+  %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA (%N) \u20ac/)
+  %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE (%N) \u20ac/)
+  %oneri=$search(@,/SPESA PER ONERI DI SISTEMA (%N) \u20ac/)
+  %accise=$search(@,/IMPOSTE (%N) \u20ac/)
   %imponibile=$search(@,/imponibile di (%N)/)
 }
 ### End Script
@@ -107,7 +111,7 @@ $ifnot(::multipod) {
 ### W 0.2274193615
 ### H 0.1132463813
 ### Spacers
-p+ ::page_offset + ::pod_offset
+p+::next_page
 ### End Spacers
 ### Script
 $if(::multipod) {
@@ -122,12 +126,12 @@ $if(::multipod) {
 ### Type PAGE
 ### Mode RAW
 ### Page 2
-### X 0.2043952793
-### Y 0.0387685411
-### W 0.0470148847
-### H 0.0330672562
+### X 0.0318146311
+### Y 0.2576966882
+### W 0.9439918399
+### H 0.2542759776
 ### Spacers
-p+ ::page_offset + ::pod_offset
+p+::next_page
 ### End Spacers
 ### Script
 %imponibile=$search(@,/TOTALE IMPONIBILE (%N)/)
@@ -140,84 +144,101 @@ $if($contains(@,"Energia Reattiva")) {
 ### End Box
 
 ### Box
-### Name Quadro Dettaglio
-### Type PAGE
+### Name Lettura Quadro Dettaglio
+### Type RECTANGLE
 ### Mode RAW
 ### Page 3
-### X 0.1988781542
-### Y 0.0385721028
-### W 0.0374829620
-### H 0.0263221338
+### X 0.0322580636
+### Y 0.0900798142
+### W 0.9548387527
+### H 0.8289623260
 ### Goto Label quadro_dettaglio
 ### Spacers
-p+::page_offset
+p+::next_page
 ### End Spacers
 ### Script
-$with($search(@,/Sbilanciamento\n((dal.+\n)+)/)) {
-  %sbilanciamento=$search(@,$format(/al \d\d\.$0 Euro\/kWh (%N)/,_mese))
-}
-$with($search(@,/Prezzo Commercializzazione Vendita\n((dal.+\n)+)/)) {
-  %pcv=$search(@,$format(/al \d\d\.$0 euro\/\w+ %N %N (%N)/,_mese))
-}
-$with(
-$coalesce(
-  $search(@,/Prezzo Energia\n((dal.+\n)+)/),
-  $search(@,/Prezzo Indicizzato\n((dal.+\n)+)/))
-){
-  $tokens($search(@,$format(/al \d\d\.$0 F1 Euro\/kWh (%N %N)/,_mese)))
-    { %prezzo_energia[0] %energia_attiva[0] }
-  $tokens($search(@,$format(/al \d\d\.$0 F2 Euro\/kWh (%N %N)/,_mese)))
-    { %prezzo_energia[1] %energia_attiva[1] }
-  $tokens($search(@,$format(/al \d\d\.$0 F3 Euro\/kWh (%N %N)/,_mese)))
-    { %prezzo_energia[2] %energia_attiva[2] }
-
-  $tokens($search(@,$format(/al \d\d\.$0 PEAK Euro\/kWh (%N %N)/,_mese)))
-    { %prezzo_energia[0] %energia_attiva[0] }
-  $tokens($search(@,$format(/al \d\d\.$0 OFFPEAK Euro\/kWh (%N %N)/,_mese)))
-    { %prezzo_energia[1] %energia_attiva[1] }
-}
-
-$with($search(@,/Energia Reattiva entro 75%\n((dal.+\n)+)/)) {
-  %penale_reattiva_inf75+=$search(@,$format(/al \d\d\.$0 F1 Euro\/kVarh %N %N (%N)/,_mese))
-  %penale_reattiva_inf75+=$search(@,$format(/al \d\d\.$0 F2 Euro\/kVarh %N %N (%N)/,_mese))
-  %penale_reattiva_inf75+=$search(@,$format(/al \d\d\.$0 F3 Euro\/kVarh %N %N (%N)/,_mese))
-}
-$with($search(@,/Energia Reattiva oltre 75%\n((dal.+\n)+)/)) {
-  %penale_reattiva_sup75+=$search(@,$format(/al \d\d\.$0 F1 Euro\/kVarh %N %N (%N)/,_mese))
-  %penale_reattiva_sup75+=$search(@,$format(/al \d\d\.$0 F2 Euro\/kVarh %N %N (%N)/,_mese))
-  %penale_reattiva_sup75+=$search(@,$format(/al \d\d\.$0 F3 Euro\/kVarh %N %N (%N)/,_mese))
-}
-%spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA IMPORTO \u20ac (%N)/)
-%trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO IMPORTO \u20ac (%N)/)
-%oneri=$search(@,/ONERI DI SISTEMA IMPORTO \u20ac (%N)/)
-
-%potenza[0:3]=$search(@,$format(/al \d\d\.$0 Euro\/kW %N (%N)/,_mese))
-$with($search(@,/Imposta erariale di consumo \(accisa\)\n[^]::?((dal.+\n)+)/)) {
-  %accise=$search(@,$format(/al \d\d\.$0 Euro\/kWh %N %N (%N)/,_mese))
+$ifnot($ate() || $contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) {
+  _dettaglio+=@
+  _dettaglio+="\n"
+  ::next_page+=1
+  $goto(quadro_dettaglio)
 }
 ### End Script
 ### End Box
 
 ### Box
-### Name Controllo prossima pagina
-### Type PAGE
+### Name Parsing Quadro Dettaglio
+### Type NOREAD
+### Mode RAW
+### Page 3
+### X 0.2150401175
+### Y 0.0524525344
+### W 0.0419331789
+### H 0.0293937586
+### Script
+$with(_dettaglio) {
+  $with($search(@,/Sbilanciamento\n((dal.+\n)+)/)) {
+    %sbilanciamento=$search(@,$format(/al \d\d\.$0 Euro\/kWh (%N)/,_mese))
+  }
+  $with($search(@,/Prezzo Commercializzazione Vendita\n((dal.+\n)+)/)) {
+    %pcv=$search(@,$format(/al \d\d\.$0 euro\/\w+ %N %N (%N)/,_mese))
+  }
+  $with($coalesce(
+    $search(@,/Prezzo Energia\n((dal.+\n)+)/),
+    $search(@,/Prezzo Indicizzato\n((dal.+\n)+)/))
+  ){
+    $tokens($search(@,$format(/al \d\d\.$0 F1 Euro\/kWh (%N %N)/,_mese)))
+      { %prezzo_energia[0] %energia_attiva[0] }
+    $tokens($search(@,$format(/al \d\d\.$0 F2 Euro\/kWh (%N %N)/,_mese)))
+      { %prezzo_energia[1] %energia_attiva[1] }
+    $tokens($search(@,$format(/al \d\d\.$0 F3 Euro\/kWh (%N %N)/,_mese)))
+      { %prezzo_energia[2] %energia_attiva[2] }
+
+    $tokens($search(@,$format(/al \d\d\.$0 PEAK Euro\/kWh (%N %N)/,_mese)))
+      { %prezzo_energia[0] %energia_attiva[0] }
+    $tokens($search(@,$format(/al \d\d\.$0 OFFPEAK Euro\/kWh (%N %N)/,_mese)))
+      { %prezzo_energia[1] %energia_attiva[1] }
+  }
+
+  $with($search(@,/Energia Reattiva entro 75%\n((dal.+\n)+)/)) {
+    %penale_reattiva_inf75+=$search(@,$format(/al \d\d\.$0 F1 Euro\/kVarh %N %N (%N)/,_mese))
+    %penale_reattiva_inf75+=$search(@,$format(/al \d\d\.$0 F2 Euro\/kVarh %N %N (%N)/,_mese))
+    %penale_reattiva_inf75+=$search(@,$format(/al \d\d\.$0 F3 Euro\/kVarh %N %N (%N)/,_mese))
+  }
+  $with($search(@,/Energia Reattiva oltre 75%\n((dal.+\n)+)/)) {
+    %penale_reattiva_sup75+=$search(@,$format(/al \d\d\.$0 F1 Euro\/kVarh %N %N (%N)/,_mese))
+    %penale_reattiva_sup75+=$search(@,$format(/al \d\d\.$0 F2 Euro\/kVarh %N %N (%N)/,_mese))
+    %penale_reattiva_sup75+=$search(@,$format(/al \d\d\.$0 F3 Euro\/kVarh %N %N (%N)/,_mese))
+  }
+  %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA IMPORTO \u20ac (%N)/)
+  %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO IMPORTO \u20ac (%N)/)
+  %oneri=$search(@,/ONERI DI SISTEMA IMPORTO \u20ac (%N)/)
+
+  %potenza[0:3]=$search(@,$format(/al \d\d\.$0 Euro\/kW %N (%N)/,_mese))
+  $with($search(@,/Imposta erariale di consumo \(accisa\)\n[^]*?- Imposta erariale\n((dal.+\n)+)/)) {
+    %accise=$search(@,$format(/al \d\d\.$0 Euro\/kWh %N %N (%N)/,_mese))
+  }
+}
+### End Script
+### End Box
+
+### Box
+### Name Prossima Pagina
+### Type RECTANGLE
 ### Mode DEFAULT
-### Page 4
-### X 0.2419354767
-### Y 0.0376282819
-### W 0.0483870953
-### H 0.0342075229
+### Page 3
+### X 0.0384006500
+### Y 0.0989253968
+### W 0.2261154652
+### H 0.0323416553
 ### Spacers
-p+::page_offset
+p+::next_page
 ### End Spacers
 ### Script
-::page_offset+=1
-::pod_offset=1
-$if($contains(@,"DATI FORNITURA")) {
+$if(@ == "DATI FORNITURA") {
+  ::next_page+=1
   $nexttable()
   $goto(nome_fornitore)
-} $else $ifnot($ate()) {
-  $goto(quadro_dettaglio)
 }
 ### End Script
 ### End Box
