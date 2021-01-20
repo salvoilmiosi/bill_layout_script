@@ -1,12 +1,12 @@
-import sys
-import json
-import datetime
-import time
-import os
 from pathlib import Path
+from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import PatternFill, Border, Side
+import sys
+import json
+import time
+import os
 
 class TableValue:
     def __init__(self, title, value, index=0, type='str', number_format='', column_width=None, obligatory=False):
@@ -82,9 +82,9 @@ def export_file(input_file):
                         if obj.type == 'str':
                             row.append({'value': value, 'number_format': '@'})
                         elif obj.type == 'date':
-                            row.append({'value': datetime.datetime.strptime(value, '%Y-%m-%d'), 'number_format': 'DD/MM/YY'})
+                            row.append({'value': datetime.strptime(value, '%Y-%m-%d'), 'number_format': 'DD/MM/YY'})
                         elif obj.type == 'month':
-                            row.append({'value': datetime.datetime.strptime(value, '%Y-%m'), 'number_format': 'MM/YYYY'})
+                            row.append({'value': datetime.strptime(value, '%Y-%m'), 'number_format': 'MM/YYYY'})
                         elif obj.type == 'euro':
                             row.append({'value': float(value), 'number_format': '#,##0.00 \u20ac'})
                         elif obj.type == 'int':

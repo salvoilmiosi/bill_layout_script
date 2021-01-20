@@ -1,10 +1,10 @@
 from multiprocessing import Pool, cpu_count
 from termcolor import colored
 from pathlib import Path
+from datetime import datetime
 import sys
 import os
 import json
-import datetime
 
 os.environ['PATH'] += os.pathsep + str(Path(sys.argv[0]).parent.joinpath('../bin'))
 import pyreader
@@ -14,7 +14,7 @@ if len(sys.argv) < 3:
     sys.exit()
 
 app_dir = Path(sys.argv[0]).parent
-input_directory = Path(sys.argv[1])
+input_directory = Path(sys.argv[1]).resolve()
 output_file = Path(sys.argv[2])
 controllo = Path(sys.argv[3] if len(sys.argv) >= 4 else app_dir / '../work/layouts/controllo.out')
 
@@ -38,16 +38,16 @@ def check_conguagli(results):
         
     sorted_data.sort(key = lambda obj : (
         obj['values'][0]['codice_pod'][0],
-        datetime.datetime.strptime(obj['values'][0]['mese_fattura'][0], '%Y-%m').date(),
-        datetime.datetime.strptime(obj['values'][0]['data_fattura'][0], '%Y-%m-%d').date()))
+        datetime.strptime(obj['values'][0]['mese_fattura'][0], '%Y-%m').date(),
+        datetime.strptime(obj['values'][0]['data_fattura'][0], '%Y-%m-%d').date()))
 
     old_pod = None
     old_mesefatt = None
     old_datafatt = None
     for x in sorted_data:
         new_pod = x['values'][0]['codice_pod'][0]
-        new_mesefatt = datetime.datetime.strptime(x['values'][0]['mese_fattura'][0], '%Y-%m').date()
-        new_datafatt = datetime.datetime.strptime(x['values'][0]['data_fattura'][0], '%Y-%m-%d').date()
+        new_mesefatt = datetime.strptime(x['values'][0]['mese_fattura'][0], '%Y-%m').date()
+        new_datafatt = datetime.strptime(x['values'][0]['data_fattura'][0], '%Y-%m-%d').date()
 
         if old_pod == new_pod and old_mesefatt == new_mesefatt and new_datafatt > old_datafatt:
             x['conguaglio'] = True
@@ -60,7 +60,7 @@ def check_conguagli(results):
 
 def read_pdf(pdf_file):
     rel_path = pdf_file.relative_to(input_directory)
-    ret = {'filename':str(pdf_file.resolve())}
+    ret = {'filename':str(pdf_file)}
 
     try:
         out_dict = pyreader.readpdf_autolayout(pdf_file, controllo)
@@ -75,11 +75,11 @@ def read_pdf(pdf_file):
             print('{0} ### {1}'.format(rel_path, ret['layout']))
         else:
             print(rel_path)
-    except pyreader.error as err:
+    except pyreader.Error as err:
         ret['error'] = str(err)
         print(colored('{0} ### {1}'.format(rel_path, ret['error']), 'red'))
-    except:
-        ret['error'] = 'Errore sconosciuto'
+    except pyreader.Timeout as err:
+        ret['error'] = str(err)
         print(colored('{0} ### {1}'.format(rel_path, ret['error']), 'magenta'))
 
     return ret
@@ -93,7 +93,7 @@ if __name__ == '__main__':
         print(f'Il file di layout {controllo} non esiste')
         sys.exit(1)
         
-    files = input_directory.rglob('*.pdf')
+    files = list(input_directory.rglob('*.pdf'))
 
     results = []
 
@@ -102,24 +102,17 @@ if __name__ == '__main__':
         with open(output_file, 'r') as fin:
             in_data = json.loads(fin.read())
 
-        in_files = []
-        for f in files:
-            ignore = False
-            abs_path = str(f.resolve())
-            for old_obj in filter(lambda x: x['filename'] == abs_path, in_data):
-                if 'layout' in old_obj and 'values' in old_obj:
-                    layout_file = controllo.parent / '{0}.out'.format(old_obj['layout'])
-                    if layout_file.stat().st_mtime < output_file.stat().st_mtime:
-                        results.append(old_obj)
-                        ignore = True
-            if not ignore:
-                in_files.append(f)
-    else:
-        in_files = list(files)
+        for old_obj in in_data:
+            f = Path(old_obj['filename'])
+            if f in files and 'layout' in old_obj:
+                layout_file = controllo.parent / '{0}.out'.format(old_obj['layout'])
+                if layout_file.stat().st_mtime < output_file.stat().st_mtime:
+                    results.append(old_obj)
+                    files.remove(f)
 
-    if in_files:
-        with Pool(min(len(in_files), nthreads)) as pool:
-            results.extend(pool.map(read_pdf, in_files))
+    if files:
+        with Pool(min(len(files), nthreads)) as pool:
+            results.extend(pool.map(read_pdf, files))
 
     results = check_conguagli(results)
 
