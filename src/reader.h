@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <atomic>
 
 #include "variable.h"
 #include "variable_ref.h"
@@ -44,14 +45,24 @@ struct reader_output {
 
 class reader {
 public:
-    reader(const pdf_document &doc) : m_doc(doc) {}
+    reader() = default;
+
+    reader(const pdf_document &doc) {
+        set_document(doc);
+    }
+
+    void set_document(const pdf_document &doc) {
+        m_doc = &doc;
+    }
     
     void exec_program(bytecode code);
     reader_output &get_output() {
         return m_out;
     }
 
-    void halt();
+    void halt() {
+        running = false;
+    }
 
 private:
     void exec_command(const command_args &cmd);
@@ -60,11 +71,13 @@ private:
     void call_function(const std::string &name, size_t numargs);
 
 private:
-    const pdf_document &m_doc;
+    const pdf_document *m_doc = nullptr;
     bytecode m_code;
 
     context m_con;
     reader_output m_out;
+    
+    std::atomic<bool> running = false;
 };
 
 #endif

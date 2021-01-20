@@ -9,7 +9,9 @@ void reader::exec_program(bytecode code) {
 
     m_con = {};
 
-    while (m_con.program_counter < m_code.m_commands.size()) {
+    running = true;
+
+    while (running && m_con.program_counter < m_code.m_commands.size()) {
         exec_command(m_code.m_commands[m_con.program_counter]);
         if (!m_con.jumped) {
             ++m_con.program_counter;
@@ -17,10 +19,6 @@ void reader::exec_program(bytecode code) {
             m_con.jumped = false;
         }
     }
-}
-
-void reader::halt() {
-    m_con.program_counter = m_code.m_commands.size();
 }
 
 void reader::exec_command(const command_args &cmd) {
@@ -234,7 +232,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::NEXTLINE: m_con.contents.top().next_token("\n"); break;
     case opcode::NEXTTOKEN: m_con.contents.top().next_token("\t\n\v\f\r "); break;
     case opcode::NEXTTABLE: ++m_con.current_table; break;
-    case opcode::ATE: m_con.vars.push(m_con.last_box_page > m_doc.num_pages()); break;
+    case opcode::ATE: m_con.vars.push(m_con.last_box_page > m_doc->num_pages()); break;
     case opcode::HLT: halt(); break;
     }
 }
@@ -258,5 +256,5 @@ void reader::read_box(pdf_rect box) {
 
     m_con.contents = {};
 
-    m_con.contents.push(m_doc.get_text(box));
+    m_con.contents.push(m_doc->get_text(box));
 }

@@ -14,7 +14,7 @@
 #include "reader.h"
 
 using namespace std::chrono_literals;
-static constexpr auto TIMEOUT = 5s;
+static constexpr auto TIMEOUT = 2s;
 
 static PyObject *reader_error;
 static PyObject *reader_timeout;
@@ -34,17 +34,20 @@ static std::pair<char8_t *, char8_t *> get_filenames(PyObject *args) {
     return {pdf_filename, code_filename};
 }
 
-template<typename Function, typename ... Ts>
-static auto timeout_wrapper(Function fun, Ts && ... args) -> decltype(fun(args...)) {
-    using return_type = decltype(fun(args...));
+template<typename Function, typename TimeoutFunction>
+static auto timeout_wrapper(Function fun, TimeoutFunction timeout_fun) -> decltype(fun()) {
+    using return_type = decltype(fun());
     std::mutex m;
     std::condition_variable cv;
+    std::atomic<bool> running = true;
 
     return_type ret;
 
     std::thread t([&]{
-        ret = fun(std::forward<Ts>(args)...);
-        cv.notify_one();
+        ret = fun();
+        if (running) {
+            cv.notify_one();
+        }
     });
 
     t.detach();
@@ -52,6 +55,8 @@ static auto timeout_wrapper(Function fun, Ts && ... args) -> decltype(fun(args..
     {
         std::unique_lock l(m);
         if (cv.wait_for(l, TIMEOUT) == std::cv_status::timeout) {
+            running = false;
+            timeout_fun();
             PyErr_SetString(reader_timeout, "Timeout");
             if (std::is_pointer_v<return_type>) {
                 return nullptr;
@@ -64,11 +69,13 @@ static auto timeout_wrapper(Function fun, Ts && ... args) -> decltype(fun(args..
 
 static PyObject *pyreader_getlayout(PyObject *self, PyObject *args) {
     auto [pdf_filename, code_filename] = get_filenames(args);
+
+    reader my_reader;
     
     return timeout_wrapper([&]() -> PyObject* {
         try {
             pdf_document my_doc(pdf_filename);
-            reader my_reader(my_doc);
+            my_reader.set_document(my_doc);
             my_reader.exec_program(bytecode::read_from_file(code_filename));
 
             const auto &my_output = my_reader.get_output();
@@ -82,6 +89,8 @@ static PyObject *pyreader_getlayout(PyObject *self, PyObject *args) {
             PyErr_SetString(reader_error, error.what());
             return nullptr;
         }
+    }, [&] {
+        my_reader.halt();
     });
 }
 
@@ -130,10 +139,12 @@ static PyObject *to_pyoutput(const reader_output &my_output) {
 static PyObject *pyreader_readpdf(PyObject *self, PyObject *args) {
     auto [pdf_filename, code_filename] = get_filenames(args);
 
+    reader my_reader;
+
     return timeout_wrapper([&]() -> PyObject* {
         try {
             pdf_document my_doc(pdf_filename);
-            reader my_reader(my_doc);
+            my_reader.set_document(my_doc);
             my_reader.exec_program(bytecode::read_from_file(code_filename));
 
             return to_pyoutput(my_reader.get_output());
@@ -141,16 +152,20 @@ static PyObject *pyreader_readpdf(PyObject *self, PyObject *args) {
             PyErr_SetString(reader_error, error.what());
             return nullptr;
         }
+    }, [&] {
+        my_reader.halt();
     });
 }
 
 static PyObject *pyreader_readpdf_autolayout(PyObject *self, PyObject *args) {
     auto [pdf_filename, code_filename] = get_filenames(args);
 
+    reader my_reader;
+
     return timeout_wrapper([&]() -> PyObject* {
         try {
             pdf_document my_doc(pdf_filename);
-            reader my_reader(my_doc);
+            my_reader.set_document(my_doc);
             my_reader.exec_program(bytecode::read_from_file(code_filename));
 
             const auto &my_output = my_reader.get_output();
@@ -170,6 +185,8 @@ static PyObject *pyreader_readpdf_autolayout(PyObject *self, PyObject *args) {
             PyErr_SetString(reader_error, error.what());
             return nullptr;
         }
+    }, [&] {
+        my_reader.halt();
     });
 }
 
