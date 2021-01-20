@@ -119,13 +119,12 @@ int MainApp::OnRun() {
 #ifdef _WIN32
         setmode(fileno(stdin), O_BINARY);
 #endif
-        in_code.read_bytecode(std::cin);
+        std::cin >> in_code;
     } else {
         if (!wxFileExists(input_file)) {
             return output_error(wxString::Format("Impossibile aprire il file layout %s", input_file).ToStdString());
         }
-        std::ifstream ifs(input_file.ToStdString(), std::ios::in | std::ios::binary);
-        in_code.read_bytecode(ifs);
+        in_code = bytecode::read_from_file(input_file.ToStdString());
         if (layout_dir.empty()) {
             layout_dir = wxFileName(input_file).GetPath();
         }
@@ -148,8 +147,7 @@ int MainApp::OnRun() {
                 if (!input_file2.Exists()) {
                     return output_error(wxString::Format("Impossibile aprire il file layout %s", input_file2.GetFullPath()).ToStdString());
                 }
-                std::ifstream ifs(input_file2.GetFullPath().ToStdString(), std::ifstream::binary | std::ifstream::in);
-                in_code.read_bytecode(ifs);
+                in_code = bytecode::read_from_file(input_file2.GetFullPath().ToStdString());
                 in_file_layout = true;
             }
         }

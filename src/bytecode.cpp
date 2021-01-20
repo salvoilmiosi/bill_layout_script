@@ -5,10 +5,10 @@
 #include <algorithm>
 #include <fstream>
 
-std::ostream &bytecode::write_bytecode(std::ostream &output) {
+std::ostream &operator << (std::ostream &output, const bytecode &code) {
     writeData(output, MAGIC);
 
-    for (const auto &line : m_commands) {
+    for (const auto &line : code.m_commands) {
         writeData<opcode>(output, line.command());
         switch (line.command()) {
         case opcode::RDBOX:
@@ -98,21 +98,21 @@ std::ostream &bytecode::write_bytecode(std::ostream &output) {
         }
     }
 
-    for (const auto &str : m_strings) {
+    for (const auto &str : code.m_strings) {
         writeData<opcode>(output, opcode::STRDATA);
         writeData<std::string>(output, str);
     }
     return output;
 }
 
-std::istream &bytecode::read_bytecode(std::istream &input) {
+std::istream &operator >> (std::istream &input, bytecode &code) {
     auto check = readData<int32_t>(input);
     if (check != MAGIC) {
         input.setstate(std::ios::failbit);
         return input;
     }
-    m_commands.clear();
-    m_strings.clear();
+    code.m_commands.clear();
+    code.m_strings.clear();
 
     while (input.peek() != EOF) {
         opcode cmd = readData<opcode>(input);
@@ -127,7 +127,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             readData(input, box.y);
             readData(input, box.w);
             readData(input, box.h);
-            add_command(cmd, std::move(box));
+            code.add_command(cmd, std::move(box));
             break;
         }
         case opcode::RDPAGE:
@@ -136,7 +136,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             box.type = box_type::BOX_PAGE;
             readData(input, box.mode);
             readData(input, box.page);
-            add_command(cmd, std::move(box));
+            code.add_command(cmd, std::move(box));
             break;
         }
         case opcode::RDFILE:
@@ -144,7 +144,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             pdf_rect box;
             box.type = box_type::BOX_FILE;
             readData(input, box.mode);
-            add_command(cmd, std::move(box));
+            code.add_command(cmd, std::move(box));
             break;
         }
         case opcode::CALL:
@@ -152,7 +152,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             command_call call;
             readData(input, call.name);
             readData(input, call.numargs);
-            add_command(cmd, std::move(call));
+            code.add_command(cmd, std::move(call));
             break;
         }
         case opcode::SELVAR:
@@ -161,7 +161,7 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             readData(input, var_idx.name);
             readData(input, var_idx.index);
             var_idx.range_len = 1;
-            add_command(cmd, std::move(var_idx));
+            code.add_command(cmd, std::move(var_idx));
             break;
         }
         case opcode::SELRANGE:
@@ -170,47 +170,47 @@ std::istream &bytecode::read_bytecode(std::istream &input) {
             readData(input, var_idx.name);
             readData(input, var_idx.index);
             readData(input, var_idx.range_len);
-            add_command(cmd, std::move(var_idx));
+            code.add_command(cmd, std::move(var_idx));
             break;
         }
         case opcode::COMMENT:
-            add_command(cmd, readData<std::string>(input));
+            code.add_command(cmd, readData<std::string>(input));
             break;
         case opcode::STRDATA:
-            m_strings.push_back(readData<std::string>(input));
+            code.m_strings.push_back(readData<std::string>(input));
             break;
         case opcode::PUSHSTR:
         case opcode::SELVARTOP:
         case opcode::SELRANGEALL:
         case opcode::SELRANGETOP:
-            add_command(cmd, readData<string_ref>(input));
+            code.add_command(cmd, readData<string_ref>(input));
             break;
         case opcode::PUSHBYTE:
-            add_command(cmd, readData<int8_t>(input));
+            code.add_command(cmd, readData<int8_t>(input));
             break;
         case opcode::PUSHSHORT:
-            add_command(cmd, readData<int16_t>(input));
+            code.add_command(cmd, readData<int16_t>(input));
             break;
         case opcode::PUSHINT:
-            add_command(cmd, readData<int32_t>(input));
+            code.add_command(cmd, readData<int32_t>(input));
             break;
         case opcode::PUSHDECIMAL:
-            add_command(cmd, readData<fixed_point>(input));
+            code.add_command(cmd, readData<fixed_point>(input));
             break;
         case opcode::SETPAGE:
-            add_command(cmd, readData<small_int>(input));
+            code.add_command(cmd, readData<small_int>(input));
             break;
         case opcode::MVBOX:
-            add_command(cmd, readData<spacer_index>(input));
+            code.add_command(cmd, readData<spacer_index>(input));
             break;
         case opcode::JMP:
         case opcode::JZ:
         case opcode::JNZ:
         case opcode::JTE:
-            add_command(cmd, readData<jump_address>(input));
+            code.add_command(cmd, readData<jump_address>(input));
             break;
         default:
-            add_command(cmd);
+            code.add_command(cmd);
         }
     }
     return input;
@@ -241,6 +241,6 @@ const std::string &bytecode::get_string(string_ref ref) {
 bytecode bytecode::read_from_file(const std::filesystem::path &filename) {
     bytecode ret;
     std::ifstream ifs(filename, std::ios::in | std::ios::binary);
-    ret.read_bytecode(ifs);
+    ifs >> ret;
     return ret;
 }

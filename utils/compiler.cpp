@@ -117,10 +117,10 @@ int MainApp::OnRun() {
 #ifdef _WIN32
             setmode(fileno(stdout), O_BINARY);
 #endif
-            out_code.write_bytecode(std::cout);
+            std::cout << out_code;
         } else {
             std::ofstream ofs(output_file.ToStdString(), std::ofstream::binary | std::ofstream::out);
-            out_code.write_bytecode(ofs);
+            ofs << out_code;
         }
     }
 

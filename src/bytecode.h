@@ -126,8 +126,8 @@ struct bytecode {
     std::vector<command_args> m_commands;
     std::vector<std::string> m_strings;
 
-    std::ostream &write_bytecode(std::ostream &output);
-    std::istream &read_bytecode(std::istream &input);
+    friend std::ostream &operator << (std::ostream &output, const bytecode &code);
+    friend std::istream &operator >> (std::istream &input, bytecode &code);
 
     static bytecode read_from_file(const std::filesystem::path &filename);
     
@@ -138,5 +138,8 @@ struct bytecode {
     string_ref add_string(const std::string &str);
     const std::string &get_string(string_ref ref);
 };
+
+std::ostream &operator << (std::ostream &output, const bytecode &code);
+std::istream &operator >> (std::istream &input, bytecode &code);
 
 #endif

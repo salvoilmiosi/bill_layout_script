@@ -125,12 +125,13 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
     if (diag.ShowModal() == wxID_CANCEL)
         return;
 
-    std::ofstream ofs(diag.GetPath().ToStdString(), std::ios::out | std::ios::binary);
     try {
         parser my_parser;
         my_parser.read_layout(layout);
         bytecode my_bytecode = read_lines(my_parser.get_output_asm());
-        my_bytecode.write_bytecode(ofs);
+        
+        std::ofstream ofs(diag.GetPath().ToStdString(), std::ios::out | std::ios::binary);
+        ofs << my_bytecode;
     } catch (const std::exception &error) {
         CompileErrorDialog(this, wxString(error.what(), wxConvUTF8)).ShowModal();
     }
