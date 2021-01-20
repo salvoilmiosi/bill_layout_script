@@ -72,3 +72,61 @@ int string_replace(std::string &str, const std::string &from, const std::string 
 std::string read_all(std::istream &stream) {
     return std::string(std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
 }
+
+int cstoi(std::string_view str, int base) {
+    int mul = 1;
+    if (str.starts_with('-')) {
+        mul = -mul;
+        str.remove_prefix(1);
+    }
+
+    if (str.empty()) {
+        throw std::invalid_argument(std::string(str));
+    }
+
+    int ret = 0;
+    for (auto it = str.rbegin(); it != str.rend(); ++it, mul *= base) {
+        if (*it >='0' && *it < '0' + base) {
+            ret += (*it - '0') * mul;
+        } else {
+            throw std::invalid_argument(std::string(str));
+        }
+    }
+    return ret;
+}
+
+float cstof(std::string_view str, int base) {
+    float mul = 1.f;
+    if (str.starts_with('-')) {
+        mul = -mul;
+        str.remove_prefix(1);
+    }
+
+    if (str.empty() || str == ".") {
+        throw std::invalid_argument(std::string(str));
+    }
+
+    float ret = 0.f;
+    float lmul = mul;
+    
+    auto dec_point = str.find('.');
+    for (auto it = str.rend() - dec_point; it != str.rend(); ++it, lmul *= base) {
+        if (*it >='0' && *it < '0' + base) {
+            ret += (*it - '0') * lmul;
+        } else {
+            throw std::invalid_argument(std::string(str));
+        }
+    }
+
+    if (dec_point != std::string_view::npos) {
+        for (auto it = str.begin() + dec_point + 1; it != str.end(); ++it) {
+            mul /= base;
+            if (*it >='0' && *it < '0' + base) {
+                ret += (*it - '0') * mul;
+            } else {
+                throw std::invalid_argument(std::string(str));
+            }
+        }
+    }
+    return ret;
+}
