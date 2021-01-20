@@ -1,8 +1,6 @@
 #include "reader.h"
 
-#include <fmt/core.h>
 #include "utils.h"
-#include "functions.h"
 
 void reader::exec_program(bytecode code) {
     m_code = code;

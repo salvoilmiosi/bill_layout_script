@@ -7,7 +7,6 @@
 #include <span>
 #include <fmt/format.h>
 
-#include "functions.h"
 #include "utils.h"
 
 using std::string;

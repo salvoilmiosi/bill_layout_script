@@ -1,7 +1,7 @@
 #include "variable.h"
 #include "reader.h"
 
-#include "functions.h"
+#include "utils.h"
 
 variable &variable::operator = (const variable &other) noexcept {
     m_type = other.m_type;

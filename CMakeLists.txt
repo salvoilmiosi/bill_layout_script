@@ -9,10 +9,8 @@ src/keywords.cpp
 src/parser.cpp
 src/parsestr.cpp
 src/lexer.cpp
-src/dates.cpp
 src/functions.cpp
 src/reader.cpp
-src/strings.cpp
 src/variable.cpp
 src/bytecode.cpp
 src/layout.cpp
