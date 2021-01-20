@@ -146,9 +146,9 @@ iva=$percent($num(@))
 ### Script
 $tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese_fattura,"%m/%Y")))) {
   $skip()
-  %energia_attiva[0]
-  %energia_attiva[1]
-  %energia_attiva[2]
+  %energia_attiva_rilevata[0]
+  %energia_attiva_rilevata[1]
+  %energia_attiva_rilevata[2]
   $skip()
   %energia_reattiva[0]
   %energia_reattiva[1]
@@ -184,9 +184,15 @@ $tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese
 ### Script
 _mese=$date_format(mese_fattura,"%m/%Y")
 $with($search(@,/Componente di Generazione.+\n((Dal.+\n)+)/)) {
-  %prezzo_energia[0]=$search(@,$format(/F1 .+\d\d\/$0 \u20ac\/kWh (%N)/,_mese))
-  %prezzo_energia[1]=$search(@,$format(/F2 .+\d\d\/$0 \u20ac\/kWh (%N)/,_mese))
-  %prezzo_energia[2]=$search(@,$format(/F3 .+\d\d\/$0 \u20ac\/kWh (%N)/,_mese))
+  $tokens($search(@,$format(/F1 .+\d\d\/$0 \u20ac\/kWh (%N %N) kWh/,_mese))) {
+    %prezzo_energia[0] %energia_attiva[0]
+  }
+  $tokens($search(@,$format(/F2 .+\d\d\/$0 \u20ac\/kWh (%N %N) kWh/,_mese))) {
+    %prezzo_energia[1] %energia_attiva[1]
+  }
+  $tokens($search(@,$format(/F3 .+\d\d\/$0 \u20ac\/kWh (%N %N) kWh/,_mese))) {
+    %prezzo_energia[2] %energia_attiva[2]
+  }
 }
 $with($search(@,/Prezzo commercializzazione vendita.+\n((Dal.+\n)+)/)) {
   %pcv=$search(@,$format(/\d\d\/$0 .+ _mese (%N)/,_mese))

@@ -245,7 +245,7 @@ ragione_sociale
 ### End Box
 
 ### Box
-### Name Energia Reattiva
+### Name Consumi Rilevati
 ### Type PAGE
 ### Mode LAYOUT
 ### Page 2
@@ -254,6 +254,11 @@ ragione_sociale
 ### W 0.6868947148
 ### H 0.0951694250
 ### Script
+$if($contains(@,"Energia attiva")) {
+  $tokens($search(@,$format(/\d\d\/$0 (%N %N %N)/,$date_format(mese_fattura,"%m/%Y")))) {
+    %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
+  }
+}
 $if($contains(@,"Energia reattiva")) {
   $tokens($search(@,$format(/\d\d\/$0 %N %N %N (%N %N %N)/,$date_format(mese_fattura,"%m/%Y")))) {
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]

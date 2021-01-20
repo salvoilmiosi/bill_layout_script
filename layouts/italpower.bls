@@ -125,7 +125,7 @@ p+::page_offset
 ### End Spacers
 ### Script
 $tokens($search(@,/Misura (%N %N %N)/)) {
-  %energia_attiva[0] %energia_attiva[1] %energia_attiva[2]
+  %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
 }
 $tokens($search(@,/Potenza \(kW\) (%N %N %N)/)) {
   %potenza[0] %potenza[1] %potenza[2]
@@ -155,11 +155,21 @@ p+::page_offset
 %trasporto_gestione=$search(@,/Trasporto, Gestione Contatore e Oneri di Sistema (%N)/)
 %oneri_amministrativi=$search(@,/Altri Oneri (%N)/)
 %accise=$search(@,/Imposte.+Euro.+ (%N)/)
-%prezzo_energia[0]=$search(@,/Energia F1.+ Euro (%N)/)
-%prezzo_energia[1]=$search(@,/Energia F2.+ Euro (%N)/)
-%prezzo_energia[2]=$search(@,/Energia F3.+ Euro (%N)/)
-%prezzo_energia[0]=$search(@,/Energia Peak.+ Euro (%N)/)
-%prezzo_energia[1]=$search(@,/Energia Off-Peak.+ Euro (%N)/)
+$tokens($search(@,/Energia F1 \u20ac\/kWh (%N Euro %N)/)) {
+  %energia_attiva[0] $skip() %prezzo_energia[0]
+}
+$tokens($search(@,/Energia F2 \u20ac\/kWh (%N Euro %N)/)) {
+  %energia_attiva[1] $skip() %prezzo_energia[1]
+}
+$tokens($search(@,/Energia F3 \u20ac\/kWh (%N Euro %N)/)) {
+  %energia_attiva[2] $skip() %prezzo_energia[2]
+}
+$tokens($search(@,/Energia Peak \u20ac\/kWh (%N Euro %N)/)) {
+  %energia_attiva[0] $skip() %prezzo_energia[0]
+}
+$tokens($search(@,/Energia Off-Peak \u20ac\/kWh (%N Euro %N)/)) {
+  %energia_attiva[1] $skip() %prezzo_energia[1]
+}
 %pcv=$search(@,/PCV .+ Euro (%N)/)
 %disp_var=$search(@,/Dispacciamento Quota Variabile.+ Euro (%N)/)
 %penale_reattiva_inf75=$search(@,/reattiva entro 75% .+ Euro %N (%N)/)
