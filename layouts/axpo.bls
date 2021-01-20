@@ -172,7 +172,7 @@ $ifnot($ate() || $contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) 
 ### Mode RAW
 ### Page 3
 ### X 0.2150401175
-### Y 0.0524525344
+### Y 0.0534527563
 ### W 0.0419331789
 ### H 0.0293937586
 ### Script
@@ -187,17 +187,26 @@ $with(_dettaglio) {
     $search(@,/Prezzo Energia\n((dal.+\n)+)/),
     $search(@,/Prezzo Indicizzato\n((dal.+\n)+)/))
   ){
-    $tokens($search(@,$format(/al \d\d\.$0 F1 Euro\/kWh (%N %N)/,_mese)))
-      { %prezzo_energia[0] %energia_attiva[0] }
-    $tokens($search(@,$format(/al \d\d\.$0 F2 Euro\/kWh (%N %N)/,_mese)))
-      { %prezzo_energia[1] %energia_attiva[1] }
-    $tokens($search(@,$format(/al \d\d\.$0 F3 Euro\/kWh (%N %N)/,_mese)))
-      { %prezzo_energia[2] %energia_attiva[2] }
+    $tokens($search(@,$format(/al \d\d\.$0 F1 Euro\/kWh (%N %N)/,_mese))) {
+      %prezzo_energia[0] %energia_attiva[0]
+    }
+    $tokens($search(@,$format(/al \d\d\.$0 F2 Euro\/kWh (%N %N)/,_mese))) {
+      %prezzo_energia[1] %energia_attiva[1]
+    }
+    $tokens($search(@,$format(/al \d\d\.$0 F3 Euro\/kWh (%N %N)/,_mese))) {
+      %prezzo_energia[2] %energia_attiva[2]
+    }
 
-    $tokens($search(@,$format(/al \d\d\.$0 PEAK Euro\/kWh (%N %N)/,_mese)))
-      { %prezzo_energia[0] %energia_attiva[0] }
-    $tokens($search(@,$format(/al \d\d\.$0 OFFPEAK Euro\/kWh (%N %N)/,_mese)))
-      { %prezzo_energia[1] %energia_attiva[1] }
+    $tokens($search(@,$format(/al \d\d\.$0 PEAK Euro\/kWh (%N %N)/,_mese))) {
+      %prezzo_energia[0] %energia_attiva[0]
+    }
+    $tokens($search(@,$format(/al \d\d\.$0 OFFPEAK Euro\/kWh (%N %N)/,_mese))) {
+      %prezzo_energia[1] %energia_attiva[1]
+    }
+
+    $tokens($search(@,$format(/al \d\d\.$0 Euro\/kWh (%N %N)/,_mese))) {
+      %prezzo_energia %energia_attiva
+    }
   }
 
   $with($search(@,/Energia Reattiva entro 75%\n((dal.+\n)+)/)) {
