@@ -115,6 +115,9 @@ void reader::exec_command(const command_args &cmd) {
     {
         auto ref = create_ref(read_str_ref());
         ref.index = m_con.vars.top().as_int();
+        if (ref.index == (small_int) -1) {
+            ref.index = ref.size();
+        }
         m_con.vars.pop();
         ref.range_len = m_con.vars.top().as_int();
         m_con.vars.pop();

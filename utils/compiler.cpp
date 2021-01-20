@@ -5,6 +5,8 @@
 #include <wx/cmdline.h>
 #include <wx/filename.h>
 
+#include <fmt/format.h>
+
 #include "parser.h"
 #include "assembler.h"
 
@@ -54,10 +56,6 @@ int MainApp::OnRun() {
     std::ifstream ifs;
 
     if (input_file != "-") {
-        if (!wxFileExists(input_file)) {
-            std::cerr << "Impossibile aprire il file layout " << input_file << std::endl;
-            return 1;
-        }
         ifs.open(input_file.ToStdString());
 
         if (!no_out && output_file.empty()) {
@@ -72,11 +70,9 @@ int MainApp::OnRun() {
     try {
         if (!read_asm) {
             bill_layout_script layout;
-            if (ifs.is_open()) {
-                ifs >> layout;
-                ifs.close();
-            } else {
-                std::cin >> layout;
+            if (!((ifs.is_open() ? ifs : std::cin) >> layout)) {
+                std::cerr << fmt::format("Impossibile aprire il file layout {}", input_file) << std::endl;
+                return 1;
             }
 
             parser my_parser;

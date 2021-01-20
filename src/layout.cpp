@@ -4,8 +4,19 @@
 #include "utils.h"
 
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <locale>
+
+bill_layout_script open_bls_file(const std::filesystem::path &filename) {
+    std::ifstream ifs(filename);
+    bill_layout_script bls;
+    ifs >> bls;
+    if (ifs.fail()) {
+        throw layout_error("File bls invalido");
+    }
+    return bls;
+}
 
 std::ostream &operator << (std::ostream &output, const bill_layout_script &layout) {
     std::ios orig_state(nullptr);
@@ -56,6 +67,12 @@ struct suffix {
     std::string value;
 };
 
+std::istream &getline_clearcr(std::istream &input, std::string &line) {
+    auto &ret = std::getline(input, line);
+    line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+    return ret;
+}
+
 std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
     std::string line;
 
@@ -64,13 +81,12 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
 
     try {
         while (input.peek() != EOF) {
-            std::getline(input, line);
-            line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+            getline_clearcr(input, line);
             if (line.empty()) continue;
             if (line == "### Box") {
                 auto current = std::make_shared<layout_box>();
                 bool fail = true;
-                while (std::getline(input, line)) {
+                while (getline_clearcr(input, line)) {
                     if (line.empty()) continue;
                     if (line == "### End Box") {
                         fail = false;
@@ -103,7 +119,7 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                         current->goto_label = suf.value;
                     } else if (line == "### Spacers") {
                         bool fail = true;
-                        while (std::getline(input, line)) {
+                        while (getline_clearcr(input, line)) {
                             if (line == "### End Spacers") {
                                 fail = false;
                                 break;
@@ -117,7 +133,7 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                         }
                     } else if (line == "### Script") {
                         bool fail = true;
-                        while (std::getline(input, line)) {
+                        while (getline_clearcr(input, line)) {
                             if (line == "### End Script") {
                                 fail = false;
                                 break;

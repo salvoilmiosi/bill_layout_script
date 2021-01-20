@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include <cstring>
+#include <filesystem>
 
 #define RESIZE_TOP      1 << 0
 #define RESIZE_BOTTOM   1 << 1
@@ -26,6 +27,8 @@ struct layout_error : std::runtime_error {
 
 using box_ptr = std::shared_ptr<layout_box>;
 using bill_layout_script = std::vector<box_ptr>;
+
+bill_layout_script open_bls_file(const std::filesystem::path &filename);
 
 std::ostream &operator << (std::ostream &out, const bill_layout_script &obj);
 std::istream &operator >> (std::istream &in, bill_layout_script &obj);

@@ -14,7 +14,7 @@
 #include "reader.h"
 
 using namespace std::chrono_literals;
-static constexpr auto TIMEOUT = 2s;
+static constexpr auto TIMEOUT = 5s;
 
 static PyObject *reader_error;
 static PyObject *reader_timeout;
@@ -34,8 +34,8 @@ static std::pair<char8_t *, char8_t *> get_filenames(PyObject *args) {
     return {pdf_filename, code_filename};
 }
 
-template<typename Function, typename TimeoutFunction>
-static auto timeout_wrapper(Function fun, TimeoutFunction timeout_fun) -> decltype(fun()) {
+template<typename Function, typename TimeoutFunction = decltype([]{})>
+static auto timeout_wrapper(Function fun, TimeoutFunction timeout_fun = TimeoutFunction()) -> decltype(fun()) {
     using return_type = decltype(fun());
     std::mutex m;
     std::condition_variable cv;

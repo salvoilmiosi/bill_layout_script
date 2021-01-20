@@ -183,15 +183,13 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
 
 void frame_editor::openFile(const wxString &filename) {
     layout_filename = filename;
-    std::ifstream ifs(layout_filename.ToStdString());
-    layout.clear();
-    ifs >> layout;
-    if (ifs.fail()){
+    try {
+        layout = open_bls_file(layout_filename.ToStdString());
+    } catch (const layout_error &error) {
         wxMessageBox("Impossibile aprire questo file", "Errore", wxOK | wxICON_ERROR);
         return;
     }
     modified = false;
-    ifs.close();
     history.clear();
     updateLayout();
     

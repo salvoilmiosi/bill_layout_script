@@ -155,10 +155,8 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     }
 
     parser my_parser;
-    std::ifstream control_ifs(control_script_filename.ToStdString());
-    bill_layout_script control;
-    control_ifs >> control;
-    my_parser.read_layout(control);
+    my_parser.read_layout(open_bls_file(control_script_filename.ToStdString()));
+
     reader my_reader(m_doc);
     my_reader.exec_program(read_lines(my_parser.get_output_asm()));
 
