@@ -215,7 +215,7 @@ void parser::read_keyword() {
     case hash("halt"):
         m_lexer.require(TOK_PAREN_BEGIN);
         m_lexer.require(TOK_PAREN_END);
-        add_line("HLT");
+        add_line("RET");
         break;
     default:
         throw parsing_error(fmt::format("Parola chiave sconosciuta: {0}", fun_name), tok_name);

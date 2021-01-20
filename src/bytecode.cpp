@@ -85,6 +85,7 @@ std::ostream &operator << (std::ostream &output, const bytecode &code) {
             writeData(output, line.get<spacer_index>());
             break;
         case opcode::JMP:
+        case opcode::JSR:
         case opcode::JZ:
         case opcode::JNZ:
         case opcode::JTE:
@@ -204,6 +205,7 @@ std::istream &operator >> (std::istream &input, bytecode &code) {
             code.add_command(cmd, readData<spacer_index>(input));
             break;
         case opcode::JMP:
+        case opcode::JSR:
         case opcode::JZ:
         case opcode::JNZ:
         case opcode::JTE:

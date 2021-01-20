@@ -175,26 +175,31 @@ void reader::exec_command(const command_args &cmd) {
         m_con.refs.pop();
         break;
     case opcode::JMP:
-        m_con.program_counter = cmd.get<jump_address>();
+        m_con.program_counter += cmd.get<jump_address>();
+        m_con.jumped = true;
+        break;
+    case opcode::JSR:
+        m_con.return_addrs.push(m_con.program_counter);
+        m_con.program_counter += cmd.get<jump_address>();
         m_con.jumped = true;
         break;
     case opcode::JZ:
         if (!m_con.vars.top().as_bool()) {
-            m_con.program_counter = cmd.get<jump_address>();
+            m_con.program_counter += cmd.get<jump_address>();
             m_con.jumped = true;
         }
         m_con.vars.pop();
         break;
     case opcode::JNZ:
         if (m_con.vars.top().as_bool()) {
-            m_con.program_counter = cmd.get<jump_address>();
+            m_con.program_counter += cmd.get<jump_address>();
             m_con.jumped = true;
         }
         m_con.vars.pop();
         break;
     case opcode::JTE:
         if (m_con.contents.top().token_end()) {
-            m_con.program_counter = cmd.get<jump_address>();
+            m_con.program_counter += cmd.get<jump_address>();
             m_con.jumped = true;
         }
         break;
@@ -236,7 +241,15 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::NEXTTOKEN: m_con.contents.top().next_token("\t\n\v\f\r "); break;
     case opcode::NEXTTABLE: ++m_con.current_table; break;
     case opcode::ATE: m_con.vars.push(m_con.last_box_page > m_doc->num_pages()); break;
-    case opcode::HLT: halt(); break;
+    case opcode::RET:
+        if (m_con.return_addrs.empty()) {
+            halt();
+        } else {
+            m_con.program_counter = m_con.return_addrs.top();
+            m_con.jumped = true;
+            m_con.return_addrs.pop();
+        }
+        break;
     }
 }
 

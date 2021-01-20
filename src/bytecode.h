@@ -49,9 +49,11 @@ enum class opcode : uint8_t {
     PUSHVAR,    // ref_stack -> var_stack
     MOVEVAR,    // ref_stack -> (move) var_stack
     JMP,        // short address -- unconditional jump
+    JSR,        // short address -- program_counter -> return_addrs, jump
     JZ,         // short address -- var_stack -> jump if top == 0
     JNZ,        // short address -- var_stack -> jump if top != 0
     JTE,        // short address -- jump if content_stack.top at token end
+    RET,        // jump to return_addrs.top, return_addrs.pop, halt if return_addrs.empty
     INC,        // ref_stack, var_stack -> += top
     DEC,        // ref_stack, var_stack -> -= top
     ISSET,      // ref_stack -> size() != 0 -> var_stack
@@ -67,14 +69,13 @@ enum class opcode : uint8_t {
     POPCONTENT, // content_stack.pop()
     NEXTTABLE,  // current_table++
     ATE,        // m_ate -> var_stack
-    STRDATA=0xfd,// short len, (byte * len) data -- string data (strings are represented by 2 byte addresses)
-    COMMENT=0xfe,// short len, (byte * len) data -- string debug data
-    HLT=0xff,   // halt execution
+    STRDATA=0xfe,// short len, (byte * len) data -- string data (strings are represented by 2 byte addresses)
+    COMMENT=0xff,// short len, (byte * len) data -- string debug data
 };
 
 typedef uint8_t small_int;
 typedef uint16_t string_ref;
-typedef uint16_t jump_address;
+typedef int16_t jump_address; // indirizzo relativo
 typedef uint16_t string_size;
 
 constexpr int32_t MAGIC = 0xb011377a;

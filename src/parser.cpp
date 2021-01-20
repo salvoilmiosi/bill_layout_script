@@ -12,7 +12,7 @@ void parser::read_layout(const bill_layout_script &layout) {
         for (auto &box : layout) {
             read_box(*box);
         }
-        add_line("HLT");
+        add_line("RET");
     } catch (const parsing_error &error) {
         throw layout_error(fmt::format("In {0}: {1}\n{2}", current_box->name,
             error.what(), m_lexer.tokenLocationInfo(error.location())));

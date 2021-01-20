@@ -27,6 +27,7 @@ struct context {
     simple_stack<variable> vars;
     simple_stack<content_view> contents;
     simple_stack<variable_ref> refs;
+    simple_stack<size_t> return_addrs;
 
     box_spacer spacer;
     int last_box_page = 0;

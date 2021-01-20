@@ -24,7 +24,7 @@ bytecode read_lines(const std::vector<std::string> &lines) {
         if (it == labels.end()) {
             throw assembly_error(fmt::format("Etichetta sconosciuta: {0}", label));
         } else {
-            return it->second;
+            return it->second - ret.m_commands.size();
         }
     };
 
@@ -138,7 +138,8 @@ bytecode read_lines(const std::vector<std::string> &lines) {
             case hash("PUSHVAR"):       ret.add_command(opcode::PUSHVAR); break;
             case hash("MOVEVAR"):       ret.add_command(opcode::MOVEVAR); break;
             case hash("JMP"):           ret.add_command(opcode::JMP, getgotoindex(args[0])); break;
-            case hash("JZ"):            ret.add_command(opcode::JZ, getgotoindex(args[0])); break;
+            case hash("JSR"):           ret.add_command(opcode::JMP, getgotoindex(args[0])); break;
+            case hash("JZ"):            ret.add_command(opcode::JZ,  getgotoindex(args[0])); break;
             case hash("JNZ"):           ret.add_command(opcode::JNZ, getgotoindex(args[0])); break;
             case hash("JTE"):           ret.add_command(opcode::JTE, getgotoindex(args[0])); break;
             case hash("INC"):           ret.add_command(opcode::INC); break;
@@ -156,7 +157,7 @@ bytecode read_lines(const std::vector<std::string> &lines) {
             case hash("POPCONTENT"):    ret.add_command(opcode::POPCONTENT); break;
             case hash("NEXTTABLE"):     ret.add_command(opcode::NEXTTABLE); break;
             case hash("ATE"):           ret.add_command(opcode::ATE); break;
-            case hash("HLT"):           ret.add_command(opcode::HLT); break;
+            case hash("RET"):           ret.add_command(opcode::RET); break;
             default:
                 throw assembly_error(fmt::format("Comando sconosciuto: {0}", cmd));
             }
