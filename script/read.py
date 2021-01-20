@@ -93,22 +93,27 @@ if __name__ == '__main__':
         print(f'Il file di layout {controllo} non esiste')
         sys.exit(1)
         
-    files = list(input_directory.rglob('*.pdf'))
+    in_files = list(input_directory.rglob('*.pdf'))
 
     results = []
+    files = []
 
     # Rilegge i vecchi file solo se il layout e' stato ricompilato
     if output_file.exists():
         with open(output_file, 'r') as fin:
             in_data = json.loads(fin.read())
 
-        for old_obj in in_data:
-            f = Path(old_obj['filename'])
-            if f in files and 'layout' in old_obj:
-                layout_file = controllo.parent / '{0}.out'.format(old_obj['layout'])
-                if layout_file.stat().st_mtime < output_file.stat().st_mtime and f.stat().st_mtime < output_file.stat().st_mtime:
-                    results.append(old_obj)
-                    files.remove(f)
+        for f in in_files:
+            skip = False
+            for old_obj in filter(lambda x : x['filename'] == str(f), in_data):
+                if 'layout' in old_obj:
+                    layout_file = controllo.parent / '{0}.out'.format(old_obj['layout'])
+                    if layout_file.stat().st_mtime < output_file.stat().st_mtime and f.stat().st_mtime < output_file.stat().st_mtime:
+                        results.append(old_obj)
+                        skip = True
+            if not skip: files.append(f)
+    else:
+        files = in_files
 
     if files:
         with Pool(min(len(files), nthreads)) as pool:
