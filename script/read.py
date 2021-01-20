@@ -106,7 +106,7 @@ if __name__ == '__main__':
             f = Path(old_obj['filename'])
             if f in files and 'layout' in old_obj:
                 layout_file = controllo.parent / '{0}.out'.format(old_obj['layout'])
-                if layout_file.stat().st_mtime < output_file.stat().st_mtime:
+                if layout_file.stat().st_mtime < output_file.stat().st_mtime and f.stat().st_mtime < output_file.stat().st_mtime:
                     results.append(old_obj)
                     files.remove(f)
 
