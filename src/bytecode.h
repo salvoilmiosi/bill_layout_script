@@ -70,6 +70,7 @@ enum class opcode : uint8_t {
     NEXTTABLE,  // current_table++
     ATE,        // m_ate -> var_stack
     IMPORT,     // string layout_name
+    SETLAYOUT,  // string layout_name
     COMMENT=0xff,// string data
 };
 

@@ -122,13 +122,17 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
         return;
     }
 
-    reader my_reader(m_doc, bytecode(getControlScript().ToStdString()));
+    try {
+        reader my_reader(m_doc, bytecode(getControlScript().ToStdString()));
 
-    auto layout_name = my_reader.get_output().layout_name;
-    if (layout_name.empty()) {
-        wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
-    } else if (saveIfModified()) {
-        openFile(getLayoutPath() + wxFileName::GetPathSeparator() + layout_name + ".bls");
+        auto layout_name = my_reader.get_output().layout_name;
+        if (layout_name.empty()) {
+            wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
+        } else if (saveIfModified()) {
+            openFile(getLayoutPath() + wxFileName::GetPathSeparator() + layout_name + ".bls");
+        }
+    } catch (const std::exception &error) {
+        wxMessageBox(error.what(), "Errore", wxICON_ERROR);
     }
 }
 

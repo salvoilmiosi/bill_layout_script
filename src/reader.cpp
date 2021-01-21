@@ -251,6 +251,10 @@ void reader::exec_command(const command_args &cmd) {
             m_return_addrs.pop();
         }
         break;
+    case opcode::SETLAYOUT:
+        m_out.layout_name = cmd.get<std::string>();
+        import_layout(m_out.layout_name);
+        break;
     case opcode::IMPORT:
         import_layout(cmd.get<std::string>());
         break;
@@ -258,8 +262,6 @@ void reader::exec_command(const command_args &cmd) {
 }
 
 void reader::import_layout(const std::string &layout_name) {
-    m_out.layout_name = layout_name;
-
     auto new_addr = m_code.size();
     auto new_code = bytecode(m_code.layout_dir / (layout_name + ".bls"));
     std::copy(
