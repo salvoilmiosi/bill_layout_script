@@ -11,9 +11,9 @@
 ### H 0.0445166416
 ### Script
 $if($contains(@,"Sorgenia S.p.A")) {
-  $setlayout("sorgenia/sorgenia_old")
+  $import("sorgenia_old")
 } $else {
-  $setlayout("sorgenia/sorgenia_new")
+  $import("sorgenia")
 }
 ### End Script
 ### End Box

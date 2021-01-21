@@ -221,7 +221,7 @@ $with($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
 ### W 0.0579877123
 ### H 0.0390942991
 ### Script
-$import("sorgenia/parse_dettaglio")
+$import("parse_dettaglio")
 ### End Script
 ### End Box
 
