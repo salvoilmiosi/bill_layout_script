@@ -143,30 +143,17 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
 ### End Box
 
 ### Box
-### Name Codice POD
+### Name POD / Indirizzo
 ### Type RECTANGLE
-### Mode DEFAULT
+### Mode LAYOUT
 ### Page 1
-### X 0.6815211177
-### Y 0.3286821842
-### W 0.2308467776
-### H 0.0163911059
+### X 0.4325512946
+### Y 0.3273901939
+### W 0.4859350622
+### H 0.0899416208
 ### Script
-codice_pod
-### End Script
-### End Box
-
-### Box
-### Name Indirizzo fornitura
-### Type RECTANGLE
-### Mode DEFAULT
-### Page 1
-### X 0.4532555342
-### Y 0.3596175909
-### W 0.4636179209
-### H 0.0189630091
-### Script
-indirizzo_fornitura
+codice_pod=$search(@,/per il punto di fornitura \(POD\) ([0-9A-Z]+)/)
+indirizzo_fornitura=$singleline($search(@,/di ([^]+\(..\))/))
 ### End Script
 ### End Box
 

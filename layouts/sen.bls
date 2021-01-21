@@ -83,7 +83,7 @@ indirizzo_fornitura=$search($singleline(@),/Forniamo energia in (.+) Tariffa/)
 ### Mode LAYOUT
 ### Page 1
 ### X 0.0537634417
-### Y 0.3393603861
+### Y 0.3401866555
 ### W 0.2332949340
 ### H 0.0875549763
 ### Script
@@ -104,7 +104,7 @@ codice_pod=$search(@,/CODICE POD\n(.+)\n/)
 ### Script
 numero_fattura=$search(@,/N\. Fattura (.+)\n/)
 data_fattura=$date(@,"%d.%m.%Y",/Del (%D)/)
-mese_fattura=$month(@,"%b.%Y",/MESE (%D)$/)
+mese_fattura=$month(@,"%b.%Y",/(%D)$/)
 ### End Script
 ### End Box
 

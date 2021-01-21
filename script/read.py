@@ -28,10 +28,7 @@ def check_conguagli(results):
             error_data.append({'filename': x['filename'], 'error': x['error'], 'values': []})
             continue
         for v in x['values']:
-            if all(y in v for y in ('mese_fattura', 'data_fattura', 'codice_pod')):
-                sorted_data.append({'filename': x['filename'], 'layout': x['layout'], 'values': [v]})
-            else:
-                error_data.append({'filename': x['filename'], 'error': 'Dati mancanti', 'values': []})
+            sorted_data.append({'filename': x['filename'], 'layout': x['layout'], 'values': [v]})
         
     sorted_data.sort(key = lambda obj : (
         obj['values'][0]['codice_pod'][0],
@@ -63,6 +60,10 @@ def read_pdf(pdf_file):
         out_dict = pyreader.readpdf(pdf_file, controllo)
 
         ret['values'] = out_dict['values']
+        if not all(y in v for y in ('mese_fattura', 'data_fattura', 'codice_pod') for v in ret['values']):
+            ret['values'] = []
+            if 'warnings' not in out_dict: out_dict['warnings'] = []
+            out_dict['warnings'].append('Dati Mancanti') 
         if 'layout' in out_dict:
             ret['layout'] = out_dict['layout']
         if 'warnings' in out_dict:

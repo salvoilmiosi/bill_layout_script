@@ -9,9 +9,16 @@
 ### Y 0.2746438980
 ### W 0.7097657323
 ### H 0.0239315927
+### Goto Label convalida
+### Spacers
+p+::off_allegato
+### End Spacers
 ### Script
-$ifnot($contains(@,"FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA"))
-  $error("Layout Invalido")
+$if($ate()) $error("Layout Invalido")
+$elif(! $contains(@,"FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA")) {
+  ::off_allegato+=1
+  $goto(convalida)
+} 
 ### End Script
 ### End Box
 
@@ -39,6 +46,9 @@ fornitore="Italpower"
 ### Y 0.3109084070
 ### W 0.2950705290
 ### H 0.0763326287
+### Spacers
+p+::off_allegato
+### End Spacers
 ### Script
 numero_fattura=$search(@,/Fattura Numero: (.+)\n/)
 data_fattura=$date(@,"%d/%m/%Y",/Data Fattura: (%D)/)
@@ -55,6 +65,9 @@ data_scadenza=$date(@,"%d/%m/%Y",/Scadenza Fattura: (%D)/)
 ### Y 0.3014754057
 ### W 0.6560779810
 ### H 0.2798797488
+### Spacers
+p+::off_allegato
+### End Spacers
 ### Script
 %totale_fattura=$search(@,/Totale Fattura \u20ac (%N)/)
 iva=$search(@,/IVA (\d+%)/)
@@ -70,6 +83,9 @@ iva=$search(@,/IVA (\d+%)/)
 ### Y 0.5792474747
 ### W 0.4864683747
 ### H 0.2518473864
+### Spacers
+p+::off_allegato
+### End Spacers
 ### Script
 numero_cliente=$search(@,/Codice cliente (.+)\n/)
 ragione_sociale=$search(@,/Ragione sociale (.+)\n/)
@@ -86,7 +102,7 @@ ragione_sociale=$search(@,/Ragione sociale (.+)\n/)
 ### W 0.9661290050
 ### H 0.0376282781
 ### Spacers
-p+::page_offset
+p+::off_allegato p+::page_offset
 ### End Spacers
 ### Script
 mese_fattura=$month(@,"%B %Y",/Dettaglio consumi mese di (%D)/)
@@ -103,7 +119,7 @@ mese_fattura=$month(@,"%B %Y",/Dettaglio consumi mese di (%D)/)
 ### W 0.4836530089
 ### H 0.1122068539
 ### Spacers
-p+::page_offset
+p+::off_allegato p+::page_offset
 ### End Spacers
 ### Script
 codice_pod=$search(@,/Codice POD (.+)\n/)
@@ -121,7 +137,7 @@ indirizzo_fornitura=$search($singleline(@),/Indirizzo fornitura (.+) Opzione/)
 ### W 0.4249513149
 ### H 0.0671801865
 ### Spacers
-p+::page_offset
+p+::off_allegato p+::page_offset
 ### End Spacers
 ### Script
 $tokens($search(@,/Misura (%N %N %N)/)) {
@@ -146,7 +162,7 @@ $tokens($search(@,/Energia Reattiva \(kVar\) (%N %N %N)/)) {
 ### W 0.9758064747
 ### H 0.6935900450
 ### Spacers
-p+::page_offset
+p+::off_allegato p+::page_offset
 ### End Spacers
 ### Script
 %spesa_materia_energia=$search(@,/Servizi di Vendita (%N)/)
@@ -190,7 +206,7 @@ $tokens($search(@,/Energia Off-Peak \u20ac\/kWh (%N Euro %N)/)) {
 ### W 0.9612903595
 ### H 0.0262257699
 ### Spacers
-p+::page_offset
+p+::off_allegato p+::page_offset
 ### End Spacers
 ### Script
 $if($contains(@,"Dettaglio consumi")) {
