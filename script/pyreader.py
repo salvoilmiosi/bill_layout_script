@@ -11,7 +11,7 @@ class Timeout(TimeoutError):
 
 def readpdf(pdf_file, controllo):
     try:
-        args = [Path(__file__).parent.joinpath('../bin/reader'), '-p', pdf_file, controllo]
+        args = [Path(__file__).parent.joinpath('../build/reader'), '-p', pdf_file, controllo]
         proc = subprocess.run(args, capture_output=True, text=True, timeout=5)
         json_out = json.loads(proc.stdout)
         if 'error' in json_out:

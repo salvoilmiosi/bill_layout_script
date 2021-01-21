@@ -30,7 +30,6 @@ include_directories(
 
 add_library(layout SHARED ${liblayout_SRCS})
 target_link_libraries(layout ${wxWidgets_LIBRARIES} ${DEPS_LIBRARIES})
-install(TARGETS layout DESTINATION "${CMAKE_SOURCE_DIR}/bin")
 
 add_subdirectory(editor)
 
@@ -41,12 +40,15 @@ add_executable(reader src/main.cpp)
 
 target_include_directories(reader PRIVATE ${JSONCPP_INCLUDE_DIRS})
 target_link_libraries(reader layout ${JSONCPP_LIBRARIES})
-install(TARGETS reader DESTINATION "${CMAKE_SOURCE_DIR}/bin")
 
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-find_package(PythonLibs REQUIRED)
+set(ENABLE_PYREADER ON CACHE BOOL "Enable Pyreader")
 
-Python3_add_library(pyreader src/pyreader.cpp ${liblayout_SRCS})
-target_include_directories(pyreader PRIVATE ${PYTHON_INCLUDE_DIRS})
-target_link_libraries(pyreader PRIVATE ${wxWidgets_LIBRARIES} ${DEPS_LIBRARIES})
-install(TARGETS pyreader DESTINATION "${CMAKE_SOURCE_DIR}/bin" COMPONENT "EXT")
+if(ENABLE_PYREADER)
+    find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+    find_package(PythonLibs REQUIRED)
+
+    Python3_add_library(pyreader src/pyreader.cpp ${liblayout_SRCS})
+    target_include_directories(pyreader PRIVATE ${PYTHON_INCLUDE_DIRS})
+    target_link_libraries(pyreader PRIVATE ${wxWidgets_LIBRARIES} ${DEPS_LIBRARIES})
+    install(TARGETS pyreader DESTINATION "${CMAKE_SOURCE_DIR}/script" COMPONENT "EXT")
+endif()

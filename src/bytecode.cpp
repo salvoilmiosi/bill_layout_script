@@ -6,7 +6,6 @@
 
 #include "parser.h"
 #include "utils.h"
-#include "binary_io.h"
 #include "parsestr.h"
 #include "fixed_point.h"
 
