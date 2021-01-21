@@ -1,0 +1,273 @@
+### Bill Layout Script
+
+### Box
+### Name Convalida Layout
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.0739910230
+### Y 0.3029465377
+### W 0.8291960359
+### H 0.0248280428
+### Script
+$if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
+  $error("Layout Invalido")
+### End Script
+### End Box
+
+### Box
+### Name Lettura Dettaglio
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 3
+### X 0.0402901024
+### Y 0.0809578151
+### W 0.9105559587
+### H 0.8734164834
+### Goto Label lettura_dati
+### Spacers
+p+::next_page
+### End Spacers
+### Script
+$ifnot($ate() || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
+  ::_dettaglio+=@
+  ::_dettaglio+="\n"
+  ::next_page+=1
+  $goto(lettura_dati)
+}
+### End Script
+### End Box
+
+### Box
+### Name Nome Fornitore
+### Type NOREAD
+### Mode DEFAULT
+### Page 1
+### X 0.0612903237
+### Y 0.0410490297
+### W 0.3612903357
+### H 0.0832383111
+### Goto Label nome_fornitore
+### Script
+fornitore="Sorgenia"
+### End Script
+### End Box
+
+### Box
+### Name Numero cliente
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 1
+### X 0.4848197401
+### Y 0.0104361940
+### W 0.4648956358
+### H 0.1047291458
+### Script
+numero_cliente=$search(@,/(%N)/)
+### End Script
+### End Box
+
+### Box
+### Name Ragione sociale
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.0766129047
+### Y 0.1503705680
+### W 0.3881048262
+### H 0.0285062697
+### Script
+ragione_sociale
+### End Script
+### End Box
+
+### Box
+### Name Numero fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.2112068981
+### Y 0.3307054937
+### W 0.2157258093
+### H 0.0171037614
+### Script
+numero_fattura
+### End Script
+### End Box
+
+### Box
+### Name Data fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.2139877677
+### Y 0.3461054564
+### W 0.2157258093
+### H 0.0171037614
+### Script
+data_fattura=$date(@,"%d/%m/%Y")
+### End Script
+### End Box
+
+### Box
+### Name Periodo
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.0707351118
+### Y 0.4228430092
+### W 0.3672128916
+### H 0.1100659072
+### Script
+mese_fattura=$month(@,"%B %Y")
+mese_fine=$month(@,"%B %Y",/%D\/(%D)/)
+mese_fattura=$month_add(mese_fattura,::calc_mese)
+$ifnot($isset(mese_fattura)) {
+  $error("Layout Invalido")
+}
+### End Script
+### End Box
+
+### Box
+### Name Data scadenza
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.6679323912
+### Y 0.4228430092
+### W 0.2348197252
+### H 0.1100659072
+### Script
+data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
+### End Script
+### End Box
+
+### Box
+### Name Codice POD
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.6815211177
+### Y 0.3286821842
+### W 0.2308467776
+### H 0.0163911059
+### Script
+codice_pod
+### End Script
+### End Box
+
+### Box
+### Name Indirizzo fornitura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.4532555342
+### Y 0.3596175909
+### W 0.4636179209
+### H 0.0189630091
+### Script
+indirizzo_fornitura
+### End Script
+### End Box
+
+### Box
+### Name Totale spesa
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.4387096763
+### Y 0.4244267046
+### W 0.2185639143
+### H 0.1068985164
+### Script
+%totale_fattura=$search(@,/(%N) \u20ac/)
+### End Script
+### End Box
+
+### Box
+### Name Energia Attiva
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### X 0.0580177270
+### Y 0.3854047954
+### W 0.3553287387
+### H 0.5330120325
+### Script
+### Il rettangolo e' alto perche' il layout shifta verticalmente
+
+$with($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
+  $tokens($search(@,$format(/$0 \w+ (%N %N %N)/,$date_format(mese_fattura,"%b - %y")))) {
+    %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
+  }
+}
+### End Script
+### End Box
+
+### Box
+### Name Energia Reattiva
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### X 0.0580177270
+### Y 0.3865450323
+### W 0.2553085387
+### H 0.5330120325
+### Script
+### Il rettangolo e' alto perche' il layout shifta verticalmente
+
+$with($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
+  $tokens($search(@,$format(/$0 (%N %N %N)/,$date_format(mese_fattura,"%b - %y")))) {
+    %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
+  }
+}
+### End Script
+### End Box
+
+### Box
+### Name Parsing Dettaglio
+### Type NOREAD
+### Mode DEFAULT
+### Page 3
+### X 0.2668215632
+### Y 0.0319813415
+### W 0.0579877123
+### H 0.0390942991
+### Script
+$import("sorgenia/parse_dettaglio")
+### End Script
+### End Box
+
+### Box
+### Name Prossima pagina
+### Type NOREAD
+### Mode DEFAULT
+### Page 3
+### X 0.3304147422
+### Y 0.0285062715
+### W 0.0576036870
+### H 0.0447955690
+### Script
+$if($isset(mese_fine)) {
+  $if(mese_fattura != mese_fine) {
+    ::calc_mese+=1
+    $nexttable()
+    $goto(nome_fornitore)
+  }
+}
+### End Script
+### End Box
+
+### Box
+### Name Potenza Impegnata
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 1
+### X 0.6573299766
+### Y 0.6641179323
+### W 0.2675261796
+### H 0.0535917915
+### Script
+%potenza[0:3]=$search(@,/Potenza impegnata: (%N)/)
+### End Script
+### End Box
