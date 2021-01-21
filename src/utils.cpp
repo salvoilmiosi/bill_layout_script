@@ -194,7 +194,7 @@ std::string parse_month(const std::string &format, std::string_view value, const
 std::string date_month_add(std::string_view str, int num) {
     try {
         wxDateTime dt = string_to_date(str);
-        dt += wxDateSpan(0, 1);
+        dt += wxDateSpan(0, num);
 
         return dt.Format("%Y-%m").ToStdString();
     } catch (const std::invalid_argument &) {
