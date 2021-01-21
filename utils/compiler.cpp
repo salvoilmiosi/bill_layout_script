@@ -1,9 +1,9 @@
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 #include <wx/app.h>
 #include <wx/cmdline.h>
-#include <wx/filename.h>
 
 #include <fmt/format.h>
 
@@ -16,9 +16,10 @@ public:
     virtual bool OnCmdLineParsed(wxCmdLineParser &parser) override;
 
 private:
-    wxString input_file;
-    wxString output_file;
-    wxString output_asm;
+    std::filesystem::path input_file;
+    std::filesystem::path output_file;
+    std::filesystem::path output_asm;
+
     bool no_out = false;
     bool debug = false;
     bool read_asm = false;
@@ -42,9 +43,17 @@ void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
 }
 
 bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
-    if (parser.GetParamCount() >= 1) input_file = parser.GetParam(0);
-    parser.Found("o", &output_file);
-    parser.Found("t", &output_asm);
+    wxString str;
+
+    if (parser.GetParamCount() >= 1) {
+        input_file = parser.GetParam(0).ToStdString();
+    }
+    if (parser.Found("o", &str)) {
+        output_file = str.ToStdString();
+    }
+    if (parser.Found("t", &str)) {
+        output_asm = str.ToStdString();
+    }
     no_out = parser.Found("d");
     read_asm = parser.Found("s");
     debug = parser.Found("g");
@@ -55,12 +64,11 @@ int MainApp::OnRun() {
     std::ifstream ifs;
 
     if (input_file != "-") {
-        ifs.open(input_file.ToStdString());
+        ifs.open(input_file);
 
         if (!no_out && output_file.empty()) {
-            wxFileName f(input_file);
-            f.SetExt("out");
-            output_file = f.GetFullPath();
+            output_file = input_file;
+            output_file.replace_extension("out");
         }
     }
 
@@ -85,7 +93,7 @@ int MainApp::OnRun() {
             if (output_asm == "-") {
                 print_asm(std::cout);
             } else if (!output_asm.empty()) {
-                std::ofstream ofs(output_asm.ToStdString());
+                std::ofstream ofs(output_asm);
                 print_asm(ofs);
             }
             
@@ -111,7 +119,7 @@ int MainApp::OnRun() {
 #endif
             std::cout << out_code;
         } else {
-            std::ofstream ofs(output_file.ToStdString(), std::ofstream::binary | std::ofstream::out);
+            std::ofstream ofs(output_file, std::ofstream::binary | std::ofstream::out);
             ofs << out_code;
         }
     }

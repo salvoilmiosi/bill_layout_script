@@ -17,8 +17,8 @@ void reader::start() {
 
     m_running = true;
 
-    while (m_running && m_program_counter < m_code.m_commands.size()) {
-        exec_command(m_code.m_commands[m_program_counter]);
+    while (m_running && m_program_counter < m_code.size()) {
+        exec_command(m_code[m_program_counter]);
         if (!m_jumped) {
             ++m_program_counter;
         } else {
@@ -34,10 +34,6 @@ void reader::exec_command(const command_args &cmd) {
         m_vars.push(std::move(ret));
     };
 
-    auto read_str_ref = [&]() {
-        return m_code.get_string(cmd.get<string_ref>());
-    };
-
     auto create_ref = [&](const std::string &name, auto ... args) {
         if (name.front() == '*') {
             return variable_ref(m_out.globals, name.substr(1), args ...);
@@ -50,7 +46,6 @@ void reader::exec_command(const command_args &cmd) {
     switch(cmd.command()) {
     case opcode::NOP:
     case opcode::COMMENT:
-    case opcode::STRDATA:
         break;
     case opcode::RDBOX:
     case opcode::RDPAGE:
@@ -63,7 +58,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::CALL:
     {
         const auto &call = cmd.get<command_call>();
-        call_function(m_code.get_string(call.name), call.numargs);
+        call_function(call.name, call.numargs);
         break;
     }
     case opcode::THROWERR: throw layout_error(m_vars.top().str()); break;
@@ -93,14 +88,14 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::LEQ: exec_operator([](const auto &a, const auto &b) { return a <= b; }); break;
     case opcode::SELVARTOP:
     {
-        m_refs.emplace_back(create_ref(read_str_ref(),
+        m_refs.emplace_back(create_ref(cmd.get<std::string>(),
             m_vars.top().as_int(), 1));
         m_vars.pop();
         break;
     }
     case opcode::SELRANGEALL:
     {
-        auto ref = create_ref(read_str_ref());
+        auto ref = create_ref(cmd.get<std::string>());
         ref.range_len = ref.size();
         m_refs.push(std::move(ref));
         break;
@@ -109,7 +104,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SELRANGE:
     {
         const auto &var_idx = cmd.get<variable_idx>();
-        auto ref = create_ref(m_code.get_string(var_idx.name),
+        auto ref = create_ref(var_idx.name,
             var_idx.index, var_idx.range_len);
         if (var_idx.index == (small_int) -1) {
             ref.index = ref.size();
@@ -119,7 +114,7 @@ void reader::exec_command(const command_args &cmd) {
     }
     case opcode::SELRANGETOP:
     {
-        auto ref = create_ref(read_str_ref());
+        auto ref = create_ref(cmd.get<std::string>());
         ref.index = m_vars.top().as_int();
         if (ref.index == (small_int) -1) {
             ref.index = ref.size();
@@ -171,7 +166,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHSHORT: m_vars.push(cmd.get<int16_t>()); break;
     case opcode::PUSHINT:   m_vars.push(cmd.get<int32_t>()); break;
     case opcode::PUSHDECIMAL: m_vars.push(cmd.get<fixed_point>()); break;
-    case opcode::PUSHSTR:   m_vars.push(read_str_ref()); break;
+    case opcode::PUSHSTR:   m_vars.push(cmd.get<std::string>()); break;
     case opcode::PUSHVAR:
         m_vars.push(m_refs.top().get_value());
         m_refs.pop();
@@ -252,11 +247,26 @@ void reader::exec_command(const command_args &cmd) {
             halt();
         } else {
             m_program_counter = m_return_addrs.top();
-            m_jumped = true;
             m_return_addrs.pop();
         }
         break;
+    case opcode::IMPORT:
+        import_layout(cmd.get<std::string>());
+        break;
     }
+}
+
+void reader::import_layout(const std::string &layout_name) {
+    auto new_addr = m_code.size();
+    auto new_code = bytecode::from_file(m_code.filename.parent_path() / (layout_name + ".out"));
+    std::copy(
+        std::move_iterator(new_code.begin()),
+        std::move_iterator(new_code.end()),
+        std::back_inserter(m_code)
+    );
+    m_return_addrs.push(m_program_counter);
+    m_program_counter = new_addr;
+    m_jumped = true;
 }
 
 void reader::set_page(int page) {

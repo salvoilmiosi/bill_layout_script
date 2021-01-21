@@ -69,19 +69,18 @@ enum class opcode : uint8_t {
     POPCONTENT, // content_stack.pop()
     NEXTTABLE,  // current_table++
     ATE,        // m_ate -> var_stack
-    STRDATA=0xfe,// short len, (byte * len) data -- string data (strings are represented by 2 byte addresses)
-    COMMENT=0xff,// short len, (byte * len) data -- string debug data
+    IMPORT,     // string layout_name
+    COMMENT=0xff,// string data
 };
 
 typedef uint8_t small_int;
-typedef uint16_t string_ref;
 typedef int16_t jump_address; // indirizzo relativo
 typedef uint16_t string_size;
 
 constexpr int32_t MAGIC = 0xb011377a;
 
 struct command_call {
-    string_ref name;
+    std::string name;
     small_int numargs;
 };
 
@@ -94,12 +93,12 @@ enum class spacer_index: uint8_t {
 };
 
 struct variable_idx {
-    string_ref name;
+    std::string name;
     small_int index = 0;
     small_int range_len = 1;
 
     variable_idx() = default;
-    variable_idx(const string_ref &name, small_int index, small_int range_len = 1) :
+    variable_idx(const std::string &name, small_int index, small_int range_len = 1) :
         name(name), index(index), range_len(range_len) {}
 };
 
@@ -127,10 +126,11 @@ struct assembly_error : std::runtime_error {
     assembly_error(const std::string &message) : std::runtime_error(message) {}
 };
 
-struct bytecode {
-    std::vector<command_args> m_commands;
-    std::vector<std::string> m_strings;
+struct bytecode : std::vector<command_args> {
+    bytecode() = default;
 
+    std::filesystem::path filename;
+    
     friend std::ostream &operator << (std::ostream &output, const bytecode &code);
     friend std::istream &operator >> (std::istream &input, bytecode &code);
 
@@ -143,11 +143,8 @@ struct bytecode {
     }
     
     template<typename ... Ts> command_args add_command(Ts && ... args) {
-        return m_commands.emplace_back(std::forward<Ts>(args) ...);
+        return emplace_back(std::forward<Ts>(args) ...);
     }
-    
-    string_ref add_string(const std::string &str);
-    const std::string &get_string(string_ref ref);
 };
 
 std::ostream &operator << (std::ostream &output, const bytecode &code);

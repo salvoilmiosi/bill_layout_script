@@ -24,7 +24,7 @@ bytecode bytecode::from_lines(const std::vector<std::string> &lines) {
         if (it == labels.end()) {
             throw assembly_error(fmt::format("Etichetta sconosciuta: {0}", label));
         } else {
-            return it->second - ret.m_commands.size();
+            return it->second - ret.size();
         }
     };
 
@@ -78,7 +78,7 @@ bytecode bytecode::from_lines(const std::vector<std::string> &lines) {
             case hash("CALL"):
             {
                 command_call call;
-                call.name = ret.add_string(args[0]);
+                call.name = args[0];
                 call.numargs = cstoi(args[1]);
                 ret.add_command(opcode::CALL, std::move(call));
                 break;
@@ -102,11 +102,11 @@ bytecode bytecode::from_lines(const std::vector<std::string> &lines) {
             case hash("LT"):            ret.add_command(opcode::LT); break;
             case hash("GEQ"):           ret.add_command(opcode::GEQ); break;
             case hash("LEQ"):           ret.add_command(opcode::LEQ); break;
-            case hash("SELVAR"):        ret.add_command(opcode::SELVAR, variable_idx(ret.add_string(args[0]), cstoi(args[1]))); break;
-            case hash("SELVARTOP"):     ret.add_command(opcode::SELVARTOP, ret.add_string(args[0])); break;
-            case hash("SELRANGE"):      ret.add_command(opcode::SELRANGE, variable_idx(ret.add_string(args[0]), cstoi(args[1]), cstoi(args[2]))); break;
-            case hash("SELRANGETOP"):   ret.add_command(opcode::SELRANGETOP, ret.add_string(args[0])); break;
-            case hash("SELRANGEALL"):   ret.add_command(opcode::SELRANGEALL, ret.add_string(args[0])); break;
+            case hash("SELVAR"):        ret.add_command(opcode::SELVAR, variable_idx(args[0], cstoi(args[1]))); break;
+            case hash("SELVARTOP"):     ret.add_command(opcode::SELVARTOP, args[0]); break;
+            case hash("SELRANGE"):      ret.add_command(opcode::SELRANGE, variable_idx(args[0], cstoi(args[1]), cstoi(args[2]))); break;
+            case hash("SELRANGETOP"):   ret.add_command(opcode::SELRANGETOP, args[0]); break;
+            case hash("SELRANGEALL"):   ret.add_command(opcode::SELRANGEALL, args[0]); break;
             case hash("CLEAR"):         ret.add_command(opcode::CLEAR); break;
             case hash("SETVAR"):        ret.add_command(opcode::SETVAR); break;
             case hash("RESETVAR"):      ret.add_command(opcode::RESETVAR); break;
@@ -132,7 +132,7 @@ bytecode bytecode::from_lines(const std::vector<std::string> &lines) {
                 if (!(arg_str.front() == '"' ? parse_string : parse_string_regexp)(str, arg_str)) {
                     throw assembly_error(fmt::format("Stringa non valida: {0}", arg_str));
                 }
-                ret.add_command(opcode::PUSHSTR, ret.add_string(str));
+                ret.add_command(opcode::PUSHSTR, str);
                 break;
             }
             case hash("PUSHVAR"):       ret.add_command(opcode::PUSHVAR); break;
@@ -158,6 +158,7 @@ bytecode bytecode::from_lines(const std::vector<std::string> &lines) {
             case hash("NEXTTABLE"):     ret.add_command(opcode::NEXTTABLE); break;
             case hash("ATE"):           ret.add_command(opcode::ATE); break;
             case hash("RET"):           ret.add_command(opcode::RET); break;
+            case hash("IMPORT"):        ret.add_command(opcode::IMPORT, arg_str); break;
             default:
                 throw assembly_error(fmt::format("Comando sconosciuto: {0}", cmd));
             }

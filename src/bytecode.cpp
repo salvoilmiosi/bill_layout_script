@@ -8,7 +8,7 @@
 std::ostream &operator << (std::ostream &output, const bytecode &code) {
     writeData(output, MAGIC);
 
-    for (const auto &line : code.m_commands) {
+    for (const auto &line : code) {
         writeData<opcode>(output, line.command());
         switch (line.command()) {
         case opcode::RDBOX:
@@ -57,14 +57,13 @@ std::ostream &operator << (std::ostream &output, const bytecode &code) {
             writeData(output, var_idx.range_len);
             break;
         }
-        case opcode::STRDATA:
-            writeData(output, line.get<std::string>());
-            break;
+        case opcode::IMPORT:
+        case opcode::COMMENT:
         case opcode::PUSHSTR:
         case opcode::SELVARTOP:
         case opcode::SELRANGEALL:
         case opcode::SELRANGETOP:
-            writeData(output, line.get<string_ref>());
+            writeData(output, line.get<std::string>());
             break;
         case opcode::PUSHBYTE:
             writeData(output, line.get<int8_t>());
@@ -91,18 +90,11 @@ std::ostream &operator << (std::ostream &output, const bytecode &code) {
         case opcode::JTE:
             writeData(output, line.get<jump_address>());
             break;
-        case opcode::COMMENT:
-            writeData<std::string>(output, line.get<std::string>());
-            break;
         default:
             break;
         }
     }
 
-    for (const auto &str : code.m_strings) {
-        writeData<opcode>(output, opcode::STRDATA);
-        writeData<std::string>(output, str);
-    }
     return output;
 }
 
@@ -112,8 +104,7 @@ std::istream &operator >> (std::istream &input, bytecode &code) {
         input.setstate(std::ios::failbit);
         return input;
     }
-    code.m_commands.clear();
-    code.m_strings.clear();
+    code.clear();
 
     while (input.peek() != EOF) {
         opcode cmd = readData<opcode>(input);
@@ -174,17 +165,13 @@ std::istream &operator >> (std::istream &input, bytecode &code) {
             code.add_command(cmd, std::move(var_idx));
             break;
         }
+        case opcode::IMPORT:
         case opcode::COMMENT:
-            code.add_command(cmd, readData<std::string>(input));
-            break;
-        case opcode::STRDATA:
-            code.m_strings.push_back(readData<std::string>(input));
-            break;
         case opcode::PUSHSTR:
         case opcode::SELVARTOP:
         case opcode::SELRANGEALL:
         case opcode::SELRANGETOP:
-            code.add_command(cmd, readData<string_ref>(input));
+            code.add_command(cmd, readData<std::string>(input));
             break;
         case opcode::PUSHBYTE:
             code.add_command(cmd, readData<int8_t>(input));
@@ -218,31 +205,10 @@ std::istream &operator >> (std::istream &input, bytecode &code) {
     return input;
 }
 
-string_ref bytecode::add_string(const std::string &str) {
-    if (str.empty()) {
-        return 0xffff;
-    }
-    auto it = std::find(m_strings.begin(), m_strings.end(), str);
-    if (it != m_strings.end()) {
-        return it - m_strings.begin();
-    } else {
-        m_strings.push_back(str);
-        return m_strings.size() - 1;
-    }
-}
-
-const std::string &bytecode::get_string(string_ref ref) {
-    static const std::string STR_EMPTY;
-    if (ref == 0xffff) {
-        return STR_EMPTY;
-    } else {
-        return m_strings[ref];
-    }
-}
-
 bytecode bytecode::from_file(const std::filesystem::path &filename) {
     bytecode ret;
     std::ifstream ifs(filename, std::ios::in | std::ios::binary);
     ifs >> ret;
+    ret.filename = filename;
     return ret;
 }
