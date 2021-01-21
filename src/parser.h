@@ -46,10 +46,6 @@ public:
         return m_lines;
     }
 
-    bytecode get_bytecode() {
-        return bytecode::from_lines(m_lines);
-    }
-
 private:
     void read_box(const layout_box &box);
     const layout_box *current_box = nullptr;

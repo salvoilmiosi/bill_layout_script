@@ -3,10 +3,7 @@ from termcolor import colored
 from pathlib import Path
 from datetime import datetime
 import sys
-import os
 import json
-
-os.environ['PATH'] += os.pathsep + str(Path(sys.argv[0]).parent.joinpath('../bin'))
 import pyreader
 
 if len(sys.argv) < 3:
@@ -16,7 +13,7 @@ if len(sys.argv) < 3:
 app_dir = Path(sys.argv[0]).parent
 input_directory = Path(sys.argv[1]).resolve()
 output_file = Path(sys.argv[2])
-controllo = Path(sys.argv[3] if len(sys.argv) >= 4 else app_dir / '../work/layouts/controllo.out')
+controllo = Path(sys.argv[3] if len(sys.argv) >= 4 else app_dir / '../layouts/controllo.bls')
 
 try:
     nthreads = int(sys.argv[4]) if len(sys.argv) >= 5 else cpu_count()
@@ -63,11 +60,11 @@ def read_pdf(pdf_file):
     ret = {'filename':str(pdf_file)}
 
     try:
-        out_dict = pyreader.readpdf_autolayout(pdf_file, controllo)
+        out_dict = pyreader.readpdf(pdf_file, controllo)
 
         ret['values'] = out_dict['values']
-        if 'layout' in out_dict['globals']:
-            ret['layout'] = out_dict['globals']['layout'][0]
+        if 'layout' in out_dict:
+            ret['layout'] = out_dict['layout']
         if 'warnings' in out_dict:
             ret['warnings'] = out_dict['warnings']
             print(colored('{0} ### {1}'.format(rel_path, ', '.join(out_dict['warnings'])), 'yellow'))
@@ -107,7 +104,7 @@ if __name__ == '__main__':
             skip = False
             for old_obj in filter(lambda x : x['filename'] == str(f), in_data):
                 if 'layout' in old_obj:
-                    layout_file = controllo.parent / '{0}.out'.format(old_obj['layout'])
+                    layout_file = controllo.parent / '{0}.bls'.format(old_obj['layout'])
                     if layout_file.stat().st_mtime < output_file.stat().st_mtime and f.stat().st_mtime < output_file.stat().st_mtime:
                         results.append(old_obj)
                         skip = True

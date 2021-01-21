@@ -1,9 +1,6 @@
 #!/bin/bash
-parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
-cd "$parent_path"
-
-./makelayouts.sh
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
 IN_DIR=../work/fatture
 OUT_DIR=../work/letture

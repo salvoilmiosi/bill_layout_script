@@ -128,26 +128,11 @@ struct assembly_error : std::runtime_error {
 
 struct bytecode : std::vector<command_args> {
     bytecode() = default;
-
-    std::filesystem::path filename;
     
-    friend std::ostream &operator << (std::ostream &output, const bytecode &code);
-    friend std::istream &operator >> (std::istream &input, bytecode &code);
+    bytecode(const std::vector<std::string> &lines, const std::filesystem::path &layout_dir);
+    explicit bytecode(const std::filesystem::path &filename);
 
-    static bytecode from_file(const std::filesystem::path &filename);
-    static bytecode from_lines(const std::vector<std::string> &lines);
-
-    bool save_file(const std::filesystem::path &filename) {
-        std::ofstream ofs(filename, std::ios::out | std::ios::binary);
-        return ! (ofs << *this).fail();
-    }
-    
-    template<typename ... Ts> command_args add_command(Ts && ... args) {
-        return emplace_back(std::forward<Ts>(args) ...);
-    }
+    std::filesystem::path layout_dir;
 };
-
-std::ostream &operator << (std::ostream &output, const bytecode &code);
-std::istream &operator >> (std::istream &input, bytecode &code);
 
 #endif

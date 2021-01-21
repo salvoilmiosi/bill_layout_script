@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include "utils.h"
+#include "parsestr.h"
 
 void parser::read_keyword() {
     auto tok_name = m_lexer.require(TOK_FUNCTION);
@@ -220,9 +221,11 @@ void parser::read_keyword() {
     case hash("import"):
     {
         m_lexer.require(TOK_PAREN_BEGIN);
-        auto layout_name = m_lexer.require(TOK_IDENTIFIER);
+        auto tok_layout_name = m_lexer.require(TOK_STRING);
         m_lexer.require(TOK_PAREN_END);
-        add_line("IMPORT {}", layout_name.value);
+        std::string layout_name;
+        parse_string(layout_name, tok_layout_name.value);
+        add_line("IMPORT {}", layout_name);
         break;
     }
     default:

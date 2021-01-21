@@ -1,6 +1,7 @@
 #include "reader.h"
 
 #include "utils.h"
+#include "parser.h"
 
 void reader::start() {
     m_vars.clear();
@@ -257,8 +258,10 @@ void reader::exec_command(const command_args &cmd) {
 }
 
 void reader::import_layout(const std::string &layout_name) {
+    m_out.layout_name = layout_name;
+
     auto new_addr = m_code.size();
-    auto new_code = bytecode::from_file(m_code.filename.parent_path() / (layout_name + ".out"));
+    auto new_code = bytecode(m_code.layout_dir / (layout_name + ".bls"));
     std::copy(
         std::move_iterator(new_code.begin()),
         std::move_iterator(new_code.end()),

@@ -76,12 +76,11 @@ static PyObject *pyreader_getlayout(PyObject *self, PyObject *args) {
         try {
             pdf_document my_doc(pdf_filename);
             my_reader.set_document(my_doc);
-            my_reader.exec_program(bytecode::from_file(code_filename));
+            my_reader.exec_program(bytecode(code_filename));
 
-            const auto &my_output = my_reader.get_output();
-            auto layout_it = my_output.globals.find("layout");
-            if (layout_it != my_output.globals.end()) {
-                return PyUnicode_FromString(layout_it->second.str().c_str());
+            auto layout_name = my_reader.get_output().layout_name;
+            if (layout_name.empty()) {
+                return PyUnicode_FromString(layout_name.c_str());
             } else {
                 Py_RETURN_NONE;
             }
@@ -133,6 +132,10 @@ static PyObject *to_pyoutput(const reader_output &my_output) {
         PyDict_SetItemString(ret, "warnings", warnings);
     }
 
+    if (!my_output.layout_name.empty()) {
+        PyDict_SetItemString(ret, "layout", PyUnicode_FromString(my_output.layout_name.c_str()));
+    }
+
     return ret;
 }
 
@@ -145,40 +148,7 @@ static PyObject *pyreader_readpdf(PyObject *self, PyObject *args) {
         try {
             pdf_document my_doc(pdf_filename);
             my_reader.set_document(my_doc);
-            my_reader.exec_program(bytecode::from_file(code_filename));
-
-            return to_pyoutput(my_reader.get_output());
-        } catch (const std::exception &error) {
-            PyErr_SetString(reader_error, error.what());
-            return nullptr;
-        }
-    }, [&] {
-        my_reader.halt();
-    });
-}
-
-static PyObject *pyreader_readpdf_autolayout(PyObject *self, PyObject *args) {
-    auto [pdf_filename, code_filename] = get_filenames(args);
-
-    reader my_reader;
-
-    return timeout_wrapper([&]() -> PyObject* {
-        try {
-            pdf_document my_doc(pdf_filename);
-            my_reader.set_document(my_doc);
-            my_reader.exec_program(bytecode::from_file(code_filename));
-
-            const auto &my_output = my_reader.get_output();
-            auto layout_it = my_output.globals.find("layout");
-            if (layout_it != my_output.globals.end()) {
-                auto layout_file = std::filesystem::path(code_filename).parent_path() / layout_it->second.str();
-
-                my_reader.exec_program(bytecode::from_file(layout_file.string() + ".out"));
-
-                return to_pyoutput(my_reader.get_output());
-            } else {
-                return to_pyoutput(my_output);
-            }
+            my_reader.exec_program(bytecode(code_filename));
 
             return to_pyoutput(my_reader.get_output());
         } catch (const std::exception &error) {
@@ -193,7 +163,6 @@ static PyObject *pyreader_readpdf_autolayout(PyObject *self, PyObject *args) {
 static PyMethodDef reader_methods[] = {
     {"getlayout", pyreader_getlayout, METH_VARARGS, "Ottiene il layout"},
     {"readpdf", pyreader_readpdf, METH_VARARGS, "Esegue reader"},
-    {"readpdf_autolayout", pyreader_readpdf_autolayout, METH_VARARGS, "Esegue reader con autolayout"},
     {nullptr, nullptr, 0, nullptr}
 };
 

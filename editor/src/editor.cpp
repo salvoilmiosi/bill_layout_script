@@ -31,7 +31,6 @@ BEGIN_EVENT_TABLE(frame_editor, wxFrame)
     EVT_MENU (MENU_READDATA, frame_editor::OnReadData)
     EVT_MENU (MENU_EDITCONTROL, frame_editor::OpenControlScript)
     EVT_MENU (MENU_LAYOUTPATH, frame_editor::OpenLayoutPath)
-    EVT_MENU (MENU_COMPILE, frame_editor::OnCompile)
     EVT_BUTTON(CTL_AUTO_LAYOUT, frame_editor::OnAutoLayout)
     EVT_BUTTON (CTL_LOAD_PDF, frame_editor::OnLoadPdf)
     EVT_COMBOBOX (CTL_PAGE, frame_editor::OnPageSelect)
@@ -95,7 +94,6 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     menuLayout->Append(MENU_READDATA, "L&eggi Layout\tCtrl-R", "Test della lettura dei dati");
     menuLayout->Append(MENU_EDITCONTROL, "Modifica script di &controllo\tCtrl-L");
     menuLayout->Append(MENU_LAYOUTPATH, "Modifica cartella layout\tCtrl-K");
-    menuLayout->Append(MENU_COMPILE, "Compila Layout\tCtrl-B");
 
     menuBar->Append(menuLayout, "&Layout");
 
@@ -330,25 +328,29 @@ void frame_editor::loadPdf(const wxString &filename) {
     }
 }
 
-wxString frame_editor::getControlScript() {
-    wxFileDialog diag(this, "Apri script di controllo", wxEmptyString, wxEmptyString, "File bls (*.bls)|*.bls|Tutti i file (*.*)|*.*");
+wxString frame_editor::getControlScript(bool open_dialog) {
+    wxString filename = wxConfig::Get()->Read("ControlScriptFilename");
+    if (filename.empty() || open_dialog) {
+        wxFileDialog diag(this, "Apri script di controllo", wxEmptyString, wxEmptyString, "File bls (*.bls)|*.bls|Tutti i file (*.*)|*.*");
 
-    if (diag.ShowModal() == wxID_CANCEL)
-        return wxString();
-    
-    wxString filename = diag.GetPath();
-    wxConfig::Get()->Write("ControlScriptFilename", filename);
+        if (diag.ShowModal() == wxID_OK) {
+            filename = diag.GetPath();
+            wxConfig::Get()->Write("ControlScriptFilename", filename);
+        }
+    }
     return filename;
 }
 
-wxString frame_editor::getLayoutPath() {
-    wxDirDialog diag(this, "Apri cartella layout", wxEmptyString);
+wxString frame_editor::getLayoutPath(bool open_dialog) {
+    wxString filename = wxConfig::Get()->Read("LayoutPath");
+    if (filename.empty() || open_dialog) {
+        wxDirDialog diag(this, "Apri cartella layout", wxEmptyString);
 
-    if (diag.ShowModal() == wxID_CANCEL)
-        return wxString();
-
-    wxString filename = diag.GetPath();
-    wxConfig::Get()->Write("LayoutPath", filename);
+        if (diag.ShowModal() == wxID_OK) {
+            filename = diag.GetPath();
+            wxConfig::Get()->Write("LayoutPath", filename);
+        }
+    }
     return filename;
 }
 

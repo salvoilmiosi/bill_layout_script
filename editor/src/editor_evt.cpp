@@ -109,31 +109,11 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
 }
 
 void frame_editor::OpenControlScript(wxCommandEvent &evt) {
-    getControlScript();
+    getControlScript(true);
 }
 
 void frame_editor::OpenLayoutPath(wxCommandEvent &evt) {
-    getLayoutPath();
-}
-
-void frame_editor::OnCompile(wxCommandEvent &evt) {
-    wxString filename_out;
-    if (!layout_filename.empty()) filename_out = wxFileName::StripExtension(layout_filename) + ".out";
-    wxFileDialog diag(this, "Compila Layout", wxEmptyString, filename_out, "File output (*.out)|*.out|Tutti i file (*.*)|*.*", wxFD_SAVE);
-
-    if (diag.ShowModal() == wxID_CANCEL)
-        return;
-
-    try {
-        parser my_parser;
-        my_parser.read_layout(layout);
-        
-        if (!my_parser.get_bytecode().save_file(diag.GetPath().ToStdString())) {
-            wxMessageBox("Impossibile salvare questo file", "Errore", wxICON_ERROR);
-        }
-    } catch (const std::exception &error) {
-        CompileErrorDialog(this, wxString(error.what(), wxConvUTF8)).ShowModal();
-    }
+    getLayoutPath(true);
 }
 
 void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
@@ -142,25 +122,13 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
         return;
     }
 
-    wxString control_script_filename = wxConfig::Get()->Read("ControlScriptFilename");
-    if (control_script_filename.empty()) {
-        control_script_filename = getControlScript();
-        if (control_script_filename.empty()) return;
-    }
-    
-    wxString layout_path = wxConfig::Get()->Read("LayoutPath");
-    if (layout_path.empty()) {
-        layout_path = getLayoutPath();
-        if (layout_path.empty()) return;
-    }
+    reader my_reader(m_doc, bytecode(getControlScript().ToStdString()));
 
-    reader my_reader(m_doc, parser(bill_layout_script::from_file(control_script_filename.ToStdString())).get_bytecode());
-
-    auto layout_it = my_reader.get_output().globals.find("layout");
-    if (layout_it == my_reader.get_output().globals.end()) {
+    auto layout_name = my_reader.get_output().layout_name;
+    if (layout_name.empty()) {
         wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
     } else if (saveIfModified()) {
-        openFile(layout_path + wxFileName::GetPathSeparator() + layout_it->second.str() + ".bls");
+        openFile(getLayoutPath() + wxFileName::GetPathSeparator() + layout_name + ".bls");
     }
 }
 

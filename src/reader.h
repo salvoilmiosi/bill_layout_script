@@ -27,6 +27,7 @@ struct reader_output {
     variable_map globals;
     std::vector<variable_map> values;
     std::vector<std::string> warnings;
+    std::string layout_name;
 };
 
 class reader {
