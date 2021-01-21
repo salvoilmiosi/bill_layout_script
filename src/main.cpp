@@ -81,6 +81,10 @@ Json::Value save_output(const reader_output &out, Json::Value &root, bool debug)
         warnings.append(v);
     }
 
+    if (!out.layout_name.empty()) {
+        root["layout"] = out.layout_name;
+    }
+
     return root;
 }
 
