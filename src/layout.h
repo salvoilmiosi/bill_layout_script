@@ -9,6 +9,8 @@
 #include <filesystem>
 #include <fstream>
 
+#include <fmt/format.h>
+
 #define RESIZE_TOP      1 << 0
 #define RESIZE_BOTTOM   1 << 1
 #define RESIZE_LEFT     1 << 2
@@ -44,7 +46,7 @@ struct bill_layout_script {
         bill_layout_script ret;
         std::ifstream ifs(filename);
         if (!(ifs >> ret)) {
-            throw layout_error("Impossibile aprire questo layout");
+            throw layout_error(fmt::format("Impossibile aprire il layout {}", filename.filename().string()));
         }
         ret.m_filename = filename;
         return ret;
