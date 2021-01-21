@@ -10,14 +10,14 @@
 ### W 0.0000000000
 ### H 0.0000000000
 ### Script
-$if  ($contains(@,"Axpo Italia SpA")) ::layout=$if($contains(@,"C/O MILANO CENTRO"),"axpo_old","axpo")
-$elif($contains(@,"Enel Energia")) ::layout="enel"
-$elif($contains(@,"ITALPOWER ENERGIA")) ::layout="italpower"
-$elif($contains(@,"Sorgenia S.p.A")) ::layout="sorgenia"
-$elif($contains(@,"www.lenergia.eu")) ::layout="lenergia"
-$elif($contains(@,"Servizio Elettrico Nazionale SpA")) ::layout="sen"
-$elif($contains(@,"GREEN NETWORK S.p.A")) ::layout="greennetwork"
-$elif($contains(@,"MetaEnergia S.p.A")) ::layout="metaenergia"
+$if  ($contains(@,"Axpo Italia SpA")) $import("axpo/controllo")
+$elif($contains(@,"Enel Energia")) $import("enel")
+$elif($contains(@,"ITALPOWER ENERGIA")) $import("italpower")
+$elif($contains(@,"Sorgenia S.p.A")) $import("sorgenia")
+$elif($contains(@,"www.lenergia.eu")) $import("lenergia")
+$elif($contains(@,"Servizio Elettrico Nazionale SpA")) $import("sen")
+$elif($contains(@,"GREEN NETWORK S.p.A")) $import("greennetwork")
+$elif($contains(@,"MetaEnergia S.p.A")) $import("metaenergia")
 $else $warning("Nessun layout")
 ### End Script
 ### End Box
