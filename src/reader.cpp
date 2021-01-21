@@ -251,10 +251,6 @@ void reader::exec_command(const command_args &cmd) {
             m_return_addrs.pop();
         }
         break;
-    case opcode::SETLAYOUT:
-        m_out.layout_name = cmd.get<std::string>();
-        import_layout(m_out.layout_name);
-        break;
     case opcode::IMPORT:
         import_layout(cmd.get<std::string>());
         break;
@@ -262,16 +258,22 @@ void reader::exec_command(const command_args &cmd) {
 }
 
 void reader::import_layout(const std::string &layout_name) {
+    auto imported_file = m_layouts.top().m_filename.parent_path() / (layout_name + ".bls");
+
     auto new_addr = m_code.size();
-    auto new_code = bytecode(m_code.layout_dir / (layout_name + ".bls"));
+    add_layout(bill_layout_script::from_file(imported_file));
+    m_return_addrs.push(m_program_counter);
+    m_program_counter = new_addr;
+    m_jumped = true;
+}
+
+void reader::compile_top() {
+    auto new_code = parser(m_layouts.top()).get_bytecode();
     std::copy(
         std::move_iterator(new_code.begin()),
         std::move_iterator(new_code.end()),
         std::back_inserter(m_code)
     );
-    m_return_addrs.push(m_program_counter);
-    m_program_counter = new_addr;
-    m_jumped = true;
 }
 
 void reader::set_page(int page) {

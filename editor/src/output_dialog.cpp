@@ -88,7 +88,12 @@ reader_thread::~reader_thread() {
 
 wxThread::ExitCode reader_thread::Entry() {
     try {
-        m_reader.exec_program(bytecode(parser(layout).get_lines(), parent->parent->getLayoutPath().ToStdString()));
+        bill_layout_script layout_copy;
+        if (layout_copy.m_filename.empty()) {
+            layout_copy.m_filename = parent->parent->getControlScript().ToStdString();
+        }
+        m_reader.add_layout(std::move(layout));
+        m_reader.start();
         if (!m_aborted) {
             parent->m_output = m_reader.get_output();
             wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));

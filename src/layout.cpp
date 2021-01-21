@@ -16,7 +16,7 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script &layou
 
     output << "### Bill Layout Script\n";
 
-    for (auto &box : layout) {
+    for (auto &box : layout.m_boxes) {
         output << '\n';
         output << "### Box\n";
         output << "### Name " << box->name << '\n';
@@ -144,7 +144,7 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                 if (fail) {
                     input.setstate(std::ios::failbit);
                 } else {
-                    layout.push_back(current);
+                    layout.m_boxes.push_back(current);
                 }
             } else if (line.front() != '#') {
                 input.setstate(std::ios::failbit);

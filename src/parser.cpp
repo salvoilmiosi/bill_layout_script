@@ -9,7 +9,7 @@
 
 void parser::read_layout(const bill_layout_script &layout) {
     try {
-        for (auto &box : layout) {
+        for (auto &box : layout.m_boxes) {
             read_box(*box);
         }
         add_line("RET");

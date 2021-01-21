@@ -70,7 +70,6 @@ enum class opcode : uint8_t {
     NEXTTABLE,  // current_table++
     ATE,        // m_ate -> var_stack
     IMPORT,     // string layout_name
-    SETLAYOUT,  // string layout_name
     COMMENT=0xff,// string data
 };
 
@@ -130,10 +129,7 @@ struct assembly_error : std::runtime_error {
 struct bytecode : std::vector<command_args> {
     bytecode() = default;
     
-    bytecode(const std::vector<std::string> &lines, const std::filesystem::path &layout_dir);
-    explicit bytecode(const std::filesystem::path &filename);
-
-    std::filesystem::path layout_dir;
+    explicit bytecode(const std::vector<std::string> &lines);
 };
 
 #endif

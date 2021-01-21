@@ -27,7 +27,7 @@ struct reader_output {
     variable_map globals;
     std::vector<variable_map> values;
     std::vector<std::string> warnings;
-    std::string layout_name;
+    std::vector<std::string> layouts;
 };
 
 class reader {
@@ -38,9 +38,9 @@ public:
         set_document(doc);
     }
 
-    reader(const pdf_document &doc, auto &&code) {
+    reader(const pdf_document &doc, auto &&layout) {
         set_document(doc);
-        exec_program(std::forward<decltype(code)>(code));
+        add_layout(layout);
     }
 
     void set_document(const pdf_document &doc) {
@@ -49,10 +49,13 @@ public:
 
     void set_document(pdf_document &&doc) = delete;
 
-    void exec_program(auto &&code) {
-        m_code = std::forward<decltype(code)>(code);
-        start();
+    void add_layout(auto &&layout) {
+        m_out.layouts.push_back(std::filesystem::canonical(layout.m_filename).string());
+        m_layouts.push(std::forward<decltype(layout)>(layout));
+        compile_top();
     }
+
+    void start();
 
     const reader_output &get_output() {
         return m_out;
@@ -63,7 +66,7 @@ public:
     }
 
 private:
-    void start();
+    void compile_top();
     void exec_command(const command_args &cmd);
     void set_page(int page);
     void read_box(pdf_rect box);
@@ -88,6 +91,9 @@ private:
 
 private:
     const pdf_document *m_doc = nullptr;
+    
+    simple_stack<bill_layout_script> m_layouts;
+
     bytecode m_code;
 
     reader_output m_out;

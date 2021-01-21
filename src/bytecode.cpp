@@ -9,7 +9,7 @@
 #include "parsestr.h"
 #include "fixed_point.h"
 
-bytecode::bytecode(const std::vector<std::string> &lines, const std::filesystem::path &layout_dir) : layout_dir(layout_dir) {
+bytecode::bytecode(const std::vector<std::string> &lines) {
     std::map<std::string, jump_address> labels;
 
     for (size_t i=0; i<lines.size(); ++i) {
@@ -158,7 +158,6 @@ bytecode::bytecode(const std::vector<std::string> &lines, const std::filesystem:
             case hash("ATE"):           emplace_back(opcode::ATE); break;
             case hash("RET"):           emplace_back(opcode::RET); break;
             case hash("IMPORT"):        emplace_back(opcode::IMPORT, arg_str); break;
-            case hash("SETLAYOUT"):     emplace_back(opcode::SETLAYOUT, arg_str); break;
             default:
                 throw assembly_error(fmt::format("Comando sconosciuto: {0}", cmd));
             }
@@ -167,6 +166,3 @@ bytecode::bytecode(const std::vector<std::string> &lines, const std::filesystem:
         throw assembly_error(error.what());
     }
 }
-
-bytecode::bytecode(const std::filesystem::path &filename) :
-    bytecode(parser(bill_layout_script::from_file(filename)).get_lines(), filename.parent_path()) {}

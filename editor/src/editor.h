@@ -51,7 +51,6 @@ public:
     bool save(bool saveAs = false);
     bool saveIfModified();
     wxString getControlScript(bool open_dialog = false);
-    wxString getLayoutPath(bool open_dialog = false);
 
     const pdf_document &getPdfDocument() {
         return m_doc;
@@ -73,7 +72,6 @@ private:
     void OnCopy         (wxCommandEvent &evt);
     void OnPaste        (wxCommandEvent &evt);
     void OpenControlScript (wxCommandEvent &evt);
-    void OpenLayoutPath (wxCommandEvent &evt);
     void OnAutoLayout   (wxCommandEvent &evt);
     void OnLoadPdf      (wxCommandEvent &evt);
     void OnPageSelect   (wxCommandEvent &evt);
@@ -111,7 +109,6 @@ private:
 
 private:
     pdf_document m_doc;
-    wxString layout_filename;
     int selected_page = 0;
 };
 

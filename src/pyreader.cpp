@@ -67,32 +67,6 @@ static auto timeout_wrapper(Function fun, TimeoutFunction timeout_fun = TimeoutF
     return ret;
 }
 
-static PyObject *pyreader_getlayout(PyObject *self, PyObject *args) {
-    auto [pdf_filename, code_filename] = get_filenames(args);
-
-    reader my_reader;
-    
-    return timeout_wrapper([&]() -> PyObject* {
-        try {
-            pdf_document my_doc(pdf_filename);
-            my_reader.set_document(my_doc);
-            my_reader.exec_program(bytecode(code_filename));
-
-            auto layout_name = my_reader.get_output().layout_name;
-            if (layout_name.empty()) {
-                return PyUnicode_FromString(layout_name.c_str());
-            } else {
-                Py_RETURN_NONE;
-            }
-        } catch (const std::exception &error) {
-            PyErr_SetString(reader_error, error.what());
-            return nullptr;
-        }
-    }, [&] {
-        my_reader.halt();
-    });
-}
-
 static PyObject *to_pyoutput(const reader_output &my_output) {
     auto create_output_data = [](const variable_map &map) {
         PyObject *obj = PyDict_New();
@@ -139,6 +113,33 @@ static PyObject *to_pyoutput(const reader_output &my_output) {
     return ret;
 }
 
+static PyObject *pyreader_getlayout(PyObject *self, PyObject *args) {
+    auto [pdf_filename, code_filename] = get_filenames(args);
+
+    reader my_reader;
+    
+    return timeout_wrapper([&]() -> PyObject* {
+        try {
+            pdf_document my_doc(pdf_filename);
+            my_reader.set_document(my_doc);
+            my_reader.add_layout(bill_layout_script::from_file(code_filename));
+            my_reader.start();
+
+            auto layout_name = my_reader.get_output().layout_name;
+            if (layout_name.empty()) {
+                return PyUnicode_FromString(layout_name.c_str());
+            } else {
+                Py_RETURN_NONE;
+            }
+        } catch (const std::exception &error) {
+            PyErr_SetString(reader_error, error.what());
+            return nullptr;
+        }
+    }, [&] {
+        my_reader.halt();
+    });
+}
+
 static PyObject *pyreader_readpdf(PyObject *self, PyObject *args) {
     auto [pdf_filename, code_filename] = get_filenames(args);
 
@@ -148,7 +149,8 @@ static PyObject *pyreader_readpdf(PyObject *self, PyObject *args) {
         try {
             pdf_document my_doc(pdf_filename);
             my_reader.set_document(my_doc);
-            my_reader.exec_program(bytecode(code_filename));
+            my_reader.add_layout(bill_layout_script::from_file(code_filename));
+            my_reader.start();
 
             return to_pyoutput(my_reader.get_output());
         } catch (const std::exception &error) {

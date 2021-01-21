@@ -219,14 +219,13 @@ void parser::read_keyword() {
         add_line("RET");
         break;
     case hash("import"):
-    case hash("setlayout"):
     {
         m_lexer.require(TOK_PAREN_BEGIN);
         auto tok_layout_name = m_lexer.require(TOK_STRING);
         m_lexer.require(TOK_PAREN_END);
         std::string layout_name;
         parse_string(layout_name, tok_layout_name.value);
-        add_line(fun_name == "import" ? "IMPORT {}" : "SETLAYOUT {}", layout_name);
+        add_line("IMPORT {}", layout_name);
         break;
     }
     default:

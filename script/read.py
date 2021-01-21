@@ -28,7 +28,7 @@ def check_conguagli(results):
             error_data.append({'filename': x['filename'], 'error': x['error'], 'values': []})
             continue
         for v in x['values']:
-            sorted_data.append({'filename': x['filename'], 'layout': x['layout'], 'values': [v]})
+            sorted_data.append({'filename': x['filename'], 'layouts': x['layouts'], 'values': [v]})
         
     sorted_data.sort(key = lambda obj : (
         obj['values'][0]['codice_pod'][0],
@@ -64,13 +64,10 @@ def read_pdf(pdf_file):
             ret['values'] = []
             if 'warnings' not in out_dict: out_dict['warnings'] = []
             out_dict['warnings'].append('Dati Mancanti') 
-        if 'layout' in out_dict:
-            ret['layout'] = out_dict['layout']
+        ret['layouts'] = out_dict['layouts']
         if 'warnings' in out_dict:
             ret['warnings'] = out_dict['warnings']
             print(colored('{0} ### {1}'.format(rel_path, ', '.join(out_dict['warnings'])), 'yellow'))
-        elif 'layout' in ret:
-            print('{0} ### {1}'.format(rel_path, ret['layout']))
         else:
             print(rel_path)
     except pyreader.Error as err:
@@ -101,15 +98,13 @@ if __name__ == '__main__':
         with open(output_file, 'r') as fin:
             in_data = json.loads(fin.read())
 
-        for f in in_files:
+        for pdf_file in in_files:
             skip = False
-            for old_obj in filter(lambda x : x['filename'] == str(f), in_data):
-                if 'layout' in old_obj:
-                    layout_file = controllo.parent / '{0}.bls'.format(old_obj['layout'])
-                    if layout_file.stat().st_mtime < output_file.stat().st_mtime and f.stat().st_mtime < output_file.stat().st_mtime:
-                        results.append(old_obj)
-                        skip = True
-            if not skip: files.append(f)
+            for old_obj in filter(lambda x : x['filename'] == str(pdf_file), in_data):
+                if 'error' not in old_obj and all(Path(f).stat().st_mtime < output_file.stat().st_mtime for f in old_obj['layouts'] + [pdf_file]):
+                    results.append(old_obj)
+                    skip = True
+            if not skip: files.append(pdf_file)
     else:
         files = in_files
 

@@ -30,7 +30,6 @@ BEGIN_EVENT_TABLE(frame_editor, wxFrame)
     EVT_MENU (MENU_DELETE, frame_editor::OnDelete)
     EVT_MENU (MENU_READDATA, frame_editor::OnReadData)
     EVT_MENU (MENU_EDITCONTROL, frame_editor::OpenControlScript)
-    EVT_MENU (MENU_LAYOUTPATH, frame_editor::OpenLayoutPath)
     EVT_BUTTON(CTL_AUTO_LAYOUT, frame_editor::OnAutoLayout)
     EVT_BUTTON (CTL_LOAD_PDF, frame_editor::OnLoadPdf)
     EVT_COMBOBOX (CTL_PAGE, frame_editor::OnPageSelect)
@@ -180,9 +179,8 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
 }
 
 void frame_editor::openFile(const wxString &filename) {
-    layout_filename = filename;
     try {
-        layout = bill_layout_script::from_file(layout_filename.ToStdString());
+        layout = bill_layout_script::from_file(filename.ToStdString());
     } catch (const layout_error &error) {
         wxMessageBox("Impossibile aprire questo file", "Errore", wxOK | wxICON_ERROR);
         return;
@@ -191,11 +189,11 @@ void frame_editor::openFile(const wxString &filename) {
     history.clear();
     updateLayout();
     
-    auto it = std::find(recentFiles.begin(), recentFiles.end(), wxString(layout_filename));
+    auto it = std::find(recentFiles.begin(), recentFiles.end(), filename);
     if (it != recentFiles.end()) {
         recentFiles.erase(it);
     }
-    recentFiles.push_front(layout_filename);
+    recentFiles.push_front(filename);
     if (recentFiles.size() > MAX_RECENT_FILES_HISTORY) {
         recentFiles.pop_back();
     }
@@ -203,15 +201,15 @@ void frame_editor::openFile(const wxString &filename) {
 }
 
 bool frame_editor::save(bool saveAs) {
-    if (layout_filename.empty() || saveAs) {
-        wxFileDialog diag(this, "Salva Layout Bolletta", wxEmptyString, layout_filename, "File layout (*.bls)|*.bls|Tutti i file (*.*)|*.*", wxFD_SAVE);
+    if (layout.m_filename.empty() || saveAs) {
+        wxFileDialog diag(this, "Salva Layout Bolletta", wxEmptyString, layout.m_filename.string(), "File layout (*.bls)|*.bls|Tutti i file (*.*)|*.*", wxFD_SAVE);
 
         if (diag.ShowModal() == wxID_CANCEL)
             return false;
 
-        layout_filename = diag.GetPath().ToStdString();
+        layout.m_filename = diag.GetPath().ToStdString();
     }
-    if (!layout.save_file(layout_filename.ToStdString())) {
+    if (!layout.save_file(layout.m_filename)) {
         wxMessageBox("Impossibile salvare questo file", "Errore", wxICON_ERROR);
         return false;
     }
@@ -237,8 +235,8 @@ bool frame_editor::saveIfModified() {
 
 void frame_editor::updateLayout(bool addToHistory) {
     m_list_boxes->Clear();
-    for (size_t i=0; i<layout.size(); ++i) {
-        auto &box = layout[i];
+    for (size_t i=0; i<layout.m_boxes.size(); ++i) {
+        auto &box = layout.m_boxes[i];
         m_list_boxes->Append(box->name);
         if (box->selected) {
             m_list_boxes->SetSelection(i);
@@ -341,19 +339,6 @@ wxString frame_editor::getControlScript(bool open_dialog) {
     return filename;
 }
 
-wxString frame_editor::getLayoutPath(bool open_dialog) {
-    wxString filename = wxConfig::Get()->Read("LayoutPath");
-    if (filename.empty() || open_dialog) {
-        wxDirDialog diag(this, "Apri cartella layout", wxEmptyString);
-
-        if (diag.ShowModal() == wxID_OK) {
-            filename = diag.GetPath();
-            wxConfig::Get()->Write("LayoutPath", filename);
-        }
-    }
-    return filename;
-}
-
 void frame_editor::setSelectedPage(int page, bool force) {
     if (!force && page == selected_page) return;
     if (!m_doc.isopen()) return;
@@ -370,12 +355,12 @@ void frame_editor::setSelectedPage(int page, bool force) {
 }
 
 void frame_editor::selectBox(const box_ptr &box) {
-    for (size_t i=0; i<layout.size(); ++i) {
-        if (layout[i] == box) {
+    for (size_t i=0; i<layout.m_boxes.size(); ++i) {
+        if (layout.m_boxes[i] == box) {
             m_list_boxes->SetSelection(i);
-            layout[i]->selected = true;
+            layout.m_boxes[i]->selected = true;
         } else {
-            layout[i]->selected = false;
+            layout.m_boxes[i]->selected = false;
         }
     }
     if (box) {

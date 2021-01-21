@@ -31,23 +31,32 @@ using box_ptr = std::shared_ptr<layout_box>;
 std::ostream &operator << (std::ostream &out, const class bill_layout_script &obj);
 std::istream &operator >> (std::istream &in, class bill_layout_script &obj);
 
-struct bill_layout_script : std::vector<box_ptr> {
-    static bill_layout_script from_stream(std::istream &in) {
-        bill_layout_script ret;
-        if (!(in >> ret)) {
-            throw layout_error("Impossibile aprire questo layout");
-        }
-        return ret;
+struct bill_layout_script {
+    std::vector<box_ptr> m_boxes;
+    std::filesystem::path m_filename;
+
+    void clear() {
+        m_boxes.clear();
+        m_filename.clear();
     }
 
     static bill_layout_script from_file(const std::filesystem::path &filename) {
+        bill_layout_script ret;
         std::ifstream ifs(filename);
-        return from_stream(ifs);
+        if (!(ifs >> ret)) {
+            throw layout_error("Impossibile aprire questo layout");
+        }
+        ret.m_filename = filename;
+        return ret;
     }
 
     bool save_file(const std::filesystem::path &filename) {
         std::ofstream ofs(filename);
-        return ! (ofs << *this).fail();
+        if (ofs << *this) {
+            m_filename = filename;
+            return true;
+        }
+        return false;
     }
 };
 

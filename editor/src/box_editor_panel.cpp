@@ -38,7 +38,7 @@ bool box_editor_panel::render(wxDC &dc) {
 
     if (wxImagePanel::render(dc)) {
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        for (auto &box : app->layout) {
+        for (auto &box : app->layout.m_boxes) {
             if (box->page == app->getSelectedPage()) {
                 if (box->selected) {
                     dc.SetPen(*wxBLACK_DASHED_PEN);
@@ -87,7 +87,7 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
         {
             auto it = getBoxAt(app->layout, xx, yy, app->getSelectedPage());
             if (it) {
-                app->layout.erase(std::find(app->layout.begin(), app->layout.end(), it));
+                app->layout.m_boxes.erase(std::find(app->layout.m_boxes.begin(), app->layout.m_boxes.end(), it));
                 app->updateLayout();
                 Refresh();
             }

@@ -20,7 +20,6 @@
 void frame_editor::OnNewFile(wxCommandEvent &evt) {
     if (saveIfModified()) {
         modified = false;
-        layout_filename.clear();
         layout.clear();
         history.clear();
         updateLayout(false);
@@ -82,8 +81,8 @@ void frame_editor::OnRedo(wxCommandEvent &evt) {
 
 void frame_editor::OnCut(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0 && SetClipboard(*layout[selection])) {
-        layout.erase(layout.begin() + selection);
+    if (selection >= 0 && SetClipboard(*layout.m_boxes[selection])) {
+        layout.m_boxes.erase(layout.m_boxes.begin() + selection);
         updateLayout();
     }
 }
@@ -91,7 +90,7 @@ void frame_editor::OnCut(wxCommandEvent &evt) {
 void frame_editor::OnCopy(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0) {
-        SetClipboard(*layout[selection]);
+        SetClipboard(*layout.m_boxes[selection]);
     }
 }
 
@@ -112,10 +111,6 @@ void frame_editor::OpenControlScript(wxCommandEvent &evt) {
     getControlScript(true);
 }
 
-void frame_editor::OpenLayoutPath(wxCommandEvent &evt) {
-    getLayoutPath(true);
-}
-
 void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     if (!m_doc.isopen()) {
         wxBell();
@@ -123,13 +118,13 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     }
 
     try {
-        reader my_reader(m_doc, bytecode(getControlScript().ToStdString()));
+        reader my_reader(m_doc, bill_layout_script::from_file(getControlScript().ToStdString()));
 
-        auto layout_name = my_reader.get_output().layout_name;
+        auto layout_name = my_reader.get_output().layouts.back();
         if (layout_name.empty()) {
             wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
         } else if (saveIfModified()) {
-            openFile(getLayoutPath() + wxFileName::GetPathSeparator() + layout_name + ".bls");
+            openFile(layout_name);
         }
     } catch (const std::exception &error) {
         wxMessageBox(error.what(), "Errore", wxICON_ERROR);
@@ -163,8 +158,8 @@ void frame_editor::OnChangeTool(wxCommandEvent &evt) {
 
 void frame_editor::OnSelectBox(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0 && selection < (int) layout.size()) {
-        selectBox(layout[selection]);
+    if (selection >= 0 && selection < (int) layout.m_boxes.size()) {
+        selectBox(layout.m_boxes[selection]);
     } else {
         selectBox(nullptr);
     }
@@ -172,15 +167,15 @@ void frame_editor::OnSelectBox(wxCommandEvent &evt) {
 
 void frame_editor::EditSelectedBox(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0 && selection < (int) layout.size()) {
-        new box_dialog(this, *layout[selection]);
+    if (selection >= 0 && selection < (int) layout.m_boxes.size()) {
+        new box_dialog(this, *layout.m_boxes[selection]);
     }
 }
 
 void frame_editor::OnDelete(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0 && selection < (int) layout.size()) {
-        layout.erase(layout.begin() + selection);
+    if (selection >= 0 && selection < (int) layout.m_boxes.size()) {
+        layout.m_boxes.erase(layout.m_boxes.begin() + selection);
         updateLayout();
     }
 }
@@ -194,15 +189,15 @@ void frame_editor::OnReadData(wxCommandEvent &evt) {
 void frame_editor::OnMoveUp(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection > 0) {
-        std::swap(layout[selection], layout[selection-1]);
+        std::swap(layout.m_boxes[selection], layout.m_boxes[selection-1]);
         updateLayout();
     }
 }
 
 void frame_editor::OnMoveDown(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0 && selection < (int)layout.size() - 1) {
-        std::swap(layout[selection], layout[selection+1]);
+    if (selection >= 0 && selection < (int)layout.m_boxes.size() - 1) {
+        std::swap(layout.m_boxes[selection], layout.m_boxes[selection+1]);
         updateLayout();
     }
 }

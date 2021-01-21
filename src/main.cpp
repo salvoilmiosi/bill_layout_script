@@ -81,10 +81,11 @@ Json::Value save_output(const reader_output &out, Json::Value &root, bool debug)
         warnings.append(v);
     }
 
-    if (!out.layout_name.empty()) {
-        root["layout"] = out.layout_name;
+    auto &json_layouts = root["layouts"] = Json::arrayValue;
+    for (auto &l : out.layouts) {
+        json_layouts.append(l);
     }
-
+    
     return root;
 }
 
@@ -99,9 +100,8 @@ int MainApp::OnRun() {
 
     try {
         pdf_document my_doc(file_pdf);
-        reader my_reader(my_doc);
-
-        my_reader.exec_program(bytecode(input_file));
+        reader my_reader(my_doc, bill_layout_script::from_file(input_file));
+        my_reader.start();
 
         std::cout << save_output(my_reader.get_output(), result, debug);
     } catch (const std::exception &error) {

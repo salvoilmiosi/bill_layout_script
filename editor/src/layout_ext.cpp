@@ -2,20 +2,20 @@
 
 constexpr float RESIZE_TOLERANCE = 8.f;
 
-box_ptr getBoxAt(bill_layout_script &boxes, float x, float y, int page) {
+box_ptr getBoxAt(bill_layout_script &layout, float x, float y, int page) {
     auto check_box = [&](const layout_box &box) {
         return (x > box.x && x < box.x + box.w && y > box.y && y < box.y + box.h && box.page == page);
     };
-    for (auto it = boxes.begin(); it != boxes.end(); ++it) {
+    for (auto it = layout.m_boxes.begin(); it != layout.m_boxes.end(); ++it) {
         if ((*it)->selected && check_box(**it)) return *it;
     }
-    for (auto it = boxes.begin(); it != boxes.end(); ++it) {
+    for (auto it = layout.m_boxes.begin(); it != layout.m_boxes.end(); ++it) {
         if (check_box(**it)) return *it;
     }
     return nullptr;
 }
 
-std::pair<box_ptr, int> getBoxResizeNode(bill_layout_script &boxes, float x, float y, int page, float scalex, float scaley) {
+std::pair<box_ptr, int> getBoxResizeNode(bill_layout_script &layout, float x, float y, int page, float scalex, float scaley) {
     float nw = RESIZE_TOLERANCE / scalex;
     float nh = RESIZE_TOLERANCE / scaley;
     auto check_box = [&](box_ptr &it) -> std::pair<box_ptr, int> {
@@ -40,13 +40,13 @@ std::pair<box_ptr, int> getBoxResizeNode(bill_layout_script &boxes, float x, flo
         }
         return std::make_pair(nullptr, 0);
     };
-    for (auto it = boxes.begin(); it != boxes.end(); ++it) {
+    for (auto it = layout.m_boxes.begin(); it != layout.m_boxes.end(); ++it) {
         if ((*it)->selected) {
             auto res = check_box(*it);
             if (res.second) return res;
         }
     }
-    for (auto it = boxes.begin(); it != boxes.end(); ++it) {
+    for (auto it = layout.m_boxes.begin(); it != layout.m_boxes.end(); ++it) {
         auto res = check_box(*it);
         if (res.second) return res;
     }
@@ -55,8 +55,8 @@ std::pair<box_ptr, int> getBoxResizeNode(bill_layout_script &boxes, float x, flo
 
 bill_layout_script copyLayout(const bill_layout_script &layout) {
     bill_layout_script ret;
-    for (auto &ptr : layout) {
-        ret.push_back(std::make_shared<layout_box>(*ptr));
+    for (auto &ptr : layout.m_boxes) {
+        ret.m_boxes.push_back(std::make_shared<layout_box>(*ptr));
     }
     return ret;
 }
