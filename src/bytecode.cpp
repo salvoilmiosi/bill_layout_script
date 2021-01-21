@@ -240,7 +240,7 @@ const std::string &bytecode::get_string(string_ref ref) {
     }
 }
 
-bytecode bytecode::read_from_file(const std::filesystem::path &filename) {
+bytecode bytecode::from_file(const std::filesystem::path &filename) {
     bytecode ret;
     std::ifstream ifs(filename, std::ios::in | std::ios::binary);
     ifs >> ret;

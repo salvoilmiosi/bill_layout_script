@@ -76,7 +76,7 @@ static PyObject *pyreader_getlayout(PyObject *self, PyObject *args) {
         try {
             pdf_document my_doc(pdf_filename);
             my_reader.set_document(my_doc);
-            my_reader.exec_program(bytecode::read_from_file(code_filename));
+            my_reader.exec_program(bytecode::from_file(code_filename));
 
             const auto &my_output = my_reader.get_output();
             auto layout_it = my_output.globals.find("layout");
@@ -145,7 +145,7 @@ static PyObject *pyreader_readpdf(PyObject *self, PyObject *args) {
         try {
             pdf_document my_doc(pdf_filename);
             my_reader.set_document(my_doc);
-            my_reader.exec_program(bytecode::read_from_file(code_filename));
+            my_reader.exec_program(bytecode::from_file(code_filename));
 
             return to_pyoutput(my_reader.get_output());
         } catch (const std::exception &error) {
@@ -166,14 +166,14 @@ static PyObject *pyreader_readpdf_autolayout(PyObject *self, PyObject *args) {
         try {
             pdf_document my_doc(pdf_filename);
             my_reader.set_document(my_doc);
-            my_reader.exec_program(bytecode::read_from_file(code_filename));
+            my_reader.exec_program(bytecode::from_file(code_filename));
 
             const auto &my_output = my_reader.get_output();
             auto layout_it = my_output.globals.find("layout");
             if (layout_it != my_output.globals.end()) {
                 auto layout_file = std::filesystem::path(code_filename).parent_path() / layout_it->second.str();
 
-                my_reader.exec_program(bytecode::read_from_file(layout_file.string() + ".out"));
+                my_reader.exec_program(bytecode::from_file(layout_file.string() + ".out"));
 
                 return to_pyoutput(my_reader.get_output());
             } else {

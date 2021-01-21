@@ -10,14 +10,14 @@ void parser::read_keyword() {
     case hash("if"):
     case hash("ifnot"):
     {
-        std::string endelse_label = fmt::format("__endelse_{0}", output_asm.size());
+        std::string endelse_label = fmt::format("__endelse_{0}", m_lines.size());
         std::string endif_label;
         bool condition_positive = fun_name == "if";
         bool in_loop = true;
         bool has_endelse = false;
         while (in_loop) {
             bool has_endif = false;
-            endif_label = fmt::format("__endif_{0}", output_asm.size());
+            endif_label = fmt::format("__endif_{0}", m_lines.size());
             m_lexer.require(TOK_PAREN_BEGIN);
             read_expression();
             m_lexer.require(TOK_PAREN_END);
@@ -55,8 +55,8 @@ void parser::read_keyword() {
     }
     case hash("while"):
     {
-        std::string while_label = fmt::format("__while_{0}", output_asm.size());
-        std::string endwhile_label = fmt::format("__endwhile_{0}", output_asm.size());
+        std::string while_label = fmt::format("__while_{0}", m_lines.size());
+        std::string endwhile_label = fmt::format("__endwhile_{0}", m_lines.size());
         m_lexer.require(TOK_PAREN_BEGIN);
         add_line("LABEL {0}", while_label);
         read_expression();
@@ -69,8 +69,8 @@ void parser::read_keyword() {
     }
     case hash("for"):
     {
-        std::string for_label = fmt::format("__for_{0}", output_asm.size());
-        std::string endfor_label = fmt::format("__endfor_{0}", output_asm.size());
+        std::string for_label = fmt::format("__for_{0}", m_lines.size());
+        std::string endfor_label = fmt::format("__endfor_{0}", m_lines.size());
         m_lexer.require(TOK_PAREN_BEGIN);
         read_statement();
         m_lexer.require(TOK_COMMA);
@@ -78,12 +78,12 @@ void parser::read_keyword() {
         read_expression();
         add_line("JZ {0}", endfor_label);
         m_lexer.require(TOK_COMMA);
-        size_t increase_stmt_begin = output_asm.size();
+        size_t increase_stmt_begin = m_lines.size();
         read_statement();
-        size_t increase_stmt_end = output_asm.size();
+        size_t increase_stmt_end = m_lines.size();
         m_lexer.require(TOK_PAREN_END);
         read_statement();
-        vector_move_to_end(output_asm, increase_stmt_begin, increase_stmt_end);
+        vector_move_to_end(m_lines, increase_stmt_begin, increase_stmt_end);
         add_line("JMP {0}", for_label);
         add_line("LABEL {0}", endfor_label);
         break;
@@ -97,8 +97,8 @@ void parser::read_keyword() {
     }
     case hash("lines"):
     {
-        std::string lines_label = fmt::format("__lines_{0}", output_asm.size());
-        std::string endlines_label = fmt::format("__endlines_{0}", output_asm.size());
+        std::string lines_label = fmt::format("__lines_{0}", m_lines.size());
+        std::string endlines_label = fmt::format("__endlines_{0}", m_lines.size());
         bool pushed_content = false;
         if (m_lexer.check_next(TOK_PAREN_BEGIN)) {
             read_expression();

@@ -8,20 +8,10 @@
 #include <iomanip>
 #include <locale>
 
-bill_layout_script open_bls_file(const std::filesystem::path &filename) {
-    std::ifstream ifs(filename);
-    bill_layout_script bls;
-    ifs >> bls;
-    if (ifs.fail()) {
-        throw layout_error("File bls invalido");
-    }
-    return bls;
-}
-
 std::ostream &operator << (std::ostream &output, const bill_layout_script &layout) {
     std::ios orig_state(nullptr);
     orig_state.copyfmt(output);
-    output.imbue(std::locale("C"));
+    output.imbue(std::locale::classic());
     output << std::fixed << std::setprecision(fixed_point::decimal_points);
 
     output << "### Bill Layout Script\n";
@@ -74,6 +64,10 @@ std::istream &getline_clearcr(std::istream &input, std::string &line) {
 }
 
 std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
+    std::ios orig_state(nullptr);
+    orig_state.copyfmt(input);
+    input.imbue(std::locale::classic());
+
     std::string line;
 
     layout.clear();
@@ -129,7 +123,6 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                         }
                         if (fail) {
                             input.setstate(std::ios::failbit);
-                            return input;
                         }
                     } else if (line == "### Script") {
                         bool fail = true;
@@ -143,7 +136,6 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                         }
                         if (fail) {
                             input.setstate(std::ios::failbit);
-                            return input;
                         }
                     } else {
                         fail = true;
@@ -151,18 +143,17 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                 }
                 if (fail) {
                     input.setstate(std::ios::failbit);
-                    return input;
                 } else {
                     layout.push_back(current);
                 }
             } else if (line.front() != '#') {
                 input.setstate(std::ios::failbit);
-                return input;
             }
         }
     } catch (std::invalid_argument &) {
         input.setstate(std::ios::failbit);
     }
 
+    input.copyfmt(orig_state);
     return input;
 }

@@ -15,7 +15,6 @@
 #include "output_dialog.h"
 
 #include "parser.h"
-#include "assembler.h"
 #include "reader.h"
 
 void frame_editor::OnNewFile(wxCommandEvent &evt) {
@@ -128,10 +127,10 @@ void frame_editor::OnCompile(wxCommandEvent &evt) {
     try {
         parser my_parser;
         my_parser.read_layout(layout);
-        bytecode my_bytecode = read_lines(my_parser.get_output_asm());
         
-        std::ofstream ofs(diag.GetPath().ToStdString(), std::ios::out | std::ios::binary);
-        ofs << my_bytecode;
+        if (!my_parser.get_bytecode().save_file(diag.GetPath().ToStdString())) {
+            wxMessageBox("Impossibile salvare questo file", "Errore", wxICON_ERROR);
+        }
     } catch (const std::exception &error) {
         CompileErrorDialog(this, wxString(error.what(), wxConvUTF8)).ShowModal();
     }
@@ -155,11 +154,7 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
         if (layout_path.empty()) return;
     }
 
-    parser my_parser;
-    my_parser.read_layout(open_bls_file(control_script_filename.ToStdString()));
-
-    reader my_reader(m_doc);
-    my_reader.exec_program(read_lines(my_parser.get_output_asm()));
+    reader my_reader(m_doc, parser(bill_layout_script::from_file(control_script_filename.ToStdString())).get_bytecode());
 
     auto layout_it = my_reader.get_output().globals.find("layout");
     if (layout_it == my_reader.get_output().globals.end()) {

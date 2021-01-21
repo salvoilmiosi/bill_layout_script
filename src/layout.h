@@ -7,6 +7,7 @@
 #include <vector>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
 
 #define RESIZE_TOP      1 << 0
 #define RESIZE_BOTTOM   1 << 1
@@ -26,11 +27,28 @@ struct layout_error : std::runtime_error {
 };
 
 using box_ptr = std::shared_ptr<layout_box>;
-using bill_layout_script = std::vector<box_ptr>;
 
-bill_layout_script open_bls_file(const std::filesystem::path &filename);
+std::ostream &operator << (std::ostream &out, const class bill_layout_script &obj);
+std::istream &operator >> (std::istream &in, class bill_layout_script &obj);
 
-std::ostream &operator << (std::ostream &out, const bill_layout_script &obj);
-std::istream &operator >> (std::istream &in, bill_layout_script &obj);
+struct bill_layout_script : std::vector<box_ptr> {
+    static bill_layout_script from_stream(std::istream &in) {
+        bill_layout_script ret;
+        if (!(in >> ret)) {
+            throw layout_error("Impossibile aprire questo layout");
+        }
+        return ret;
+    }
+
+    static bill_layout_script from_file(const std::filesystem::path &filename) {
+        std::ifstream ifs(filename);
+        return from_stream(ifs);
+    }
+
+    bool save_file(const std::filesystem::path &filename) {
+        std::ofstream ofs(filename);
+        return ! (ofs << *this).fail();
+    }
+};
 
 #endif

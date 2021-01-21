@@ -123,6 +123,10 @@ public:
     }
 };
 
+struct assembly_error : std::runtime_error {
+    assembly_error(const std::string &message) : std::runtime_error(message) {}
+};
+
 struct bytecode {
     std::vector<command_args> m_commands;
     std::vector<std::string> m_strings;
@@ -130,7 +134,13 @@ struct bytecode {
     friend std::ostream &operator << (std::ostream &output, const bytecode &code);
     friend std::istream &operator >> (std::istream &input, bytecode &code);
 
-    static bytecode read_from_file(const std::filesystem::path &filename);
+    static bytecode from_file(const std::filesystem::path &filename);
+    static bytecode from_lines(const std::vector<std::string> &lines);
+
+    bool save_file(const std::filesystem::path &filename) {
+        std::ofstream ofs(filename, std::ios::out | std::ios::binary);
+        return ! (ofs << *this).fail();
+    }
     
     template<typename ... Ts> command_args add_command(Ts && ... args) {
         return m_commands.emplace_back(std::forward<Ts>(args) ...);

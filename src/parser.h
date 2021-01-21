@@ -8,6 +8,7 @@
 
 #include "layout.h"
 #include "lexer.h"
+#include "bytecode.h"
 
 struct spacer {
     float w = 0, h = 0;
@@ -30,15 +31,23 @@ enum parser_flags {
 
 class parser {
 public:
-    parser() : m_lexer(*this) {}
+    parser() = default;
+    parser(const bill_layout_script &layout) {
+        read_layout(layout);
+    }
 
     void add_flags(parser_flags flag) {
         m_flags |= flag;
     }
 
     void read_layout(const bill_layout_script &layout);
-    const auto &get_output_asm() {
-        return output_asm;
+
+    const auto &get_lines() {
+        return m_lines;
+    }
+
+    bytecode get_bytecode() {
+        return bytecode::from_lines(m_lines);
     }
 
 private:
@@ -56,14 +65,14 @@ private:
     int read_variable(bool read_only = false);
 
 private:
-    std::vector<std::string> output_asm;
+    std::vector<std::string> m_lines;
 
     template<typename ... Ts>
     void add_line(const Ts & ... args) {
-        output_asm.push_back(fmt::format(args ...));
+        m_lines.push_back(fmt::format(args ...));
     }
 
-    lexer m_lexer;
+    lexer m_lexer{*this};
 
     uint8_t m_flags = FLAGS_NONE;
 

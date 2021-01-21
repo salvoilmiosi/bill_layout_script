@@ -2,28 +2,36 @@
 
 #include "utils.h"
 
-void reader::exec_program(bytecode code) {
-    m_code = code;
+void reader::start() {
+    m_vars.clear();
+    m_contents.clear();
+    m_refs.clear();
+    m_return_addrs.clear();
 
-    m_con = {};
+    m_spacer = {};
+    m_last_box_page = 0;
 
-    running = true;
+    m_current_table = 0;
+    m_program_counter = 0;
+    m_jumped = false;
 
-    while (running && m_con.program_counter < m_code.m_commands.size()) {
-        exec_command(m_code.m_commands[m_con.program_counter]);
-        if (!m_con.jumped) {
-            ++m_con.program_counter;
+    m_running = true;
+
+    while (m_running && m_program_counter < m_code.m_commands.size()) {
+        exec_command(m_code.m_commands[m_program_counter]);
+        if (!m_jumped) {
+            ++m_program_counter;
         } else {
-            m_con.jumped = false;
+            m_jumped = false;
         }
     }
 }
 
 void reader::exec_command(const command_args &cmd) {
     auto exec_operator = [&](auto op) {
-        auto ret = op(*(m_con.vars.rbegin() + 1), m_con.vars.top());
-        m_con.vars.resize(m_con.vars.size() - 2);
-        m_con.vars.push(std::move(ret));
+        auto ret = op(*(m_vars.rbegin() + 1), m_vars.top());
+        m_vars.resize(m_vars.size() - 2);
+        m_vars.push(std::move(ret));
     };
 
     auto read_str_ref = [&]() {
@@ -34,8 +42,8 @@ void reader::exec_command(const command_args &cmd) {
         if (name.front() == '*') {
             return variable_ref(m_out.globals, name.substr(1), args ...);
         } else {
-            while (m_out.values.size() <= m_con.current_table) m_out.values.emplace_back();
-            return variable_ref(m_out.values[m_con.current_table], name, args ...);
+            while (m_out.values.size() <= m_current_table) m_out.values.emplace_back();
+            return variable_ref(m_out.values[m_current_table], name, args ...);
         }
     };
 
@@ -58,19 +66,19 @@ void reader::exec_command(const command_args &cmd) {
         call_function(m_code.get_string(call.name), call.numargs);
         break;
     }
-    case opcode::THROWERR: throw layout_error(m_con.vars.top().str()); break;
+    case opcode::THROWERR: throw layout_error(m_vars.top().str()); break;
     case opcode::ADDWARNING:
-        m_out.warnings.push_back(std::move(m_con.vars.top().str()));
-        m_con.vars.pop();
+        m_out.warnings.push_back(std::move(m_vars.top().str()));
+        m_vars.pop();
         break;
     case opcode::PARSENUM:
-        if (m_con.vars.top().type() == VAR_STRING) {
-            m_con.vars.top() = variable::str_to_number(parse_number(m_con.vars.top().str()));
+        if (m_vars.top().type() == VAR_STRING) {
+            m_vars.top() = variable::str_to_number(parse_number(m_vars.top().str()));
         }
         break;
-    case opcode::PARSEINT: m_con.vars.top() = m_con.vars.top().as_int(); break;
-    case opcode::NOT: m_con.vars.top() = !m_con.vars.top(); break;
-    case opcode::NEG: m_con.vars.top() = -m_con.vars.top(); break;
+    case opcode::PARSEINT: m_vars.top() = m_vars.top().as_int(); break;
+    case opcode::NOT: m_vars.top() = !m_vars.top(); break;
+    case opcode::NEG: m_vars.top() = -m_vars.top(); break;
     case opcode::EQ:  exec_operator([](const auto &a, const auto &b) { return a == b; }); break;
     case opcode::NEQ: exec_operator([](const auto &a, const auto &b) { return a != b; }); break;
     case opcode::AND: exec_operator([](const auto &a, const auto &b) { return a && b; }); break;
@@ -85,16 +93,16 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::LEQ: exec_operator([](const auto &a, const auto &b) { return a <= b; }); break;
     case opcode::SELVARTOP:
     {
-        m_con.refs.emplace_back(create_ref(read_str_ref(),
-            m_con.vars.top().as_int(), 1));
-        m_con.vars.pop();
+        m_refs.emplace_back(create_ref(read_str_ref(),
+            m_vars.top().as_int(), 1));
+        m_vars.pop();
         break;
     }
     case opcode::SELRANGEALL:
     {
         auto ref = create_ref(read_str_ref());
         ref.range_len = ref.size();
-        m_con.refs.push(std::move(ref));
+        m_refs.push(std::move(ref));
         break;
     }
     case opcode::SELVAR:
@@ -106,169 +114,169 @@ void reader::exec_command(const command_args &cmd) {
         if (var_idx.index == (small_int) -1) {
             ref.index = ref.size();
         }
-        m_con.refs.push(std::move(ref));
+        m_refs.push(std::move(ref));
         break;
     }
     case opcode::SELRANGETOP:
     {
         auto ref = create_ref(read_str_ref());
-        ref.index = m_con.vars.top().as_int();
+        ref.index = m_vars.top().as_int();
         if (ref.index == (small_int) -1) {
             ref.index = ref.size();
         }
-        m_con.vars.pop();
-        ref.range_len = m_con.vars.top().as_int();
-        m_con.vars.pop();
-        m_con.refs.push(std::move(ref));
+        m_vars.pop();
+        ref.range_len = m_vars.top().as_int();
+        m_vars.pop();
+        m_refs.push(std::move(ref));
         break;
     }
     case opcode::MVBOX:
     {
         switch (cmd.get<spacer_index>()) {
         case spacer_index::SPACER_PAGE:
-            m_con.spacer.page += m_con.vars.top().as_int();
+            m_spacer.page += m_vars.top().as_int();
             break;
         case spacer_index::SPACER_X:
-            m_con.spacer.x += m_con.vars.top().as_double();
+            m_spacer.x += m_vars.top().as_double();
             break;
         case spacer_index::SPACER_Y:
-            m_con.spacer.y += m_con.vars.top().as_double();
+            m_spacer.y += m_vars.top().as_double();
             break;
         case spacer_index::SPACER_W:
-            m_con.spacer.w += m_con.vars.top().as_double();
+            m_spacer.w += m_vars.top().as_double();
             break;
         case spacer_index::SPACER_H:
-            m_con.spacer.h += m_con.vars.top().as_double();
+            m_spacer.h += m_vars.top().as_double();
             break;
         }
-        m_con.vars.pop();
+        m_vars.pop();
         break;
     }
     case opcode::CLEAR:
-        m_con.refs.top().clear();
-        m_con.refs.pop();
+        m_refs.top().clear();
+        m_refs.pop();
         break;
     case opcode::SETVAR:
-        m_con.refs.top().set_value(std::move(m_con.vars.top()), SET_ASSIGN);
-        m_con.vars.pop();
-        m_con.refs.pop();
+        m_refs.top().set_value(std::move(m_vars.top()), SET_ASSIGN);
+        m_vars.pop();
+        m_refs.pop();
         break;
     case opcode::RESETVAR:
-        m_con.refs.top().set_value(std::move(m_con.vars.top()), SET_RESET);
-        m_con.vars.pop();
-        m_con.refs.pop();
+        m_refs.top().set_value(std::move(m_vars.top()), SET_RESET);
+        m_vars.pop();
+        m_refs.pop();
         break;
-    case opcode::PUSHVIEW: m_con.vars.push(m_con.contents.top().view()); break;
-    case opcode::PUSHBYTE:  m_con.vars.push(cmd.get<int8_t>()); break;
-    case opcode::PUSHSHORT: m_con.vars.push(cmd.get<int16_t>()); break;
-    case opcode::PUSHINT:   m_con.vars.push(cmd.get<int32_t>()); break;
-    case opcode::PUSHDECIMAL: m_con.vars.push(cmd.get<fixed_point>()); break;
-    case opcode::PUSHSTR:   m_con.vars.push(read_str_ref()); break;
+    case opcode::PUSHVIEW: m_vars.push(m_contents.top().view()); break;
+    case opcode::PUSHBYTE:  m_vars.push(cmd.get<int8_t>()); break;
+    case opcode::PUSHSHORT: m_vars.push(cmd.get<int16_t>()); break;
+    case opcode::PUSHINT:   m_vars.push(cmd.get<int32_t>()); break;
+    case opcode::PUSHDECIMAL: m_vars.push(cmd.get<fixed_point>()); break;
+    case opcode::PUSHSTR:   m_vars.push(read_str_ref()); break;
     case opcode::PUSHVAR:
-        m_con.vars.push(m_con.refs.top().get_value());
-        m_con.refs.pop();
+        m_vars.push(m_refs.top().get_value());
+        m_refs.pop();
         break;
     case opcode::MOVEVAR:
-        m_con.vars.push(m_con.refs.top().get_moved());
-        m_con.refs.pop();
+        m_vars.push(m_refs.top().get_moved());
+        m_refs.pop();
         break;
     case opcode::JMP:
-        m_con.program_counter += cmd.get<jump_address>();
-        m_con.jumped = true;
+        m_program_counter += cmd.get<jump_address>();
+        m_jumped = true;
         break;
     case opcode::JSR:
-        m_con.return_addrs.push(m_con.program_counter);
-        m_con.program_counter += cmd.get<jump_address>();
-        m_con.jumped = true;
+        m_return_addrs.push(m_program_counter);
+        m_program_counter += cmd.get<jump_address>();
+        m_jumped = true;
         break;
     case opcode::JZ:
-        if (!m_con.vars.top().as_bool()) {
-            m_con.program_counter += cmd.get<jump_address>();
-            m_con.jumped = true;
+        if (!m_vars.top().as_bool()) {
+            m_program_counter += cmd.get<jump_address>();
+            m_jumped = true;
         }
-        m_con.vars.pop();
+        m_vars.pop();
         break;
     case opcode::JNZ:
-        if (m_con.vars.top().as_bool()) {
-            m_con.program_counter += cmd.get<jump_address>();
-            m_con.jumped = true;
+        if (m_vars.top().as_bool()) {
+            m_program_counter += cmd.get<jump_address>();
+            m_jumped = true;
         }
-        m_con.vars.pop();
+        m_vars.pop();
         break;
     case opcode::JTE:
-        if (m_con.contents.top().token_end()) {
-            m_con.program_counter += cmd.get<jump_address>();
-            m_con.jumped = true;
+        if (m_contents.top().token_end()) {
+            m_program_counter += cmd.get<jump_address>();
+            m_jumped = true;
         }
         break;
     case opcode::INC:
-        m_con.refs.top().set_value(std::move(m_con.vars.top()), SET_INCREASE);
-        m_con.vars.pop();
-        m_con.refs.pop();
+        m_refs.top().set_value(std::move(m_vars.top()), SET_INCREASE);
+        m_vars.pop();
+        m_refs.pop();
         break;
     case opcode::DEC:
-        m_con.refs.top().set_value(- m_con.vars.top(), SET_INCREASE);
-        m_con.vars.pop();
-        m_con.refs.pop();
+        m_refs.top().set_value(- m_vars.top(), SET_INCREASE);
+        m_vars.pop();
+        m_refs.pop();
         break;
     case opcode::ISSET:
-        m_con.vars.push(m_con.refs.top().size() != 0);
-        m_con.refs.pop();
+        m_vars.push(m_refs.top().size() != 0);
+        m_refs.pop();
         break;
     case opcode::GETSIZE:
-        m_con.vars.push(m_con.refs.top().size());
-        m_con.refs.pop();
+        m_vars.push(m_refs.top().size());
+        m_refs.pop();
         break;
     case opcode::MOVCONTENT:
-        m_con.contents.push(std::move(m_con.vars.top().str()));
-        m_con.vars.pop();
+        m_contents.push(std::move(m_vars.top().str()));
+        m_vars.pop();
         break;
-    case opcode::POPCONTENT: m_con.contents.pop(); break;
+    case opcode::POPCONTENT: m_contents.pop(); break;
     case opcode::SETBEGIN:
-        m_con.contents.top().setbegin(m_con.vars.top().as_int());
-        m_con.vars.pop();
+        m_contents.top().setbegin(m_vars.top().as_int());
+        m_vars.pop();
         break;
     case opcode::SETEND:
-        m_con.contents.top().setend(m_con.vars.top().as_int());
-        m_con.vars.pop();
+        m_contents.top().setend(m_vars.top().as_int());
+        m_vars.pop();
         break;
-    case opcode::NEWVIEW: m_con.contents.top().new_view(); break;
-    case opcode::NEWTOKENS: m_con.contents.top().new_tokens(); break;
-    case opcode::RESETVIEW: m_con.contents.top().reset_view(); break;
-    case opcode::NEXTLINE: m_con.contents.top().next_token("\n"); break;
-    case opcode::NEXTTOKEN: m_con.contents.top().next_token("\t\n\v\f\r "); break;
-    case opcode::NEXTTABLE: ++m_con.current_table; break;
-    case opcode::ATE: m_con.vars.push(m_con.last_box_page > m_doc->num_pages()); break;
+    case opcode::NEWVIEW: m_contents.top().new_view(); break;
+    case opcode::NEWTOKENS: m_contents.top().new_tokens(); break;
+    case opcode::RESETVIEW: m_contents.top().reset_view(); break;
+    case opcode::NEXTLINE: m_contents.top().next_token("\n"); break;
+    case opcode::NEXTTOKEN: m_contents.top().next_token("\t\n\v\f\r "); break;
+    case opcode::NEXTTABLE: ++m_current_table; break;
+    case opcode::ATE: m_vars.push(m_last_box_page > m_doc->num_pages()); break;
     case opcode::RET:
-        if (m_con.return_addrs.empty()) {
+        if (m_return_addrs.empty()) {
             halt();
         } else {
-            m_con.program_counter = m_con.return_addrs.top();
-            m_con.jumped = true;
-            m_con.return_addrs.pop();
+            m_program_counter = m_return_addrs.top();
+            m_jumped = true;
+            m_return_addrs.pop();
         }
         break;
     }
 }
 
 void reader::set_page(int page) {
-    page += m_con.spacer.page;
-    m_con.spacer = {};
-    m_con.last_box_page = page;
-    m_con.contents = {};
+    page += m_spacer.page;
+    m_spacer = {};
+    m_last_box_page = page;
+    m_contents = {};
 }
 
 void reader::read_box(pdf_rect box) {
-    box.page += m_con.spacer.page;
-    box.x += m_con.spacer.x;
-    box.y += m_con.spacer.y;
-    box.w += m_con.spacer.w;
-    box.h += m_con.spacer.h;
-    m_con.spacer = {};
+    box.page += m_spacer.page;
+    box.x += m_spacer.x;
+    box.y += m_spacer.y;
+    box.w += m_spacer.w;
+    box.h += m_spacer.h;
+    m_spacer = {};
 
-    m_con.last_box_page = box.page;
+    m_last_box_page = box.page;
 
-    m_con.contents = {};
+    m_contents = {};
 
-    m_con.contents.push(m_doc->get_text(box));
+    m_contents.push(m_doc->get_text(box));
 }

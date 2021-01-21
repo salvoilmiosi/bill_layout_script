@@ -264,10 +264,10 @@ void reader::call_function(const string &name, size_t numargs) {
     auto it = lookup.find(name);
     if (it != lookup.end()) {
         variable ret = it->second(arg_list(
-            m_con.vars.end() - numargs,
-            m_con.vars.end()));
-        m_con.vars.resize(m_con.vars.size() - numargs);
-        m_con.vars.push(std::move(ret));
+            m_vars.end() - numargs,
+            m_vars.end()));
+        m_vars.resize(m_vars.size() - numargs);
+        m_vars.push(std::move(ret));
     } else {
         throw layout_error(fmt::format("Funzione sconosciuta: {0}", name));
     }

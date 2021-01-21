@@ -1,4 +1,4 @@
-#include "assembler.h"
+#include "bytecode.h"
 
 #include <fmt/core.h>
 #include <vector>
@@ -9,12 +9,12 @@
 #include "parsestr.h"
 #include "fixed_point.h"
 
-bytecode read_lines(const std::vector<std::string> &lines) {
+bytecode bytecode::from_lines(const std::vector<std::string> &lines) {
     bytecode ret;
     std::map<std::string, jump_address> labels;
 
     for (size_t i=0; i<lines.size(); ++i) {
-        if (lines[i].substr(0, 5) == "LABEL") {
+        if (lines[i].starts_with("LABEL")) {
             labels[lines[i].substr(6)] = i - labels.size();
         }
     }

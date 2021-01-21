@@ -184,7 +184,7 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
 void frame_editor::openFile(const wxString &filename) {
     layout_filename = filename;
     try {
-        layout = open_bls_file(layout_filename.ToStdString());
+        layout = bill_layout_script::from_file(layout_filename.ToStdString());
     } catch (const layout_error &error) {
         wxMessageBox("Impossibile aprire questo file", "Errore", wxOK | wxICON_ERROR);
         return;
@@ -213,13 +213,10 @@ bool frame_editor::save(bool saveAs) {
 
         layout_filename = diag.GetPath().ToStdString();
     }
-    std::ofstream ofs(layout_filename.ToStdString());
-    ofs << layout;
-    if (ofs.fail()) {
+    if (!layout.save_file(layout_filename.ToStdString())) {
         wxMessageBox("Impossibile salvare questo file", "Errore", wxICON_ERROR);
         return false;
     }
-    ofs.close();
     modified = false;
     return true;
 }

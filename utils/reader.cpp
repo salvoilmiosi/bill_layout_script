@@ -9,7 +9,6 @@
 #include <json/json.h>
 
 #include "parser.h"
-#include "assembler.h"
 #include "reader.h"
 #include "utils.h"
 
@@ -102,19 +101,13 @@ int MainApp::OnRun() {
 
     bytecode in_code;
     bool in_file_layout = true;
-    reader_output m_output;
+    reader my_reader;
+    const auto &my_output = my_reader.get_output();
 
     if (compile) {
-        parser my_parser;
-        bill_layout_script my_layout;
-        if (input_file == "-") {
-            std::cin >> my_layout;
-        } else {
-            std::ifstream ifs(input_file.ToStdString());
-            ifs >> my_layout;
-        }
-        my_parser.read_layout(my_layout);
-        in_code = read_lines(my_parser.get_output_asm());
+        in_code = parser((input_file == "-") ?
+            bill_layout_script::from_stream(std::cin) :
+            bill_layout_script::from_file(input_file.ToStdString())).get_bytecode();
     } else if (input_file == "-") {
 #ifdef _WIN32
         setmode(fileno(stdin), O_BINARY);
@@ -124,36 +117,34 @@ int MainApp::OnRun() {
         if (!wxFileExists(input_file)) {
             return output_error(wxString::Format("Impossibile aprire il file layout %s", input_file).ToStdString());
         }
-        in_code = bytecode::read_from_file(input_file.ToStdString());
+        in_code = bytecode::from_file(input_file.ToStdString());
         if (layout_dir.empty()) {
             layout_dir = wxFileName(input_file).GetPath();
         }
     }
 
     try {
-        pdf_document m_doc(file_pdf.ToStdString());
-        reader m_reader(m_doc);
+        pdf_document my_doc(file_pdf.ToStdString());
+        my_reader.set_document(my_doc);
 
         if (exec_script) {
-            m_reader.exec_program(in_code);
-            m_output = m_reader.get_output();
+            my_reader.exec_program(std::move(in_code));
             in_file_layout = false;
         }
         if (!layout_dir.empty()) {
-            auto layout_it = m_output.globals.find("layout");
-            if (layout_it != m_output.globals.end()) {
+            auto layout_it = my_output.globals.find("layout");
+            if (layout_it != my_output.globals.end()) {
                 wxFileName input_file2 = layout_dir + wxFileName::GetPathSeparator() + layout_it->second.str();
                 input_file2.SetExt("out");
                 if (!input_file2.Exists()) {
                     return output_error(wxString::Format("Impossibile aprire il file layout %s", input_file2.GetFullPath()).ToStdString());
                 }
-                in_code = bytecode::read_from_file(input_file2.GetFullPath().ToStdString());
+                in_code = bytecode::from_file(input_file2.GetFullPath().ToStdString());
                 in_file_layout = true;
             }
         }
         if (in_file_layout) {
-            m_reader.exec_program(in_code);
-            m_output = m_reader.get_output();
+            my_reader.exec_program(std::move(in_code));
         }
     } catch (const std::exception &error) {
         return output_error(error.what());
@@ -161,8 +152,7 @@ int MainApp::OnRun() {
         return output_error("Errore sconosciuto");
     }
 
-    save_output(m_output, result, debug);
-    std::cout << result;
+    std::cout << save_output(my_output, result, debug);
 
     return 0;
 }

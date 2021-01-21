@@ -9,7 +9,6 @@
 #include "utils.h"
 
 #include "parser.h"
-#include "assembler.h"
 #include "reader.h"
 
 enum {
@@ -89,9 +88,7 @@ reader_thread::~reader_thread() {
 
 wxThread::ExitCode reader_thread::Entry() {
     try {
-        parser my_parser;
-        my_parser.read_layout(layout);
-        m_reader.exec_program(read_lines(my_parser.get_output_asm()));
+        m_reader.exec_program(parser(layout).get_bytecode());
         if (!m_aborted) {
             parent->m_output = m_reader.get_output();
             wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));

@@ -8,7 +8,6 @@
 #include <fmt/format.h>
 
 #include "parser.h"
-#include "assembler.h"
 
 class MainApp : public wxAppConsole {
 public:
@@ -69,18 +68,12 @@ int MainApp::OnRun() {
 
     try {
         if (!read_asm) {
-            bill_layout_script layout;
-            if (!((ifs.is_open() ? ifs : std::cin) >> layout)) {
-                std::cerr << fmt::format("Impossibile aprire il file layout {}", input_file) << std::endl;
-                return 1;
-            }
-
             parser my_parser;
             if (debug) my_parser.add_flags(FLAGS_DEBUG);
-            my_parser.read_layout(layout);
+            my_parser.read_layout(bill_layout_script::from_stream(ifs.is_open() ? ifs : std::cin));
 
             auto print_asm = [&](std::ostream &out) {
-                for (auto &line : my_parser.get_output_asm()) {
+                for (auto &line : my_parser.get_lines()) {
                     auto cmd = line.substr(0, line.find_first_of(' '));
                     if (cmd != "COMMENT" && cmd != "LABEL") {
                         out << '\t';
@@ -94,10 +87,9 @@ int MainApp::OnRun() {
             } else if (!output_asm.empty()) {
                 std::ofstream ofs(output_asm.ToStdString());
                 print_asm(ofs);
-                ofs.close();
             }
             
-            out_code = read_lines(my_parser.get_output_asm());
+            out_code = my_parser.get_bytecode();
         } else {
             std::vector<std::string> lines;
             std::string line;
@@ -105,7 +97,7 @@ int MainApp::OnRun() {
                 lines.push_back(line.substr(line.find_first_not_of(" \t")));
             }
             
-            out_code = read_lines(lines);
+            out_code = bytecode::from_lines(lines);
         }
     } catch (const std::exception &error) {
         std::cerr << error.what() << std::endl;
