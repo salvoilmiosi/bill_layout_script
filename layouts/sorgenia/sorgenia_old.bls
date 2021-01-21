@@ -9,9 +9,16 @@
 ### Y 0.3029465377
 ### W 0.8291960359
 ### H 0.0248280428
+### Goto Label convalida
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
-$if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
-  $error("Layout Invalido")
+$if($ate()) $error("Layout Invalido")
+$if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO") {
+  ::off_allegati+=1
+  $goto(convalida)
+}
 ### End Script
 ### End Box
 
@@ -26,7 +33,7 @@ $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
 ### H 0.8734164834
 ### Goto Label lettura_dati
 ### Spacers
-p+::next_page
+p+::off_allegati p+::next_page
 ### End Spacers
 ### Script
 $ifnot($ate() || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
@@ -62,6 +69,9 @@ fornitore="Sorgenia"
 ### Y 0.0104361940
 ### W 0.4648956358
 ### H 0.1047291458
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 numero_cliente=$search(@,/(%N)/)
 ### End Script
@@ -76,36 +86,47 @@ numero_cliente=$search(@,/(%N)/)
 ### Y 0.1503705680
 ### W 0.3881048262
 ### H 0.0285062697
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 ragione_sociale
 ### End Script
 ### End Box
 
 ### Box
-### Name Numero fattura
+### Name Numero / Data fattura
 ### Type RECTANGLE
-### Mode DEFAULT
+### Mode LAYOUT
 ### Page 1
-### X 0.2112068981
+### X 0.0832053274
 ### Y 0.3307054937
-### W 0.2157258093
-### H 0.0171037614
+### W 0.3437273502
+### H 0.0385185778
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
-numero_fattura
+numero_fattura=$search(@,/N. fattura: (.+)/)
+data_fattura=$date(@,"%d/%m/%Y",/Emessa il (%D)/)
 ### End Script
 ### End Box
 
 ### Box
-### Name Data fattura
+### Name POD / Indirizzo
 ### Type RECTANGLE
-### Mode DEFAULT
+### Mode LAYOUT
 ### Page 1
-### X 0.2139877677
-### Y 0.3461054564
-### W 0.2157258093
-### H 0.0171037614
+### X 0.4322580695
+### Y 0.3285304308
+### W 0.4813895822
+### H 0.0624127090
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
-data_fattura=$date(@,"%d/%m/%Y")
+codice_pod=$search(@,/per il punto di fornitura \(POD\) ([0-9A-Z]+)/)
+indirizzo_fornitura=$singleline($search(@,/\ndi ([^]+\(..\))/))
 ### End Script
 ### End Box
 
@@ -118,6 +139,9 @@ data_fattura=$date(@,"%d/%m/%Y")
 ### Y 0.4228430092
 ### W 0.3672128916
 ### H 0.1100659072
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 mese_fattura=$month(@,"%B %Y")
 mese_fine=$month(@,"%B %Y",/%D\/(%D)/)
@@ -137,23 +161,11 @@ $ifnot($isset(mese_fattura)) {
 ### Y 0.4228430092
 ### W 0.2348197252
 ### H 0.1100659072
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
-### End Script
-### End Box
-
-### Box
-### Name POD / Indirizzo
-### Type RECTANGLE
-### Mode LAYOUT
-### Page 1
-### X 0.4325512946
-### Y 0.3273901939
-### W 0.4859350622
-### H 0.0899416208
-### Script
-codice_pod=$search(@,/per il punto di fornitura \(POD\) ([0-9A-Z]+)/)
-indirizzo_fornitura=$singleline($search(@,/di ([^]+\(..\))/))
 ### End Script
 ### End Box
 
@@ -166,6 +178,9 @@ indirizzo_fornitura=$singleline($search(@,/di ([^]+\(..\))/))
 ### Y 0.4244267046
 ### W 0.2185639143
 ### H 0.1068985164
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 %totale_fattura=$search(@,/(%N) \u20ac/)
 ### End Script
@@ -180,6 +195,9 @@ indirizzo_fornitura=$singleline($search(@,/di ([^]+\(..\))/))
 ### Y 0.3854047954
 ### W 0.3553287387
 ### H 0.5330120325
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
@@ -200,6 +218,9 @@ $with($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
 ### Y 0.3865450323
 ### W 0.2553085387
 ### H 0.5330120325
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
@@ -220,6 +241,9 @@ $with($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
 ### Y 0.0319813415
 ### W 0.0579877123
 ### H 0.0390942991
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 $with(::_dettaglio) {
   $lines($searchall(@,/Corrispettivo Tariffario Specifico dal \d+\/\d+\/\d+ al \d+\/\d+\/\d+ (%N)/)) %cts+
@@ -277,6 +301,9 @@ $with(::_dettaglio) {
 ### Y 0.0285062715
 ### W 0.0576036870
 ### H 0.0447955690
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
@@ -297,6 +324,9 @@ $if($isset(mese_fine)) {
 ### Y 0.6641179323
 ### W 0.2675261796
 ### H 0.1249356866
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 %potenza[0:3]=$search(@,/Potenza impegnata: (%N)/)
 ### End Script

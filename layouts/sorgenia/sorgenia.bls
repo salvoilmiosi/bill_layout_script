@@ -82,30 +82,32 @@ ragione_sociale
 ### End Box
 
 ### Box
-### Name Numero fattura
+### Name Numero / Data Fattura
 ### Type RECTANGLE
-### Mode DEFAULT
+### Mode LAYOUT
 ### Page 1
-### X 0.2459677458
-### Y 0.3385692835
-### W 0.2157258093
-### H 0.0171037614
+### X 0.0783666149
+### Y 0.3364067376
+### W 0.3861495256
+### H 0.0398760438
 ### Script
-numero_fattura
+numero_fattura=$search(@,/N. fattura: (.+)/)
+data_fattura=$date(@,"%d/%m/%Y",/Emessa il (%D)/)
 ### End Script
 ### End Box
 
 ### Box
-### Name Data fattura
+### Name POD / Indirizzo
 ### Type RECTANGLE
-### Mode DEFAULT
+### Mode LAYOUT
 ### Page 1
-### X 0.2459677458
-### Y 0.3549522161
-### W 0.2157258093
-### H 0.0171037614
+### X 0.4709677398
+### Y 0.3353719413
+### W 0.4604218304
+### H 0.0511730909
 ### Script
-data_fattura=$date(@,"%d/%m/%Y")
+codice_pod=$search(@,/per il punto di fornitura \(POD\) ([0-9A-Z]+)/)
+indirizzo_fornitura=$singleline($search(@,/\ndi ([^]+\(..\))/))
 ### End Script
 ### End Box
 
@@ -139,34 +141,6 @@ $ifnot($isset(mese_fattura)) {
 ### H 0.0494381189
 ### Script
 data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
-### End Script
-### End Box
-
-### Box
-### Name Codice POD
-### Type RECTANGLE
-### Mode DEFAULT
-### Page 1
-### X 0.6995967627
-### Y 0.3385119438
-### W 0.2308467776
-### H 0.0163911059
-### Script
-codice_pod
-### End Script
-### End Box
-
-### Box
-### Name Indirizzo fornitura
-### Type RECTANGLE
-### Mode DEFAULT
-### Page 1
-### X 0.4929577708
-### Y 0.3541201651
-### W 0.4361653924
-### H 0.0200748388
-### Script
-indirizzo_fornitura
 ### End Script
 ### End Box
 

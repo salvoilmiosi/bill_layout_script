@@ -18,7 +18,7 @@ $if(@ != "ENERGIA ELETTRICA") {
 
 ### Box
 ### Name Nome Fornitore
-### Type RECTANGLE
+### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
 ### X 0.0161160361

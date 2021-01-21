@@ -1,6 +1,48 @@
 ### Bill Layout Script
 
 ### Box
+### Name Numero pagina
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 1
+### X 0.8790322542
+### Y 0.9327251911
+### W 0.0838709474
+### H 0.0513113141
+### Goto Label convalida
+### Spacers
+p+::off_allegati
+### End Spacers
+### Script
+$if($ate()) $error("Layout Invalido")
+$elif(! $contains(@,"PAG")) {
+  ::off_allegati+=1
+  $goto(convalida)
+}
+### End Script
+### End Box
+
+### Box
+### Name Controllo Gennaio 2016
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.4838709533
+### Y 0.0809578151
+### W 0.4290322959
+### H 0.0741163045
+### Spacers
+p+::off_allegati
+### End Spacers
+### Script
+$if($contains(@,"servizio di fatturazione trasmessa")) {
+  $import("sorgenia_gen16")
+  $halt()
+}
+### End Script
+### End Box
+
+### Box
 ### Name Controllo Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
@@ -9,6 +51,9 @@
 ### Y 0.9309445024
 ### W 0.5866106749
 ### H 0.0445166416
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 $if($contains(@,"Sorgenia S.p.A")) {
   $import("sorgenia_old")
