@@ -91,7 +91,7 @@ ragione_sociale
 ### W 0.3861495256
 ### H 0.0398760438
 ### Script
-numero_fattura=$search(@,/N. fattura: (.+)/)
+numero_fattura=$search(@,/N\. fattura (.+)/)
 data_fattura=$date(@,"%d/%m/%Y",/Emessa il (%D)/)
 ### End Script
 ### End Box

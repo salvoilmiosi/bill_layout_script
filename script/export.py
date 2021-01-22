@@ -97,7 +97,7 @@ def export_file(input_file):
                             row.append({'value': value, 'number_format': ''})
                     except (KeyError, IndexError, ValueError):
                         if obj.obligatory:
-                            continue
+                            row.append({'value': '', 'number_format': '', 'fgColor':'ffff00'})
                         else:
                             row.append({'value': '', 'number_format': ''})
 
@@ -127,6 +127,7 @@ def export_file(input_file):
             try:
                 cell.number_format = c['number_format']
                 cell.value = c['value']
+                if 'fgColor' in c: cell.fill = PatternFill(patternType='solid', fgColor = c['fgColor'])
             except (KeyError, IndexError, ValueError):
                 pass
 
