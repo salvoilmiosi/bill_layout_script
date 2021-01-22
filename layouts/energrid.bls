@@ -111,7 +111,7 @@ p+::off_pod
 ### End Spacers
 ### Script
 indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura: ([^]+?) POD/))
-codice_pod=$search(@,/POD (\(punto di prelievo\)|:) (.+)/,2)
+codice_pod=$search(@,/POD (?:\(punto di prelievo\)|:) (.+)/)
 %potenza[0:3]=$search(@,/Potenza contrattuale: (%N) kW/)
 ### End Script
 ### End Box
@@ -154,7 +154,7 @@ $between("RIEPILOGO CONSUMI PRIMO ADDEBITO","TOTALE (Salvo conguagli, errori e o
 }
 $between("DETTAGLIO IMPOSTE","TOTALE (Salvo conguagli, errori e omissioni)") {
   %accise=$search(@,$format(/Imposta erariale.+ al \d\d\/$0 Euro\/kWh %N %N (%N)/,_mese))
-  iva=$percent($search(@,/(%N) %/))
+  iva=$percent($search(@,/(\d+) %/))
 }
 ### End Script
 ### End Box

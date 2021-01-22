@@ -97,7 +97,7 @@ mese_fattura=$month(@,"%B %Y")
 ### W 0.4946236610
 ### H 0.0617635883
 ### Script
-numero_cliente=$search(@,/Codice Cliente: (%N)/)
+numero_cliente=$search(@,/Codice Cliente: (\d+)/)
 ragione_sociale=$search(@,/.+\n(.+)\n/)
 partita_iva=$search(@,/Part\.IVA (.+)\n/)
 ### End Script

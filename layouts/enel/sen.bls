@@ -218,7 +218,6 @@ ragione_sociale
 ### W 0.6628024578
 ### H 0.0489951558
 ### Script
-$if(0)
 $between("Consumi rilevati", "INFORMAZIONI PER I CLIENTI") {
   $tokens($search(@,$format(/al \d\d\.$0 (.+)\n/,$date_format(mese_fattura,"%m.%Y")))) {
     %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
@@ -249,13 +248,13 @@ $with(::_dettaglio) {
       %spesa_materia_energia+=$search(@,/(%N)$/)
     }
     $with($search(@,$format(/(In F1 dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0 [^]+)(dal|Totale|$)/,_mese_abbr))) {   
-      $tokens($search(@,/F1.+\/kWh (%N kWh %N)/)) {
+      $tokens($search(@,/F1.+\/kWh (%N kWh \d+)/)) {
         %prezzo_energia[0] $skip() %energia_attiva[0]
       }
-      $tokens($search(@,/F2.+\/kWh (%N kWh %N)/)) {
+      $tokens($search(@,/F2.+\/kWh (%N kWh \d+)/)) {
         %prezzo_energia[1] $skip() %energia_attiva[1]
       }
-      $tokens($search(@,/F3.+\/kWh (%N kWh %N)/)) {
+      $tokens($search(@,/F3.+\/kWh (%N kWh \d+)/)) {
         %prezzo_energia[2] $skip() %energia_attiva[2]
       }
     }
@@ -274,7 +273,7 @@ $with(::_dettaglio) {
     }
   }
   $between("IMPOSTE ED IVA","TOTALE IMPOSTE ED IVA") {
-    iva=$search(@,/IVA (%N%)/)
+    iva=$search(@,/IVA (\d+%)/)
     $with($search(@,/ACCISA SULL'ENERGIA ELETTRICA\n((dal.+\n)+)/)) {
       %accise=$search(@,$format(/al \d\d\/$0.+ (%N)/,_mese_abbr))
     }
