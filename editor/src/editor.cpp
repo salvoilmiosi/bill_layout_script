@@ -92,7 +92,6 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     menuLayout->Append(MENU_EDITBOX, "Modifica &Rettangolo\tCtrl-E", "Modifica il rettangolo selezionato");
     menuLayout->Append(MENU_READDATA, "L&eggi Layout\tCtrl-R", "Test della lettura dei dati");
     menuLayout->Append(MENU_EDITCONTROL, "Modifica script di &controllo\tCtrl-L");
-    menuLayout->Append(MENU_LAYOUTPATH, "Modifica cartella layout\tCtrl-K");
 
     menuBar->Append(menuLayout, "&Layout");
 
