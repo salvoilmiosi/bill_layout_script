@@ -262,7 +262,7 @@ parsing_error lexer::unexpected_token(token_type type) {
 }
 
 parsing_error lexer::unexpected_token() {
-    return parsing_error(fmt::format("Imprevisto '{0}'", current().value), current());
+    return parsing_error(fmt::format("Imprevisto '{}'", current().value), current());
 }
 
 std::string lexer::tokenLocationInfo(const token &tok) {

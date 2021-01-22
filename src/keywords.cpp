@@ -223,7 +223,7 @@ void parser::read_keyword() {
         auto tok_layout_name = m_lexer.require(TOK_STRING);
         m_lexer.require(TOK_PAREN_END);
         std::string layout_name;
-        parse_string(layout_name, tok_layout_name.value);
+        parse_string_token(layout_name, tok_layout_name.value);
         add_line("IMPORT {}", layout_name);
         break;
     }

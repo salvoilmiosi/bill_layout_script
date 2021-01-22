@@ -6,74 +6,79 @@
 
 #include "layout.h"
 
-enum class opcode : uint8_t {
-    NOP=0x00,   // no operation
-    RDBOX,      // byte mode, byte page, string spacers, float x, float y, float w, float h -- pdftotext -> content_stack
-    RDPAGE,     // byte mode, byte page, string spacers -- pdftotext -> content_stack
-    RDFILE,     // byte mode -- pdftotext -> content_stack
-    MVBOX,      // byte index -- var_stack -> spacer[index]
-    SETPAGE,    // byte page -- m_ate = page > num pdf pages
-    CALL,       // string fun_name, byte numargs -- var_stack * numargs -> fun_name -> var_stack
-    THROWERR,   // var_stack -> throw
-    ADDWARNING, // var_stack -> warnings
-    PARSENUM,   // var_stack -> parse_num -> var_stack
-    PARSEINT,   // var_stack -> parse_int -> var_stack
-    EQ,         // var_stack * 2 -> a == b -> var_stack
-    NEQ,        // var_stack * 2 -> a != b -> var_stack
-    AND,        // var_stack * 2 -> a && b -> var_stack
-    OR,         // var_stack * 2 -> a == b -> var_stack
-    NEG,        // var_stack -> -top -> var_stack
-    NOT,        // var_stack -> !top -> var_stack
-    ADD,        // var_stack * 2 -> a + b -> var_stack
-    SUB,        // var_stack * 2 -> a - b -> var_stack
-    MUL,        // var_stack * 2 -> a * b -> var_stack
-    DIV,        // var_stack * 2 -> a / b -> var_stack
-    GT,         // var_stack * 2 -> a > b -> var_stack
-    LT,         // var_stack * 2 -> a < b -> var_stack
-    GEQ,        // var_stack * 2 -> a >= b -> var_stack
-    LEQ,        // var_stack * 2 -> a >= b -> var_stack
-    SELVAR,     // string name, byte index -- (name, index, index) -> ref_stack
-    SELVARTOP,  // string name -- var_stack -> (name, top, top) -> ref_stack
-    SELRANGE,   // string name, bye idxfrom, byte idxto = (name, idxfrom, idxto) -> ref_stack
-    SELRANGETOP,// string name -- var_stack * 2 -> (name, top-1, top) -> ref_stack
-    SELRANGEALL,// string name -- (name, range_all) -> ref_stack
-    CLEAR,      // ref_stack -> clear
-    SETVAR,     // ref_stack, var_stack -> set
-    RESETVAR,   // ref_stack, var_stack -> reset
-    PUSHVIEW,   // content_stack -> var_stack
-    PUSHBYTE,   // byte number -- number -> var_stack
-    PUSHSHORT,  // byte*2 number -- number -> var_stack
-    PUSHINT,    // byte*4 number -- number -> var_stack
-    PUSHDECIMAL,// fixed_point number -- number -> var_stack
-    PUSHSTR,    // string str -- str -> var_stack
-    PUSHVAR,    // ref_stack -> var_stack
-    MOVEVAR,    // ref_stack -> (move) var_stack
-    JMP,        // short address -- unconditional jump
-    JSR,        // short address -- program_counter -> return_addrs, jump
-    JZ,         // short address -- var_stack -> jump if top == 0
-    JNZ,        // short address -- var_stack -> jump if top != 0
-    JTE,        // short address -- jump if content_stack.top at token end
-    RET,        // jump to return_addrs.top, return_addrs.pop, halt if return_addrs.empty
-    INC,        // ref_stack, var_stack -> += top
-    DEC,        // ref_stack, var_stack -> -= top
-    ISSET,      // ref_stack -> size() != 0 -> var_stack
-    GETSIZE,    // ref_stack -> size() -> var_stack
-    MOVCONTENT, // var_stack -> content_stack
-    SETBEGIN,   // var_stack -> content_stack.top.setbegin
-    SETEND,     // var_stack -> content_stack.top.setend
-    NEWVIEW,    // content_stack.top.newview
-    NEWTOKENS,  // content_stack.top.newtokens
-    RESETVIEW,  // content_stack.top.resetview
-    NEXTLINE,   // content_stack.top.next_token('\n')
-    NEXTTOKEN,  // content_stack.top.next_token(' ')
-    POPCONTENT, // content_stack.pop()
-    NEXTTABLE,  // current_table++
-    ATE,        // m_ate -> var_stack
-    IMPORT,     // string layout_name
-    COMMENT=0xff,// string data
-};
+#define OPCODES { \
+    O(NOP),         /* no operation */ \
+    O(RDBOX),       /* byte mode, byte page, string spacers, float x, float y, float w, float h -- pdftotext -> content_stack */ \
+    O(RDPAGE),      /* byte mode, byte page, string spacers -- pdftotext -> content_stack */ \
+    O(RDFILE),      /* byte mode -- pdftotext -> content_stack */ \
+    O(MVBOX),       /* byte index -- var_stack -> spacer[index] */ \
+    O(SETPAGE),     /* byte page -- m_ate = page > num pdf pages */ \
+    O(CALL),        /* string fun_name, byte numargs -- var_stack * numargs -> fun_name -> var_stack */ \
+    O(THROWERR),    /* var_stack -> throw */ \
+    O(ADDWARNING),  /* var_stack -> warnings */ \
+    O(PARSENUM),    /* var_stack -> parse_num -> var_stack */ \
+    O(PARSEINT),    /* var_stack -> parse_int -> var_stack */ \
+    O(EQ),          /* var_stack * 2 -> a == b -> var_stack */ \
+    O(NEQ),         /* var_stack * 2 -> a != b -> var_stack */ \
+    O(AND),         /* var_stack * 2 -> a && b -> var_stack */ \
+    O(OR),          /* var_stack * 2 -> a == b -> var_stack */ \
+    O(NEG),         /* var_stack -> -top -> var_stack */ \
+    O(NOT),         /* var_stack -> !top -> var_stack */ \
+    O(ADD),         /* var_stack * 2 -> a + b -> var_stack */ \
+    O(SUB),         /* var_stack * 2 -> a - b -> var_stack */ \
+    O(MUL),         /* var_stack * 2 -> a * b -> var_stack */ \
+    O(DIV),         /* var_stack * 2 -> a / b -> var_stack */ \
+    O(GT),          /* var_stack * 2 -> a > b -> var_stack */ \
+    O(LT),          /* var_stack * 2 -> a < b -> var_stack */ \
+    O(GEQ),         /* var_stack * 2 -> a >= b -> var_stack */ \
+    O(LEQ),         /* var_stack * 2 -> a >= b -> var_stack */ \
+    O(SELVAR),      /* string name, byte index -- (name, index, index) -> ref_stack */ \
+    O(SELVARTOP),   /* string name -- var_stack -> (name, top, top) -> ref_stack */ \
+    O(SELRANGE),    /* string name, bye idxfrom, byte idxto = (name, idxfrom, idxto) -> ref_stack */ \
+    O(SELRANGETOP), /* string name -- var_stack * 2 -> (name, top-1, top) -> ref_stack */ \
+    O(SELRANGEALL), /* string name -- (name, range_all) -> ref_stack */ \
+    O(CLEAR),       /* ref_stack -> clear */ \
+    O(SETVAR),      /* ref_stack, var_stack -> set */ \
+    O(RESETVAR),    /* ref_stack, var_stack -> reset */ \
+    O(PUSHVIEW),    /* content_stack -> var_stack */ \
+    O(PUSHNUM),     /* fixed_point number -- number -> var_stack */ \
+    O(PUSHSTR),     /* string str -- str -> var_stack */ \
+    O(PUSHVAR),     /* ref_stack -> var_stack */ \
+    O(MOVEVAR),     /* ref_stack -> (move) var_stack */ \
+    O(JMP),         /* short address -- unconditional jump */ \
+    O(JSR),         /* short address -- program_counter -> return_addrs, jump */ \
+    O(JZ),          /* short address -- var_stack -> jump if top == 0 */ \
+    O(JNZ),         /* short address -- var_stack -> jump if top != 0 */ \
+    O(JTE),         /* short address -- jump if content_stack.top at token end */ \
+    O(RET),         /* jump to return_addrs.top, return_addrs.pop, halt if return_addrs.empty */ \
+    O(INC),         /* ref_stack, var_stack -> += top */ \
+    O(DEC),         /* ref_stack, var_stack -> -= top */ \
+    O(ISSET),       /* ref_stack -> size() != 0 -> var_stack */ \
+    O(GETSIZE),     /* ref_stack -> size() -> var_stack */ \
+    O(MOVCONTENT),  /* var_stack -> content_stack */ \
+    O(SETBEGIN),    /* var_stack -> content_stack.top.setbegin */ \
+    O(SETEND),      /* var_stack -> content_stack.top.setend */ \
+    O(NEWVIEW),     /* content_stack.top.newview */ \
+    O(NEWTOKENS),   /* content_stack.top.newtokens */ \
+    O(RESETVIEW),   /* content_stack.top.resetview */ \
+    O(NEXTLINE),    /* content_stack.top.next_token('\n') */ \
+    O(NEXTTOKEN),   /* content_stack.top.next_token(' ') */ \
+    O(POPCONTENT),  /* content_stack.pop() */ \
+    O(NEXTTABLE),   /* current_table++ */ \
+    O(ATE),         /* m_ate -> var_stack */ \
+    O(IMPORT),      /* string layout_name */ \
+    O(COMMENT),     /* string data */ \
+}
 
-typedef uint8_t small_int;
+#define O(x) x
+enum class opcode : uint8_t OPCODES;
+#undef O
+
+#define O(x) #x
+static const char *opcode_names[] = OPCODES;
+#undef O
+
+typedef int8_t small_int;
 typedef int16_t jump_address; // indirizzo relativo
 typedef uint16_t string_size;
 

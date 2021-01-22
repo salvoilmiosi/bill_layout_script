@@ -65,10 +65,10 @@ std::string &string_replace_regex(std::string &value, const std::string &format,
 std::string singleline(std::string input);
 
 // parsa una stringa (elimina le virgolette a inizio e fine e legge gli escape)
-bool parse_string(std::string &out, std::string_view value);
+bool parse_string_token(std::string &out, std::string_view value);
 
 // parsa una stringa regexp (elimina gli slash a inizio e fine e legge gli escape)
-bool parse_string_regexp(std::string &out, std::string_view value);
+bool parse_regexp_token(std::string &out, std::string_view value);
 
 // sposta il range indicato alla fine del vettore
 template<typename T>

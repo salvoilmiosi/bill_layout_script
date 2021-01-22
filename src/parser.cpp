@@ -23,7 +23,7 @@ void parser::read_box(const layout_box &box) {
         add_line("COMMENT ## {}", box.name);
     }
     current_box = &box;
-    if (!box.goto_label.empty()) add_line("LABEL {0}", box.goto_label);
+    if (!box.goto_label.empty()) add_line("LABEL {}", box.goto_label);
 
     m_lexer.setScript(box.spacers);
 
@@ -63,7 +63,7 @@ void parser::read_box(const layout_box &box) {
         }
         read_expression();
         if (negative) add_line("NEG");
-        add_line("MVBOX {0}", index);
+        add_line("MVBOX {}", index);
     }
 
     switch (box.type) {
@@ -74,7 +74,7 @@ void parser::read_box(const layout_box &box) {
         add_line("RDPAGE {0},{1}", box.mode, box.page);
         break;
     case box_type::BOX_FILE:
-        add_line("RDFILE {0}", box.mode);
+        add_line("RDFILE {}", box.mode);
         break;
     case box_type::BOX_NO_READ:
         add_line("SETPAGE {}", box.page);
@@ -222,7 +222,7 @@ void parser::sub_expression() {
         case TOK_INTEGER:
         case TOK_NUMBER:
             m_lexer.advance();
-            add_line("PUSHNUM -{0}", m_lexer.current().value);
+            add_line("PUSHNUM -{}", m_lexer.current().value);
             break;
         default:
             sub_expression();
@@ -233,14 +233,14 @@ void parser::sub_expression() {
     case TOK_INTEGER:
     case TOK_NUMBER:
         m_lexer.advance();
-        add_line("PUSHNUM {0}", m_lexer.current().value);
+        add_line("PUSHNUM {}", m_lexer.current().value);
         break;
     case TOK_SLASH:
         m_lexer.require(TOK_REGEXP);
         [[fallthrough]];
     case TOK_STRING:
         m_lexer.advance();
-        add_line("PUSHSTR {0}", m_lexer.current().value);
+        add_line("PUSHSTR {}", m_lexer.current().value);
         break;
     case TOK_CONTENT:
         m_lexer.advance();
@@ -309,7 +309,7 @@ int parser::read_variable(bool read_only) {
                 if (m_lexer.check_next(TOK_INTEGER)) { // variable[a:b] -- seleziona range
                     index_last = cstoi(m_lexer.current().value);
                 } else { // variable[int:expr] -- seleziona range
-                    add_line("PUSHNUM {0}", index);
+                    add_line("PUSHNUM {}", index);
                     read_expression();
                     getindex = true;
                     getindexlast = true;
@@ -350,12 +350,12 @@ int parser::read_variable(bool read_only) {
         name = "*" + name;
     }
     if (rangeall) {
-        add_line("SELRANGEALL {0}", name);
+        add_line("SELRANGEALL {}", name);
     } else if (getindex) {
         if (getindexlast) {
-            add_line("SELRANGETOP {0}", name);
+            add_line("SELRANGETOP {}", name);
         } else {
-            add_line("SELVARTOP {0}", name);
+            add_line("SELVARTOP {}", name);
         }
     } else if (index_last >= 0) {
         add_line("SELRANGE {0},{1},{2}", name, index, index_last);
@@ -454,7 +454,7 @@ void parser::read_date_fun(const std::string &fun_name) {
         }
         
         std::string date_regex;
-        parse_string(date_regex, date_fmt);
+        parse_string_token(date_regex, date_fmt);
         string_replace(date_regex, ".", "\\.");
         string_replace(date_regex, "/", "\\/");
         string_replace(date_regex, "%b", "\\w+");

@@ -71,7 +71,7 @@ static inline std::string codePointToUTF8(unsigned int cp) {
   return result;
 }
 
-bool parse_string(std::string &decoded, std::string_view value) {
+bool parse_string_token(std::string &decoded, std::string_view value) {
     location current = value.begin() + 1;
     location end = value.end() - 1;
     while (current != end) {
@@ -137,7 +137,7 @@ static std::string get_number_regex() {
     return number_regex = std::string("-?\\b\\d{1,3}(?:") + thous_sep + "\\d{3})*(?:" + decimal_point + "\\d+)?\\b";
 }
 
-bool parse_string_regexp(std::string &decoded, std::string_view value) {
+bool parse_regexp_token(std::string &decoded, std::string_view value) {
     location current = value.begin() + 1;
     location end = value.end() - 1;
     while (current != end) {

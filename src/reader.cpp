@@ -107,7 +107,7 @@ void reader::exec_command(const command_args &cmd) {
         const auto &var_idx = cmd.get<variable_idx>();
         auto ref = create_ref(var_idx.name,
             var_idx.index, var_idx.range_len);
-        if (var_idx.index == (small_int) -1) {
+        if (var_idx.index == -1) {
             ref.index = ref.size();
         }
         m_refs.push(std::move(ref));
@@ -117,7 +117,7 @@ void reader::exec_command(const command_args &cmd) {
     {
         auto ref = create_ref(cmd.get<std::string>());
         ref.index = m_vars.top().as_int();
-        if (ref.index == (small_int) -1) {
+        if (ref.index == -1) {
             ref.index = ref.size();
         }
         m_vars.pop();
@@ -162,11 +162,8 @@ void reader::exec_command(const command_args &cmd) {
         m_vars.pop();
         m_refs.pop();
         break;
-    case opcode::PUSHVIEW: m_vars.push(m_contents.top().view()); break;
-    case opcode::PUSHBYTE:  m_vars.push(cmd.get<int8_t>()); break;
-    case opcode::PUSHSHORT: m_vars.push(cmd.get<int16_t>()); break;
-    case opcode::PUSHINT:   m_vars.push(cmd.get<int32_t>()); break;
-    case opcode::PUSHDECIMAL: m_vars.push(cmd.get<fixed_point>()); break;
+    case opcode::PUSHVIEW:  m_vars.push(m_contents.top().view()); break;
+    case opcode::PUSHNUM:   m_vars.push(cmd.get<fixed_point>()); break;
     case opcode::PUSHSTR:   m_vars.push(cmd.get<std::string>()); break;
     case opcode::PUSHVAR:
         m_vars.push(m_refs.top().get_value());
