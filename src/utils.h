@@ -7,7 +7,7 @@
 // divide una stringa per separatore
 std::vector<std::string> string_split(const std::string &str, char separator = ',');
 
-// unisce tutte le stringhe in un vettore di stringhe in una
+// unisce tutte le stringhe in un vettore di stringhe
 std::string string_join(const std::vector<std::string> &vec, const std::string &separator = " ");
 
 // sostituisce tutte le occorrenze di una stringa in un'altra, restituisce il numero di valori trovati
@@ -16,13 +16,13 @@ int string_replace(std::string &str, const std::string &from, const std::string 
 // restituisce una copia in minuscolo della stringa di input
 std::string string_tolower(std::string str);
 
-// restituisce una copia in maiuscolo
+// restituisce una copia in maiuscolo della stringa di input
 std::string string_toupper(std::string str);
 
-// elimina gli spazi in eccesso
+// elimina gli spazi in eccesso a inizio e fine stringa
 void string_trim(std::string &str);
 
-// legge tutta la stringa da uno stream
+// legge tutto l'output di uno stream
 std::string read_all(std::istream &stream);
 
 // converte una stringa in int
@@ -31,13 +31,13 @@ int cstoi(std::string_view str, int base = 10);
 // converte una stringa in float 
 double cstof(std::string_view str, int base = 10);
 
-// Converte la stringa data in un numero dato il locale
+// Converte la stringa data in un numero dipendentemente dal locale
 std::string parse_number(const std::string &str);
 
-// Cerca la posizione di str2 in str senza fare differenza tra maiuscole-minuscole
+// Cerca la posizione di str2 in str senza fare differenza tra maiuscole e minuscole
 size_t string_findicase(std::string_view str, std::string_view str2, size_t index);
 
-// Formatta la stringa data
+// Formatta la stringa data, sostituendo $0 in fmt_args[0], $1 in fmt_args[1] e così via
 std::string string_format(std::string str, const std::vector<std::string> &fmt_args);
 
 // converte i vari formati di data in formato yyyy-mm-dd
@@ -61,13 +61,13 @@ std::string search_regex(const std::string &format, std::string_view value, int 
 // rimpiazza in str le occorrenze di format in value
 std::string &string_replace_regex(std::string &value, const std::string &format, const std::string &str);
 
-// trasforma ogni carattere di spazio in " "
+// converte ogni carattere di spazio in " "
 std::string singleline(std::string input);
 
 // parsa una stringa (elimina le virgolette a inizio e fine e legge gli escape)
 bool parse_string(std::string &out, std::string_view value);
 
-// parsa una stringa regexp
+// parsa una stringa regexp (elimina gli slash a inizio e fine e legge gli escape)
 bool parse_string_regexp(std::string &out, std::string_view value);
 
 // sposta il range indicato alla fine del vettore
