@@ -64,6 +64,12 @@ std::string &string_replace_regex(std::string &value, const std::string &format,
 // trasforma ogni carattere di spazio in " "
 std::string singleline(std::string input);
 
+// parsa una stringa (elimina le virgolette a inizio e fine e legge gli escape)
+bool parse_string(std::string &out, std::string_view value);
+
+// parsa una stringa regexp
+bool parse_string_regexp(std::string &out, std::string_view value);
+
 // sposta il range indicato alla fine del vettore
 template<typename T>
 void vector_move_to_end(std::vector<T> &vec, size_t begin, size_t end) {

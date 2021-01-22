@@ -5,7 +5,6 @@
 #include <map>
 
 #include "utils.h"
-#include "parsestr.h"
 #include "fixed_point.h"
 
 bytecode::bytecode(const std::vector<std::string> &lines) {

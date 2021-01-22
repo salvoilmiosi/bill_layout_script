@@ -4,17 +4,17 @@ project(layout_bolletta VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
 
 set(liblayout_SRCS
-src/keywords.cpp
-src/parser.cpp
-src/parsestr.cpp
-src/lexer.cpp
-src/functions.cpp
-src/reader.cpp
-src/variable.cpp
 src/bytecode.cpp
+src/functions.cpp
+src/keywords.cpp
 src/layout.cpp
+src/lexer.cpp
+src/parser.cpp
 src/pdf_document.cpp
+src/reader.cpp
+src/unicode_escapes.cpp
 src/utils.cpp
+src/variable.cpp
 )
 
 find_package(PkgConfig REQUIRED)
