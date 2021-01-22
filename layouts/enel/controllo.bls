@@ -2,14 +2,18 @@
 
 ### Box
 ### Name Controllo Layout
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0000000000
-### Y 0.0000000000
-### W 0.0000000000
-### H 0.0000000000
+### X 0.0564516112
+### Y 0.0957810730
+### W 0.3467741907
+### H 0.0410490297
 ### Script
-$import("enel")
+$if($contains(@,"Enel Servizio Elettrico")) {
+  $import("enel_old")
+} $else {
+  $import("enel")
+}
 ### End Script
 ### End Box

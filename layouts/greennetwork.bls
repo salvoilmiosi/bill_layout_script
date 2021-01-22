@@ -9,9 +9,16 @@
 ### Y 0.8965682387
 ### W 0.4665852189
 ### H 0.1048295125
+### Goto Label convalida
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
-$ifnot($contains(@,"GREEN NETWORK S.p.A.\nSociet\u00e0 a Socio Unico"))
-  $error("Layout Invalido")
+$if($ate()) $error("Green network: Stringa di Convalida Errata")
+$elif(!$contains(@,"GREEN NETWORK S.p.A.\nSociet\u00e0 a Socio Unico")) {
+  ::off_allegati+=1
+  $goto(convalida)
+}
 ### End Script
 ### End Box
 
@@ -38,6 +45,9 @@ fornitore="Green network"
 ### Y 0.1106043309
 ### W 0.3080645204
 ### H 0.0330672748
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 numero_fattura=$search(@,/Fattura n\. (.+) /)
 data_fattura=$date(@,"%d/%m/%Y")
@@ -53,6 +63,9 @@ data_fattura=$date(@,"%d/%m/%Y")
 ### Y 0.1659211218
 ### W 0.2450372279
 ### H 0.0372774303
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 mese_fattura=$month(@,"%B %Y",/Fattura di (%D)/)
 data_scadenza=$date(@,"%d %B %Y",/scadenza (%D)/)
@@ -68,6 +81,9 @@ data_scadenza=$date(@,"%d %B %Y",/scadenza (%D)/)
 ### Y 0.2999015749
 ### W 0.4396818280
 ### H 0.1975914091
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 %spesa_materia_energia=$search(@,/Spesa per la materia energia (%N)/)
 %trasporto_gestione=$search(@,/Spesa per trasporto, gestione contatore e oneri sistema (%N)/)
@@ -84,6 +100,9 @@ data_scadenza=$date(@,"%d %B %Y",/scadenza (%D)/)
 ### Y 0.5435716510
 ### W 0.4606716633
 ### H 0.1007481888
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 ragione_sociale=$search(@,/Ragione sociale: (.+)\n/)
 ### End Script
@@ -98,6 +117,9 @@ ragione_sociale=$search(@,/Ragione sociale: (.+)\n/)
 ### Y 0.0999777466
 ### W 0.5413168073
 ### H 0.1093391180
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 indirizzo_fornitura=$search(@,/Le stiamo fornendo energia elettrica in (.+)\n/)
 numero_cliente=$search(@,/Codice cliente: (%N)/)
@@ -115,6 +137,9 @@ codice_pod=$search(@,/POD: (.+)\n/)
 ### Y 0.7169522047
 ### W 0.1159964651
 ### H 0.0374877453
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 iva=$percent($num(@))
 ### End Script
@@ -129,6 +154,9 @@ iva=$percent($num(@))
 ### Y 0.7161712050
 ### W 0.1159964651
 ### H 0.0390496850
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 %imponibile
 ### End Script
@@ -143,6 +171,9 @@ iva=$percent($num(@))
 ### Y 0.2183870375
 ### W 0.9060928226
 ### H 0.1700713038
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 $tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese_fattura,"%m/%Y")))) {
   $skip()
@@ -167,6 +198,9 @@ $tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese
 ### Y 0.3909431696
 ### W 0.7842165232
 ### H 0.0993647277
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 %accise=$search(@,$format(/$0 \w+ Erariale.+kWh %N \u20ac (%N)/,$date_format(mese_fattura,"%B %Y")))
 ### End Script
@@ -181,6 +215,9 @@ $tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese
 ### Y 0.1330107599
 ### W 0.9153138995
 ### H 0.2722168565
+### Spacers
+p+::off_allegati
+### End Spacers
 ### Script
 _mese=$date_format(mese_fattura,"%m/%Y")
 $with($search(@,/Componente di Generazione.+\n((Dal.+\n)+)/)) {

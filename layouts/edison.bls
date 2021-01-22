@@ -11,7 +11,7 @@
 ### H 0.0228180271
 ### Script
 $if(@ != "ENERGIA ELETTRICA") {
-  $error("Layout Invalido")
+  $error("Edison: Stringa di Convalida Errata")
 }
 ### End Script
 ### End Box

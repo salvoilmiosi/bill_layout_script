@@ -11,7 +11,7 @@
 ### H 0.0248280428
 ### Script
 $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
-  $error("Layout Invalido")
+  $error("Sorgenia: Stringa di Convalida Errata")
 ### End Script
 ### End Box
 
@@ -125,7 +125,7 @@ mese_fattura=$month(@,"%B %Y")
 mese_fine=$month(@,"%B %Y",/%D\/(%D)/)
 mese_fattura=$month_add(mese_fattura,::calc_mese)
 $ifnot($isset(mese_fattura)) {
-  $error("Layout Invalido")
+  $error("Sorgenia: Mese Fattura Mancante")
 }
 ### End Script
 ### End Box

@@ -11,7 +11,7 @@
 ### H 0.0763968080
 ### Script
 $if(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero")
-  $error("Layout Invalido")
+  $error("Axpo: Stringa di Convalida Errata")
 ### End Script
 ### End Box
 

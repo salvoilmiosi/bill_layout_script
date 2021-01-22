@@ -11,7 +11,7 @@
 ### H 0.0444697738
 ### Script
 $ifnot($contains(@,"Enel Energia - Mercato libero dell'energia")) {
-  $error("Layout Invalido")
+  $error("Enel: Stringa di Convalida Errata")
 }
 ### End Script
 ### End Box
@@ -31,7 +31,7 @@ p+::offset_dettaglio
 ### End Spacers
 ### Script
 $if ($ate()) {
-  $error("Layout Invalido")
+  $error("Enel: Dettaglio Mancante")
 } $elif (@ != "DETTAGLIO IMPORTI IN BOLLETTA") {
   ::offset_dettaglio+=1
   $goto(calcolo_offset)

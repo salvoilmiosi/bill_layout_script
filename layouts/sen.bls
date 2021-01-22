@@ -11,7 +11,7 @@
 ### H 0.1044249088
 ### Script
 $ifnot($contains(@,"Servizio di Maggior Tutela"))
-  $error("Layout Invalido")
+  $error("SEN: Stringa di Convalida Errata")
 fornitore="SEN"
 ### End Script
 ### End Box

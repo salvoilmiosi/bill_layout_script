@@ -14,7 +14,7 @@
 p+::off_allegato
 ### End Spacers
 ### Script
-$if($ate()) $error("Layout Invalido")
+$if($ate()) $error("Italpower: Stringa di Convalida Errata")
 $elif(! $contains(@,"FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA")) {
   ::off_allegato+=1
   $goto(convalida)

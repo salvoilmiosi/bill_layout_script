@@ -11,7 +11,6 @@
 ### H 0.0000000000
 ### Script
 $if  ($contains(@,"Axpo Italia SpA")) $import("axpo/controllo")
-$elif($contains(@,"Enel Energia")) $import("enel/controllo")
 $elif($contains(@,"ITALPOWER ENERGIA")) $import("italpower")
 $elif($contains(@,"Sorgenia S.p.A")) $import("sorgenia/controllo")
 $elif($contains(@,"www.lenergia.eu")) $import("lenergia")
@@ -20,6 +19,7 @@ $elif($contains(@,"www.energrid.it")) $import("energrid")
 $elif($contains(@,"GREEN NETWORK S.p.A")) $import("greennetwork")
 $elif($contains(@,"MetaEnergia S.p.A")) $import("metaenergia")
 $elif($contains(@,"Edison Energia SpA")) $import("edison")
+$elif($contains(@,"Enel")) $import("enel/controllo")
 $else $warning("Nessun Layout")
 ### End Script
 ### End Box

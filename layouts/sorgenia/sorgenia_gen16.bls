@@ -11,7 +11,7 @@
 ### H 0.0326983705
 ### Script
 $if(@ != "Servizio di fornitura energia elettrica") {
-  $error("Layout Invalido")
+  $error("Sorgenia (gen16): Stringa di Convalida Errata")
 }
 ### End Script
 ### End Box
