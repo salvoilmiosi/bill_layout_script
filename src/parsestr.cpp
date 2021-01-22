@@ -1,6 +1,8 @@
 #include "parsestr.h"
 #include "utils.h"
 
+#include <wx/intl.h>
+
 typedef std::string_view::iterator location;
 
 // borrowed from jsoncpp source code
@@ -122,6 +124,20 @@ bool parse_string(std::string &decoded, std::string_view value) {
     return true;
 }
 
+static std::string get_number_regex() {
+    static std::string number_regex;
+    if (!number_regex.empty()) return number_regex;
+
+    std::string thous_sep = wxLocale::GetInfo(wxLOCALE_THOUSANDS_SEP, wxLOCALE_CAT_NUMBER).ToStdString();
+    string_replace(thous_sep, ".", "\\.");
+    
+    std::string decimal_point = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER).ToStdString();
+    string_replace(decimal_point, ".", "\\.");
+
+    // I regex di C++11 non supportano i lookbehind, -?\b dovrebbe essere (?<!\S)
+    return number_regex = std::string("-?\\b\\d{1,3}(?:") + thous_sep + "\\d{3})*(?:" + decimal_point + "\\d+)?\\b";
+}
+
 bool parse_string_regexp(std::string &decoded, std::string_view value) {
     location current = value.begin() + 1;
     location end = value.end() - 1;
@@ -165,6 +181,6 @@ bool parse_string_regexp(std::string &decoded, std::string_view value) {
     }
     
     string_replace(decoded, " ", "\\s+");
-    string_replace(decoded, "%N", "[0-9\\.,-]+");
+    string_replace(decoded, "%N", get_number_regex());
     return true;
 }

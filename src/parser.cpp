@@ -465,7 +465,7 @@ void parser::read_date_fun(const std::string &fun_name) {
         string_replace(date_regex, "%y", "\\d{2}");
         string_replace(date_regex, "%Y", "\\d{4}");
 
-        string_replace(regex, "%D", date_regex);
+        string_replace(regex, "%D", "\\b" + date_regex + "\\b");
         add_line("PUSHSTR {}", regex);
         if (idx >= 0) {
             add_line("PUSHNUM {}", idx);
