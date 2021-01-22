@@ -90,7 +90,7 @@ $ifnot($ate()) {
 ### H 0.0615735427
 ### Goto Label nome_fornitore
 ### Script
-fornitore="SEN"
+fornitore=$coalesce(::fornitore,"SEN")
 ### End Script
 ### End Box
 
@@ -187,6 +187,9 @@ iva=$search(@,/IVA.* (\d+%)/)
 ### H 0.0359257124
 ### Script
 %totale_fattura=$search(@,/(%N)/)
+$ifnot($isset(totale_fattura)) {
+  $error("SEN: Storno")
+}
 data_scadenza=$date(@,"%d.%m.%Y",/Entro il (%D)/)
 ### End Script
 ### End Box
@@ -206,23 +209,22 @@ ragione_sociale
 ### End Box
 
 ### Box
-### Name Consumi Rilevati
+### Name Consumi rilevati
 ### Type PAGE
-### Mode LAYOUT
+### Mode RAW
 ### Page 2
-### X 0.0393596366
-### Y 0.2254814655
-### W 0.6868947148
-### H 0.0951694250
+### X 0.0504032299
+### Y 0.3696907163
+### W 0.6628024578
+### H 0.0489951558
 ### Script
-$if($contains(@,"Energia attiva")) {
-  $tokens($search(@,$format(/\d\d\/$0 (%N %N %N)/,$date_format(mese_fattura,"%m/%Y")))) {
+$if(0)
+$between("Consumi rilevati", "INFORMAZIONI PER I CLIENTI") {
+  $tokens($search(@,$format(/al \d\d\.$0 (.+)\n/,$date_format(mese_fattura,"%m.%Y")))) {
     %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
-  }
-}
-$if($contains(@,"Energia reattiva")) {
-  $tokens($search(@,$format(/\d\d\/$0 %N %N %N (%N %N %N)/,$date_format(mese_fattura,"%m/%Y")))) {
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
+    $skip() $skip() $skip()
+    %potenza[0] %potenza[1] %potenza[2]
   }
 }
 ### End Script
@@ -246,8 +248,7 @@ $with(::_dettaglio) {
     $lines($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
       %spesa_materia_energia+=$search(@,/(%N)$/)
     }
-    $with($search(@,/(In F1 dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0[^]+?)(dal|Totale|$)/,_mese_abbr)) {
-      #$warning(@)
+    $with($search(@,$format(/(In F1 dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0 [^]+)(dal|Totale|$)/,_mese_abbr))) {   
       $tokens($search(@,/F1.+\/kWh (%N kWh %N)/)) {
         %prezzo_energia[0] $skip() %energia_attiva[0]
       }
@@ -259,13 +260,12 @@ $with(::_dettaglio) {
       }
     }
   }
-  $between("SPESA PER IL TRASPORTO E LA GESTIONE","TOTALE SPESA PER IL TRASPORTO") {
-    #$warning(@)
+  $between("SPESA PER IL TRASPORTO","TOTALE SPESA PER IL TRASPORTO") {
     $lines($searchall(@,$format(/$0[^]+?mesi %N (%N)/,_mese_full))) %trasporto_gestione+
     $lines($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
       %trasporto_gestione+=$search(@,/(%N)$/)
     }
-    %potenza[0:3]=$search(@,/QUOTA POTENZA\n$0[^]kW (%N) mesi %N/)
+    %potenza[0:3]=$search(@,$format(/QUOTA POTENZA\n$0.+ kW (%N) mesi %N/,_mese_full))
   }
   $between("SPESA PER ONERI DI SISTEMA","TOTALE SPESA PER ONERI") {
     $lines($searchall(@,$format(/$0[^]+?mesi %N (%N)/,_mese_full))) %oneri+

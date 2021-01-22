@@ -11,7 +11,8 @@
 ### H 0.0410490297
 ### Script
 $if($contains(@,"Enel Servizio Elettrico")) {
-  $import("enel_old")
+  ::fornitore="Enel Energia"
+  $import("sen")
 } $else {
   $import("enel")
 }

@@ -187,6 +187,23 @@ p+::off_allegati
 ### End Box
 
 ### Box
+### Name Potenza Impegnata
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 1
+### X 0.6573299766
+### Y 0.6641179323
+### W 0.2675261796
+### H 0.1249356866
+### Spacers
+p+::off_allegati
+### End Spacers
+### Script
+%potenza[0:3]=$search(@,/Potenza impegnata: (%N)/)
+### End Script
+### End Box
+
+### Box
 ### Name Energia Attiva
 ### Type RECTANGLE
 ### Mode LAYOUT
@@ -312,22 +329,5 @@ $if($isset(mese_fine)) {
     $goto(nome_fornitore)
   }
 }
-### End Script
-### End Box
-
-### Box
-### Name Potenza Impegnata
-### Type RECTANGLE
-### Mode LAYOUT
-### Page 1
-### X 0.6573299766
-### Y 0.6641179323
-### W 0.2675261796
-### H 0.1249356866
-### Spacers
-p+::off_allegati
-### End Spacers
-### Script
-%potenza[0:3]=$search(@,/Potenza impegnata: (%N)/)
 ### End Script
 ### End Box
