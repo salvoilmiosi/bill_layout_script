@@ -181,23 +181,25 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
 void frame_editor::openFile(const wxString &filename) {
     try {
         layout = bill_layout_script::from_file(filename.ToStdString());
+
+        modified = false;
+        history.clear();
+        updateLayout();
+
+        wxString abs_path = std::filesystem::canonical(layout.m_filename).string();
+        
+        auto it = std::find(recentFiles.begin(), recentFiles.end(), abs_path);
+        if (it != recentFiles.end()) {
+            recentFiles.erase(it);
+        }
+        recentFiles.push_front(abs_path);
+        if (recentFiles.size() > MAX_RECENT_FILES_HISTORY) {
+            recentFiles.pop_back();
+        }
+        updateRecentFiles(true);
     } catch (const layout_error &error) {
         wxMessageBox("Impossibile aprire questo file", "Errore", wxOK | wxICON_ERROR);
-        return;
     }
-    modified = false;
-    history.clear();
-    updateLayout();
-    
-    auto it = std::find(recentFiles.begin(), recentFiles.end(), filename);
-    if (it != recentFiles.end()) {
-        recentFiles.erase(it);
-    }
-    recentFiles.push_front(filename);
-    if (recentFiles.size() > MAX_RECENT_FILES_HISTORY) {
-        recentFiles.pop_back();
-    }
-    updateRecentFiles(true);
 }
 
 bool frame_editor::save(bool saveAs) {
@@ -311,12 +313,14 @@ void frame_editor::loadPdf(const wxString &filename) {
             m_page->Append(wxString::Format("%i", i));
         }
         setSelectedPage(1, true);
+
+        wxString abs_path = std::filesystem::canonical(m_doc.filename()).string();
         
-        auto it = std::find(recentPdfs.begin(), recentPdfs.end(), wxString(m_doc.filename()));
+        auto it = std::find(recentPdfs.begin(), recentPdfs.end(), abs_path);
         if (it != recentPdfs.end()) {
             recentPdfs.erase(it);
         }
-        recentPdfs.push_front(m_doc.filename());
+        recentPdfs.push_front(abs_path);
         if (recentPdfs.size() > MAX_RECENT_PDFS_HISTORY) {
             recentPdfs.pop_back();
         }

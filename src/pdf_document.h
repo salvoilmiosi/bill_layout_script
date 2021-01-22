@@ -40,7 +40,7 @@ public:
 
     std::string get_text(const pdf_rect &rect) const;
 
-    const std::string &filename() const { return m_filename; }
+    const std::filesystem::path &filename() const { return m_filename; }
     int num_pages() const { return m_pages.size(); }
 
     const poppler::page &get_page(int page) const {
@@ -48,7 +48,7 @@ public:
     }
     
 private:
-    std::string m_filename;
+    std::filesystem::path m_filename;
 
     std::unique_ptr<poppler::document> m_document;
     std::vector<std::unique_ptr<poppler::page>> m_pages;
