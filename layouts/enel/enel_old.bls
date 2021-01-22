@@ -1,0 +1,305 @@
+### Bill Layout Script
+
+### Box
+### Name Convalida Layout
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.0338709690
+### Y 0.0969213247
+### W 0.3645161390
+### H 0.0444697738
+### Script
+$ifnot($contains(@,"Enel Servizio Elettrico - Servizio di Maggior Tutela")) {
+  $error("Enel (old): Stringa di Convalida Errata")
+}
+### End Script
+### End Box
+
+### Box
+### Name Calcolo Offset Dettaglio
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 3
+### X 0.0546076149
+### Y 0.2164184749
+### W 0.3343101740
+### H 0.0281837285
+### Goto Label calcolo_offset
+### Spacers
+p+::offset_dettaglio
+### End Spacers
+### Script
+$if ($ate()) {
+  $error("Enel (old): Dettaglio Mancante")
+} $elif (@ != "DETTAGLIO IMPORTI BOLLETTA") {
+  ::offset_dettaglio+=1
+  $goto(calcolo_offset)
+}
+### End Script
+### End Box
+
+### Box
+### Name Contenuto Dettaglio Costi
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 3
+### X 0.0481976345
+### Y 0.2155074179
+### W 0.6294624209
+### H 0.7604700327
+### Goto Label dettaglio_costi
+### Spacers
+p+::offset_dettaglio y-::spacer_dettaglio h+::spacer_dettaglio
+### End Spacers
+### Script
+::_dettaglio+=@
+::_dettaglio+="\n"
+### End Script
+### End Box
+
+### Box
+### Name Spacer prima pagina dettaglio
+### Type NOREAD
+### Mode DEFAULT
+### Page 3
+### X 0.0483481064
+### Y 0.0057012541
+### W 0.0322320722
+### H 0.2098061591
+### Spacers
+p+::offset_dettaglio
+### End Spacers
+### Script
+::spacer_dettaglio=$boxheight()
+$ifnot($ate()) {
+  ::offset_dettaglio+=1
+  $goto(dettaglio_costi)
+}
+### End Script
+### End Box
+
+### Box
+### Name Nome Fornitore
+### Type NOREAD
+### Mode DEFAULT
+### Page 1
+### X 0.0387096778
+### Y 0.0307867732
+### W 0.2209677398
+### H 0.0615735427
+### Goto Label nome_fornitore
+### Script
+fornitore="Enel Energia"
+### End Script
+### End Box
+
+### Box
+### Name Dati Fornitura
+### Type RECTANGLE
+### Mode RAW
+### Page 1
+### X 0.0526881739
+### Y 0.1687362939
+### W 0.4532773495
+### H 0.1702149659
+### Script
+indirizzo_fornitura=$search($singleline(@),/Forniamo energia in (.+) Denominazione/)
+%potenza[0:3]=$coalesce(
+  $search(@,/Potenza contrattualmente impegnata (%N)/),
+  $search(@,/Livello massimo di potenza (%N)/))
+### End Script
+### End Box
+
+### Box
+### Name N. Cliente / POD
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.0552364103
+### Y 0.3412942588
+### W 0.2198409140
+### H 0.1038721651
+### Script
+numero_cliente=$search(@,/N\u00b0 CLIENTE (.+)/)
+codice_pod=$search(@,/CODICE POD (.+)/)
+### End Script
+### End Box
+
+### Box
+### Name Dati Bolletta
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.3004860878
+### Y 0.3623810709
+### W 0.1977463514
+### H 0.0437356494
+### Script
+numero_fattura=$search(@,/N\. Fattura (.+)/)
+data_fattura=$date(@,"%d.%m.%Y",/Del (%D)/)
+### End Script
+### End Box
+
+### Box
+### Name Periodo
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.2982766330
+### Y 0.4100216925
+### W 0.2026721537
+### H 0.0407127738
+### Script
+mese_fattura=$month(@,"%b.%Y")
+mese_fine=$month(@,"%b.%Y",/%D - (%D)/)
+$if($isset(mese_fine)) {
+  mese_fattura=$month_add(mese_fattura,::calc_mese)
+  ::calc_mese+=1
+}
+_mese=$date_format(mese_fattura,"%m/%y")
+### End Script
+### End Box
+
+### Box
+### Name Dettaglio Fiscale
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 1
+### X 0.0504308417
+### Y 0.6717092991
+### W 0.6890491247
+### H 0.2975039482
+### Script
+%cts=$search(@,/CORRISPETTIVO TARIFFARIO SPECIFICO.+ (%N)/)
+iva=$search(@,/IVA.* (\d+%)/)
+### End Script
+### End Box
+
+### Box
+### Name Totale Fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.5190663338
+### Y 0.3686198592
+### W 0.2176314592
+### H 0.0359257124
+### Script
+%totale_fattura=$search(@,/(%N)/)
+data_scadenza=$date(@,"%d.%m.%Y",/Entro il (%D)/)
+### End Script
+### End Box
+
+### Box
+### Name Ragione sociale
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.5160627365
+### Y 0.1972165257
+### W 0.3977021575
+### H 0.0312397480
+### Script
+ragione_sociale
+### End Script
+### End Box
+
+### Box
+### Name Consumi Rilevati
+### Type PAGE
+### Mode LAYOUT
+### Page 2
+### X 0.0393596366
+### Y 0.2254814655
+### W 0.6868947148
+### H 0.0951694250
+### Script
+$if($contains(@,"Energia attiva")) {
+  $tokens($search(@,$format(/\d\d\/$0 (%N %N %N)/,$date_format(mese_fattura,"%m/%Y")))) {
+    %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
+  }
+}
+$if($contains(@,"Energia reattiva")) {
+  $tokens($search(@,$format(/\d\d\/$0 %N %N %N (%N %N %N)/,$date_format(mese_fattura,"%m/%Y")))) {
+    %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
+  }
+}
+### End Script
+### End Box
+
+### Box
+### Name Parse Dettaglio Costi
+### Type NOREAD
+### Mode DEFAULT
+### Page 3
+### X 0.0903737992
+### Y 0.0063137496
+### W 0.0530589223
+### H 0.0347352810
+### Script
+_mese_full=$date_format(mese_fattura,"%B %Y")
+_mese_abbr=$date_format(mese_fattura,"%m/%Y")
+$with(::_dettaglio) {
+  $between("SPESA PER LA MATERIA ENERGIA","TOTALE SPESA PER LA MATERIA ENERGIA") {
+    $lines($searchall(@,$format(/$0[^]+?mesi %N (%N)/,_mese_full))) %spesa_materia_energia+
+    $lines($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
+      %spesa_materia_energia+=$search(@,/(%N)$/)
+    }
+    $with($search(@,/(In F1 dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0[^]+?)(dal|Totale|$)/,_mese_abbr)) {
+      #$warning(@)
+      $tokens($search(@,/F1.+\/kWh (%N kWh %N)/)) {
+        %prezzo_energia[0] $skip() %energia_attiva[0]
+      }
+      $tokens($search(@,/F2.+\/kWh (%N kWh %N)/)) {
+        %prezzo_energia[1] $skip() %energia_attiva[1]
+      }
+      $tokens($search(@,/F3.+\/kWh (%N kWh %N)/)) {
+        %prezzo_energia[2] $skip() %energia_attiva[2]
+      }
+    }
+  }
+  $between("SPESA PER IL TRASPORTO E LA GESTIONE","TOTALE SPESA PER IL TRASPORTO") {
+    #$warning(@)
+    $lines($searchall(@,$format(/$0[^]+?mesi %N (%N)/,_mese_full))) %trasporto_gestione+
+    $lines($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
+      %trasporto_gestione+=$search(@,/(%N)$/)
+    }
+    %potenza[0:3]=$search(@,/QUOTA POTENZA\n$0[^]kW (%N) mesi %N/)
+  }
+  $between("SPESA PER ONERI DI SISTEMA","TOTALE SPESA PER ONERI") {
+    $lines($searchall(@,$format(/$0[^]+?mesi %N (%N)/,_mese_full))) %oneri+
+    $lines($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
+      %oneri+=$search(@,/(%N)$/)
+    }
+  }
+  $between("IMPOSTE ED IVA","TOTALE IMPOSTE ED IVA") {
+    iva=$search(@,/IVA (%N%)/)
+    $with($search(@,/ACCISA SULL'ENERGIA ELETTRICA\n((dal.+\n)+)/)) {
+      %accise=$search(@,$format(/al \d\d\/$0.+ (%N)/,_mese_abbr))
+    }
+  }
+  %altre_partite=$search(@,/TOTALE ALTRE PARTITE SOGGETTE IVA (%N)/)
+  imponibile=spesa_materia_energia + trasporto_gestione + oneri + altre_partite + accise
+}
+### End Script
+### End Box
+
+### Box
+### Name Prossima pagina
+### Type NOREAD
+### Mode DEFAULT
+### Page 3
+### X 0.1507133543
+### Y 0.0089094304
+### W 0.0419016927
+### H 0.0285062715
+### Script
+$if ($isset(mese_fine)) {
+  $if (mese_fattura != mese_fine) {
+    $nexttable()
+    $goto(nome_fornitore)
+  }
+}
+### End Script
+### End Box

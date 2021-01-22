@@ -1,15 +1,248 @@
 ### Bill Layout Script
 
 ### Box
-### Name Controllo Layout
+### Name Convalida Layout
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.1173020527
+### Y 0.1658546627
+### W 0.2580645084
+### H 0.0445734411
+### Goto Label convalida
+### Script
+$ifnot($contains(@,"www.energrid.it")) {
+  $error("EnerGrid: Stringa di Convalida Errata")
+}
+### End Script
+### End Box
+
+### Box
+### Name Nome Fornitore
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
-### X 0.0000000000
-### Y 0.0000000000
-### W 0.0000000000
-### H 0.0000000000
+### X 0.0528364889
+### Y 0.0157275982
+### W 0.1223581806
+### H 0.0943655893
+### Goto Label nome_fornitore
 ### Script
-fornitore="Energrid"
+fornitore="EnerGrid"
+### End Script
+### End Box
+
+### Box
+### Name Dati Cliente
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.6539589167
+### Y 0.0238416083
+### W 0.3211143613
+### H 0.1140250862
+### Script
+numero_cliente=$search(@,/CODICE CLIENTE: (.+)/)
+ragione_sociale=$singleline($search(@,/Intestatario contratto: ([^]+)\nCod\. Fiscale/))
+### End Script
+### End Box
+
+### Box
+### Name Numero Fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### X 0.1334310919
+### Y 0.3068311214
+### W 0.6979472041
+### H 0.0435368493
+### Script
+numero_fattura=$search(@,/Fattura Energia n\u00b0 ([0-9]+)/)
+data_fattura=$date(@,"%d/%m/%Y",/del (%D)/)
+### End Script
+### End Box
+
+### Box
+### Name Dati Fattura
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 1
+### X 0.0351906121
+### Y 0.3490204215
+### W 0.2302052826
+### H 0.4525759220
+### Script
+data_scadenza=$date(@,"%d/%m/%Y",/Scadenza fattura: (%D)/)
+
+mese_fattura=$month(@,"%d/%m/%Y",/%D - (%D)/)
+$ifnot($isset(mese_fattura)) {
+  $error("EnerGrid: Mese Fattura Mancante")
+}
+_mese=$date_format(mese_fattura,"%m/%Y")
+### End Script
+### End Box
+
+### Box
+### Name Riepologo Importi
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 1
+### X 0.2672123015
+### Y 0.3500570059
+### W 0.6901191473
+### H 0.4515393376
+### Script
+%totale_fattura=$search(@,/TOTALE DELLA FATTURA (%N)/)
+codice_pod=$search(@,/POD: (.+)/)
+### End Script
+### End Box
+
+### Box
+### Name Dati Fornitura
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### X 0.5204133391
+### Y 0.1037628278
+### W 0.4366549850
+### H 0.2146468461
+### Spacers
+p+::off_pod
+### End Spacers
+### Script
+indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura: ([^]+?) POD/))
+codice_pod=$search(@,/POD (\(punto di prelievo\)|:) (.+)/,2)
+%potenza[0:3]=$search(@,/Potenza contrattuale: (%N) kW/)
+### End Script
+### End Box
+
+### Box
+### Name Dati Fornitura
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### X 0.0415826738
+### Y 0.1028720066
+### W 0.4725302160
+### H 0.2146468461
+### Spacers
+p+::off_pod
+### End Spacers
+### Script
+indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura: ([^]+?)\nDescrizione/))
+### End Script
+### End Box
+
+### Box
+### Name Storico Consumi / Imposte
+### Type PAGE
+### Mode LAYOUT
+### Page 2
+### X 0.0438804552
+### Y 0.5927153230
+### W 0.9120019078
+### H 0.2320006490
+### Spacers
+p+::off_pod
+### End Spacers
+### Script
+$between("RIEPILOGO CONSUMI PRIMO ADDEBITO","TOTALE (Salvo conguagli, errori e omissioni)") {
+  $tokens($search(@,$format(/\d\d\/$0 Consumi Fatturati (%N %N %N %N %N %N %N)/,_mese))) {
+    %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2] $skip()
+    %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
+  }
+}
+$between("DETTAGLIO IMPOSTE","TOTALE (Salvo conguagli, errori e omissioni)") {
+  %accise=$search(@,$format(/Imposta erariale.+ al \d\d\/$0 Euro\/kWh %N %N (%N)/,_mese))
+  iva=$percent($search(@,/(%N) %/))
+}
+### End Script
+### End Box
+
+### Box
+### Name Cerca Dettaglio
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 3
+### X 0.0354838707
+### Y 0.0262257699
+### W 0.9274193645
+### H 0.0992018208
+### Goto Label cerca_dettaglio
+### Spacers
+p+_off_dettaglio
+### End Spacers
+### Script
+$if($ate()) $error("EnerGrid: Dettaglio Mancante")
+_pod_dettaglio=$search(@,/POD: (.+)/)
+$if(_pod_dettaglio!=codice_pod) {
+  _off_dettaglio+=1
+  $goto(cerca_dettaglio)
+}
+### End Script
+### End Box
+
+### Box
+### Name Dettaglio Importi
+### Type PAGE
+### Mode LAYOUT
+### Page 3
+### X 0.3419354558
+### Y 0.1288483441
+### W 0.0483870991
+### H 0.0319270343
+### Spacers
+p+_off_dettaglio
+### End Spacers
+### Script
+$between("DETTAGLIO IMPORTI PRIMO ADDEBITO","TOTALE (Salvo conguagli, errori e omissioni)") {
+  $between("Spese per la materia energia","Spese per trasporto") {
+    %spesa_materia_energia=$search(@,/(%N)/)
+    $tokens($search(@,$format(/Componente di Generazione fascia F1 .+ al \d\d\/$0 Euro\/kWh (%N %N)/,_mese))) {
+      %prezzo_energia[0] %energia_attiva[0]
+    }
+    $tokens($search(@,$format(/Componente di Generazione fascia F2 .+ al \d\d\/$0 Euro\/kWh (%N %N)/,_mese))) {
+      %prezzo_energia[1] %energia_attiva[1]
+    }
+    $tokens($search(@,$format(/Componente di Generazione fascia F3 .+ al \d\d\/$0 Euro\/kWh (%N %N)/,_mese))) {
+      %prezzo_energia[2] %energia_attiva[2]
+    }
+  }
+  $between("Spese per trasporto","Spese per oneri") {
+    %trasporto_gestione=$search(@,/(%N)/)
+    $lines($searchall(@,$format(/Energia Reattiva tra il \d\d e il 75% fascia F[1-3] .+ al \d\d\/$0 Euro\/kvarh %N %N (%N)/,_mese))) %penale_reattiva_inf75+
+    $lines($searchall(@,$format(/Energia Reattiva oltre il 75% fascia F[1-3] .+ al \d\d\/$0 Euro\/kvarh %N %N (%N)/,_mese))) %penale_reattiva_sup75+
+  }
+  $newview {
+    $setbegin($indexof(@,"Spese per oneri"))
+    %oneri=$search(@,/(%N)/)
+  }
+}
+### End Script
+### End Box
+
+### Box
+### Name Prossima Pagina
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 3
+### X 0.0177419353
+### Y 0.0342075266
+### W 0.3177419305
+### H 0.1550741196
+### Goto Label check_pagina
+### Spacers
+p+::off_pod
+### End Spacers
+### Script
+$ifnot($ate() || $contains(@,"INFORMAZIONI AI CLIENTI")) {
+  ::off_pod+=1
+  $if($contains(@,"DATI FORNITURA")) {
+    $nexttable()
+    $goto(nome_fornitore)
+  } $else {
+    $goto(check_pagina)
+  }
+}
 ### End Script
 ### End Box
