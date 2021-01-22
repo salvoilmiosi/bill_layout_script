@@ -21,24 +21,6 @@ static void add_to(wxSizer *sizer, wxWindow *first, Ts * ... others) {
     }
 }
 
-ReaderOutputDialog::ReaderOutputDialog(wxWindow *parent) :
-    wxDialog(parent, wxID_ANY, "Risultato Lettura", wxDefaultPosition, wxSize(400, 400), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
-{
-    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-
-    m_text = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
-    m_text->SetEditable(false);
-
-    sizer->Add(m_text, 1, wxEXPAND | wxALL, 5);
-    SetSizer(sizer);
-}
-
-void ReaderOutputDialog::ShowText(const wxString &str) {
-    m_text->SetValue(str);
-    SetPosition(GetParent()->GetPosition() + wxPoint(GetParent()->GetSize().GetX(), 0));
-    Show();
-}
-
 box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     wxDialog(parent, wxID_ANY, "Modifica Rettangolo", wxDefaultPosition, wxSize(700, 500), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), box(box), app(parent)
 {
@@ -105,7 +87,7 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     SetSizer(top_level);
     Show();
 
-    reader_output = new ReaderOutputDialog(this);
+    reader_output = new TextDialog(this, "Risultato Lettura");
 }
 
 BEGIN_EVENT_TABLE(box_dialog, wxDialog)

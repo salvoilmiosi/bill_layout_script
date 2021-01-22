@@ -6,16 +6,8 @@
 #include <wx/stc/stc.h>
 #include <wx/choice.h>
 
+#include "text_dialog.h"
 #include "layout.h"
-class ReaderOutputDialog : public wxDialog {
-public:
-    ReaderOutputDialog(wxWindow *parent);
-
-    void ShowText(const wxString &str);
-
-private:
-    wxTextCtrl *m_text;
-};
 
 class box_dialog : public wxDialog {
 public:
@@ -41,7 +33,7 @@ private:
     wxTextCtrl *m_box_spacers;
     wxTextCtrl *m_box_goto_label;
     wxStyledTextCtrl *m_box_script;
-    ReaderOutputDialog *reader_output;
+    TextDialog *reader_output;
     wxChoice *m_box_type;
     wxChoice *m_box_mode;
 

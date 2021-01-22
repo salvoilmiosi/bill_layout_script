@@ -8,6 +8,7 @@
 
 #include "editor.h"
 #include "reader.h"
+#include "text_dialog.h"
 
 class output_dialog;
 
@@ -44,13 +45,15 @@ private:
 
     reader_thread *m_thread = nullptr;
     reader_output m_output;
+    
+    TextDialog *error_dialog;
 
     void OnUpdate(wxCommandEvent &evt);
     void OnClickUpdate(wxCommandEvent &evt);
     void OnClickAbort(wxCommandEvent &evt);
 
     void OnReadCompleted(wxCommandEvent &evt);
-    void OnCompileError(wxCommandEvent &evt);
+    void OnLayoutError(wxCommandEvent &evt);
     void updateItems();
 
     DECLARE_EVENT_TABLE()

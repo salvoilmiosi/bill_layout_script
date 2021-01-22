@@ -9,7 +9,6 @@
 
 #include "layout_ext.h"
 #include "clipboard.h"
-#include "compile_error_diag.h"
 #include "box_editor_panel.h"
 #include "box_dialog.h"
 #include "output_dialog.h"

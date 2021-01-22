@@ -5,11 +5,10 @@
 
 #include "resources.h"
 #include "editor.h"
-#include "compile_error_diag.h"
-#include "utils.h"
 
 #include "parser.h"
 #include "reader.h"
+#include "utils.h"
 
 enum {
     CTL_DEBUG,
@@ -19,7 +18,7 @@ enum {
 };
 
 wxDEFINE_EVENT(wxEVT_COMMAND_READ_COMPLETE, wxThreadEvent);
-wxDEFINE_EVENT(wxEVT_COMMAND_COMPILE_ERROR, wxThreadEvent);
+wxDEFINE_EVENT(wxEVT_COMMAND_LAYOUT_ERROR, wxThreadEvent);
 BEGIN_EVENT_TABLE(output_dialog, wxDialog)
     EVT_MENU(TOOL_UPDATE, output_dialog::OnClickUpdate)
     EVT_MENU(TOOL_ABORT, output_dialog::OnClickAbort)
@@ -27,7 +26,7 @@ BEGIN_EVENT_TABLE(output_dialog, wxDialog)
     EVT_COMBOBOX (CTL_OUTPUT_PAGE, output_dialog::OnUpdate)
     EVT_TEXT_ENTER (CTL_OUTPUT_PAGE, output_dialog::OnUpdate)
     EVT_COMMAND(wxID_ANY, wxEVT_COMMAND_READ_COMPLETE, output_dialog::OnReadCompleted)
-    EVT_COMMAND(wxID_ANY, wxEVT_COMMAND_COMPILE_ERROR, output_dialog::OnCompileError)
+    EVT_COMMAND(wxID_ANY, wxEVT_COMMAND_LAYOUT_ERROR, output_dialog::OnLayoutError)
 END_EVENT_TABLE()
 
 DECLARE_RESOURCE(tool_reload_png)
@@ -68,6 +67,8 @@ output_dialog::output_dialog(frame_editor *parent) :
     sizer->Add(ok, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
 
     SetSizerAndFit(sizer);
+
+    error_dialog = new TextDialog(this, "Errore di Layout");
 }
 
 void output_dialog::OnClickUpdate(wxCommandEvent &) {
@@ -88,19 +89,25 @@ reader_thread::~reader_thread() {
 
 wxThread::ExitCode reader_thread::Entry() {
     try {
-        bill_layout_script layout_copy;
+        bill_layout_script layout_copy = layout;
         if (layout_copy.m_filename.empty()) {
             layout_copy.m_filename = parent->parent->getControlScript().ToStdString();
         }
-        m_reader.add_layout(std::move(layout));
+        m_reader.add_layout(std::move(layout_copy));
         m_reader.start();
         if (!m_aborted) {
             parent->m_output = m_reader.get_output();
             wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
+
+            if (!parent->m_output.warnings.empty()) {
+                auto *evt = new wxThreadEvent(wxEVT_COMMAND_LAYOUT_ERROR);
+                evt->SetString(string_join(parent->m_output.warnings, "\n\n"));
+                wxQueueEvent(parent, evt);
+            }
             return (wxThread::ExitCode) 0;
         }
     } catch (const std::exception &error) {
-        auto *evt = new wxThreadEvent(wxEVT_COMMAND_COMPILE_ERROR);
+        auto *evt = new wxThreadEvent(wxEVT_COMMAND_LAYOUT_ERROR);
         evt->SetString(wxString(error.what(), wxConvUTF8));
         wxQueueEvent(parent, evt);
     }
@@ -127,8 +134,8 @@ void output_dialog::compileAndRead() {
     }
 }
 
-void output_dialog::OnCompileError(wxCommandEvent &evt) {
-    CompileErrorDialog(this, evt.GetString()).ShowModal();
+void output_dialog::OnLayoutError(wxCommandEvent &evt) {
+    error_dialog->ShowText(evt.GetString());
 }
 
 void output_dialog::OnReadCompleted(wxCommandEvent &evt) {
