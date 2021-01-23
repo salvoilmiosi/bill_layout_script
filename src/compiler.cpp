@@ -89,7 +89,7 @@ int MainApp::OnRun() {
             case opcode::SELVAR:
             {
                 auto args = line.get<variable_idx>();
-                std::cout << ' ' << args.name << ' ' << int(args.index) << ' ' << int(args.range_len);
+                std::cout << ' ' << args.name << ' ' << int(args.index) << ':' << int(args.range_len);
                 break;
             }
             case opcode::SELVARTOP:
