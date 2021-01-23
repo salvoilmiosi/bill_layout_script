@@ -8,11 +8,8 @@
 
 #define OPCODES { \
     O(NOP),         /* no operation */ \
-    O(RDBOX),       /* byte mode, byte page, string spacers, float x, float y, float w, float h -- pdftotext -> content_stack */ \
-    O(RDPAGE),      /* byte mode, byte page, string spacers -- pdftotext -> content_stack */ \
-    O(RDFILE),      /* byte mode -- pdftotext -> content_stack */ \
+    O(RDBOX),       /* pdf_rect -- poppler.get_text -> content_stack */ \
     O(MVBOX),       /* byte index -- var_stack -> spacer[index] */ \
-    O(SETPAGE),     /* byte page -- m_ate = page > num pdf pages */ \
     O(CALL),        /* string fun_name, byte numargs -- var_stack * numargs -> fun_name -> var_stack */ \
     O(THROWERR),    /* var_stack -> throw */ \
     O(ADDWARNING),  /* var_stack -> warnings */ \
@@ -80,9 +77,6 @@ static const char *opcode_names[] = OPCODES;
 
 typedef int8_t small_int;
 typedef int16_t jump_address; // indirizzo relativo
-typedef uint16_t string_size;
-
-constexpr int32_t MAGIC = 0xb011377a;
 
 struct command_call {
     std::string name;
@@ -99,12 +93,8 @@ enum class spacer_index: uint8_t {
 
 struct variable_idx {
     std::string name;
-    small_int index = 0;
-    small_int range_len = 1;
-
-    variable_idx() = default;
-    variable_idx(const std::string &name, small_int index, small_int range_len = 1) :
-        name(name), index(index), range_len(range_len) {}
+    small_int index;
+    small_int range_len;
 };
 
 class command_args {
@@ -125,16 +115,14 @@ public:
     template<typename T> T get() const {
         return std::any_cast<T>(m_data);
     }
+
+    template<typename T> void set(T &&data) {
+        m_data = std::forward<T>(data);
+    }
 };
 
-struct assembly_error : std::runtime_error {
-    assembly_error(const std::string &message) : std::runtime_error(message) {}
-};
+using bytecode = std::vector<command_args>;
 
-struct bytecode : std::vector<command_args> {
-    bytecode() = default;
-    
-    explicit bytecode(const std::vector<std::string> &lines);
-};
+std::ostream &operator << (std::ostream &out, const bytecode &code);
 
 #endif

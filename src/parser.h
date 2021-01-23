@@ -42,12 +42,8 @@ public:
 
     void read_layout(const bill_layout_script &layout);
 
-    const auto &get_lines() {
-        return m_lines;
-    }
-
-    auto get_bytecode() {
-        return bytecode(m_lines);
+    const auto &get_bytecode() {
+        return m_code;
     }
 
 private:
@@ -65,14 +61,18 @@ private:
     int read_variable(bool read_only = false);
 
 private:
-    std::vector<std::string> m_lines;
-
     template<typename ... Ts>
-    void add_line(const Ts & ... args) {
-        m_lines.push_back(fmt::format(args ...));
+    void add_line(Ts && ... args) {
+        m_code.emplace_back(std::forward<Ts>(args)...);
     }
 
+    void add_label(const std::string &label);
+
+private:
     lexer m_lexer{*this};
+    bytecode m_code;
+
+    std::map<std::string, size_t> m_labels;
 
     uint8_t m_flags = FLAGS_NONE;
 

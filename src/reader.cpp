@@ -49,12 +49,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::COMMENT:
         break;
     case opcode::RDBOX:
-    case opcode::RDPAGE:
-    case opcode::RDFILE:
         read_box(cmd.get<pdf_rect>());
-        break;
-    case opcode::SETPAGE:
-        set_page(cmd.get<small_int>());
         break;
     case opcode::CALL:
     {
@@ -271,13 +266,6 @@ void reader::compile_top() {
         std::move_iterator(new_code.end()),
         std::back_inserter(m_code)
     );
-}
-
-void reader::set_page(int page) {
-    page += m_spacer.page;
-    m_spacer = {};
-    m_last_box_page = page;
-    m_contents = {};
 }
 
 void reader::read_box(pdf_rect box) {

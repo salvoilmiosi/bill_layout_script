@@ -4,7 +4,6 @@ project(layout_bolletta VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
 
 set(liblayout_SRCS
-src/bytecode.cpp
 src/functions.cpp
 src/keywords.cpp
 src/layout.cpp
@@ -38,13 +37,8 @@ add_subdirectory(editor)
 pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 
 add_executable(reader src/main.cpp)
-add_executable(compiler src/compiler.cpp)
-
 target_include_directories(reader PRIVATE ${JSONCPP_INCLUDE_DIRS})
 target_link_libraries(reader layout ${JSONCPP_LIBRARIES})
-
-target_include_directories(compiler PRIVATE ${JSONCPP_INCLUDE_DIRS})
-target_link_libraries(compiler layout ${JSONCPP_LIBRARIES})
 
 set(ENABLE_PYREADER OFF CACHE BOOL "Enable Pyreader")
 

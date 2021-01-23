@@ -10,18 +10,18 @@ void parser::read_keyword() {
     case hash("if"):
     case hash("ifnot"):
     {
-        std::string endelse_label = fmt::format("__endelse_{}", m_lines.size());
+        std::string endelse_label = fmt::format("__endelse_{}", m_code.size());
         std::string endif_label;
         bool condition_positive = fun_name == "if";
         bool in_loop = true;
         bool has_endelse = false;
         while (in_loop) {
             bool has_endif = false;
-            endif_label = fmt::format("__endif_{}", m_lines.size());
+            endif_label = fmt::format("__endif_{}", m_code.size());
             m_lexer.require(TOK_PAREN_BEGIN);
             read_expression();
             m_lexer.require(TOK_PAREN_END);
-            add_line(condition_positive ? "JZ {}" : "JNZ {}", endif_label);
+            add_line(condition_positive ? opcode::JZ : opcode::JNZ, endif_label);
             read_statement();
             if (m_lexer.peek().type == TOK_FUNCTION) {
                 fun_name = m_lexer.current().value.substr(1);
@@ -30,8 +30,8 @@ void parser::read_keyword() {
                     m_lexer.advance();
                     has_endelse = true;
                     has_endif = true;
-                    add_line("JMP {}", endelse_label);
-                    add_line("LABEL {}", endif_label);
+                    add_line(opcode::JMP, endelse_label);
+                    add_label(endif_label);
                     read_statement();
                     in_loop = false;
                     break;
@@ -40,7 +40,7 @@ void parser::read_keyword() {
                     m_lexer.advance();
                     condition_positive = fun_name == "elif";
                     has_endelse = true;
-                    add_line("JMP {}", endelse_label);
+                    add_line(opcode::JMP, endelse_label);
                     break;
                 default:
                     in_loop = false;
@@ -48,75 +48,75 @@ void parser::read_keyword() {
             } else {
                 in_loop = false;
             }
-            if (!has_endif) add_line("LABEL {}", endif_label);
+            if (!has_endif) add_label(endif_label);
         }
-        if (has_endelse) add_line("LABEL {}", endelse_label);
+        if (has_endelse) add_label(endelse_label);
         break;
     }
     case hash("while"):
     {
-        std::string while_label = fmt::format("__while_{}", m_lines.size());
-        std::string endwhile_label = fmt::format("__endwhile_{}", m_lines.size());
+        std::string while_label = fmt::format("__while_{}", m_code.size());
+        std::string endwhile_label = fmt::format("__endwhile_{}", m_code.size());
         m_lexer.require(TOK_PAREN_BEGIN);
-        add_line("LABEL {}", while_label);
+        add_label(while_label);
         read_expression();
-        add_line("JZ {}", endwhile_label);
+        add_line(opcode::JZ, endwhile_label);
         m_lexer.require(TOK_PAREN_END);
         read_statement();
-        add_line("JMP {}", while_label);
-        add_line("LABEL {}", endwhile_label);
+        add_line(opcode::JMP, while_label);
+        add_label(endwhile_label);
         break;
     }
     case hash("for"):
     {
-        std::string for_label = fmt::format("__for_{}", m_lines.size());
-        std::string endfor_label = fmt::format("__endfor_{}", m_lines.size());
+        std::string for_label = fmt::format("__for_{}", m_code.size());
+        std::string endfor_label = fmt::format("__endfor_{}", m_code.size());
         m_lexer.require(TOK_PAREN_BEGIN);
         read_statement();
         m_lexer.require(TOK_COMMA);
-        add_line("LABEL {}", for_label);
+        add_label(for_label);
         read_expression();
-        add_line("JZ {}", endfor_label);
+        add_line(opcode::JZ, endfor_label);
         m_lexer.require(TOK_COMMA);
-        size_t increase_stmt_begin = m_lines.size();
+        size_t increase_stmt_begin = m_code.size();
         read_statement();
-        size_t increase_stmt_end = m_lines.size();
+        size_t increase_stmt_end = m_code.size();
         m_lexer.require(TOK_PAREN_END);
         read_statement();
-        vector_move_to_end(m_lines, increase_stmt_begin, increase_stmt_end);
-        add_line("JMP {}", for_label);
-        add_line("LABEL {}", endfor_label);
+        vector_move_to_end(m_code, increase_stmt_begin, increase_stmt_end);
+        add_line(opcode::JMP, for_label);
+        add_label(endfor_label);
         break;
     }
     case hash("goto"):
     {
         m_lexer.require(TOK_PAREN_BEGIN);
-        add_line("JMP {}", m_lexer.require(TOK_IDENTIFIER).value);
+        add_line(opcode::JMP, std::string(m_lexer.require(TOK_IDENTIFIER).value));
         m_lexer.require(TOK_PAREN_END);
         break;
     }
     case hash("lines"):
     {
-        std::string lines_label = fmt::format("__lines_{}", m_lines.size());
-        std::string endlines_label = fmt::format("__endlines_{}", m_lines.size());
+        std::string lines_label = fmt::format("__lines_{}", m_code.size());
+        std::string endlines_label = fmt::format("__endlines_{}", m_code.size());
         bool pushed_content = false;
         if (m_lexer.check_next(TOK_PAREN_BEGIN)) {
             read_expression();
             m_lexer.require(TOK_PAREN_END);
-            add_line("MOVCONTENT");
+            add_line(opcode::MOVCONTENT);
             pushed_content = true;
         }
-        add_line("NEWTOKENS");
-        add_line("LABEL {}", lines_label);
-        add_line("NEXTLINE");
-        add_line("JTE {}", endlines_label);
+        add_line(opcode::NEWTOKENS);
+        add_label(lines_label);
+        add_line(opcode::NEXTLINE);
+        add_line(opcode::JTE, endlines_label);
         read_statement();
-        add_line("JMP {}", lines_label);
-        add_line("LABEL {}", endlines_label);
+        add_line(opcode::JMP, lines_label);
+        add_label(endlines_label);
         if (pushed_content) {
-            add_line("POPCONTENT");
+            add_line(opcode::POPCONTENT);
         } else {
-            add_line("RESETVIEW");
+            add_line(opcode::RESETVIEW);
         }
         break;
     }
@@ -125,27 +125,27 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_BEGIN);
         read_expression();
         m_lexer.require(TOK_PAREN_END);
-        add_line("MOVCONTENT");
+        add_line(opcode::MOVCONTENT);
         read_statement();
-        add_line("POPCONTENT");
+        add_line(opcode::POPCONTENT);
         break;
     }
     case hash("between"):
     {
-        add_line("NEWVIEW");
+        add_line(opcode::NEWVIEW);
         m_lexer.require(TOK_PAREN_BEGIN);
-        add_line("PUSHVIEW");
+        add_line(opcode::PUSHVIEW);
         read_expression();
-        add_line("CALL indexof,2");
-        add_line("SETBEGIN");
+        add_line(opcode::CALL, command_call{"indexof", 2});
+        add_line(opcode::SETBEGIN);
         m_lexer.require(TOK_COMMA);
-        add_line("PUSHVIEW");
+        add_line(opcode::PUSHVIEW);
         read_expression();
-        add_line("CALL indexof,2");
-        add_line("SETEND");
+        add_line(opcode::CALL, command_call{"indexof", 2});
+        add_line(opcode::SETEND);
         m_lexer.require(TOK_PAREN_END);
         read_statement();
-        add_line("RESETVIEW");
+        add_line(opcode::RESETVIEW);
         break;
     }
     case hash("tokens"):
@@ -154,22 +154,22 @@ void parser::read_keyword() {
         if (m_lexer.check_next(TOK_PAREN_BEGIN)) {
             read_expression();
             m_lexer.require(TOK_PAREN_END);
-            add_line("MOVCONTENT");
+            add_line(opcode::MOVCONTENT);
             pushed_content = true;
         }
 
-        add_line("NEWTOKENS");
+        add_line(opcode::NEWTOKENS);
         
         m_lexer.require(TOK_BRACE_BEGIN);
         while (!m_lexer.check_next(TOK_BRACE_END)) {
-            add_line("NEXTTOKEN");
+            add_line(opcode::NEXTTOKEN);
             read_statement();
         }
 
         if (pushed_content) {
-            add_line("POPCONTENT");
+            add_line(opcode::POPCONTENT);
         } else {
-            add_line("RESETVIEW");
+            add_line(opcode::RESETVIEW);
         }
         break;
     }
@@ -178,35 +178,35 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_BEGIN);
         read_expression();
         m_lexer.require(TOK_PAREN_END);
-        add_line(fun_name == "setbegin" ? "SETBEGIN" : "SETEND");
+        add_line(fun_name == "setbegin" ? opcode::SETBEGIN : opcode::SETEND);
         break;
     case hash("newview"):
-        add_line("NEWVIEW");
+        add_line(opcode::NEWVIEW);
         read_statement();
-        add_line("RESETVIEW");
+        add_line(opcode::RESETVIEW);
         break;
     case hash("clear"):
         m_lexer.require(TOK_PAREN_BEGIN);
         read_variable(true);
         m_lexer.require(TOK_PAREN_END);
-        add_line("CLEAR");
+        add_line(opcode::CLEAR);
         break;
     case hash("nexttable"):
         m_lexer.require(TOK_PAREN_BEGIN);
         m_lexer.require(TOK_PAREN_END);
-        add_line("NEXTTABLE");
+        add_line(opcode::NEXTTABLE);
         break;
     case hash("error"):
         m_lexer.require(TOK_PAREN_BEGIN);
         read_expression();
         m_lexer.require(TOK_PAREN_END);
-        add_line("THROWERR");
+        add_line(opcode::THROWERR);
         break;
     case hash("warning"):
         m_lexer.require(TOK_PAREN_BEGIN);
         read_expression();
         m_lexer.require(TOK_PAREN_END);
-        add_line("ADDWARNING");
+        add_line(opcode::ADDWARNING);
         break;
     case hash("skip"):
         m_lexer.require(TOK_PAREN_BEGIN);
@@ -215,7 +215,7 @@ void parser::read_keyword() {
     case hash("halt"):
         m_lexer.require(TOK_PAREN_BEGIN);
         m_lexer.require(TOK_PAREN_END);
-        add_line("RET");
+        add_line(opcode::RET);
         break;
     case hash("import"):
     {
@@ -223,11 +223,13 @@ void parser::read_keyword() {
         auto tok_layout_name = m_lexer.require(TOK_STRING);
         m_lexer.require(TOK_PAREN_END);
         std::string layout_name;
-        parse_string_token(layout_name, tok_layout_name.value);
-        add_line("IMPORT {}", layout_name);
+        if (!parse_string_token(layout_name, tok_layout_name.value)) {
+            throw parsing_error("Costante stringa non valida", tok_layout_name);
+        }
+        add_line(opcode::IMPORT, layout_name);
         break;
     }
     default:
-        throw parsing_error(fmt::format("Parola chiave sconosciuta: {}", fun_name), tok_name);
+        throw parsing_error("Parola chiave sconosciuta", tok_name);
     }
 }

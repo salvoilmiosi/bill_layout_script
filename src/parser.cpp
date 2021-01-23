@@ -11,19 +11,50 @@ void parser::read_layout(const bill_layout_script &layout) {
         for (auto &box : layout.m_boxes) {
             read_box(*box);
         }
-        add_line("RET");
+        add_line(opcode::RET);
     } catch (const parsing_error &error) {
         throw layout_error(fmt::format("In {0}: {1}\n{2}", current_box->name,
             error.what(), m_lexer.tokenLocationInfo(error.location())));
+    }
+
+    for (size_t i=0; i<m_code.size(); ++i) {
+        auto &line = m_code[i];
+        switch (line.command()) {
+        case opcode::JMP:
+        case opcode::JSR:
+        case opcode::JZ:
+        case opcode::JNZ:
+        case opcode::JTE:
+        {
+            auto label = line.get<std::string>();
+            if (auto it = m_labels.find(label); it != m_labels.end()) {
+                line.set<jump_address>(it->second - i);
+            } else {
+                throw layout_error(fmt::format("Etichetta sconosciuta: {}", label));
+            }
+            break;
+        }
+        default:
+            break;
+        }
+    }
+}
+
+void parser::add_label(const std::string &label) {
+    auto it = m_labels.find(label);
+    if (it == m_labels.end()) {
+        m_labels.emplace(label, m_code.size());
+    } else {
+        throw layout_error(fmt::format("Etichetta goto duplicata: {}", label));
     }
 }
 
 void parser::read_box(const layout_box &box) {
     if (m_flags & FLAGS_DEBUG && !box.name.empty()) {
-        add_line("COMMENT ## {}", box.name);
+        add_line(opcode::COMMENT, fmt::format("## {}", box.name));
     }
     current_box = &box;
-    if (!box.goto_label.empty()) add_line("LABEL {}", box.goto_label);
+    if (!box.goto_label.empty()) add_label(box.goto_label);
 
     m_lexer.setScript(box.spacers);
 
@@ -62,24 +93,11 @@ void parser::read_box(const layout_box &box) {
             throw m_lexer.unexpected_token(TOK_PLUS);
         }
         read_expression();
-        if (negative) add_line("NEG");
-        add_line("MVBOX {}", index);
+        if (negative) add_line(opcode::NEG);
+        add_line(opcode::MVBOX, index);
     }
 
-    switch (box.type) {
-    case box_type::BOX_RECTANGLE:
-        add_line("RDBOX {0},{1},{2:.{6}f},{3:.{6}f},{4:.{6}f},{5:.{6}f}", box.mode, box.page, box.x, box.y, box.w, box.h, fixed_point::decimal_points);
-        break;
-    case box_type::BOX_PAGE:
-        add_line("RDPAGE {0},{1}", box.mode, box.page);
-        break;
-    case box_type::BOX_FILE:
-        add_line("RDFILE {}", box.mode);
-        break;
-    case box_type::BOX_NO_READ:
-        add_line("SETPAGE {}", box.page);
-        break;
-    }
+    add_line(opcode::RDBOX, pdf_rect(box));
 
     m_lexer.setScript(box.script);
     while (read_statement());
@@ -108,22 +126,22 @@ bool parser::read_statement() {
             read_expression();
             break;
         default:
-            add_line("PUSHVIEW");
+            add_line(opcode::PUSHVIEW);
             break;
         }
 
         if (flags & VAR_PARSENUM) {
-            add_line("PARSENUM");
+            add_line(opcode::PARSENUM);
         }
         
         if (flags & VAR_RESET) {
-            add_line("RESETVAR");
+            add_line(opcode::RESETVAR);
         } else if (flags & VAR_INCREASE) {
-            add_line("INC");
+            add_line(opcode::INC);
         } else if (flags & VAR_DECREASE) {
-            add_line("DEC");
+            add_line(opcode::DEC);
         } else {
-            add_line("SETVAR");
+            add_line(opcode::SETVAR);
         }
     }
     }
@@ -158,18 +176,18 @@ void parser::read_expression() {
 
     auto op_opcode = [](token_type op_type) {
         switch (op_type) {
-        case TOK_ASTERISK:      return "MUL";
-        case TOK_SLASH:         return "DIV";
-        case TOK_PLUS:          return "ADD";
-        case TOK_MINUS:         return "SUB";
-        case TOK_LESS:          return "LT";
-        case TOK_LESS_EQ:       return "LEQ";
-        case TOK_GREATER:       return "GT";
-        case TOK_GREATER_EQ:    return "GEQ";
-        case TOK_EQUALS:        return "EQ";
-        case TOK_NOT_EQUALS:    return "NEQ";
-        case TOK_AND:           return "AND";
-        case TOK_OR:            return "OR";
+        case TOK_ASTERISK:      return opcode::MUL;
+        case TOK_SLASH:         return opcode::DIV;
+        case TOK_PLUS:          return opcode::ADD;
+        case TOK_MINUS:         return opcode::SUB;
+        case TOK_LESS:          return opcode::LT;
+        case TOK_LESS_EQ:       return opcode::LEQ;
+        case TOK_GREATER:       return opcode::GT;
+        case TOK_GREATER_EQ:    return opcode::GEQ;
+        case TOK_EQUALS:        return opcode::EQ;
+        case TOK_NOT_EQUALS:    return opcode::NEQ;
+        case TOK_AND:           return opcode::AND;
+        case TOK_OR:            return opcode::OR;
         default:
             throw layout_error("Operatore non valido");
         }
@@ -213,7 +231,7 @@ void parser::sub_expression() {
     case TOK_NOT:
         m_lexer.advance();
         sub_expression();
-        add_line("NOT");
+        add_line(opcode::NOT);
         break;
     case TOK_MINUS:
     {
@@ -222,37 +240,50 @@ void parser::sub_expression() {
         case TOK_INTEGER:
         case TOK_NUMBER:
             m_lexer.advance();
-            add_line("PUSHNUM -{}", m_lexer.current().value);
+            add_line(opcode::PUSHNUM, -fixed_point(std::string(m_lexer.current().value)));
             break;
         default:
             sub_expression();
-            add_line("NEG");
+            add_line(opcode::NEG);
         }
         break;
     }
     case TOK_INTEGER:
     case TOK_NUMBER:
         m_lexer.advance();
-        add_line("PUSHNUM {}", m_lexer.current().value);
+        add_line(opcode::PUSHNUM, fixed_point(std::string(m_lexer.current().value)));
         break;
     case TOK_SLASH:
-        m_lexer.require(TOK_REGEXP);
-        [[fallthrough]];
-    case TOK_STRING:
-        m_lexer.advance();
-        add_line("PUSHSTR {}", m_lexer.current().value);
+    {
+        auto tok = m_lexer.require(TOK_REGEXP);
+        std::string str;
+        if (!parse_regexp_token(str, m_lexer.current().value)) {
+            throw parsing_error("Constante regexp non valida", tok);
+        }
+        add_line(opcode::PUSHSTR, str);
         break;
+    }
+    case TOK_STRING:
+    {
+        m_lexer.advance();
+        std::string str;
+        if (!parse_string_token(str, m_lexer.current().value)) {
+            throw parsing_error("Constante stringa non valida", m_lexer.current());
+        }
+        add_line(opcode::PUSHSTR, str);
+        break;
+    }
     case TOK_CONTENT:
         m_lexer.advance();
-        add_line("PUSHVIEW");
+        add_line(opcode::PUSHVIEW);
         break;
     default:
     {
         int flags = read_variable(true);
         if (flags & VAR_MOVE) {
-            add_line("MOVEVAR");
+            add_line(opcode::MOVEVAR);
         } else {
-            add_line("PUSHVAR");
+            add_line(opcode::PUSHVAR);
         }
     }
     }
@@ -264,8 +295,8 @@ int parser::read_variable(bool read_only) {
     bool getindex = false;
     bool getindexlast = false;
     bool rangeall = false;
-    int index = 0;
-    int index_last = -1;
+    small_int index = 0;
+    small_int index_last = -1;
 
     bool in_loop = true;
     while (in_loop) {
@@ -309,7 +340,7 @@ int parser::read_variable(bool read_only) {
                 if (m_lexer.check_next(TOK_INTEGER)) { // variable[a:b] -- seleziona range
                     index_last = cstoi(m_lexer.current().value);
                 } else { // variable[int:expr] -- seleziona range
-                    add_line("PUSHNUM {}", index);
+                    add_line(opcode::PUSHNUM, fixed_point(index));
                     read_expression();
                     getindex = true;
                     getindexlast = true;
@@ -350,17 +381,17 @@ int parser::read_variable(bool read_only) {
         name = "*" + name;
     }
     if (rangeall) {
-        add_line("SELRANGEALL {}", name);
+        add_line(opcode::SELRANGEALL, name);
     } else if (getindex) {
         if (getindexlast) {
-            add_line("SELRANGETOP {}", name);
+            add_line(opcode::SELRANGETOP, name);
         } else {
-            add_line("SELVARTOP {}", name);
+            add_line(opcode::SELVARTOP, name);
         }
     } else if (index_last >= 0) {
-        add_line("SELRANGE {0},{1},{2}", name, index, index_last);
+        add_line(opcode::SELRANGE, variable_idx{name, index, index_last});
     } else {
-        add_line("SELVAR {0},{1}", name, index);
+        add_line(opcode::SELVAR, variable_idx{name, index, 1});
     }
 
     return flags;
@@ -370,32 +401,32 @@ void parser::read_function() {
     auto tok_fun_name = m_lexer.require(TOK_FUNCTION);
     std::string fun_name(tok_fun_name.value.substr(1));
 
-    auto var_function = [&](const auto & ... cmd) {
+    auto var_function = [&](auto && ... args) {
         m_lexer.require(TOK_PAREN_BEGIN);
         read_variable(true);
         m_lexer.require(TOK_PAREN_END);
-        add_line(cmd ...);
+        add_line(std::forward<decltype(args)>(args) ...);
     };
 
-    auto void_function = [&](const auto & ... cmd) {
+    auto void_function = [&](auto && ... args) {
         m_lexer.require(TOK_PAREN_BEGIN);
         m_lexer.require(TOK_PAREN_END);
-        add_line(cmd ...);
+        add_line(std::forward<decltype(args)>(args) ...);
     };
 
     switch (hash(fun_name)) {
-    case hash("isset"):     var_function("ISSET"); break;
-    case hash("size"):      var_function("GETSIZE"); break;
-    case hash("ate"):       void_function("ATE"); break;
-    case hash("boxwidth"):  void_function("PUSHNUM {0:.{1}f}", current_box->w, fixed_point::decimal_points); break;
-    case hash("boxheight"): void_function("PUSHNUM {0:.{1}f}", current_box->h, fixed_point::decimal_points); break;
+    case hash("isset"):     var_function(opcode::ISSET); break;
+    case hash("size"):      var_function(opcode::GETSIZE); break;
+    case hash("ate"):       void_function(opcode::ATE); break;
+    case hash("boxwidth"):  void_function(opcode::PUSHNUM, fixed_point(current_box->w)); break;
+    case hash("boxheight"): void_function(opcode::PUSHNUM, fixed_point(current_box->h)); break;
     case hash("date"):
     case hash("month"):
         read_date_fun(fun_name);
         break;
     default:
     {
-        int num_args = 0;
+        small_int num_args = 0;
         m_lexer.require(TOK_PAREN_BEGIN);
         while (!m_lexer.check_next(TOK_PAREN_END)) {
             ++num_args;
@@ -405,17 +436,17 @@ void parser::read_function() {
             }
         }
 
-        auto call_op = [&](int should_be, auto & ... args) {
+        auto call_op = [&](int should_be, auto && ... args) {
             if (num_args != should_be) {
                 throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", fun_name, should_be), tok_fun_name);
             }
-            add_line(args...);
+            add_line(std::forward<decltype(args)>(args) ...);
         };
         switch (hash(fun_name)) {
-        case hash("num"): call_op(1, "PARSENUM"); break;
-        case hash("int"): call_op(1, "PARSEINT"); break;
+        case hash("num"): call_op(1, opcode::PARSENUM); break;
+        case hash("int"): call_op(1, opcode::PARSEINT); break;
         default:
-            add_line("CALL {0},{1}", fun_name,num_args);
+            add_line(opcode::CALL, command_call{fun_name, num_args});
         }
     }
     }
@@ -427,9 +458,13 @@ void parser::read_date_fun(const std::string &fun_name) {
     switch (m_lexer.next().type) {
     case TOK_COMMA:
     {
-        auto date_fmt = m_lexer.require(TOK_STRING).value;
-        add_line("PUSHSTR {}", date_fmt);
-        std::string regex = "/(%D)/";
+        std::string fmt_string;
+        if (!parse_string_token(fmt_string, m_lexer.require(TOK_STRING).value)) {
+            throw parsing_error("Costante stringa non valida", m_lexer.current());
+        }
+
+        add_line(opcode::PUSHSTR, fmt_string);
+        std::string regex = "(%D)";
         int idx = -1;
         switch (m_lexer.next().type) {
         case TOK_COMMA:
@@ -453,8 +488,7 @@ void parser::read_date_fun(const std::string &fun_name) {
             throw m_lexer.unexpected_token(TOK_PAREN_END);
         }
         
-        std::string date_regex;
-        parse_string_token(date_regex, date_fmt);
+        std::string date_regex = "\\b" + fmt_string + "\\b";
         string_replace(date_regex, ".", "\\.");
         string_replace(date_regex, "/", "\\/");
         string_replace(date_regex, "%b", "\\w+");
@@ -464,18 +498,18 @@ void parser::read_date_fun(const std::string &fun_name) {
         string_replace(date_regex, "%y", "\\d{2}");
         string_replace(date_regex, "%Y", "\\d{4}");
 
-        string_replace(regex, "%D", "\\b" + date_regex + "\\b");
-        add_line("PUSHSTR {}", regex);
+        string_replace(regex, "%D", date_regex);
+        add_line(opcode::PUSHSTR, regex);
         if (idx >= 0) {
-            add_line("PUSHNUM {}", idx);
-            add_line("CALL {},4", fun_name);
+            add_line(opcode::PUSHNUM, idx);
+            add_line(opcode::CALL, command_call{fun_name, 4});
         } else {
-            add_line("CALL {},3", fun_name);
+            add_line(opcode::CALL, command_call{fun_name, 3});
         }
         break;
     }
     case TOK_PAREN_END:
-        add_line("CALL {},1", fun_name);
+        add_line(opcode::CALL, command_call{fun_name, 1});
         break;
     default:
         throw m_lexer.unexpected_token(TOK_PAREN_END);

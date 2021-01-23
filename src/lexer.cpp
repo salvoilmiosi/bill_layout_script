@@ -60,7 +60,7 @@ void lexer::addDebugData() {
 
 void lexer::flushDebugData() {
     for (auto &line : debug_lines) {
-        parent.add_line("COMMENT {}", line);
+        parent.add_line(opcode::COMMENT, line);
     }
     debug_lines.clear();
 }

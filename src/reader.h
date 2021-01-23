@@ -68,7 +68,6 @@ public:
 private:
     void compile_top();
     void exec_command(const command_args &cmd);
-    void set_page(int page);
     void read_box(pdf_rect box);
     void call_function(const std::string &name, size_t numargs);
     void import_layout(const std::string &layout_name);
