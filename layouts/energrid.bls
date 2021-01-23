@@ -100,36 +100,19 @@ codice_pod=$search(@,/POD: (.+)/)
 ### Box
 ### Name Dati Fornitura
 ### Type RECTANGLE
-### Mode LAYOUT
+### Mode RAW
 ### Page 2
-### X 0.5204133391
+### X 0.0457390435
 ### Y 0.1037628278
-### W 0.4366549850
+### W 0.9113292694
 ### H 0.2146468461
 ### Spacers
 p+::off_pod
 ### End Spacers
 ### Script
 indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura: ([^]+?) POD/))
-codice_pod=$search(@,/POD (?:\(punto di prelievo\)|:) (.+)/)
+codice_pod=$search(@,/POD(?: \(punto di prelievo\)|:) (.+)/)
 %potenza[0:3]=$search(@,/Potenza contrattuale: (%N) kW/)
-### End Script
-### End Box
-
-### Box
-### Name Dati Fornitura
-### Type RECTANGLE
-### Mode LAYOUT
-### Page 2
-### X 0.0415826738
-### Y 0.1028720066
-### W 0.4725302160
-### H 0.2146468461
-### Spacers
-p+::off_pod
-### End Spacers
-### Script
-indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura: ([^]+?)\nDescrizione/))
 ### End Script
 ### End Box
 
