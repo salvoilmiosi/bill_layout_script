@@ -1,11 +1,10 @@
 #include <iostream>
 #include <filesystem>
-#include <iomanip>
 
 #include <wx/app.h>
 #include <wx/cmdline.h>
 
-#include <json/writer.h>
+#include <json/value.h>
 
 #include "parser.h"
 #include "fixed_point.h"
@@ -20,12 +19,15 @@ public:
 private:
     std::filesystem::path input_bls;
 
+    bool skip_comments;
+
     wxLocale loc = wxLANGUAGE_DEFAULT;
 };
 
 wxIMPLEMENT_APP_CONSOLE(MainApp);
 
 static const wxCmdLineEntryDesc g_cmdline_desc[] = {
+    { wxCMD_LINE_SWITCH, "s", "skip-comments", "Skip Comments", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_PARAM, nullptr, nullptr, "input-bls", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
     { wxCMD_LINE_NONE }
 };
@@ -39,6 +41,7 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     if (parser.GetParamCount() >= 1) {
         input_bls = parser.GetParam(0).ToStdString();
     }
+    skip_comments = parser.Found("s");
     return true;
 }
 
@@ -59,7 +62,9 @@ std::string quoted_string(const std::string &str) {
 int MainApp::OnRun() {
     try {
         parser my_parser;
-        my_parser.add_flags(FLAGS_DEBUG);
+        if (!skip_comments) {
+            my_parser.add_flags(FLAGS_DEBUG);
+        }
         my_parser.read_layout(bill_layout_script::from_file(input_bls));
 
         std::multimap<size_t, std::string> inv_labels;

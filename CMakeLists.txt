@@ -40,9 +40,9 @@ add_executable(reader src/main.cpp)
 target_include_directories(reader PRIVATE ${JSONCPP_INCLUDE_DIRS})
 target_link_libraries(reader layout ${JSONCPP_LIBRARIES})
 
-add_executable(compiler src/compiler.cpp)
-target_include_directories(compiler PRIVATE ${JSONCPP_INCLUDE_DIRS})
-target_link_libraries(compiler layout ${JSONCPP_LIBRARIES})
+add_executable(blsdump src/blsdump.cpp)
+target_include_directories(blsdump PRIVATE ${JSONCPP_INCLUDE_DIRS})
+target_link_libraries(blsdump layout ${JSONCPP_LIBRARIES})
 
 set(ENABLE_PYREADER OFF CACHE BOOL "Enable Pyreader")
 
