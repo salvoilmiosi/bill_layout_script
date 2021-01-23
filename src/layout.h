@@ -45,9 +45,10 @@ struct bill_layout_script {
     static bill_layout_script from_file(const std::filesystem::path &filename) {
         bill_layout_script ret;
         std::ifstream ifs(filename);
-        if (!(ifs >> ret)) {
-            throw layout_error(fmt::format("Impossibile aprire il layout {}", filename.filename().string()));
+        if (!ifs) {
+            throw layout_error(fmt::format("Impossibile aprire il file {}", filename.string()));
         }
+        ifs >> ret;
         ret.m_filename = filename;
         return ret;
     }

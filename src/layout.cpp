@@ -64,18 +64,13 @@ std::istream &getline_clearcr(std::istream &input, std::string &line) {
 }
 
 std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
-    std::ios orig_state(nullptr);
-    orig_state.copyfmt(input);
-    input.imbue(std::locale::classic());
-
     std::string line;
 
     layout.clear();
     std::shared_ptr<layout_box> current;
 
     try {
-        while (input.peek() != EOF) {
-            getline_clearcr(input, line);
+        while (getline_clearcr(input, line)) {
             if (line.empty()) continue;
             if (line == "### Box") {
                 auto current = std::make_shared<layout_box>();
@@ -113,47 +108,50 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                         current->goto_label = suf.value;
                     } else if (line == "### Spacers") {
                         bool fail = true;
+                        bool first_line = true; 
                         while (getline_clearcr(input, line)) {
                             if (line == "### End Spacers") {
                                 fail = false;
                                 break;
                             }
-                            if (!current->spacers.empty()) current->spacers += '\n';
+                            if (!first_line) current->spacers += '\n';
+                            first_line = false;
                             current->spacers += line;
                         }
                         if (fail) {
-                            input.setstate(std::ios::failbit);
+                            throw layout_error("Token End Spacers non trovato");
                         }
                     } else if (line == "### Script") {
                         bool fail = true;
+                        bool first_line = true; 
                         while (getline_clearcr(input, line)) {
                             if (line == "### End Script") {
                                 fail = false;
                                 break;
                             }
-                            if (!current->script.empty()) current->script += '\n';
+                            if (!first_line) current->script += '\n';
+                            first_line = false;
                             current->script += line;
                         }
                         if (fail) {
-                            input.setstate(std::ios::failbit);
+                            throw layout_error("Token End Script non trovato");
                         }
                     } else {
                         fail = true;
                     }
                 }
                 if (fail) {
-                    input.setstate(std::ios::failbit);
+                    throw layout_error("Token End Box non trovato");
                 } else {
                     layout.m_boxes.push_back(current);
                 }
             } else if (line.front() != '#') {
-                input.setstate(std::ios::failbit);
+                throw layout_error("Token non valido");
             }
         }
-    } catch (std::invalid_argument &) {
-        input.setstate(std::ios::failbit);
+    } catch (const std::invalid_argument &error) {
+        throw layout_error("Formato non valido");
     }
 
-    input.copyfmt(orig_state);
     return input;
 }
