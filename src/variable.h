@@ -47,8 +47,6 @@ public:
         static const variable VAR_NULL;
         return VAR_NULL;
     }
-
-    static variable str_to_number(const std::string &str) noexcept;
     
     variable_type type() const noexcept { return m_type; }
 

@@ -20,8 +20,6 @@ private:
     std::filesystem::path input_bls;
 
     bool skip_comments;
-
-    wxLocale loc = wxLANGUAGE_DEFAULT;
 };
 
 wxIMPLEMENT_APP_CONSOLE(MainApp);
@@ -112,6 +110,7 @@ int MainApp::OnRun() {
             case opcode::SELRANGETOP:
             case opcode::SELRANGEALL:
             case opcode::IMPORT:
+            case opcode::SETLANG:
                 std::cout << ' ' << line.get<std::string>();
                 break;
             case opcode::PUSHNUM:

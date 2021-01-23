@@ -22,8 +22,6 @@ private:
 
     bool show_debug = false;
     bool show_globals = false;
-
-    wxLocale loc = wxLANGUAGE_DEFAULT;
 };
 
 wxIMPLEMENT_APP_CONSOLE(MainApp);

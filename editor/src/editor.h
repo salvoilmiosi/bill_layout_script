@@ -18,7 +18,7 @@ enum {
     MENU_NEW, MENU_OPEN, MENU_SAVE, MENU_SAVEAS, MENU_CLOSE,
     MENU_UNDO, MENU_REDO, MENU_CUT, MENU_COPY, MENU_PASTE,
     MENU_LOAD_PDF, MENU_EDITBOX, MENU_DELETE, MENU_READDATA,
-    MENU_EDITCONTROL,
+    MENU_EDITCONTROL, MENU_SETLANGUAGE,
 
     MENU_OPEN_RECENT,
     MENU_OPEN_RECENT_END = MENU_OPEN_RECENT + 20,
@@ -72,6 +72,7 @@ private:
     void OnCopy         (wxCommandEvent &evt);
     void OnPaste        (wxCommandEvent &evt);
     void OpenControlScript (wxCommandEvent &evt);
+    void OnSetLanguage  (wxCommandEvent &evt);
     void OnAutoLayout   (wxCommandEvent &evt);
     void OnLoadPdf      (wxCommandEvent &evt);
     void OnPageSelect   (wxCommandEvent &evt);

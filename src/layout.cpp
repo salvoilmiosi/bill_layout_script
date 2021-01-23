@@ -15,6 +15,9 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script &layou
     output << std::fixed << std::setprecision(fixed_point::decimal_points);
 
     output << "### Bill Layout Script\n";
+    if (!layout.language_code.empty()) {
+        output << "### Language " << layout.language_code << '\n';
+    }
 
     for (auto &box : layout.m_boxes) {
         output << '\n';
@@ -145,6 +148,8 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                 } else {
                     layout.m_boxes.push_back(current);
                 }
+            } else if (auto suf = suffix(line, "### Language")) {
+                layout.language_code = suf.value;
             } else if (line.front() != '#') {
                 throw layout_error("Token non valido");
             }

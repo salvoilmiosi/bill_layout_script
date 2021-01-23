@@ -7,6 +7,8 @@
 #include <memory>
 #include <atomic>
 
+#include <wx/intl.h>
+
 #include "variable.h"
 #include "variable_ref.h"
 #include "bytecode.h"
@@ -33,12 +35,13 @@ struct reader_output {
 class reader {
 public:
     reader() = default;
+    ~reader();
 
     reader(const pdf_document &doc) {
         set_document(doc);
     }
 
-    reader(const pdf_document &doc, auto &&layout) {
+    reader(const pdf_document &doc, const bill_layout_script &layout) {
         set_document(doc);
         add_layout(layout);
     }
@@ -49,11 +52,7 @@ public:
 
     void set_document(pdf_document &&doc) = delete;
 
-    void add_layout(auto &&layout) {
-        m_out.layouts.push_back(std::filesystem::canonical(layout.m_filename).string());
-        m_layouts.push(std::forward<decltype(layout)>(layout));
-        compile_top();
-    }
+    void add_layout(const bill_layout_script &layout);
 
     void start();
 
@@ -66,11 +65,11 @@ public:
     }
 
 private:
-    void compile_top();
     void exec_command(const command_args &cmd);
     void read_box(pdf_rect box);
     void call_function(const std::string &name, size_t numargs);
     void import_layout(const std::string &layout_name);
+    void set_language(const std::string &language_name);
 
 private:
     simple_stack<variable> m_vars;
@@ -90,12 +89,12 @@ private:
 
 private:
     const pdf_document *m_doc = nullptr;
-    
-    simple_stack<bill_layout_script> m_layouts;
 
     bytecode m_code;
 
     reader_output m_out;
+
+    wxLocale *m_locale = nullptr;
 };
 
 #endif

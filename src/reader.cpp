@@ -3,6 +3,8 @@
 #include "utils.h"
 #include "parser.h"
 
+#include <sstream>
+
 void reader::start() {
     m_vars.clear();
     m_contents.clear();
@@ -64,7 +66,15 @@ void reader::exec_command(const command_args &cmd) {
         break;
     case opcode::PARSENUM:
         if (m_vars.top().type() == VAR_STRING) {
-            m_vars.top() = variable::str_to_number(parse_number(m_vars.top().str()));
+            char decimal_point = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER).at(0);
+            char thous_sep = wxLocale::GetInfo(wxLOCALE_THOUSANDS_SEP, wxLOCALE_CAT_NUMBER).at(0);
+            std::istringstream iss(m_vars.top().str());
+            fixed_point num;
+            if (dec::fromStream(iss, dec::decimal_format(decimal_point, thous_sep), num)) {
+                m_vars.top() = num;
+            } else {
+                m_vars.top() = variable::null_var();
+            }
         }
         break;
     case opcode::PARSEINT: m_vars.top() = m_vars.top().as_int(); break;
@@ -245,11 +255,24 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::IMPORT:
         import_layout(cmd.get<std::string>());
         break;
+    case opcode::SETLANG:
+        set_language(cmd.get<std::string>());
+        break;
     }
 }
 
+void reader::add_layout(const bill_layout_script &layout) {
+    m_out.layouts.push_back(std::filesystem::canonical(layout.m_filename).string());
+    auto new_code = parser(layout).get_bytecode();
+    std::copy(
+        std::move_iterator(new_code.begin()),
+        std::move_iterator(new_code.end()),
+        std::back_inserter(m_code)
+    );
+}
+
 void reader::import_layout(const std::string &layout_name) {
-    auto imported_file = m_layouts.top().m_filename.parent_path() / (layout_name + ".bls");
+    auto imported_file = std::filesystem::path(m_out.layouts.back()).parent_path() / (layout_name + ".bls");
 
     auto new_addr = m_code.size();
     add_layout(bill_layout_script::from_file(imported_file));
@@ -258,13 +281,17 @@ void reader::import_layout(const std::string &layout_name) {
     m_jumped = true;
 }
 
-void reader::compile_top() {
-    auto new_code = parser(m_layouts.top()).get_bytecode();
-    std::copy(
-        std::move_iterator(new_code.begin()),
-        std::move_iterator(new_code.end()),
-        std::back_inserter(m_code)
-    );
+reader::~reader() {
+    if (m_locale) {
+        delete m_locale;
+    }
+}
+
+void reader::set_language(const std::string &language_name) {
+    if (m_locale) {
+        delete m_locale;
+    }
+    m_locale = new wxLocale(wxLocale::FindLanguageInfo(language_name)->Language);
 }
 
 void reader::read_box(pdf_rect box) {

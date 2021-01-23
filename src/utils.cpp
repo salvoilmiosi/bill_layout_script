@@ -161,12 +161,12 @@ static wxDateTime string_to_date(std::string_view str) {
     }
 }
 
-inline bool search_date(wxDateTime &dt, const wxString &format, std::string_view value, std::string_view regex, int index) {
+inline bool search_date(wxDateTime &dt, const wxString &format, std::string_view value, const std::string &regex, int index) {
     wxString::const_iterator end;
     return dt.ParseFormat(search_regex(regex, value, index), format, wxDateTime(time_t(0)), &end);
 }
 
-std::string parse_date(const std::string &format, std::string_view value, std::string_view regex, int index) {
+std::string parse_date(const std::string &format, std::string_view value, const std::string &regex, int index) {
     wxDateTime dt;
     if(!search_date(dt, format, value, regex, index)) {
         return "";
@@ -175,7 +175,7 @@ std::string parse_date(const std::string &format, std::string_view value, std::s
     return dt.Format("%Y-%m-%d").ToStdString();
 }
 
-std::string parse_month(const std::string &format, std::string_view value, std::string_view regex, int index) {
+std::string parse_month(const std::string &format, std::string_view value, const std::string &regex, int index) {
     wxDateTime dt;
     if (format.empty()) {
         try {
@@ -212,19 +212,6 @@ std::string date_format(std::string_view str, const std::string &format) {
     }
 }
 
-std::string parse_number(std::string_view str) {
-    static char decimal_point = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER).at(0);
-    std::string out;
-    for (char c : str) {
-        if (std::isdigit(c) || c == '-') {
-            out += c;
-        } else if (c == decimal_point) {
-            out += '.';
-        }
-    }
-    return out;
-}
-
 size_t string_findicase(std::string_view str, std::string_view str2, size_t index) {
     return std::distance(str.begin(), std::search(
         str.begin() + index, str.end(),
@@ -240,15 +227,28 @@ std::string string_format(std::string str, const std::vector<std::string> &fmt_a
     return str;
 }
 
-std::regex create_regex(std::string_view format) {
+std::regex create_regex(std::string format) {
+    using namespace std::string_literals;
+
+    std::string thous_sep = wxLocale::GetInfo(wxLOCALE_THOUSANDS_SEP, wxLOCALE_CAT_NUMBER).ToStdString();
+    string_replace(thous_sep, ".", "\\.");
+    
+    std::string decimal_point = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER).ToStdString();
+    string_replace(decimal_point, ".", "\\.");
+
+    // I regex di C++11 non supportano i lookbehind, -?\b dovrebbe essere (?<!\S)
+    std::string number_regex = "-?\\b\\d{1,3}(?:" + thous_sep + "\\d{3})*(?:" + decimal_point + "\\d+)?\\b";
+
+    string_replace(format, "%N", number_regex);
+
     try {
-        return std::regex(format.begin(), format.end(), std::regex::icase);
+        return std::regex(format, std::regex::icase);
     } catch (const std::regex_error &error) {
         throw std::runtime_error(fmt::format("Espressione regolare non valida: {0}\n{1}", format, error.what()));
     }
 }
 
-std::vector<std::string> search_regex_all(std::string_view format, std::string_view value, int index) {
+std::vector<std::string> search_regex_all(const std::string &format, std::string_view value, int index) {
     std::vector<std::string> ret;
     std::regex expression = create_regex(format);
     std::transform(
@@ -259,7 +259,7 @@ std::vector<std::string> search_regex_all(std::string_view format, std::string_v
     return ret;
 }
 
-std::string search_regex(std::string_view format, std::string_view value, int index) {
+std::string search_regex(const std::string &format, std::string_view value, int index) {
     std::regex expression = create_regex(format);
     std::cmatch match;
     if (std::regex_search(value.begin(), value.end(), match, expression)) {
@@ -269,7 +269,7 @@ std::string search_regex(std::string_view format, std::string_view value, int in
     }
 }
 
-std::string &string_replace_regex(std::string &value, std::string_view format, const std::string &str) {
+std::string &string_replace_regex(std::string &value, const std::string &format, const std::string &str) {
     return value = std::regex_replace(value, create_regex(format), str);
 }
 

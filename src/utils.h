@@ -31,9 +31,6 @@ int cstoi(std::string_view str, int base = 10);
 // converte una stringa in float 
 double cstof(std::string_view str, int base = 10);
 
-// Converte la stringa data in un numero dipendentemente dal locale
-std::string parse_number(std::string_view str);
-
 // Cerca la posizione di str2 in str senza fare differenza tra maiuscole e minuscole
 size_t string_findicase(std::string_view str, std::string_view str2, size_t index);
 
@@ -41,10 +38,10 @@ size_t string_findicase(std::string_view str, std::string_view str2, size_t inde
 std::string string_format(std::string str, const std::vector<std::string> &fmt_args);
 
 // converte i vari formati di data in formato yyyy-mm-dd
-std::string parse_date(const std::string &format, std::string_view value, std::string_view regex, int index);
+std::string parse_date(const std::string &format, std::string_view value, const std::string &regex, int index);
 
 // converte i vari formati di data in formato yyyy-mm
-std::string parse_month(const std::string &format, std::string_view value, std::string_view regex, int index);
+std::string parse_month(const std::string &format, std::string_view value, const std::string &regex, int index);
 
 // Aggiunge num mesi alla data
 std::string date_month_add(std::string_view month, int num);
@@ -53,13 +50,13 @@ std::string date_month_add(std::string_view month, int num);
 std::string date_format(std::string_view date, const std::string &format);
 
 // cerca la regex in str e ritorna i valori trvati
-std::vector<std::string> search_regex_all(std::string_view format, std::string_view value, int index);
+std::vector<std::string> search_regex_all(const std::string &format, std::string_view value, int index);
 
 // cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
-std::string search_regex(std::string_view format, std::string_view value, int index);
+std::string search_regex(const std::string &format, std::string_view value, int index);
 
 // rimpiazza in str le occorrenze di format in value
-std::string &string_replace_regex(std::string &value, std::string_view format, const std::string &str);
+std::string &string_replace_regex(std::string &value, const std::string &format, const std::string &str);
 
 // converte ogni carattere di spazio in " "
 std::string singleline(std::string input);

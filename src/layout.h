@@ -36,6 +36,7 @@ std::istream &operator >> (std::istream &in, class bill_layout_script &obj);
 struct bill_layout_script {
     std::vector<box_ptr> m_boxes;
     std::filesystem::path m_filename;
+    std::string language_code;
 
     void clear() {
         m_boxes.clear();

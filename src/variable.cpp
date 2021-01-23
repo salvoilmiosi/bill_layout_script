@@ -60,14 +60,6 @@ void variable::set_number() const noexcept {
     }
 }
 
-variable variable::str_to_number(const std::string &str) noexcept {
-    if (str.empty()) {
-        return null_var();
-    } else {
-        return fixed_point(str);
-    }
-}
-
 bool variable::as_bool() const noexcept {
     switch (m_type) {
     case VAR_STRING:

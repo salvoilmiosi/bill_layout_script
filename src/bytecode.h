@@ -64,6 +64,7 @@
     O(ATE),         /* m_ate -> var_stack */ \
     O(IMPORT),      /* string layout_name */ \
     O(COMMENT),     /* string data */ \
+    O(SETLANG),     /* string language name */ \
 }
 
 #define O(x) x

@@ -153,8 +153,6 @@ PyMODINIT_FUNC PyInit_pyreader(void) {
     const char *argv[] = {"pyreader"};
     wxEntryStart(argc, const_cast<char **>(argv));
 
-    static wxLocale loc = wxLANGUAGE_DEFAULT;
-
     PyObject *m = PyModule_Create(&pyreader);
     if (!m) return nullptr;
 

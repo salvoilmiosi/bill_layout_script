@@ -30,6 +30,7 @@ BEGIN_EVENT_TABLE(frame_editor, wxFrame)
     EVT_MENU (MENU_DELETE, frame_editor::OnDelete)
     EVT_MENU (MENU_READDATA, frame_editor::OnReadData)
     EVT_MENU (MENU_EDITCONTROL, frame_editor::OpenControlScript)
+    EVT_MENU (MENU_SETLANGUAGE, frame_editor::OnSetLanguage)
     EVT_BUTTON(CTL_AUTO_LAYOUT, frame_editor::OnAutoLayout)
     EVT_BUTTON (CTL_LOAD_PDF, frame_editor::OnLoadPdf)
     EVT_COMBOBOX (CTL_PAGE, frame_editor::OnPageSelect)
@@ -92,6 +93,7 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     menuLayout->Append(MENU_EDITBOX, "Modifica &Rettangolo\tCtrl-E", "Modifica il rettangolo selezionato");
     menuLayout->Append(MENU_READDATA, "L&eggi Layout\tCtrl-R", "Test della lettura dei dati");
     menuLayout->Append(MENU_EDITCONTROL, "Modifica script di &controllo\tCtrl-L");
+    menuLayout->Append(MENU_SETLANGUAGE, "Cambia lingua di layout");
 
     menuBar->Append(menuLayout, "&Layout");
 

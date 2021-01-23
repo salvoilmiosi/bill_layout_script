@@ -1,4 +1,5 @@
 ### Bill Layout Script
+### Language it
 
 ### Box
 ### Name Convalida Layout
@@ -110,29 +111,16 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 ### End Box
 
 ### Box
-### Name Totale Fattura
+### Name Totale / Scadenza
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
 ### X 0.0314126126
 ### Y 0.3529059589
 ### W 0.2499351501
-### H 0.1160238758
+### H 0.1433861256
 ### Script
-%totale_fattura
-### End Script
-### End Box
-
-### Box
-### Name Data Scadenza
-### Type RECTANGLE
-### Mode DEFAULT
-### Page 1
-### X 0.0300468486
-### Y 0.4718304276
-### W 0.2540324330
-### H 0.0241716411
-### Script
+%totale_fattura=$search(@,/(%N)/)
 data_scadenza=$date(@,"%d %B %Y")
 ### End Script
 ### End Box

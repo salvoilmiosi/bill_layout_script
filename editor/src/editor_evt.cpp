@@ -110,6 +110,14 @@ void frame_editor::OpenControlScript(wxCommandEvent &evt) {
     getControlScript(true);
 }
 
+void frame_editor::OnSetLanguage(wxCommandEvent &evt) {
+    wxTextEntryDialog diag(this, "Cambia la lingua del layout", "Lingua Layout", layout.language_code);
+
+    if (diag.ShowModal() == wxID_OK) {
+        layout.language_code = diag.GetValue().ToStdString();
+    }
+}
+
 void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     if (!m_doc.isopen()) {
         wxBell();

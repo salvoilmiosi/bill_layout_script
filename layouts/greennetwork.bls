@@ -1,4 +1,5 @@
 ### Bill Layout Script
+### Language it
 
 ### Box
 ### Name Convalida Layout
@@ -141,7 +142,7 @@ codice_pod=$search(@,/POD: (.+)\n/)
 p+::off_allegati
 ### End Spacers
 ### Script
-iva=$percent($num(@))
+iva=$percent($search(@,/(\d+)/))
 ### End Script
 ### End Box
 
@@ -158,7 +159,7 @@ iva=$percent($num(@))
 p+::off_allegati
 ### End Spacers
 ### Script
-%imponibile
+%imponibile=$search(@,/(%N)/)
 ### End Script
 ### End Box
 
