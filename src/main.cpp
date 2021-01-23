@@ -21,6 +21,7 @@ private:
     std::filesystem::path input_bls;
 
     bool show_debug = false;
+    bool show_globals = false;
 
     wxLocale loc = wxLANGUAGE_DEFAULT;
 };
@@ -29,6 +30,7 @@ wxIMPLEMENT_APP_CONSOLE(MainApp);
 
 static const wxCmdLineEntryDesc g_cmdline_desc[] = {
     { wxCMD_LINE_SWITCH, "d", "show-debug", "Show Debug Variables", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_SWITCH, "g", "show-globals", "Show Global Variables", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_PARAM, nullptr, nullptr, "input-pdf", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
     { wxCMD_LINE_PARAM, nullptr, nullptr, "input-bls", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
     { wxCMD_LINE_NONE }
@@ -45,6 +47,7 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
         input_bls = parser.GetParam(1).ToStdString();
     }
     show_debug = parser.Found("d");
+    show_globals = parser.Found("g");
     return true;
 }
 
@@ -77,7 +80,9 @@ int MainApp::OnRun() {
 
         const auto &out = my_reader.get_output();
 
-        result["globals"] = write_values(out.globals);
+        if (show_globals) {
+            result["globals"] = write_values(out.globals);
+        }
         
         Json::Value &json_values = result["values"] = Json::arrayValue;
         for (auto &v : out.values) {
