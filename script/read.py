@@ -10,10 +10,9 @@ if len(sys.argv) < 3:
     print('Argomenti richiesti: input_directory [output] [controllo] [nthreads]')
     sys.exit()
 
-app_dir = Path(sys.argv[0]).parent
 input_directory = Path(sys.argv[1]).resolve()
 output_file = Path(sys.argv[2])
-controllo = Path(sys.argv[3] if len(sys.argv) >= 4 else app_dir / '../layouts/controllo.bls')
+controllo = Path(sys.argv[3] if len(sys.argv) >= 4 else Path(__file__).parent.parent / 'layouts/controllo.bls')
 
 try:
     nthreads = int(sys.argv[4]) if len(sys.argv) >= 5 else cpu_count()
@@ -80,14 +79,6 @@ def read_pdf(pdf_file):
     return ret
 
 if __name__ == '__main__':
-    if not input_directory.exists():
-        print(f'La directory {input_directory} non esiste')
-        sys.exit(1)
-
-    if not controllo.exists():
-        print(f'Il file di layout {controllo} non esiste')
-        sys.exit(1)
-        
     in_files = list(input_directory.rglob('*.pdf'))
 
     results = []

@@ -12,7 +12,7 @@ login = {'f':'login'}
 
 address = 'https://portale.bollettaetica.com'
 
-in_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(sys.argv[0]).parent / '../work/letture'
+in_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent.parent / 'work/letture'
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 session = requests.Session()

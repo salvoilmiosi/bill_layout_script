@@ -137,10 +137,13 @@ def export_file(input_file):
     ws.freeze_panes = ws['A2']
 
     wb.save(input_file.with_suffix('.xlsx'))
+    print(input_file)
+
+in_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent.parent / 'work/letture'
 
 if __name__ == '__main__':
-    if len(sys.argv) <= 1:
-        print('Specificare il file di input')
-        sys.exit(0)
-    
-    export_file(Path(sys.argv[1]))
+    if in_path.is_dir():
+        for f in in_path.rglob('*.json'):
+            export_file(f)
+    else:
+        export_file(f)

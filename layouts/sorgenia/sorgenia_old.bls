@@ -273,6 +273,7 @@ $with(::_dettaglio) {
   %spesa_materia_energia=$search(@,/DETTAGLIO DELLA SPESA PER LA MATERIA ENERGIA[^]+?(%N) DETTAGLIO/)
   %spesa_materia_energia=$search(@,/DETTAGLIO DELLA SPESA PER L\u2019ENERGIA ELETTRICA[^]+?(%N) DETTAGLIO/)
   %trasporto_gestione=$search(@,/DETTAGLIO DELLA SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA[^]+?(%N) IMPOSTE/)
+  %trasporto_gestione=$search(@,/DETTAGLIO DELLA SPESA PER IL TRASPORTO, GESTIONE DEL CONTATORE E ONERI DI SISTEMA[^]+?(%N) IMPOSTE/)
 
   $tokens($search(@,/Prezzo F1 euro\/kWh (%N %N)/)) {
     %prezzo_energia[0] %energia_attiva[0]
