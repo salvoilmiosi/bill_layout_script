@@ -17,18 +17,17 @@ void parser::read_layout(const bill_layout_script &layout) {
             error.what(), m_lexer.tokenLocationInfo(error.location())));
     }
 
-    for (size_t i=0; i<m_code.size(); ++i) {
-        auto &line = m_code[i];
-        switch (line.command()) {
+    for (auto line = m_code.begin(); line != m_code.end(); ++line) {
+        switch (line->command()) {
         case opcode::JMP:
         case opcode::JSR:
         case opcode::JZ:
         case opcode::JNZ:
         case opcode::JTE:
         {
-            auto label = line.get<std::string>();
+            auto label = line->get<std::string>();
             if (auto it = m_labels.find(label); it != m_labels.end()) {
-                line.set<jump_address>(it->second - i);
+                *line = command_args(line->command(), jump_address(it->second - (line - m_code.begin())));
             } else {
                 throw layout_error(fmt::format("Etichetta sconosciuta: {}", label));
             }
@@ -378,7 +377,7 @@ int parser::read_variable(bool read_only) {
     }
 
     if (isglobal) {
-        name = "*" + name;
+        name += '*';
     }
     if (rangeall) {
         add_line(opcode::SELRANGEALL, name);
@@ -389,7 +388,7 @@ int parser::read_variable(bool read_only) {
             add_line(opcode::SELVARTOP, name);
         }
     } else if (index_last >= 0) {
-        add_line(opcode::SELRANGE, variable_idx{name, index, index_last});
+        add_line(opcode::SELVAR, variable_idx{name, index, index_last});
     } else {
         add_line(opcode::SELVAR, variable_idx{name, index, 1});
     }
@@ -503,7 +502,7 @@ void parser::read_date_fun(const std::string &fun_name) {
         string_replace(regex, "%D", date_regex);
         add_line(opcode::PUSHSTR, regex);
         if (idx >= 0) {
-            add_line(opcode::PUSHNUM, idx);
+            add_line(opcode::PUSHNUM, fixed_point(idx));
             add_line(opcode::CALL, command_call{fun_name, 4});
         } else {
             add_line(opcode::CALL, command_call{fun_name, 3});

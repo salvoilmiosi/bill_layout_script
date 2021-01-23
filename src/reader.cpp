@@ -36,8 +36,8 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto create_ref = [&](const std::string &name, auto ... args) {
-        if (name.front() == '*') {
-            return variable_ref(m_out.globals, name.substr(1), args ...);
+        if (name.ends_with('*')) {
+            return variable_ref(m_out.globals, name.substr(0, name.size() - 1), args ...);
         } else {
             while (m_out.values.size() <= m_current_table) m_out.values.emplace_back();
             return variable_ref(m_out.values[m_current_table], name, args ...);
@@ -97,7 +97,6 @@ void reader::exec_command(const command_args &cmd) {
         break;
     }
     case opcode::SELVAR:
-    case opcode::SELRANGE:
     {
         const auto &var_idx = cmd.get<variable_idx>();
         auto ref = create_ref(var_idx.name,

@@ -31,7 +31,6 @@
     O(LEQ),         /* var_stack * 2 -> a >= b -> var_stack */ \
     O(SELVAR),      /* string name, byte index -- (name, index, index) -> ref_stack */ \
     O(SELVARTOP),   /* string name -- var_stack -> (name, top, top) -> ref_stack */ \
-    O(SELRANGE),    /* string name, bye idxfrom, byte idxto = (name, idxfrom, idxto) -> ref_stack */ \
     O(SELRANGETOP), /* string name -- var_stack * 2 -> (name, top-1, top) -> ref_stack */ \
     O(SELRANGEALL), /* string name -- (name, range_all) -> ref_stack */ \
     O(CLEAR),       /* ref_stack -> clear */ \
@@ -114,10 +113,6 @@ public:
     
     template<typename T> T get() const {
         return std::any_cast<T>(m_data);
-    }
-
-    template<typename T> void set(T &&data) {
-        m_data = std::forward<T>(data);
     }
 };
 
