@@ -257,7 +257,7 @@ void parser::sub_expression() {
     {
         auto tok = m_lexer.require(TOK_REGEXP);
         std::string str;
-        if (!parse_regexp_token(str, m_lexer.current().value)) {
+        if (!parse_regexp_token(str, tok.value)) {
             throw parsing_error("Constante regexp non valida", tok);
         }
         add_line(opcode::PUSHSTR, str);
@@ -469,8 +469,11 @@ void parser::read_date_fun(const std::string &fun_name) {
         switch (m_lexer.next().type) {
         case TOK_COMMA:
         {
-            m_lexer.require(TOK_REGEXP);
-            regex = std::string(m_lexer.current().value);
+            auto tok = m_lexer.require(TOK_REGEXP);
+            regex.clear();
+            if (!parse_regexp_token(regex, tok.value)) {
+                throw parsing_error("Constante regexp non valida", tok);
+            }
             switch (m_lexer.next().type) {
             case TOK_INTEGER:
                 idx = cstoi(m_lexer.current().value);
@@ -490,7 +493,6 @@ void parser::read_date_fun(const std::string &fun_name) {
         
         std::string date_regex = "\\b" + fmt_string + "\\b";
         string_replace(date_regex, ".", "\\.");
-        string_replace(date_regex, "/", "\\/");
         string_replace(date_regex, "%b", "\\w+");
         string_replace(date_regex, "%B", "\\w+");
         string_replace(date_regex, "%d", "\\d{2}");

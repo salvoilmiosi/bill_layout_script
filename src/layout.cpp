@@ -44,7 +44,7 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script &layou
 }
 
 struct suffix {
-    suffix(const std::string &line, const std::string &str) {
+    suffix(std::string_view line, std::string_view str) {
         if (line.substr(0, str.size()) == str) {
             value = line.substr(str.size() + 1);
         }

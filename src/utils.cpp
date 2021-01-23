@@ -24,7 +24,7 @@ std::vector<std::string> string_split(const std::string &str, char separator) {
     return ret;
 }
 
-std::string string_join(const std::vector<std::string> &vec, const std::string &separator) {
+std::string string_join(const std::vector<std::string> &vec, std::string_view separator) {
     std::string out;
     for (auto it = vec.begin(); it<vec.end(); ++it) {
         if (it != vec.begin()) {
@@ -61,7 +61,7 @@ void string_trim(std::string &str) {
     }).base(), str.end());
 }
 
-int string_replace(std::string &str, const std::string &from, const std::string &to) {
+int string_replace(std::string &str, std::string_view from, std::string_view to) {
     size_t index = 0;
     int count = 0;
     while (true) {
@@ -161,12 +161,12 @@ static wxDateTime string_to_date(std::string_view str) {
     }
 }
 
-inline bool search_date(wxDateTime &dt, const wxString &format, std::string_view value, const std::string &regex, int index) {
+inline bool search_date(wxDateTime &dt, const wxString &format, std::string_view value, std::string_view regex, int index) {
     wxString::const_iterator end;
     return dt.ParseFormat(search_regex(regex, value, index), format, wxDateTime(time_t(0)), &end);
 }
 
-std::string parse_date(const std::string &format, std::string_view value, const std::string &regex, int index) {
+std::string parse_date(const std::string &format, std::string_view value, std::string_view regex, int index) {
     wxDateTime dt;
     if(!search_date(dt, format, value, regex, index)) {
         return "";
@@ -175,7 +175,7 @@ std::string parse_date(const std::string &format, std::string_view value, const 
     return dt.Format("%Y-%m-%d").ToStdString();
 }
 
-std::string parse_month(const std::string &format, std::string_view value, const std::string &regex, int index) {
+std::string parse_month(const std::string &format, std::string_view value, std::string_view regex, int index) {
     wxDateTime dt;
     if (format.empty()) {
         try {
@@ -212,7 +212,7 @@ std::string date_format(std::string_view str, const std::string &format) {
     }
 }
 
-std::string parse_number(const std::string &str) {
+std::string parse_number(std::string_view str) {
     static char decimal_point = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER).at(0);
     std::string out;
     for (char c : str) {
@@ -240,15 +240,15 @@ std::string string_format(std::string str, const std::vector<std::string> &fmt_a
     return str;
 }
 
-std::regex create_regex(const std::string &format) {
+std::regex create_regex(std::string_view format) {
     try {
-        return std::regex(format, std::regex::icase);
+        return std::regex(format.begin(), format.end(), std::regex::icase);
     } catch (const std::regex_error &error) {
         throw std::runtime_error(fmt::format("Espressione regolare non valida: {0}\n{1}", format, error.what()));
     }
 }
 
-std::vector<std::string> search_regex_all(const std::string &format, std::string_view value, int index) {
+std::vector<std::string> search_regex_all(std::string_view format, std::string_view value, int index) {
     std::vector<std::string> ret;
     std::regex expression = create_regex(format);
     std::transform(
@@ -259,7 +259,7 @@ std::vector<std::string> search_regex_all(const std::string &format, std::string
     return ret;
 }
 
-std::string search_regex(const std::string &format, std::string_view value, int index) {
+std::string search_regex(std::string_view format, std::string_view value, int index) {
     std::regex expression = create_regex(format);
     std::cmatch match;
     if (std::regex_search(value.begin(), value.end(), match, expression)) {
@@ -269,7 +269,7 @@ std::string search_regex(const std::string &format, std::string_view value, int 
     }
 }
 
-std::string &string_replace_regex(std::string &value, const std::string &format, const std::string &str) {
+std::string &string_replace_regex(std::string &value, std::string_view format, const std::string &str) {
     return value = std::regex_replace(value, create_regex(format), str);
 }
 

@@ -50,7 +50,7 @@ public:
         }
     }
     
-    void next_token(const std::string &separator) {
+    void next_token(std::string_view separator) {
         if (m_spans.size() > 1) {
             m_spans.back().m_begin = m_text.find_first_not_of(separator, m_spans.back().m_end);
             if (token_end()) {
