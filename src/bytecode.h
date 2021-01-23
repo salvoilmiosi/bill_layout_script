@@ -70,10 +70,6 @@
 enum class opcode : uint8_t OPCODES;
 #undef O
 
-#define O(x) #x
-static const char *opcode_names[] = OPCODES;
-#undef O
-
 typedef int8_t small_int;
 typedef int16_t jump_address; // indirizzo relativo
 
@@ -82,13 +78,17 @@ struct command_call {
     small_int numargs;
 };
 
-enum class spacer_index: uint8_t {
-    SPACER_PAGE,
-    SPACER_X,
-    SPACER_Y,
-    SPACER_W,
-    SPACER_H
-};
+#define SPACER_INDICES { \
+    S(SPACER_PAGE), \
+    S(SPACER_X), \
+    S(SPACER_Y), \
+    S(SPACER_W), \
+    S(SPACER_H) \
+}
+
+#define S(x) x
+enum class spacer_index: uint8_t SPACER_INDICES;
+#undef S
 
 struct variable_idx {
     std::string name;
