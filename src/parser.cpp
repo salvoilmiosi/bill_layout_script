@@ -18,23 +18,13 @@ void parser::read_layout(const bill_layout_script &layout) {
     }
 
     for (auto line = m_code.begin(); line != m_code.end(); ++line) {
-        switch (line->command()) {
-        case opcode::JMP:
-        case opcode::JSR:
-        case opcode::JZ:
-        case opcode::JNZ:
-        case opcode::JTE:
-        {
-            auto label = line->get<std::string>();
-            if (auto it = m_labels.find(label); it != m_labels.end()) {
-                *line = command_args(line->command(), jump_address(it->second - (line - m_code.begin())));
+        if (line->type() == typeid(jump_address)) {
+            auto &addr = line->get<jump_address>();
+            if (auto it = m_labels.find(addr.label); it != m_labels.end()) {
+                addr.address = it->second - (line - m_code.begin());
             } else {
-                throw layout_error(fmt::format("Etichetta sconosciuta: {}", label));
+                throw layout_error(fmt::format("Etichetta sconosciuta: {}", addr.label));
             }
-            break;
-        }
-        default:
-            break;
         }
     }
 }

@@ -168,31 +168,31 @@ void reader::exec_command(const command_args &cmd) {
         m_refs.pop();
         break;
     case opcode::JMP:
-        m_program_counter += cmd.get<jump_address>();
+        m_program_counter += cmd.get<jump_address>().address;
         m_jumped = true;
         break;
     case opcode::JSR:
         m_return_addrs.push(m_program_counter);
-        m_program_counter += cmd.get<jump_address>();
+        m_program_counter += cmd.get<jump_address>().address;
         m_jumped = true;
         break;
     case opcode::JZ:
         if (!m_vars.top().as_bool()) {
-            m_program_counter += cmd.get<jump_address>();
+            m_program_counter += cmd.get<jump_address>().address;
             m_jumped = true;
         }
         m_vars.pop();
         break;
     case opcode::JNZ:
         if (m_vars.top().as_bool()) {
-            m_program_counter += cmd.get<jump_address>();
+            m_program_counter += cmd.get<jump_address>().address;
             m_jumped = true;
         }
         m_vars.pop();
         break;
     case opcode::JTE:
         if (m_contents.top().token_end()) {
-            m_program_counter += cmd.get<jump_address>();
+            m_program_counter += cmd.get<jump_address>().address;
             m_jumped = true;
         }
         break;

@@ -21,7 +21,7 @@ void parser::read_keyword() {
             m_lexer.require(TOK_PAREN_BEGIN);
             read_expression();
             m_lexer.require(TOK_PAREN_END);
-            add_line(condition_positive ? opcode::JZ : opcode::JNZ, endif_label);
+            add_line(condition_positive ? opcode::JZ : opcode::JNZ, jump_address{endif_label, 0});
             read_statement();
             if (m_lexer.peek().type == TOK_FUNCTION) {
                 fun_name = m_lexer.current().value.substr(1);
@@ -30,7 +30,7 @@ void parser::read_keyword() {
                     m_lexer.advance();
                     has_endelse = true;
                     has_endif = true;
-                    add_line(opcode::JMP, endelse_label);
+                    add_line(opcode::JMP, jump_address{endelse_label, 0});
                     add_label(endif_label);
                     read_statement();
                     in_loop = false;
@@ -40,7 +40,7 @@ void parser::read_keyword() {
                     m_lexer.advance();
                     condition_positive = fun_name == "elif";
                     has_endelse = true;
-                    add_line(opcode::JMP, endelse_label);
+                    add_line(opcode::JMP, jump_address{endelse_label, 0});
                     break;
                 default:
                     in_loop = false;
@@ -60,10 +60,10 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_BEGIN);
         add_label(while_label);
         read_expression();
-        add_line(opcode::JZ, endwhile_label);
+        add_line(opcode::JZ, jump_address{endwhile_label, 0});
         m_lexer.require(TOK_PAREN_END);
         read_statement();
-        add_line(opcode::JMP, while_label);
+        add_line(opcode::JMP, jump_address{while_label, 0});
         add_label(endwhile_label);
         break;
     }
@@ -76,7 +76,7 @@ void parser::read_keyword() {
         m_lexer.require(TOK_COMMA);
         add_label(for_label);
         read_expression();
-        add_line(opcode::JZ, endfor_label);
+        add_line(opcode::JZ, jump_address{endfor_label, 0});
         m_lexer.require(TOK_COMMA);
         size_t increase_stmt_begin = m_code.size();
         read_statement();
@@ -84,14 +84,15 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_END);
         read_statement();
         vector_move_to_end(m_code, increase_stmt_begin, increase_stmt_end);
-        add_line(opcode::JMP, for_label);
+        add_line(opcode::JMP, jump_address{for_label, 0});
         add_label(endfor_label);
         break;
     }
     case hash("goto"):
     {
         m_lexer.require(TOK_PAREN_BEGIN);
-        add_line(opcode::JMP, std::string(m_lexer.require(TOK_IDENTIFIER).value));
+        auto tok = m_lexer.require(TOK_IDENTIFIER);
+        add_line(opcode::JMP, jump_address{std::string(tok.value), 0});
         m_lexer.require(TOK_PAREN_END);
         break;
     }
@@ -109,9 +110,9 @@ void parser::read_keyword() {
         add_line(opcode::NEWTOKENS);
         add_label(lines_label);
         add_line(opcode::NEXTLINE);
-        add_line(opcode::JTE, endlines_label);
+        add_line(opcode::JTE, jump_address{endlines_label, 0});
         read_statement();
-        add_line(opcode::JMP, lines_label);
+        add_line(opcode::JMP, jump_address{lines_label, 0});
         add_label(endlines_label);
         if (pushed_content) {
             add_line(opcode::POPCONTENT);

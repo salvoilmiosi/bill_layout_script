@@ -46,9 +46,9 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
 static const char *opcode_names[] = OPCODES;
 #undef O
 
-#define S(x) #x
-static const char *spacer_index_names[] = SPACER_INDICES;
-#undef S
+static const char *spacer_index_names[] = {
+    "PAGE", "X", "Y", "W", "H"
+};
 
 std::string quoted_string(const std::string &str) {
     std::string ret = Json::Value(str).toStyledString();
@@ -62,7 +62,18 @@ int MainApp::OnRun() {
         my_parser.add_flags(FLAGS_DEBUG);
         my_parser.read_layout(bill_layout_script::from_file(input_bls));
 
-        for (auto &line : my_parser.get_bytecode()) {
+        std::multimap<size_t, std::string> inv_labels;
+        for (auto &[label, addr] : my_parser.get_labels()) {
+            inv_labels.emplace(addr, label);
+        }
+
+        const auto &code = my_parser.get_bytecode();
+        for (auto it = code.begin(); it != code.end(); ++it) {
+            auto [label_begin, label_end] = inv_labels.equal_range(it - code.begin());
+            for (;label_begin != label_end; ++label_begin) {
+                std::cout << label_begin->second << ':' << std::endl;
+            }
+            auto &line = *it;
             if (line.command() == opcode::COMMENT) {
                 std::cout << line.get<std::string>() << std::endl;
                 continue;
@@ -109,7 +120,7 @@ int MainApp::OnRun() {
             case opcode::JZ:
             case opcode::JNZ:
             case opcode::JTE:
-                std::cout << ' ' << line.get<jump_address>();
+                std::cout << ' ' << line.get<jump_address>().label;
                 break;
             default:
                 break;

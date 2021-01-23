@@ -71,29 +71,28 @@ enum class opcode : uint8_t OPCODES;
 #undef O
 
 typedef int8_t small_int;
-typedef int16_t jump_address; // indirizzo relativo
-
 struct command_call {
     std::string name;
     small_int numargs;
 };
 
-#define SPACER_INDICES { \
-    S(SPACER_PAGE), \
-    S(SPACER_X), \
-    S(SPACER_Y), \
-    S(SPACER_W), \
-    S(SPACER_H) \
-}
-
-#define S(x) x
-enum class spacer_index: uint8_t SPACER_INDICES;
-#undef S
+enum class spacer_index : uint8_t {
+    SPACER_PAGE,
+    SPACER_X,
+    SPACER_Y,
+    SPACER_W,
+    SPACER_H,
+};
 
 struct variable_idx {
     std::string name;
     small_int index;
     small_int range_len;
+};
+
+struct jump_address {
+    std::string label;
+    int16_t address; // indirizzo relativo
 };
 
 class command_args {
@@ -107,12 +106,20 @@ public:
     template<typename T>
     command_args(opcode command, T &&data) : m_command(command), m_data(std::forward<T>(data)) {}
 
-    opcode command() const {
+    opcode command() const noexcept {
         return m_command;
     }
     
-    template<typename T> T get() const {
-        return std::any_cast<T>(m_data);
+    template<typename T> T &get() {
+        return *std::any_cast<T>(&m_data);
+    }
+    
+    template<typename T> const T &get() const {
+        return *std::any_cast<T>(&m_data);
+    }
+
+    const auto &type() const noexcept {
+        return m_data.type();
     }
 };
 

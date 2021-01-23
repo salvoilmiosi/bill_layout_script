@@ -45,6 +45,10 @@ public:
     const auto &get_bytecode() {
         return m_code;
     }
+    
+    const auto &get_labels() {
+        return m_labels;
+    }
 
 private:
     void read_box(const layout_box &box);
