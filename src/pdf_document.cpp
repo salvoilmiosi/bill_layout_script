@@ -26,7 +26,7 @@ void pdf_document::open(const std::filesystem::path &filename) {
 
 std::string pdf_document::get_text(const pdf_rect &rect) const {
     if (!isopen()) return "";
-    if (rect.page > num_pages()) return "";
+    if (rect.page > num_pages() || rect.page <= 0) return "";
 
     auto poppler_mode = [](read_mode mode) {
         switch (mode) {
