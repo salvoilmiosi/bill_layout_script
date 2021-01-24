@@ -96,6 +96,27 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_END);
         break;
     }
+    case hash("function"):
+    {
+        std::string endfun_label = fmt::format("__endfunction_{}", m_code.size());
+        m_lexer.require(TOK_PAREN_BEGIN);
+        auto name = m_lexer.require(TOK_IDENTIFIER);
+        m_lexer.require(TOK_PAREN_END);
+        add_line(opcode::JMP, jump_address{endfun_label, 0});
+        add_label(std::string(name.value));
+        read_statement();
+        add_line(opcode::RET);
+        add_label(endfun_label);
+        break;
+    }
+    case hash("call"):
+    {
+        m_lexer.require(TOK_PAREN_BEGIN);
+        auto tok = m_lexer.require(TOK_IDENTIFIER);
+        add_line(opcode::JSR, jump_address{std::string(tok.value), 0});
+        m_lexer.require(TOK_PAREN_END);
+        break;
+    }
     case hash("lines"):
     {
         std::string lines_label = fmt::format("__lines_{}", m_code.size());
@@ -213,7 +234,7 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_BEGIN);
         m_lexer.require(TOK_PAREN_END);
         break;
-    case hash("halt"):
+    case hash("return"):
         m_lexer.require(TOK_PAREN_BEGIN);
         m_lexer.require(TOK_PAREN_END);
         add_line(opcode::RET);
