@@ -34,16 +34,18 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script &layou
 
 struct suffix {
     suffix(std::string_view line, std::string_view str) {
-        if (line.substr(0, str.size()) == str) {
-            value = line.substr(str.size() + 1);
+        if (line.starts_with(str)) {
+            value = line.substr(std::min(line.size(), line.find_first_not_of(" \t", str.size())));
+            valid = true;
         }
     }
     
     operator bool () const {
-        return !value.empty();
+        return valid;
     }
     
-    std::string value;
+    std::string_view value;
+    bool valid = false;
 };
 
 std::istream &getline_clearcr(std::istream &input, std::string &line) {
@@ -84,7 +86,7 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                         }
                     }
                 } else if (auto suf = suffix(line, "### Rect")) {
-                    std::istringstream ss(suf.value);
+                    std::istringstream ss(std::string(suf.value));
                     ss.imbue(std::locale::classic());
                     ss >> current->page >> current->x >> current->y >> current->w >> current->h;
                     if (ss.fail()) {
