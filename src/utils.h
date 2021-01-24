@@ -26,10 +26,10 @@ void string_trim(std::string &str);
 std::string read_all(std::istream &stream);
 
 // converte una stringa in int
-int cstoi(std::string_view str, int base = 10);
+int cstoi(const std::string &str);
 
 // converte una stringa in float 
-double cstof(std::string_view str, int base = 10);
+float cstof(const std::string &str);
 
 // Cerca la posizione di str2 in str senza fare differenza tra maiuscole e minuscole
 size_t string_findicase(std::string_view str, std::string_view str2, size_t index);

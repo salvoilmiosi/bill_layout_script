@@ -50,7 +50,9 @@ namespace intl {
     }
 
     void locale::set_language(const std::string &language_name) {
-        auto new_lang = wxLocale::FindLanguageInfo(language_name)->Language;
+        auto info = wxLocale::FindLanguageInfo(language_name);
+        int new_lang = wxLANGUAGE_DEFAULT;
+        if (info) new_lang = int(info->Language);
         if (m_locale) {
             if (new_lang == m_locale->GetLanguage()) {
                 return;
