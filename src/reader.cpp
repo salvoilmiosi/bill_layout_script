@@ -183,7 +183,7 @@ void reader::exec_command(const command_args &cmd) {
         m_jumped = true;
         break;
     case opcode::JSR:
-        jump_subroutine(cmd.get<jump_address>().address);
+        jump_subroutine(m_program_counter + cmd.get<jump_address>().address);
         break;
     case opcode::JZ:
         if (!m_vars.top().as_bool()) {
