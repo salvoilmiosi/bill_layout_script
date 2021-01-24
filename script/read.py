@@ -12,7 +12,7 @@ if len(sys.argv) < 3:
 
 input_directory = Path(sys.argv[1]).resolve()
 output_file = Path(sys.argv[2])
-controllo = Path(sys.argv[3] if len(sys.argv) >= 4 else Path(__file__).parent.parent / 'layouts/controllo.bls')
+controllo = Path(sys.argv[3]).resolve() if len(sys.argv) >= 4 else Path(__file__).resolve().parent.parent / 'layouts/controllo.bls'
 
 try:
     nthreads = int(sys.argv[4]) if len(sys.argv) >= 5 else cpu_count()

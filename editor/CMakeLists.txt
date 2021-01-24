@@ -58,6 +58,6 @@ include(${wxWidgets_USE_FILE})
 
 include_directories(${liblayout_INCLUDE_DIRS})
 
-add_executable(editor ${editor_SRCS} ${editor_RESOURCES_C} resources/resources.rc)
-set_target_properties(editor PROPERTIES PREFIX "../")
-target_link_libraries(editor ${wxWidgets_LIBRARIES} layout)
+add_executable(layout_editor ${editor_SRCS} ${editor_RESOURCES_C} resources/resources.rc)
+set_target_properties(layout_editor PROPERTIES PREFIX "../")
+target_link_libraries(layout_editor ${wxWidgets_LIBRARIES} layout)
