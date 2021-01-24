@@ -47,6 +47,12 @@ void reader::exec_command(const command_args &cmd) {
         }
     };
 
+    auto jump_subroutine = [&](size_t address) {
+        m_return_addrs.push(m_program_counter);
+        m_program_counter = address;
+        m_jumped = true;
+    };
+
     switch(cmd.command()) {
     case opcode::NOP:
     case opcode::COMMENT:
@@ -92,12 +98,10 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::GEQ: exec_operator([](const auto &a, const auto &b) { return a >= b; }); break;
     case opcode::LEQ: exec_operator([](const auto &a, const auto &b) { return a <= b; }); break;
     case opcode::SELVARTOP:
-    {
         m_refs.emplace_back(create_ref(cmd.get<std::string>(),
             m_vars.top().as_int(), 1));
         m_vars.pop();
         break;
-    }
     case opcode::SELRANGEALL:
     {
         auto ref = create_ref(cmd.get<std::string>());
@@ -130,7 +134,6 @@ void reader::exec_command(const command_args &cmd) {
         break;
     }
     case opcode::MVBOX:
-    {
         switch (cmd.get<spacer_index>()) {
         case spacer_index::SPACER_PAGE:
             m_spacer.page += m_vars.top().as_int();
@@ -150,7 +153,6 @@ void reader::exec_command(const command_args &cmd) {
         }
         m_vars.pop();
         break;
-    }
     case opcode::CLEAR:
         m_refs.top().clear();
         m_refs.pop();
@@ -179,6 +181,9 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::JMP:
         m_program_counter += cmd.get<jump_address>().address;
         m_jumped = true;
+        break;
+    case opcode::JSR:
+        jump_subroutine(cmd.get<jump_address>().address);
         break;
     case opcode::JZ:
         if (!m_vars.top().as_bool()) {
@@ -239,12 +244,14 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::NEXTTABLE: ++m_current_table; break;
     case opcode::ATE: m_vars.push(m_last_box_page > m_doc->num_pages()); break;
     case opcode::RET:
-        if (m_return_addrs.empty()) {
-            halt();
-        } else {
+        if (!m_return_addrs.empty()) {
             m_program_counter = m_return_addrs.top();
             m_return_addrs.pop();
+            break;
         }
+        [[fallthrough]];
+    case opcode::HLT:
+        halt();
         break;
     case opcode::SETLAYOUT:
         if (m_flags & READER_HALT_ON_SETLAYOUT) {
@@ -254,13 +261,8 @@ void reader::exec_command(const command_args &cmd) {
         }
         [[fallthrough]];
     case opcode::IMPORT:
-    {
-        size_t new_addr = add_layout(cmd.get<std::filesystem::path>());
-        m_return_addrs.push_back(m_program_counter);
-        m_program_counter = new_addr;
-        m_jumped = true;
+        jump_subroutine(add_layout(cmd.get<std::filesystem::path>()));
         break;
-    }
     case opcode::SETLANG:
         m_locale.set_language(cmd.get<std::string>());
         break;

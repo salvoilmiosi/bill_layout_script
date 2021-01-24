@@ -123,6 +123,7 @@ int MainApp::OnRun() {
                 std::cout << ' ' << quoted_string(line.get<std::filesystem::path>().string());
                 break;
             case opcode::JMP:
+            case opcode::JSR:
             case opcode::JZ:
             case opcode::JNZ:
             case opcode::JTE:

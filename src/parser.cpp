@@ -7,7 +7,7 @@
 #include "fixed_point.h"
 
 void parser::read_layout(const bill_layout_script &layout) {
-    m_filename = layout.filename();
+    m_layout = &layout;
     
     try {
         if (!layout.language_code.empty()) {

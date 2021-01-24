@@ -74,9 +74,10 @@ private:
     void add_label(const std::string &label);
 
 private:
+    const bill_layout_script *m_layout = nullptr;
+
     lexer m_lexer{*this};
     bytecode m_code;
-    std::filesystem::path m_filename;
 
     std::map<std::string, size_t> m_labels;
 

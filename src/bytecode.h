@@ -41,11 +41,13 @@
     O(PUSHSTR),     /* string str -- str -> var_stack */ \
     O(PUSHVAR),     /* ref_stack -> var_stack */ \
     O(MOVEVAR),     /* ref_stack -> (move) var_stack */ \
-    O(JMP),         /* short address -- unconditional jump */ \
-    O(JZ),          /* short address -- var_stack -> jump if top == 0 */ \
-    O(JNZ),         /* short address -- var_stack -> jump if top != 0 */ \
-    O(JTE),         /* short address -- jump if content_stack.top at token end */ \
+    O(JMP),         /* jump_address -- unconditional jump */ \
+    O(JSR),         /* jump_address -- program_counter -> return_addrs -- jump to subroutine */ \
+    O(JZ),          /* jump_address -- var_stack -> jump if top == 0 */ \
+    O(JNZ),         /* jump_address -- var_stack -> jump if top != 0 */ \
+    O(JTE),         /* jump_address -- jump if content_stack.top at token end */ \
     O(RET),         /* jump to return_addrs.top, return_addrs.pop, halt if return_addrs.empty */ \
+    O(HLT),         /* halts execution */ \
     O(INC),         /* ref_stack, var_stack -> += top */ \
     O(DEC),         /* ref_stack, var_stack -> -= top */ \
     O(ISSET),       /* ref_stack -> size() != 0 -> var_stack */ \

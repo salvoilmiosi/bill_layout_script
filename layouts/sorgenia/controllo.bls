@@ -28,7 +28,6 @@ p+::off_allegati
 ### Script
 $if($contains(@,"servizio di fatturazione trasmessa")) {
   $setlayout("sorgenia_gen16")
-  $halt()
 }
 ### End Script
 ### End Box

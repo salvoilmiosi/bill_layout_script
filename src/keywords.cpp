@@ -228,8 +228,16 @@ void parser::read_keyword() {
         if (!parse_string_token(layout_name, tok_layout_name.value)) {
             throw parsing_error("Costante stringa non valida", tok_layout_name);
         }
-        auto imported_file = std::filesystem::canonical(m_filename.parent_path() / (layout_name + ".bls"));
-        add_line(fun_name == "import" ? opcode::IMPORT : opcode::SETLAYOUT, imported_file);
+        auto imported_file = std::filesystem::canonical(m_layout->filename().parent_path() / (layout_name + ".bls"));
+        if (fun_name == "import") {
+            add_line(opcode::IMPORT, imported_file);
+            if (!m_layout->language_code.empty()) {
+                add_line(opcode::SETLANG, m_layout->language_code);
+            }
+        } else {
+            add_line(opcode::SETLAYOUT, imported_file);
+            add_line(opcode::HLT);
+        }
         break;
     }
     default:
