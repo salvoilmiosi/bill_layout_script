@@ -9,6 +9,7 @@
 #include "layout.h"
 #include "lexer.h"
 #include "bytecode.h"
+#include "intl.h"
 
 struct spacer {
     float w = 0, h = 0;
@@ -75,10 +76,13 @@ private:
 private:
     lexer m_lexer{*this};
     bytecode m_code;
+    std::filesystem::path m_filename;
 
     std::map<std::string, size_t> m_labels;
 
     uint8_t m_flags = FLAGS_NONE;
+
+    intl::locale m_locale;
 
     friend class lexer;
 };

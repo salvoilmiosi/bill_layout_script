@@ -1,7 +1,8 @@
 #ifndef __INTL_H__
-#define __ITNL_H__
+#define __INTL_H__
 
 #include <string>
+#include <wx/intl.h>
 
 namespace intl {
     char decimal_point();
@@ -9,10 +10,18 @@ namespace intl {
 
     const std::string &number_format();
 
-    void init();
-    void cleanup();
+    std::string system_language();
 
-    void change_language(const std::string &language_name);
+    class locale {
+    public:
+        locale();
+        ~locale();
+
+        void set_language(const std::string &language_name);
+        
+    private:
+        wxLocale *m_locale = nullptr;
+    };
 }
 
 #endif

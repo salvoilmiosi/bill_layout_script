@@ -7,9 +7,12 @@
 #include "fixed_point.h"
 
 void parser::read_layout(const bill_layout_script &layout) {
+    m_filename = layout.filename();
+    
     try {
         if (!layout.language_code.empty()) {
             add_line(opcode::SETLANG, layout.language_code);
+            m_locale.set_language(layout.language_code);
         }
         for (auto &box : layout.m_boxes) {
             read_box(*box);

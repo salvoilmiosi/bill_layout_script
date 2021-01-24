@@ -187,7 +187,7 @@ void frame_editor::openFile(const wxString &filename) {
         history.clear();
         updateLayout();
 
-        wxString abs_path = std::filesystem::canonical(layout.m_filename).string();
+        wxString abs_path = layout.filename().string();
         
         auto it = std::find(recentFiles.begin(), recentFiles.end(), abs_path);
         if (it != recentFiles.end()) {
@@ -204,15 +204,15 @@ void frame_editor::openFile(const wxString &filename) {
 }
 
 bool frame_editor::save(bool saveAs) {
-    if (layout.m_filename.empty() || saveAs) {
-        wxFileDialog diag(this, "Salva Layout Bolletta", wxEmptyString, layout.m_filename.string(), "File layout (*.bls)|*.bls|Tutti i file (*.*)|*.*", wxFD_SAVE);
+    if (layout.filename().empty() || saveAs) {
+        wxFileDialog diag(this, "Salva Layout Bolletta", wxEmptyString, layout.filename().string(), "File layout (*.bls)|*.bls|Tutti i file (*.*)|*.*", wxFD_SAVE);
 
         if (diag.ShowModal() == wxID_CANCEL)
             return false;
 
-        layout.m_filename = diag.GetPath().ToStdString();
+        layout.set_filename(diag.GetPath().ToStdString());
     }
-    if (!layout.save_file(layout.m_filename)) {
+    if (!layout.save_file(layout.filename())) {
         wxMessageBox("Impossibile salvare questo file", "Errore", wxICON_ERROR);
         return false;
     }
@@ -315,7 +315,7 @@ void frame_editor::loadPdf(const wxString &filename) {
         }
         setSelectedPage(1, true);
 
-        wxString abs_path = std::filesystem::canonical(m_doc.filename()).string();
+        wxString abs_path = m_doc.filename().string();
         
         auto it = std::find(recentPdfs.begin(), recentPdfs.end(), abs_path);
         if (it != recentPdfs.end()) {

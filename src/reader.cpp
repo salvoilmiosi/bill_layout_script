@@ -2,23 +2,14 @@
 
 #include "utils.h"
 #include "parser.h"
-#include "intl.h"
 
 #include <sstream>
-
-reader::reader() {
-    intl::init();
-}
-
-reader::~reader() {
-    intl::cleanup();
-}
 
 void reader::start() {
     m_vars.clear();
     m_contents.clear();
     m_refs.clear();
-    m_call_stack.clear();
+    m_return_addrs.clear();
     m_loaded_layouts.clear();
 
     m_spacer = {};
@@ -248,28 +239,38 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::NEXTTABLE: ++m_current_table; break;
     case opcode::ATE: m_vars.push(m_last_box_page > m_doc->num_pages()); break;
     case opcode::RET:
-        if (m_call_stack.empty()) {
+        if (m_return_addrs.empty()) {
             halt();
         } else {
-            m_program_counter = m_call_stack.top().second;
-            m_call_stack.pop();
+            m_program_counter = m_return_addrs.top();
+            m_return_addrs.pop();
         }
         break;
     case opcode::SETLAYOUT:
+        if (m_flags & READER_HALT_ON_SETLAYOUT) {
+            m_out.layouts.push_back(cmd.get<std::filesystem::path>());
+            halt();
+            break;
+        }
+        [[fallthrough]];
     case opcode::IMPORT:
-        import_layout(cmd.get<std::string>(), cmd.command() == opcode::SETLAYOUT);
+    {
+        size_t new_addr = add_layout(cmd.get<std::filesystem::path>());
+        m_return_addrs.push_back(m_program_counter);
+        m_program_counter = new_addr;
+        m_jumped = true;
         break;
+    }
     case opcode::SETLANG:
-        intl::change_language(cmd.get<std::string>());
+        m_locale.set_language(cmd.get<std::string>());
         break;
     }
 }
 
 size_t reader::add_layout(const bill_layout_script &layout) {
-    auto filename = std::filesystem::canonical(layout.m_filename);
-    m_out.layouts.push_back(filename);
+    m_out.layouts.push_back(layout.filename());
     size_t new_addr = m_code.size();
-    m_loaded_layouts.emplace(filename, new_addr);
+    m_loaded_layouts.emplace(layout.filename(), new_addr);
 
     auto new_code = parser(layout).get_bytecode();
     std::copy(
@@ -281,25 +282,11 @@ size_t reader::add_layout(const bill_layout_script &layout) {
 }
 
 size_t reader::add_layout(const std::filesystem::path &filename) {
-    auto it = m_loaded_layouts.find(std::filesystem::canonical(filename));
+    auto it = m_loaded_layouts.find(filename);
     if (it == m_loaded_layouts.end()) {
         return add_layout(bill_layout_script::from_file(filename));
     } else {
         return it->second;
-    }
-}
-
-void reader::import_layout(const std::string &layout_name, bool set_layout) {
-    auto imported_file = (m_call_stack.empty() ? m_out.layouts.front() : m_call_stack.top().first).parent_path() / (layout_name + ".bls");
-
-    if (set_layout && (m_flags & READER_HALT_ON_SETLAYOUT)) {
-        m_out.layouts.push_back(imported_file);
-        halt();
-    } else {
-        size_t new_addr = add_layout(imported_file);
-        m_call_stack.emplace_back(imported_file, m_program_counter);
-        m_program_counter = new_addr;
-        m_jumped = true;
     }
 }
 

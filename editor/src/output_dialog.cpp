@@ -6,7 +6,6 @@
 #include "resources.h"
 #include "editor.h"
 
-#include "parser.h"
 #include "reader.h"
 #include "utils.h"
 
@@ -90,8 +89,8 @@ reader_thread::~reader_thread() {
 wxThread::ExitCode reader_thread::Entry() {
     try {
         bill_layout_script layout_copy = layout;
-        if (layout_copy.m_filename.empty()) {
-            layout_copy.m_filename = parent->parent->getControlScript().ToStdString();
+        if (layout_copy.filename().empty()) {
+            layout_copy.set_filename(parent->parent->getControlScript().ToStdString());
         }
         m_reader.add_layout(std::move(layout_copy));
         m_reader.start();

@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "intl.h"
 
 typedef std::string_view::iterator location;
 
@@ -164,5 +165,6 @@ bool parse_regexp_token(std::string &decoded, std::string_view value) {
     }
     
     string_replace(decoded, " ", "\\s+");
+    string_replace(decoded, "%N", intl::number_format());
     return true;
 }

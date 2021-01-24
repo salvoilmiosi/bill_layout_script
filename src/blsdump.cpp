@@ -115,10 +115,12 @@ int MainApp::OnRun() {
                 std::cout << ' ' << line.get<fixed_point>();
                 break;
             case opcode::PUSHSTR:
-            case opcode::IMPORT:
-            case opcode::SETLAYOUT:
             case opcode::SETLANG:
                 std::cout << ' ' << quoted_string(line.get<std::string>());
+                break;
+            case opcode::IMPORT:
+            case opcode::SETLAYOUT:
+                std::cout << ' ' << quoted_string(line.get<std::filesystem::path>().string());
                 break;
             case opcode::JMP:
             case opcode::JZ:

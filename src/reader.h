@@ -12,6 +12,7 @@
 #include "bytecode.h"
 #include "stack.h"
 #include "content_view.h"
+#include "intl.h"
 
 struct box_spacer {
     float x = 0;
@@ -36,8 +37,7 @@ enum reader_flags {
 
 class reader {
 public:
-    reader();
-    ~reader();
+    reader() = default;
 
     reader(const pdf_document &doc) {
         set_document(doc);
@@ -76,15 +76,13 @@ private:
     void exec_command(const command_args &cmd);
     void read_box(pdf_rect box);
     void call_function(const std::string &name, size_t numargs);
-    void import_layout(const std::string &layout_name, bool set_layout = false);
 
 private:
     simple_stack<variable> m_vars;
     simple_stack<content_view> m_contents;
     simple_stack<variable_ref> m_refs;
 
-    // {nome file layout caricato, indirizzo di ritorno}
-    simple_stack<std::pair<std::filesystem::path, size_t>> m_call_stack;
+    simple_stack<size_t> m_return_addrs;
 
     // nome file layout -> indirizzo in m_code
     std::map<std::filesystem::path, size_t> m_loaded_layouts;
@@ -107,6 +105,8 @@ private:
     uint8_t m_flags = 0;
 
     reader_output m_out;
+
+    intl::locale m_locale;
 };
 
 #endif
