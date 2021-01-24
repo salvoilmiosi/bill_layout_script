@@ -36,8 +36,8 @@ public:
         read_layout(layout);
     }
 
-    void add_flags(parser_flags flag) {
-        m_flags |= flag;
+    void add_flags(parser_flags flags) {
+        m_flags |= flags;
     }
 
     void read_layout(const bill_layout_script &layout);

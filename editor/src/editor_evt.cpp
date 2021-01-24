@@ -126,13 +126,14 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
 
     try {
         reader my_reader(m_doc, bill_layout_script::from_file(getControlScript().ToStdString()));
+        my_reader.add_flags(READER_HALT_ON_SETLAYOUT);
         my_reader.start();
 
         auto &layouts = my_reader.get_output().layouts;
         if (layouts.size() <= 1) {
             wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
         } else if (saveIfModified()) {
-            openFile(layouts.back());
+            openFile(layouts.back().string());
         }
     } catch (const std::exception &error) {
         wxMessageBox(error.what(), "Errore", wxICON_ERROR);

@@ -81,18 +81,18 @@ int MainApp::OnRun() {
                 std::cout << line.get<std::string>() << std::endl;
                 continue;
             }
-            std::cout << '\t' << opcode_names[static_cast<int>(line.command())];
+            std::cout << '\t' << opcode_names[int(line.command())];
             switch (line.command()) {
             case opcode::RDBOX:
             {
                 auto box = line.get<pdf_rect>();
-                std::cout << ' ' << read_mode_strings[static_cast<int>(box.mode)];
-                std::cout << ' ' << box_type_strings[static_cast<int>(box.type)];
+                std::cout << ' ' << read_mode_strings[int(box.mode)];
+                std::cout << ' ' << box_type_strings[int(box.type)];
                 std::cout << ' ' << int(box.page) << ' ' << box.x << ' ' << box.y << ' ' << box.w << ' ' << box.h;
                 break;
             }
             case opcode::MVBOX:
-                std::cout << ' ' << spacer_index_names[static_cast<int>(line.get<spacer_index>())];
+                std::cout << ' ' << spacer_index_names[int(line.get<spacer_index>())];
                 break;
             case opcode::CALL:
             {
@@ -109,18 +109,18 @@ int MainApp::OnRun() {
             case opcode::SELVARTOP:
             case opcode::SELRANGETOP:
             case opcode::SELRANGEALL:
-            case opcode::IMPORT:
-            case opcode::SETLANG:
                 std::cout << ' ' << line.get<std::string>();
                 break;
             case opcode::PUSHNUM:
                 std::cout << ' ' << line.get<fixed_point>();
                 break;
             case opcode::PUSHSTR:
+            case opcode::IMPORT:
+            case opcode::SETLAYOUT:
+            case opcode::SETLANG:
                 std::cout << ' ' << quoted_string(line.get<std::string>());
                 break;
             case opcode::JMP:
-            case opcode::JSR:
             case opcode::JZ:
             case opcode::JNZ:
             case opcode::JTE:

@@ -12,9 +12,9 @@
 ### Script
 $if($contains(@,"Enel Servizio Elettrico")) {
   ::fornitore="Enel Energia"
-  $import("sen")
+  $setlayout("sen")
 } $else {
-  $import("enel")
+  $setlayout("enel")
 }
 ### End Script
 ### End Box

@@ -11,9 +11,9 @@
 ### H 0.0360520482
 ### Script
 $if($contains(@,"C/O MILANO CENTRO")) {
-  $import("axpo_old")
+  $setlayout("axpo_old")
 } $else {
-  $import("axpo")
+  $setlayout("axpo")
 }
 ### End Script
 ### End Box

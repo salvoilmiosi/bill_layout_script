@@ -18,7 +18,8 @@ void reader::start() {
     m_vars.clear();
     m_contents.clear();
     m_refs.clear();
-    m_return_addrs.clear();
+    m_call_stack.clear();
+    m_loaded_layouts.clear();
 
     m_spacer = {};
     m_last_box_page = 0;
@@ -188,11 +189,6 @@ void reader::exec_command(const command_args &cmd) {
         m_program_counter += cmd.get<jump_address>().address;
         m_jumped = true;
         break;
-    case opcode::JSR:
-        m_return_addrs.push(m_program_counter);
-        m_program_counter += cmd.get<jump_address>().address;
-        m_jumped = true;
-        break;
     case opcode::JZ:
         if (!m_vars.top().as_bool()) {
             m_program_counter += cmd.get<jump_address>().address;
@@ -252,15 +248,16 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::NEXTTABLE: ++m_current_table; break;
     case opcode::ATE: m_vars.push(m_last_box_page > m_doc->num_pages()); break;
     case opcode::RET:
-        if (m_return_addrs.empty()) {
+        if (m_call_stack.empty()) {
             halt();
         } else {
-            m_program_counter = m_return_addrs.top();
-            m_return_addrs.pop();
+            m_program_counter = m_call_stack.top().second;
+            m_call_stack.pop();
         }
         break;
+    case opcode::SETLAYOUT:
     case opcode::IMPORT:
-        import_layout(cmd.get<std::string>());
+        import_layout(cmd.get<std::string>(), cmd.command() == opcode::SETLAYOUT);
         break;
     case opcode::SETLANG:
         intl::change_language(cmd.get<std::string>());
@@ -268,24 +265,42 @@ void reader::exec_command(const command_args &cmd) {
     }
 }
 
-void reader::add_layout(const bill_layout_script &layout) {
-    m_out.layouts.push_back(std::filesystem::canonical(layout.m_filename).string());
+size_t reader::add_layout(const bill_layout_script &layout) {
+    auto filename = std::filesystem::canonical(layout.m_filename);
+    m_out.layouts.push_back(filename);
+    size_t new_addr = m_code.size();
+    m_loaded_layouts.emplace(filename, new_addr);
+
     auto new_code = parser(layout).get_bytecode();
     std::copy(
         std::move_iterator(new_code.begin()),
         std::move_iterator(new_code.end()),
         std::back_inserter(m_code)
     );
+    return new_addr;
 }
 
-void reader::import_layout(const std::string &layout_name) {
-    auto imported_file = std::filesystem::path(m_out.layouts.back()).parent_path() / (layout_name + ".bls");
+size_t reader::add_layout(const std::filesystem::path &filename) {
+    auto it = m_loaded_layouts.find(std::filesystem::canonical(filename));
+    if (it == m_loaded_layouts.end()) {
+        return add_layout(bill_layout_script::from_file(filename));
+    } else {
+        return it->second;
+    }
+}
 
-    auto new_addr = m_code.size();
-    add_layout(bill_layout_script::from_file(imported_file));
-    m_return_addrs.push(m_program_counter);
-    m_program_counter = new_addr;
-    m_jumped = true;
+void reader::import_layout(const std::string &layout_name, bool set_layout) {
+    auto imported_file = (m_call_stack.empty() ? m_out.layouts.front() : m_call_stack.top().first).parent_path() / (layout_name + ".bls");
+
+    if (set_layout && (m_flags & READER_HALT_ON_SETLAYOUT)) {
+        m_out.layouts.push_back(imported_file);
+        halt();
+    } else {
+        size_t new_addr = add_layout(imported_file);
+        m_call_stack.emplace_back(imported_file, m_program_counter);
+        m_program_counter = new_addr;
+        m_jumped = true;
+    }
 }
 
 void reader::read_box(pdf_rect box) {

@@ -44,13 +44,13 @@ fornitore="Green network"
 ### Page 1
 ### X 0.0935483873
 ### Y 0.1106043309
-### W 0.3080645204
+### W 0.4394108951
 ### H 0.0330672748
 ### Spacers
 p+::off_allegati
 ### End Spacers
 ### Script
-numero_fattura=$search(@,/Fattura n\. (.+) /)
+numero_fattura=$search(@,/Fattura n\. ([0-9a-zA-Z\-]+)/)
 data_fattura=$date(@,"%d/%m/%Y")
 ### End Script
 ### End Box

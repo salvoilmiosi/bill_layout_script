@@ -42,7 +42,6 @@
     O(PUSHVAR),     /* ref_stack -> var_stack */ \
     O(MOVEVAR),     /* ref_stack -> (move) var_stack */ \
     O(JMP),         /* short address -- unconditional jump */ \
-    O(JSR),         /* short address -- program_counter -> return_addrs, jump */ \
     O(JZ),          /* short address -- var_stack -> jump if top == 0 */ \
     O(JNZ),         /* short address -- var_stack -> jump if top != 0 */ \
     O(JTE),         /* short address -- jump if content_stack.top at token end */ \
@@ -62,7 +61,8 @@
     O(POPCONTENT),  /* content_stack.pop() */ \
     O(NEXTTABLE),   /* current_table++ */ \
     O(ATE),         /* m_ate -> var_stack */ \
-    O(IMPORT),      /* string layout_name */ \
+    O(IMPORT),      /* string layout_name, importa il file e lo esegue */ \
+    O(SETLAYOUT),   /* string layout_name, IMPORT + hint per autolayout */ \
     O(COMMENT),     /* string data */ \
     O(SETLANG),     /* string language name */ \
 }

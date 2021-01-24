@@ -22,6 +22,7 @@ private:
 
     bool show_debug = false;
     bool show_globals = false;
+    bool get_layout = false;
 };
 
 wxIMPLEMENT_APP_CONSOLE(MainApp);
@@ -29,6 +30,7 @@ wxIMPLEMENT_APP_CONSOLE(MainApp);
 static const wxCmdLineEntryDesc g_cmdline_desc[] = {
     { wxCMD_LINE_SWITCH, "d", "show-debug", "Show Debug Variables", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_SWITCH, "g", "show-globals", "Show Global Variables", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_SWITCH, "l", "get-layout", "Halt On Setlayout", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_PARAM, nullptr, nullptr, "input-pdf", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
     { wxCMD_LINE_PARAM, nullptr, nullptr, "input-bls", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
     { wxCMD_LINE_NONE }
@@ -46,6 +48,7 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     }
     show_debug = parser.Found("d");
     show_globals = parser.Found("g");
+    get_layout = parser.Found("l");
     return true;
 }
 
@@ -74,6 +77,9 @@ int MainApp::OnRun() {
     try {
         pdf_document my_doc(input_pdf);
         reader my_reader(my_doc, bill_layout_script::from_file(input_bls));
+        if (get_layout) {
+            my_reader.add_flags(READER_HALT_ON_SETLAYOUT);
+        }
         my_reader.start();
 
         const auto &out = my_reader.get_output();
@@ -95,7 +101,7 @@ int MainApp::OnRun() {
 
         auto &json_layouts = result["layouts"] = Json::arrayValue;
         for (auto &l : out.layouts) {
-            json_layouts.append(l);
+            json_layouts.append(l.string());
         }
 
         std::cout << result;

@@ -27,7 +27,11 @@ struct reader_output {
     variable_map globals;
     std::vector<variable_map> values;
     std::vector<std::string> warnings;
-    std::vector<std::string> layouts;
+    std::vector<std::filesystem::path> layouts;
+};
+
+enum reader_flags {
+    READER_HALT_ON_SETLAYOUT = 1 << 0,
 };
 
 class reader {
@@ -50,7 +54,13 @@ public:
 
     void set_document(pdf_document &&doc) = delete;
 
-    void add_layout(const bill_layout_script &layout);
+    // ritorna l'indirizzo del codice aggiunto
+    size_t add_layout(const bill_layout_script &layout);
+    size_t add_layout(const std::filesystem::path &filename);
+
+    void add_flags(reader_flags flags) {
+        m_flags |= flags;
+    }
 
     void start();
 
@@ -66,13 +76,18 @@ private:
     void exec_command(const command_args &cmd);
     void read_box(pdf_rect box);
     void call_function(const std::string &name, size_t numargs);
-    void import_layout(const std::string &layout_name);
+    void import_layout(const std::string &layout_name, bool set_layout = false);
 
 private:
     simple_stack<variable> m_vars;
     simple_stack<content_view> m_contents;
     simple_stack<variable_ref> m_refs;
-    simple_stack<size_t> m_return_addrs;
+
+    // {nome file layout caricato, indirizzo di ritorno}
+    simple_stack<std::pair<std::filesystem::path, size_t>> m_call_stack;
+
+    // nome file layout -> indirizzo in m_code
+    std::map<std::filesystem::path, size_t> m_loaded_layouts;
 
     box_spacer m_spacer;
     int m_last_box_page;
@@ -88,6 +103,8 @@ private:
     const pdf_document *m_doc = nullptr;
 
     bytecode m_code;
+
+    uint8_t m_flags = 0;
 
     reader_output m_out;
 };

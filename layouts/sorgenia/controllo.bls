@@ -36,7 +36,7 @@ p+::off_allegati
 ### End Spacers
 ### Script
 $if($contains(@,"servizio di fatturazione trasmessa")) {
-  $import("sorgenia_gen16")
+  $setlayout("sorgenia_gen16")
   $halt()
 }
 ### End Script
@@ -56,9 +56,9 @@ p+::off_allegati
 ### End Spacers
 ### Script
 $if($contains(@,"Sorgenia S.p.A")) {
-  $import("sorgenia_old")
+  $setlayout("sorgenia_old")
 } $else {
-  $import("sorgenia")
+  $setlayout("sorgenia")
 }
 ### End Script
 ### End Box

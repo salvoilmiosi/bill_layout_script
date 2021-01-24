@@ -121,7 +121,7 @@ static PyObject *pyreader_readpdf(PyObject *self, PyObject *args) {
         try {
             pdf_document my_doc(pdf_filename);
             my_reader.set_document(my_doc);
-            my_reader.add_layout(bill_layout_script::from_file(code_filename));
+            my_reader.add_layout(code_filename);
             my_reader.start();
 
             return to_pyoutput(my_reader.get_output());

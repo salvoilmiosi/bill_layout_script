@@ -41,6 +41,8 @@ namespace intl {
     void cleanup() {
         if (g_locale) {
             delete g_locale;
+            g_locale = nullptr;
+            set_strings();
         }
     }
 

@@ -219,6 +219,7 @@ void parser::read_keyword() {
         add_line(opcode::RET);
         break;
     case hash("import"):
+    case hash("setlayout"):
     {
         m_lexer.require(TOK_PAREN_BEGIN);
         auto tok_layout_name = m_lexer.require(TOK_STRING);
@@ -227,7 +228,7 @@ void parser::read_keyword() {
         if (!parse_string_token(layout_name, tok_layout_name.value)) {
             throw parsing_error("Costante stringa non valida", tok_layout_name);
         }
-        add_line(opcode::IMPORT, layout_name);
+        add_line(fun_name == "import" ? opcode::IMPORT : opcode::SETLAYOUT, layout_name);
         break;
     }
     default:
