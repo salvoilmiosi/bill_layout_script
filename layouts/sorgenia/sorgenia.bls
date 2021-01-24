@@ -6,10 +6,10 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0753814578
-### Y 0.3108103275
-### W 0.8291960359
-### H 0.0248280428
+### X 0.07538146
+### Y 0.31081033
+### W 0.82919604
+### H 0.024828043
 ### Script
 $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
   $error("Sorgenia: Stringa di Convalida Errata")
@@ -21,10 +21,10 @@ $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 3
-### X 0.0402901024
-### Y 0.0809578151
-### W 0.9105559587
-### H 0.8643101454
+### X 0.040290102
+### Y 0.080957815
+### W 0.91055596
+### H 0.86431015
 ### Goto Label lettura_dati
 ### Spacers
 p+::next_page
@@ -44,10 +44,10 @@ $ifnot($ate() || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
-### X 0.0612903237
-### Y 0.0410490297
-### W 0.3612903357
-### H 0.0832383111
+### X 0.061290324
+### Y 0.04104903
+### W 0.36129034
+### H 0.08323831
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Sorgenia"
@@ -59,10 +59,10 @@ fornitore="Sorgenia"
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.4848197401
-### Y 0.0104361940
-### W 0.4648956358
-### H 0.1047291458
+### X 0.48481974
+### Y 0.010436194
+### W 0.46489564
+### H 0.104729146
 ### Script
 numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 ### End Script
@@ -73,10 +73,10 @@ numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0766129047
-### Y 0.1503705680
-### W 0.3881048262
-### H 0.0285062697
+### X 0.076612905
+### Y 0.15037057
+### W 0.38810483
+### H 0.02850627
 ### Script
 ragione_sociale
 ### End Script
@@ -87,10 +87,10 @@ ragione_sociale
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.0783666149
-### Y 0.3364067376
-### W 0.3861495256
-### H 0.0398760438
+### X 0.078366615
+### Y 0.33640674
+### W 0.38614953
+### H 0.039876044
 ### Script
 numero_fattura=$search(@,/N\. fattura (.+)/)
 data_fattura=$date(@,"%d/%m/%Y",/Emessa il (%D)/)
@@ -102,10 +102,10 @@ data_fattura=$date(@,"%d/%m/%Y",/Emessa il (%D)/)
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.4709677398
-### Y 0.3353719413
-### W 0.4604218304
-### H 0.0511730909
+### X 0.47096774
+### Y 0.33537194
+### W 0.46042183
+### H 0.05117309
 ### Script
 codice_pod=$search(@,/per il punto di fornitura \(POD\) ([0-9A-Z]+)/)
 indirizzo_fornitura=$singleline($search(@,/\ndi ([^]+\(..\))/))
@@ -117,10 +117,10 @@ indirizzo_fornitura=$singleline($search(@,/\ndi ([^]+\(..\))/))
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0735887066
-### Y 0.4846065938
-### W 0.3114919364
-### H 0.0235176720
+### X 0.07358871
+### Y 0.4846066
+### W 0.31149194
+### H 0.023517672
 ### Script
 mese_fattura=$month(@,"%B %Y")
 mese_fine=$month(@,"%B %Y",/%D\/(%D)/)
@@ -136,10 +136,10 @@ $ifnot($isset(mese_fattura)) {
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.7051532269
-### Y 0.4358669817
-### W 0.2348197252
-### H 0.0494381189
+### X 0.7051532
+### Y 0.43586698
+### W 0.23481973
+### H 0.04943812
 ### Script
 data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
 ### End Script
@@ -150,10 +150,10 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.3145161271
-### Y 0.4354332685
-### W 0.3679435551
-### H 0.0334948674
+### X 0.31451613
+### Y 0.43543327
+### W 0.36794356
+### H 0.033494867
 ### Script
 %totale_fattura
 ### End Script
@@ -164,10 +164,10 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 2
-### X 0.6946011186
-### Y 0.0855188146
-### W 0.2675261796
-### H 0.0535917915
+### X 0.6946011
+### Y 0.085518815
+### W 0.26752618
+### H 0.05359179
 ### Script
 %potenza[0:3]=$search(@,/Potenza impegnata: (%N)/)
 ### End Script
@@ -178,10 +178,10 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 2
-### X 0.0580177270
-### Y 0.3854047954
-### W 0.3553287387
-### H 0.5330120325
+### X 0.058017727
+### Y 0.3854048
+### W 0.35532874
+### H 0.53301203
 ### Script
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
@@ -198,10 +198,10 @@ $with($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 2
-### X 0.0580177270
-### Y 0.3865450323
-### W 0.2352941036
-### H 0.5330120325
+### X 0.058017727
+### Y 0.38654503
+### W 0.2352941
+### H 0.53301203
 ### Script
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
@@ -218,10 +218,10 @@ $with($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 3
-### X 0.2603295445
-### Y 0.0307867713
-### W 0.0576036870
-### H 0.0447955690
+### X 0.26032954
+### Y 0.030786771
+### W 0.057603687
+### H 0.04479557
 ### Script
 $import("parsing_dettaglio")
 $if($isset(mese_fine)) {

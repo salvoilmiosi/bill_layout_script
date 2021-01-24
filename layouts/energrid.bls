@@ -6,10 +6,10 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.1173020527
-### Y 0.1658546627
-### W 0.2580645084
-### H 0.0445734411
+### X 0.11730205
+### Y 0.16585466
+### W 0.2580645
+### H 0.04457344
 ### Goto Label convalida
 ### Script
 $ifnot($contains(@,"www.energrid.it")) {
@@ -23,10 +23,10 @@ $ifnot($contains(@,"www.energrid.it")) {
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
-### X 0.0528364889
-### Y 0.0157275982
-### W 0.1223581806
-### H 0.0943655893
+### X 0.05283649
+### Y 0.015727598
+### W 0.12235818
+### H 0.09436559
 ### Goto Label nome_fornitore
 ### Script
 fornitore="EnerGrid"
@@ -38,10 +38,10 @@ fornitore="EnerGrid"
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.6539589167
-### Y 0.0238416083
-### W 0.3211143613
-### H 0.1140250862
+### X 0.6539589
+### Y 0.023841608
+### W 0.32111436
+### H 0.114025086
 ### Script
 numero_cliente=$search(@,/CODICE CLIENTE: (.+)/)
 ragione_sociale=$singleline($search(@,/Intestatario contratto: ([^]+)\nCod\. Fiscale/))
@@ -53,10 +53,10 @@ ragione_sociale=$singleline($search(@,/Intestatario contratto: ([^]+)\nCod\. Fis
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.1334310919
-### Y 0.3068311214
-### W 0.6979472041
-### H 0.0435368493
+### X 0.13343109
+### Y 0.30683112
+### W 0.6979472
+### H 0.04353685
 ### Script
 numero_fattura=$search(@,/Fattura Energia n\u00b0 ([0-9]+)/)
 data_fattura=$date(@,"%d/%m/%Y",/del (%D)/)
@@ -68,10 +68,10 @@ data_fattura=$date(@,"%d/%m/%Y",/del (%D)/)
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.0351906121
-### Y 0.3490204215
-### W 0.2302052826
-### H 0.4525759220
+### X 0.035190612
+### Y 0.34902042
+### W 0.23020528
+### H 0.45257592
 ### Script
 data_scadenza=$date(@,"%d/%m/%Y",/Scadenza fattura: (%D)/)
 
@@ -88,10 +88,10 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.2672123015
-### Y 0.3500570059
-### W 0.6901191473
-### H 0.4515393376
+### X 0.2672123
+### Y 0.350057
+### W 0.69011915
+### H 0.45153934
 ### Script
 %totale_fattura=$search(@,/TOTALE DELLA FATTURA (%N)/)
 codice_pod=$search(@,/POD: (.+)/)
@@ -103,10 +103,10 @@ codice_pod=$search(@,/POD: (.+)/)
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 2
-### X 0.0457390435
-### Y 0.1037628278
-### W 0.9113292694
-### H 0.2146468461
+### X 0.045739044
+### Y 0.10376283
+### W 0.91132927
+### H 0.21464685
 ### Spacers
 p+::off_pod
 ### End Spacers
@@ -122,10 +122,10 @@ codice_pod=$search(@,/POD(?: \(punto di prelievo\)|:) (.+)/)
 ### Type PAGE
 ### Mode LAYOUT
 ### Page 2
-### X 0.0438804552
-### Y 0.5927153230
-### W 0.9120019078
-### H 0.2320006490
+### X 0.043880455
+### Y 0.5927153
+### W 0.9120019
+### H 0.23200065
 ### Spacers
 p+::off_pod
 ### End Spacers
@@ -148,10 +148,10 @@ $between("DETTAGLIO IMPOSTE","TOTALE (Salvo conguagli, errori e omissioni)") {
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 3
-### X 0.0354838707
-### Y 0.0262257699
-### W 0.9274193645
-### H 0.0992018208
+### X 0.03548387
+### Y 0.02622577
+### W 0.92741936
+### H 0.09920182
 ### Goto Label cerca_dettaglio
 ### Spacers
 p+_off_dettaglio
@@ -171,10 +171,10 @@ $if(_pod_dettaglio!=codice_pod) {
 ### Type PAGE
 ### Mode LAYOUT
 ### Page 3
-### X 0.3419354558
-### Y 0.1288483441
-### W 0.0483870991
-### H 0.0319270343
+### X 0.34193546
+### Y 0.12884834
+### W 0.0483871
+### H 0.031927034
 ### Spacers
 p+_off_dettaglio
 ### End Spacers
@@ -210,10 +210,10 @@ $between("DETTAGLIO IMPORTI PRIMO ADDEBITO","TOTALE (Salvo conguagli, errori e o
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 3
-### X 0.0177419353
-### Y 0.0342075266
-### W 0.3177419305
-### H 0.1550741196
+### X 0.017741935
+### Y 0.034207527
+### W 0.31774193
+### H 0.15507412
 ### Goto Label check_pagina
 ### Spacers
 p+::off_pod

@@ -196,6 +196,6 @@ void output_dialog::updateItems() {
         m_page->SetSelection(selected_page);
         --selected_page;
 
-        display_page(m_output.values[static_cast<int>(selected_page)]);
+        display_page(m_output.values[int(selected_page)]);
     }
 }

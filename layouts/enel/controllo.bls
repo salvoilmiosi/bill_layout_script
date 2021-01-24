@@ -5,10 +5,10 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0564516112
-### Y 0.0957810730
-### W 0.3467741907
-### H 0.0410490297
+### X 0.05645161
+### Y 0.09578107
+### W 0.3467742
+### H 0.04104903
 ### Script
 $if($contains(@,"Enel Servizio Elettrico")) {
   ::fornitore="Enel Energia"

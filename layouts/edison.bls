@@ -6,10 +6,10 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.7381144166
+### X 0.7381144
 ### Y 0.0045636054
-### W 0.2352941185
-### H 0.0228180271
+### W 0.23529412
+### H 0.022818027
 ### Script
 $if(@ != "ENERGIA ELETTRICA") {
   $error("Edison: Stringa di Convalida Errata")
@@ -22,10 +22,10 @@ $if(@ != "ENERGIA ELETTRICA") {
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
-### X 0.0161160361
-### Y 0.0365088433
-### W 0.2014504373
-### H 0.0752994865
+### X 0.016116036
+### Y 0.036508843
+### W 0.20145044
+### H 0.07529949
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Edison"
@@ -37,10 +37,10 @@ fornitore="Edison"
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.3384367526
-### Y 0.0245732609
-### W 0.3124031723
-### H 0.0184299443
+### X 0.33843675
+### Y 0.02457326
+### W 0.31240317
+### H 0.018429944
 ### Script
 numero_fattura=$search(@,/Fattura N\u00b0 (\d+)/)
 data_fattura=$date(@,"%d %B %Y")
@@ -52,10 +52,10 @@ data_fattura=$date(@,"%d %B %Y")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0080580181
-### Y 0.1140901372
-### W 0.2111200690
-### H 0.0924130008
+### X 0.008058018
+### Y 0.11409014
+### W 0.21112007
+### H 0.092413
 ### Script
 ragione_sociale=$search(@,/Spettabile\n(.+)/)
 ### End Script
@@ -66,10 +66,10 @@ ragione_sociale=$search(@,/Spettabile\n(.+)/)
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.3384367526
-### Y 0.1061038226
-### W 0.2981466353
-### H 0.1095265299
+### X 0.33843675
+### Y 0.10610382
+### W 0.29814664
+### H 0.10952653
 ### Script
 indirizzo_fornitura=$singleline($search(@,/Punto di fornitura\n(.+\n.+)/))
 potenza[0:3]=$search(@,/Potenza impegnata: (%N) kW/)
@@ -81,10 +81,10 @@ potenza[0:3]=$search(@,/Potenza impegnata: (%N) kW/)
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.6817082763
-### Y 0.1003993154
-### W 0.3013698757
-### H 0.0570450649
+### X 0.6817083
+### Y 0.100399315
+### W 0.30136988
+### H 0.057045065
 ### Script
 numero_cliente=$search(@,/Codice Cliente (.+)/)
 codice_pod=$search(@,/POD (.+)/)
@@ -96,10 +96,10 @@ codice_pod=$search(@,/POD (.+)/)
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.3384367526
+### X 0.33843675
 ### Y 0.0045636054
-### W 0.3142626882
-### H 0.0193953216
+### W 0.3142627
+### H 0.019395322
 ### Script
 mese_fattura=$month(@,"%B %Y")
 mese_fine=$month(@,"%B %Y",/%D - (%D)/)
@@ -115,10 +115,10 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0314126126
-### Y 0.3529059589
-### W 0.2499351501
-### H 0.1433861256
+### X 0.031412613
+### Y 0.35290596
+### W 0.24993515
+### H 0.14338613
 ### Script
 %totale_fattura=$search(@,/(%N)/)
 data_scadenza=$date(@,"%d %B %Y")
@@ -130,10 +130,10 @@ data_scadenza=$date(@,"%d %B %Y")
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.3250522614
-### Y 0.5830199718
-### W 0.6542018056
-### H 0.2252796888
+### X 0.32505226
+### Y 0.58302
+### W 0.6542018
+### H 0.22527969
 ### Script
 $tokens($search($replace(@,"\u2212","-"),
   $format(/\w+ \d\d\/\d\d\/\d\d\d\d - \d\d\/$0 (%N %N %N)/,_mese)))
@@ -148,10 +148,10 @@ $tokens($search($replace(@,"\u2212","-"),
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 4
-### X 0.0137157748
-### Y 0.0849123001
-### W 0.9686765671
-### H 0.8248623013
+### X 0.013715775
+### Y 0.0849123
+### W 0.96867657
+### H 0.8248623
 ### Script
 $tokens($search(@,$format(/Componente energia - F1 .+ al \d\d\/$0 \u20ac\/kWh (%N %N) kWh/,_mese))) {
   %prezzo_energia[0] %energia_attiva[0]
@@ -194,10 +194,10 @@ $between("Imposte e IVA","TOTALE") {
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 4
-### X 0.2610797882
-### Y 0.0467502847
-### W 0.0467365012
-### H 0.0307867732
+### X 0.2610798
+### Y 0.046750285
+### W 0.0467365
+### H 0.030786773
 ### Script
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {

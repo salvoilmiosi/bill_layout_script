@@ -6,10 +6,10 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0311923269
-### Y 0.8965682387
-### W 0.4665852189
-### H 0.1048295125
+### X 0.031192327
+### Y 0.89656824
+### W 0.46658522
+### H 0.10482951
 ### Goto Label convalida
 ### Spacers
 p+::off_allegati
@@ -28,10 +28,10 @@ $elif(!$contains(@,"GREEN NETWORK S.p.A.\nSociet\u00e0 a Socio Unico")) {
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
-### X 0.0209677424
-### Y 0.0125427591
-### W 0.5112903118
-### H 0.0946408212
+### X 0.020967742
+### Y 0.012542759
+### W 0.5112903
+### H 0.09464082
 ### Script
 fornitore="Green network"
 ### End Script
@@ -42,10 +42,10 @@ fornitore="Green network"
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0935483873
-### Y 0.1106043309
-### W 0.4394108951
-### H 0.0330672748
+### X 0.09354839
+### Y 0.11060433
+### W 0.4394109
+### H 0.033067275
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -60,10 +60,10 @@ data_fattura=$date(@,"%d/%m/%Y")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0392886698
-### Y 0.1659211218
-### W 0.2450372279
-### H 0.0372774303
+### X 0.03928867
+### Y 0.16592112
+### W 0.24503723
+### H 0.03727743
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -78,10 +78,10 @@ data_scadenza=$date(@,"%d %B %Y",/scadenza (%D)/)
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.5236411691
-### Y 0.2999015749
-### W 0.4396818280
-### H 0.1975914091
+### X 0.52364117
+### Y 0.29990157
+### W 0.43968183
+### H 0.19759141
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -97,10 +97,10 @@ p+::off_allegati
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.0419796742
-### Y 0.5435716510
-### W 0.4606716633
-### H 0.1007481888
+### X 0.041979674
+### Y 0.54357165
+### W 0.46067166
+### H 0.10074819
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -114,10 +114,10 @@ ragione_sociale=$search(@,/Ragione sociale: (.+)\n/)
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 2
-### X 0.0563411377
-### Y 0.0999777466
-### W 0.5413168073
-### H 0.1093391180
+### X 0.056341138
+### Y 0.09997775
+### W 0.5413168
+### H 0.10933912
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -134,10 +134,10 @@ codice_pod=$search(@,/POD: (.+)\n/)
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0452938564
-### Y 0.7169522047
-### W 0.1159964651
-### H 0.0374877453
+### X 0.045293856
+### Y 0.7169522
+### W 0.115996465
+### H 0.037487745
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -151,10 +151,10 @@ iva=$percent($search(@,/(\d+)/))
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.2695536911
-### Y 0.7161712050
-### W 0.1159964651
-### H 0.0390496850
+### X 0.2695537
+### Y 0.7161712
+### W 0.115996465
+### H 0.039049685
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -168,10 +168,10 @@ p+::off_allegati
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 2
-### X 0.0464734845
-### Y 0.2183870375
-### W 0.9060928226
-### H 0.1700713038
+### X 0.046473484
+### Y 0.21838704
+### W 0.9060928
+### H 0.1700713
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -195,10 +195,10 @@ $tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 2
-### X 0.0391705073
-### Y 0.3909431696
-### W 0.7842165232
-### H 0.0993647277
+### X 0.039170507
+### Y 0.39094317
+### W 0.7842165
+### H 0.09936473
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -212,10 +212,10 @@ p+::off_allegati
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 5
-### X 0.0429704189
-### Y 0.1330107599
-### W 0.9153138995
-### H 0.2722168565
+### X 0.04297042
+### Y 0.13301076
+### W 0.9153139
+### H 0.27221686
 ### Spacers
 p+::off_allegati
 ### End Spacers

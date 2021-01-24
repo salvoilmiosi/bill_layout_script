@@ -6,10 +6,10 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.7848509550
-### Y 0.0239452682
-### W 0.2030620426
-### H 0.0763968080
+### X 0.78485096
+### Y 0.023945268
+### W 0.20306204
+### H 0.07639681
 ### Script
 $if(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero")
   $error("Axpo: Stringa di Convalida Errata")
@@ -21,10 +21,10 @@ $if(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero")
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
-### X 0.0209677424
-### Y 0.0216647666
-### W 0.2354838699
-### H 0.0695553049
+### X 0.020967742
+### Y 0.021664767
+### W 0.23548387
+### H 0.069555305
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Axpo"
@@ -36,10 +36,10 @@ fornitore="Axpo"
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.5104472637
-### Y 0.1690940112
-### W 0.4719575047
-### H 0.0505338423
+### X 0.51044726
+### Y 0.16909401
+### W 0.4719575
+### H 0.050533842
 ### Script
 ragione_sociale
 ### End Script
@@ -50,10 +50,10 @@ ragione_sociale
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.6150193214
-### Y 0.3080677986
-### W 0.3555523157
-### H 0.1000219882
+### X 0.6150193
+### Y 0.3080678
+### W 0.35555232
+### H 0.10002199
 ### Script
 %totale_fattura=$search(@,/TOTALE DA PAGARE (%N)/)
 data_scadenza=$date(@,"%d.%m.%Y",/entro il (%D)/)
@@ -65,10 +65,10 @@ data_scadenza=$date(@,"%d.%m.%Y",/entro il (%D)/)
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0315568000
-### Y 0.0979128405
-### W 0.2261570692
-### H 0.3194189668
+### X 0.0315568
+### Y 0.09791284
+### W 0.22615707
+### H 0.31941897
 ### Script
 numero_fattura=$search(@,/N\. fattura (\d+)/)
 data_fattura=$date(@,"%d.%m.%Y",/N\. fattura \d+ del (%D)/)
@@ -86,10 +86,10 @@ _mese=$date_format(mese_fattura,"%m.%Y")
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.0476539619
-### Y 0.6551441550
-### W 0.4389663041
-### H 0.2384654284
+### X 0.047653962
+### Y 0.65514416
+### W 0.4389663
+### H 0.23846543
 ### Script
 iva=$search(@,/Importo IVA (\d+%)/)
 $ifnot(::multipod) {
@@ -107,10 +107,10 @@ $ifnot(::multipod) {
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 2
-### X 0.0419354811
-### Y 0.1341880560
-### W 0.2274193615
-### H 0.1132463813
+### X 0.04193548
+### Y 0.13418806
+### W 0.22741936
+### H 0.11324638
 ### Spacers
 p+::next_page
 ### End Spacers
@@ -127,10 +127,10 @@ $if(::multipod) {
 ### Type PAGE
 ### Mode RAW
 ### Page 2
-### X 0.0318146311
-### Y 0.2576966882
-### W 0.9439918399
-### H 0.2542759776
+### X 0.03181463
+### Y 0.2576967
+### W 0.94399184
+### H 0.25427598
 ### Spacers
 p+::next_page
 ### End Spacers
@@ -149,10 +149,10 @@ $if($contains(@,"Energia Reattiva")) {
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 3
-### X 0.0322580636
-### Y 0.0900798142
-### W 0.9548387527
-### H 0.8289623260
+### X 0.032258064
+### Y 0.090079814
+### W 0.95483875
+### H 0.8289623
 ### Goto Label quadro_dettaglio
 ### Spacers
 p+::next_page
@@ -172,10 +172,10 @@ $ifnot($ate() || $contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) 
 ### Type NOREAD
 ### Mode RAW
 ### Page 3
-### X 0.2150401175
-### Y 0.0534527563
-### W 0.0419331789
-### H 0.0293937586
+### X 0.21504012
+### Y 0.053452756
+### W 0.04193318
+### H 0.029393759
 ### Script
 $with(_dettaglio) {
   $with($search(@,/Sbilanciamento\n((dal.+\n)+)/)) {
@@ -237,10 +237,10 @@ $with(_dettaglio) {
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 3
-### X 0.0384006500
-### Y 0.0989253968
-### W 0.2261154652
-### H 0.0323416553
+### X 0.03840065
+### Y 0.0989254
+### W 0.22611547
+### H 0.032341655
 ### Spacers
 p+::next_page
 ### End Spacers

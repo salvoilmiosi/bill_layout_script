@@ -5,44 +5,35 @@
 
 #include <iostream>
 #include <fstream>
-#include <iomanip>
-#include <locale>
 
 std::ostream &operator << (std::ostream &output, const bill_layout_script &layout) {
-    std::ios orig_state(nullptr);
-    orig_state.copyfmt(output);
-    output.imbue(std::locale::classic());
-    output << std::fixed << std::setprecision(fixed_point::decimal_points);
-
     output << "### Bill Layout Script\n";
     if (!layout.language_code.empty()) {
-        output << "### Language " << layout.language_code << '\n';
+        output << fmt::format("### Language {}\n", layout.language_code);
     }
 
     for (auto &box : layout.m_boxes) {
-        output << '\n';
-        output << "### Box\n";
-        output << "### Name " << box->name << '\n';
-        output << "### Type " << box_type_strings[static_cast<int>(box->type)] << '\n';
-        output << "### Mode " << read_mode_strings[static_cast<int>(box->mode)] << '\n';
-        output << "### Page " << (int) box->page << '\n';
-        output << "### X " << box->x << '\n';
-        output << "### Y " << box->y << '\n';
-        output << "### W " << box->w << '\n';
-        output << "### H " << box->h << '\n';
+        output << "\n### Box\n";
+        output << fmt::format("### Name {}\n", box->name);
+        output << fmt::format("### Type {}\n", box_type_strings[int(box->type)]);
+        output << fmt::format("### Mode {}\n", read_mode_strings[int(box->mode)]);
+        output << fmt::format("### Page {}\n", box->page);
+        output << fmt::format("### X {}\n", box->x);
+        output << fmt::format("### Y {}\n", box->y);
+        output << fmt::format("### W {}\n", box->w);
+        output << fmt::format("### H {}\n", box->h);
         if (!box->goto_label.empty()) {
-            output << "### Goto Label " << box->goto_label << '\n';
+            output << fmt::format("### Goto Label {}\n", box->goto_label);
         }
         if (!box->spacers.empty()) {
-            output << "### Spacers\n" << box->spacers << "\n### End Spacers\n";
+            output << fmt::format("### Spacers\n{}\n### End Spacers\n", box->spacers);
         }
         if (!box->script.empty()) {
-            output << "### Script\n" << box->script << "\n### End Script\n";
+            output << fmt::format("### Script\n{}\n### End Script\n", box->script);
         }
         output << "### End Box\n";
     }
 
-    output.copyfmt(orig_state);
     return output;
 }
 

@@ -6,10 +6,10 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0193548799
-### Y 0.2746438980
-### W 0.7097657323
-### H 0.0239315927
+### X 0.01935488
+### Y 0.2746439
+### W 0.70976573
+### H 0.023931593
 ### Goto Label convalida
 ### Spacers
 p+::off_allegato
@@ -28,10 +28,10 @@ $elif(! $contains(@,"FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA")) {
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
-### X 0.0193548389
-### Y 0.0148232607
-### W 0.3548386991
-### H 0.0843785629
+### X 0.019354839
+### Y 0.014823261
+### W 0.3548387
+### H 0.08437856
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Italpower"
@@ -43,10 +43,10 @@ fornitore="Italpower"
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0167574361
-### Y 0.3109084070
-### W 0.2950705290
-### H 0.0763326287
+### X 0.016757436
+### Y 0.3109084
+### W 0.29507053
+### H 0.07633263
 ### Spacers
 p+::off_allegato
 ### End Spacers
@@ -62,10 +62,10 @@ data_scadenza=$date(@,"%d/%m/%Y",/Scadenza Fattura: (%D)/)
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.3306451738
-### Y 0.3014754057
-### W 0.6560779810
-### H 0.2798797488
+### X 0.33064517
+### Y 0.3014754
+### W 0.656078
+### H 0.27987975
 ### Spacers
 p+::off_allegato
 ### End Spacers
@@ -80,10 +80,10 @@ iva=$search(@,/IVA (\d+%)/)
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.0167574361
-### Y 0.5792474747
-### W 0.4864683747
-### H 0.2518473864
+### X 0.016757436
+### Y 0.5792475
+### W 0.48646837
+### H 0.2518474
 ### Spacers
 p+::off_allegato
 ### End Spacers
@@ -98,10 +98,10 @@ ragione_sociale=$search(@,/Ragione sociale (.+)\n/)
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 2
-### X 0.0208647903
-### Y 0.0528154373
-### W 0.9661290050
-### H 0.0376282781
+### X 0.02086479
+### Y 0.052815437
+### W 0.966129
+### H 0.037628278
 ### Spacers
 p+::off_allegato p+::page_offset
 ### End Spacers
@@ -115,10 +115,10 @@ mese_fattura=$month(@,"%B %Y",/Dettaglio consumi mese di (%D)/)
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 2
-### X 0.0163469911
-### Y 0.1208665892
-### W 0.4836530089
-### H 0.1122068539
+### X 0.016346991
+### Y 0.12086659
+### W 0.483653
+### H 0.112206854
 ### Spacers
 p+::off_allegato p+::page_offset
 ### End Spacers
@@ -133,10 +133,10 @@ indirizzo_fornitura=$search($singleline(@),/Indirizzo fornitura (.+) Opzione/)
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 2
-### X 0.5075083971
-### Y 0.1362956166
-### W 0.4249513149
-### H 0.0671801865
+### X 0.5075084
+### Y 0.13629562
+### W 0.42495131
+### H 0.06718019
 ### Spacers
 p+::off_allegato p+::page_offset
 ### End Spacers
@@ -158,10 +158,10 @@ $tokens($search(@,/Energia Reattiva \(kVar\) (%N %N %N)/)) {
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 2
-### X 0.0177419353
-### Y 0.2531357110
-### W 0.9758064747
-### H 0.6935900450
+### X 0.017741935
+### Y 0.2531357
+### W 0.9758065
+### H 0.69359004
 ### Spacers
 p+::off_allegato p+::page_offset
 ### End Spacers
@@ -202,10 +202,10 @@ $tokens($search(@,/Energia Off-Peak \u20ac\/kWh (%N Euro %N)/)) {
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 3
-### X 0.0225806460
-### Y 0.0558722913
-### W 0.9612903595
-### H 0.0262257699
+### X 0.022580646
+### Y 0.05587229
+### W 0.96129036
+### H 0.02622577
 ### Spacers
 p+::off_allegato p+::page_offset
 ### End Spacers

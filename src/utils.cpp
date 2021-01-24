@@ -115,7 +115,7 @@ double cstof(std::string_view str, int base) {
     double ret = 0.0;
     double lmul = mul;
     
-    auto dec_point = str.find('.');
+    auto dec_point = std::min(str.size(), str.find('.'));
     for (auto it = str.rend() - dec_point; it != str.rend(); ++it, lmul *= base) {
         if (*it >='0' && *it < '0' + base) {
             ret += (*it - '0') * lmul;
@@ -124,14 +124,11 @@ double cstof(std::string_view str, int base) {
         }
     }
 
-    if (dec_point != std::string_view::npos) {
-        for (auto it = str.begin() + dec_point + 1; it != str.end(); ++it) {
-            mul /= base;
-            if (*it >='0' && *it < '0' + base) {
-                ret += (*it - '0') * mul;
-            } else {
-                throw std::invalid_argument(std::string(str));
-            }
+    for (auto it = str.begin() + dec_point; it != str.end(); ++it, mul /= base) {
+        if (*it >='0' && *it < '0' + base) {
+            ret += (*it - '0') * mul;
+        } else if (*it != '.') {
+            throw std::invalid_argument(std::string(str));
         }
     }
     return ret;

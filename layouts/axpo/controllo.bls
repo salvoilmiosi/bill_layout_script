@@ -5,10 +5,10 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0320208706
-### Y 0.0687504187
-### W 0.1944971532
-### H 0.0360520482
+### X 0.03202087
+### Y 0.06875042
+### W 0.19449715
+### H 0.03605205
 ### Script
 $if($contains(@,"C/O MILANO CENTRO")) {
   $setlayout("axpo_old")

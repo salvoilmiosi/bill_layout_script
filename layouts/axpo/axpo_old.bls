@@ -6,10 +6,10 @@
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.5398871899
-### Y 0.0307867713
-### W 0.3545528054
-### H 0.0558722913
+### X 0.5398872
+### Y 0.030786771
+### W 0.3545528
+### H 0.05587229
 ### Script
 $if(@ != "Bolletta Energia Elettrica\nFornitura del Mercato Libero")
   $error("Axpo (old): Stringa di Convalida Errata")
@@ -21,10 +21,10 @@ $if(@ != "Bolletta Energia Elettrica\nFornitura del Mercato Libero")
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
-### X 0.0241935477
-### Y 0.0148232607
-### W 0.1927141547
-### H 0.0618487857
+### X 0.024193548
+### Y 0.014823261
+### W 0.19271415
+### H 0.061848786
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Axpo"
@@ -36,10 +36,10 @@ fornitore="Axpo"
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0354838707
-### Y 0.1801596284
-### W 0.4725806415
-### H 0.0330672748
+### X 0.03548387
+### Y 0.18015963
+### W 0.47258064
+### H 0.033067275
 ### Script
 numero_fattura=$search(@,/Fattura N\u00b0 (\d+)/)
 data_fattura=$date(@,"%d.%m.%Y",/del (%D)/)
@@ -51,10 +51,10 @@ data_fattura=$date(@,"%d.%m.%Y",/del (%D)/)
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.5414746404
-### Y 0.0950209051
-### W 0.4326676726
-### H 0.0461530089
+### X 0.54147464
+### Y 0.095020905
+### W 0.43266767
+### H 0.04615301
 ### Script
 data_scadenza=$date(@,"%d.%m.%Y")
 ### End Script
@@ -65,10 +65,10 @@ data_scadenza=$date(@,"%d.%m.%Y")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0354838707
-### Y 0.2314709276
-### W 0.2048387080
-### H 0.0319270231
+### X 0.03548387
+### Y 0.23147093
+### W 0.20483871
+### H 0.031927023
 ### Script
 mese_fattura=$month(@,"%B %Y")
 ### End Script
@@ -79,10 +79,10 @@ mese_fattura=$month(@,"%B %Y")
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### X 0.2435483932
-### Y 0.2599771917
-### W 0.2564516068
-### H 0.0399087816
+### X 0.2435484
+### Y 0.2599772
+### W 0.2564516
+### H 0.03990878
 ### Script
 %totale_fattura
 ### End Script
@@ -93,10 +93,10 @@ mese_fattura=$month(@,"%B %Y")
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 1
-### X 0.0215053763
-### Y 0.1064234078
-### W 0.4946236610
-### H 0.0617635883
+### X 0.021505376
+### Y 0.10642341
+### W 0.49462366
+### H 0.06176359
 ### Script
 numero_cliente=$search(@,/Codice Cliente: (\d+)/)
 ragione_sociale=$search(@,/.+\n(.+)\n/)
@@ -109,10 +109,10 @@ partita_iva=$search(@,/Part\.IVA (.+)\n/)
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.0672043040
-### Y 0.6150353551
-### W 0.4218362570
-### H 0.3049132228
+### X 0.067204304
+### Y 0.61503536
+### W 0.42183626
+### H 0.30491322
 ### Script
 $if($contains(@,"Dati di fornitura")) {
   indirizzo_fornitura=$search($singleline(@),/Indirizzo (.+\d{5}.+\(.{2}\))/)
@@ -129,10 +129,10 @@ $if($contains(@,"Dati di fornitura")) {
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### X 0.0661703944
-### Y 0.3274566531
-### W 0.4290736318
-### H 0.2335467935
+### X 0.066170394
+### Y 0.32745665
+### W 0.42907363
+### H 0.2335468
 ### Script
 iva=$search(@,/IVA (\d%)/)
 $ifnot(::spacer_multipod) {
@@ -149,10 +149,10 @@ $ifnot(::spacer_multipod) {
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 3
-### X 0.0320599899
-### Y 0.0943207666
-### W 0.4501980543
-### H 0.2409129739
+### X 0.03205999
+### Y 0.09432077
+### W 0.45019805
+### H 0.24091297
 ### Goto Label dati_fattura_multipod
 ### Spacers
 p+::next_page
@@ -171,10 +171,10 @@ $if(::spacer_multipod) {
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 3
-### X 0.4935483932
-### Y 0.0923603177
-### W 0.4564516246
-### H 0.1641961187
+### X 0.4935484
+### Y 0.09236032
+### W 0.45645162
+### H 0.16419612
 ### Spacers
 p+::next_page
 ### End Spacers
@@ -193,10 +193,10 @@ $if(::spacer_multipod) {
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 3
-### X 0.0338436738
-### Y 0.0946408212
-### W 0.9073327780
-### H 0.8700114489
+### X 0.033843674
+### Y 0.09464082
+### W 0.9073328
+### H 0.87001145
 ### Goto Label lettura_spese
 ### Spacers
 p+ ::spacer_multipod + ::next_page
@@ -217,10 +217,10 @@ $goto(lettura_spese)
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 3
-### X 0.1935769469
-### Y 0.0478905328
-### W 0.0465519875
-### H 0.0307867676
+### X 0.19357695
+### Y 0.047890533
+### W 0.046551988
+### H 0.030786768
 ### Goto Label parsing_spese
 ### Script
 $with(&_dettaglio) {
@@ -269,10 +269,10 @@ $with(&_dettaglio) {
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 3
-### X 0.0402900875
-### Y 0.0980615765
-### W 0.2030620426
-### H 0.0296465214
+### X 0.040290087
+### Y 0.09806158
+### W 0.20306204
+### H 0.029646521
 ### Spacers
 p+ ::spacer_multipod + ::next_page
 ### End Spacers

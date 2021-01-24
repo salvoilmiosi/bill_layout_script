@@ -5,10 +5,10 @@
 ### Type FILE
 ### Mode DEFAULT
 ### Page 1
-### X 0.0000000000
-### Y 0.0000000000
-### W 0.0000000000
-### H 0.0000000000
+### X 0
+### Y 0
+### W 0
+### H 0
 ### Script
 $if  ($contains(@,"Axpo Italia SpA")) $import("axpo/controllo")
 $elif($contains(@,"ITALPOWER ENERGIA")) $setlayout("italpower")
