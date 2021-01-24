@@ -1,15 +1,10 @@
 ### Bill Layout Script
 ### Language it_IT
 
-### Box
-### Name Parsing Dettaglio
+### Box Parsing Dettaglio
 ### Type NOREAD
 ### Mode DEFAULT
-### Page 1
-### X 0
-### Y 0
-### W 0
-### H 0
+### Rect 1 0 0 0 0
 ### Script
 $with(::_dettaglio) {
   $lines($searchall(@,/Corrispettivo Tariffario Specifico dal \d+\/\d+\/\d+ al \d+\/\d+\/\d+ (%N)/)) %cts+

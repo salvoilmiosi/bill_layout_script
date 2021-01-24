@@ -1,15 +1,10 @@
 ### Bill Layout Script
 ### Language it_IT
 
-### Box
-### Name Convalida Layout
+### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.11730205
-### Y 0.16585466
-### W 0.2580645
-### H 0.04457344
+### Rect 1 0.11730205 0.16585466 0.2580645 0.04457344
 ### Goto Label convalida
 ### Script
 $ifnot($contains(@,"www.energrid.it")) {
@@ -18,60 +13,40 @@ $ifnot($contains(@,"www.energrid.it")) {
 ### End Script
 ### End Box
 
-### Box
-### Name Nome Fornitore
+### Box Nome Fornitore
 ### Type NOREAD
 ### Mode DEFAULT
-### Page 1
-### X 0.05283649
-### Y 0.015727598
-### W 0.12235818
-### H 0.09436559
+### Rect 1 0.05283649 0.015727598 0.12235818 0.09436559
 ### Goto Label nome_fornitore
 ### Script
 fornitore="EnerGrid"
 ### End Script
 ### End Box
 
-### Box
-### Name Dati Cliente
+### Box Dati Cliente
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.6539589
-### Y 0.023841608
-### W 0.32111436
-### H 0.114025086
+### Rect 1 0.6539589 0.023841608 0.32111436 0.114025086
 ### Script
 numero_cliente=$search(@,/CODICE CLIENTE: (.+)/)
 ragione_sociale=$singleline($search(@,/Intestatario contratto: ([^]+)\nCod\. Fiscale/))
 ### End Script
 ### End Box
 
-### Box
-### Name Numero Fattura
+### Box Numero Fattura
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.13343109
-### Y 0.30683112
-### W 0.6979472
-### H 0.04353685
+### Rect 1 0.13343109 0.30683112 0.6979472 0.04353685
 ### Script
 numero_fattura=$search(@,/Fattura Energia n\u00b0 ([0-9]+)/)
 data_fattura=$date(@,"%d/%m/%Y",/del (%D)/)
 ### End Script
 ### End Box
 
-### Box
-### Name Dati Fattura
+### Box Dati Fattura
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 1
-### X 0.035190612
-### Y 0.34902042
-### W 0.23020528
-### H 0.45257592
+### Rect 1 0.035190612 0.34902042 0.23020528 0.45257592
 ### Script
 data_scadenza=$date(@,"%d/%m/%Y",/Scadenza fattura: (%D)/)
 
@@ -83,30 +58,20 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 ### End Script
 ### End Box
 
-### Box
-### Name Riepologo Importi
+### Box Riepologo Importi
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 1
-### X 0.2672123
-### Y 0.350057
-### W 0.69011915
-### H 0.45153934
+### Rect 1 0.2672123 0.350057 0.69011915 0.45153934
 ### Script
 %totale_fattura=$search(@,/TOTALE DELLA FATTURA (%N)/)
 codice_pod=$search(@,/POD: (.+)/)
 ### End Script
 ### End Box
 
-### Box
-### Name Dati Fornitura
+### Box Dati Fornitura
 ### Type RECTANGLE
 ### Mode RAW
-### Page 2
-### X 0.045739044
-### Y 0.10376283
-### W 0.91132927
-### H 0.21464685
+### Rect 2 0.045739044 0.10376283 0.91132927 0.21464685
 ### Spacers
 p+::off_pod
 ### End Spacers
@@ -117,15 +82,10 @@ codice_pod=$search(@,/POD(?: \(punto di prelievo\)|:) (.+)/)
 ### End Script
 ### End Box
 
-### Box
-### Name Storico Consumi / Imposte
+### Box Storico Consumi / Imposte
 ### Type PAGE
 ### Mode LAYOUT
-### Page 2
-### X 0.043880455
-### Y 0.5927153
-### W 0.9120019
-### H 0.23200065
+### Rect 2 0.043880455 0.5927153 0.9120019 0.23200065
 ### Spacers
 p+::off_pod
 ### End Spacers
@@ -143,15 +103,10 @@ $between("DETTAGLIO IMPOSTE","TOTALE (Salvo conguagli, errori e omissioni)") {
 ### End Script
 ### End Box
 
-### Box
-### Name Cerca Dettaglio
+### Box Cerca Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 3
-### X 0.03548387
-### Y 0.02622577
-### W 0.92741936
-### H 0.09920182
+### Rect 3 0.03548387 0.02622577 0.92741936 0.09920182
 ### Goto Label cerca_dettaglio
 ### Spacers
 p+_off_dettaglio
@@ -166,15 +121,10 @@ $if(_pod_dettaglio!=codice_pod) {
 ### End Script
 ### End Box
 
-### Box
-### Name Dettaglio Importi
+### Box Dettaglio Importi
 ### Type PAGE
 ### Mode LAYOUT
-### Page 3
-### X 0.34193546
-### Y 0.12884834
-### W 0.0483871
-### H 0.031927034
+### Rect 3 0.34193546 0.12884834 0.0483871 0.031927034
 ### Spacers
 p+_off_dettaglio
 ### End Spacers
@@ -205,15 +155,10 @@ $between("DETTAGLIO IMPORTI PRIMO ADDEBITO","TOTALE (Salvo conguagli, errori e o
 ### End Script
 ### End Box
 
-### Box
-### Name Prossima Pagina
+### Box Prossima Pagina
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 3
-### X 0.017741935
-### Y 0.034207527
-### W 0.31774193
-### H 0.15507412
+### Rect 3 0.017741935 0.034207527 0.31774193 0.15507412
 ### Goto Label check_pagina
 ### Spacers
 p+::off_pod

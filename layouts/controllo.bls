@@ -1,15 +1,10 @@
 ### Bill Layout Script
 ### Language it_IT
 
-### Box
-### Name Identifica Layout
+### Box Identifica Layout
 ### Type FILE
 ### Mode DEFAULT
-### Page 1
-### X 0
-### Y 0
-### W 0
-### H 0
+### Rect 1 0 0 0 0
 ### Script
 $if  ($contains(@,"Axpo Italia SpA")) $import("axpo/controllo")
 $elif($contains(@,"ITALPOWER ENERGIA")) $setlayout("italpower")

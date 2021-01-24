@@ -1,74 +1,49 @@
 ### Bill Layout Script
 ### Language it_IT
 
-### Box
-### Name Convalida Layout
+### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.78485096
-### Y 0.023945268
-### W 0.20306204
-### H 0.07639681
+### Rect 1 0.78485096 0.023945268 0.20306204 0.07639681
 ### Script
 $if(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero")
   $error("Axpo: Stringa di Convalida Errata")
 ### End Script
 ### End Box
 
-### Box
-### Name Nome Fornitore
+### Box Nome Fornitore
 ### Type NOREAD
 ### Mode DEFAULT
-### Page 1
-### X 0.020967742
-### Y 0.021664767
-### W 0.23548387
-### H 0.069555305
+### Rect 1 0.020967742 0.021664767 0.23548387 0.069555305
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Axpo"
 ### End Script
 ### End Box
 
-### Box
-### Name Ragione sociale
+### Box Ragione sociale
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.51044726
-### Y 0.16909401
-### W 0.4719575
-### H 0.050533842
+### Rect 1 0.51044726 0.16909401 0.4719575 0.050533842
 ### Script
 ragione_sociale
 ### End Script
 ### End Box
 
-### Box
-### Name Totale da pagare / scadenza
+### Box Totale da pagare / scadenza
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.6150193
-### Y 0.3080678
-### W 0.35555232
-### H 0.10002199
+### Rect 1 0.6150193 0.3080678 0.35555232 0.10002199
 ### Script
 %totale_fattura=$search(@,/TOTALE DA PAGARE (%N)/)
 data_scadenza=$date(@,"%d.%m.%Y",/entro il (%D)/)
 ### End Script
 ### End Box
 
-### Box
-### Name Dati bolletta
+### Box Dati bolletta
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.0315568
-### Y 0.09791284
-### W 0.22615707
-### H 0.31941897
+### Rect 1 0.0315568 0.09791284 0.22615707 0.31941897
 ### Script
 numero_fattura=$search(@,/N\. fattura (\d+)/)
 data_fattura=$date(@,"%d.%m.%Y",/N\. fattura \d+ del (%D)/)
@@ -81,15 +56,10 @@ _mese=$date_format(mese_fattura,"%m.%Y")
 ### End Script
 ### End Box
 
-### Box
-### Name Dettaglio Costi
+### Box Dettaglio Costi
 ### Type RECTANGLE
 ### Mode RAW
-### Page 1
-### X 0.047653962
-### Y 0.65514416
-### W 0.4389663
-### H 0.23846543
+### Rect 1 0.047653962 0.65514416 0.4389663 0.23846543
 ### Script
 iva=$search(@,/Importo IVA (\d+%)/)
 $ifnot(::multipod) {
@@ -102,15 +72,10 @@ $ifnot(::multipod) {
 ### End Script
 ### End Box
 
-### Box
-### Name Dati fornitura (multipod)
+### Box Dati fornitura (multipod)
 ### Type RECTANGLE
 ### Mode RAW
-### Page 2
-### X 0.04193548
-### Y 0.13418806
-### W 0.22741936
-### H 0.11324638
+### Rect 2 0.04193548 0.13418806 0.22741936 0.11324638
 ### Spacers
 p+::next_page
 ### End Spacers
@@ -122,15 +87,10 @@ $if(::multipod) {
 ### End Script
 ### End Box
 
-### Box
-### Name Energia Reattiva
+### Box Energia Reattiva
 ### Type PAGE
 ### Mode RAW
-### Page 2
-### X 0.03181463
-### Y 0.2576967
-### W 0.94399184
-### H 0.25427598
+### Rect 2 0.03181463 0.2576967 0.94399184 0.25427598
 ### Spacers
 p+::next_page
 ### End Spacers
@@ -144,15 +104,10 @@ $if($contains(@,"Energia Reattiva")) {
 ### End Script
 ### End Box
 
-### Box
-### Name Lettura Quadro Dettaglio
+### Box Lettura Quadro Dettaglio
 ### Type RECTANGLE
 ### Mode RAW
-### Page 3
-### X 0.032258064
-### Y 0.090079814
-### W 0.95483875
-### H 0.8289623
+### Rect 3 0.032258064 0.090079814 0.95483875 0.8289623
 ### Goto Label quadro_dettaglio
 ### Spacers
 p+::next_page
@@ -167,15 +122,10 @@ $ifnot($ate() || $contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) 
 ### End Script
 ### End Box
 
-### Box
-### Name Parsing Quadro Dettaglio
+### Box Parsing Quadro Dettaglio
 ### Type NOREAD
 ### Mode RAW
-### Page 3
-### X 0.21504012
-### Y 0.053452756
-### W 0.04193318
-### H 0.029393759
+### Rect 3 0.21504012 0.053452756 0.04193318 0.029393759
 ### Script
 $with(_dettaglio) {
   $with($search(@,/Sbilanciamento\n((dal.+\n)+)/)) {
@@ -232,15 +182,10 @@ $with(_dettaglio) {
 ### End Script
 ### End Box
 
-### Box
-### Name Prossima Pagina
+### Box Prossima Pagina
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 3
-### X 0.03840065
-### Y 0.0989254
-### W 0.22611547
-### H 0.032341655
+### Rect 3 0.03840065 0.0989254 0.22611547 0.032341655
 ### Spacers
 p+::next_page
 ### End Spacers

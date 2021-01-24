@@ -1,29 +1,19 @@
 ### Bill Layout Script
 ### Language it_IT
 
-### Box
-### Name Nome fornitore
+### Box Nome fornitore
 ### Type NOREAD
 ### Mode DEFAULT
-### Page 1
-### X 0.04808817
-### Y 0.0386214
-### W 0.26773414
-### H 0.08643837
+### Rect 1 0.04808817 0.0386214 0.26773414 0.08643837
 ### Script
 fornitore="MetaEnergia"
 ### End Script
 ### End Box
 
-### Box
-### Name Convalida Layout
+### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.062384654
-### Y 0.31081033
-### W 0.7538146
-### H 0.026667157
+### Rect 1 0.062384654 0.31081033 0.7538146 0.026667157
 ### Script
 $if(@ != "FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA - MERCATO LIBERO") {
   $error("MetaEnergia: Stringa di Convalida Errata")
@@ -31,15 +21,10 @@ $if(@ != "FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA - MERCATO LIBERO") {
 ### End Script
 ### End Box
 
-### Box
-### Name Dati fornitura
+### Box Dati fornitura
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 1
-### X 0.058485612
-### Y 0.14988782
-### W 0.33401784
-### H 0.1416118
+### Rect 1 0.058485612 0.14988782 0.33401784 0.1416118
 ### Script
 ragione_sociale = $search(@,/INTESTATARIO\n(.+)\n/)
 indirizzo_fornitura = $search(@,/Le stiamo fornendo energia elettrica in:\n(.+)\n/)
@@ -47,15 +32,10 @@ codice_pod = $search(@,/Codice POD: (.+)\n/)
 ### End Script
 ### End Box
 
-### Box
-### Name Numero fattura
+### Box Numero fattura
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.06368434
-### Y 0.33563837
-### W 0.87104565
-### H 0.02544105
+### Rect 1 0.06368434 0.33563837 0.87104565 0.02544105
 ### Script
 numero_fattura = $search(@,/Fattura N\. (\w+)/)
 data_fattura = $date(@,"%d/%m/%Y",/Emessa il (%D)/)
@@ -68,57 +48,37 @@ _mese = $date_format(mese_fattura,"%m/%Y")
 ### End Script
 ### End Box
 
-### Box
-### Name Data scadenza
+### Box Data scadenza
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.06368434
-### Y 0.36414462
-### W 0.4483897
-### H 0.03586273
+### Rect 1 0.06368434 0.36414462 0.4483897 0.03586273
 ### Script
 data_scadenza = $date(@,"%d/%m/%Y",/Totale da pagare entro il (%D)/)
 ### End Script
 ### End Box
 
-### Box
-### Name Totale fattura
+### Box Totale fattura
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.5484651
-### Y 0.3650642
-### W 0.36650985
-### H 0.03586273
+### Rect 1 0.5484651 0.3650642 0.36650985 0.03586273
 ### Script
 %totale_fattura
 ### End Script
 ### End Box
 
-### Box
-### Name Codice cliente
+### Box Codice cliente
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 1
-### X 0.525949
-### Y 0.045455948
-### W 0.31360933
-### H 0.07011002
+### Rect 1 0.525949 0.045455948 0.31360933 0.07011002
 ### Script
 numero_cliente = $search(@,/Codice cliente: (.+)\n/)
 ### End Script
 ### End Box
 
-### Box
-### Name Lettura Dettaglio
+### Box Lettura Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 2
-### X 0.052041367
-### Y 0.12135033
-### W 0.9031695
-### H 0.8370542
+### Rect 2 0.052041367 0.12135033 0.9031695 0.8370542
 ### Goto Label lettura_dettaglio
 ### Spacers
 p+::next_page
@@ -133,15 +93,10 @@ $ifnot($ate() || $contains(@,"Comunicazioni finali")) {
 ### End Script
 ### End Box
 
-### Box
-### Name Parsing Dettaglio
+### Box Parsing Dettaglio
 ### Type NOREAD
 ### Mode DEFAULT
-### Page 2
-### X 0.3080384
-### Y 0.08228446
-### W 0.04617861
-### H 0.029602662
+### Rect 2 0.3080384 0.08228446 0.04617861 0.029602662
 ### Script
 $with(&_dettaglio) {
   $with($search(@,/Energia attiva \(kWh\)\n((Dal.+\n)+)/)) {
@@ -187,15 +142,10 @@ $with(&_dettaglio) {
 ### End Script
 ### End Box
 
-### Box
-### Name Imponibile
+### Box Imponibile
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.5064516
-### Y 0.53105414
-### W 0.45645162
-### H 0.18005697
+### Rect 1 0.5064516 0.53105414 0.45645162 0.18005697
 ### Script
 $lines($searchall(@,/(IVA \d+% su imponibile di \u20ac %N)/)) {
   %_imp=$search(@,/imponibile di \u20ac (%N)/)

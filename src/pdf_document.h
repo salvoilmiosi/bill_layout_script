@@ -18,9 +18,9 @@ constexpr const char *read_mode_strings[] = { "DEFAULT",    "LAYOUT",    "RAW" }
 constexpr const char *read_mode_labels[] =  { "Default",    "Layout",    "Grezza" };
 
 struct pdf_rect {
+    int page = 0;
     float x, y;
     float w, h;
-    uint8_t page = 0;
     read_mode mode = read_mode::MODE_DEFAULT;
     box_type type = box_type::BOX_RECTANGLE;
 };

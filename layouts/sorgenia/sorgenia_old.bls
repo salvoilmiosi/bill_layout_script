@@ -1,15 +1,10 @@
 ### Bill Layout Script
 ### Language it_IT
 
-### Box
-### Name Convalida Layout
+### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.07399102
-### Y 0.30294654
-### W 0.82919604
-### H 0.024828043
+### Rect 1 0.07399102 0.30294654 0.82919604 0.024828043
 ### Goto Label convalida
 ### Spacers
 p+::off_allegati
@@ -23,15 +18,10 @@ $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO") {
 ### End Script
 ### End Box
 
-### Box
-### Name Lettura Dettaglio
+### Box Lettura Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 3
-### X 0.040290102
-### Y 0.080957815
-### W 0.91055596
-### H 0.8734165
+### Rect 3 0.040290102 0.080957815 0.91055596 0.8734165
 ### Goto Label lettura_dati
 ### Spacers
 p+::off_allegati p+::next_page
@@ -46,30 +36,20 @@ $ifnot($ate() || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
 ### End Script
 ### End Box
 
-### Box
-### Name Nome Fornitore
+### Box Nome Fornitore
 ### Type NOREAD
 ### Mode DEFAULT
-### Page 1
-### X 0.061290324
-### Y 0.04104903
-### W 0.36129034
-### H 0.08323831
+### Rect 1 0.061290324 0.04104903 0.36129034 0.08323831
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Sorgenia"
 ### End Script
 ### End Box
 
-### Box
-### Name Numero cliente
+### Box Numero cliente
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 1
-### X 0.48481974
-### Y 0.010436194
-### W 0.46489564
-### H 0.104729146
+### Rect 1 0.48481974 0.010436194 0.46489564 0.104729146
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -78,15 +58,10 @@ numero_cliente=$search(@,/(\d+)/)
 ### End Script
 ### End Box
 
-### Box
-### Name Ragione sociale
+### Box Ragione sociale
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.076612905
-### Y 0.15037057
-### W 0.38810483
-### H 0.02850627
+### Rect 1 0.076612905 0.15037057 0.38810483 0.02850627
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -95,15 +70,10 @@ ragione_sociale
 ### End Script
 ### End Box
 
-### Box
-### Name Numero / Data fattura
+### Box Numero / Data fattura
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 1
-### X 0.08320533
-### Y 0.3307055
-### W 0.34372735
-### H 0.038518578
+### Rect 1 0.08320533 0.3307055 0.34372735 0.038518578
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -113,15 +83,10 @@ data_fattura=$date(@,"%d/%m/%Y",/Emessa il (%D)/)
 ### End Script
 ### End Box
 
-### Box
-### Name POD / Indirizzo
+### Box POD / Indirizzo
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 1
-### X 0.43225807
-### Y 0.32853043
-### W 0.48138958
-### H 0.06241271
+### Rect 1 0.43225807 0.32853043 0.48138958 0.06241271
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -131,15 +96,10 @@ indirizzo_fornitura=$singleline($search(@,/\ndi ([^]+\(..\))/))
 ### End Script
 ### End Box
 
-### Box
-### Name Periodo
+### Box Periodo
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.07073511
-### Y 0.422843
-### W 0.3672129
-### H 0.11006591
+### Rect 1 0.07073511 0.422843 0.3672129 0.11006591
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -153,15 +113,10 @@ $ifnot($isset(mese_fattura)) {
 ### End Script
 ### End Box
 
-### Box
-### Name Data scadenza
+### Box Data scadenza
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.6679324
-### Y 0.422843
-### W 0.23481973
-### H 0.11006591
+### Rect 1 0.6679324 0.422843 0.23481973 0.11006591
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -170,15 +125,10 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
 ### End Script
 ### End Box
 
-### Box
-### Name Totale spesa
+### Box Totale spesa
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Page 1
-### X 0.43870968
-### Y 0.4244267
-### W 0.21856391
-### H 0.10689852
+### Rect 1 0.43870968 0.4244267 0.21856391 0.10689852
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -187,15 +137,10 @@ p+::off_allegati
 ### End Script
 ### End Box
 
-### Box
-### Name Potenza Impegnata
+### Box Potenza Impegnata
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 1
-### X 0.65733
-### Y 0.66411793
-### W 0.26752618
-### H 0.12493569
+### Rect 1 0.65733 0.66411793 0.26752618 0.12493569
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -204,15 +149,10 @@ p+::off_allegati
 ### End Script
 ### End Box
 
-### Box
-### Name Energia Attiva
+### Box Energia Attiva
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 2
-### X 0.058017727
-### Y 0.3854048
-### W 0.35532874
-### H 0.53301203
+### Rect 2 0.058017727 0.3854048 0.35532874 0.53301203
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -227,15 +167,10 @@ $with($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
 ### End Script
 ### End Box
 
-### Box
-### Name Energia Reattiva
+### Box Energia Reattiva
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 2
-### X 0.058017727
-### Y 0.38654503
-### W 0.25530854
-### H 0.53301203
+### Rect 2 0.058017727 0.38654503 0.25530854 0.53301203
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -250,15 +185,10 @@ $with($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/)) {
 ### End Script
 ### End Box
 
-### Box
-### Name Parsing Dettaglio
+### Box Parsing Dettaglio
 ### Type NOREAD
 ### Mode DEFAULT
-### Page 3
-### X 0.259447
-### Y 0.028506272
-### W 0.057603687
-### H 0.04479557
+### Rect 3 0.259447 0.028506272 0.057603687 0.04479557
 ### Spacers
 p+::off_allegati
 ### End Spacers

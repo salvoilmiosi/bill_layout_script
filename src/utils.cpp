@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <iostream>
-#include <sstream>
+#include <charconv>
 #include <regex>
 
 #include <fmt/format.h>
@@ -80,18 +80,14 @@ std::string read_all(std::istream &stream) {
     return std::string(std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
 }
 
-template<typename T> static T cstrtot(const std::string &str) {
-    std::istringstream ss(str);
-    ss.imbue(std::locale::classic());
-    T ret;
-    if (!(ss >> ret)) {
-        throw std::invalid_argument(str);
+int cstoi(std::string_view str) {
+    int ret;
+    auto result = std::from_chars(str.begin(), str.end(), ret);
+    if (result.ec == std::errc::invalid_argument) {
+        throw std::invalid_argument(std::string(str));
     }
     return ret;
 }
-
-int cstoi(const std::string &str) { return cstrtot<int>(str); }
-float cstof(const std::string &str) { return cstrtot<float>(str); }
 
 static wxDateTime string_to_date(std::string_view str) {
     static std::regex expression("(\\d{4})-(\\d{2})(-(\\d{2}))?");
