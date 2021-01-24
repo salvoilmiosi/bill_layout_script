@@ -9,7 +9,6 @@
 #include <chrono>
 
 #include <wx/init.h>
-#include <wx/intl.h>
 
 #include "reader.h"
 

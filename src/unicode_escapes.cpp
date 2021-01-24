@@ -1,7 +1,5 @@
 #include "utils.h"
 
-#include <wx/intl.h>
-
 typedef std::string_view::iterator location;
 
 // borrowed from jsoncpp source code

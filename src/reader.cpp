@@ -2,8 +2,17 @@
 
 #include "utils.h"
 #include "parser.h"
+#include "intl.h"
 
 #include <sstream>
+
+reader::reader() {
+    intl::init();
+}
+
+reader::~reader() {
+    intl::cleanup();
+}
 
 void reader::start() {
     m_vars.clear();
@@ -66,11 +75,9 @@ void reader::exec_command(const command_args &cmd) {
         break;
     case opcode::PARSENUM:
         if (m_vars.top().type() == VAR_STRING) {
-            char decimal_point = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER).at(0);
-            char thous_sep = wxLocale::GetInfo(wxLOCALE_THOUSANDS_SEP, wxLOCALE_CAT_NUMBER).at(0);
             std::istringstream iss(m_vars.top().str());
             fixed_point num;
-            if (dec::fromStream(iss, dec::decimal_format(decimal_point, thous_sep), num)) {
+            if (dec::fromStream(iss, dec::decimal_format(intl::decimal_point(), intl::thousand_sep()), num)) {
                 m_vars.top() = num;
             } else {
                 m_vars.top() = variable::null_var();
@@ -256,7 +263,7 @@ void reader::exec_command(const command_args &cmd) {
         import_layout(cmd.get<std::string>());
         break;
     case opcode::SETLANG:
-        set_language(cmd.get<std::string>());
+        intl::change_language(cmd.get<std::string>());
         break;
     }
 }
@@ -279,19 +286,6 @@ void reader::import_layout(const std::string &layout_name) {
     m_return_addrs.push(m_program_counter);
     m_program_counter = new_addr;
     m_jumped = true;
-}
-
-reader::~reader() {
-    if (m_locale) {
-        delete m_locale;
-    }
-}
-
-void reader::set_language(const std::string &language_name) {
-    if (m_locale) {
-        delete m_locale;
-    }
-    m_locale = new wxLocale(wxLocale::FindLanguageInfo(language_name)->Language);
 }
 
 void reader::read_box(pdf_rect box) {

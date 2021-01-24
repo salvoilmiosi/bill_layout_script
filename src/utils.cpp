@@ -5,9 +5,9 @@
 #include <regex>
 
 #include <fmt/format.h>
-
 #include <wx/datetime.h>
-#include <wx/intl.h>
+
+#include "intl.h"
 
 std::vector<std::string> string_split(const std::string &str, char separator) {
     std::vector<std::string> ret;
@@ -230,16 +230,7 @@ std::string string_format(std::string str, const std::vector<std::string> &fmt_a
 std::regex create_regex(std::string format) {
     using namespace std::string_literals;
 
-    std::string thous_sep = wxLocale::GetInfo(wxLOCALE_THOUSANDS_SEP, wxLOCALE_CAT_NUMBER).ToStdString();
-    string_replace(thous_sep, ".", "\\.");
-    
-    std::string decimal_point = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER).ToStdString();
-    string_replace(decimal_point, ".", "\\.");
-
-    // I regex di C++11 non supportano i lookbehind, -?\b dovrebbe essere (?<!\S)
-    std::string number_regex = "-?\\b\\d{1,3}(?:" + thous_sep + "\\d{3})*(?:" + decimal_point + "\\d+)?\\b";
-
-    string_replace(format, "%N", number_regex);
+    string_replace(format, "%N", intl::number_format());
 
     try {
         return std::regex(format, std::regex::icase);

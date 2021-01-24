@@ -7,8 +7,6 @@
 #include <memory>
 #include <atomic>
 
-#include <wx/intl.h>
-
 #include "variable.h"
 #include "variable_ref.h"
 #include "bytecode.h"
@@ -34,7 +32,7 @@ struct reader_output {
 
 class reader {
 public:
-    reader() = default;
+    reader();
     ~reader();
 
     reader(const pdf_document &doc) {
@@ -69,7 +67,6 @@ private:
     void read_box(pdf_rect box);
     void call_function(const std::string &name, size_t numargs);
     void import_layout(const std::string &layout_name);
-    void set_language(const std::string &language_name);
 
 private:
     simple_stack<variable> m_vars;
@@ -93,8 +90,6 @@ private:
     bytecode m_code;
 
     reader_output m_out;
-
-    wxLocale *m_locale = nullptr;
 };
 
 #endif

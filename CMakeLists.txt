@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(liblayout_SRCS
 src/functions.cpp
 src/keywords.cpp
+src/intl.cpp
 src/layout.cpp
 src/lexer.cpp
 src/parser.cpp
