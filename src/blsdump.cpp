@@ -24,22 +24,14 @@ private:
 
 wxIMPLEMENT_APP_CONSOLE(MainApp);
 
-static const wxCmdLineEntryDesc g_cmdline_desc[] = {
-    { wxCMD_LINE_SWITCH, "s", "skip-comments", "Skip Comments", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
-    { wxCMD_LINE_PARAM, nullptr, nullptr, "input-bls", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
-    { wxCMD_LINE_NONE }
-};
-
 void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
-    parser.SetDesc(g_cmdline_desc);
-    parser.SetSwitchChars('-');
+    parser.AddParam("input-bls");
+    parser.AddSwitch("s", "skip-comments", "Skip Comments");
 }
 
 bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
-    if (parser.GetParamCount() >= 1) {
-        input_bls = parser.GetParam(0).ToStdString();
-    }
-    skip_comments = parser.Found("s");
+    input_bls = parser.GetParam(0).ToStdString();
+    skip_comments = parser.FoundSwitch("s") == wxCMD_SWITCH_ON;
     return true;
 }
 

@@ -27,28 +27,20 @@ private:
 
 wxIMPLEMENT_APP_CONSOLE(MainApp);
 
-static const wxCmdLineEntryDesc g_cmdline_desc[] = {
-    { wxCMD_LINE_SWITCH, "d", "show-debug", "Show Debug Variables", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
-    { wxCMD_LINE_SWITCH, "g", "show-globals", "Show Global Variables", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
-    { wxCMD_LINE_SWITCH, "l", "get-layout", "Halt On Setlayout", wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
-    { wxCMD_LINE_PARAM, nullptr, nullptr, "input-pdf", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
-    { wxCMD_LINE_PARAM, nullptr, nullptr, "input-bls", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_MANDATORY },
-    { wxCMD_LINE_NONE }
-};
-
 void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
-    parser.SetDesc(g_cmdline_desc);
-    parser.SetSwitchChars('-');
+    parser.AddParam("input-pdf");
+    parser.AddParam("input-bls");
+    parser.AddSwitch("d", "show-debug", "Show Debug Variables");
+    parser.AddSwitch("g", "show-globals", "Show Global Variables");
+    parser.AddSwitch("l", "get-layout", "Halt On $setlayout");
 }
 
 bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
-    if (parser.GetParamCount() >= 2) {
-        input_pdf = parser.GetParam(0).ToStdString();
-        input_bls = parser.GetParam(1).ToStdString();
-    }
-    show_debug = parser.Found("d");
-    show_globals = parser.Found("g");
-    get_layout = parser.Found("l");
+    input_pdf = parser.GetParam(0).ToStdString();
+    input_bls = parser.GetParam(1).ToStdString();
+    show_debug = parser.FoundSwitch("d") == wxCMD_SWITCH_ON;
+    show_globals = parser.FoundSwitch("g") == wxCMD_SWITCH_ON;
+    get_layout = parser.FoundSwitch("l") == wxCMD_SWITCH_ON;
     return true;
 }
 

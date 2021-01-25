@@ -32,14 +32,8 @@ bool MainApp::OnInit() {
     return true;
 }
 
-static const wxCmdLineEntryDesc g_cmdline_desc[] = {
-    { wxCMD_LINE_PARAM, nullptr, nullptr, "input file", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
-    { wxCMD_LINE_NONE }
-};
-
 void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
-    parser.SetDesc(g_cmdline_desc);
-    parser.SetSwitchChars('-');
+    parser.AddParam("input-bls", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
 }
 
 bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
