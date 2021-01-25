@@ -112,21 +112,14 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SELVAR:
     {
         const auto &var_idx = cmd.get<variable_idx>();
-        auto ref = create_ref(var_idx.name,
-            var_idx.index, var_idx.range_len);
-        if (var_idx.index == -1) {
-            ref.index = ref.size();
-        }
-        m_refs.push(std::move(ref));
+        m_refs.push(create_ref(var_idx.name,
+            var_idx.index, var_idx.range_len));
         break;
     }
     case opcode::SELRANGETOP:
     {
         auto ref = create_ref(cmd.get<std::string>());
         ref.index = m_vars.top().as_int();
-        if (ref.index == -1) {
-            ref.index = ref.size();
-        }
         m_vars.pop();
         ref.range_len = m_vars.top().as_int();
         m_vars.pop();

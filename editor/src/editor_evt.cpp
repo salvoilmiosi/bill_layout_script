@@ -25,24 +25,26 @@ void frame_editor::OnNewFile(wxCommandEvent &evt) {
 }
 
 void frame_editor::OnOpenFile(wxCommandEvent &evt) {
-    wxFileDialog diag(this, "Apri Layout Bolletta", wxEmptyString, wxEmptyString, "File layout (*.bls)|*.bls|Tutti i file (*.*)|*.*");
+    wxString lastLayoutDir = m_config->Read("LastLayoutDir");
+    wxFileDialog diag(this, "Apri Layout Bolletta", lastLayoutDir, wxEmptyString, "File layout (*.bls)|*.bls|Tutti i file (*.*)|*.*");
 
     if (diag.ShowModal() == wxID_CANCEL)
         return;
 
     if (saveIfModified()) {
+        m_config->Write("LastLayoutDir", wxFileName(diag.GetPath()).GetPath());
         openFile(diag.GetPath().ToStdString());
     }
 }
 
 void frame_editor::OnOpenRecent(wxCommandEvent &evt) {
     if (saveIfModified()) {
-        openFile(recentFiles[evt.GetId() - MENU_OPEN_RECENT]);
+        openFile(m_bls_history->GetHistoryFile(evt.GetId() - m_bls_history->GetBaseId()));
     }
 }
 
 void frame_editor::OnOpenRecentPdf(wxCommandEvent &evt) {
-    loadPdf(recentPdfs[evt.GetId() - MENU_OPEN_PDF_RECENT]);
+    loadPdf(m_pdf_history->GetHistoryFile(evt.GetId() - m_pdf_history->GetBaseId()));
 }
 
 void frame_editor::OnSaveFile(wxCommandEvent &evt) {
@@ -140,11 +142,13 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
 }
 
 void frame_editor::OnLoadPdf(wxCommandEvent &evt) {
-    wxFileDialog diag(this, "Apri PDF", wxEmptyString, wxEmptyString, "File PDF (*.pdf)|*.pdf|Tutti i file (*.*)|*.*");
+    wxString lastPdfDir = m_config->Read("LastPdfDir");
+    wxFileDialog diag(this, "Apri PDF", lastPdfDir, wxEmptyString, "File PDF (*.pdf)|*.pdf|Tutti i file (*.*)|*.*");
 
     if (diag.ShowModal() == wxID_CANCEL)
         return;
 
+    m_config->Write("LastPdfDir", wxFileName(diag.GetPath()).GetPath());
     loadPdf(diag.GetPath().ToStdString());
     updateLayout(false);
 }

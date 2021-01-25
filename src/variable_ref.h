@@ -61,9 +61,6 @@ public:
     }
 };
 
-template<typename Key, typename Value>
-multimap_range(std::multimap<Key, Value> &, const Value &) -> multimap_range<Key, Value>;
-
 enum set_flags {
     SET_ASSIGN = 0,
     SET_RESET = 1 << 0,
@@ -100,6 +97,8 @@ public:
         if (value.empty()) return;
 
         if (flags & SET_RESET) clear();
+
+        if (index == -1) index = size();
 
         resize(index + range_len);
 

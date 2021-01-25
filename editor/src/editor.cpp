@@ -6,7 +6,6 @@
 #include <wx/stdpaths.h>
 #include <wx/artprov.h>
 #include <wx/splitter.h>
-#include <wx/config.h>
 
 #include "resources.h"
 #include "box_editor_panel.h"
@@ -55,25 +54,35 @@ DECLARE_RESOURCE(tool_resize_png)
 DECLARE_RESOURCE(icon_editor_png)
 
 constexpr size_t MAX_HISTORY_SIZE = 20;
-constexpr size_t MAX_RECENT_FILES_HISTORY = 10;
-constexpr size_t MAX_RECENT_PDFS_HISTORY = 10;
 
 frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxDefaultPosition, wxSize(900, 700)) {
+    m_config = new wxConfig("BillLayoutScript");
+
     wxMenuBar *menuBar = new wxMenuBar();
     
-    m_recent = new wxMenu;
-    m_recent_pdfs = new wxMenu;
-    updateRecentFiles();
+    m_bls_history = new wxFileHistory(MAX_RECENT_FILES_HISTORY, MENU_OPEN_RECENT);
+    m_bls_history->UseMenu(m_bls_history_menu = new wxMenu);
+
+    m_pdf_history = new wxFileHistory(MAX_RECENT_PDFS_HISTORY, MENU_OPEN_PDF_RECENT);
+    m_pdf_history->UseMenu(m_pdf_history_menu = new wxMenu);
+
+    m_config->SetPath("/RecentFiles");
+    m_bls_history->Load(*m_config);
+
+    m_config->SetPath("/RecentPdfs");
+    m_pdf_history->Load(*m_config);
+
+    m_config->SetPath("/");
 
     wxMenu *menuFile = new wxMenu;
     menuFile->Append(MENU_NEW, "&Nuovo\tCtrl-N", "Crea un Nuovo Layout");
     menuFile->Append(MENU_OPEN, "&Apri...\tCtrl-O", "Apri un Layout");
-    menuFile->AppendSubMenu(m_recent, "Apri &Recenti");
+    menuFile->AppendSubMenu(m_bls_history_menu, "Apri &Recenti");
     menuFile->Append(MENU_SAVE, "&Salva\tCtrl-S", "Salva il Layout");
     menuFile->Append(MENU_SAVEAS, "Sa&lva con nome...\tCtrl-Shift-S", "Salva il Layout con nome...");
     menuFile->AppendSeparator();
     menuFile->Append(MENU_LOAD_PDF, "Carica &PDF\tCtrl-L", "Carica un file PDF");
-    menuFile->AppendSubMenu(m_recent_pdfs, "PDF Recenti...");
+    menuFile->AppendSubMenu(m_pdf_history_menu, "PDF Recenti...");
     menuFile->AppendSeparator();
     menuFile->Append(MENU_CLOSE, "&Chiudi\tCtrl-W", "Chiudi la finestra");
     menuBar->Append(menuFile, "&File");
@@ -187,17 +196,10 @@ void frame_editor::openFile(const wxString &filename) {
         history.clear();
         updateLayout();
 
-        wxString abs_path = layout.filename().string();
-        
-        auto it = std::find(recentFiles.begin(), recentFiles.end(), abs_path);
-        if (it != recentFiles.end()) {
-            recentFiles.erase(it);
-        }
-        recentFiles.push_front(abs_path);
-        if (recentFiles.size() > MAX_RECENT_FILES_HISTORY) {
-            recentFiles.pop_back();
-        }
-        updateRecentFiles(true);
+        m_bls_history->AddFileToHistory(layout.filename().string());
+        m_config->SetPath("/RecentFiles");
+        m_bls_history->Save(*m_config);
+        m_config->SetPath("/");
     } catch (const layout_error &error) {
         wxMessageBox("Impossibile aprire questo file", "Errore", wxOK | wxICON_ERROR);
     }
@@ -205,11 +207,13 @@ void frame_editor::openFile(const wxString &filename) {
 
 bool frame_editor::save(bool saveAs) {
     if (layout.filename().empty() || saveAs) {
-        wxFileDialog diag(this, "Salva Layout Bolletta", wxEmptyString, layout.filename().string(), "File layout (*.bls)|*.bls|Tutti i file (*.*)|*.*", wxFD_SAVE);
+        wxString lastLayoutDir = m_config->Read("LastLayoutDir");
+        wxFileDialog diag(this, "Salva Layout Bolletta", lastLayoutDir, layout.filename().string(), "File layout (*.bls)|*.bls|Tutti i file (*.*)|*.*", wxFD_SAVE);
 
         if (diag.ShowModal() == wxID_CANCEL)
             return false;
 
+        m_config->Write("LastLayoutDir", wxFileName(diag.GetPath()).GetPath());
         layout.set_filename(diag.GetPath().ToStdString());
     }
     if (!layout.save_file(layout.filename())) {
@@ -262,50 +266,6 @@ void frame_editor::updateLayout(bool addToHistory) {
     }
 }
 
-void frame_editor::updateRecentFiles(bool save) {
-    if (save) {
-        wxConfig::Get()->DeleteGroup("RecentFiles");
-        wxConfig::Get()->SetPath("/RecentFiles");
-        for (size_t i=0; i<recentFiles.size(); ++i) {
-            wxConfig::Get()->Write(wxString::Format("%lld", i), recentFiles[i]);
-        }
-        wxConfig::Get()->DeleteGroup("RecentPdfs");
-        wxConfig::Get()->SetPath("/RecentPdfs");
-        for (size_t i=0; i<recentPdfs.size(); ++i) {
-            wxConfig::Get()->Write(wxString::Format("%lld", i), recentPdfs[i]);
-        }
-        wxConfig::Get()->SetPath("/");
-    } else {
-        recentFiles.clear();
-        wxConfig::Get()->SetPath("/RecentFiles");
-        size_t len = wxConfig::Get()->GetNumberOfEntries();
-        for (size_t i=0; i<len; ++i) {
-            recentFiles.push_back(wxConfig::Get()->Read(wxString::Format("%lld", i)));
-        }
-        recentPdfs.clear();
-        wxConfig::Get()->SetPath("/RecentPdfs");
-        len = wxConfig::Get()->GetNumberOfEntries();
-        for (size_t i=0; i<len; ++i) {
-            recentPdfs.push_back(wxConfig::Get()->Read(wxString::Format("%lld", i)));
-        }
-        wxConfig::Get()->SetPath("/");
-    }
-    size_t len = m_recent->GetMenuItemCount();
-    for (size_t i=0; i<len; ++i) {
-        m_recent->Delete(MENU_OPEN_RECENT + i);
-    }
-    for (size_t i=0; i<recentFiles.size(); ++i) {
-        m_recent->Append(MENU_OPEN_RECENT + i, recentFiles[i]);
-    }
-    len = m_recent_pdfs->GetMenuItemCount();
-    for (size_t i=0; i<len; ++i) {
-        m_recent_pdfs->Delete(MENU_OPEN_PDF_RECENT + i);
-    }
-    for (size_t i=0; i<recentPdfs.size(); ++i) {
-        m_recent_pdfs->Append(MENU_OPEN_PDF_RECENT + i, recentPdfs[i]);
-    }
-}
-
 void frame_editor::loadPdf(const wxString &filename) {
     try {
         m_doc.open(filename.ToStdString());
@@ -315,30 +275,24 @@ void frame_editor::loadPdf(const wxString &filename) {
         }
         setSelectedPage(1, true);
 
-        wxString abs_path = m_doc.filename().string();
-        
-        auto it = std::find(recentPdfs.begin(), recentPdfs.end(), abs_path);
-        if (it != recentPdfs.end()) {
-            recentPdfs.erase(it);
-        }
-        recentPdfs.push_front(abs_path);
-        if (recentPdfs.size() > MAX_RECENT_PDFS_HISTORY) {
-            recentPdfs.pop_back();
-        }
-        updateRecentFiles(true);
+        m_pdf_history->AddFileToHistory(m_doc.filename().string());
+
+        m_config->SetPath("/RecentPdfs");
+        m_pdf_history->Save(*m_config);
+        m_config->SetPath("/");
     } catch (const pdf_error &error) {
         wxMessageBox(error.what(), "Errore", wxICON_ERROR);
     }
 }
 
 wxString frame_editor::getControlScript(bool open_dialog) {
-    wxString filename = wxConfig::Get()->Read("ControlScriptFilename");
+    wxString filename = m_config->Read("ControlScriptFilename");
     if (filename.empty() || open_dialog) {
-        wxFileDialog diag(this, "Apri script di controllo", wxEmptyString, wxEmptyString, "File bls (*.bls)|*.bls|Tutti i file (*.*)|*.*");
+        wxFileDialog diag(this, "Apri script di controllo", wxFileName(filename).GetPath(), wxEmptyString, "File bls (*.bls)|*.bls|Tutti i file (*.*)|*.*");
 
         if (diag.ShowModal() == wxID_OK) {
             filename = diag.GetPath();
-            wxConfig::Get()->Write("ControlScriptFilename", filename);
+            m_config->Write("ControlScriptFilename", filename);
         }
     }
     return filename;

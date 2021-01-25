@@ -335,9 +335,14 @@ bool lexer::readRegexp() {
 
 bool lexer::readNumber() {
     const char *p = m_current;
-    char c = *p;
-    while ((c >= '0' && c <= '9') || c == '.') {
+    char c = '0';
+    while (c >= '0' && c <= '9') {
         c = (m_current = p) < script.end() ? *p++ : '\0';
+    }
+    if (c == '.') {
+        c = (m_current = p) < script.end() ? *p++ : '\0';
+        while (c >= '0' && c <= '9')
+            c = (m_current = p) < script.end() ? *p++ : '\0';
     }
     return true;
 }

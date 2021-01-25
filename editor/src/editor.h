@@ -7,10 +7,16 @@
     #include <wx/wx.h>
 #endif
 
+#include <wx/config.h>
+#include <wx/filehistory.h>
+
 #include "layout.h"
 
 #include <deque>
 #include <memory>
+
+constexpr size_t MAX_RECENT_FILES_HISTORY = 10;
+constexpr size_t MAX_RECENT_PDFS_HISTORY = 10;
 
 enum {
     FIRST = 10000,
@@ -21,10 +27,10 @@ enum {
     MENU_EDITCONTROL, MENU_SETLANGUAGE,
 
     MENU_OPEN_RECENT,
-    MENU_OPEN_RECENT_END = MENU_OPEN_RECENT + 20,
+    MENU_OPEN_RECENT_END = MENU_OPEN_RECENT + MAX_RECENT_FILES_HISTORY,
     
     MENU_OPEN_PDF_RECENT,
-    MENU_OPEN_PDF_RECENT_END = MENU_OPEN_PDF_RECENT + 20,
+    MENU_OPEN_PDF_RECENT_END = MENU_OPEN_PDF_RECENT + MAX_RECENT_PDFS_HISTORY,
 
     CTL_LOAD_PDF, CTL_AUTO_LAYOUT, CTL_PAGE, CTL_SCALE,
 
@@ -42,8 +48,6 @@ public:
     }
     void setSelectedPage(int page, bool force = false);
     void selectBox(const box_ptr &box);
-
-    void updateRecentFiles(bool save = false);
     
     void openFile(const wxString &filename);
     void loadPdf(const wxString &pdf_filename);
@@ -92,8 +96,13 @@ private:
 private:
     class box_editor_panel *m_image;
 
-    wxMenu *m_recent;
-    wxMenu *m_recent_pdfs;
+    wxConfig *m_config;
+
+    wxFileHistory *m_bls_history;
+    wxMenu *m_bls_history_menu;
+    
+    wxFileHistory *m_pdf_history;
+    wxMenu *m_pdf_history_menu;
 
     wxComboBox *m_page;
     wxSlider *m_scale;
@@ -102,9 +111,6 @@ private:
 
     std::deque<bill_layout_script> history;
     std::deque<bill_layout_script>::iterator currentHistory;
-
-    std::deque<wxString> recentFiles;
-    std::deque<wxString> recentPdfs;
 
     bool modified = false;
 
