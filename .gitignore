@@ -1,6 +1,7 @@
 .vscode/*
 build/*
 work/*
+bls-ext/*
 *.exe
 *.dll
 *.so
