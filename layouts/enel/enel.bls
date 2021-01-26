@@ -75,47 +75,49 @@ fornitore="Enel Energia"
 ### Mode RAW
 ### Rect 1 0.04623656 0.1717978 0.41827956 0.16039528
 ### Script
-indirizzo_fornitura=$search($singleline(@),/Forniamo energia in (.+) Denominazione/)
+indirizzo_fornitura=$singleline($search(@,/Forniamo energia in ([^]+\d{5}.+\n)/))
 %potenza[0:3]=$coalesce(
   $search(@,/Potenza contrattualmente impegnata (%N)/),
   $search(@,/Livello massimo di potenza (%N)/))
 ### End Script
 ### End Box
 
-### Box Dettaglio Fiscale
+### Box Ragione sociale
 ### Type RECTANGLE
-### Mode LAYOUT
-### Rect 1 0.043979228 0.67284954 0.6890491 0.16947563
+### Mode DEFAULT
+### Rect 1 0.5015466 0.18353352 0.39770216 0.031239748
 ### Script
-%cts=$search(@,/CORRISPETTIVO TARIFFARIO SPECIFICO.+ (%N)/)
-iva=$search(@,/IVA.* (\d+%)/)
+ragione_sociale
 ### End Script
 ### End Box
 
-### Box Totale Fattura
+### Box Numero cliente / POD
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.51906633 0.36861986 0.21763146 0.035925712
+### Rect 1 0.05251878 0.33476514 0.20437472 0.07914594
+### Script
+numero_cliente=$search(@,/N\u00b0 CLIENTE (.+)\n/)
+codice_pod=$search(@,/CODICE POD (.+)$/)
+### End Script
+### End Box
+
+### Box Numero / Data fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Rect 1 0.27857563 0.38391757 0.21629238 0.030719101
+### Script
+numero_fattura=$search(@,/N\. Fattura (\d+)/)
+data_fattura=$date(@,"%d/%m/%Y",/Del (%D)/)
+### End Script
+### End Box
+
+### Box Totale Fattura / Scadenza
+### Type RECTANGLE
+### Mode DEFAULT
+### Rect 1 0.51906633 0.36861986 0.21763146 0.046880633
 ### Script
 %totale_fattura
-### End Script
-### End Box
-
-### Box Data fattura
-### Type RECTANGLE
-### Mode DEFAULT
-### Rect 1 0.304905 0.3998688 0.19443217 0.015619874
-### Script
-data_fattura=$date(@,"%d/%m/%Y")
-### End Script
-### End Box
-
-### Box Data scadenza
-### Type RECTANGLE
-### Mode DEFAULT
-### Rect 1 0.6628369 0.40455475 0.074016795 0.0117149055
-### Script
-data_scadenza=$date(@,"%d/%m/%Y")
+data_scadenza=$date(@,"%d/%m/%Y",/Entro il (%D)/)
 ### End Script
 ### End Box
 
@@ -134,39 +136,13 @@ _mese=$date_format(mese_fattura,"%m/%y")
 ### End Script
 ### End Box
 
-### Box Numero cliente
+### Box Dettaglio Fiscale
 ### Type RECTANGLE
-### Mode DEFAULT
-### Rect 1 0.054131683 0.35300916 0.20437472 0.02108683
+### Mode LAYOUT
+### Rect 1 0.043979228 0.67284954 0.6890491 0.16947563
 ### Script
-numero_cliente
-### End Script
-### End Box
-
-### Box Codice POD
-### Type RECTANGLE
-### Mode DEFAULT
-### Rect 1 0.05523641 0.39127785 0.20768891 0.017962856
-### Script
-codice_pod
-### End Script
-### End Box
-
-### Box Numero fattura
-### Type RECTANGLE
-### Mode DEFAULT
-### Rect 1 0.34577993 0.38737288 0.15355723 0.0124959
-### Script
-numero_fattura
-### End Script
-### End Box
-
-### Box Ragione sociale
-### Type RECTANGLE
-### Mode DEFAULT
-### Rect 1 0.5015466 0.18353352 0.39770216 0.031239748
-### Script
-ragione_sociale
+%cts=$search(@,/CORRISPETTIVO TARIFFARIO SPECIFICO.+ (%N)/)
+iva=$search(@,/IVA.* (\d+%)/)
 ### End Script
 ### End Box
 

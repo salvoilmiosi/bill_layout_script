@@ -89,7 +89,7 @@ p+::off_allegati
 ### Script
 indirizzo_fornitura=$search(@,/Le stiamo fornendo energia elettrica in (.+)\n/)
 numero_cliente=$search(@,/Codice cliente: (\d+)/)
-codice_pod=$search(@,/POD: (.+)\n/)
+codice_pod=$search(@,/POD: (.+?)\b/)
 %potenza_disponibile=$search(@,/Pot\. Disponibile kW: (%N)/)
 ### End Script
 ### End Box

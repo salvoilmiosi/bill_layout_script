@@ -89,7 +89,7 @@ p+::off_allegato p+::page_offset
 ### End Spacers
 ### Script
 codice_pod=$search(@,/Codice POD (.+)\n/)
-indirizzo_fornitura=$search($singleline(@),/Indirizzo fornitura (.+) Opzione/)
+indirizzo_fornitura=$singleline($search(@,/Indirizzo fornitura ([^]+\d{5}.+)\n/))
 ### End Script
 ### End Box
 

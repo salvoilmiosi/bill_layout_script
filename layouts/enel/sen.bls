@@ -75,7 +75,7 @@ fornitore=$coalesce(::fornitore,"SEN")
 ### Mode RAW
 ### Rect 1 0.052688174 0.1687363 0.45327735 0.17021497
 ### Script
-indirizzo_fornitura=$search($singleline(@),/Forniamo energia in (.+) Denominazione/)
+indirizzo_fornitura=$singleline($search(@,/Forniamo energia in ([^]+\d{5}.+\n)/))
 %potenza[0:3]=$coalesce(
   $search(@,/Potenza contrattualmente impegnata (%N)/),
   $search(@,/Livello massimo di potenza (%N)/))

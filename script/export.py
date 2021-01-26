@@ -9,22 +9,23 @@ import time
 import os
 
 class TableValue:
-    def __init__(self, title, value, index=0, type='str', number_format='', column_width=None, obligatory=False):
+    def __init__(self, title, value, index=0, type='str', number_format='', column_width=None):
         self.title = title
         self.value = value
         self.index = index
         self.type = type
         self.number_format = number_format
         self.column_width = column_width
-        self.obligatory = obligatory
 
 table_values = [
     TableValue('File',                  'filename'),
-    TableValue('POD',                   'codice_pod', column_width=16,            obligatory=True),
-    TableValue('Mese',                  'mese_fattura',             type='month', obligatory=True),
-    TableValue('Fornitore',             'fornitore',                              obligatory=True),
-    TableValue('N. Fatt.',              'numero_fattura',                         obligatory=True, column_width=11),
-    TableValue('Data Emissione',        'data_fattura',              type='date', obligatory=True),
+    TableValue('Ragione Sociale',       'ragione_sociale'),
+    TableValue('Indirizzo Fornitura',   'indirizzo_fornitura'),
+    TableValue('POD',                   'codice_pod',       column_width=16),
+    TableValue('Mese',                  'mese_fattura',             type='month'),
+    TableValue('Fornitore',             'fornitore'),
+    TableValue('N. Fatt.',              'numero_fattura',   column_width=11),
+    TableValue('Data Emissione',        'data_fattura',              type='date'),
     TableValue('Data scadenza',         'data_scadenza',             type='date'),
     TableValue('Costo Materia Energia', 'spesa_materia_energia',     type='euro', column_width=11),
     TableValue('Trasporto',             'trasporto_gestione',        type='euro', column_width=11),
@@ -96,10 +97,7 @@ def export_file(input_file):
                         else:
                             row.append({'value': value, 'number_format': ''})
                     except (KeyError, IndexError, ValueError):
-                        if obj.obligatory:
-                            row.append({'value': '', 'number_format': '', 'fgColor':'ffff00'})
-                        else:
-                            row.append({'value': '', 'number_format': ''})
+                        row.append({'value': '', 'number_format': ''})
 
             new_pod = v['codice_pod'] if 'codice_pod' in v else None
             out.append({'row':row,'conguaglio':'conguaglio' in json_data,'new_pod':new_pod != old_pod})

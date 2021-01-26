@@ -65,6 +65,7 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 ### Script
 %totale_fattura=$search(@,/TOTALE DELLA FATTURA (%N)/)
 codice_pod=$search(@,/POD: (.+)/)
+indirizzo_fornitura=$search(@,/Indirizzo di fornitura: (.+)/)
 ### End Script
 ### End Box
 
@@ -76,7 +77,7 @@ codice_pod=$search(@,/POD: (.+)/)
 p+::off_pod
 ### End Spacers
 ### Script
-indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura: ([^]+?) POD/))
+indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura: ([^]+?\d{5}.+)\n/))
 codice_pod=$search(@,/POD(?: \(punto di prelievo\)|:) (.+)/)
 %potenza[0:3]=$search(@,/Potenza contrattuale: (%N) kW/)
 ### End Script

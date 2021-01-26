@@ -75,7 +75,7 @@ partita_iva=$search(@,/Part\.IVA (.+)\n/)
 ### Rect 1 0.067204304 0.61503536 0.42183626 0.30491322
 ### Script
 $if($contains(@,"Dati di fornitura")) {
-  indirizzo_fornitura=$search($singleline(@),/Indirizzo (.+\d{5}.+\(.{2}\))/)
+  indirizzo_fornitura=$singleline($search(@,/Indirizzo ([^]+\(..\))/))
   codice_pod=$search(@,/POD (.+)\n/)
   %potenza[0:3]=$search(@,/Potenza Impegnata (%N)/)
 } $else {
@@ -109,7 +109,7 @@ p+::next_page
 ### End Spacers
 ### Script
 $if(::spacer_multipod) {
-  indirizzo_fornitura=$search($singleline(@),/Indirizzo (.+\d{5}.+\(.{2}\))/)
+  indirizzo_fornitura=$singleline($search(@,/Indirizzo ([^]+\(..\))/))
   codice_pod=$search(@,/POD (.+)\n/)
   %potenza[0:3]=$search(@,/Potenza Impegnata (%N)/)
 }

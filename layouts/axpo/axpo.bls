@@ -50,7 +50,7 @@ data_fattura=$date(@,"%d.%m.%Y",/N\. fattura \d+ del (%D)/)
 mese_fattura=$month(@,"%d.%m.%Y",/PERIODO %D - (%D)/)
 numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
-indirizzo_fornitura=$search($singleline(@),/FORNIAMO ENERGIA IN (.+) CODICE POD/)
+indirizzo_fornitura=$singleline($search(@,/FORNIAMO ENERGIA IN\n([^]+?\d{5}.+)\n/))
 ::multipod=$isempty(codice_pod)
 _mese=$date_format(mese_fattura,"%m.%Y")
 ### End Script
@@ -82,7 +82,7 @@ p+::next_page
 ### Script
 $if(::multipod) {
   codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
-  indirizzo_fornitura=$search($singleline(@),/FORNIAMO ENERGIA IN (.+)/)
+  indirizzo_fornitura=$singleline($search(@,/FORNIAMO ENERGIA IN\n([^]+)/))
 }
 ### End Script
 ### End Box
