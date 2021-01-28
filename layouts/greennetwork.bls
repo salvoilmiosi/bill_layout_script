@@ -172,8 +172,7 @@ $with($search(@,/Componente di Generazione.+\n((Dal.+\n)+)/)) {
     %prezzo_energia[2] %energia_attiva[2]
   }
 }
-$with($search(@,/Prezzo commercializzazione vendita.+\n((Dal.+\n)+)/)) {
-  %pcv=$search(@,$format(/\d\d\/$0 .+ _mese (%N)/,_mese))
-}
+%pcv=$search($search(@,/Prezzo commercializzazione vendita.+\n((Dal.+\n)+)/),
+  $format(/\d\d\/$0 .+ _mese (%N)/,_mese))
 ### End Script
 ### End Box
