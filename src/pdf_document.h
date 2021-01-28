@@ -9,13 +9,32 @@
 #include <poppler-document.h>
 #include <poppler-page.h>
 
-enum class box_type : uint8_t              { BOX_RECTANGLE, BOX_PAGE, BOX_FILE, BOX_NO_READ };
-constexpr const char *box_type_strings[] = { "RECTANGLE",   "PAGE",   "FILE",   "NOREAD" };
-constexpr const char *box_type_labels[] =  { "Rettangolo",  "Pagina", "File",   "Nessuna Lettura" };
+#define BOX_TYPES { \
+    BOX(BOX_RECTANGLE,  "Rettangolo"), \
+    BOX(BOX_PAGE,       "Pagina"), \
+    BOX(BOX_FILE,       "File"), \
+    BOX(BOX_NOREAD,     "Nessuna Lettura") \
+}
 
-enum class read_mode : uint8_t             { MODE_DEFAULT, MODE_LAYOUT, MODE_RAW };
-constexpr const char *read_mode_strings[] = { "DEFAULT",    "LAYOUT",    "RAW" };
-constexpr const char *read_mode_labels[] =  { "Default",    "Layout",    "Grezza" };
+#define BOX(x, y) x
+enum class box_type : uint8_t BOX_TYPES;
+#undef BOX
+#define BOX(x, y) #x
+constexpr const char *box_type_strings[] = BOX_TYPES;
+#undef BOX
+
+#define READ_MODES { \
+    MODE(MODE_DEFAULT,  "Default",  non_raw_non_physical_layout), \
+    MODE(MODE_LAYOUT,   "Layout",   physical_layout), \
+    MODE(MODE_RAW,      "Grezza",   raw_order_layout), \
+}
+
+#define MODE(x, y, z) x
+enum class read_mode : uint8_t READ_MODES;
+#undef MODE
+#define MODE(x, y, z) #x
+static const char *read_mode_strings[] = READ_MODES;
+#undef MODE
 
 struct pdf_rect {
     int page = 0;

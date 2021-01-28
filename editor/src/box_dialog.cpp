@@ -21,6 +21,13 @@ static void add_to(wxSizer *sizer, wxWindow *first, Ts * ... others) {
     }
 }
 
+#define BOX(x, y) y
+constexpr const char *box_type_labels[] = BOX_TYPES;
+#undef BOX
+#define MODE(x, y, z) y
+static const char *read_mode_labels[] = READ_MODES;
+#undef MODE
+
 box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     wxDialog(parent, wxID_ANY, "Modifica Rettangolo", wxDefaultPosition, wxSize(700, 500), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), box(box), app(parent)
 {

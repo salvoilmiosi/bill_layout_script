@@ -2,8 +2,8 @@
 ### Language it_IT
 
 ### Box Convalida Layout
-### Type RECTANGLE
-### Mode DEFAULT
+### Type BOX_RECTANGLE
+### Mode MODE_DEFAULT
 ### Rect 1 0.11730205 0.16585466 0.2580645 0.04457344
 ### Goto Label convalida
 ### Script
@@ -14,8 +14,8 @@ $ifnot($contains(@,"www.energrid.it")) {
 ### End Box
 
 ### Box Nome Fornitore
-### Type NOREAD
-### Mode DEFAULT
+### Type BOX_NOREAD
+### Mode MODE_DEFAULT
 ### Rect 1 0.05283649 0.015727598 0.12235818 0.09436559
 ### Goto Label nome_fornitore
 ### Script
@@ -24,8 +24,8 @@ fornitore="EnerGrid"
 ### End Box
 
 ### Box Dati Cliente
-### Type RECTANGLE
-### Mode DEFAULT
+### Type BOX_RECTANGLE
+### Mode MODE_DEFAULT
 ### Rect 1 0.6539589 0.023841608 0.32111436 0.114025086
 ### Script
 numero_cliente=$search(@,/CODICE CLIENTE: (.+)/)
@@ -34,8 +34,8 @@ ragione_sociale=$singleline($search(@,/Intestatario contratto: ([^]+)\nCod\. Fis
 ### End Box
 
 ### Box Numero Fattura
-### Type RECTANGLE
-### Mode DEFAULT
+### Type BOX_RECTANGLE
+### Mode MODE_DEFAULT
 ### Rect 1 0.13343109 0.30683112 0.6979472 0.04353685
 ### Script
 numero_fattura=$search(@,/Fattura Energia n\u00b0 ([0-9]+)/)
@@ -44,8 +44,8 @@ data_fattura=$date(@,"%d/%m/%Y",/del (%D)/)
 ### End Box
 
 ### Box Dati Fattura
-### Type RECTANGLE
-### Mode LAYOUT
+### Type BOX_RECTANGLE
+### Mode MODE_LAYOUT
 ### Rect 1 0.035190612 0.34902042 0.23020528 0.45257592
 ### Script
 data_scadenza=$date(@,"%d/%m/%Y",/Scadenza fattura: (%D)/)
@@ -59,8 +59,8 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 ### End Box
 
 ### Box Riepologo Importi
-### Type RECTANGLE
-### Mode LAYOUT
+### Type BOX_RECTANGLE
+### Mode MODE_LAYOUT
 ### Rect 1 0.2672123 0.350057 0.69011915 0.45153934
 ### Script
 %totale_fattura=$search(@,/TOTALE DELLA FATTURA (%N)/)
@@ -70,8 +70,8 @@ indirizzo_fornitura=$search(@,/Indirizzo di fornitura: (.+)/)
 ### End Box
 
 ### Box Dati Fornitura
-### Type RECTANGLE
-### Mode RAW
+### Type BOX_RECTANGLE
+### Mode MODE_RAW
 ### Rect 2 0.045739044 0.10376283 0.91132927 0.21464685
 ### Spacers
 p+::off_pod
@@ -84,8 +84,8 @@ codice_pod=$search(@,/POD(?: \(punto di prelievo\)|:) (.+)/)
 ### End Box
 
 ### Box Storico Consumi / Imposte
-### Type PAGE
-### Mode LAYOUT
+### Type BOX_PAGE
+### Mode MODE_LAYOUT
 ### Rect 2 0.043880455 0.5927153 0.9120019 0.23200065
 ### Spacers
 p+::off_pod
@@ -105,8 +105,8 @@ $between("DETTAGLIO IMPOSTE","TOTALE (Salvo conguagli, errori e omissioni)") {
 ### End Box
 
 ### Box Cerca Dettaglio
-### Type RECTANGLE
-### Mode LAYOUT
+### Type BOX_RECTANGLE
+### Mode MODE_LAYOUT
 ### Rect 3 0.03548387 0.02622577 0.92741936 0.09920182
 ### Goto Label cerca_dettaglio
 ### Spacers
@@ -123,8 +123,8 @@ $if(_pod_dettaglio!=codice_pod) {
 ### End Box
 
 ### Box Dettaglio Importi
-### Type PAGE
-### Mode LAYOUT
+### Type BOX_PAGE
+### Mode MODE_LAYOUT
 ### Rect 3 0.34193546 0.12884834 0.0483871 0.031927034
 ### Spacers
 p+_off_dettaglio
@@ -157,8 +157,8 @@ $between("DETTAGLIO IMPORTI PRIMO ADDEBITO","TOTALE (Salvo conguagli, errori e o
 ### End Box
 
 ### Box Prossima Pagina
-### Type RECTANGLE
-### Mode DEFAULT
+### Type BOX_RECTANGLE
+### Mode MODE_DEFAULT
 ### Rect 3 0.017741935 0.034207527 0.31774193 0.15507412
 ### Goto Label check_pagina
 ### Spacers

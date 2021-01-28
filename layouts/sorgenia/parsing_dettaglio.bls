@@ -2,8 +2,8 @@
 ### Language it_IT
 
 ### Box Parsing Dettaglio
-### Type NOREAD
-### Mode DEFAULT
+### Type BOX_NOREAD
+### Mode MODE_DEFAULT
 ### Rect 1 0 0 0 0
 ### Script
 $with(::_dettaglio) {

@@ -24,18 +24,15 @@ void pdf_document::open(const std::filesystem::path &filename) {
     }
 }
 
+#define MODE(x, y, z) poppler::page::text_layout_enum::z
+static poppler::page::text_layout_enum poppler_modes[] = READ_MODES;
+#undef MODE
+
 std::string pdf_document::get_text(const pdf_rect &rect) const {
     if (!isopen()) return "";
     if (rect.page > num_pages() || rect.page <= 0) return "";
 
-    auto poppler_mode = [](read_mode mode) {
-        switch (mode) {
-        case read_mode::MODE_LAYOUT:  return poppler::page::text_layout_enum::physical_layout;
-        case read_mode::MODE_RAW:     return poppler::page::text_layout_enum::raw_order_layout;
-        case read_mode::MODE_DEFAULT:
-        default:                      return poppler::page::text_layout_enum::non_raw_non_physical_layout;
-        }
-    }(rect.mode);
+    auto poppler_mode = poppler_modes[int(rect.mode)];
 
     auto to_stdstring = [](const poppler::ustring &ustr) {
         auto arr = ustr.to_utf8();

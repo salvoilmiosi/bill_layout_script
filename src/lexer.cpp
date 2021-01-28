@@ -265,9 +265,13 @@ static std::string_view token_string(token tok) {
     }
 }
 
+#define T(x, y) y
+static const char *token_names[] = TOKENS;
+#undef T
+
 parsing_error lexer::unexpected_token(token_type type) {
-    return parsing_error(fmt::format("Imprevisto '{0}', richiesto {1}",
-        token_string(current()), TOKEN_NAMES[type]), current());
+    return parsing_error(fmt::format("Imprevisto '{0}', richiesto '{1}'",
+        token_string(current()), token_names[type]), current());
 }
 
 parsing_error lexer::unexpected_token() {

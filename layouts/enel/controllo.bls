@@ -1,8 +1,8 @@
 ### Bill Layout Script
 
 ### Box Controllo Layout
-### Type RECTANGLE
-### Mode DEFAULT
+### Type BOX_RECTANGLE
+### Mode MODE_DEFAULT
 ### Rect 1 0.05645161 0.09578107 0.3467742 0.04104903
 ### Script
 $if($contains(@,"Enel Servizio Elettrico")) {

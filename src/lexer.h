@@ -5,78 +5,46 @@
 #include <vector>
 #include <stdexcept>
 
-enum token_type {
-    TOK_END_OF_FILE = 0,
-    TOK_ERROR,
-    TOK_IDENTIFIER,         // [a-bA-B_][a-bA-B0-9_]*
-    TOK_STRING,             // "xyz"
-    TOK_REGEXP,             // /xyz/
-    TOK_NUMBER,             // 123.4
-    TOK_INTEGER,            // 123
-    TOK_FUNCTION,           // $funzione
-    TOK_AMPERSAND,          // &
-    TOK_PAREN_BEGIN,        // (
-    TOK_PAREN_END,          // )
-    TOK_COMMA,              // ,
-    TOK_BRACKET_BEGIN,      // [
-    TOK_BRACKET_END,        // ]
-    TOK_BRACE_BEGIN,        // {
-    TOK_BRACE_END,          // }
-    TOK_ASSIGN,             // =
-    TOK_CONTENT,            // @
-    TOK_COLON,              // :
-    TOK_GLOBAL,             // ::
-    TOK_PERCENT,            // %
-    TOK_ASTERISK,           // *
-    TOK_SLASH,              // /
-    TOK_PLUS,               // +
-    TOK_MINUS,              // -
-    TOK_AND,                // &&
-    TOK_OR,                 // ||
-    TOK_NOT,                // !
-    TOK_EQUALS,             // ==
-    TOK_NOT_EQUALS,         // !=
-    TOK_GREATER,            // >
-    TOK_LESS,               // <
-    TOK_GREATER_EQ,         // >=
-    TOK_LESS_EQ,            // <=
-};
+#define TOKENS { \
+    T(TOK_END_OF_FILE,      "EOF"),             /* fine file */ \
+    T(TOK_ERROR,            "errore"),          /* errore */ \
+    T(TOK_IDENTIFIER,       "identificatore"),  /* [a-bA-B_][a-bA-B0-9_]* */ \
+    T(TOK_STRING,           "\"stringa\""), \
+    T(TOK_REGEXP,           "/regexp/"), \
+    T(TOK_NUMBER,           "numero"),          /* 123.4 */ \
+    T(TOK_INTEGER,          "intero"),          /* 123 */ \
+    T(TOK_FUNCTION,         "$funzione"), \
+    T(TOK_AMPERSAND,        "&"), \
+    T(TOK_PAREN_BEGIN,      "("), \
+    T(TOK_PAREN_END,        ")"), \
+    T(TOK_COMMA,            ","), \
+    T(TOK_BRACKET_BEGIN,    "["), \
+    T(TOK_BRACKET_END,      "]"), \
+    T(TOK_BRACE_BEGIN,      "{"), \
+    T(TOK_BRACE_END,        "}"), \
+    T(TOK_ASSIGN,           "="), \
+    T(TOK_CONTENT,          "@"), \
+    T(TOK_COLON,            ":"), \
+    T(TOK_GLOBAL,           "::"), \
+    T(TOK_PERCENT,          "%"), \
+    T(TOK_ASTERISK,         "*"), \
+    T(TOK_SLASH,            "/"), \
+    T(TOK_PLUS,             "+"), \
+    T(TOK_MINUS,            "-"), \
+    T(TOK_AND,              "&&"), \
+    T(TOK_OR,               "||"), \
+    T(TOK_NOT,              "!"), \
+    T(TOK_EQUALS,           "=="), \
+    T(TOK_NOT_EQUALS,       "!="), \
+    T(TOK_GREATER,          ">"), \
+    T(TOK_LESS,             "<"), \
+    T(TOK_GREATER_EQ,       ">="), \
+    T(TOK_LESS_EQ,          "<="), \
+}
 
-constexpr const char *TOKEN_NAMES[] = {
-    "eof",
-    "errore",
-    "identificatore",
-    "stringa",
-    "regexp",
-    "numero",
-    "numero intero",
-    "$funzione",
-    "'&'",
-    "'('",
-    "')'",
-    "','",
-    "'['",
-    "']'",
-    "'{'",
-    "'}'",
-    "'='",
-    "'@'",
-    "':'",
-    "'%'",
-    "'*'",
-    "'/'",
-    "'+'",
-    "'-'",
-    "'&&'",
-    "'||'",
-    "'!'",
-    "'=='",
-    "'!='",
-    "'>'",
-    "'<'",
-    "'>='",
-    "'<='"
-};
+#define T(x, y) x
+enum token_type TOKENS;
+#undef T
 
 struct token {
     token_type type;

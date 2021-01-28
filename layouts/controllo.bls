@@ -1,8 +1,8 @@
 ### Bill Layout Script
 
 ### Box Identifica Layout
-### Type FILE
-### Mode DEFAULT
+### Type BOX_FILE
+### Mode MODE_DEFAULT
 ### Rect 1 0 0 0 0
 ### Script
 $if  ($contains(@,"Axpo Italia SpA")) $import("axpo/controllo")
