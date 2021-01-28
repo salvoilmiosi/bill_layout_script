@@ -57,7 +57,7 @@ if(ENABLE_PYREADER)
     install(TARGETS pyreader DESTINATION "${CMAKE_SOURCE_DIR}/script" COMPONENT "EXT")
 endif()
 
-if(WIN32)
+if(WIN32 AND MSYS)
     add_custom_target(fix_compile_commands ALL
         COMMAND sed -i 's/\\/\\\(.\\\)\\//\\1:\\//g' ${CMAKE_BINARY_DIR}/compile_commands.json
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

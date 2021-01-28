@@ -103,7 +103,7 @@ class lexer {
 public:
     lexer(class parser &parent) : parent(parent) {}
     
-    void setScript(std::string_view str);
+    void set_script(std::string_view str);
 
     const token &next(bool do_advance = true);
     const token &peek() {
@@ -119,15 +119,11 @@ public:
     parsing_error unexpected_token(token_type type);
     parsing_error unexpected_token();
 
-    bool ate() {
-        return m_current == script.end();
-    }
-
     const token &current() const {
         return tok;
     }
 
-    std::string tokenLocationInfo(const token &tok);
+    std::string token_location_info(const token &tok);
 
 private:
     class parser &parent;

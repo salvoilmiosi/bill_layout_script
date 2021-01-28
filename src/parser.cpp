@@ -19,8 +19,9 @@ void parser::read_layout(const bill_layout_script &layout) {
         }
         add_line(opcode::RET);
     } catch (const parsing_error &error) {
-        throw layout_error(fmt::format("In {0}: {1}\n{2}", current_box->name,
-            error.what(), m_lexer.tokenLocationInfo(error.location())));
+        throw layout_error(fmt::format("{}\n{}: {}\n{}",
+            m_layout->filename().string(), current_box->name,
+            error.what(), m_lexer.token_location_info(error.location())));
     }
 
     for (auto line = m_code.begin(); line != m_code.end(); ++line) {
@@ -46,55 +47,69 @@ void parser::add_label(const std::string &label) {
 
 void parser::read_box(const layout_box &box) {
     if (m_flags & FLAGS_DEBUG && !box.name.empty()) {
-        add_line(opcode::COMMENT, fmt::format("## {}", box.name));
+        add_line(opcode::COMMENT, box.name);
     }
     current_box = &box;
-    if (!box.goto_label.empty()) add_label(box.goto_label);
 
-    m_lexer.setScript(box.spacers);
+    m_lexer.set_script(box.goto_label);
+    auto tok_label = m_lexer.next();
+    if (tok_label.type == TOK_IDENTIFIER) {
+        add_label(std::string(tok_label.value));
+    } else if (tok_label.type != TOK_END_OF_FILE) {
+        throw m_lexer.unexpected_token(TOK_IDENTIFIER);
+    }
 
-    while(!m_lexer.ate()) {
-        spacer_index index;
-        switch (hash(m_lexer.require(TOK_IDENTIFIER).value)) {
-        case hash("p"):
-        case hash("page"):
-            index = spacer_index::SPACER_PAGE;
+    m_lexer.set_script(box.spacers);
+    while(true) {
+        auto tok = m_lexer.next();
+        if (tok.type == TOK_IDENTIFIER) {
+            spacer_index index;
+            switch (hash(tok.value)) {
+            case hash("p"):
+            case hash("page"):
+                index = spacer_index::SPACER_PAGE;
+                break;
+            case hash("x"):
+                index = spacer_index::SPACER_X;
+                break;
+            case hash("y"):
+                index = spacer_index::SPACER_Y;
+                break;
+            case hash("w"):
+            case hash("width"):
+                index = spacer_index::SPACER_W;
+                break;
+            case hash("h"):
+            case hash("height"):
+                index = spacer_index::SPACER_H;
+                break;
+            default:
+                throw m_lexer.unexpected_token();
+            }
+
+            bool negative = false;
+            switch (m_lexer.next().type) {
+            case TOK_PLUS:
+                break;
+            case TOK_MINUS:
+                negative = true;
+                break;
+            default:
+                throw m_lexer.unexpected_token(TOK_PLUS);
+            }
+            read_expression();
+            if (negative) add_line(opcode::NEG);
+            add_line(opcode::MVBOX, index);
+        } else if (tok.type != TOK_END_OF_FILE) {
+            throw m_lexer.unexpected_token(TOK_IDENTIFIER);
+        } else {
             break;
-        case hash("x"):
-            index = spacer_index::SPACER_X;
-            break;
-        case hash("y"):
-            index = spacer_index::SPACER_Y;
-            break;
-        case hash("w"):
-        case hash("width"):
-            index = spacer_index::SPACER_W;
-            break;
-        case hash("h"):
-        case hash("height"):
-            index = spacer_index::SPACER_H;
-            break;
-        default:
-            throw m_lexer.unexpected_token();
         }
-        bool negative = false;
-        switch (m_lexer.next().type) {
-        case TOK_PLUS:
-            break;
-        case TOK_MINUS:
-            negative = true;
-            break;
-        default:
-            throw m_lexer.unexpected_token(TOK_PLUS);
-        }
-        read_expression();
-        if (negative) add_line(opcode::NEG);
-        add_line(opcode::MVBOX, index);
     }
 
     add_line(opcode::RDBOX, pdf_rect(box));
 
-    m_lexer.setScript(box.script);
+    m_lexer.set_script(box.script);
     while (read_statement());
 }
 
@@ -102,8 +117,16 @@ bool parser::read_statement() {
     switch (m_lexer.peek().type) {
     case TOK_BRACE_BEGIN:
         m_lexer.advance();
-        while (!m_lexer.check_next(TOK_BRACE_END)) {
-            read_statement();
+        while (true) {
+            auto tok = m_lexer.peek();
+            if (tok.type == TOK_BRACE_END) {
+                m_lexer.advance();
+                break;
+            } else if (tok.type != TOK_END_OF_FILE) {
+                read_statement();
+            } else {
+                throw m_lexer.unexpected_token(TOK_BRACE_END);
+            }
         }
         break;
     case TOK_FUNCTION:
@@ -423,10 +446,18 @@ void parser::read_function() {
     {
         small_int num_args = 0;
         m_lexer.require(TOK_PAREN_BEGIN);
-        while (!m_lexer.check_next(TOK_PAREN_END)) {
-            ++num_args;
-            read_expression();
-            if (!m_lexer.check_next(TOK_COMMA) && m_lexer.current().type != TOK_PAREN_END) {
+        while (true) {
+            auto tok = m_lexer.peek();
+            if (tok.type == TOK_PAREN_END) {
+                m_lexer.advance();
+                break;
+            } else if (tok.type != TOK_END_OF_FILE) {
+                ++num_args;
+                read_expression();
+                if (!m_lexer.check_next(TOK_COMMA) && m_lexer.current().type != TOK_PAREN_END) {
+                    m_lexer.unexpected_token(TOK_COMMA);
+                }
+            } else {
                 throw m_lexer.unexpected_token(TOK_PAREN_END);
             }
         }

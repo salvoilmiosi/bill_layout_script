@@ -4,7 +4,7 @@
 #include "parser.h"
 #include "layout.h"
 
-void lexer::setScript(std::string_view str) {
+void lexer::set_script(std::string_view str) {
     script = str;
     m_current = script.begin();
 
@@ -257,15 +257,24 @@ void lexer::advance() {
     m_current = tok.value.begin() + tok.value.size();
 }
 
+static std::string_view token_string(token tok) {
+    if (tok.type == TOK_END_OF_FILE) {
+        return "EOF";
+    } else {
+        return tok.value;
+    }
+}
+
 parsing_error lexer::unexpected_token(token_type type) {
-    return parsing_error(fmt::format("Imprevisto '{0}', richiesto {1}", current().value, TOKEN_NAMES[type]), current());
+    return parsing_error(fmt::format("Imprevisto '{0}', richiesto {1}",
+        token_string(current()), TOKEN_NAMES[type]), current());
 }
 
 parsing_error lexer::unexpected_token() {
-    return parsing_error(fmt::format("Imprevisto '{}'", current().value), current());
+    return parsing_error(fmt::format("Imprevisto '{}'", token_string(current())), current());
 }
 
-std::string lexer::tokenLocationInfo(const token &tok) {
+std::string lexer::token_location_info(const token &tok) {
     size_t numline = 1;
     size_t loc = 1;
     bool found = false;
