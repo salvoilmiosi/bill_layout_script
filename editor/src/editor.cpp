@@ -244,7 +244,11 @@ void frame_editor::updateLayout(bool addToHistory) {
     m_list_boxes->Clear();
     for (size_t i=0; i<layout.m_boxes.size(); ++i) {
         auto &box = layout.m_boxes[i];
-        m_list_boxes->Append(box->name);
+        if (box->name.empty()) {
+            m_list_boxes->Append("(Senza nome)");
+        } else {
+            m_list_boxes->Append(box->name);
+        }
         if (box->selected) {
             m_list_boxes->SetSelection(i);
         }

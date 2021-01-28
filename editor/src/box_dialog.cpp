@@ -40,7 +40,6 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     };
     
     m_box_name = new wxTextCtrl(this, wxID_ANY, box.name);
-    m_box_name->SetValidator(wxTextValidator(wxFILTER_EMPTY));
     addLabelAndCtrl("Nome:", 0, m_box_name);
 
     m_box_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);

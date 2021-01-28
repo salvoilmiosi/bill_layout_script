@@ -41,14 +41,11 @@ public:
     std::string language_code;
 
 public:
-    bill_layout_script() {
-        language_code = intl::system_language();
-    }
+    bill_layout_script() = default;
 
     void clear() {
         m_boxes.clear();
         m_filename.clear();
-        language_code = intl::system_language();
     }
 
     const std::filesystem::path &filename() const {

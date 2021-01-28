@@ -126,21 +126,16 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 break;
             case TOOL_NEWBOX:
             {
-                wxTextEntryDialog diag(this, "Inserisci nome:", "Nome Rettangolo");
-                diag.SetTextValidator(wxFILTER_EMPTY);
-                if (diag.ShowModal() == wxID_OK) {
-                    wxRect rect = make_rect(start_pt, end_pt);
-                    auto &box = insertAfterSelected(app->layout);
-                    box->name = diag.GetValue();
-                    box->x = (rect.x + scrollx) / scaled_width;
-                    box->y = (rect.y + scrolly) / scaled_height;
-                    box->w = rect.width / scaled_width;
-                    box->h = rect.height / scaled_height;
-                    box->page = app->getSelectedPage();
-                    app->updateLayout();
-                    app->selectBox(box);
-                    new box_dialog(app, *box);
-                }
+                wxRect rect = make_rect(start_pt, end_pt);
+                auto &box = insertAfterSelected(app->layout);
+                box->x = (rect.x + scrollx) / scaled_width;
+                box->y = (rect.y + scrolly) / scaled_height;
+                box->w = rect.width / scaled_width;
+                box->h = rect.height / scaled_height;
+                box->page = app->getSelectedPage();
+                app->updateLayout();
+                app->selectBox(box);
+                new box_dialog(app, *box);
                 break;
             }
             case TOOL_DELETEBOX:
