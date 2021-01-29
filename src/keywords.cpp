@@ -23,11 +23,12 @@ void parser::read_keyword() {
             m_lexer.require(TOK_PAREN_END);
             add_line(condition_positive ? opcode::JZ : opcode::JNZ, jump_address{endif_label, 0});
             read_statement();
-            if (m_lexer.peek().type == TOK_FUNCTION) {
-                fun_name = m_lexer.current().value.substr(1);
+            auto tok_if = m_lexer.peek();
+            if (tok_if.type == TOK_FUNCTION) {
+                fun_name = tok_if.value.substr(1);
                 switch (hash(fun_name)) {
                 case hash("else"):
-                    m_lexer.advance();
+                    m_lexer.advance(tok_if);
                     has_endelse = true;
                     has_endif = true;
                     add_line(opcode::JMP, jump_address{endelse_label, 0});
@@ -37,7 +38,7 @@ void parser::read_keyword() {
                     break;
                 case hash("elif"):
                 case hash("elifnot"):
-                    m_lexer.advance();
+                    m_lexer.advance(tok_if);
                     condition_positive = fun_name == "elif";
                     has_endelse = true;
                     add_line(opcode::JMP, jump_address{endelse_label, 0});

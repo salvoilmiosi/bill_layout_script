@@ -65,7 +65,9 @@ void lexer::flushDebugData() {
     debug_lines.clear();
 }
 
-const token &lexer::next(bool do_advance) {
+token lexer::next(bool do_advance) {
+    token tok;
+
     skipSpaces();
     if (do_advance) {
         flushDebugData();
@@ -216,15 +218,15 @@ const token &lexer::next(bool do_advance) {
     if (!do_advance) {
         m_current = start;
     }
-
     return tok;
 }
 
 token lexer::require(token_type type) {
+    token tok;
     if (type == TOK_REGEXP) {
         auto begin = m_current;
         if (tok.type != TOK_SLASH) {
-            require(TOK_SLASH);
+            tok = require(TOK_SLASH);
         }
         nextChar();
         if (readRegexp()) {
@@ -234,12 +236,12 @@ token lexer::require(token_type type) {
             tok.type = TOK_ERROR;
         }
     } else {
-        next();
+        tok = next();
     }
-    if (current().type != type) {
-        throw unexpected_token(type);
+    if (tok.type != type) {
+        throw unexpected_token(tok, type);
     }
-    return current();
+    return tok;
 }
 
 token lexer::check_next(token_type type) {
@@ -247,12 +249,12 @@ token lexer::check_next(token_type type) {
     if (tok.type != type) {
         tok.type = TOK_ERROR;
     } else {
-        advance();
+        advance(tok);
     }
     return tok;
 }
 
-void lexer::advance() {
+void lexer::advance(token tok) {
     flushDebugData();
     m_current = tok.value.begin() + tok.value.size();
 }
@@ -269,13 +271,13 @@ static std::string_view token_string(token tok) {
 static const char *token_names[] = TOKENS;
 #undef T
 
-parsing_error lexer::unexpected_token(token_type type) {
+parsing_error lexer::unexpected_token(token tok, token_type required) {
     return parsing_error(fmt::format("Imprevisto '{0}', richiesto '{1}'",
-        token_string(current()), token_names[type]), current());
+        token_string(tok), token_names[required]), tok);
 }
 
-parsing_error lexer::unexpected_token() {
-    return parsing_error(fmt::format("Imprevisto '{}'", token_string(current())), current());
+parsing_error lexer::unexpected_token(token tok) {
+    return parsing_error(fmt::format("Imprevisto '{}'", token_string(tok)), tok);
 }
 
 std::string lexer::token_location_info(const token &tok) {

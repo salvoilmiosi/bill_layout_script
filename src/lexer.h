@@ -6,8 +6,8 @@
 #include <stdexcept>
 
 #define TOKENS { \
-    T(TOK_END_OF_FILE,      "EOF"),             /* fine file */ \
     T(TOK_ERROR,            "errore"),          /* errore */ \
+    T(TOK_END_OF_FILE,      "EOF"),             /* fine file */ \
     T(TOK_IDENTIFIER,       "identificatore"),  /* [a-bA-B_][a-bA-B0-9_]* */ \
     T(TOK_STRING,           "\"stringa\""), \
     T(TOK_REGEXP,           "/regexp/"), \
@@ -73,8 +73,8 @@ public:
     
     void set_script(std::string_view str);
 
-    const token &next(bool do_advance = true);
-    const token &peek() {
+    token next(bool do_advance = true);
+    token peek() {
         return next(false);
     }
     
@@ -82,14 +82,10 @@ public:
 
     token check_next(token_type type);
 
-    void advance();
+    void advance(token tok);
 
-    parsing_error unexpected_token(token_type type);
-    parsing_error unexpected_token();
-
-    const token &current() const {
-        return tok;
-    }
+    parsing_error unexpected_token(token tok, token_type type);
+    parsing_error unexpected_token(token tok);
 
     std::string token_location_info(const token &tok);
 
@@ -101,7 +97,6 @@ private:
     std::string_view script;
 
     std::string_view::iterator m_current;
-    token tok;
 
     char nextChar();
     void skipSpaces();
