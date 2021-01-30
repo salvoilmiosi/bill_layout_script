@@ -35,10 +35,6 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     return true;
 }
 
-#define O(x) #x
-static const char *opcode_names[] = OPCODES;
-#undef O
-
 static const char *spacer_index_names[] = {
     "PAGE", "X", "Y", "W", "H"
 };

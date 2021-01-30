@@ -1,5 +1,8 @@
 #include "intl.h"
 
+#include <fmt/format.h>
+#include <stdexcept>
+
 namespace intl {
     static char g_decimal_point;
     static char g_thousand_sep;
@@ -51,16 +54,19 @@ namespace intl {
 
     void locale::set_language(const std::string &language_name) {
         auto info = wxLocale::FindLanguageInfo(language_name);
-        int new_lang = wxLANGUAGE_DEFAULT;
-        if (info) new_lang = int(info->Language);
-        if (m_locale) {
-            if (new_lang == m_locale->GetLanguage()) {
-                return;
+        if (info) {
+            int new_lang = info->Language;
+            if (m_locale) {
+                if (new_lang == m_locale->GetLanguage()) {
+                    return;
+                }
+                delete m_locale;
             }
-            delete m_locale;
+            m_locale = new wxLocale(new_lang);
+            set_strings();
+        } else {
+            throw std::runtime_error(fmt::format("Condice lingua invalido: {}", language_name));
         }
-        m_locale = new wxLocale(new_lang);
-        set_strings();
     }
 
 }

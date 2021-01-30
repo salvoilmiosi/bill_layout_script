@@ -19,9 +19,9 @@ void parser::read_layout(const bill_layout_script &layout) {
         }
         add_line(opcode::RET);
     } catch (const parsing_error &error) {
-        throw layout_error(fmt::format("{}\n{}: {}\n{}",
-            m_layout->filename().string(), current_box->name,
-            error.what(), m_lexer.token_location_info(error.location())));
+        throw layout_error(fmt::format("{}: {}\n{}",
+            current_box->name, error.what(),
+            m_lexer.token_location_info(error.location())));
     }
 
     for (auto line = m_code.begin(); line != m_code.end(); ++line) {
@@ -52,7 +52,7 @@ void parser::read_box(const layout_box &box) {
     m_lexer.set_script(box.goto_label);
     auto tok_label = m_lexer.next();
     if (tok_label.type == TOK_IDENTIFIER) {
-        add_label("__label_" + std::string(tok_label.value));
+        add_label(fmt::format("__label_{}", tok_label.value));
         m_lexer.require(TOK_END_OF_FILE);
     } else if (tok_label.type != TOK_END_OF_FILE) {
         throw unexpected_token(tok_label, TOK_IDENTIFIER);
