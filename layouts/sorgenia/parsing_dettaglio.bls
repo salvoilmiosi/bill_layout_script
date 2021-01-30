@@ -18,27 +18,19 @@ $with(::_dettaglio) {
   %spesa_materia_energia=$search(@,/DETTAGLIO DELLA SPESA PER L\u2019ENERGIA ELETTRICA[^]+?(%N) DETTAGLIO/)
   %trasporto_gestione=$search(@,/DETTAGLIO DELLA SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA[^]+?(%N) IMPOSTE/)
 
-  $tokens($search(@,/Prezzo F1 euro\/kWh (%N %N)/)) {
+  $tokens($search(@,/Prezzo (?:F1|Picco|Ore Giorno) euro\/kWh (%N %N)/)) {
     %prezzo_energia[0] %energia_attiva[0]
   }
-  $tokens($search(@,/Prezzo F2 euro\/kWh (%N %N)/)) {
+  $tokens($search(@,/Prezzo (?:F2|Fuori Picco|Ore Notte) euro\/kWh (%N %N)/)) {
     %prezzo_energia[1] %energia_attiva[1]
   }
   $tokens($search(@,/Prezzo F3 euro\/kWh (%N %N)/)) {
     %prezzo_energia[2] %energia_attiva[2]
   }
-  $tokens($coalesce(
-  $search(@,/Prezzo Picco euro\/kWh (%N %N)/),
-  $search(@,/Prezzo Ore Giorno euro\/kWh (%N %N)/))) {
-    %prezzo_energia[0] %energia_attiva[0]
+
+  $tokens($search(@,/Prezzo energia(?: monorario)? euro\/kWh (%N %N)/)) {
+    %prezzo_energia[0:3] %energia_attiva: 
   }
-  $tokens($coalesce(
-  $search(@,/Prezzo Fuori Picco euro\/kWh (%N %N)/),
-  $search(@,/Prezzo Ore Notte euro\/kWh (%N %N)/))) {
-    %prezzo_energia[1] %energia_attiva[1]
-  }
-  %prezzo_energia[0:3]=$search(@,/Prezzo energia euro\/kWh (%N)/)
-  %prezzo_energia[0:3]=$search(@,/Prezzo energia monorario euro\/kWh (%N)/)
 
   %sbilanciamento=$search(@,/Incremento prezzo euro\/kWh (%N)/)
 

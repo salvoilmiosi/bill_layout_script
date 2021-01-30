@@ -76,9 +76,7 @@ fornitore="Enel Energia"
 ### Rect 1 0.04623656 0.1717978 0.41827956 0.16039528
 ### Script
 indirizzo_fornitura=$singleline($search(@,/Forniamo energia in ([^]+\d{5}.+\n)/))
-%potenza[0:3]=$coalesce(
-  $search(@,/Potenza contrattualmente impegnata (%N)/),
-  $search(@,/Livello massimo di potenza (%N)/))
+%potenza[0:3]=$search(@,/(?:Potenza contrattualmente impegnata|Livello massimo di potenza) (%N)/)
 ### End Script
 ### End Box
 
@@ -170,20 +168,14 @@ $if($contains(@,"Energia reattiva")) {
 ### Rect 3 0.0903738 0.0063137496 0.053058922 0.03473528
 ### Script
 $with(::_dettaglio) {
-  $tokens($search(@,$format(/Energia fascia F1 dal \d\d\/$0.+kWh (%N \d+)/,_mese))) {
+  $tokens($search(@,$format(/Energia (?:fascia F1|(?:ore di )?picco) dal \d\d\/$0.+kWh (%N \d+)/,_mese))) {
     %prezzo_energia[0] %energia_attiva[0]
   }
-  $tokens($search(@,$format(/Energia fascia F2 dal \d\d\/$0.+kWh (%N \d+)/,_mese))) {
+  $tokens($search(@,$format(/Energia (?:fascia F2|(?:ore di )?fuori picco) dal \d\d\/$0.+kWh (%N \d+)/,_mese))) {
     %prezzo_energia[1] %energia_attiva[1]
   }
   $tokens($search(@,$format(/Energia fascia F3 dal \d\d\/$0.+kWh (%N \d+)/,_mese))) {
     %prezzo_energia[2] %energia_attiva[2]
-  }
-  $tokens($search(@,$format(/Energia(?: ore di)? picco dal \d\d\/$0.+kWh (%N \d+)/,_mese))) {
-    %prezzo_energia[0] %energia_attiva[0]
-  }
-  $tokens($search(@,$format(/Energia(?: ore di)? fuori picco dal \d\d\/$0.+kWh (%N \d+)/,_mese))) {
-    %prezzo_energia[1] %energia_attiva[1]
   }
   $with($search(@,$format(/Energia attiva dal \d\d\/$0.+\n((.*Energia Reattiva.*\n)+)/,_mese))) {
     %penale_reattiva_inf75=$search(@,/entro il 75%.+ (%N)\n/)

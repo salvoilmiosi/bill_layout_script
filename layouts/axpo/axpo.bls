@@ -131,29 +131,19 @@ $with(_dettaglio) {
     $format(/al \d\d\.$0 Euro\/kWh (%N)/,_mese))
   %pcv=$search($search(@,/Prezzo Commercializzazione Vendita\n((dal.+\n)+)/),
     $format(/al \d\d\.$0 euro\/\w+ %N %N (%N)/,_mese))
-  $with($coalesce(
-    $search(@,/Prezzo Energia\n((dal.+\n)+)/),
-    $search(@,/Prezzo Indicizzato\n((dal.+\n)+)/)))
-  {
-    $tokens($search(@,$format(/al \d\d\.$0 F1 Euro\/kWh (%N %N)/,_mese))) {
+  $with($search(@,/Prezzo (?:Energia|Indicizzato)\n((dal.+\n)+)/)) {
+    $tokens($search(@,$format(/al \d\d\.$0 (?:F1|PEAK) Euro\/kWh (%N %N)/,_mese))) {
       %prezzo_energia[0] %energia_attiva[0]
     }
-    $tokens($search(@,$format(/al \d\d\.$0 F2 Euro\/kWh (%N %N)/,_mese))) {
+    $tokens($search(@,$format(/al \d\d\.$0 (?:F2|OFFPEAK) Euro\/kWh (%N %N)/,_mese))) {
       %prezzo_energia[1] %energia_attiva[1]
     }
     $tokens($search(@,$format(/al \d\d\.$0 F3 Euro\/kWh (%N %N)/,_mese))) {
       %prezzo_energia[2] %energia_attiva[2]
     }
 
-    $tokens($search(@,$format(/al \d\d\.$0 PEAK Euro\/kWh (%N %N)/,_mese))) {
-      %prezzo_energia[0] %energia_attiva[0]
-    }
-    $tokens($search(@,$format(/al \d\d\.$0 OFFPEAK Euro\/kWh (%N %N)/,_mese))) {
-      %prezzo_energia[1] %energia_attiva[1]
-    }
-
     $tokens($search(@,$format(/al \d\d\.$0 Euro\/kWh (%N %N)/,_mese))) {
-      %prezzo_energia %energia_attiva
+      %prezzo_energia[0:3] %energia_attiva:
     }
   }
 

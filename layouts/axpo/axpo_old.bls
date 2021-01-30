@@ -164,17 +164,10 @@ $with(&_dettaglio) {
 
   %imponibile=$search(@,/TOT\. \u20ac (%N)/)
 
-  $tokens($search(@,/Prezzo Energia PEAK (%N kWh %N)/)) {
+  $tokens($search(@,/Prezzo Energia (?:F1|PEAK) (%N kWh %N)/)) {
     %energia_attiva[0] $skip() %prezzo_energia[0]
   }
-  $tokens($search(@,/Prezzo Energia OFFPEAK (%N kWh %N)/)) {
-    %energia_attiva[1] $skip() %prezzo_energia[1]
-  }
-
-  $tokens($search(@,/Prezzo Energia F1 (%N kWh %N)/)) {
-    %energia_attiva[0] $skip() %prezzo_energia[0]
-  }
-  $tokens($search(@,/Prezzo Energia F2 (%N kWh %N)/)) {
+  $tokens($search(@,/Prezzo Energia (?:F2|OFFPEAK) (%N kWh %N)/)) {
     %energia_attiva[1] $skip() %prezzo_energia[1]
   }
   $tokens($search(@,/Prezzo Energia F3 (%N kWh %N)/)) {

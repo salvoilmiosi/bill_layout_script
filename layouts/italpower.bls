@@ -127,20 +127,14 @@ p+::off_allegato p+::page_offset
 %trasporto_gestione=$search(@,/Trasporto, Gestione Contatore e Oneri di Sistema (%N)/)
 %oneri_amministrativi=$search(@,/Altri Oneri (%N)/)
 %accise=$search(@,/Imposte.+Euro.+ (%N)/)
-$tokens($search(@,/Energia F1 \u20ac\/kWh (%N Euro %N)/)) {
+$tokens($search(@,/Energia (?:F1|Peak) \u20ac\/kWh (%N Euro %N)/)) {
   %energia_attiva[0] $skip() %prezzo_energia[0]
 }
-$tokens($search(@,/Energia F2 \u20ac\/kWh (%N Euro %N)/)) {
+$tokens($search(@,/Energia (?:F2|Off-Peak) \u20ac\/kWh (%N Euro %N)/)) {
   %energia_attiva[1] $skip() %prezzo_energia[1]
 }
 $tokens($search(@,/Energia F3 \u20ac\/kWh (%N Euro %N)/)) {
   %energia_attiva[2] $skip() %prezzo_energia[2]
-}
-$tokens($search(@,/Energia Peak \u20ac\/kWh (%N Euro %N)/)) {
-  %energia_attiva[0] $skip() %prezzo_energia[0]
-}
-$tokens($search(@,/Energia Off-Peak \u20ac\/kWh (%N Euro %N)/)) {
-  %energia_attiva[1] $skip() %prezzo_energia[1]
 }
 %pcv=$search(@,/PCV .+ Euro (%N)/)
 %disp_var=$search(@,/Dispacciamento Quota Variabile.+ Euro (%N)/)
