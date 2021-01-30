@@ -37,10 +37,7 @@ void parser::read_layout(const bill_layout_script &layout) {
 }
 
 void parser::add_label(const std::string &label) {
-    auto it = m_labels.find(label);
-    if (it == m_labels.end()) {
-        m_labels.emplace(label, m_code.size());
-    } else {
+    if (!m_labels.try_emplace(label, m_code.size()).second) {
         throw layout_error(fmt::format("Etichetta goto duplicata: {}", label));
     }
 }

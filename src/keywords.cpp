@@ -93,18 +93,21 @@ void parser::read_keyword() {
     {
         m_lexer.require(TOK_PAREN_BEGIN);
         auto tok = m_lexer.require(TOK_IDENTIFIER);
-        add_line(opcode::JMP, jump_address{"__label_" + std::string(tok.value), 0});
+        add_line(opcode::JMP, jump_address{fmt::format("__label_{}", tok.value), 0});
         m_lexer.require(TOK_PAREN_END);
         break;
     }
     case hash("function"):
     {
-        std::string endfun_label = fmt::format("__endfunction_{}", m_code.size());
         m_lexer.require(TOK_PAREN_BEGIN);
         auto name = m_lexer.require(TOK_IDENTIFIER);
         m_lexer.require(TOK_PAREN_END);
+        
+        std::string fun_label = fmt::format("__function_{}", name.value);
+        std::string endfun_label = fmt::format("__endfunction_{}", name.value);
+
         add_line(opcode::JMP, jump_address{endfun_label, 0});
-        add_label("__function_" + std::string(name.value));
+        add_label(fun_label);
         read_statement();
         add_line(opcode::RET);
         add_label(endfun_label);
@@ -114,7 +117,7 @@ void parser::read_keyword() {
     {
         m_lexer.require(TOK_PAREN_BEGIN);
         auto tok = m_lexer.require(TOK_IDENTIFIER);
-        add_line(opcode::JSR, jump_address{"__function_" + std::string(tok.value), 0});
+        add_line(opcode::JSR, jump_address{fmt::format("__function_{}", tok.value), 0});
         m_lexer.require(TOK_PAREN_END);
         break;
     }
