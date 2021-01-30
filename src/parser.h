@@ -76,7 +76,7 @@ private:
 private:
     const bill_layout_script *m_layout = nullptr;
 
-    lexer m_lexer{*this};
+    lexer m_lexer;
     bytecode m_code;
 
     std::map<std::string, size_t> m_labels;

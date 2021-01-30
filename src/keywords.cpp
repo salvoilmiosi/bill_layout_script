@@ -93,7 +93,7 @@ void parser::read_keyword() {
     {
         m_lexer.require(TOK_PAREN_BEGIN);
         auto tok = m_lexer.require(TOK_IDENTIFIER);
-        add_line(opcode::JMP, jump_address{std::string(tok.value), 0});
+        add_line(opcode::JMP, jump_address{"__label_" + std::string(tok.value), 0});
         m_lexer.require(TOK_PAREN_END);
         break;
     }
@@ -104,7 +104,7 @@ void parser::read_keyword() {
         auto name = m_lexer.require(TOK_IDENTIFIER);
         m_lexer.require(TOK_PAREN_END);
         add_line(opcode::JMP, jump_address{endfun_label, 0});
-        add_label(std::string(name.value));
+        add_label("__function_" + std::string(name.value));
         read_statement();
         add_line(opcode::RET);
         add_label(endfun_label);
@@ -114,7 +114,7 @@ void parser::read_keyword() {
     {
         m_lexer.require(TOK_PAREN_BEGIN);
         auto tok = m_lexer.require(TOK_IDENTIFIER);
-        add_line(opcode::JSR, jump_address{std::string(tok.value), 0});
+        add_line(opcode::JSR, jump_address{"__function_" + std::string(tok.value), 0});
         m_lexer.require(TOK_PAREN_END);
         break;
     }

@@ -1,9 +1,5 @@
 #include "lexer.h"
 
-#include <fmt/format.h>
-#include "parser.h"
-#include "layout.h"
-
 void lexer::set_script(std::string_view str) {
     script = str;
     m_current = script.begin();
@@ -47,7 +43,7 @@ void lexer::skipSpaces() {
 }
 
 void lexer::addDebugData() {
-    if (parent.m_flags & FLAGS_DEBUG) {
+    if (m_code) {
         size_t begin = script.find_first_not_of(" \t\r\n", m_current - script.begin());
         if (begin != std::string::npos && begin != last_debug_line) {
             last_debug_line = begin;
@@ -59,8 +55,10 @@ void lexer::addDebugData() {
 }
 
 void lexer::flushDebugData() {
-    for (auto &line : debug_lines) {
-        parent.add_line(opcode::COMMENT, line);
+    if (m_code) {
+        for (auto &line : debug_lines) {
+            m_code->emplace_back(opcode::COMMENT, line);
+        }
     }
     debug_lines.clear();
 }
@@ -225,10 +223,7 @@ token lexer::require(token_type type) {
     token tok;
     if (type == TOK_REGEXP) {
         auto begin = m_current;
-        if (tok.type != TOK_SLASH) {
-            tok = require(TOK_SLASH);
-        }
-        nextChar();
+        require(TOK_SLASH);
         if (readRegexp()) {
             tok.value = std::string_view(begin, m_current - begin);
             tok.type = TOK_REGEXP;
@@ -257,27 +252,6 @@ token lexer::check_next(token_type type) {
 void lexer::advance(token tok) {
     flushDebugData();
     m_current = tok.value.begin() + tok.value.size();
-}
-
-static std::string_view token_string(token tok) {
-    if (tok.type == TOK_END_OF_FILE) {
-        return "EOF";
-    } else {
-        return tok.value;
-    }
-}
-
-#define T(x, y) y
-static const char *token_names[] = TOKENS;
-#undef T
-
-parsing_error lexer::unexpected_token(token tok, token_type required) {
-    return parsing_error(fmt::format("Imprevisto '{0}', richiesto '{1}'",
-        token_string(tok), token_names[required]), tok);
-}
-
-parsing_error lexer::unexpected_token(token tok) {
-    return parsing_error(fmt::format("Imprevisto '{}'", token_string(tok)), tok);
 }
 
 std::string lexer::token_location_info(const token &tok) {

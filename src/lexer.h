@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include <fmt/format.h>
+
+#include "bytecode.h"
 
 #define TOKENS { \
     T(TOK_ERROR,            "errore"),          /* errore */ \
@@ -46,6 +49,10 @@
 enum token_type TOKENS;
 #undef T
 
+#define T(x, y) y
+static const char *token_names[] = TOKENS;
+#undef T
+
 struct token {
     token_type type;
     std::string_view value;
@@ -67,11 +74,37 @@ public:
     }
 };
 
+inline std::string_view token_string(token tok) {
+    if (tok.type == TOK_END_OF_FILE) {
+        return "EOF";
+    } else {
+        return tok.value;
+    }
+}
+
+class unexpected_token : public parsing_error {
+protected:
+    token_type m_expected;
+
+public:
+    unexpected_token(token tok, token_type expected = TOK_ERROR)
+        : parsing_error(expected == TOK_ERROR
+            ? fmt::format("Imprevisto '{}'", token_string(tok))
+            : fmt::format("Imprevisto '{}', richiesto '{}'", token_string(tok), token_names[expected]), tok),
+        m_expected(expected) {}
+
+    token_type expected() {
+        return m_expected;
+    }
+};
+
 class lexer {
 public:
-    lexer(class parser &parent) : parent(parent) {}
-    
     void set_script(std::string_view str);
+
+    void set_bytecode(bytecode *code) {
+        m_code = code;
+    }
 
     token next(bool do_advance = true);
     token peek() {
@@ -84,13 +117,11 @@ public:
 
     void advance(token tok);
 
-    parsing_error unexpected_token(token tok, token_type type);
-    parsing_error unexpected_token(token tok);
-
     std::string token_location_info(const token &tok);
 
 private:
-    class parser &parent;
+    bytecode *m_code = nullptr;
+
     size_t last_debug_line;
     std::vector<std::string> debug_lines;
 

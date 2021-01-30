@@ -47,18 +47,23 @@ void parser::add_label(const std::string &label) {
 
 void parser::read_box(const layout_box &box) {
     if (m_flags & FLAGS_DEBUG && !box.name.empty()) {
-        add_line(opcode::COMMENT, box.name);
+        add_line(opcode::COMMENT, "### " + box.name);
     }
     current_box = &box;
 
+    m_lexer.set_bytecode(nullptr);
     m_lexer.set_script(box.goto_label);
     auto tok_label = m_lexer.next();
     if (tok_label.type == TOK_IDENTIFIER) {
-        add_label(std::string(tok_label.value));
+        add_label("__label_" + std::string(tok_label.value));
+        m_lexer.require(TOK_END_OF_FILE);
     } else if (tok_label.type != TOK_END_OF_FILE) {
-        throw m_lexer.unexpected_token(tok_label, TOK_IDENTIFIER);
+        throw unexpected_token(tok_label, TOK_IDENTIFIER);
     }
 
+    if (m_flags & FLAGS_DEBUG) {
+        m_lexer.set_bytecode(&m_code);
+    }
     m_lexer.set_script(box.spacers);
     while(true) {
         auto tok = m_lexer.next();
@@ -84,7 +89,7 @@ void parser::read_box(const layout_box &box) {
                 index = spacer_index::SPACER_H;
                 break;
             default:
-                throw m_lexer.unexpected_token(tok);
+                throw unexpected_token(tok);
             }
 
             bool negative = false;
@@ -96,13 +101,13 @@ void parser::read_box(const layout_box &box) {
                 negative = true;
                 break;
             default:
-                throw m_lexer.unexpected_token(tok_sign, TOK_PLUS);
+                throw unexpected_token(tok_sign, TOK_PLUS);
             }
             read_expression();
             if (negative) add_line(opcode::NEG);
             add_line(opcode::MVBOX, index);
         } else if (tok.type != TOK_END_OF_FILE) {
-            throw m_lexer.unexpected_token(tok, TOK_IDENTIFIER);
+            throw unexpected_token(tok, TOK_IDENTIFIER);
         } else {
             break;
         }
@@ -127,7 +132,7 @@ bool parser::read_statement() {
             } else if (tok.type != TOK_END_OF_FILE) {
                 read_statement();
             } else {
-                throw m_lexer.unexpected_token(tok, TOK_BRACE_END);
+                throw unexpected_token(tok, TOK_BRACE_END);
             }
         }
         break;
@@ -281,7 +286,7 @@ void parser::sub_expression() {
         auto tok = m_lexer.require(TOK_REGEXP);
         std::string str;
         if (!parse_regexp_token(str, tok.value)) {
-            throw parsing_error("Constante regexp non valida", tok);
+            throw parsing_error("Costante regexp non valida", tok);
         }
         add_line(opcode::PUSHSTR, str);
         break;
@@ -291,7 +296,7 @@ void parser::sub_expression() {
         m_lexer.advance(tok_first);
         std::string str;
         if (!parse_string_token(str, tok_first.value)) {
-            throw parsing_error("Constante stringa non valida", tok_first);
+            throw parsing_error("Costante stringa non valida", tok_first);
         }
         add_line(opcode::PUSHSTR, str);
         break;
@@ -330,18 +335,18 @@ int parser::read_variable(bool read_only) {
             isglobal = true;
             break;
         case TOK_PERCENT:
-            if (read_only) throw m_lexer.unexpected_token(tok_modifier, TOK_IDENTIFIER);
+            if (read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
             flags |= VAR_PARSENUM;
             break;
         case TOK_AMPERSAND:
-            if (!read_only) throw m_lexer.unexpected_token(tok_modifier, TOK_IDENTIFIER);
+            if (!read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
             flags |= VAR_MOVE;
             break;
         case TOK_IDENTIFIER:
             in_loop = false;
             break;
         default:
-            throw m_lexer.unexpected_token(tok_modifier, TOK_IDENTIFIER);
+            throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
         }
     }
     
@@ -351,11 +356,11 @@ int parser::read_variable(bool read_only) {
         token tok = m_lexer.peek();
         switch (tok.type) {
         case TOK_BRACKET_END: // variable[] -- aggiunge alla fine
-            if (read_only) throw m_lexer.unexpected_token(tok, TOK_INTEGER);
+            if (read_only) throw unexpected_token(tok, TOK_INTEGER);
             index = -1;
             break;
         case TOK_COLON: // variable[:] -- seleziona range intero
-            if (read_only) throw m_lexer.unexpected_token(tok, TOK_INTEGER);
+            if (read_only) throw unexpected_token(tok, TOK_INTEGER);
             m_lexer.advance(tok);
             rangeall = true;
             break;
@@ -471,10 +476,10 @@ void parser::read_function() {
                 case TOK_PAREN_END:
                     break;
                 default:
-                    m_lexer.unexpected_token(tok_comma, TOK_PAREN_END);
+                    unexpected_token(tok_comma, TOK_PAREN_END);
                 }
             } else {
-                throw m_lexer.unexpected_token(tok, TOK_PAREN_END);
+                throw unexpected_token(tok, TOK_PAREN_END);
             }
         }
 
@@ -518,7 +523,7 @@ void parser::read_date_fun(const std::string &fun_name) {
             auto tok = m_lexer.require(TOK_REGEXP);
             regex.clear();
             if (!parse_regexp_token(regex, tok.value)) {
-                throw parsing_error("Constante regexp non valida", tok);
+                throw parsing_error("Costante regexp non valida", tok);
             }
             switch (m_lexer.next().type) {
             case TOK_INTEGER:
@@ -527,14 +532,14 @@ void parser::read_date_fun(const std::string &fun_name) {
             case TOK_PAREN_END:
                 break;
             default:
-                throw m_lexer.unexpected_token(tok, TOK_PAREN_END);
+                throw unexpected_token(tok, TOK_PAREN_END);
             }
             break;
         }
         case TOK_PAREN_END:
             break;
         default:
-            throw m_lexer.unexpected_token(tok_comma, TOK_PAREN_END);
+            throw unexpected_token(tok_comma, TOK_PAREN_END);
         }
         
         std::string date_regex = "\\b" + fmt_string + "\\b";
@@ -560,6 +565,6 @@ void parser::read_date_fun(const std::string &fun_name) {
         add_line(opcode::CALL, command_call{fun_name, 1});
         break;
     default:
-        throw m_lexer.unexpected_token(tok_first, TOK_PAREN_END);
+        throw unexpected_token(tok_first, TOK_PAREN_END);
     }
 }
