@@ -2,9 +2,9 @@
 
 #include <wx/sizer.h>
 #include <wx/button.h>
+#include <wx/radiobut.h>
 #include <wx/statline.h>
 #include <wx/stattext.h>
-#include <wx/msgdlg.h>
 
 #include "editor.h"
 #include "utils.h"

@@ -13,12 +13,13 @@ src/pdf_to_image.cpp
 
 set(editor_RESOURCES
 resources/icon_editor.png
-resources/tool_abort.png
-resources/tool_deletebox.png
-resources/tool_newbox.png
-resources/tool_reload.png
-resources/tool_resize.png
 resources/tool_select.png
+resources/tool_newbox.png
+resources/tool_deletebox.png
+resources/tool_resize.png
+resources/tool_test.png
+resources/tool_reload.png
+resources/tool_abort.png
 )
 
 function(embed_resource resource_file_name source_file_name variable_name)

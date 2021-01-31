@@ -1,6 +1,7 @@
 #include "box_editor_panel.h"
 
 #include "box_dialog.h"
+#include "text_dialog.h"
 
 #include <wx/textdlg.h>
 
@@ -51,6 +52,7 @@ bool box_editor_panel::render(wxDC &dc) {
 
         switch (selected_tool) {
         case TOOL_NEWBOX:
+        case TOOL_TEST:
             if (mouseIsDown) {
                 dc.SetPen(*wxBLACK_PEN);
                 dc.DrawRectangle(make_rect(start_pt, end_pt));
@@ -80,6 +82,7 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
             }
             break;
         case TOOL_NEWBOX:
+        case TOOL_TEST:
             mouseIsDown = true;
             start_pt = evt.GetPosition();
             break;
@@ -136,6 +139,20 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 app->updateLayout();
                 app->selectBox(box);
                 new box_dialog(app, *box);
+                break;
+            }
+            case TOOL_TEST:
+            {
+                wxRect rect = make_rect(start_pt, end_pt);
+                pdf_rect box;
+                box.x = (rect.x + scrollx) / scaled_width;
+                box.y = (rect.y + scrolly) / scaled_height;
+                box.w = rect.width / scaled_width;
+                box.h = rect.height / scaled_height;
+                box.page = app->getSelectedPage();
+                TextDialog *info_diag = new TextDialog(this, "Test Lettura Rettangolo");
+                std::string text = app->getPdfDocument().get_text(box);
+                info_diag->ShowText(wxString(text.c_str(), wxConvUTF8));
                 break;
             }
             case TOOL_DELETEBOX:

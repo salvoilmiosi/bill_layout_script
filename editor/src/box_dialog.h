@@ -3,7 +3,6 @@
 
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
-#include <wx/radiobut.h>
 #include <wx/stc/stc.h>
 
 #include "text_dialog.h"
