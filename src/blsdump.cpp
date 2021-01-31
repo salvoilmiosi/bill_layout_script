@@ -97,6 +97,8 @@ int MainApp::OnRun() {
             case opcode::SELVARTOP:
             case opcode::SELRANGETOP:
             case opcode::SELRANGEALL:
+            case opcode::ISSET:
+            case opcode::GETSIZE:
                 std::cout << ' ' << line.get<std::string>();
                 break;
             case opcode::PUSHNUM:

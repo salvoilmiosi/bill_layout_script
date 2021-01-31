@@ -25,6 +25,8 @@ struct variable_idx {
     std::string name;
     small_int index;
     small_int range_len;
+
+    static constexpr char global_identifier = '*';
 };
 
 struct jump_address {
@@ -76,8 +78,8 @@ struct jump_address {
     O(HLT),                         /* ferma l'esecuzione */ \
     O(INC),                         /* ref_stack, var_stack -> += top */ \
     O(DEC),                         /* ref_stack, var_stack -> -= top */ \
-    O(ISSET),                       /* ref_stack -> size() != 0 -> var_stack */ \
-    O(GETSIZE),                     /* ref_stack -> size() -> var_stack */ \
+    O(ISSET,        std::string),   /* ref_stack -> size() != 0 -> var_stack */ \
+    O(GETSIZE,      std::string),   /* ref_stack -> size() -> var_stack */ \
     O(MOVCONTENT),                  /* var_stack -> content_stack */ \
     O(SETBEGIN),                    /* var_stack -> content_stack.top.setbegin */ \
     O(SETEND),                      /* var_stack -> content_stack.top.setend */ \

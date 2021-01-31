@@ -39,7 +39,7 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto create_ref = [&](const std::string &name, auto ... args) {
-        if (name.ends_with('*')) {
+        if (name.ends_with(variable_idx::global_identifier)) {
             return variable_ref(m_out.globals, name.substr(0, name.size() - 1), args ...);
         } else {
             while (m_out.values.size() <= m_current_table) m_out.values.emplace_back();
@@ -211,12 +211,10 @@ void reader::exec_command(const command_args &cmd) {
         m_refs.pop();
         break;
     case opcode::ISSET:
-        m_vars.push(m_refs.top().size() != 0);
-        m_refs.pop();
+        m_vars.push(create_ref(cmd.get<std::string>()).size() != 0);
         break;
     case opcode::GETSIZE:
-        m_vars.push(m_refs.top().size());
-        m_refs.pop();
+        m_vars.push(create_ref(cmd.get<std::string>()).size());
         break;
     case opcode::MOVCONTENT:
         m_contents.push(std::move(m_vars.top().str()));

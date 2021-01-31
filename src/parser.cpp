@@ -407,7 +407,7 @@ int parser::read_variable(bool read_only) {
     }
 
     if (isglobal) {
-        name += '*';
+        name += variable_idx::global_identifier;
     }
     if (rangeall) {
         add_line(opcode::SELRANGEALL, name);
@@ -430,17 +430,22 @@ void parser::read_function() {
     auto tok_fun_name = m_lexer.require(TOK_FUNCTION);
     std::string fun_name(tok_fun_name.value.substr(1));
 
-    auto var_function = [&](auto && ... args) {
+    auto var_function = [&](opcode cmd) {
         m_lexer.require(TOK_PAREN_BEGIN);
-        read_variable(true);
+        bool is_global = m_lexer.check_next(TOK_GLOBAL);
+        auto tok_var = m_lexer.require(TOK_IDENTIFIER);
         m_lexer.require(TOK_PAREN_END);
-        add_line(std::forward<decltype(args)>(args) ...);
+        std::string var_name(tok_var.value);
+        if (is_global) {
+            var_name += variable_idx::global_identifier;
+        }
+        add_line(cmd, var_name);
     };
 
-    auto void_function = [&](auto && ... args) {
+    auto void_function = [&](opcode cmd, auto && ... args) {
         m_lexer.require(TOK_PAREN_BEGIN);
         m_lexer.require(TOK_PAREN_END);
-        add_line(std::forward<decltype(args)>(args) ...);
+        add_line(cmd, std::forward<decltype(args)>(args) ...);
     };
 
     switch (hash(fun_name)) {
