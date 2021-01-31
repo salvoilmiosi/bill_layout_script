@@ -85,18 +85,20 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PARSEINT: m_vars.top() = m_vars.top().as_int(); break;
     case opcode::NOT: m_vars.top() = !m_vars.top(); break;
     case opcode::NEG: m_vars.top() = -m_vars.top(); break;
-    case opcode::EQ:  exec_operator([](const auto &a, const auto &b) { return a == b; }); break;
-    case opcode::NEQ: exec_operator([](const auto &a, const auto &b) { return a != b; }); break;
-    case opcode::AND: exec_operator([](const auto &a, const auto &b) { return a && b; }); break;
-    case opcode::OR:  exec_operator([](const auto &a, const auto &b) { return a || b; }); break;
-    case opcode::ADD: exec_operator([](const auto &a, const auto &b) { return a + b; }); break;
-    case opcode::SUB: exec_operator([](const auto &a, const auto &b) { return a - b; }); break;
-    case opcode::MUL: exec_operator([](const auto &a, const auto &b) { return a * b; }); break;
-    case opcode::DIV: exec_operator([](const auto &a, const auto &b) { return a / b; }); break;
-    case opcode::GT:  exec_operator([](const auto &a, const auto &b) { return a > b; }); break;
-    case opcode::LT:  exec_operator([](const auto &a, const auto &b) { return a < b; }); break;
-    case opcode::GEQ: exec_operator([](const auto &a, const auto &b) { return a >= b; }); break;
-    case opcode::LEQ: exec_operator([](const auto &a, const auto &b) { return a <= b; }); break;
+#define OP(x) exec_operator([](const auto &a, const auto &b) { return x; })
+    case opcode::EQ:  OP(a == b); break;
+    case opcode::NEQ: OP(a != b); break;
+    case opcode::AND: OP(a && b); break;
+    case opcode::OR:  OP(a || b); break;
+    case opcode::ADD: OP(a + b); break;
+    case opcode::SUB: OP(a - b); break;
+    case opcode::MUL: OP(a * b); break;
+    case opcode::DIV: OP(a / b); break;
+    case opcode::GT:  OP(a > b); break;
+    case opcode::LT:  OP(a < b); break;
+    case opcode::GEQ: OP(a >= b); break;
+    case opcode::LEQ: OP(a <= b); break;
+#undef OP
     case opcode::SELVARTOP:
         m_refs.emplace_back(create_ref(cmd.get<std::string>(),
             m_vars.top().as_int(), 1));
@@ -119,9 +121,9 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SELRANGETOP:
     {
         auto ref = create_ref(cmd.get<std::string>());
-        ref.index = m_vars.top().as_int();
-        m_vars.pop();
         ref.range_len = m_vars.top().as_int();
+        m_vars.pop();
+        ref.index = m_vars.top().as_int();
         m_vars.pop();
         m_refs.push(std::move(ref));
         break;

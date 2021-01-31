@@ -152,6 +152,4 @@ public:
 
 using bytecode = std::vector<command_args>;
 
-std::ostream &operator << (std::ostream &out, const bytecode &code);
-
 #endif
