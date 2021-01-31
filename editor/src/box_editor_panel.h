@@ -2,8 +2,8 @@
 #define __BOX_EDITOR_PANEL_H__
 
 #include "image_panel.h"
-
 #include "editor.h"
+#include "text_dialog.h"
 
 #include "layout_ext.h"
 
@@ -30,6 +30,8 @@ protected:
 
 private:
     class frame_editor *app;
+
+    TextDialog *info_dialog;
 
     wxPoint start_pt, end_pt;
     box_ptr selected_box;

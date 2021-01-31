@@ -1,9 +1,8 @@
 #include "box_editor_panel.h"
 
 #include "box_dialog.h"
-#include "text_dialog.h"
 
-#include <wx/textdlg.h>
+#include <wx/choicdlg.h>
 
 BEGIN_EVENT_TABLE(box_editor_panel, wxImagePanel)
     EVT_LEFT_DOWN(box_editor_panel::OnMouseDown)
@@ -15,7 +14,7 @@ BEGIN_EVENT_TABLE(box_editor_panel, wxImagePanel)
 END_EVENT_TABLE()
 
 box_editor_panel::box_editor_panel(wxWindow *parent, frame_editor *app) : wxImagePanel(parent), app(app) {
-
+    info_dialog = new TextDialog(this, "Test Lettura Rettangolo");
 }
 
 static auto make_rect = [](wxPoint start_pt, wxPoint end_pt) {
@@ -143,16 +142,23 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
             }
             case TOOL_TEST:
             {
-                wxRect rect = make_rect(start_pt, end_pt);
-                pdf_rect box;
-                box.x = (rect.x + scrollx) / scaled_width;
-                box.y = (rect.y + scrolly) / scaled_height;
-                box.w = rect.width / scaled_width;
-                box.h = rect.height / scaled_height;
-                box.page = app->getSelectedPage();
-                TextDialog *info_diag = new TextDialog(this, "Test Lettura Rettangolo");
-                std::string text = app->getPdfDocument().get_text(box);
-                info_diag->ShowText(wxString(text.c_str(), wxConvUTF8));
+                wxArrayString choices;
+                for (auto &str : read_mode_labels) {
+                    choices.push_back(str);
+                }
+                wxSingleChoiceDialog diag(this, L"Modalità di lettura:", "Test Lettura Rettangolo", choices);
+                if (diag.ShowModal() == wxID_OK) {
+                    wxRect rect = make_rect(start_pt, end_pt);
+                    pdf_rect box;
+                    box.x = (rect.x + scrollx) / scaled_width;
+                    box.y = (rect.y + scrolly) / scaled_height;
+                    box.w = rect.width / scaled_width;
+                    box.h = rect.height / scaled_height;
+                    box.page = app->getSelectedPage();
+                    box.mode = static_cast<read_mode>(diag.GetSelection());
+                    std::string text = app->getPdfDocument().get_text(box);
+                    info_dialog->ShowText(wxString(text.c_str(), wxConvUTF8));
+                }
                 break;
             }
             case TOOL_DELETEBOX:

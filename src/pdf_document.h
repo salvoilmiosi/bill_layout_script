@@ -22,6 +22,9 @@ enum class box_type : uint8_t BOX_TYPES;
 #define BOX(x, y) #x
 constexpr const char *box_type_strings[] = BOX_TYPES;
 #undef BOX
+#define BOX(x, y) y
+constexpr const char *box_type_labels[] = BOX_TYPES;
+#undef BOX
 
 #define READ_MODES { \
     MODE(MODE_DEFAULT,  "Default",  non_raw_non_physical_layout), \
@@ -34,6 +37,9 @@ enum class read_mode : uint8_t READ_MODES;
 #undef MODE
 #define MODE(x, y, z) #x
 static const char *read_mode_strings[] = READ_MODES;
+#undef MODE
+#define MODE(x, y, z) y
+static const char *read_mode_labels[] = READ_MODES;
 #undef MODE
 
 struct pdf_rect {

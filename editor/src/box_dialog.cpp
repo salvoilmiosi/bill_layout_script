@@ -8,14 +8,6 @@
 
 #include "editor.h"
 #include "utils.h"
-
-#define BOX(x, y) y
-constexpr const char *box_type_labels[] = BOX_TYPES;
-#undef BOX
-#define MODE(x, y, z) y
-static const char *read_mode_labels[] = READ_MODES;
-#undef MODE
-
 template<typename T>
 class RadioGroupValidator : public wxValidator {
 protected:
