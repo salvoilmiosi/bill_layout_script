@@ -2,32 +2,28 @@
 #define __BOX_DIALOG_H__
 
 #include <wx/dialog.h>
-#include <wx/textctrl.h>
-#include <wx/stc/stc.h>
 
 #include "text_dialog.h"
 #include "layout.h"
 
 class box_dialog : public wxDialog {
 public:
-    box_dialog(class frame_editor *parent, layout_box &box);
+    box_dialog(class frame_editor *parent, const box_ptr &box);
 
 private:
-    bool saveBox();
+    void saveBox();
 
     void OnApply(wxCommandEvent &evt);
     void OnOK(wxCommandEvent &evt);
     void OnCancel(wxCommandEvent &evt);
+    void OnTest(wxCommandEvent &evt);
     void OnClose(wxCloseEvent &evt);
 
 private:
-    layout_box &box;
-    class frame_editor *app;
+    layout_box m_box;
+    box_ptr out_box;
 
-    wxTextCtrl *m_box_name;
-    wxTextCtrl *m_box_goto_label;
-    wxStyledTextCtrl *m_box_spacers;
-    wxStyledTextCtrl *m_box_script;
+    class frame_editor *app;
     TextDialog *reader_output;
 
     DECLARE_EVENT_TABLE()

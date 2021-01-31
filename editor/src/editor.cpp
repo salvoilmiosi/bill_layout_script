@@ -229,7 +229,7 @@ bool frame_editor::save(bool saveAs) {
 
 bool frame_editor::saveIfModified() {
     if (modified) {
-        wxMessageDialog dialog(this, "Salvare le modifiche?", "Layout Bolletta", wxYES_NO | wxCANCEL);
+        wxMessageDialog dialog(this, "Salvare le modifiche?", "Layout Bolletta", wxYES_NO | wxCANCEL | wxICON_WARNING);
 
         switch (dialog.ShowModal()) {
         case wxID_YES:

@@ -5,6 +5,8 @@
 #include <wx/radiobut.h>
 #include <wx/statline.h>
 #include <wx/stattext.h>
+#include <wx/textctrl.h>
+#include <wx/stc/stc.h>
 
 #include "editor.h"
 #include "utils.h"
@@ -40,14 +42,43 @@ public:
         }
         return true;
     }
+};
 
-    virtual bool Validate(wxWindow *) override {
+template<typename WindowType = wxTextCtrl>
+class StringValidator : public wxValidator {
+protected:
+    std::string *m_value;
+
+public:
+    StringValidator(std::string *value) : m_value(value) {}
+
+    virtual wxObject *Clone() const override {
+        return new StringValidator(*this);
+    }
+
+    virtual bool TransferFromWindow() override {
+        if (m_value) {
+            WindowType *ctl = dynamic_cast<WindowType*>(GetWindow());
+            *m_value = ctl->GetValue().ToStdString();
+        }
+        return true;
+    }
+
+    virtual bool TransferToWindow() override {
+        if (m_value) {
+            WindowType *ctl = dynamic_cast<WindowType*>(GetWindow());
+            ctl->SetValue(wxString(m_value->c_str(), wxConvUTF8));
+        }
         return true;
     }
 };
 
-box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
-    wxDialog(parent, wxID_ANY, "Modifica Rettangolo", wxDefaultPosition, wxSize(700, 500), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), box(box), app(parent)
+enum {
+    BUTTON_TEST = 1001
+};
+
+box_dialog::box_dialog(frame_editor *parent, const box_ptr &out_box) :
+    wxDialog(parent, wxID_ANY, "Modifica Rettangolo", wxDefaultPosition, wxSize(700, 500), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), out_box(out_box), app(parent)
 {
     wxBoxSizer *top_level = new wxBoxSizer(wxVERTICAL);
 
@@ -63,9 +94,10 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
 
         sizer->Add(hsizer, vprop, wxEXPAND | wxALL, 5);
     };
+
+    m_box = *out_box;
     
-    m_box_name = new wxTextCtrl(this, wxID_ANY, box.name);
-    addLabelAndCtrl("Nome:", 0, 1, m_box_name);
+    addLabelAndCtrl("Nome:", 0, 1, new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, StringValidator(&m_box.name)));
 
     auto add_radio_btns = [&] <size_t N> (const wxString &label, const char *const (& btn_labels)[N], auto &value) {
         bool first = true;
@@ -81,26 +113,21 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
         }(std::make_index_sequence<N>{});
     };
 
-    add_radio_btns("Tipo:", box_type_labels, box.type);
-    add_radio_btns(L"Modalità:", read_mode_labels, box.mode);
+    add_radio_btns("Tipo:", box_type_labels, m_box.type);
+    add_radio_btns(L"Modalità:", read_mode_labels, m_box.mode);
 
-    auto make_script_box = [&](const wxString &value) {
+    auto make_script_box = [&](std::string &value) {
         wxStyledTextCtrl *text = new wxStyledTextCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         wxFont font(10, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
         text->StyleSetFont(0, font);
         text->SetEOLMode(wxSTC_EOL_LF);
-        text->SetValue(value);
+        text->SetValidator(StringValidator<wxStyledTextCtrl>(&value));
         return text;
     };
 
-    m_box_goto_label = new wxTextCtrl(this, wxID_ANY, box.goto_label);
-    addLabelAndCtrl("Label goto:", 0, 1, m_box_goto_label);
-
-    m_box_spacers = make_script_box(box.spacers);
-    addLabelAndCtrl("Spaziatori:", 1, 1, m_box_spacers);
-
-    m_box_script = make_script_box(box.script);
-    addLabelAndCtrl("Script:", 3, 1, m_box_script);
+    addLabelAndCtrl("Label goto:", 0, 1, new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, StringValidator(&m_box.goto_label)));
+    addLabelAndCtrl("Spaziatori:", 1, 1, make_script_box(m_box.spacers));
+    addLabelAndCtrl("Script:", 3, 1, make_script_box(m_box.script));
 
     top_level->Add(sizer, 1, wxEXPAND | wxALL, 5);
 
@@ -112,6 +139,7 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &box) :
     okCancelSizer->Add(new wxButton(this, wxID_OK, "OK"), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
     okCancelSizer->Add(new wxButton(this, wxID_CANCEL, "Annulla"), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
     okCancelSizer->Add(new wxButton(this, wxID_APPLY, "Applica"), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    okCancelSizer->Add(new wxButton(this, BUTTON_TEST, "Test"), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
     top_level->Add(okCancelSizer, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
 
@@ -125,20 +153,14 @@ BEGIN_EVENT_TABLE(box_dialog, wxDialog)
     EVT_BUTTON(wxID_APPLY, box_dialog::OnApply)
     EVT_BUTTON(wxID_OK, box_dialog::OnOK)
     EVT_BUTTON(wxID_CANCEL, box_dialog::OnCancel)
+    EVT_BUTTON(BUTTON_TEST, box_dialog::OnTest)
     EVT_CLOSE(box_dialog::OnClose)
 END_EVENT_TABLE()
 
-bool box_dialog::saveBox() {
-    if (Validate()) {
-        TransferDataFromWindow();
-        box.name = m_box_name->GetValue();
-        box.spacers = m_box_spacers->GetValue();
-        box.goto_label = m_box_goto_label->GetValue();
-        box.script = m_box_script->GetValue();
-        app->updateLayout();
-        return true;
-    }
-    return false;
+void box_dialog::saveBox() {
+    TransferDataFromWindow();
+    *out_box = m_box;
+    app->updateLayout();
 }
 
 void box_dialog::OnApply(wxCommandEvent &evt) {
@@ -146,15 +168,35 @@ void box_dialog::OnApply(wxCommandEvent &evt) {
 }
 
 void box_dialog::OnOK(wxCommandEvent &evt) {
-    if (saveBox()) {
-        Close();
-    }
+    saveBox();
+    Close();
 }
 
 void box_dialog::OnCancel(wxCommandEvent &evt) {
     Close();
 }
 
+void box_dialog::OnTest(wxCommandEvent &evt) {
+    TransferDataFromWindow();
+    std::string text = app->getPdfDocument().get_text(m_box);
+    reader_output->ShowText(wxString(text.c_str(), wxConvUTF8));
+}
+
+bool operator == (const layout_box &a, const layout_box &b) {
+    return a.name == b.name
+        && a.script == b.script
+        && a.spacers == b.spacers
+        && a.goto_label == b.goto_label
+        && a.mode == b.mode
+        && a.type == b.type;
+}
+
 void box_dialog::OnClose(wxCloseEvent &evt) {
+    TransferDataFromWindow();
+    if (*out_box != m_box) {
+        if (wxMessageDialog(this, "Sono presenti modifiche non salvate.\n\nChiudere?", "Layout Bolletta", wxYES_NO | wxICON_WARNING).ShowModal() == wxID_NO) {
+            return;
+        }
+    }
     Destroy();
 }

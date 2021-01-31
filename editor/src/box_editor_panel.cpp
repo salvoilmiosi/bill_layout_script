@@ -137,7 +137,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 box->page = app->getSelectedPage();
                 app->updateLayout();
                 app->selectBox(box);
-                new box_dialog(app, *box);
+                new box_dialog(app, box);
                 break;
             }
             case TOOL_TEST:
@@ -191,7 +191,7 @@ void box_editor_panel::OnDoubleClick(wxMouseEvent &evt) {
     switch (selected_tool) {
     case TOOL_SELECT:
         if (selected_box) {
-            new box_dialog(app, *selected_box);
+            new box_dialog(app, selected_box);
         }
     default:
         break;

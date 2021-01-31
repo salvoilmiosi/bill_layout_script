@@ -180,7 +180,7 @@ void frame_editor::OnSelectBox(wxCommandEvent &evt) {
 void frame_editor::EditSelectedBox(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0 && selection < (int) layout.m_boxes.size()) {
-        new box_dialog(this, *layout.m_boxes[selection]);
+        new box_dialog(this, layout.m_boxes[selection]);
     }
 }
 
