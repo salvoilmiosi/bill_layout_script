@@ -10,6 +10,7 @@
 #include "resources.h"
 #include "box_editor_panel.h"
 #include "pdf_to_image.h"
+#include "box_dialog.h"
 
 BEGIN_EVENT_TABLE(frame_editor, wxFrame)
     EVT_MENU (MENU_NEW, frame_editor::OnNewFile)
@@ -193,16 +194,18 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
 
 void frame_editor::openFile(const wxString &filename) {
     try {
-        layout = bill_layout_script::from_file(filename.ToStdString());
+        if (box_dialog::closeAll()) {
+            layout = bill_layout_script::from_file(filename.ToStdString());
 
-        modified = false;
-        history.clear();
-        updateLayout();
+            modified = false;
+            history.clear();
+            updateLayout();
 
-        m_bls_history->AddFileToHistory(layout.filename().string());
-        m_config->SetPath("/RecentFiles");
-        m_bls_history->Save(*m_config);
-        m_config->SetPath("/");
+            m_bls_history->AddFileToHistory(layout.filename().string());
+            m_config->SetPath("/RecentFiles");
+            m_bls_history->Save(*m_config);
+            m_config->SetPath("/");
+        }
     } catch (const layout_error &error) {
         wxMessageBox("Impossibile aprire questo file", "Errore", wxOK | wxICON_ERROR);
     }

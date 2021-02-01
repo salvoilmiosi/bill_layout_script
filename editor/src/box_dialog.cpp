@@ -149,6 +149,36 @@ box_dialog::box_dialog(frame_editor *parent, const box_ptr &out_box) :
     reader_output = new TextDialog(this, "Risultato Lettura");
 }
 
+std::map<box_ptr, box_dialog *> box_dialog::open_dialogs;
+
+box_dialog *box_dialog::openDialog(frame_editor *parent, const box_ptr &out_box) {
+    auto it = open_dialogs.find(out_box);
+    if (it != open_dialogs.end()) {
+        it->second->Raise();
+        return it->second;
+    } else {
+        return open_dialogs[out_box] = new box_dialog(parent, out_box);
+    }
+}
+
+bool box_dialog::closeDialog(const box_ptr &out_box) {
+    auto it = open_dialogs.find(out_box);
+    if (it != open_dialogs.end()) {
+        it->second->Raise();
+        return it->second->Close();
+    }
+    return true;
+}
+
+bool box_dialog::closeAll() {
+    bool ret = true;
+    auto open_dialogs_copy = open_dialogs;
+    for (auto &[box, dialog] : open_dialogs_copy) {
+        if (!dialog->Close()) ret = false;
+    }
+    return ret;
+}
+
 BEGIN_EVENT_TABLE(box_dialog, wxDialog)
     EVT_BUTTON(wxID_APPLY, box_dialog::OnApply)
     EVT_BUTTON(wxID_OK, box_dialog::OnOK)
@@ -158,6 +188,7 @@ BEGIN_EVENT_TABLE(box_dialog, wxDialog)
 END_EVENT_TABLE()
 
 void box_dialog::saveBox() {
+    m_box = *out_box;
     TransferDataFromWindow();
     *out_box = m_box;
     app->updateLayout();
@@ -177,12 +208,13 @@ void box_dialog::OnCancel(wxCommandEvent &evt) {
 }
 
 void box_dialog::OnTest(wxCommandEvent &evt) {
+    m_box = *out_box;
     TransferDataFromWindow();
     std::string text = app->getPdfDocument().get_text(m_box);
     reader_output->ShowText(wxString(text.c_str(), wxConvUTF8));
 }
 
-bool operator == (const layout_box &a, const layout_box &b) {
+static bool operator == (const layout_box &a, const layout_box &b) {
     return a.name == b.name
         && a.script == b.script
         && a.spacers == b.spacers
@@ -194,9 +226,19 @@ bool operator == (const layout_box &a, const layout_box &b) {
 void box_dialog::OnClose(wxCloseEvent &evt) {
     TransferDataFromWindow();
     if (*out_box != m_box) {
-        if (wxMessageDialog(this, "Sono presenti modifiche non salvate.\n\nChiudere?", "Layout Bolletta", wxYES_NO | wxICON_WARNING).ShowModal() == wxID_NO) {
+        wxMessageDialog dialog(this, "Salvare le modifiche?", "Layout Bolletta", wxYES_NO | wxCANCEL | wxICON_WARNING);
+
+        switch (dialog.ShowModal()) {
+        case wxID_YES:
+            saveBox();
+            break;
+        case wxID_NO:
+            break;
+        case wxID_CANCEL:
+            evt.Veto();
             return;
         }
     }
+    open_dialogs.erase(out_box);
     Destroy();
 }

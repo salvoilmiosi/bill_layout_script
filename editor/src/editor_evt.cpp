@@ -16,7 +16,7 @@
 #include "reader.h"
 
 void frame_editor::OnNewFile(wxCommandEvent &evt) {
-    if (saveIfModified()) {
+    if (box_dialog::closeAll() && saveIfModified()) {
         modified = false;
         layout.clear();
         history.clear();
@@ -61,9 +61,11 @@ void frame_editor::OnMenuClose(wxCommandEvent &evt) {
 
 void frame_editor::OnUndo(wxCommandEvent &evt) {
     if (currentHistory > history.begin()) {
-        --currentHistory;
-        layout = copyLayout(*currentHistory);
-        updateLayout(false);
+        if (box_dialog::closeAll()) {
+            --currentHistory;
+            layout = copyLayout(*currentHistory);
+            updateLayout(false);
+        }
     } else {
         wxBell();
     }
@@ -71,9 +73,11 @@ void frame_editor::OnUndo(wxCommandEvent &evt) {
 
 void frame_editor::OnRedo(wxCommandEvent &evt) {
     if (currentHistory < history.end() - 1) {
-        ++currentHistory;
-        layout = copyLayout(*currentHistory);
-        updateLayout(false);
+        if (box_dialog::closeAll()) {
+            ++currentHistory;
+            layout = copyLayout(*currentHistory);
+            updateLayout(false);
+        }
     } else {
         wxBell();
     }
@@ -82,8 +86,10 @@ void frame_editor::OnRedo(wxCommandEvent &evt) {
 void frame_editor::OnCut(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0 && SetClipboard(*layout.m_boxes[selection])) {
-        layout.m_boxes.erase(layout.m_boxes.begin() + selection);
-        updateLayout();
+        if (box_dialog::closeDialog(layout.m_boxes[selection])) {
+            layout.m_boxes.erase(layout.m_boxes.begin() + selection);
+            updateLayout();
+        }
     }
 }
 
@@ -180,15 +186,17 @@ void frame_editor::OnSelectBox(wxCommandEvent &evt) {
 void frame_editor::EditSelectedBox(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0 && selection < (int) layout.m_boxes.size()) {
-        new box_dialog(this, layout.m_boxes[selection]);
+        box_dialog::openDialog(this, layout.m_boxes[selection]);
     }
 }
 
 void frame_editor::OnDelete(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0 && selection < (int) layout.m_boxes.size()) {
-        layout.m_boxes.erase(layout.m_boxes.begin() + selection);
-        updateLayout();
+        if (box_dialog::closeDialog(layout.m_boxes[selection])) {
+            layout.m_boxes.erase(layout.m_boxes.begin() + selection);
+            updateLayout();
+        }
     }
 }
 

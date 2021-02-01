@@ -88,7 +88,7 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
         case TOOL_DELETEBOX:
         {
             auto it = getBoxAt(app->layout, xx, yy, app->getSelectedPage());
-            if (it) {
+            if (box_dialog::closeDialog(it)) {
                 app->layout.m_boxes.erase(std::find(app->layout.m_boxes.begin(), app->layout.m_boxes.end(), it));
                 app->updateLayout();
                 Refresh();
@@ -137,7 +137,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 box->page = app->getSelectedPage();
                 app->updateLayout();
                 app->selectBox(box);
-                new box_dialog(app, box);
+                box_dialog::openDialog(app, box);
                 break;
             }
             case TOOL_TEST:
@@ -191,7 +191,7 @@ void box_editor_panel::OnDoubleClick(wxMouseEvent &evt) {
     switch (selected_tool) {
     case TOOL_SELECT:
         if (selected_box) {
-            new box_dialog(app, selected_box);
+            box_dialog::openDialog(app, selected_box);
         }
     default:
         break;
