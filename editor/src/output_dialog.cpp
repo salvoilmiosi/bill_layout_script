@@ -100,7 +100,8 @@ wxThread::ExitCode reader_thread::Entry() {
 
             if (!parent->m_output.warnings.empty()) {
                 auto *evt = new wxThreadEvent(wxEVT_COMMAND_LAYOUT_ERROR);
-                evt->SetString(string_join(parent->m_output.warnings, "\n\n"));
+                std::string warnings = string_join(parent->m_output.warnings, "\n\n");
+                evt->SetString(wxString(warnings.c_str(), wxConvUTF8));
                 wxQueueEvent(parent, evt);
             }
             return (wxThread::ExitCode) 0;
