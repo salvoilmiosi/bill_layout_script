@@ -30,16 +30,29 @@ namespace intl {
 
         auto char_to_regex_str = [](char c) -> std::string {
             switch (c) {
-            case '.':   return "\\.";
+            case '.':
+            case '+':
+            case '*':
+            case '?':
+            case '^':
+            case '$':
+            case '(':
+            case ')':
+            case '[':
+            case ']':
+            case '{':
+            case '}':
+            case '|':
+            case '\\':
+                return std::string("\\") + c;
             case '\0':  return "";
             default:    return std::string(&c, 1);
             }
         };
 
-        // I regex di C++11 non supportano i lookbehind, -?\b dovrebbe essere (?<!\S)
-        g_number_format = "-?\\b\\d{1,3}(?:"
+        g_number_format = "-?\\d{1,3}(?:"
             + char_to_regex_str(g_thousand_sep) + "\\d{3})*(?:"
-            + char_to_regex_str(g_decimal_point) + "\\d+)?\\b";
+            + char_to_regex_str(g_decimal_point) + "\\d+)?";
     }
     
     locale::locale() {

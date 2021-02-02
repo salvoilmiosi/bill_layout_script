@@ -116,7 +116,7 @@ data_fattura=$date(@,"%d/%m/%Y",/Del (\D)/)
 ### Mode MODE_DEFAULT
 ### Rect 1 0.51906633 0.36861986 0.21763146 0.046880633
 ### Script
-%totale_fattura
+%totale_fattura=$search(@,/(\N)/)
 data_scadenza=$date(@,"%d/%m/%Y",/Entro il (\D)/)
 ### End Script
 ### End Box
