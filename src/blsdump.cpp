@@ -79,8 +79,7 @@ int MainApp::OnRun() {
             }
             std::cout << '\t' << opcode_names[int(line.command())];
             switch (line.command()) {
-            case opcode::RDBOX:
-            {
+            case opcode::RDBOX: {
                 auto box = line.get<pdf_rect>();
                 std::cout << ' ' << read_mode_strings[int(box.mode)];
                 std::cout << ' ' << box_type_strings[int(box.type)];
@@ -90,14 +89,12 @@ int MainApp::OnRun() {
             case opcode::MVBOX:
                 std::cout << ' ' << spacer_index_names[int(line.get<spacer_index>())];
                 break;
-            case opcode::CALL:
-            {
+            case opcode::CALL: {
                 auto args = line.get<command_call>();
                 std::cout << ' ' << args.name << ' ' << int(args.numargs);
                 break;
             }
-            case opcode::SELVAR:
-            {
+            case opcode::SELVAR: {
                 auto args = line.get<variable_idx>();
                 std::cout << ' ' << args.name << ' ' << int(args.index) << ':' << int(args.range_len);
                 break;

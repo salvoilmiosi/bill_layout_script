@@ -42,8 +42,7 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
     };
 
     switch (rect.type) {
-    case box_type::BOX_RECTANGLE:
-    {
+    case box_type::BOX_RECTANGLE: {
         auto &page = get_page(rect.page);
         auto pgrect = page.page_rect();
         poppler::rectf poppler_rect(rect.x * pgrect.width(), rect.y * pgrect.height(), rect.w * pgrect.width(), rect.h * pgrect.height());
@@ -51,8 +50,7 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
     }
     case box_type::BOX_PAGE:
         return to_stdstring(get_page(rect.page).text(poppler::rectf(), poppler_mode));
-    case box_type::BOX_FILE:
-    {
+    case box_type::BOX_FILE: {
         poppler::ustring ret;
         for (auto &page : m_pages) {
             ret.append(page->text(poppler::rectf(), poppler_mode));

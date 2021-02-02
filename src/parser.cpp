@@ -258,8 +258,7 @@ void parser::sub_expression() {
         sub_expression();
         add_line(opcode::NOT);
         break;
-    case TOK_MINUS:
-    {
+    case TOK_MINUS: {
         m_lexer.advance(tok_first);
         auto tok_num = m_lexer.peek();
         switch (tok_num.type) {
@@ -279,8 +278,7 @@ void parser::sub_expression() {
         m_lexer.advance(tok_first);
         add_line(opcode::PUSHNUM, fixed_point(std::string(tok_first.value)));
         break;
-    case TOK_SLASH:
-    {
+    case TOK_SLASH: {
         auto tok = m_lexer.require(TOK_REGEXP);
         std::string str;
         if (!parse_regexp_token(str, tok.value)) {
@@ -289,8 +287,7 @@ void parser::sub_expression() {
         add_line(opcode::PUSHSTR, str);
         break;
     }
-    case TOK_STRING:
-    {
+    case TOK_STRING: {
         m_lexer.advance(tok_first);
         std::string str;
         if (!parse_string_token(str, tok_first.value)) {
@@ -501,8 +498,7 @@ void parser::read_date_fun(const std::string &fun_name) {
     read_expression();
     auto tok_first = m_lexer.next();
     switch (tok_first.type) {
-    case TOK_COMMA:
-    {
+    case TOK_COMMA: {
         std::string fmt_string;
         auto tok_fmt_str = m_lexer.require(TOK_STRING);
         if (!parse_string_token(fmt_string, tok_fmt_str.value)) {
@@ -515,8 +511,7 @@ void parser::read_date_fun(const std::string &fun_name) {
 
         auto tok_comma = m_lexer.next();
         switch (tok_comma.type) {
-        case TOK_COMMA:
-        {
+        case TOK_COMMA: {
             auto tok = m_lexer.require(TOK_REGEXP);
             regex.clear();
             if (!parse_regexp_token(regex, tok.value)) {

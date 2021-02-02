@@ -8,8 +8,7 @@ void parser::read_keyword() {
 
     switch(hash(fun_name)) {
     case hash("if"):
-    case hash("ifnot"):
-    {
+    case hash("ifnot"): {
         std::string endelse_label = fmt::format("__endelse_{}", m_code.size());
         std::string endif_label;
         bool condition_positive = fun_name == "if";
@@ -54,8 +53,7 @@ void parser::read_keyword() {
         if (has_endelse) add_label(endelse_label);
         break;
     }
-    case hash("while"):
-    {
+    case hash("while"): {
         std::string while_label = fmt::format("__while_{}", m_code.size());
         std::string endwhile_label = fmt::format("__endwhile_{}", m_code.size());
         m_lexer.require(TOK_PAREN_BEGIN);
@@ -68,8 +66,7 @@ void parser::read_keyword() {
         add_label(endwhile_label);
         break;
     }
-    case hash("for"):
-    {
+    case hash("for"): {
         std::string for_label = fmt::format("__for_{}", m_code.size());
         std::string endfor_label = fmt::format("__endfor_{}", m_code.size());
         m_lexer.require(TOK_PAREN_BEGIN);
@@ -89,16 +86,14 @@ void parser::read_keyword() {
         add_label(endfor_label);
         break;
     }
-    case hash("goto"):
-    {
+    case hash("goto"): {
         m_lexer.require(TOK_PAREN_BEGIN);
         auto tok = m_lexer.require(TOK_IDENTIFIER);
         add_line(opcode::JMP, jump_address{fmt::format("__label_{}", tok.value), 0});
         m_lexer.require(TOK_PAREN_END);
         break;
     }
-    case hash("function"):
-    {
+    case hash("function"): {
         m_lexer.require(TOK_PAREN_BEGIN);
         auto name = m_lexer.require(TOK_IDENTIFIER);
         m_lexer.require(TOK_PAREN_END);
@@ -113,16 +108,14 @@ void parser::read_keyword() {
         add_label(endfun_label);
         break;
     }
-    case hash("call"):
-    {
+    case hash("call"): {
         m_lexer.require(TOK_PAREN_BEGIN);
         auto tok = m_lexer.require(TOK_IDENTIFIER);
         add_line(opcode::JSR, jump_address{fmt::format("__function_{}", tok.value), 0});
         m_lexer.require(TOK_PAREN_END);
         break;
     }
-    case hash("lines"):
-    {
+    case hash("lines"): {
         std::string lines_label = fmt::format("__lines_{}", m_code.size());
         std::string endlines_label = fmt::format("__endlines_{}", m_code.size());
         bool pushed_content = false;
@@ -146,8 +139,7 @@ void parser::read_keyword() {
         }
         break;
     }
-    case hash("with"):
-    {
+    case hash("with"): {
         m_lexer.require(TOK_PAREN_BEGIN);
         read_expression();
         m_lexer.require(TOK_PAREN_END);
@@ -156,8 +148,7 @@ void parser::read_keyword() {
         add_line(opcode::POPCONTENT);
         break;
     }
-    case hash("between"):
-    {
+    case hash("between"): {
         add_line(opcode::NEWVIEW);
         m_lexer.require(TOK_PAREN_BEGIN);
         add_line(opcode::PUSHVIEW);
@@ -174,8 +165,7 @@ void parser::read_keyword() {
         add_line(opcode::RESETVIEW);
         break;
     }
-    case hash("tokens"):
-    {
+    case hash("tokens"): {
         bool pushed_content = false;
         if (m_lexer.check_next(TOK_PAREN_BEGIN)) {
             read_expression();
@@ -244,8 +234,7 @@ void parser::read_keyword() {
         add_line(opcode::RET);
         break;
     case hash("import"):
-    case hash("setlayout"):
-    {
+    case hash("setlayout"): {
         m_lexer.require(TOK_PAREN_BEGIN);
         auto tok_layout_name = m_lexer.require(TOK_STRING);
         m_lexer.require(TOK_PAREN_END);

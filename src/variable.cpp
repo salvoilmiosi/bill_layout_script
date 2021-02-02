@@ -30,8 +30,7 @@ variable &variable::operator = (variable &&other) noexcept {
 void variable::set_string() const noexcept {
     if (m_str.empty()) {
         switch (m_type) {
-        case VAR_NUMBER:
-        {
+        case VAR_NUMBER: {
             m_str = dec::toString(m_num);
             auto it = m_str.rbegin();
             for (; *it == '0' && it != m_str.rend(); ++it);
@@ -104,8 +103,7 @@ variable &variable::operator += (const variable &other) noexcept {
         m_num += other.number();
         m_str.clear();
         break;
-    case VAR_STRING:
-    {
+    case VAR_STRING: {
         set_string();
         m_type = VAR_STRING;
         auto view = other.str_view();

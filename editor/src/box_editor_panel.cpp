@@ -90,8 +90,7 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
         case TOOL_TEST:
             mouseIsDown = true;
             break;
-        case TOOL_DELETEBOX:
-        {
+        case TOOL_DELETEBOX: {
             auto it = getBoxAt(app->layout, start_pt.x, start_pt.y, app->getSelectedPage());
             if (box_dialog::closeDialog(it)) {
                 app->layout.m_boxes.erase(std::find(app->layout.m_boxes.begin(), app->layout.m_boxes.end(), it));
@@ -100,8 +99,7 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
             }
             break;
         }
-        case TOOL_RESIZE:
-        {
+        case TOOL_RESIZE: {
             auto node = getBoxResizeNode(app->layout, start_pt.x, start_pt.y, app->getSelectedPage(), scaled_width(), scaled_height());
             selected_box = node.first;
             if (node.second) {
@@ -131,8 +129,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                     app->updateLayout();
                 }
                 break;
-            case TOOL_NEWBOX:
-            {
+            case TOOL_NEWBOX: {
                 auto &box = insertAfterSelected(app->layout);
                 box->x = std::min(start_pt.x, end_pt.x);
                 box->y = std::min(start_pt.y, end_pt.y);
@@ -145,8 +142,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 box_dialog::openDialog(app, box);
                 break;
             }
-            case TOOL_TEST:
-            {
+            case TOOL_TEST: {
                 wxArrayString choices;
                 for (auto &str : read_mode_labels) {
                     choices.push_back(str);
@@ -211,8 +207,7 @@ void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {
             selected_box->x = dragging_offset.x + end_pt.x;
             selected_box->y = dragging_offset.y + end_pt.y;
             break;
-        case TOOL_RESIZE:
-        {
+        case TOOL_RESIZE: {
             if (resize_node & RESIZE_TOP) {
                 selected_box->h = selected_box->y + selected_box->h - end_pt.y;
                 selected_box->y = end_pt.y;

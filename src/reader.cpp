@@ -60,8 +60,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::RDBOX:
         read_box(cmd.get<pdf_rect>());
         break;
-    case opcode::CALL:
-    {
+    case opcode::CALL: {
         const auto &call = cmd.get<command_call>();
         call_function(call.name, call.numargs);
         break;
@@ -104,22 +103,19 @@ void reader::exec_command(const command_args &cmd) {
             m_vars.top().as_int(), 1));
         m_vars.pop();
         break;
-    case opcode::SELRANGEALL:
-    {
+    case opcode::SELRANGEALL: {
         auto ref = create_ref(cmd.get<variable_name>());
         ref.range_len = ref.size();
         m_refs.push(std::move(ref));
         break;
     }
-    case opcode::SELVAR:
-    {
+    case opcode::SELVAR: {
         const auto &var_idx = cmd.get<variable_idx>();
         m_refs.push(create_ref(var_idx.name,
             var_idx.index, var_idx.range_len));
         break;
     }
-    case opcode::SELRANGETOP:
-    {
+    case opcode::SELRANGETOP: {
         auto ref = create_ref(cmd.get<variable_name>());
         ref.range_len = m_vars.top().as_int();
         m_vars.pop();
