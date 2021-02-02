@@ -67,13 +67,13 @@ public:
         return ret;
     }
 
-    bool save_file(const std::filesystem::path &filename) {
+    void save_file(const std::filesystem::path &filename) {
         std::ofstream ofs(filename);
-        if (ofs << *this) {
-            set_filename(filename);
-            return true;
+        if (!ofs) {
+            throw layout_error(fmt::format("Impossibile salvare il file {}", filename.string()));
         }
-        return false;
+        ofs << *this;
+        set_filename(filename);
     }
     
 private:

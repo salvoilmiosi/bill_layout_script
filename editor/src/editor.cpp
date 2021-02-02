@@ -212,7 +212,8 @@ void frame_editor::openFile(const wxString &filename) {
 }
 
 bool frame_editor::save(bool saveAs) {
-    if (layout.filename().empty() || saveAs) {
+    std::filesystem::path filename = layout.filename();
+    if (filename.empty() || saveAs) {
         wxString lastLayoutDir = m_config->Read("LastLayoutDir");
         wxFileDialog diag(this, "Salva Layout Bolletta", lastLayoutDir, layout.filename().string(), "File layout (*.bls)|*.bls|Tutti i file (*.*)|*.*", wxFD_SAVE);
 
@@ -220,10 +221,12 @@ bool frame_editor::save(bool saveAs) {
             return false;
 
         m_config->Write("LastLayoutDir", wxFileName(diag.GetPath()).GetPath());
-        layout.set_filename(diag.GetPath().ToStdString());
+        filename = diag.GetPath().ToStdString();
     }
-    if (!layout.save_file(layout.filename())) {
-        wxMessageBox("Impossibile salvare questo file", "Errore", wxICON_ERROR);
+    try {
+        layout.save_file(filename);
+    } catch (const layout_error &error) {
+        wxMessageBox(error.what(), "Errore", wxICON_ERROR);
         return false;
     }
     modified = false;

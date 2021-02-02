@@ -21,10 +21,26 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script &layou
             output << fmt::format("### Goto Label {}\n", box->goto_label);
         }
         if (!box->spacers.empty()) {
-            output << fmt::format("### Spacers\n{}\n### End Spacers\n", box->spacers);
+            output << "### Spacers\n";
+            for (auto &line : string_split(box->spacers, '\n')) {
+                if (line == "### End Spacers") {
+                    throw layout_error(fmt::format("In {}:\nInvalido Token End Spacers", box->name.empty() ? std::string("(Box senza nome)") : box->name));
+                } else {
+                    output << line << '\n';
+                }
+            }
+            output << "### End Spacers\n";
         }
         if (!box->script.empty()) {
-            output << fmt::format("### Script\n{}\n### End Script\n", box->script);
+            output << "### Script\n";
+            for (auto &line : string_split(box->script, '\n')) {
+                if (line == "### End Script") {
+                    throw layout_error(fmt::format("In {}:\nInvalido Token End Script", box->name.empty() ? std::string("(Box senza nome)") : box->name));
+                } else {
+                    output << line << '\n';
+                }
+            }
+            output << "### End Script\n";
         }
         output << "### End Box\n";
     }
