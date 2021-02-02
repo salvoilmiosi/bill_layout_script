@@ -18,6 +18,23 @@ box_editor_panel::box_editor_panel(wxWindow *parent, frame_editor *app) : wxImag
     info_dialog = new TextDialog(this, "Test Lettura Rettangolo");
 }
 
+static void clamp_rect(pdf_rect &rect) {
+    if (rect.x < 0.f) {
+        rect.w += rect.x;
+        rect.x = 0.f;
+    }
+    if (rect.x + rect.w > 1.f) {
+        rect.w = 1.f - rect.x;
+    }
+    if (rect.y < 0.f) {
+        rect.h += rect.y;
+        rect.y = 0.f;
+    }
+    if (rect.y + rect.h > 1.f) {
+        rect.h = 1.f - rect.y;
+    }
+}
+
 void box_editor_panel::render(wxDC &dc) {
     wxImagePanel::render(dc);
 
@@ -29,12 +46,14 @@ void box_editor_panel::render(wxDC &dc) {
             } else {
                 dc.SetPen(*wxBLACK_PEN);
             }
-            dc.DrawRectangle(wxRect (
-                box->x * scaled_width(),
-                box->y * scaled_height(),
-                box->w * scaled_width(),
-                box->h * scaled_height()
-            ));
+            pdf_rect r = *box;
+            clamp_rect(r);
+            dc.DrawRectangle(
+                r.x * scaled_width(),
+                r.y * scaled_height(),
+                r.w * scaled_width(),
+                r.h * scaled_height()
+            );
         }
     }
 
@@ -59,8 +78,8 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
         case TOOL_SELECT:
             selected_box = getBoxAt(app->layout, start_pt.x, start_pt.y, app->getSelectedPage());
             if (selected_box) {
-                startx = selected_box->x;
-                starty = selected_box->y;
+                dragging_offset.x = selected_box->x - start_pt.x;
+                dragging_offset.y = selected_box->y - start_pt.y;
                 app->selectBox(selected_box);
                 mouseIsDown = true;
             } else {
@@ -108,6 +127,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
             switch (selected_tool) {
             case TOOL_SELECT:
                 if (selected_box && start_pt != end_pt) {
+                    clamp_rect(*selected_box);
                     app->updateLayout();
                 }
                 break;
@@ -118,6 +138,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 box->y = std::min(start_pt.y, end_pt.y);
                 box->w = std::abs(start_pt.x - end_pt.x);
                 box->h = std::abs(start_pt.y - end_pt.y);
+                clamp_rect(*box);
                 box->page = app->getSelectedPage();
                 app->updateLayout();
                 app->selectBox(box);
@@ -187,8 +208,8 @@ void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {
     if (mouseIsDown) {
         switch (selected_tool) {
         case TOOL_SELECT:
-            selected_box->x = startx + (end_pt.x - start_pt.x);
-            selected_box->y = starty + (end_pt.y - start_pt.y);
+            selected_box->x = dragging_offset.x + end_pt.x;
+            selected_box->y = dragging_offset.y + end_pt.y;
             break;
         case TOOL_RESIZE:
         {

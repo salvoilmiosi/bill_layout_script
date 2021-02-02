@@ -33,8 +33,8 @@ private:
     wxRealPoint screen_to_layout(const wxPoint &pt) {
         auto [xx, yy] = CalcUnscrolledPosition(pt);
         return wxRealPoint(
-            xx / scaled_width(),
-            yy / scaled_height()
+            std::clamp(xx / scaled_width(), 0.0, 1.0),
+            std::clamp(yy / scaled_height(), 0.0, 1.0)
         );
     }
 
@@ -43,10 +43,9 @@ private:
 
     TextDialog *info_dialog;
 
-    wxRealPoint start_pt, end_pt;
+    wxRealPoint start_pt, end_pt, dragging_offset;
     box_ptr selected_box;
     char resize_node = 0;
-    float startx, starty;
     bool mouseIsDown = false;
 
     int selected_tool = TOOL_SELECT;
