@@ -35,8 +35,8 @@ ragione_sociale
 ### Mode MODE_DEFAULT
 ### Rect 1 0.6150193 0.3080678 0.35555232 0.10002199
 ### Script
-%totale_fattura=$search(@,/TOTALE DA PAGARE (%N)/)
-data_scadenza=$date(@,"%d.%m.%Y",/entro il (%D)/)
+%totale_fattura=$search(@,/TOTALE DA PAGARE (\N)/)
+data_scadenza=$date(@,"%d.%m.%Y",/entro il (\D)/)
 ### End Script
 ### End Box
 
@@ -46,8 +46,8 @@ data_scadenza=$date(@,"%d.%m.%Y",/entro il (%D)/)
 ### Rect 1 0.0315568 0.09791284 0.22615707 0.31941897
 ### Script
 numero_fattura=$search(@,/N\. fattura (\d+)/)
-data_fattura=$date(@,"%d.%m.%Y",/N\. fattura \d+ del (%D)/)
-mese_fattura=$month(@,"%d.%m.%Y",/PERIODO %D - (%D)/)
+data_fattura=$date(@,"%d.%m.%Y",/N\. fattura \d+ del (\D)/)
+mese_fattura=$month(@,"%d.%m.%Y",/PERIODO \D - (\D)/)
 numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
 indirizzo_fornitura=$singleline($search(@,/FORNIAMO ENERGIA IN\n([^]+?\d{5}.+)\n/))
@@ -63,11 +63,11 @@ _mese=$date_format(mese_fattura,"%m.%Y")
 ### Script
 iva=$search(@,/Importo IVA (\d+%)/)
 $ifnot(::multipod) {
-  %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA (%N) \u20ac/)
-  %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE (%N) \u20ac/)
-  %oneri=$search(@,/SPESA PER ONERI DI SISTEMA (%N) \u20ac/)
-  %accise=$search(@,/IMPOSTE (%N) \u20ac/)
-  %imponibile=$search(@,/imponibile di (%N)/)
+  %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA (\N) \u20ac/)
+  %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE (\N) \u20ac/)
+  %oneri=$search(@,/SPESA PER ONERI DI SISTEMA (\N) \u20ac/)
+  %accise=$search(@,/IMPOSTE (\N) \u20ac/)
+  %imponibile=$search(@,/imponibile di (\N)/)
 }
 ### End Script
 ### End Box
@@ -95,10 +95,10 @@ $if(::multipod) {
 p+::next_page
 ### End Spacers
 ### Script
-%imponibile=$search(@,/TOTALE IMPONIBILE (%N)/)
+%imponibile=$search(@,/TOTALE IMPONIBILE (\N)/)
 $if($contains(@,"Energia Reattiva")) {
   %energia_reattiva=$search($search(@,/CONSUMI E LETTURE([^]+)Consumi fatturati/),
-    $format(/\d\d\.$0.+ (%N)\n/,_mese))
+    $format(/\d\d\.$0.+ (\N)\n/,_mese))
 }
 ### End Script
 ### End Box
@@ -128,37 +128,37 @@ $ifnot($ate() || $contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) 
 ### Script
 $with(_dettaglio) {
   %sbilanciamento=$search($search(@,/Sbilanciamento\n((dal.+\n)+)/),
-    $format(/al \d\d\.$0 Euro\/kWh (%N)/,_mese))
+    $format(/al \d\d\.$0 Euro\/kWh (\N)/,_mese))
   %pcv=$search($search(@,/Prezzo Commercializzazione Vendita\n((dal.+\n)+)/),
-    $format(/al \d\d\.$0 euro\/\w+ %N %N (%N)/,_mese))
+    $format(/al \d\d\.$0 euro\/\w+ \N \N (\N)/,_mese))
   $with($search(@,/Prezzo (?:Energia|Indicizzato)\n((dal.+\n)+)/)) {
-    $tokens($search(@,$format(/al \d\d\.$0 (?:F1|PEAK) Euro\/kWh (%N %N)/,_mese))) {
+    $tokens($search(@,$format(/al \d\d\.$0 (?:F1|PEAK) Euro\/kWh (\N \N)/,_mese))) {
       %prezzo_energia[0] %energia_attiva[0]
     }
-    $tokens($search(@,$format(/al \d\d\.$0 (?:F2|OFFPEAK) Euro\/kWh (%N %N)/,_mese))) {
+    $tokens($search(@,$format(/al \d\d\.$0 (?:F2|OFFPEAK) Euro\/kWh (\N \N)/,_mese))) {
       %prezzo_energia[1] %energia_attiva[1]
     }
-    $tokens($search(@,$format(/al \d\d\.$0 F3 Euro\/kWh (%N %N)/,_mese))) {
+    $tokens($search(@,$format(/al \d\d\.$0 F3 Euro\/kWh (\N \N)/,_mese))) {
       %prezzo_energia[2] %energia_attiva[2]
     }
 
-    $tokens($search(@,$format(/al \d\d\.$0 Euro\/kWh (%N %N)/,_mese))) {
+    $tokens($search(@,$format(/al \d\d\.$0 Euro\/kWh (\N \N)/,_mese))) {
       %prezzo_energia[0:3] %energia_attiva:
     }
   }
 
   $lines($searchall($search(@,/Energia Reattiva entro 75%\n((dal.+\n)+)/),
-    $format(/al \d\d\.$0 F[1-3] Euro\/kVarh %N %N (%N)/))) %penale_reattiva_inf75+
+    $format(/al \d\d\.$0 F[1-3] Euro\/kVarh \N \N (\N)/))) %penale_reattiva_inf75+
   $lines($searchall($search(@,/Energia Reattiva oltre 75%\n((dal.+\n)+)/),
-    $format(/al \d\d\.$0 F[1-3] Euro\/kVarh %N %N (%N)/))) %penale_reattiva_sup75+
+    $format(/al \d\d\.$0 F[1-3] Euro\/kVarh \N \N (\N)/))) %penale_reattiva_sup75+
   
-  %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA IMPORTO \u20ac (%N)/)
-  %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO IMPORTO \u20ac (%N)/)
-  %oneri=$search(@,/ONERI DI SISTEMA IMPORTO \u20ac (%N)/)
+  %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA IMPORTO \u20ac (\N)/)
+  %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO IMPORTO \u20ac (\N)/)
+  %oneri=$search(@,/ONERI DI SISTEMA IMPORTO \u20ac (\N)/)
 
-  %potenza[0:3]=$search(@,$format(/al \d\d\.$0 Euro\/kW %N (%N)/,_mese))
+  %potenza[0:3]=$search(@,$format(/al \d\d\.$0 Euro\/kW \N (\N)/,_mese))
   %accise=$search($search(@,/Imposta erariale di consumo \(accisa\)\n[^]*?- Imposta erariale\n((dal.+\n)+)/),
-    $format(/al \d\d\.$0 Euro\/kWh %N %N (%N)/,_mese))
+    $format(/al \d\d\.$0 Euro\/kWh \N \N (\N)/,_mese))
 }
 ### End Script
 ### End Box

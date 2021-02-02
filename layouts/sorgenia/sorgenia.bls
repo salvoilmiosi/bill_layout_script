@@ -63,7 +63,7 @@ ragione_sociale
 ### Rect 1 0.078366615 0.33640674 0.38614953 0.039876044
 ### Script
 numero_fattura=$search(@,/N\. fattura (.+)/)
-data_fattura=$date(@,"%d/%m/%Y",/Emessa il (%D)/)
+data_fattura=$date(@,"%d/%m/%Y",/Emessa il (\D)/)
 ### End Script
 ### End Box
 
@@ -83,7 +83,7 @@ indirizzo_fornitura=$singleline($search(@,/\ndi ([^]+\(..\))/))
 ### Rect 1 0.07358871 0.4846066 0.31149194 0.023517672
 ### Script
 mese_fattura=$month(@,"%B %Y")
-mese_fine=$month(@,"%B %Y",/%D\/(%D)/)
+mese_fine=$month(@,"%B %Y",/\D\/(\D)/)
 mese_fattura=$month_add(mese_fattura,::calc_mese)
 $ifnot($isset(mese_fattura)) {
   $error("Sorgenia: Mese Fattura Mancante")
@@ -96,7 +96,7 @@ $ifnot($isset(mese_fattura)) {
 ### Mode MODE_DEFAULT
 ### Rect 1 0.7051532 0.43586698 0.23481973 0.04943812
 ### Script
-data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
+data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/)
 ### End Script
 ### End Box
 
@@ -114,7 +114,7 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
 ### Mode MODE_LAYOUT
 ### Rect 2 0.6946011 0.085518815 0.26752618 0.05359179
 ### Script
-%potenza[0:3]=$search(@,/Potenza impegnata: (%N)/)
+%potenza[0:3]=$search(@,/Potenza impegnata: (\N)/)
 ### End Script
 ### End Box
 
@@ -126,7 +126,7 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
 $tokens($search($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/),
-  $format(/$0 \w+ (%N %N %N)/,$date_format(mese_fattura,"%b - %y"))))
+  $format(/$0 \w+ (\N \N \N)/,$date_format(mese_fattura,"%b - %y"))))
 {
   %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
 }
@@ -141,7 +141,7 @@ $tokens($search($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/),
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
 $tokens($search($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/),
-  $format(/$0 (%N %N %N)/,$date_format(mese_fattura,"%b - %y"))))
+  $format(/$0 (\N \N \N)/,$date_format(mese_fattura,"%b - %y"))))
 {
   %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
 }

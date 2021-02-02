@@ -48,8 +48,8 @@ data_fattura=$date(@,"%d/%m/%Y")
 p+::off_allegati
 ### End Spacers
 ### Script
-mese_fattura=$month(@,"%B %Y",/Fattura di (%D)/)
-data_scadenza=$date(@,"%d %B %Y",/scadenza (%D)/)
+mese_fattura=$month(@,"%B %Y",/Fattura di (\D)/)
+data_scadenza=$date(@,"%d %B %Y",/scadenza (\D)/)
 ### End Script
 ### End Box
 
@@ -61,9 +61,9 @@ data_scadenza=$date(@,"%d %B %Y",/scadenza (%D)/)
 p+::off_allegati
 ### End Spacers
 ### Script
-%spesa_materia_energia=$search(@,/Spesa per la materia energia (%N)/)
-%trasporto_gestione=$search(@,/Spesa per trasporto, gestione contatore e oneri sistema (%N)/)
-%totale_fattura=$search(@,/TOTALE DA PAGARE (%N)/)
+%spesa_materia_energia=$search(@,/Spesa per la materia energia (\N)/)
+%trasporto_gestione=$search(@,/Spesa per trasporto, gestione contatore e oneri sistema (\N)/)
+%totale_fattura=$search(@,/TOTALE DA PAGARE (\N)/)
 ### End Script
 ### End Box
 
@@ -90,7 +90,7 @@ p+::off_allegati
 indirizzo_fornitura=$search(@,/Le stiamo fornendo energia elettrica in (.+)\n/)
 numero_cliente=$search(@,/Codice cliente: (\d+)/)
 codice_pod=$search(@,/POD: (.+?)\b/)
-%potenza_disponibile=$search(@,/Pot\. Disponibile kW: (%N)/)
+%potenza_disponibile=$search(@,/Pot\. Disponibile kW: (\N)/)
 ### End Script
 ### End Box
 
@@ -114,7 +114,7 @@ iva=$percent($search(@,/(\d+)/))
 p+::off_allegati
 ### End Spacers
 ### Script
-%imponibile=$search(@,/(%N)/)
+%imponibile=$search(@,/(\N)/)
 ### End Script
 ### End Box
 
@@ -148,7 +148,7 @@ $tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese
 p+::off_allegati
 ### End Spacers
 ### Script
-%accise=$search(@,$format(/$0 \w+ Erariale.+kWh %N \u20ac (%N)/,$date_format(mese_fattura,"%B %Y")))
+%accise=$search(@,$format(/$0 \w+ Erariale.+kWh \N \u20ac (\N)/,$date_format(mese_fattura,"%B %Y")))
 ### End Script
 ### End Box
 
@@ -162,17 +162,17 @@ p+::off_allegati
 ### Script
 _mese=$date_format(mese_fattura,"%m/%Y")
 $with($search(@,/Componente di Generazione.+\n((Dal.+\n)+)/)) {
-  $tokens($search(@,$format(/F1 .+\d\d\/$0 \u20ac\/kWh (%N %N) kWh/,_mese))) {
+  $tokens($search(@,$format(/F1 .+\d\d\/$0 \u20ac\/kWh (\N \N) kWh/,_mese))) {
     %prezzo_energia[0] %energia_attiva[0]
   }
-  $tokens($search(@,$format(/F2 .+\d\d\/$0 \u20ac\/kWh (%N %N) kWh/,_mese))) {
+  $tokens($search(@,$format(/F2 .+\d\d\/$0 \u20ac\/kWh (\N \N) kWh/,_mese))) {
     %prezzo_energia[1] %energia_attiva[1]
   }
-  $tokens($search(@,$format(/F3 .+\d\d\/$0 \u20ac\/kWh (%N %N) kWh/,_mese))) {
+  $tokens($search(@,$format(/F3 .+\d\d\/$0 \u20ac\/kWh (\N \N) kWh/,_mese))) {
     %prezzo_energia[2] %energia_attiva[2]
   }
 }
 %pcv=$search($search(@,/Prezzo commercializzazione vendita.+\n((Dal.+\n)+)/),
-  $format(/\d\d\/$0 .+ _mese (%N)/,_mese))
+  $format(/\d\d\/$0 .+ _mese (\N)/,_mese))
 ### End Script
 ### End Box

@@ -17,8 +17,8 @@ fornitore="Lenergia"
 ### Script
 numero_cliente=$search(@,/Codice Cliente: (.+)\n/)
 numero_fattura=$search(@,/fattura n\. (\d+) /)
-data_fattura=$date(@,"%d/%m/%Y",/fattura n\. \d+ del (%D)/)
-mese_fattura=$month(@,"%d/%m/%Y",/Periodo %D - (%D)/)
+data_fattura=$date(@,"%d/%m/%Y",/fattura n\. \d+ del (\D)/)
+mese_fattura=$month(@,"%d/%m/%Y",/Periodo \D - (\D)/)
 _mese=$date_format(mese_fattura,"%m/%Y")
 ### End Script
 ### End Box
@@ -56,9 +56,9 @@ indirizzo_fornitura=$singleline($search(@,/^.+\n([^]+?\d{5}.+)\n/))
 ### Mode MODE_LAYOUT
 ### Rect 1 0.51769 0.340236 0.469563 0.205061
 ### Script
-%spesa_materia_energia=$search(@,/Spesa per la materia Energia (%N)\n/)
-%trasporto_gestione=$search(@,/Servizi di rete (%N)\n/)
-%oneri=$search(@,/Spesa per oneri di sistema (%N)\n/)
+%spesa_materia_energia=$search(@,/Spesa per la materia Energia (\N)\n/)
+%trasporto_gestione=$search(@,/Servizi di rete (\N)\n/)
+%oneri=$search(@,/Spesa per oneri di sistema (\N)\n/)
 ### End Script
 ### End Box
 
@@ -68,7 +68,7 @@ indirizzo_fornitura=$singleline($search(@,/^.+\n([^]+?\d{5}.+)\n/))
 ### Rect 1 0.516389 0.570125 0.474766 0.0855188
 ### Script
 iva=$search(@,/IVA (\d+%)/)
-%imponibile=$search(@,/IVA \d+% (%N)/)
+%imponibile=$search(@,/IVA \d+% (\N)/)
 ### End Script
 ### End Box
 
@@ -86,13 +86,13 @@ codice_pod=$search(@,/Codice punto di erogazione \(POD\): ([a-zA-Z0-9]+)/)
 ### Mode MODE_LAYOUT
 ### Rect 2 0.035119668 0.2005698 0.92351717 0.6100175
 ### Script
-$tokens($search(@,$format(/\d\d\/$0 Energia Attiva kWh (%N %N %N)/,_mese))) {
+$tokens($search(@,$format(/\d\d\/$0 Energia Attiva kWh (\N \N \N)/,_mese))) {
     %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
 }
-$tokens($search(@,$format(/\d\d\/$0 Energia Reattiva kvarh (%N %N %N)/,_mese))) {
+$tokens($search(@,$format(/\d\d\/$0 Energia Reattiva kvarh (\N \N \N)/,_mese))) {
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
 }
-$tokens($search(@,$format(/\d\d\/$0 Potenza kW (%N %N %N)/,_mese))) {
+$tokens($search(@,$format(/\d\d\/$0 Potenza kW (\N \N \N)/,_mese))) {
     %potenza[0] %potenza[1] %potenza[2]
 }
 ### End Script
@@ -107,20 +107,20 @@ $tokens($search(@,$format(/\d\d\/$0 Potenza kW (%N %N %N)/,_mese))) {
 p+::page_offset
 ### End Spacers
 ### Script
-$tokens($search(@,$format(/Indice mese di competenza F1 .+ \d\d\/$0 \u20ac\/kWh (%N %N)/,_mese))) {
+$tokens($search(@,$format(/Indice mese di competenza F1 .+ \d\d\/$0 \u20ac\/kWh (\N \N)/,_mese))) {
   %prezzo_energia[0] %energia_attiva[0]
 }
-$tokens($search(@,$format(/Indice mese di competenza F2 .+ \d\d\/$0 \u20ac\/kWh (%N %N)/,_mese))) {
+$tokens($search(@,$format(/Indice mese di competenza F2 .+ \d\d\/$0 \u20ac\/kWh (\N \N)/,_mese))) {
   %prezzo_energia[1] %energia_attiva[1]
 }
-$tokens($search(@,$format(/Indice mese di competenza F3 .+ \d\d\/$0 \u20ac\/kWh (%N %N)/,_mese))) {
+$tokens($search(@,$format(/Indice mese di competenza F3 .+ \d\d\/$0 \u20ac\/kWh (\N \N)/,_mese))) {
   %prezzo_energia[2] %energia_attiva[2]
 }
 
-%pcv=$search(@,$format(/PCV .+ \d\d\/$0 \u20ac\/Pdp\/mese %N %N (%N)/,_mese))
-%accise=$search(@,$format(/Imposta erariale di consumo .+ \d\d\/$0 \u20ac\/kWh %N %N (%N)/,_mese))
-%penale_reattiva_inf75=$search(@,/Penale Reattiva 33%.+kvarh %N %N (%N)/)
-%penale_reattiva_sup75=$search(@,/Penale Reattiva 75%.+kvarh %N %N (%N)/)
+%pcv=$search(@,$format(/PCV .+ \d\d\/$0 \u20ac\/Pdp\/mese \N \N (\N)/,_mese))
+%accise=$search(@,$format(/Imposta erariale di consumo .+ \d\d\/$0 \u20ac\/kWh \N \N (\N)/,_mese))
+%penale_reattiva_inf75=$search(@,/Penale Reattiva 33%.+kvarh \N \N (\N)/)
+%penale_reattiva_sup75=$search(@,/Penale Reattiva 75%.+kvarh \N \N (\N)/)
 ### End Script
 ### End Box
 

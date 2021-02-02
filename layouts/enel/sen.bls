@@ -76,7 +76,7 @@ fornitore=$coalesce(::fornitore,"SEN")
 ### Rect 1 0.052688174 0.1687363 0.45327735 0.17021497
 ### Script
 indirizzo_fornitura=$singleline($search(@,/Forniamo energia in ([^]+\d{5}.+\n)/))
-%potenza[0:3]=$search(@,/(?:Potenza contrattualmente impegnata|Livello massimo di potenza) (%N)/)
+%potenza[0:3]=$search(@,/(?:Potenza contrattualmente impegnata|Livello massimo di potenza) (\N)/)
 ### End Script
 ### End Box
 
@@ -96,7 +96,7 @@ codice_pod=$search(@,/CODICE POD (.+)/)
 ### Rect 1 0.3004861 0.36238107 0.19774635 0.04373565
 ### Script
 numero_fattura=$search(@,/N\. Fattura (.+)/)
-data_fattura=$date(@,"%d.%m.%Y",/Del (%D)/)
+data_fattura=$date(@,"%d.%m.%Y",/Del (\D)/)
 ### End Script
 ### End Box
 
@@ -106,7 +106,7 @@ data_fattura=$date(@,"%d.%m.%Y",/Del (%D)/)
 ### Rect 1 0.29827663 0.4100217 0.20267215 0.040712774
 ### Script
 mese_fattura=$month(@,"%b.%Y")
-mese_fine=$month(@,"%b.%Y",/%D - (%D)/)
+mese_fine=$month(@,"%b.%Y",/\D - (\D)/)
 $if($isset(mese_fine)) {
   mese_fattura=$month_add(mese_fattura,::calc_mese)
   ::calc_mese+=1
@@ -120,7 +120,7 @@ _mese=$date_format(mese_fattura,"%m/%y")
 ### Mode MODE_LAYOUT
 ### Rect 1 0.05043084 0.6717093 0.6890491 0.29750395
 ### Script
-%cts=$search(@,/CORRISPETTIVO TARIFFARIO SPECIFICO.+ (%N)/)
+%cts=$search(@,/CORRISPETTIVO TARIFFARIO SPECIFICO.+ (\N)/)
 iva=$search(@,/IVA.* (\d+%)/)
 ### End Script
 ### End Box
@@ -130,11 +130,11 @@ iva=$search(@,/IVA.* (\d+%)/)
 ### Mode MODE_DEFAULT
 ### Rect 1 0.51906633 0.36861986 0.21763146 0.035925712
 ### Script
-%totale_fattura=$search(@,/(%N)/)
+%totale_fattura=$search(@,/(\N)/)
 $ifnot($isset(totale_fattura)) {
   $error("SEN: Storno")
 }
-data_scadenza=$date(@,"%d.%m.%Y",/Entro il (%D)/)
+data_scadenza=$date(@,"%d.%m.%Y",/Entro il (\D)/)
 ### End Script
 ### End Box
 
@@ -172,41 +172,41 @@ _mese_full=$date_format(mese_fattura,"%B %Y")
 _mese_abbr=$date_format(mese_fattura,"%m/%Y")
 $with(::_dettaglio) {
   $between("SPESA PER LA MATERIA ENERGIA","TOTALE SPESA PER LA MATERIA ENERGIA") {
-    $lines($searchall(@,$format(/$0[^]+?mesi %N (%N)/,_mese_full))) %spesa_materia_energia+
+    $lines($searchall(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %spesa_materia_energia+
     $lines($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
-      %spesa_materia_energia+=$search(@,/(%N)$/)
+      %spesa_materia_energia+=$search(@,/(\N)$/)
     }
     $with($search(@,$format(/(In F1 dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0 [^]+)(dal|Totale|$)/,_mese_abbr))) {   
-      $tokens($search(@,/F1.+\/kWh (%N kWh \d+)/)) {
+      $tokens($search(@,/F1.+\/kWh (\N kWh \d+)/)) {
         %prezzo_energia[0] $skip() %energia_attiva[0]
       }
-      $tokens($search(@,/F2.+\/kWh (%N kWh \d+)/)) {
+      $tokens($search(@,/F2.+\/kWh (\N kWh \d+)/)) {
         %prezzo_energia[1] $skip() %energia_attiva[1]
       }
-      $tokens($search(@,/F3.+\/kWh (%N kWh \d+)/)) {
+      $tokens($search(@,/F3.+\/kWh (\N kWh \d+)/)) {
         %prezzo_energia[2] $skip() %energia_attiva[2]
       }
     }
   }
   $between("SPESA PER IL TRASPORTO","TOTALE SPESA PER IL TRASPORTO") {
-    $lines($searchall(@,$format(/$0[^]+?mesi %N (%N)/,_mese_full))) %trasporto_gestione+
+    $lines($searchall(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %trasporto_gestione+
     $lines($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
-      %trasporto_gestione+=$search(@,/(%N)$/)
+      %trasporto_gestione+=$search(@,/(\N)$/)
     }
-    %potenza[0:3]=$search(@,$format(/QUOTA POTENZA\n$0.+ kW (%N) mesi %N/,_mese_full))
+    %potenza[0:3]=$search(@,$format(/QUOTA POTENZA\n$0.+ kW (\N) mesi \N/,_mese_full))
   }
   $between("SPESA PER ONERI DI SISTEMA","TOTALE SPESA PER ONERI") {
-    $lines($searchall(@,$format(/$0[^]+?mesi %N (%N)/,_mese_full))) %oneri+
+    $lines($searchall(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %oneri+
     $lines($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
-      %oneri+=$search(@,/(%N)$/)
+      %oneri+=$search(@,/(\N)$/)
     }
   }
   $between("IMPOSTE ED IVA","TOTALE IMPOSTE ED IVA") {
     iva=$search(@,/IVA (\d+%)/)
     %accise=$search($search(@,/ACCISA SULL'ENERGIA ELETTRICA\n((dal.+\n)+)/),
-      $format(/al \d\d\/$0.+ (%N)/,_mese_abbr))
+      $format(/al \d\d\/$0.+ (\N)/,_mese_abbr))
   }
-  %altre_partite=$search(@,/TOTALE ALTRE PARTITE SOGGETTE IVA (%N)/)
+  %altre_partite=$search(@,/TOTALE ALTRE PARTITE SOGGETTE IVA (\N)/)
   imponibile=spesa_materia_energia + trasporto_gestione + oneri + altre_partite + accise
 }
 ### End Script

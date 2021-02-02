@@ -79,7 +79,7 @@ p+::off_allegati
 ### End Spacers
 ### Script
 numero_fattura=$search(@,/N. fattura: (.+)/)
-data_fattura=$date(@,"%d/%m/%Y",/Emessa il (%D)/)
+data_fattura=$date(@,"%d/%m/%Y",/Emessa il (\D)/)
 ### End Script
 ### End Box
 
@@ -105,7 +105,7 @@ p+::off_allegati
 ### End Spacers
 ### Script
 mese_fattura=$month(@,"%B %Y")
-mese_fine=$month(@,"%B %Y",/%D\/(%D)/)
+mese_fine=$month(@,"%B %Y",/\D\/(\D)/)
 mese_fattura=$month_add(mese_fattura,::calc_mese)
 $ifnot($isset(mese_fattura)) {
   $error("Sorgenia (old): Mese Fattura Mancante")
@@ -121,7 +121,7 @@ $ifnot($isset(mese_fattura)) {
 p+::off_allegati
 ### End Spacers
 ### Script
-data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
+data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/)
 ### End Script
 ### End Box
 
@@ -133,7 +133,7 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (%D)/)
 p+::off_allegati
 ### End Spacers
 ### Script
-%totale_fattura=$search(@,/(%N) \u20ac/)
+%totale_fattura=$search(@,/(\N) \u20ac/)
 ### End Script
 ### End Box
 
@@ -145,7 +145,7 @@ p+::off_allegati
 p+::off_allegati
 ### End Spacers
 ### Script
-%potenza[0:3]=$search(@,/Potenza impegnata: (%N)/)
+%potenza[0:3]=$search(@,/Potenza impegnata: (\N)/)
 ### End Script
 ### End Box
 
@@ -160,7 +160,7 @@ p+::off_allegati
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
 $tokens($search($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/),
-  $format(/$0 \w+ (%N %N %N)/,$date_format(mese_fattura,"%b - %y"))))
+  $format(/$0 \w+ (\N \N \N)/,$date_format(mese_fattura,"%b - %y"))))
 {
   %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
 }
@@ -178,7 +178,7 @@ p+::off_allegati
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
 $tokens($search($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/),
-  $format(/$0 (%N %N %N)/,$date_format(mese_fattura,"%b - %y"))))
+  $format(/$0 (\N \N \N)/,$date_format(mese_fattura,"%b - %y"))))
 {
   %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
 }

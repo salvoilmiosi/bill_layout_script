@@ -165,6 +165,6 @@ bool parse_regexp_token(std::string &decoded, std::string_view value) {
     }
     
     string_replace(decoded, " ", "\\s+");
-    string_replace(decoded, "%N", intl::number_format());
+    string_replace(decoded, "\\N", intl::number_format());
     return true;
 }

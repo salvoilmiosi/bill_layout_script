@@ -39,7 +39,7 @@ ragione_sociale=$singleline($search(@,/Intestatario contratto: ([^]+)\nCod\. Fis
 ### Rect 1 0.13343109 0.30683112 0.6979472 0.04353685
 ### Script
 numero_fattura=$search(@,/Fattura Energia n\u00b0 ([0-9]+)/)
-data_fattura=$date(@,"%d/%m/%Y",/del (%D)/)
+data_fattura=$date(@,"%d/%m/%Y",/del (\D)/)
 ### End Script
 ### End Box
 
@@ -48,9 +48,9 @@ data_fattura=$date(@,"%d/%m/%Y",/del (%D)/)
 ### Mode MODE_LAYOUT
 ### Rect 1 0.035190612 0.34902042 0.23020528 0.45257592
 ### Script
-data_scadenza=$date(@,"%d/%m/%Y",/Scadenza fattura: (%D)/)
+data_scadenza=$date(@,"%d/%m/%Y",/Scadenza fattura: (\D)/)
 
-mese_fattura=$month(@,"%d/%m/%Y",/%D - (%D)/)
+mese_fattura=$month(@,"%d/%m/%Y",/\D - (\D)/)
 $ifnot($isset(mese_fattura)) {
   $error("EnerGrid: Mese Fattura Mancante")
 }
@@ -63,7 +63,7 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 ### Mode MODE_LAYOUT
 ### Rect 1 0.2672123 0.350057 0.69011915 0.45153934
 ### Script
-%totale_fattura=$search(@,/TOTALE DELLA FATTURA (%N)/)
+%totale_fattura=$search(@,/TOTALE DELLA FATTURA (\N)/)
 codice_pod=$search(@,/POD: (.+)/)
 indirizzo_fornitura=$search(@,/Indirizzo di fornitura: (.+)/)
 ### End Script
@@ -79,7 +79,7 @@ p+::off_pod
 ### Script
 indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura: ([^]+?\d{5}.+)\n/))
 codice_pod=$search(@,/POD(?: \(punto di prelievo\)|:) (.+)/)
-%potenza[0:3]=$search(@,/Potenza contrattuale: (%N) kW/)
+%potenza[0:3]=$search(@,/Potenza contrattuale: (\N) kW/)
 ### End Script
 ### End Box
 
@@ -92,13 +92,13 @@ p+::off_pod
 ### End Spacers
 ### Script
 $between("RIEPILOGO CONSUMI PRIMO ADDEBITO","TOTALE (Salvo conguagli, errori e omissioni)") {
-  $tokens($search(@,$format(/\d\d\/$0 Consumi Fatturati (%N %N %N %N %N %N %N)/,_mese))) {
+  $tokens($search(@,$format(/\d\d\/$0 Consumi Fatturati (\N \N \N \N \N \N \N)/,_mese))) {
     %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2] $skip()
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
   }
 }
 $between("DETTAGLIO IMPOSTE","TOTALE (Salvo conguagli, errori e omissioni)") {
-  %accise=$search(@,$format(/Imposta erariale.+ al \d\d\/$0 Euro\/kWh %N %N (%N)/,_mese))
+  %accise=$search(@,$format(/Imposta erariale.+ al \d\d\/$0 Euro\/kWh \N \N (\N)/,_mese))
   iva=$percent($search(@,/(\d+) %/))
 }
 ### End Script
@@ -132,25 +132,25 @@ p+_off_dettaglio
 ### Script
 $between("DETTAGLIO IMPORTI PRIMO ADDEBITO","TOTALE (Salvo conguagli, errori e omissioni)") {
   $between("Spese per la materia energia","Spese per trasporto") {
-    %spesa_materia_energia=$search(@,/(%N)/)
-    $tokens($search(@,$format(/Componente di Generazione fascia F1 .+ al \d\d\/$0 Euro\/kWh (%N %N)/,_mese))) {
+    %spesa_materia_energia=$search(@,/(\N)/)
+    $tokens($search(@,$format(/Componente di Generazione fascia F1 .+ al \d\d\/$0 Euro\/kWh (\N \N)/,_mese))) {
       %prezzo_energia[0] %energia_attiva[0]
     }
-    $tokens($search(@,$format(/Componente di Generazione fascia F2 .+ al \d\d\/$0 Euro\/kWh (%N %N)/,_mese))) {
+    $tokens($search(@,$format(/Componente di Generazione fascia F2 .+ al \d\d\/$0 Euro\/kWh (\N \N)/,_mese))) {
       %prezzo_energia[1] %energia_attiva[1]
     }
-    $tokens($search(@,$format(/Componente di Generazione fascia F3 .+ al \d\d\/$0 Euro\/kWh (%N %N)/,_mese))) {
+    $tokens($search(@,$format(/Componente di Generazione fascia F3 .+ al \d\d\/$0 Euro\/kWh (\N \N)/,_mese))) {
       %prezzo_energia[2] %energia_attiva[2]
     }
   }
   $between("Spese per trasporto","Spese per oneri") {
-    %trasporto_gestione=$search(@,/(%N)/)
-    $lines($searchall(@,$format(/Energia Reattiva tra il \d\d e il 75% fascia F[1-3] .+ al \d\d\/$0 Euro\/kvarh %N %N (%N)/,_mese))) %penale_reattiva_inf75+
-    $lines($searchall(@,$format(/Energia Reattiva oltre il 75% fascia F[1-3] .+ al \d\d\/$0 Euro\/kvarh %N %N (%N)/,_mese))) %penale_reattiva_sup75+
+    %trasporto_gestione=$search(@,/(\N)/)
+    $lines($searchall(@,$format(/Energia Reattiva tra il \d\d e il 75% fascia F[1-3] .+ al \d\d\/$0 Euro\/kvarh \N \N (\N)/,_mese))) %penale_reattiva_inf75+
+    $lines($searchall(@,$format(/Energia Reattiva oltre il 75% fascia F[1-3] .+ al \d\d\/$0 Euro\/kvarh \N \N (\N)/,_mese))) %penale_reattiva_sup75+
   }
   $newview {
     $setbegin($indexof(@,"Spese per oneri"))
-    %oneri=$search(@,/(%N)/)
+    %oneri=$search(@,/(\N)/)
   }
 }
 ### End Script

@@ -27,7 +27,7 @@ fornitore="Axpo"
 ### Rect 1 0.03548387 0.18015963 0.47258064 0.033067275
 ### Script
 numero_fattura=$search(@,/Fattura N\u00b0 (\d+)/)
-data_fattura=$date(@,"%d.%m.%Y",/del (%D)/)
+data_fattura=$date(@,"%d.%m.%Y",/del (\D)/)
 ### End Script
 ### End Box
 
@@ -77,7 +77,7 @@ partita_iva=$search(@,/Part\.IVA (.+)\n/)
 $if($contains(@,"Dati di fornitura")) {
   indirizzo_fornitura=$singleline($search(@,/Indirizzo ([^]+\(..\))/))
   codice_pod=$search(@,/POD (.+)\n/)
-  %potenza[0:3]=$search(@,/Potenza Impegnata (%N)/)
+  %potenza[0:3]=$search(@,/Potenza Impegnata (\N)/)
 } $else {
   ::spacer_multipod=1
 }
@@ -91,10 +91,10 @@ $if($contains(@,"Dati di fornitura")) {
 ### Script
 iva=$search(@,/IVA (\d%)/)
 $ifnot(::spacer_multipod) {
-  %spesa_materia_energia=$search(@,/Corrispettivi energia (%N)/)
-  %spesa_materia_energia=$search(@,/Spese per l'energia (%N)/)
-  %trasporto_gestione=$search(@,/Trasporto (%N)/)
-  %trasporto_gestione=$search(@,/Spesa per trasporto, gestione contatore e oneri di sistema (%N)/)
+  %spesa_materia_energia=$search(@,/Corrispettivi energia (\N)/)
+  %spesa_materia_energia=$search(@,/Spese per l'energia (\N)/)
+  %trasporto_gestione=$search(@,/Trasporto (\N)/)
+  %trasporto_gestione=$search(@,/Spesa per trasporto, gestione contatore e oneri di sistema (\N)/)
 }
 ### End Script
 ### End Box
@@ -111,7 +111,7 @@ p+::next_page
 $if(::spacer_multipod) {
   indirizzo_fornitura=$singleline($search(@,/Indirizzo ([^]+\(..\))/))
   codice_pod=$search(@,/POD (.+)\n/)
-  %potenza[0:3]=$search(@,/Potenza Impegnata (%N)/)
+  %potenza[0:3]=$search(@,/Potenza Impegnata (\N)/)
 }
 ### End Script
 ### End Box
@@ -125,10 +125,10 @@ p+::next_page
 ### End Spacers
 ### Script
 $if(::spacer_multipod) {
-  %spesa_materia_energia=$search(@,/Corrispettivi energia \u20ac (%N)/)
-  %spesa_materia_energia=$search(@,/Spese per l'energia \u20ac (%N)/)
-  %trasporto_gestione=$search(@,/Trasporto \u20ac (%N)/)
-  %trasporto_gestione=$search(@,/Spesa per trasporto, gestione contatore e oneri di sistema \u20ac (%N)/)
+  %spesa_materia_energia=$search(@,/Corrispettivi energia \u20ac (\N)/)
+  %spesa_materia_energia=$search(@,/Spese per l'energia \u20ac (\N)/)
+  %trasporto_gestione=$search(@,/Trasporto \u20ac (\N)/)
+  %trasporto_gestione=$search(@,/Spesa per trasporto, gestione contatore e oneri di sistema \u20ac (\N)/)
 }
 ### End Script
 ### End Box
@@ -162,32 +162,32 @@ $with(&_dettaglio) {
   $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")))
   $setend($indexof(@,"TOT. \u20ac", $indexof(@,"\n")))
 
-  %imponibile=$search(@,/TOT\. \u20ac (%N)/)
+  %imponibile=$search(@,/TOT\. \u20ac (\N)/)
 
-  $tokens($search(@,/Prezzo Energia (?:F1|PEAK) (%N kWh %N)/)) {
+  $tokens($search(@,/Prezzo Energia (?:F1|PEAK) (\N kWh \N)/)) {
     %energia_attiva[0] $skip() %prezzo_energia[0]
   }
-  $tokens($search(@,/Prezzo Energia (?:F2|OFFPEAK) (%N kWh %N)/)) {
+  $tokens($search(@,/Prezzo Energia (?:F2|OFFPEAK) (\N kWh \N)/)) {
     %energia_attiva[1] $skip() %prezzo_energia[1]
   }
-  $tokens($search(@,/Prezzo Energia F3 (%N kWh %N)/)) {
+  $tokens($search(@,/Prezzo Energia F3 (\N kWh \N)/)) {
     %energia_attiva[2] $skip() %prezzo_energia[2]
   }
 
-  %pcv=$search(@,/Prezzo Commercializzazione e Vendita .+\u20ac (%N)/)
-  %sbilanciamento=$search(@,/Gestione sbilanciamento %N kWh (%N)/)
-  %potenza[0:3]=$search(@,/Quota Potenza (%N) kW/)
+  %pcv=$search(@,/Prezzo Commercializzazione e Vendita .+\u20ac (\N)/)
+  %sbilanciamento=$search(@,/Gestione sbilanciamento \N kWh (\N)/)
+  %potenza[0:3]=$search(@,/Quota Potenza (\N) kW/)
 
-  %penale_reattiva_inf75 =$search(@,/Energia Reattiva tra il 33 e il 75%.+ (%N)\n/)
-  %penale_reattiva_inf75 =$search(@,/Energia Reattiva tra il 33 e il 75% F1.+ (%N)\n/)
-  %penale_reattiva_inf75+=$search(@,/Energia Reattiva tra il 33 e il 75% F2.+ (%N)\n/)
-  %penale_reattiva_inf75+=$search(@,/Energia Reattiva tra il 33 e il 75% F3.+ (%N)\n/)
-  %penale_reattiva_sup75 =$search(@,/Energia Reattiva oltre il 75%.+ (%N)\n/)
-  %penale_reattiva_sup75 =$search(@,/Energia Reattiva oltre il 75% F1.+ (%N)\n/)
-  %penale_reattiva_sup75+=$search(@,/Energia Reattiva oltre il 75% F2.+ (%N)\n/)
-  %penale_reattiva_sup75+=$search(@,/Energia Reattiva oltre il 75% F3.+ (%N)\n/)
+  %penale_reattiva_inf75 =$search(@,/Energia Reattiva tra il 33 e il 75%.+ (\N)\n/)
+  %penale_reattiva_inf75 =$search(@,/Energia Reattiva tra il 33 e il 75% F1.+ (\N)\n/)
+  %penale_reattiva_inf75+=$search(@,/Energia Reattiva tra il 33 e il 75% F2.+ (\N)\n/)
+  %penale_reattiva_inf75+=$search(@,/Energia Reattiva tra il 33 e il 75% F3.+ (\N)\n/)
+  %penale_reattiva_sup75 =$search(@,/Energia Reattiva oltre il 75%.+ (\N)\n/)
+  %penale_reattiva_sup75 =$search(@,/Energia Reattiva oltre il 75% F1.+ (\N)\n/)
+  %penale_reattiva_sup75+=$search(@,/Energia Reattiva oltre il 75% F2.+ (\N)\n/)
+  %penale_reattiva_sup75+=$search(@,/Energia Reattiva oltre il 75% F3.+ (\N)\n/)
 
-  %accise=$search(@,/Imposta Erariale .+ \u20ac\/kWh.+ (%N)\n/)
+  %accise=$search(@,/Imposta Erariale .+ \u20ac\/kWh.+ (\N)\n/)
 }
 ### End Script
 ### End Box

@@ -47,7 +47,7 @@ ragione_sociale=$search(@,/Spettabile\n(.+)/)
 ### Rect 1 0.33843675 0.10610382 0.29814664 0.10952653
 ### Script
 indirizzo_fornitura=$singleline($search(@,/Punto di fornitura\n(.+\n.+)/))
-potenza[0:3]=$search(@,/Potenza impegnata: (%N) kW/)
+potenza[0:3]=$search(@,/Potenza impegnata: (\N) kW/)
 ### End Script
 ### End Box
 
@@ -67,7 +67,7 @@ codice_pod=$search(@,/POD (.+)/)
 ### Rect 1 0.33843675 0.0045636054 0.3142627 0.019395322
 ### Script
 mese_fattura=$month(@,"%B %Y")
-mese_fine=$month(@,"%B %Y",/%D - (%D)/)
+mese_fine=$month(@,"%B %Y",/\D - (\D)/)
 $if($isset(mese_fine)) {
   mese_fattura=$month_add(mese_fattura,::calc_mese)
 }
@@ -80,7 +80,7 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 ### Mode MODE_DEFAULT
 ### Rect 1 0.031412613 0.35290596 0.24993515 0.14338613
 ### Script
-%totale_fattura=$search(@,/(%N)/)
+%totale_fattura=$search(@,/(\N)/)
 data_scadenza=$date(@,"%d %B %Y")
 ### End Script
 ### End Box
@@ -91,7 +91,7 @@ data_scadenza=$date(@,"%d %B %Y")
 ### Rect 1 0.32505226 0.58302 0.6542018 0.22527969
 ### Script
 $tokens($search($replace(@,"\u2212","-"),
-  $format(/\w+ \d\d\/\d\d\/\d\d\d\d - \d\d\/$0 (%N %N %N)/,_mese)))
+  $format(/\w+ \d\d\/\d\d\/\d\d\d\d - \d\d\/$0 (\N \N \N)/,_mese)))
 {
   %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
 }
@@ -103,37 +103,37 @@ $tokens($search($replace(@,"\u2212","-"),
 ### Mode MODE_LAYOUT
 ### Rect 4 0.013715775 0.0849123 0.96867657 0.8248623
 ### Script
-$tokens($search(@,$format(/Componente energia - F1 .+ al \d\d\/$0 \u20ac\/kWh (%N %N) kWh/,_mese))) {
+$tokens($search(@,$format(/Componente energia - F1 .+ al \d\d\/$0 \u20ac\/kWh (\N \N) kWh/,_mese))) {
   %prezzo_energia[0] %energia_attiva[0]
 }
-$tokens($search(@,$format(/Componente energia - F2 .+ al \d\d\/$0 \u20ac\/kWh (%N %N) kWh/,_mese))) {
+$tokens($search(@,$format(/Componente energia - F2 .+ al \d\d\/$0 \u20ac\/kWh (\N \N) kWh/,_mese))) {
   %prezzo_energia[1] %energia_attiva[1]
 }
-$tokens($search(@,$format(/Componente energia - F3 .+ al \d\d\/$0 \u20ac\/kWh (%N %N) kWh/,_mese))) {
+$tokens($search(@,$format(/Componente energia - F3 .+ al \d\d\/$0 \u20ac\/kWh (\N \N) kWh/,_mese))) {
   %prezzo_energia[2] %energia_attiva[2]
 }
-%potenza[0:3]=$search(@,$format(/Quota potenza .+ al \d\d\/$0 \u20ac\/kW\/mese %N (%N) kW/,_mese))
-%accise=$search(@,$format(/Imposta erariale di consumo \(accisa\) .+ al \d\d\/$0 \u20ac\/kWh %N %N kWh (%N) \u20ac/,_mese))
+%potenza[0:3]=$search(@,$format(/Quota potenza .+ al \d\d\/$0 \u20ac\/kW\/mese \N (\N) kW/,_mese))
+%accise=$search(@,$format(/Imposta erariale di consumo \(accisa\) .+ al \d\d\/$0 \u20ac\/kWh \N \N kWh (\N) \u20ac/,_mese))
 iva=$search(@,/IVA (\d+%)/)
 $between("Spesa per l'energia","Spesa per il trasporto") {
   $lines($replace(@,"\u2212","-")) {
-    %spesa_materia_energia+=$search(@,$format(/Dal .+ al \d\d\/$0.+ (%N) \u20ac/,_mese))
+    %spesa_materia_energia+=$search(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
   }
 }
 $between("Spesa per il trasporto","Spesa per gli oneri") {
   $lines($replace(@,"\u2212","-")) {
-    %trasporto_gestione+=$search(@,$format(/Dal .+ al \d\d\/$0.+ (%N) \u20ac/,_mese))
+    %trasporto_gestione+=$search(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
   }
 }
 $between("Spesa per gli oneri","Totale Imposte") {
   $lines($replace(@,"\u2212","-")) {
-    %oneri+=$search(@,$format(/Dal .+ al \d\d\/$0.+ (%N) \u20ac/,_mese))
+    %oneri+=$search(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
   }
 }
 imponibile=spesa_materia_energia+trasporto_gestione+oneri
 $between("Imposte e IVA","TOTALE") {
   $lines($replace(@,"\u2212","-")) {
-    %imponibile+=$search(@,$format(/Dal .+ al \d\d\/$0.+ (%N) \u20ac/,_mese))
+    %imponibile+=$search(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
   }
 }
 ### End Script
