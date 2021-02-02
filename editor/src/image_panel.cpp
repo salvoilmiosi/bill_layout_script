@@ -2,53 +2,42 @@
 
 #include "pdf_document.h"
 
-#include <wx/dcclient.h>
 #include <wx/dcbuffer.h>
 
-BEGIN_EVENT_TABLE(wxImagePanel, wxScrolledWindow)
-    EVT_PAINT(wxImagePanel::OnPaint)
-END_EVENT_TABLE()
+constexpr int SCROLL_RATE = 20;
 
-constexpr int SCROLL_RATE_X = 20;
-constexpr int SCROLL_RATE_Y = 20;
-
-wxImagePanel::wxImagePanel(wxWindow *parent) : wxScrolledWindow(parent) {
-    SetScrollRate(SCROLL_RATE_X, SCROLL_RATE_Y);
+wxImagePanel::wxImagePanel(wxWindow *parent) : wxScrolledCanvas(parent) {
+    SetScrollRate(SCROLL_RATE, SCROLL_RATE);
     SetBackgroundStyle(wxBG_STYLE_PAINT);
 }
 
 void wxImagePanel::setImage(const wxImage &new_image) {
     raw_image = new_image;
-    rescale(scale, wxIMAGE_QUALITY_HIGH);
+    rescale(m_scale, wxIMAGE_QUALITY_HIGH);
 }
 
 void wxImagePanel::rescale(float factor, wxImageResizeQuality quality) {
-    scale = factor;
+    m_scale = factor;
     if (raw_image.IsOk()) {
-        scaled_width = raw_image.GetWidth() * scale;
-        scaled_height = raw_image.GetHeight() * scale;
-        SetVirtualSize(scaled_width, scaled_height);
-        scaled_image = raw_image.Scale(raw_image.GetWidth() * scale, raw_image.GetHeight() * scale, quality);
+        scaled_image = raw_image.Scale(
+            raw_image.GetWidth() * m_scale,
+            raw_image.GetHeight() * m_scale, quality);
+        SetVirtualSize(scaled_image.GetSize());
         Refresh();
     }
 }
 
-bool wxImagePanel::render(wxDC &dc) {
-    dc.Clear();
+void wxImagePanel::render(wxDC &dc) {
     if (raw_image.IsOk()) {
-        scrollx = GetScrollPos(wxHORIZONTAL) * SCROLL_RATE_X;
-        scrolly = GetScrollPos(wxVERTICAL) * SCROLL_RATE_Y;
-
-        wxBitmap bitmap(scaled_image);
-        
-        dc.DrawBitmap(bitmap, -scrollx, -scrolly, false);
-        return true;
+        dc.DrawBitmap(scaled_image, 0, 0);
     }
-    return false;
 }
 
-void wxImagePanel::OnPaint(wxPaintEvent &evt) {
-    wxBufferedPaintDC dc(this);
-    render(dc);
-    evt.Skip();
+void wxImagePanel::OnDraw(wxDC &dc) {
+    wxBufferedDC buf_dc(&dc, wxSize(
+        std::max(scaled_image.GetWidth(), GetSize().GetWidth()),
+        std::max(scaled_image.GetHeight(), GetSize().GetHeight())
+    ), wxBUFFER_VIRTUAL_AREA);
+    buf_dc.Clear();
+    render(buf_dc);
 }

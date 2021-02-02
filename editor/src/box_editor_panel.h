@@ -20,7 +20,8 @@ public:
     }
 
 protected:
-    bool render(wxDC &dc) override;
+    void render(wxDC &dc) override;
+
     void OnMouseDown(wxMouseEvent &evt);
     void OnMouseUp(wxMouseEvent &evt);
     void OnDoubleClick(wxMouseEvent &evt);
@@ -29,11 +30,20 @@ protected:
     void OnKeyUp(wxKeyEvent &evt);
 
 private:
+    wxRealPoint screen_to_layout(const wxPoint &pt) {
+        auto [xx, yy] = CalcUnscrolledPosition(pt);
+        return wxRealPoint(
+            xx / scaled_width(),
+            yy / scaled_height()
+        );
+    }
+
+private:
     class frame_editor *app;
 
     TextDialog *info_dialog;
 
-    wxPoint start_pt, end_pt;
+    wxRealPoint start_pt, end_pt;
     box_ptr selected_box;
     char resize_node = 0;
     float startx, starty;

@@ -3,8 +3,9 @@
 
 #include <wx/image.h>
 #include <wx/scrolwin.h>
+#include <wx/bitmap.h>
 
-class wxImagePanel : public wxScrolledWindow {
+class wxImagePanel : public wxScrolledCanvas {
 public:
     wxImagePanel(wxWindow *parent);
 
@@ -12,23 +13,25 @@ public:
 
     void rescale(float factor, wxImageResizeQuality quality = wxIMAGE_QUALITY_NORMAL);
 
-protected:
-    virtual bool render(wxDC &dc);
-    
-    int scrollx = 0;
-    int scrolly = 0;
+    float scaled_width() {
+        return scaled_image.GetWidth();
+    }
 
-    float scaled_width;
-    float scaled_height;
-
-    float scale = 0.5f;
+    float scaled_height() {
+        return scaled_image.GetHeight();
+    }
 
 protected:
-    wxImage raw_image, scaled_image;
+    float m_scale = 0.5f;
+
+protected:
+    wxImage raw_image;
+    wxBitmap scaled_image;
     
-    void OnPaint(wxPaintEvent &evt);
-    
-    DECLARE_EVENT_TABLE()
+    virtual void render(wxDC &dc);
+
+private:
+    virtual void OnDraw(wxDC &dc) override;
 };
 
 #endif
