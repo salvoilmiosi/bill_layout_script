@@ -140,8 +140,8 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                     if (fail) {
                         throw layout_error("Token End Script non trovato");
                     }
-                } else {
-                    fail = true;
+                } else if (line.front() != '#') {
+                    throw layout_error("Token non valido");
                 }
             }
             if (fail) {

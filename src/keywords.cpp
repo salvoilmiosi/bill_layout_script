@@ -257,7 +257,7 @@ void parser::read_keyword() {
         if (fun_name == "import") {
             add_line(opcode::IMPORT, imported_file);
             if (!m_layout->language_code.empty()) {
-                add_line(opcode::SETLANG, m_layout->language_code);
+                add_line(opcode::SETLANG, intl::language_int(m_layout->language_code));
             }
         } else {
             add_line(opcode::SETLAYOUT, imported_file);

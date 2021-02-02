@@ -11,8 +11,9 @@ void parser::read_layout(const bill_layout_script &layout) {
     
     try {
         if (!layout.language_code.empty()) {
-            add_line(opcode::SETLANG, layout.language_code);
-            m_locale.set_language(layout.language_code);
+            int lang = intl::language_int(layout.language_code);
+            add_line(opcode::SETLANG, lang);
+            m_locale.set_language(lang);
         }
         for (auto &box : layout.m_boxes) {
             read_box(*box);
@@ -347,7 +348,8 @@ int parser::read_variable(bool read_only) {
         }
     }
     
-    std::string name(tok_modifier.value);
+    // dopo l'ultima call a next tok_modifier punta al nome della variabile
+    variable_name name{std::string(tok_modifier.value), isglobal};
 
     if (m_lexer.check_next(TOK_BRACKET_BEGIN)) { // variable[
         token tok = m_lexer.peek();
@@ -406,9 +408,6 @@ int parser::read_variable(bool read_only) {
         }
     }
 
-    if (isglobal) {
-        name += variable_idx::global_identifier;
-    }
     if (rangeall) {
         add_line(opcode::SELRANGEALL, name);
     } else if (getindex) {
@@ -432,14 +431,10 @@ void parser::read_function() {
 
     auto var_function = [&](opcode cmd) {
         m_lexer.require(TOK_PAREN_BEGIN);
-        bool is_global = m_lexer.check_next(TOK_GLOBAL);
+        bool isglobal = m_lexer.check_next(TOK_GLOBAL);
         auto tok_var = m_lexer.require(TOK_IDENTIFIER);
         m_lexer.require(TOK_PAREN_END);
-        std::string var_name(tok_var.value);
-        if (is_global) {
-            var_name += variable_idx::global_identifier;
-        }
-        add_line(cmd, var_name);
+        add_line(cmd, variable_name{std::string(tok_var.value), isglobal});
     };
 
     auto void_function = [&](opcode cmd, auto && ... args) {

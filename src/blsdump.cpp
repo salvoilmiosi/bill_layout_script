@@ -45,6 +45,14 @@ std::string quoted_string(const std::string &str) {
     return ret;
 }
 
+static std::ostream &operator << (std::ostream &out, const variable_name &name) {
+    if (name.global) {
+        out << token_names[int(TOK_GLOBAL)];
+    }
+    out << name.name;
+    return out;
+}
+
 int MainApp::OnRun() {
     try {
         parser my_parser;
@@ -99,14 +107,16 @@ int MainApp::OnRun() {
             case opcode::SELRANGEALL:
             case opcode::ISSET:
             case opcode::GETSIZE:
-                std::cout << ' ' << line.get<std::string>();
+                std::cout << ' ' << line.get<variable_name>();
                 break;
             case opcode::PUSHNUM:
                 std::cout << ' ' << line.get<fixed_point>();
                 break;
             case opcode::PUSHSTR:
-            case opcode::SETLANG:
                 std::cout << ' ' << quoted_string(line.get<std::string>());
+                break;
+            case opcode::SETLANG:
+                std::cout << ' ' << intl::language_string(line.get<int>());
                 break;
             case opcode::IMPORT:
             case opcode::SETLAYOUT:

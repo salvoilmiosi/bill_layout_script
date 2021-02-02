@@ -21,12 +21,15 @@ enum class spacer_index : uint8_t {
     SPACER_H,
 };
 
-struct variable_idx {
+struct variable_name {
     std::string name;
+    bool global;
+};
+
+struct variable_idx {
+    variable_name name;
     small_int index;
     small_int range_len;
-
-    static constexpr char global_identifier = '*';
 };
 
 struct jump_address {
@@ -58,9 +61,11 @@ struct jump_address {
     O(GEQ),                         /* var_stack * 2 -> a >= b -> var_stack */ \
     O(LEQ),                         /* var_stack * 2 -> a >= b -> var_stack */ \
     O(SELVAR,       variable_idx),  /* (name, index, size) -> ref_stack */ \
-    O(SELVARTOP,    std::string),   /* var_stack -> (name, top, 1) -> ref_stack */ \
-    O(SELRANGETOP,  std::string),   /* var_stack * 2 -> (name, top-1, top) -> ref_stack */ \
-    O(SELRANGEALL,  std::string),   /* (name, 0, size) -> ref_stack */ \
+    O(SELVARTOP,    variable_name), /* var_stack -> (name, top, 1) -> ref_stack */ \
+    O(SELRANGETOP,  variable_name), /* var_stack * 2 -> (name, top-1, top) -> ref_stack */ \
+    O(SELRANGEALL,  variable_name), /* (name, 0, size) -> ref_stack */ \
+    O(ISSET,        variable_name), /* ref_stack -> size() != 0 -> var_stack */ \
+    O(GETSIZE,      variable_name), /* ref_stack -> size() -> var_stack */ \
     O(CLEAR),                       /* ref_stack -> clear */ \
     O(SETVAR),                      /* ref_stack, var_stack -> set */ \
     O(RESETVAR),                    /* ref_stack, var_stack -> reset */ \
@@ -78,8 +83,6 @@ struct jump_address {
     O(HLT),                         /* ferma l'esecuzione */ \
     O(INC),                         /* ref_stack, var_stack -> += top */ \
     O(DEC),                         /* ref_stack, var_stack -> -= top */ \
-    O(ISSET,        std::string),   /* ref_stack -> size() != 0 -> var_stack */ \
-    O(GETSIZE,      std::string),   /* ref_stack -> size() -> var_stack */ \
     O(MOVCONTENT),                  /* var_stack -> content_stack */ \
     O(SETBEGIN),                    /* var_stack -> content_stack.top.setbegin */ \
     O(SETEND),                      /* var_stack -> content_stack.top.setend */ \
@@ -94,7 +97,7 @@ struct jump_address {
     O(IMPORT,    std::filesystem::path), /* importa il file e lo esegue */ \
     O(SETLAYOUT, std::filesystem::path), /* IMPORT + hint per autolayout */ \
     O(COMMENT,      std::string),   /* dati ignorati */ \
-    O(SETLANG,      std::string),   /* imposta la lingua del layout */ \
+    O(SETLANG,      int),           /* imposta la lingua del layout */ \
 }
 
 #define O_1_ARGS(x) O_IMPL(x, void)
@@ -122,7 +125,9 @@ private:
 
     template<typename T>
     void check_type() const {
-        assert(typeid(T) == *opcode_types[int(m_command)]);
+        if(typeid(T) != *opcode_types[int(m_command)]) {
+            assert(false);
+        }
     }
 
 public:

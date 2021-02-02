@@ -10,14 +10,15 @@ namespace intl {
 
     const std::string &number_format();
 
-    std::string system_language();
+    std::string language_string(int lang);
+    int language_int(const std::string &lang);
 
     class locale {
     public:
         locale();
         ~locale();
 
-        void set_language(const std::string &language_name);
+        void set_language(int lang);
         
     private:
         wxLocale *m_locale = nullptr;

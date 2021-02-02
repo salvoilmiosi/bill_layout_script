@@ -38,12 +38,12 @@ void reader::exec_command(const command_args &cmd) {
         m_vars.push(std::move(ret));
     };
 
-    auto create_ref = [&](const std::string &name, auto ... args) {
-        if (name.ends_with(variable_idx::global_identifier)) {
-            return variable_ref(m_out.globals, name.substr(0, name.size() - 1), args ...);
+    auto create_ref = [&](const variable_name &name, auto ... args) {
+        if (name.global) {
+            return variable_ref(m_out.globals, name.name, args ...);
         } else {
             while (m_out.values.size() <= m_current_table) m_out.values.emplace_back();
-            return variable_ref(m_out.values[m_current_table], name, args ...);
+            return variable_ref(m_out.values[m_current_table], name.name, args ...);
         }
     };
 
@@ -100,13 +100,13 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::LEQ: OP(a <= b); break;
 #undef OP
     case opcode::SELVARTOP:
-        m_refs.emplace_back(create_ref(cmd.get<std::string>(),
+        m_refs.emplace_back(create_ref(cmd.get<variable_name>(),
             m_vars.top().as_int(), 1));
         m_vars.pop();
         break;
     case opcode::SELRANGEALL:
     {
-        auto ref = create_ref(cmd.get<std::string>());
+        auto ref = create_ref(cmd.get<variable_name>());
         ref.range_len = ref.size();
         m_refs.push(std::move(ref));
         break;
@@ -120,7 +120,7 @@ void reader::exec_command(const command_args &cmd) {
     }
     case opcode::SELRANGETOP:
     {
-        auto ref = create_ref(cmd.get<std::string>());
+        auto ref = create_ref(cmd.get<variable_name>());
         ref.range_len = m_vars.top().as_int();
         m_vars.pop();
         ref.index = m_vars.top().as_int();
@@ -128,6 +128,12 @@ void reader::exec_command(const command_args &cmd) {
         m_refs.push(std::move(ref));
         break;
     }
+    case opcode::ISSET:
+        m_vars.push(create_ref(cmd.get<variable_name>()).size() != 0);
+        break;
+    case opcode::GETSIZE:
+        m_vars.push(create_ref(cmd.get<variable_name>()).size());
+        break;
     case opcode::MVBOX:
         switch (cmd.get<spacer_index>()) {
         case spacer_index::SPACER_PAGE:
@@ -210,12 +216,6 @@ void reader::exec_command(const command_args &cmd) {
         m_vars.pop();
         m_refs.pop();
         break;
-    case opcode::ISSET:
-        m_vars.push(create_ref(cmd.get<std::string>()).size() != 0);
-        break;
-    case opcode::GETSIZE:
-        m_vars.push(create_ref(cmd.get<std::string>()).size());
-        break;
     case opcode::MOVCONTENT:
         m_contents.push(std::move(m_vars.top().str()));
         m_vars.pop();
@@ -257,7 +257,7 @@ void reader::exec_command(const command_args &cmd) {
         jump_subroutine(add_layout(cmd.get<std::filesystem::path>()));
         break;
     case opcode::SETLANG:
-        m_locale.set_language(cmd.get<std::string>());
+        m_locale.set_language(cmd.get<int>());
         break;
     }
 }
