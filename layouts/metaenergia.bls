@@ -121,15 +121,15 @@ $with(&_dettaglio) {
   %trasporto_gestione = $search(@,/TOTALE SERVIZI DI RETE (\N)/)
   %potenza[0:3] = $search($search(@,/Quota Potenza\n((Dal.+\n)+)/),
     $format(/al \d\d\/$0 \u20ac\/kW \N (\N)/,_mese))
-  $foreach($searchall(@,/Energia Reattiva F[1-3] 75%-100%\n((Dal.+\n)+)/)) {
+  $foreach($matches(@,/Energia Reattiva F[1-3] 75%-100%\n((Dal.+\n)+)/)) {
     %penale_reattiva_inf75+=$search(@,$format(/al \d\d\/$0 \u20ac\/kVARh \N \N (\N)/,_mese))
   }
-  $foreach($searchall(@,/Energia Reattiva F[1-3] 33%-75%\n((Dal.+\n)+)/)) {
+  $foreach($matches(@,/Energia Reattiva F[1-3] 33%-75%\n((Dal.+\n)+)/)) {
     %penale_reattiva_sup75+=$search(@,$format(/al \d\d\/$0 \u20ac\/kVARh \N \N (\N)/,_mese))
   }
   %accise=$search($search(@,/IMPOSTE SUI CONSUMI\nAccisa\n((Dal.+\n)+)/),
     $format(/al \d\d\/$0 \u20ac\/kWh \N \N (\N)/,_mese))
-  $foreach($searchall(
+  $foreach($matches(
     $search(@,/Corrispettivo Tariffario Specifico.+\n((Dal.+\n)+)/),
       /\u20ac \N \N (\N)/)) %cts+
 }
@@ -141,7 +141,7 @@ $with(&_dettaglio) {
 ### Mode DEFAULT
 ### Rect 1 0.5064516 0.53105414 0.45645162 0.18005697
 ### Script
-$foreach($searchall(@,/(IVA \d+% su imponibile di \u20ac \N)/)) {
+$foreach($matches(@,/(IVA \d+% su imponibile di \u20ac \N)/)) {
   %_imp=$search(@,/imponibile di \u20ac (\N)/)
   $if(_imp > $coalesce(imponibile,0)) {
     imponibile=_imp

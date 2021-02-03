@@ -116,20 +116,20 @@ $step($captures(@,$format(/Componente energia - F3 .+ al \d\d\/$0 \u20ac\/kWh (\
 %accise=$search(@,$format(/Imposta erariale di consumo \(accisa\) .+ al \d\d\/$0 \u20ac\/kWh \N \N kWh (\N) \u20ac/,_mese))
 iva=$search(@,/IVA (\d+%)/)
 $between("Spesa per l'energia","Spesa per il trasporto") {
-  $foreach($searchall($replace(@,"\u2212","-"),
+  $foreach($matches($replace(@,"\u2212","-"),
     $format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))) %spesa_materia_energia+
 }
 $between("Spesa per il trasporto","Spesa per gli oneri") {
-  $foreach($searchall($replace(@,"\u2212","-"),
+  $foreach($matches($replace(@,"\u2212","-"),
     $format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))) %trasporto_gestione+
 }
 $between("Spesa per gli oneri","Totale Imposte") {
-  $foreach($searchall($replace(@,"\u2212","-"),
+  $foreach($matches($replace(@,"\u2212","-"),
     $format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))) %oneri+
 }
 imponibile=spesa_materia_energia+trasporto_gestione+oneri
 $between("Imposte e IVA","TOTALE") {
-  $foreach($searchall($replace(@,"\u2212","-"),
+  $foreach($matches($replace(@,"\u2212","-"),
     $format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))) %imponibile+
 }
 ### End Script

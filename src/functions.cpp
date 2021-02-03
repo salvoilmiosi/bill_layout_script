@@ -159,7 +159,7 @@ static const std::unordered_map<string, function_handler> lookup {
     create_function("search", [](string_view str, string_view regex, optional<int> index) {
         return search_regex(regex, str, index.value_or(1));
     }),
-    create_function("searchall", [](string_view str, string_view regex, optional<int> index) {
+    create_function("matches", [](string_view str, string_view regex, optional<int> index) {
         return string_join(search_regex_all(regex, str, index.value_or(1)), std::string_view("\0", 1));
     }),
     create_function("captures", [](string_view str, string_view regex) {

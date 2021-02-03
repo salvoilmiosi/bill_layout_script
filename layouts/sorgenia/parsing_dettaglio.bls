@@ -7,7 +7,7 @@
 ### Rect 1 0 0 0 0
 ### Script
 $with(::_dettaglio) {
-  $foreach($searchall(@,/Corrispettivo Tariffario Specifico dal \d+\/\d+\/\d+ al \d+\/\d+\/\d+ (\N)/)) %cts+
+  $foreach($matches(@,/Corrispettivo Tariffario Specifico dal \d+\/\d+\/\d+ al \d+\/\d+\/\d+ (\N)/)) %cts+
   iva=$search(@,/Iva (\d+%)/)
 
   $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")))

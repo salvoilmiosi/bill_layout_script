@@ -170,8 +170,8 @@ _mese_full=$date_format(mese_fattura,"%B %Y")
 _mese_abbr=$date_format(mese_fattura,"%m/%Y")
 $with(::_dettaglio) {
   $between("SPESA PER LA MATERIA ENERGIA","TOTALE SPESA PER LA MATERIA ENERGIA") {
-    $foreach($searchall(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %spesa_materia_energia+
-    $foreach($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
+    $foreach($matches(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %spesa_materia_energia+
+    $foreach($matches(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
       %spesa_materia_energia+=$search(@,/(\N)$/)
     }
     $with($search(@,$format(/(In F1 dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0 [^]+)(dal|Totale|$)/,_mese_abbr))) {   
@@ -187,15 +187,15 @@ $with(::_dettaglio) {
     }
   }
   $between("SPESA PER IL TRASPORTO","TOTALE SPESA PER IL TRASPORTO") {
-    $foreach($searchall(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %trasporto_gestione+
-    $foreach($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
+    $foreach($matches(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %trasporto_gestione+
+    $foreach($matches(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
       %trasporto_gestione+=$search(@,/(\N)$/)
     }
     %potenza[0:3]=$search(@,$format(/QUOTA POTENZA\n$0.+ kW (\N) mesi \N/,_mese_full))
   }
   $between("SPESA PER ONERI DI SISTEMA","TOTALE SPESA PER ONERI") {
-    $foreach($searchall(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %oneri+
-    $foreach($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
+    $foreach($matches(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %oneri+
+    $foreach($matches(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
       %oneri+=$search(@,/(\N)$/)
     }
   }

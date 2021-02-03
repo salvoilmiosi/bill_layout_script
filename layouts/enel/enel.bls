@@ -188,20 +188,20 @@ $with(::_dettaglio) {
   %accise=$search(@,$format(/Accisa sull'energia elettrica \(entro 200000\) dal \d\d\/$0.+kWh \N \d+ (\N)/,_mese))
 
   $between("SPESA PER L'ENERGIA", "Totale spesa per l'energia") {
-    $foreach($searchall(@,$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
+    $foreach($matches(@,$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
       %spesa_materia_energia+=$search(@,/(\N)$/)
     }
   }
   $between("SPESA PER IL TRASPORTO", "Totale spesa per il trasporto") {
-    $with($searchall($singleline(@),$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
-      $foreach($searchall(@,/mesi.?1 (\N)/)) %trasporto_gestione+
-      $foreach($searchall(@,/\/kWh \N \d+ (\N)/)) %trasporto_gestione+
-      $foreach($searchall(@,/\/kVarh \N \d+ (\N)/)) %trasporto_gestione+
+    $with($matches(@,$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
+      $foreach($matches(@,/mesi.?1 (\N)/)) %trasporto_gestione+
+      $foreach($matches(@,/\/kWh \N \d+ (\N)/)) %trasporto_gestione+
+      $foreach($matches(@,/\/kVarh \N \d+ (\N)/)) %trasporto_gestione+
       %potenza[0:3]=$search(@,/kW (\N)/)
     }
   }
   $between("SPESA ONERI DI SISTEMA", "Totale spesa oneri di sistema") {
-    $foreach($searchall($singleline(@),$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
+    $foreach($matches(@,$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
       %oneri+=$search(@,/mesi.?1 (\N)/)
       %oneri+=$search(@,/\/kWh \N \d+ (\N)/)
     }
