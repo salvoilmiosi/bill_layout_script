@@ -35,10 +35,6 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     return true;
 }
 
-static const char *spacer_index_names[] = {
-    "PAGE", "X", "Y", "W", "H"
-};
-
 std::string quoted_string(const std::string &str) {
     std::string ret = Json::Value(str).toStyledString();
     string_trim(ret);

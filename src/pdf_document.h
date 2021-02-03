@@ -10,13 +10,13 @@
 #include <poppler-page.h>
 
 #define BOX_TYPES { \
-    BOX(BOX_RECTANGLE,  "Rettangolo"), \
-    BOX(BOX_PAGE,       "Pagina"), \
-    BOX(BOX_FILE,       "File"), \
-    BOX(BOX_NOREAD,     "Nessuna Lettura") \
+    BOX(RECTANGLE,  "Rettangolo"), \
+    BOX(PAGE,       "Pagina"), \
+    BOX(WHOLEFILE,  "File"), \
+    BOX(NOREAD,     "Nessuna Lettura") \
 }
 
-#define BOX(x, y) x
+#define BOX(x, y) BOX_##x
 enum class box_type : uint8_t BOX_TYPES;
 #undef BOX
 #define BOX(x, y) #x
@@ -27,12 +27,12 @@ constexpr const char *box_type_labels[] = BOX_TYPES;
 #undef BOX
 
 #define READ_MODES { \
-    MODE(MODE_DEFAULT,  "Default",  non_raw_non_physical_layout), \
-    MODE(MODE_LAYOUT,   "Layout",   physical_layout), \
-    MODE(MODE_RAW,      "Grezza",   raw_order_layout), \
+    MODE(DEFAULT,  "Default",  non_raw_non_physical_layout), \
+    MODE(LAYOUT,   "Layout",   physical_layout), \
+    MODE(RAW,      "Grezza",   raw_order_layout), \
 }
 
-#define MODE(x, y, z) x
+#define MODE(x, y, z) MODE_##x
 enum class read_mode : uint8_t READ_MODES;
 #undef MODE
 #define MODE(x, y, z) #x

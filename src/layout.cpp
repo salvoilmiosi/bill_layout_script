@@ -88,18 +88,18 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                     fail = false;
                     break;
                 } else if (auto suf = suffix(line, "### Type")) {
-                    for (size_t i=0; i<std::size(box_type_strings); ++i) {
-                        if (box_type_strings[i] == suf.value) {
-                            current->type = static_cast<box_type>(i);
-                            break;
-                        }
+                    auto it = std::find(std::begin(box_type_strings), std::end(box_type_strings), suf.value);
+                    if (it != std::end(box_type_strings)) {
+                        current->type = static_cast<box_type>(it - box_type_strings);
+                    } else {
+                        throw layout_error(fmt::format("Tipo non valido: {}", suf.value));
                     }
                 } else if (auto suf = suffix(line, "### Mode")) {
-                    for (size_t i=0; i<std::size(read_mode_strings); ++i) {
-                        if (read_mode_strings[i] == suf.value) {
-                            current->mode = static_cast<read_mode>(i);
-                            break;
-                        }
+                    auto it = std::find(std::begin(read_mode_strings), std::end(read_mode_strings), suf.value);
+                    if (it != std::end(read_mode_strings)) {
+                        current->mode = static_cast<read_mode>(it - read_mode_strings);
+                    } else {
+                        throw layout_error(fmt::format("Modalità non valida: {}", suf.value));
                     }
                 } else if (auto suf = suffix(line, "### Rect")) {
                     std::istringstream ss(std::string(suf.value));

@@ -50,7 +50,7 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
     }
     case box_type::BOX_PAGE:
         return to_stdstring(get_page(rect.page).text(poppler::rectf(), poppler_mode));
-    case box_type::BOX_FILE: {
+    case box_type::BOX_WHOLEFILE: {
         poppler::ustring ret;
         for (auto &page : m_pages) {
             ret.append(page->text(poppler::rectf(), poppler_mode));

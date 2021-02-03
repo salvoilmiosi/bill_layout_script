@@ -2,8 +2,8 @@
 ### Language it_IT
 
 ### Box Convalida Layout
-### Type BOX_RECTANGLE
-### Mode MODE_DEFAULT
+### Type RECTANGLE
+### Mode DEFAULT
 ### Rect 1 0.07538146 0.31081033 0.82919604 0.024828043
 ### Script
 $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
@@ -12,8 +12,8 @@ $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
 ### End Box
 
 ### Box Lettura Dettaglio
-### Type BOX_RECTANGLE
-### Mode MODE_LAYOUT
+### Type RECTANGLE
+### Mode LAYOUT
 ### Rect 3 0.040290102 0.080957815 0.91055596 0.86431015
 ### Goto Label lettura_dati
 ### Spacers
@@ -30,8 +30,8 @@ $ifnot($ate() || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
 ### End Box
 
 ### Box Nome Fornitore
-### Type BOX_NOREAD
-### Mode MODE_DEFAULT
+### Type NOREAD
+### Mode DEFAULT
 ### Rect 1 0.061290324 0.04104903 0.36129034 0.08323831
 ### Goto Label nome_fornitore
 ### Script
@@ -40,8 +40,8 @@ fornitore="Sorgenia"
 ### End Box
 
 ### Box Numero cliente
-### Type BOX_RECTANGLE
-### Mode MODE_LAYOUT
+### Type RECTANGLE
+### Mode LAYOUT
 ### Rect 1 0.48481974 0.010436194 0.46489564 0.104729146
 ### Script
 numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
@@ -49,8 +49,8 @@ numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 ### End Box
 
 ### Box Ragione sociale
-### Type BOX_RECTANGLE
-### Mode MODE_DEFAULT
+### Type RECTANGLE
+### Mode DEFAULT
 ### Rect 1 0.076612905 0.15037057 0.38810483 0.02850627
 ### Script
 ragione_sociale
@@ -58,8 +58,8 @@ ragione_sociale
 ### End Box
 
 ### Box Numero / Data Fattura
-### Type BOX_RECTANGLE
-### Mode MODE_LAYOUT
+### Type RECTANGLE
+### Mode LAYOUT
 ### Rect 1 0.078366615 0.33640674 0.38614953 0.039876044
 ### Script
 numero_fattura=$search(@,/N\. fattura (.+)/)
@@ -68,8 +68,8 @@ data_fattura=$date(@,"%d/%m/%Y",/Emessa il (\D)/)
 ### End Box
 
 ### Box POD / Indirizzo
-### Type BOX_RECTANGLE
-### Mode MODE_LAYOUT
+### Type RECTANGLE
+### Mode LAYOUT
 ### Rect 1 0.47096774 0.33537194 0.46042183 0.05117309
 ### Script
 codice_pod=$search(@,/per il punto di fornitura \(POD\) ([0-9A-Z]+)/)
@@ -78,8 +78,8 @@ indirizzo_fornitura=$singleline($search(@,/\ndi ([^]+\(..\))/))
 ### End Box
 
 ### Box Periodo
-### Type BOX_RECTANGLE
-### Mode MODE_DEFAULT
+### Type RECTANGLE
+### Mode DEFAULT
 ### Rect 1 0.07358871 0.4846066 0.31149194 0.023517672
 ### Script
 mese_fattura=$month(@,"%B %Y")
@@ -92,8 +92,8 @@ $ifnot($isset(mese_fattura)) {
 ### End Box
 
 ### Box Data scadenza
-### Type BOX_RECTANGLE
-### Mode MODE_DEFAULT
+### Type RECTANGLE
+### Mode DEFAULT
 ### Rect 1 0.7051532 0.43586698 0.23481973 0.04943812
 ### Script
 data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/)
@@ -101,8 +101,8 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/)
 ### End Box
 
 ### Box Totale spesa
-### Type BOX_RECTANGLE
-### Mode MODE_DEFAULT
+### Type RECTANGLE
+### Mode DEFAULT
 ### Rect 1 0.31451613 0.43543327 0.36794356 0.033494867
 ### Script
 %totale_fattura
@@ -110,8 +110,8 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/)
 ### End Box
 
 ### Box Potenza Impegnata
-### Type BOX_RECTANGLE
-### Mode MODE_LAYOUT
+### Type RECTANGLE
+### Mode LAYOUT
 ### Rect 2 0.6946011 0.085518815 0.26752618 0.05359179
 ### Script
 %potenza[0:3]=$search(@,/Potenza impegnata: (\N)/)
@@ -119,8 +119,8 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/)
 ### End Box
 
 ### Box Energia Attiva
-### Type BOX_RECTANGLE
-### Mode MODE_LAYOUT
+### Type RECTANGLE
+### Mode LAYOUT
 ### Rect 2 0.058017727 0.3854048 0.35532874 0.53301203
 ### Script
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
@@ -134,8 +134,8 @@ $tokens($search($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/),
 ### End Box
 
 ### Box Energia Reattiva
-### Type BOX_RECTANGLE
-### Mode MODE_LAYOUT
+### Type RECTANGLE
+### Mode LAYOUT
 ### Rect 2 0.058017727 0.38654503 0.2352941 0.53301203
 ### Script
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
@@ -149,8 +149,8 @@ $tokens($search($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/),
 ### End Box
 
 ### Box Parsing Dettaglio
-### Type BOX_NOREAD
-### Mode MODE_DEFAULT
+### Type NOREAD
+### Mode DEFAULT
 ### Rect 3 0.26032954 0.030786771 0.057603687 0.04479557
 ### Script
 $import("parsing_dettaglio")

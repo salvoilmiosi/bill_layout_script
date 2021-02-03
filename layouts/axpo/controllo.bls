@@ -1,8 +1,8 @@
 ### Bill Layout Script
 
 ### Box Controllo layout
-### Type BOX_RECTANGLE
-### Mode MODE_DEFAULT
+### Type RECTANGLE
+### Mode DEFAULT
 ### Rect 1 0.03202087 0.06875042 0.19449715 0.03605205
 ### Script
 $if($contains(@,"C/O MILANO CENTRO")) {

@@ -13,13 +13,20 @@ struct command_call {
     small_int numargs;
 };
 
-enum class spacer_index : uint8_t {
-    SPACER_PAGE,
-    SPACER_X,
-    SPACER_Y,
-    SPACER_W,
-    SPACER_H,
-};
+#define SPACER_INDICES { \
+    SPACER(PAGE), \
+    SPACER(X), \
+    SPACER(Y), \
+    SPACER(W), \
+    SPACER(H) \
+}
+
+#define SPACER(x) SPACER_##x
+enum class spacer_index : uint8_t SPACER_INDICES;
+#undef SPACER
+#define SPACER(x) #x
+constexpr const char *spacer_index_names[] = SPACER_INDICES;
+#undef SPACER
 
 struct variable_name {
     std::string name;
