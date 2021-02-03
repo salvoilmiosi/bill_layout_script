@@ -13,7 +13,8 @@ src/parser.cpp
 src/parse_string.cpp
 src/pdf_document.cpp
 src/reader.cpp
-src/utils.cpp
+src/utils_date.cpp
+src/utils_string.cpp
 src/variable.cpp
 )
 

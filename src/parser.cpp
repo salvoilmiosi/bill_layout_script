@@ -433,10 +433,6 @@ void parser::read_function() {
     case hash("ate"):       void_function(opcode::ATE); break;
     case hash("boxwidth"):  void_function(opcode::PUSHNUM, fixed_point(current_box->w)); break;
     case hash("boxheight"): void_function(opcode::PUSHNUM, fixed_point(current_box->h)); break;
-    case hash("date"):
-    case hash("month"):
-        read_date_fun(fun_name);
-        break;
     default: {
         small_int num_args = 0;
         m_lexer.require(TOK_PAREN_BEGIN);
@@ -476,96 +472,5 @@ void parser::read_function() {
             add_line(opcode::CALL, command_call{fun_name, num_args});
         }
     }
-    }
-}
-
-void parser::read_date_fun(const std::string &fun_name) {
-    m_lexer.require(TOK_PAREN_BEGIN);
-    read_expression();
-    auto tok_first = m_lexer.next();
-    switch (tok_first.type) {
-    case TOK_COMMA: {
-        std::string fmt_string = m_lexer.require(TOK_STRING).parse_string();
-        add_line(opcode::PUSHSTR, fmt_string);
-        std::string regex = "(\\D)";
-        int idx = 1;
-
-        auto tok_comma = m_lexer.next();
-        switch (tok_comma.type) {
-        case TOK_COMMA: {
-            regex = m_lexer.require(TOK_REGEXP).parse_string();
-            auto tok = m_lexer.next();
-            switch (tok.type) {
-            case TOK_INTEGER:
-                idx = cstoi(tok.value);
-                m_lexer.require(TOK_PAREN_END);
-                break;
-            case TOK_PAREN_END:
-                break;
-            default:
-                throw unexpected_token(tok, TOK_PAREN_END);
-            }
-            break;
-        }
-        case TOK_PAREN_END:
-            break;
-        default:
-            throw unexpected_token(tok_comma, TOK_PAREN_END);
-        }
-        
-        std::string date_regex = "\\b";
-        for (auto it = fmt_string.begin(); it != fmt_string.end(); ++it) {
-            if (*it == '.') {
-                date_regex += "\\.";
-            } else if (*it == '%') {
-                ++it;
-                switch (*it) {
-                case 'h':
-                case 'b':
-                case 'B':
-                    date_regex += "\\w+";
-                    break;
-                case 'd':
-                case 'm':
-                case 'y':
-                    date_regex += "\\d{2}";
-                    break;
-                case 'Y':
-                    date_regex += "\\d{4}";
-                    break;
-                case 'n':
-                    date_regex += '\n';
-                    break;
-                case 't':
-                    date_regex += '\t';
-                    break;
-                case '%':
-                    date_regex += '%';
-                    break;
-                default:
-                    date_regex += '%';
-                    date_regex += *it;
-                }
-            } else {
-                date_regex += *it;
-            }
-        }
-        date_regex += "\\b";
-
-        string_replace(regex, "\\D", date_regex);
-        add_line(opcode::PUSHSTR, regex);
-        if (idx != 1) {
-            add_line(opcode::PUSHNUM, fixed_point(idx));
-            add_line(opcode::CALL, command_call{fun_name, 4});
-        } else {
-            add_line(opcode::CALL, command_call{fun_name, 3});
-        }
-        break;
-    }
-    case TOK_PAREN_END:
-        add_line(opcode::CALL, command_call{fun_name, 1});
-        break;
-    default:
-        throw unexpected_token(tok_first, TOK_PAREN_END);
     }
 }
