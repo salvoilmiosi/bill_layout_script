@@ -148,9 +148,9 @@ $with(_dettaglio) {
   }
 
   $lines($searchall($search(@,/Energia Reattiva entro 75%\n((dal.+\n)+)/),
-    $format(/al \d\d\.$0 F[1-3] Euro\/kVarh \N \N (\N)/))) %penale_reattiva_inf75+
+    $format(/al \d\d\.$0 F[1-3] Euro\/kVarh \N \N (\N)/,_mese))) %penale_reattiva_inf75+
   $lines($searchall($search(@,/Energia Reattiva oltre 75%\n((dal.+\n)+)/),
-    $format(/al \d\d\.$0 F[1-3] Euro\/kVarh \N \N (\N)/))) %penale_reattiva_sup75+
+    $format(/al \d\d\.$0 F[1-3] Euro\/kVarh \N \N (\N)/,_mese))) %penale_reattiva_sup75+
   
   %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA IMPORTO \u20ac (\N)/)
   %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO IMPORTO \u20ac (\N)/)
