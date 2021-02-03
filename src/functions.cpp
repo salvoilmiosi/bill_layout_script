@@ -126,23 +126,6 @@ template<typename TypeList, size_t I> inline get_nth_t<I, TypeList> get_arg(arg_
     }
 }
 
-template<typename TypeList, typename Function, std::size_t ... Is>
-inline variable exec_helper(Function fun, arg_list &args, std::index_sequence<Is ...>) {
-    return fun(get_arg<TypeList, Is>(args)...);
-}
-
-void check_numargs(const string &name, size_t numargs, size_t minargs, size_t maxargs) {
-    if (numargs < minargs || numargs > maxargs) {
-        if (maxargs == std::numeric_limits<size_t>::max()) {
-            throw layout_error(fmt::format("La funzione {0} richiede almeno {1} argomenti", name, minargs));
-        } else if (minargs == maxargs) {
-            throw layout_error(fmt::format("La funzione {0} richiede {1} argomenti", name, minargs));
-        } else {
-            throw layout_error(fmt::format("La funzione {0} richiede {1}-{2} argomenti", name, minargs, maxargs));
-        }
-    }
-}
-
 using function_handler = std::function<variable(arg_list&&)>;
 
 template<typename Function>
@@ -156,9 +139,19 @@ inline std::pair<string, function_handler> create_function(const string &name, F
     // il numero di argomenti passati alla funzione e li passa
     // negli argomenti di fun, convertendoli nei tipi giusti
     return {name, [name, fun](arg_list &&args) {
-        check_numargs(name, args.size(), fun_args::minargs, fun_args::maxargs);
-        return exec_helper<typename fun_args::types>(fun, args,
-            std::make_index_sequence<fun_args::types::size>{});
+        if (args.size() < fun_args::minargs || args.size() > fun_args::maxargs) {
+            if (fun_args::maxargs == std::numeric_limits<size_t>::max()) {
+                throw layout_error(fmt::format("La funzione {0} richiede almeno {1} argomenti", name, fun_args::minargs));
+            } else if (fun_args::minargs == fun_args::maxargs) {
+                throw layout_error(fmt::format("La funzione {0} richiede {1} argomenti", name, fun_args::minargs));
+            } else {
+                throw layout_error(fmt::format("La funzione {0} richiede {1}-{2} argomenti", name, fun_args::minargs, fun_args::maxargs));
+            }
+        }
+
+        return [&] <std::size_t ... Is> (std::index_sequence<Is...>) {
+            return fun(get_arg<typename fun_args::types, Is>(args) ...);
+        }(std::make_index_sequence<fun_args::types::size>{});
     }};
 }
 
@@ -225,10 +218,7 @@ static const std::unordered_map<string, function_handler> lookup {
         }
     }),
     create_function("format", [](string format, vector<string> args) {
-        for (size_t i=0; i<args.size(); ++i) {
-            string_replace(format, fmt::format("${}", i), args[i]);
-        }
-        return format;
+        return string_format(format, args);
     }),
     create_function("coalesce", [](vector<variable> args) {
         for (auto &arg : args) {
