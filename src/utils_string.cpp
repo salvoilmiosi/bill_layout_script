@@ -132,8 +132,6 @@ std::string string_format(std::string_view str, const std::vector<std::string> &
 }
 
 static std::regex create_regex(std::string_view format) {
-    using namespace std::string_literals;
-
     try {
         return std::regex(format.begin(), format.end(), std::regex::icase);
     } catch (const std::regex_error &error) {
@@ -149,6 +147,18 @@ std::vector<std::string> search_regex_all(std::string_view format, std::string_v
         std::cregex_iterator(),
         std::back_inserter(ret),
         [index](const auto &match) { return match.str(index); });
+    return ret;
+}
+
+std::vector<std::string> search_regex_captures(std::string_view format, std::string_view value) {
+    std::vector<std::string> ret;
+    std::regex expression = create_regex(format);
+    std::cmatch match;
+    if (std::regex_search(value.begin(), value.end(), match, expression)) {
+        for (size_t i=1; i<match.size(); ++i) {
+            ret.push_back(match.str(i));
+        }
+    }
     return ret;
 }
 

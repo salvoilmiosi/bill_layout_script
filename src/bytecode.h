@@ -93,11 +93,10 @@ struct jump_address {
     O(MOVCONTENT),                  /* var_stack -> content_stack */ \
     O(SETBEGIN),                    /* var_stack -> content_stack.top.setbegin */ \
     O(SETEND),                      /* var_stack -> content_stack.top.setend */ \
-    O(NEWVIEW),                     /* content_stack.top.newview */ \
-    O(NEWTOKENS),                   /* content_stack.top.newtokens */ \
-    O(RESETVIEW),                   /* content_stack.top.resetview */ \
-    O(NEXTLINE),                    /* content_stack.top.next_token('\n') */ \
-    O(NEXTTOKEN),                   /* content_stack.top.next_token(' ') */ \
+    O(NEWVIEW),                     /* content_stack.top.newview() */ \
+    O(SUBVIEW),                     /* content_stack.top.newsubview() */ \
+    O(RESETVIEW),                   /* content_stack.top.resetview() */ \
+    O(NEXTRESULT),                  /* content_stack.top.next_result() */ \
     O(POPCONTENT),                  /* content_stack.pop() */ \
     O(NEXTTABLE),                   /* current_table++ */ \
     O(ATE),                         /* m_ate -> var_stack */ \

@@ -40,7 +40,7 @@ public:
         m_spans.push_back(m_spans.back());
     }
 
-    void new_tokens() {
+    void new_subview() {
         m_spans.emplace_back(m_spans.back().m_begin, m_spans.back().m_begin);
     }
 
@@ -50,14 +50,14 @@ public:
         }
     }
     
-    void next_token(std::string_view separator) {
+    void next_result() {
         if (m_spans.size() > 1) {
-            m_spans.back().m_begin = m_text.find_first_not_of(separator, m_spans.back().m_end);
+            m_spans.back().m_begin = m_text.find_first_not_of('\0', m_spans.back().m_end);
             if (token_end()) {
                 m_spans.back().m_begin = m_spans.back().m_end = m_spans[m_spans.size() - 2].m_end;
             } else {
                 m_spans.back().m_end = std::min(
-                    m_text.find_first_of(separator, m_spans.back().m_begin),
+                    m_text.find_first_of('\0', m_spans.back().m_begin),
                     m_spans[m_spans.size() - 2].m_end);
             }
         }

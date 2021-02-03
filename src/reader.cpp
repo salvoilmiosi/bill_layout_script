@@ -226,10 +226,9 @@ void reader::exec_command(const command_args &cmd) {
         m_vars.pop();
         break;
     case opcode::NEWVIEW: m_contents.top().new_view(); break;
-    case opcode::NEWTOKENS: m_contents.top().new_tokens(); break;
+    case opcode::SUBVIEW: m_contents.top().new_subview(); break;
     case opcode::RESETVIEW: m_contents.top().reset_view(); break;
-    case opcode::NEXTLINE: m_contents.top().next_token("\n"); break;
-    case opcode::NEXTTOKEN: m_contents.top().next_token("\t\n\v\f\r "); break;
+    case opcode::NEXTRESULT: m_contents.top().next_result(); break;
     case opcode::NEXTTABLE: ++m_current_table; break;
     case opcode::ATE: m_vars.push(m_last_box_page > m_doc->num_pages()); break;
     case opcode::RET:

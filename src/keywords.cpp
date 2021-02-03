@@ -115,7 +115,7 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_END);
         break;
     }
-    case hash("lines"): {
+    case hash("foreach"): {
         std::string lines_label = fmt::format("__lines_{}", m_code.size());
         std::string endlines_label = fmt::format("__endlines_{}", m_code.size());
         bool pushed_content = false;
@@ -125,9 +125,9 @@ void parser::read_keyword() {
             add_line(opcode::MOVCONTENT);
             pushed_content = true;
         }
-        add_line(opcode::NEWTOKENS);
+        add_line(opcode::SUBVIEW);
         add_label(lines_label);
-        add_line(opcode::NEXTLINE);
+        add_line(opcode::NEXTRESULT);
         add_line(opcode::JTE, jump_address{endlines_label, 0});
         read_statement();
         add_line(opcode::JMP, jump_address{lines_label, 0});
@@ -165,7 +165,7 @@ void parser::read_keyword() {
         add_line(opcode::RESETVIEW);
         break;
     }
-    case hash("tokens"): {
+    case hash("step"): {
         bool pushed_content = false;
         if (m_lexer.check_next(TOK_PAREN_BEGIN)) {
             read_expression();
@@ -174,11 +174,11 @@ void parser::read_keyword() {
             pushed_content = true;
         }
 
-        add_line(opcode::NEWTOKENS);
+        add_line(opcode::SUBVIEW);
         
         m_lexer.require(TOK_BRACE_BEGIN);
         while (!m_lexer.check_next(TOK_BRACE_END)) {
-            add_line(opcode::NEXTTOKEN);
+            add_line(opcode::NEXTRESULT);
             read_statement();
         }
 

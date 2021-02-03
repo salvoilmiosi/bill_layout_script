@@ -156,19 +156,22 @@ inline std::pair<string, function_handler> create_function(const string &name, F
 }
 
 static const std::unordered_map<string, function_handler> lookup {
-    create_function("search", [](string_view str, const string &regex, optional<int> index) {
+    create_function("search", [](string_view str, string_view regex, optional<int> index) {
         return search_regex(regex, str, index.value_or(1));
     }),
-    create_function("searchall", [](string_view str, const string &regex, optional<int> index) {
-        return string_join(search_regex_all(regex, str, index.value_or(1)), "\n");
+    create_function("searchall", [](string_view str, string_view regex, optional<int> index) {
+        return string_join(search_regex_all(regex, str, index.value_or(1)), std::string_view("\0", 1));
     }),
-    create_function("date", [](string_view str, const string &format, optional<string> regex, optional<int> index) {
+    create_function("captures", [](string_view str, string_view regex) {
+        return string_join(search_regex_captures(regex, str), std::string_view("\0", 1));
+    }),
+    create_function("date", [](string_view str, const string &format, optional<string_view> regex, optional<int> index) {
         return parse_date(format, str, regex.value_or(""), index.value_or(1));
     }),
-    create_function("month", [](string_view str, optional<string> format, optional<string> regex, optional<int> index) {
+    create_function("month", [](string_view str, optional<string> format, optional<string_view> regex, optional<int> index) {
         return parse_month(format.value_or(""), str, regex.value_or(""), index.value_or(1));
     }),
-    create_function("replace", [](string &&value, const string &regex, const string &to) {
+    create_function("replace", [](string &&value, string_view regex, const string &to) {
         return string_replace_regex(value, regex, to);
     }),
     create_function("date_format", [](string_view date, const string &format) {
