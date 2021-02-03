@@ -94,11 +94,41 @@ size_t string_findicase(std::string_view str, std::string_view str2, size_t inde
     ));
 }
 
-std::string string_format(std::string str, const std::vector<std::string> &fmt_args) {
-    for (size_t i=0; i<fmt_args.size(); ++i) {
-        string_replace(str, fmt::format("${}", i), fmt_args[i]);
+std::string string_format(std::string_view str, const std::vector<std::string> &fmt_args) {
+    static constexpr char FORMAT_CHAR = '$';
+    std::string ret;
+    auto it = str.begin();
+    while (it != str.end()) {
+        if (*it == FORMAT_CHAR) {
+            ++it;
+            if (it == str.end()) {
+                ret += FORMAT_CHAR;
+                break;
+            }
+            if (*it >= '0' && *it <= '9') {
+                size_t idx = 0;
+                while (*it >= '0' && *it <= '9') {
+                    idx = idx * 10 + (*it - '0');
+                    ++it;
+                }
+                if (idx < fmt_args.size()) {
+                    ret += fmt_args[idx];
+                    continue;
+                } else {
+                    throw std::runtime_error(fmt::format("Stringa di formato non valida: {}", str));
+                }
+            } else {
+                ret += FORMAT_CHAR;
+                if (*it != FORMAT_CHAR) {
+                    ret += *it;
+                }
+            }
+        } else {
+            ret += *it;
+        }
+        ++it;
     }
-    return str;
+    return ret;
 }
 
 static std::regex create_regex(std::string_view format) {

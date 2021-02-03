@@ -217,7 +217,7 @@ static const std::unordered_map<string, function_handler> lookup {
             return variable::null_var();
         }
     }),
-    create_function("format", [](string format, vector<string> args) {
+    create_function("format", [](string_view format, vector<string> args) {
         return string_format(format, args);
     }),
     create_function("coalesce", [](vector<variable> args) {

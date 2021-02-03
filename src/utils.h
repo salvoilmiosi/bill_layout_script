@@ -32,7 +32,7 @@ int cstoi(std::string_view str);
 size_t string_findicase(std::string_view str, std::string_view str2, size_t index);
 
 // Formatta la stringa data, sostituendo $0 in fmt_args[0], $1 in fmt_args[1] e così via
-std::string string_format(std::string str, const std::vector<std::string> &fmt_args);
+std::string string_format(std::string_view str, const std::vector<std::string> &fmt_args);
 
 // converte i vari formati di data in formato yyyy-mm-dd
 std::string parse_date(const std::string &format, std::string_view value, std::string_view regex, int index);
