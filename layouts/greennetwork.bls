@@ -126,12 +126,10 @@ p+::off_allegati
 p+::off_allegati
 ### End Spacers
 ### Script
-$tokens($search(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ (.+)/,$date_format(mese_fattura,"%m/%Y")))) {
-  $skip()
+$step($captures(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ \N (\N) (\N) (\N) \N (\N) (\N) (\N) (\N)/,$date_format(mese_fattura,"%m/%Y")))) {
   %energia_attiva_rilevata[0]
   %energia_attiva_rilevata[1]
   %energia_attiva_rilevata[2]
-  $skip()
   %energia_reattiva[0]
   %energia_reattiva[1]
   %energia_reattiva[2]
@@ -162,13 +160,13 @@ p+::off_allegati
 ### Script
 _mese=$date_format(mese_fattura,"%m/%Y")
 $with($search(@,/Componente di Generazione.+\n((Dal.+\n)+)/)) {
-  $tokens($search(@,$format(/F1 .+\d\d\/$0 \u20ac\/kWh (\N \N) kWh/,_mese))) {
+  $step($captures(@,$format(/F1 .+\d\d\/$0 \u20ac\/kWh (\N) (\N) kWh/,_mese))) {
     %prezzo_energia[0] %energia_attiva[0]
   }
-  $tokens($search(@,$format(/F2 .+\d\d\/$0 \u20ac\/kWh (\N \N) kWh/,_mese))) {
+  $step($captures(@,$format(/F2 .+\d\d\/$0 \u20ac\/kWh (\N) (\N) kWh/,_mese))) {
     %prezzo_energia[1] %energia_attiva[1]
   }
-  $tokens($search(@,$format(/F3 .+\d\d\/$0 \u20ac\/kWh (\N \N) kWh/,_mese))) {
+  $step($captures(@,$format(/F3 .+\d\d\/$0 \u20ac\/kWh (\N) (\N) kWh/,_mese))) {
     %prezzo_energia[2] %energia_attiva[2]
   }
 }

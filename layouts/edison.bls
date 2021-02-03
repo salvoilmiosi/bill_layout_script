@@ -90,8 +90,8 @@ data_scadenza=$date(@,"%d %B %Y")
 ### Mode LAYOUT
 ### Rect 1 0.32505226 0.58302 0.6542018 0.22527969
 ### Script
-$tokens($search($replace(@,"\u2212","-"),
-  $format(/\w+ \d\d\/\d\d\/\d\d\d\d - \d\d\/$0 (\N \N \N)/,_mese)))
+$step($captures($replace(@,"\u2212","-"),
+  $format(/\w+ \d\d\/\d\d\/\d\d\d\d - \d\d\/$0 (\N) (\N) (\N)/,_mese)))
 {
   %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
 }
@@ -103,38 +103,34 @@ $tokens($search($replace(@,"\u2212","-"),
 ### Mode LAYOUT
 ### Rect 4 0.013715775 0.0849123 0.96867657 0.8248623
 ### Script
-$tokens($search(@,$format(/Componente energia - F1 .+ al \d\d\/$0 \u20ac\/kWh (\N \N) kWh/,_mese))) {
+$step($captures(@,$format(/Componente energia - F1 .+ al \d\d\/$0 \u20ac\/kWh (\N) (\N) kWh/,_mese))) {
   %prezzo_energia[0] %energia_attiva[0]
 }
-$tokens($search(@,$format(/Componente energia - F2 .+ al \d\d\/$0 \u20ac\/kWh (\N \N) kWh/,_mese))) {
+$step($captures(@,$format(/Componente energia - F2 .+ al \d\d\/$0 \u20ac\/kWh (\N) (\N) kWh/,_mese))) {
   %prezzo_energia[1] %energia_attiva[1]
 }
-$tokens($search(@,$format(/Componente energia - F3 .+ al \d\d\/$0 \u20ac\/kWh (\N \N) kWh/,_mese))) {
+$step($captures(@,$format(/Componente energia - F3 .+ al \d\d\/$0 \u20ac\/kWh (\N) (\N) kWh/,_mese))) {
   %prezzo_energia[2] %energia_attiva[2]
 }
 %potenza[0:3]=$search(@,$format(/Quota potenza .+ al \d\d\/$0 \u20ac\/kW\/mese \N (\N) kW/,_mese))
 %accise=$search(@,$format(/Imposta erariale di consumo \(accisa\) .+ al \d\d\/$0 \u20ac\/kWh \N \N kWh (\N) \u20ac/,_mese))
 iva=$search(@,/IVA (\d+%)/)
 $between("Spesa per l'energia","Spesa per il trasporto") {
-  $lines($replace(@,"\u2212","-")) {
-    %spesa_materia_energia+=$search(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
-  }
+  $foreach($searchall($replace(@,"\u2212","-"),
+    $format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))) %spesa_materia_energia+
 }
 $between("Spesa per il trasporto","Spesa per gli oneri") {
-  $lines($replace(@,"\u2212","-")) {
-    %trasporto_gestione+=$search(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
-  }
+  $foreach($searchall($replace(@,"\u2212","-"),
+    $format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))) %trasporto_gestione+
 }
 $between("Spesa per gli oneri","Totale Imposte") {
-  $lines($replace(@,"\u2212","-")) {
-    %oneri+=$search(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
-  }
+  $foreach($searchall($replace(@,"\u2212","-"),
+    $format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))) %oneri+
 }
 imponibile=spesa_materia_energia+trasporto_gestione+oneri
 $between("Imposte e IVA","TOTALE") {
-  $lines($replace(@,"\u2212","-")) {
-    %imponibile+=$search(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
-  }
+  $foreach($searchall($replace(@,"\u2212","-"),
+    $format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))) %imponibile+
 }
 ### End Script
 ### End Box

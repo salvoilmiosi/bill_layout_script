@@ -101,18 +101,18 @@ data_fattura=$date(@,"%d/%m/%Y",/Del: (\D)/)
 $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")))
 $setend($indexof(@,"\n",$indexof(@,"FORNITURA DI")))
 
-$tokens($search(@,/CONSUMI EFFETTIVI \(kWh\) (\N \N \N)/)) {
+$step($captures(@,/CONSUMI EFFETTIVI \(kWh\) (\N) (\N) (\N)/)) {
   %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
 }
 %spesa_materia_energia=$search(@,/SERVIZI DI VENDITA (\N)/)
 %pcv=$search(@,/PCV euro\/cliente\/mese \N \N (\N)/)
-$tokens($search(@,/Prezzo F1 euro\/kWh (\N \N)/)) {
+$step($captures(@,/Prezzo F1 euro\/kWh (\N) (\N)/)) {
   %prezzo_energia[0] %energia_attiva[0]
 }
-$tokens($search(@,/Prezzo F2 euro\/kWh (\N \N)/)) {
+$step($captures(@,/Prezzo F2 euro\/kWh (\N) (\N)/)) {
   %prezzo_energia[1] %energia_attiva[1]
 }
-$tokens($search(@,/Prezzo F3 euro\/kWh (\N \N)/)) {
+$step($captures(@,/Prezzo F3 euro\/kWh (\N) (\N)/)) {
   %prezzo_energia[2] %energia_attiva[2]
 }
 %trasporto_gestione=$search(@,/SERVIZI DI RETE (\N)/)

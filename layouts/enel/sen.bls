@@ -1,5 +1,4 @@
 ### Bill Layout Script
-### Language it_IT
 
 ### Box Convalida Layout
 ### Type RECTANGLE
@@ -153,10 +152,9 @@ ragione_sociale
 ### Rect 2 0.05040323 0.36969072 0.66280246 0.048995156
 ### Script
 $between("Consumi rilevati", "INFORMAZIONI PER I CLIENTI") {
-  $tokens($search(@,$format(/al \d\d\.$0 (.+)\n/,$date_format(mese_fattura,"%m.%Y")))) {
+  $step($captures(@,$format(/al \d\d\.$0 (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) \N \N \N (\N) (\N) (\N)/,$date_format(mese_fattura,"%m.%Y")))) {
     %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
-    $skip() $skip() $skip()
     %potenza[0] %potenza[1] %potenza[2]
   }
 }
@@ -172,32 +170,32 @@ _mese_full=$date_format(mese_fattura,"%B %Y")
 _mese_abbr=$date_format(mese_fattura,"%m/%Y")
 $with(::_dettaglio) {
   $between("SPESA PER LA MATERIA ENERGIA","TOTALE SPESA PER LA MATERIA ENERGIA") {
-    $lines($searchall(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %spesa_materia_energia+
-    $lines($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
+    $foreach($searchall(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %spesa_materia_energia+
+    $foreach($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
       %spesa_materia_energia+=$search(@,/(\N)$/)
     }
     $with($search(@,$format(/(In F1 dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0 [^]+)(dal|Totale|$)/,_mese_abbr))) {   
-      $tokens($search(@,/F1.+\/kWh (\N kWh \d+)/)) {
-        %prezzo_energia[0] $skip() %energia_attiva[0]
+      $step($captures(@,/F1.+\/kWh (\N) kWh (\d+)/)) {
+        %prezzo_energia[0] %energia_attiva[0]
       }
-      $tokens($search(@,/F2.+\/kWh (\N kWh \d+)/)) {
-        %prezzo_energia[1] $skip() %energia_attiva[1]
+      $step($captures(@,/F2.+\/kWh (\N) kWh (\d+)/)) {
+        %prezzo_energia[1] %energia_attiva[1]
       }
-      $tokens($search(@,/F3.+\/kWh (\N kWh \d+)/)) {
-        %prezzo_energia[2] $skip() %energia_attiva[2]
+      $step($captures(@,/F3.+\/kWh (\N) kWh (\d+)/)) {
+        %prezzo_energia[2] %energia_attiva[2]
       }
     }
   }
   $between("SPESA PER IL TRASPORTO","TOTALE SPESA PER IL TRASPORTO") {
-    $lines($searchall(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %trasporto_gestione+
-    $lines($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
+    $foreach($searchall(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %trasporto_gestione+
+    $foreach($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
       %trasporto_gestione+=$search(@,/(\N)$/)
     }
     %potenza[0:3]=$search(@,$format(/QUOTA POTENZA\n$0.+ kW (\N) mesi \N/,_mese_full))
   }
   $between("SPESA PER ONERI DI SISTEMA","TOTALE SPESA PER ONERI") {
-    $lines($searchall(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %oneri+
-    $lines($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
+    $foreach($searchall(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))) %oneri+
+    $foreach($searchall(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
       %oneri+=$search(@,/(\N)$/)
     }
   }

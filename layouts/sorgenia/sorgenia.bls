@@ -125,8 +125,8 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/)
 ### Script
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
-$tokens($search($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/),
-  $format(/$0 \w+ (\N \N \N)/,$date_format(mese_fattura,"%b - %y"))))
+$step($captures($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/),
+  $format(/$0 \w+ (\N) (\N) (\N)/,$date_format(mese_fattura,"%b - %y"))))
 {
   %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
 }
@@ -140,8 +140,8 @@ $tokens($search($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/),
 ### Script
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
-$tokens($search($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/),
-  $format(/$0 (\N \N \N)/,$date_format(mese_fattura,"%b - %y"))))
+$step($captures($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/),
+  $format(/$0 (\N) (\N) (\N)/,$date_format(mese_fattura,"%b - %y"))))
 {
   %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
 }

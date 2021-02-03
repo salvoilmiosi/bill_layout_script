@@ -132,24 +132,24 @@ $with(_dettaglio) {
   %pcv=$search($search(@,/Prezzo Commercializzazione Vendita\n((dal.+\n)+)/),
     $format(/al \d\d\.$0 euro\/\w+ \N \N (\N)/,_mese))
   $with($search(@,/Prezzo (?:Energia|Indicizzato)\n((dal.+\n)+)/)) {
-    $tokens($search(@,$format(/al \d\d\.$0 (?:F1|PEAK) Euro\/kWh (\N \N)/,_mese))) {
+    $step($captures(@,$format(/al \d\d\.$0 (?:F1|PEAK) Euro\/kWh (\N) (\N)/,_mese))) {
       %prezzo_energia[0] %energia_attiva[0]
     }
-    $tokens($search(@,$format(/al \d\d\.$0 (?:F2|OFFPEAK) Euro\/kWh (\N \N)/,_mese))) {
+    $step($captures(@,$format(/al \d\d\.$0 (?:F2|OFFPEAK) Euro\/kWh (\N) (\N)/,_mese))) {
       %prezzo_energia[1] %energia_attiva[1]
     }
-    $tokens($search(@,$format(/al \d\d\.$0 F3 Euro\/kWh (\N \N)/,_mese))) {
+    $step($captures(@,$format(/al \d\d\.$0 F3 Euro\/kWh (\N) (\N)/,_mese))) {
       %prezzo_energia[2] %energia_attiva[2]
     }
 
-    $tokens($search(@,$format(/al \d\d\.$0 Euro\/kWh (\N \N)/,_mese))) {
+    $step($captures(@,$format(/al \d\d\.$0 Euro\/kWh (\N) (\N)/,_mese))) {
       %prezzo_energia[0:3] %energia_attiva:
     }
   }
 
-  $lines($searchall($search(@,/Energia Reattiva entro 75%\n((dal.+\n)+)/),
+  $foreach($searchall($search(@,/Energia Reattiva entro 75%\n((dal.+\n)+)/),
     $format(/al \d\d\.$0 F[1-3] Euro\/kVarh \N \N (\N)/,_mese))) %penale_reattiva_inf75+
-  $lines($searchall($search(@,/Energia Reattiva oltre 75%\n((dal.+\n)+)/),
+  $foreach($searchall($search(@,/Energia Reattiva oltre 75%\n((dal.+\n)+)/),
     $format(/al \d\d\.$0 F[1-3] Euro\/kVarh \N \N (\N)/,_mese))) %penale_reattiva_sup75+
   
   %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA IMPORTO \u20ac (\N)/)

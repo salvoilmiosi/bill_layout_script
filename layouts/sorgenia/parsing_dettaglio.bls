@@ -7,7 +7,7 @@
 ### Rect 1 0 0 0 0
 ### Script
 $with(::_dettaglio) {
-  $lines($searchall(@,/Corrispettivo Tariffario Specifico dal \d+\/\d+\/\d+ al \d+\/\d+\/\d+ (\N)/)) %cts+
+  $foreach($searchall(@,/Corrispettivo Tariffario Specifico dal \d+\/\d+\/\d+ al \d+\/\d+\/\d+ (\N)/)) %cts+
   iva=$search(@,/Iva (\d+%)/)
 
   $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")))
@@ -18,17 +18,17 @@ $with(::_dettaglio) {
   %spesa_materia_energia=$search(@,/DETTAGLIO DELLA SPESA PER L\u2019ENERGIA ELETTRICA[^]+?(\N) DETTAGLIO/)
   %trasporto_gestione=$search(@,/DETTAGLIO DELLA SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA[^]+?(\N) IMPOSTE/)
 
-  $tokens($search(@,/Prezzo (?:F1|Picco|Ore Giorno) euro\/kWh (\N \N)/)) {
+  $step($captures(@,/Prezzo (?:F1|Picco|Ore Giorno) euro\/kWh (\N) (\N)/)) {
     %prezzo_energia[0] %energia_attiva[0]
   }
-  $tokens($search(@,/Prezzo (?:F2|Fuori Picco|Ore Notte) euro\/kWh (\N \N)/)) {
+  $step($captures(@,/Prezzo (?:F2|Fuori Picco|Ore Notte) euro\/kWh (\N) (\N)/)) {
     %prezzo_energia[1] %energia_attiva[1]
   }
-  $tokens($search(@,/Prezzo F3 euro\/kWh (\N \N)/)) {
+  $step($captures(@,/Prezzo F3 euro\/kWh (\N) (\N)/)) {
     %prezzo_energia[2] %energia_attiva[2]
   }
 
-  $tokens($search(@,/Prezzo energia(?: monorario)? euro\/kWh (\N \N)/)) {
+  $step($captures(@,/Prezzo energia(?: monorario)? euro\/kWh (\N) (\N)/)) {
     %prezzo_energia[0:3] %energia_attiva: 
   }
 
