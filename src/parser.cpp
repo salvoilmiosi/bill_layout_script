@@ -488,7 +488,7 @@ void parser::read_date_fun(const std::string &fun_name) {
         std::string fmt_string = m_lexer.require(TOK_STRING).parse_string();
         add_line(opcode::PUSHSTR, fmt_string);
         std::string regex = "(\\D)";
-        int idx = -1;
+        int idx = 1;
 
         auto tok_comma = m_lexer.next();
         switch (tok_comma.type) {
@@ -498,6 +498,7 @@ void parser::read_date_fun(const std::string &fun_name) {
             switch (tok.type) {
             case TOK_INTEGER:
                 idx = cstoi(tok.value);
+                m_lexer.require(TOK_PAREN_END);
                 break;
             case TOK_PAREN_END:
                 break;
@@ -512,18 +513,48 @@ void parser::read_date_fun(const std::string &fun_name) {
             throw unexpected_token(tok_comma, TOK_PAREN_END);
         }
         
-        std::string date_regex = "\\b" + fmt_string + "\\b";
-        string_replace(date_regex, ".", "\\.");
-        string_replace(date_regex, "%b", "\\w+");
-        string_replace(date_regex, "%B", "\\w+");
-        string_replace(date_regex, "%d", "\\d{2}");
-        string_replace(date_regex, "%m", "\\d{2}");
-        string_replace(date_regex, "%y", "\\d{2}");
-        string_replace(date_regex, "%Y", "\\d{4}");
+        std::string date_regex = "\\b";
+        for (auto it = fmt_string.begin(); it != fmt_string.end(); ++it) {
+            if (*it == '.') {
+                date_regex += "\\.";
+            } else if (*it == '%') {
+                ++it;
+                switch (*it) {
+                case 'h':
+                case 'b':
+                case 'B':
+                    date_regex += "\\w+";
+                    break;
+                case 'd':
+                case 'm':
+                case 'y':
+                    date_regex += "\\d{2}";
+                    break;
+                case 'Y':
+                    date_regex += "\\d{4}";
+                    break;
+                case 'n':
+                    date_regex += '\n';
+                    break;
+                case 't':
+                    date_regex += '\t';
+                    break;
+                case '%':
+                    date_regex += '%';
+                    break;
+                default:
+                    date_regex += '%';
+                    date_regex += *it;
+                }
+            } else {
+                date_regex += *it;
+            }
+        }
+        date_regex += "\\b";
 
         string_replace(regex, "\\D", date_regex);
         add_line(opcode::PUSHSTR, regex);
-        if (idx >= 0) {
+        if (idx != 1) {
             add_line(opcode::PUSHNUM, fixed_point(idx));
             add_line(opcode::CALL, command_call{fun_name, 4});
         } else {
