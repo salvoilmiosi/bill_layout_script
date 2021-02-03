@@ -92,14 +92,14 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                     if (it != std::end(box_type_strings)) {
                         current->type = static_cast<box_type>(it - box_type_strings);
                     } else {
-                        throw layout_error(fmt::format("Tipo non valido: {}", suf.value));
+                        throw layout_error(fmt::format("Token 'Type' non valido: {}", suf.value));
                     }
                 } else if (auto suf = suffix(line, "### Mode")) {
                     auto it = std::find(std::begin(read_mode_strings), std::end(read_mode_strings), suf.value);
                     if (it != std::end(read_mode_strings)) {
                         current->mode = static_cast<read_mode>(it - read_mode_strings);
                     } else {
-                        throw layout_error(fmt::format("Modalità non valida: {}", suf.value));
+                        throw layout_error(fmt::format("Token 'Mode' non valido: {}", suf.value));
                     }
                 } else if (auto suf = suffix(line, "### Rect")) {
                     std::istringstream ss(std::string(suf.value));

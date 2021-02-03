@@ -69,7 +69,8 @@ protected:
     token m_location;
 
 public:
-    parsing_error(const std::string &message, token location) : std::runtime_error(message), m_location(location) {}
+    parsing_error(auto &&message, token location) :
+        std::runtime_error(std::forward<decltype(message)>(message)), m_location(location) {}
 
     token location() const noexcept {
         return m_location;

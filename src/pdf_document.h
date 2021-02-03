@@ -80,7 +80,7 @@ private:
 };
 
 struct pdf_error : std::runtime_error {
-    pdf_error(const std::string &message) : std::runtime_error(message) {}
+    pdf_error(auto &&message) : std::runtime_error(std::forward<decltype(message)>(message)) {}
 };
 
 #endif // __PDF_DOCUMENT_H__
