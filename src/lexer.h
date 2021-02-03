@@ -60,6 +60,8 @@ struct token {
     operator bool () {
         return type != TOK_ERROR;
     }
+
+    std::string parse_string();
 };
 
 class parsing_error : public std::runtime_error {

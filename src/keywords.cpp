@@ -238,11 +238,7 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_BEGIN);
         auto tok_layout_name = m_lexer.require(TOK_STRING);
         m_lexer.require(TOK_PAREN_END);
-        std::string layout_name;
-        if (!parse_string_token(layout_name, tok_layout_name.value)) {
-            throw parsing_error("Costante stringa non valida", tok_layout_name);
-        }
-        auto imported_file = std::filesystem::canonical(m_layout->filename().parent_path() / (layout_name + ".bls"));
+        auto imported_file = std::filesystem::canonical(m_layout->filename().parent_path() / (tok_layout_name.parse_string() + ".bls"));
         if (fun_name == "import") {
             add_line(opcode::IMPORT, imported_file);
             if (!m_layout->language_code.empty()) {

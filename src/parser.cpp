@@ -139,8 +139,7 @@ bool parser::read_statement() {
         break;
     case TOK_END_OF_FILE:
         return false;
-    default:
-    {
+    default: {
         int flags = read_variable(false);
         
         auto tok = m_lexer.peek();
@@ -278,30 +277,18 @@ void parser::sub_expression() {
         m_lexer.advance(tok_first);
         add_line(opcode::PUSHNUM, fixed_point(std::string(tok_first.value)));
         break;
-    case TOK_SLASH: {
-        auto tok = m_lexer.require(TOK_REGEXP);
-        std::string str;
-        if (!parse_regexp_token(str, tok.value)) {
-            throw parsing_error("Costante regexp non valida", tok);
-        }
-        add_line(opcode::PUSHSTR, str);
+    case TOK_SLASH: 
+        add_line(opcode::PUSHSTR, m_lexer.require(TOK_REGEXP).parse_string());
         break;
-    }
-    case TOK_STRING: {
+    case TOK_STRING:
         m_lexer.advance(tok_first);
-        std::string str;
-        if (!parse_string_token(str, tok_first.value)) {
-            throw parsing_error("Costante stringa non valida", tok_first);
-        }
-        add_line(opcode::PUSHSTR, str);
+        add_line(opcode::PUSHSTR, tok_first.parse_string());
         break;
-    }
     case TOK_CONTENT:
         m_lexer.advance(tok_first);
         add_line(opcode::PUSHVIEW);
         break;
-    default:
-    {
+    default: {
         int flags = read_variable(true);
         if (flags & VAR_MOVE) {
             add_line(opcode::MOVEVAR);
@@ -450,8 +437,7 @@ void parser::read_function() {
     case hash("month"):
         read_date_fun(fun_name);
         break;
-    default:
-    {
+    default: {
         small_int num_args = 0;
         m_lexer.require(TOK_PAREN_BEGIN);
         while (true) {
@@ -499,12 +485,7 @@ void parser::read_date_fun(const std::string &fun_name) {
     auto tok_first = m_lexer.next();
     switch (tok_first.type) {
     case TOK_COMMA: {
-        std::string fmt_string;
-        auto tok_fmt_str = m_lexer.require(TOK_STRING);
-        if (!parse_string_token(fmt_string, tok_fmt_str.value)) {
-            throw parsing_error("Costante stringa non valida", tok_fmt_str);
-        }
-
+        std::string fmt_string = m_lexer.require(TOK_STRING).parse_string();
         add_line(opcode::PUSHSTR, fmt_string);
         std::string regex = "(\\D)";
         int idx = -1;
@@ -512,12 +493,9 @@ void parser::read_date_fun(const std::string &fun_name) {
         auto tok_comma = m_lexer.next();
         switch (tok_comma.type) {
         case TOK_COMMA: {
-            auto tok = m_lexer.require(TOK_REGEXP);
-            regex.clear();
-            if (!parse_regexp_token(regex, tok.value)) {
-                throw parsing_error("Costante regexp non valida", tok);
-            }
-            switch (m_lexer.next().type) {
+            regex = m_lexer.require(TOK_REGEXP).parse_string();
+            auto tok = m_lexer.next();
+            switch (tok.type) {
             case TOK_INTEGER:
                 idx = cstoi(tok.value);
                 break;

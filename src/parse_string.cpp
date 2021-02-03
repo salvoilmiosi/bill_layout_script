@@ -1,5 +1,8 @@
+#include "lexer.h"
 #include "intl.h"
 #include "utils.h"
+
+#include <fmt/format.h>
 
 typedef std::string_view::iterator location;
 
@@ -73,16 +76,21 @@ static inline std::string codePointToUTF8(unsigned int cp) {
     return result;
 }
 
-bool parse_string_token(std::string& decoded, std::string_view value) {
+std::string token::parse_string() {
+    assert (type == TOK_STRING || type == TOK_REGEXP);
+    
+    std::string decoded;
     location current = value.begin() + 1;
     location end = value.end() - 1;
     while (current != end) {
         char c = *current++;
-        if (c == '"')
+        if ((type == TOK_STRING && c == '"') || (type == TOK_REGEXP && c == '/')) {
             break;
+        }
         if (c == '\\') {
-            if (current == end)
-                return false;
+            if (current == end) {
+                throw parsing_error("Costante stringa non valida", *this);
+            }
             char escape = *current++;
             switch (escape) {
             case '"':
@@ -94,9 +102,6 @@ bool parse_string_token(std::string& decoded, std::string_view value) {
             case '\\':
                 decoded += '\\';
                 break;
-            case 'b':
-                decoded += '\b';
-                break;
             case 'f':
                 decoded += '\f';
                 break;
@@ -111,65 +116,32 @@ bool parse_string_token(std::string& decoded, std::string_view value) {
                 break;
             case 'u': {
                 unsigned int unicode;
-                if (!decodeUnicodeCodePoint(current, end, unicode))
-                    return false;
+                if (!decodeUnicodeCodePoint(current, end, unicode)) {
+                    throw parsing_error("Costante stringa non valida", *this);
+                }
                 decoded += codePointToUTF8(unicode);
                 break;
             }
             default:
-                return false;
+                if (type == TOK_STRING) {
+                    throw parsing_error("Costante stringa non valida", *this);
+                } else if (escape == 'N') {
+                    decoded += intl::number_format();
+                } else {
+                    decoded += '\\';
+                    decoded += escape;
+                }
             }
-        } else {
-            decoded += c;
-        }
-    }
-    return true;
-}
-
-bool parse_regexp_token(std::string& decoded, std::string_view value) {
-    location current = value.begin() + 1;
-    location end = value.end() - 1;
-    while (current != end) {
-        char c = *current++;
-        if (c == '/')
-            break;
-        if (c == '\\') {
-            if (current == end)
-                return false;
-            char escape = *current++;
-            switch (escape) {
-            case '/':
-                decoded += '/';
-                break;
-            case 'f':
-                decoded += '\f';
-                break;
-            case 'n':
-                decoded += '\n';
-                break;
-            case 'r':
-                decoded += '\r';
-                break;
-            case 't':
-                decoded += '\t';
-                break;
-            case 'u': {
-                unsigned int unicode;
-                if (!decodeUnicodeCodePoint(current, end, unicode))
-                    return false;
-                decoded += codePointToUTF8(unicode);
-                break;
-            }
-            default:
-                decoded += '\\';
-                decoded += escape;
+        } else if (c == ' ') {
+            if (type == TOK_REGEXP) {
+                decoded += "\\s+";
+            } else {
+                decoded += ' ';
             }
         } else {
             decoded += c;
         }
     }
 
-    string_replace(decoded, " ", "\\s+");
-    string_replace(decoded, "\\N", intl::number_format());
-    return true;
+    return decoded;
 }

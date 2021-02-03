@@ -10,9 +10,9 @@ src/intl.cpp
 src/layout.cpp
 src/lexer.cpp
 src/parser.cpp
+src/parse_string.cpp
 src/pdf_document.cpp
 src/reader.cpp
-src/unicode_escapes.cpp
 src/utils.cpp
 src/variable.cpp
 )

@@ -91,16 +91,7 @@ token lexer::next(bool do_advance) {
     case '/':
         tok.type = TOK_SLASH;
         break;
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
+    case '0' ... '9':
         ok = readNumber();
         if (std::find(start, m_current, '.') == m_current) {
             tok.type = TOK_INTEGER;
@@ -200,13 +191,14 @@ token lexer::next(bool do_advance) {
             tok.type = TOK_LESS;
         }
         break;
+    case 'a' ... 'z':
+    case 'A' ... 'Z':
+    case '_':
+        tok.type = TOK_IDENTIFIER;
+        ok = readIdentifier();
+        break;
     default:
-        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_') {
-            tok.type = TOK_IDENTIFIER;
-            ok = readIdentifier();
-        } else {
-            ok = false;
-        }
+        ok = false;
         break;
     }
 
