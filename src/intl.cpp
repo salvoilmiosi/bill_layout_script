@@ -24,6 +24,10 @@ namespace intl {
         return wxLocale::GetLanguageCanonicalName(lang).ToStdString();
     }
 
+    std::string language_name(int lang) {
+        return wxLocale::GetLanguageName(lang).ToStdString();
+    }
+
     int language_int(const std::string &lang) {
         auto info = wxLocale::FindLanguageInfo(lang);
         if (info) {
@@ -31,6 +35,10 @@ namespace intl {
         } else {
             throw std::runtime_error(fmt::format("Condice lingua invalido: {}", lang));
         }
+    }
+
+    int system_language() {
+        return wxLocale::GetSystemLanguage();
     }
 
     static void set_strings() {
@@ -85,7 +93,7 @@ namespace intl {
             m_locale = new wxLocale(lang);
             set_strings();
         } else {
-            throw std::runtime_error(fmt::format("Lingua non supportata: {}", language_string(lang)));
+            throw std::runtime_error(fmt::format("Lingua non supportata: {}", language_name(lang)));
         }
     }
 

@@ -11,7 +11,11 @@ namespace intl {
     const std::string &number_format();
 
     std::string language_string(int lang);
+    std::string language_name(int lang);
+    
     int language_int(const std::string &lang);
+
+    int system_language();
 
     class locale {
     public:

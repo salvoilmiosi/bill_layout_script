@@ -10,10 +10,9 @@ void parser::read_layout(const bill_layout_script &layout) {
     m_layout = &layout;
     
     try {
-        if (!layout.language_code.empty()) {
-            int lang = intl::language_int(layout.language_code);
-            add_line(opcode::SETLANG, lang);
-            m_locale.set_language(lang);
+        if (layout.language_code != 0) {
+            add_line(opcode::SETLANG, layout.language_code);
+            m_locale.set_language(layout.language_code);
         }
         for (auto &box : layout.m_boxes) {
             read_box(*box);

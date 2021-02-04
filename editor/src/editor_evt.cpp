@@ -126,7 +126,7 @@ void frame_editor::OnSetLanguage(wxCommandEvent &evt) {
         lang_codes.push_back(0);
         for (int lang = wxLANGUAGE_UNKNOWN + 1; lang != wxLANGUAGE_USER_DEFINED; ++lang) {
             if (wxLocale::IsAvailable(lang)) {
-                choices.push_back(wxLocale::GetLanguageName(lang));
+                choices.push_back(intl::language_name(lang));
                 lang_codes.push_back(lang);
             }
         }
@@ -134,19 +134,17 @@ void frame_editor::OnSetLanguage(wxCommandEvent &evt) {
 
     wxSingleChoiceDialog diag(this, "Cambia la lingua del layout", "Lingua Layout", choices);
 
-    if (!layout.language_code.empty()) {
-        auto selected = std::find(lang_codes.begin(), lang_codes.end(), intl::language_int(layout.language_code));
-        if (selected != lang_codes.end()) {    
-            diag.SetSelection(selected - lang_codes.begin());
-        }
+    int lang = layout.language_code;
+    if (lang == 0) {
+        lang = intl::system_language();
+    }
+    auto selected = std::find(lang_codes.begin(), lang_codes.end(), lang);
+    if (selected != lang_codes.end()) {    
+        diag.SetSelection(selected - lang_codes.begin());
     }
 
     if (diag.ShowModal() == wxID_OK) {
-        if (diag.GetSelection() > 0) {
-            layout.language_code = intl::language_string(lang_codes[diag.GetSelection()]);
-        } else {
-            layout.language_code.clear();
-        }
+        layout.language_code = lang_codes[diag.GetSelection()];
     }
 }
 
