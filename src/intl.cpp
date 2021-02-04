@@ -21,7 +21,7 @@ namespace intl {
     }
 
     std::string language_string(int lang) {
-        return wxLocale::GetLanguageName(lang).ToStdString();
+        return wxLocale::GetLanguageCanonicalName(lang).ToStdString();
     }
 
     int language_int(const std::string &lang) {
