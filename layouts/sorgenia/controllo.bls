@@ -10,7 +10,7 @@ p+::off_allegati
 ### End Spacers
 ### Script
 $if($ate()) $error("Sorgenia: Indicatore Pagina Mancante")
-$elif(! $contains(@,"PAG")) {
+$elifnot($contains(@,"PAG")) {
   ::off_allegati+=1
   $goto(convalida)
 }
