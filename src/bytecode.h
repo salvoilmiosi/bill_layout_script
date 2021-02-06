@@ -80,6 +80,7 @@ struct jump_address {
     O(PUSHNUM,      fixed_point),   /* number -> var_stack */ \
     O(PUSHSTR,      std::string),   /* str -> var_stack */ \
     O(PUSHVAR),                     /* ref_stack -> var_stack */ \
+    O(PUSHNULL),                    /* null -> var_stack */ \
     O(MOVEVAR),                     /* ref_stack -> (move) var_stack */ \
     O(JMP,          jump_address),  /* unconditional jump */ \
     O(JSR,          jump_address),  /* program_counter -> return_addrs -- jump to subroutine */ \

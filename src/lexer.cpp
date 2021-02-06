@@ -131,6 +131,9 @@ token lexer::next(bool do_advance) {
     case '%':
         tok.type = TOK_PERCENT;
         break;
+    case '^':
+        tok.type = TOK_CARET;
+        break;
     case '*':
         tok.type = TOK_ASTERISK;
         break;

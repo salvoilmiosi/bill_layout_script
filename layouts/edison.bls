@@ -116,21 +116,17 @@ $step($captures(@,$format(/Componente energia - F3 .+ al \d\d\/$0 \u20ac\/kWh (\
 %accise=$search(@,$format(/Imposta erariale di consumo \(accisa\) .+ al \d\d\/$0 \u20ac\/kWh \N \N kWh (\N) \u20ac/,_mese))
 iva=$search(@,/IVA (\d+%)/)
 $between("Spesa per l'energia","Spesa per il trasporto") {
-  $foreach($matches($replace(@,"\u2212","-"),
-    $format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))) %spesa_materia_energia+
+  ^spesa_materia_energia=$matches($replace(@,"\u2212","-"),$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
 }
 $between("Spesa per il trasporto","Spesa per gli oneri") {
-  $foreach($matches($replace(@,"\u2212","-"),
-    $format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))) %trasporto_gestione+
+  ^trasporto_gestione=$matches($replace(@,"\u2212","-"),$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
 }
 $between("Spesa per gli oneri","Totale Imposte") {
-  $foreach($matches($replace(@,"\u2212","-"),
-    $format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))) %oneri+
+  ^oneri=$matches($replace(@,"\u2212","-"),$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
 }
 imponibile=spesa_materia_energia+trasporto_gestione+oneri
 $between("Imposte e IVA","TOTALE") {
-  $foreach($matches($replace(@,"\u2212","-"),
-    $format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))) %imponibile+
+  ^imponibile=$matches($replace(@,"\u2212","-"),$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
 }
 ### End Script
 ### End Box

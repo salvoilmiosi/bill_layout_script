@@ -152,7 +152,22 @@ bool parser::read_statement() {
             break;
         }
 
-        if (flags & VAR_PARSENUM) {
+        if (flags & VAR_SUM_ALL) {
+            add_line(opcode::MOVCONTENT);
+            add_line(opcode::SUBVIEW);
+            add_line(opcode::PUSHNULL);
+            std::string label_begin = fmt::format("__sum_{}", m_code.size());
+            std::string label_end = fmt::format("__endsum_{}", m_code.size());
+            add_label(label_begin);
+            add_line(opcode::NEXTRESULT);
+            add_line(opcode::JTE, jump_address{label_end, 0});
+            add_line(opcode::PUSHVIEW);
+            add_line(opcode::PARSENUM);
+            add_line(opcode::ADD);
+            add_line(opcode::JMP, jump_address{label_begin, 0});
+            add_label(label_end);
+            add_line(opcode::POPCONTENT);
+        } else if (flags & VAR_PARSENUM) {
             add_line(opcode::PARSENUM);
         }
         
@@ -319,6 +334,10 @@ int parser::read_variable(bool read_only) {
             if (read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
             flags |= VAR_PARSENUM;
             break;
+        case TOK_CARET:
+            if (read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
+            flags |= VAR_SUM_ALL;
+            break;
         case TOK_AMPERSAND:
             if (!read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
             flags |= VAR_MOVE;
@@ -430,6 +449,7 @@ void parser::read_function() {
     case hash("isset"):     var_function(opcode::ISSET); break;
     case hash("size"):      var_function(opcode::GETSIZE); break;
     case hash("ate"):       void_function(opcode::ATE); break;
+    case hash("null"):      void_function(opcode::PUSHNULL); break;
     case hash("boxwidth"):  void_function(opcode::PUSHNUM, fixed_point(current_box->w)); break;
     case hash("boxheight"): void_function(opcode::PUSHNUM, fixed_point(current_box->h)); break;
     default: {

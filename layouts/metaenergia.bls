@@ -129,9 +129,7 @@ $with(&_dettaglio) {
   }
   %accise=$search($search(@,/IMPOSTE SUI CONSUMI\nAccisa\n((Dal.+\n)+)/),
     $format(/al \d\d\/$0 \u20ac\/kWh \N \N (\N)/,_mese))
-  $foreach($matches(
-    $search(@,/Corrispettivo Tariffario Specifico.+\n((Dal.+\n)+)/),
-      /\u20ac \N \N (\N)/)) %cts+
+  ^cts=$matches($search(@,/Corrispettivo Tariffario Specifico.+\n((Dal.+\n)+)/),/\u20ac \N \N (\N)/)
 }
 ### End Script
 ### End Box

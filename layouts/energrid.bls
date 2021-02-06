@@ -145,8 +145,8 @@ $between("DETTAGLIO IMPORTI PRIMO ADDEBITO","TOTALE (Salvo conguagli, errori e o
   }
   $between("Spese per trasporto","Spese per oneri") {
     %trasporto_gestione=$search(@,/(\N)/)
-    $foreach($matches(@,$format(/Energia Reattiva tra il \d\d e il 75% fascia F[1-3] .+ al \d\d\/$0 Euro\/kvarh \N \N (\N)/,_mese))) %penale_reattiva_inf75+
-    $foreach($matches(@,$format(/Energia Reattiva oltre il 75% fascia F[1-3] .+ al \d\d\/$0 Euro\/kvarh \N \N (\N)/,_mese))) %penale_reattiva_sup75+
+    ^penale_reattiva_inf75=$matches(@,$format(/Energia Reattiva tra il \d\d e il 75% fascia F[1-3] .+ al \d\d\/$0 Euro\/kvarh \N \N (\N)/,_mese))
+    ^penale_reattiva_sup75=$matches(@,$format(/Energia Reattiva oltre il 75% fascia F[1-3] .+ al \d\d\/$0 Euro\/kvarh \N \N (\N)/,_mese))
   }
   $newview {
     $setbegin($indexof(@,"Spese per oneri"))

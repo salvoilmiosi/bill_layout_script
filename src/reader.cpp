@@ -171,6 +171,7 @@ void reader::exec_command(const command_args &cmd) {
         m_vars.push(m_refs.top().get_value());
         m_refs.pop();
         break;
+    case opcode::PUSHNULL: m_vars.push(variable::null_var()); break;
     case opcode::MOVEVAR:
         m_vars.push(m_refs.top().get_moved());
         m_refs.pop();

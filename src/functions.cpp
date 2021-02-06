@@ -247,9 +247,6 @@ static const std::unordered_map<string, function_handler> lookup {
             return variable::null_var();
         }
         return std::move(*std::min_element(args.begin(), args.end()));
-    }),
-    create_function("null", []{
-        return variable::null_var();
     })
 };
 

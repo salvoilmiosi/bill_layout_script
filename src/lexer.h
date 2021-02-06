@@ -30,6 +30,7 @@
     T(TOK_COLON,            ":"), \
     T(TOK_GLOBAL,           "::"), \
     T(TOK_PERCENT,          "%"), \
+    T(TOK_CARET,            "^"), \
     T(TOK_ASTERISK,         "*"), \
     T(TOK_SLASH,            "/"), \
     T(TOK_PLUS,             "+"), \
