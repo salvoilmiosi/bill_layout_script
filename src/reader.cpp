@@ -298,13 +298,9 @@ void reader::read_box(pdf_rect box) {
 }
 
 void reader::call_function(const std::string &name, size_t numargs) {
-    if (auto *fun = find_function(name)) {
-        variable ret = (*fun)(arg_list(
-            m_vars.end() - numargs,
-            m_vars.end()));
-        m_vars.resize(m_vars.size() - numargs);
-        m_vars.push(std::move(ret));
-    } else {
-        throw layout_error(fmt::format("Funzione sconosciuta: {0}", name));
-    }
+    variable ret = find_function(name)(arg_list(
+        m_vars.end() - numargs,
+        m_vars.end()));
+    m_vars.resize(m_vars.size() - numargs);
+    m_vars.push(std::move(ret));
 }

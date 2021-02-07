@@ -233,11 +233,6 @@ static const std::unordered_map<std::string, function_handler> lookup {
     })
 };
 
-const function_handler *find_function(const std::string &name) {
-    auto it = lookup.find(name);
-    if (it == lookup.end()) {
-        return nullptr;
-    } else {
-        return &(it->second);
-    }
+const function_handler &find_function(const std::string &name) {
+    return lookup.at(name);
 }

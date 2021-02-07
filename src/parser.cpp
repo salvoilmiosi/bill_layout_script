@@ -431,27 +431,16 @@ void parser::read_function() {
     auto tok_fun_name = m_lexer.require(TOK_FUNCTION);
     std::string fun_name(tok_fun_name.value.substr(1));
 
-    auto var_function = [&](opcode cmd) {
+    switch (hash(fun_name)) {
+    case hash("isset"):
+    case hash("size"): {
         m_lexer.require(TOK_PAREN_BEGIN);
         bool isglobal = m_lexer.check_next(TOK_GLOBAL);
         auto tok_var = m_lexer.require(TOK_IDENTIFIER);
         m_lexer.require(TOK_PAREN_END);
-        add_line(cmd, variable_name{std::string(tok_var.value), isglobal});
-    };
-
-    auto void_function = [&](opcode cmd, auto && ... args) {
-        m_lexer.require(TOK_PAREN_BEGIN);
-        m_lexer.require(TOK_PAREN_END);
-        add_line(cmd, std::forward<decltype(args)>(args) ...);
-    };
-
-    switch (hash(fun_name)) {
-    case hash("isset"):     var_function(opcode::ISSET); break;
-    case hash("size"):      var_function(opcode::GETSIZE); break;
-    case hash("ate"):       void_function(opcode::ATE); break;
-    case hash("null"):      void_function(opcode::PUSHNULL); break;
-    case hash("boxwidth"):  void_function(opcode::PUSHNUM, fixed_point(current_box->w)); break;
-    case hash("boxheight"): void_function(opcode::PUSHNUM, fixed_point(current_box->h)); break;
+        add_line(fun_name == "isset" ? opcode::ISSET : opcode::GETSIZE, variable_name{std::string(tok_var.value), isglobal});
+        break;
+    }
     default: {
         small_int num_args = 0;
         m_lexer.require(TOK_PAREN_BEGIN);
@@ -480,26 +469,26 @@ void parser::read_function() {
 
         auto call_op = [&](int should_be, auto && ... args) {
             if (num_args != should_be) {
-                throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", fun_name, should_be), tok_fun_name);
+                throw invalid_numargs(fun_name, should_be, should_be, tok_fun_name);
             }
             add_line(std::forward<decltype(args)>(args) ...);
         };
+
         switch (hash(fun_name)) {
-        case hash("num"): call_op(1, opcode::PARSENUM); break;
-        case hash("int"): call_op(1, opcode::PARSEINT); break;
+        case hash("num"):       call_op(1, opcode::PARSENUM); break;
+        case hash("int"):       call_op(1, opcode::PARSEINT); break;
+        case hash("null"):      call_op(0, opcode::PUSHNULL); break;
+        case hash("ate"):       call_op(0, opcode::ATE); break;
+        case hash("boxwidth"):  call_op(0, opcode::PUSHNUM, fixed_point(current_box->w)); break;
+        case hash("boxheight"): call_op(0, opcode::PUSHNUM, fixed_point(current_box->h)); break;
         default:
-            if (auto *fun = find_function(fun_name)) {
-                if (num_args < fun->minargs || num_args > fun->maxargs) {
-                    if (fun->maxargs == std::numeric_limits<size_t>::max()) {
-                        throw parsing_error(fmt::format("La funzione {0} richiede almeno {1} argomenti", fun->name, fun->minargs), tok_fun_name);
-                    } else if (fun->minargs == fun->maxargs) {
-                        throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", fun->name, fun->minargs), tok_fun_name);
-                    } else {
-                        throw parsing_error(fmt::format("La funzione {0} richiede {1}-{2} argomenti", fun->name, fun->minargs, fun->maxargs), tok_fun_name);
-                    }
+            try {
+                const auto &fun = find_function(fun_name);
+                if (num_args < fun.minargs || num_args > fun.maxargs) {
+                    throw invalid_numargs(fun_name, fun.minargs, fun.maxargs, tok_fun_name);
                 }
                 add_line(opcode::CALL, command_call{fun_name, num_args});
-            } else {
+            } catch (const std::out_of_range &error) {
                 throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
             }
         }
