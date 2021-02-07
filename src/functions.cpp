@@ -160,10 +160,10 @@ static const std::unordered_map<string, function_handler> lookup {
         return search_regex(regex, str, index.value_or(1));
     }),
     create_function("matches", [](string_view str, string_view regex, optional<int> index) {
-        return string_join(search_regex_all(regex, str, index.value_or(1)), std::string_view("\0", 1));
+        return search_regex_all(regex, str, index.value_or(1));
     }),
     create_function("captures", [](string_view str, string_view regex) {
-        return string_join(search_regex_captures(regex, str), std::string_view("\0", 1));
+        return search_regex_captures(regex, str);
     }),
     create_function("date", [](string_view str, const string &format, optional<string_view> regex, optional<int> index) {
         return parse_date(format, str, regex.value_or(""), index.value_or(1));

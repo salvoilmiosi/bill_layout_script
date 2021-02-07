@@ -7,8 +7,8 @@
 ### Rect 1 0 0 0 0
 ### Script
 $with(::_dettaglio) {
-  ^cts=$matches(@,/Corrispettivo Tariffario Specifico dal \d+\/\d+\/\d+ al \d+\/\d+\/\d+ (\N)/)
-  iva=$search(@,/Iva (\d+%)/)
+  ^cts=$matches(@,/Corrispettivo Tariffario Specifico dal \d\d\/\d\d\/\d\d\d\d al \d\d\/\d\d\/\d\d\d\d (\N)/)
+  iva=$search(@,/Iva (\N%)/)
 
   $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")))
   $setend($indexof(@,"\n",$indexof(@,"FORNITURA DI")))
@@ -36,7 +36,7 @@ $with(::_dettaglio) {
 
   %imponibile=$search(@,/(\N)$/)
 
-  %penale_reattiva_inf75=$search(@,/Energia Reattiva tra il \d+% e 75% attiva euro\/kVARh \N \N (\N)/)
+  %penale_reattiva_inf75=$search(@,/Energia Reattiva tra il 33% e 75% attiva euro\/kVARh \N \N (\N)/)
   %penale_reattiva_sup75=$search(@,/Energia Reattiva oltre il 75% attiva euro\/kVARh \N \N (\N)/)
 
   %potenza[0:3]=$search(@,/Quota Potenza euro\/kW\/mese \N (\N)/)

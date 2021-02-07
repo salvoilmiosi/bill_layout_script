@@ -120,7 +120,7 @@ _mese=$date_format(mese_fattura,"%m/%y")
 ### Rect 1 0.05043084 0.6717093 0.6890491 0.29750395
 ### Script
 %cts=$search(@,/CORRISPETTIVO TARIFFARIO SPECIFICO.+ (\N)/)
-iva=$search(@,/IVA.* (\d+%)/)
+iva=$search(@,/IVA.* (\N%)/)
 ### End Script
 ### End Box
 
@@ -152,7 +152,7 @@ ragione_sociale
 ### Rect 2 0.05040323 0.36969072 0.66280246 0.048995156
 ### Script
 $between("Consumi rilevati", "INFORMAZIONI PER I CLIENTI") {
-  $step($captures(@,$format(/al \d\d\.$0 (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) \N \N \N (\N) (\N) (\N)/,$date_format(mese_fattura,"%m.%Y")))) {
+  $step($captures(@,$format(/al \d\d\.$0 (\N) (\N) (\N) (\N) (\N) (\N) \N \N \N (\N) (\N) (\N)/,$date_format(mese_fattura,"%m.%Y")))) {
     %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
     %potenza[0] %potenza[1] %potenza[2]
@@ -175,13 +175,13 @@ $with(::_dettaglio) {
       ^spesa_materia_energia+=$matches(@,/(\N)(?:\n|$)/)
     }
     $with($search(@,$format(/(In F1 dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0 [^]+)(dal|Totale|$)/,_mese_abbr))) {   
-      $step($captures(@,/F1.+\/kWh (\N) kWh (\d+)/)) {
+      $step($captures(@,/F1.+\/kWh (\N) kWh (\N)/)) {
         %prezzo_energia[0] %energia_attiva[0]
       }
-      $step($captures(@,/F2.+\/kWh (\N) kWh (\d+)/)) {
+      $step($captures(@,/F2.+\/kWh (\N) kWh (\N)/)) {
         %prezzo_energia[1] %energia_attiva[1]
       }
-      $step($captures(@,/F3.+\/kWh (\N) kWh (\d+)/)) {
+      $step($captures(@,/F3.+\/kWh (\N) kWh (\N)/)) {
         %prezzo_energia[2] %energia_attiva[2]
       }
     }
@@ -200,7 +200,7 @@ $with(::_dettaglio) {
     }
   }
   $between("IMPOSTE ED IVA","TOTALE IMPOSTE ED IVA") {
-    iva=$search(@,/IVA (\d+%)/)
+    iva=$search(@,/IVA (\N%)/)
     %accise=$search($search(@,/ACCISA SULL'ENERGIA ELETTRICA\n((dal.+\n)+)/),
       $format(/al \d\d\/$0.+ (\N)/,_mese_abbr))
   }

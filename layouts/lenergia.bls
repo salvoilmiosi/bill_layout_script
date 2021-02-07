@@ -16,8 +16,8 @@ fornitore="Lenergia"
 ### Rect 1 0.512487 0.0275867 0.474766 0.12414
 ### Script
 numero_cliente=$search(@,/Codice Cliente: (.+)\n/)
-numero_fattura=$search(@,/fattura n\. (\d+) /)
-data_fattura=$date(@,"%d/%m/%Y",/fattura n\. \d+ del (\D)/)
+numero_fattura=$search(@,/fattura n\. (\N) /)
+data_fattura=$date(@,"%d/%m/%Y",/fattura n\. \N del (\D)/)
 mese_fattura=$month(@,"%d/%m/%Y",/Periodo \D - (\D)/)
 _mese=$date_format(mese_fattura,"%m/%Y")
 ### End Script
@@ -67,8 +67,9 @@ indirizzo_fornitura=$singleline($search(@,/^.+\n([^]+?\d{5}.+)\n/))
 ### Mode LAYOUT
 ### Rect 1 0.516389 0.570125 0.474766 0.0855188
 ### Script
-iva=$search(@,/IVA (\d+%)/)
-%imponibile=$search(@,/IVA \d+% (\N)/)
+$step($captures(@,/IVA (\N%) (\N)/)) {
+  iva %imponibile
+}
 ### End Script
 ### End Box
 

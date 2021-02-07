@@ -26,7 +26,7 @@ fornitore="Axpo"
 ### Mode DEFAULT
 ### Rect 1 0.03548387 0.18015963 0.47258064 0.033067275
 ### Script
-numero_fattura=$search(@,/Fattura N\u00b0 (\d+)/)
+numero_fattura=$search(@,/Fattura N\u00b0 (\N)/)
 data_fattura=$date(@,"%d.%m.%Y",/del (\D)/)
 ### End Script
 ### End Box
@@ -63,7 +63,7 @@ mese_fattura=$month(@,"%B %Y")
 ### Mode LAYOUT
 ### Rect 1 0.021505376 0.10642341 0.49462366 0.06176359
 ### Script
-numero_cliente=$search(@,/Codice Cliente: (\d+)/)
+numero_cliente=$search(@,/Codice Cliente: (\N)/)
 ragione_sociale=$search(@,/.+\n(.+)\n/)
 partita_iva=$search(@,/Part\.IVA (.+)\n/)
 ### End Script

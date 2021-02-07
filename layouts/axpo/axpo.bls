@@ -45,8 +45,8 @@ data_scadenza=$date(@,"%d.%m.%Y",/entro il (\D)/)
 ### Mode DEFAULT
 ### Rect 1 0.0315568 0.09791284 0.22615707 0.31941897
 ### Script
-numero_fattura=$search(@,/N\. fattura (\d+)/)
-data_fattura=$date(@,"%d.%m.%Y",/N\. fattura \d+ del (\D)/)
+numero_fattura=$search(@,/N\. fattura (\N)/)
+data_fattura=$date(@,"%d.%m.%Y",/N\. fattura \N del (\D)/)
 mese_fattura=$month(@,"%d.%m.%Y",/PERIODO \D - (\D)/)
 numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
@@ -61,7 +61,7 @@ _mese=$date_format(mese_fattura,"%m.%Y")
 ### Mode RAW
 ### Rect 1 0.047653962 0.65514416 0.4389663 0.23846543
 ### Script
-iva=$search(@,/Importo IVA (\d+%)/)
+iva=$search(@,/Importo IVA (\N%)/)
 $ifnot(::multipod) {
   %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA (\N) \u20ac/)
   %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE (\N) \u20ac/)

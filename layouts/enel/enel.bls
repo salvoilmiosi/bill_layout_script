@@ -106,7 +106,7 @@ codice_pod=$search(@,/CODICE POD (.+)$/)
 ### Mode DEFAULT
 ### Rect 1 0.27857563 0.38391757 0.21629238 0.030719101
 ### Script
-numero_fattura=$search(@,/N\. Fattura (\d+)/)
+numero_fattura=$search(@,/N\. Fattura (\N)/)
 data_fattura=$date(@,"%d/%m/%Y",/Del (\D)/)
 ### End Script
 ### End Box
@@ -142,7 +142,7 @@ _mese=$date_format(mese_fattura,"%m/%y")
 ### Rect 1 0.043979228 0.67284954 0.6890491 0.16947563
 ### Script
 %cts=$search(@,/CORRISPETTIVO TARIFFARIO SPECIFICO.+ (\N)/)
-iva=$search(@,/IVA.* (\d+%)/)
+iva=$search(@,/IVA.* (\N%)/)
 ### End Script
 ### End Box
 
@@ -170,13 +170,13 @@ $if($contains(@,"Energia reattiva")) {
 ### Rect 3 0.0903738 0.0063137496 0.053058922 0.03473528
 ### Script
 $with(::_dettaglio) {
-  $step($captures(@,$format(/Energia (?:fascia F1|(?:ore di )?picco) dal \d\d\/$0.+kWh (\N) (\d+)/,_mese))) {
+  $step($captures(@,$format(/Energia (?:fascia F1|(?:ore di )?picco) dal \d\d\/$0.+kWh (\N) (\N)/,_mese))) {
     %prezzo_energia[0] %energia_attiva[0]
   }
-  $step($captures(@,$format(/Energia (?:fascia F2|(?:ore di )?fuori picco) dal \d\d\/$0.+kWh (\N) (\d+)/,_mese))) {
+  $step($captures(@,$format(/Energia (?:fascia F2|(?:ore di )?fuori picco) dal \d\d\/$0.+kWh (\N) (\N)/,_mese))) {
     %prezzo_energia[1] %energia_attiva[1]
   }
-  $step($captures(@,$format(/Energia fascia F3 dal \d\d\/$0.+kWh (\N) (\d+)/,_mese))) {
+  $step($captures(@,$format(/Energia fascia F3 dal \d\d\/$0.+kWh (\N) (\N)/,_mese))) {
     %prezzo_energia[2] %energia_attiva[2]
   }
   $with($search(@,$format(/Energia attiva dal \d\d\/$0.+\n((.*Energia Reattiva.*\n)+)/,_mese))) {
@@ -185,7 +185,7 @@ $with(::_dettaglio) {
   }
   %pcv=$search(@,$format(/Commercializzazione vendita dal \d\d\/$0.+mesi 1 (\N)/,_mese))
   %sbilanciamento=$search(@,$format(/Corrispettivo di Sbilanciamento dal \d\d\/$0.+kWh (\N)/,_mese))
-  %accise=$search(@,$format(/Accisa sull'energia elettrica \(entro 200000\) dal \d\d\/$0.+kWh \N \d+ (\N)/,_mese))
+  %accise=$search(@,$format(/Accisa sull'energia elettrica \(entro 200000\) dal \d\d\/$0.+kWh \N \N (\N)/,_mese))
 
   $between("SPESA PER L'ENERGIA", "Totale spesa per l'energia") {
     $with($matches(@,$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
@@ -195,15 +195,15 @@ $with(::_dettaglio) {
   $between("SPESA PER IL TRASPORTO", "Totale spesa per il trasporto") {
     $with($matches(@,$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
       ^trasporto_gestione=$matches(@,/mesi.?1 (\N)/)
-      ^trasporto_gestione=$matches(@,/\/kWh \N \d+ (\N)/)
-      ^trasporto_gestione=$matches(@,/\/kVarh \N \d+ (\N)/)
+      ^trasporto_gestione=$matches(@,/\/kWh \N \N (\N)/)
+      ^trasporto_gestione=$matches(@,/\/kVarh \N \N (\N)/)
       %potenza[0:3]=$search(@,/kW (\N)/)
     }
   }
   $between("SPESA ONERI DI SISTEMA", "Totale spesa oneri di sistema") {
     $foreach($matches(@,$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
       %oneri+=$search(@,/mesi.?1 (\N)/)
-      %oneri+=$search(@,/\/kWh \N \d+ (\N)/)
+      %oneri+=$search(@,/\/kWh \N \N (\N)/)
     }
   }
 	

@@ -27,7 +27,7 @@ fornitore="Edison"
 ### Mode DEFAULT
 ### Rect 1 0.33843675 0.02457326 0.31240317 0.018429944
 ### Script
-numero_fattura=$search(@,/Fattura N\u00b0 (\d+)/)
+numero_fattura=$search(@,/Fattura N\u00b0 (\N)/)
 data_fattura=$date(@,"%d %B %Y")
 ### End Script
 ### End Box
@@ -114,7 +114,7 @@ $step($captures(@,$format(/Componente energia - F3 .+ al \d\d\/$0 \u20ac\/kWh (\
 }
 %potenza[0:3]=$search(@,$format(/Quota potenza .+ al \d\d\/$0 \u20ac\/kW\/mese \N (\N) kW/,_mese))
 %accise=$search(@,$format(/Imposta erariale di consumo \(accisa\) .+ al \d\d\/$0 \u20ac\/kWh \N \N kWh (\N) \u20ac/,_mese))
-iva=$search(@,/IVA (\d+%)/)
+iva=$search(@,/IVA (\N%)/)
 $between("Spesa per l'energia","Spesa per il trasporto") {
   ^spesa_materia_energia=$matches($replace(@,"\u2212","-"),$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
 }

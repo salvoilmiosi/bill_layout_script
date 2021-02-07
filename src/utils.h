@@ -47,10 +47,10 @@ std::string date_month_add(std::string_view month, int num);
 std::string date_format(std::string_view date, const std::string &format);
 
 // cerca la regex in str e ritorna i valori trovati
-std::vector<std::string> search_regex_all(std::string_view regex, std::string_view value, int index);
+std::string search_regex_all(std::string_view regex, std::string_view value, int index);
 
 // cerca la regex in str e ritorna tutti i capture del primo valore trovato
-std::vector<std::string> search_regex_captures(std::string_view regex, std::string_view value);
+std::string search_regex_captures(std::string_view regex, std::string_view value);
 
 // cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
 std::string search_regex(std::string_view format, std::string_view value, int index);

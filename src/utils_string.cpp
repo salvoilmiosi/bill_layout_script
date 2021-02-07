@@ -139,24 +139,31 @@ static std::regex create_regex(std::string_view format) {
     }
 }
 
-std::vector<std::string> search_regex_all(std::string_view format, std::string_view value, int index) {
-    std::vector<std::string> ret;
+std::string search_regex_all(std::string_view format, std::string_view value, int index) {
+    std::string ret;
     std::regex expression = create_regex(format);
-    std::transform(
-        std::cregex_iterator(value.begin(), value.end(), expression),
-        std::cregex_iterator(),
-        std::back_inserter(ret),
-        [index](const auto &match) { return match.str(index); });
+    auto it = std::cregex_iterator(value.begin(), value.end(), expression);
+    bool first = true;
+    for (; it != std::cregex_iterator(); ++it) {
+        if (!first) {
+            ret += '\0';
+        }
+        first = false;
+        ret += it->str(index);
+    }
     return ret;
 }
 
-std::vector<std::string> search_regex_captures(std::string_view format, std::string_view value) {
-    std::vector<std::string> ret;
+std::string search_regex_captures(std::string_view format, std::string_view value) {
+    std::string ret;
     std::regex expression = create_regex(format);
     std::cmatch match;
     if (std::regex_search(value.begin(), value.end(), match, expression)) {
         for (size_t i=1; i<match.size(); ++i) {
-            ret.push_back(match.str(i));
+            if (i != 1) {
+                ret += '\0';
+            }
+            ret += match.str(i);
         }
     }
     return ret;

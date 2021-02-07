@@ -67,9 +67,9 @@ namespace intl {
             }
         };
 
-        g_number_format = "-?\\d{1,3}(?:"
+        g_number_format = "-?(?:\\d{1,3}(?:"
             + char_to_regex_str(g_thousand_sep) + "\\d{3})*(?:"
-            + char_to_regex_str(g_decimal_point) + "\\d+)?";
+            + char_to_regex_str(g_decimal_point) + "\\d+)?|\\d+)(?!\\d)";
     }
     
     locale::locale() {
