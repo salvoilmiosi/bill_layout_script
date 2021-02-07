@@ -7,6 +7,8 @@
 
 #include <fmt/format.h>
 
+#include "intl.h"
+
 std::vector<std::string> string_split(const std::string &str, char separator) {
     std::vector<std::string> ret;
 
@@ -131,11 +133,13 @@ std::string string_format(std::string_view str, const std::vector<std::string> &
     return ret;
 }
 
-static std::regex create_regex(std::string_view format) {
+static std::regex create_regex(std::string_view fmt_view) {
     try {
+        std::string format(fmt_view);
+        string_replace(format, "\\N", intl::number_format());
         return std::regex(format.begin(), format.end(), std::regex::icase);
     } catch (const std::regex_error &error) {
-        throw std::runtime_error(fmt::format("Espressione regolare non valida: {0}\n{1}", format, error.what()));
+        throw std::runtime_error(fmt::format("Espressione regolare non valida: {0}\n{1}", fmt_view, error.what()));
     }
 }
 

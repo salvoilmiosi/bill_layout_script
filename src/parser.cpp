@@ -12,7 +12,6 @@ void parser::read_layout(const bill_layout_script &layout) {
     try {
         if (layout.language_code != 0) {
             add_line(opcode::SETLANG, layout.language_code);
-            m_locale.set_language(layout.language_code);
         }
         for (auto &box : layout.m_boxes) {
             read_box(*box);

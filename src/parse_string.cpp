@@ -1,5 +1,4 @@
 #include "lexer.h"
-#include "intl.h"
 #include "utils.h"
 
 #include <fmt/format.h>
@@ -125,8 +124,6 @@ std::string token::parse_string() {
             default:
                 if (type == TOK_STRING) {
                     throw parsing_error("Costante stringa non valida", *this);
-                } else if (escape == 'N') {
-                    decoded += intl::number_format();
                 } else {
                     decoded += '\\';
                     decoded += escape;

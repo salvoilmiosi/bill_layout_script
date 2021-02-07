@@ -2,6 +2,7 @@
 #include "bytecode.h"
 #include "fixed_point.h"
 #include "utils.h"
+#include "intl.h"
 
 #include <iostream>
 #include <fstream>

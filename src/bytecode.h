@@ -3,6 +3,7 @@
 
 #include <any>
 #include <typeinfo>
+#include <cassert>
 
 #include "fixed_point.h"
 #include "layout.h"

@@ -12,7 +12,7 @@
 #include "box_editor_panel.h"
 #include "box_dialog.h"
 #include "output_dialog.h"
-
+#include "intl.h"
 #include "reader.h"
 
 void frame_editor::OnNewFile(wxCommandEvent &evt) {

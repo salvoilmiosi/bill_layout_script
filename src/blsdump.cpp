@@ -9,6 +9,7 @@
 #include "parser.h"
 #include "fixed_point.h"
 #include "utils.h"
+#include "intl.h"
 
 class MainApp : public wxAppConsole {
 public:
