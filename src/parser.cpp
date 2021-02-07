@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "bytecode.h"
 #include "fixed_point.h"
+#include "functions.h"
 
 void parser::read_layout(const bill_layout_script &layout) {
     m_layout = &layout;
@@ -487,7 +488,20 @@ void parser::read_function() {
         case hash("num"): call_op(1, opcode::PARSENUM); break;
         case hash("int"): call_op(1, opcode::PARSEINT); break;
         default:
-            add_line(opcode::CALL, command_call{fun_name, num_args});
+            if (auto *fun = find_function(fun_name)) {
+                if (num_args < fun->minargs || num_args > fun->maxargs) {
+                    if (fun->maxargs == std::numeric_limits<size_t>::max()) {
+                        throw parsing_error(fmt::format("La funzione {0} richiede almeno {1} argomenti", fun->name, fun->minargs), tok_fun_name);
+                    } else if (fun->minargs == fun->maxargs) {
+                        throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", fun->name, fun->minargs), tok_fun_name);
+                    } else {
+                        throw parsing_error(fmt::format("La funzione {0} richiede {1}-{2} argomenti", fun->name, fun->minargs, fun->maxargs), tok_fun_name);
+                    }
+                }
+                add_line(opcode::CALL, command_call{fun_name, num_args});
+            } else {
+                throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
+            }
         }
     }
     }
