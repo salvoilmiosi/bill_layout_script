@@ -51,7 +51,6 @@ mese_fattura=$month(@,"%d.%m.%Y",/PERIODO \D - (\D)/)
 numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
 indirizzo_fornitura=$singleline($search(@,/FORNIAMO ENERGIA IN\n([^]+?\d{5}.+)\n/))
-::multipod=$isempty(codice_pod)
 _mese=$date_format(mese_fattura,"%m.%Y")
 ### End Script
 ### End Box
@@ -62,7 +61,7 @@ _mese=$date_format(mese_fattura,"%m.%Y")
 ### Rect 1 0.047653962 0.65514416 0.4389663 0.23846543
 ### Script
 iva=$search(@,/Importo IVA (\N%)/)
-$ifnot(::multipod) {
+$if($isset(codice_pod)) {
   %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA (\N) \u20ac/)
   %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE (\N) \u20ac/)
   %oneri=$search(@,/SPESA PER ONERI DI SISTEMA (\N) \u20ac/)
@@ -72,7 +71,7 @@ $ifnot(::multipod) {
 ### End Script
 ### End Box
 
-### Box Dati fornitura (multipod)
+### Box Dati fornitura multi POD
 ### Type RECTANGLE
 ### Mode RAW
 ### Rect 2 0.04193548 0.13418806 0.22741936 0.11324638
@@ -80,7 +79,7 @@ $ifnot(::multipod) {
 p+::next_page
 ### End Spacers
 ### Script
-$if(::multipod) {
+$ifnot($isset(codice_pod)) {
   codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
   indirizzo_fornitura=$singleline($search(@,/FORNIAMO ENERGIA IN\n([^]+)/))
 }

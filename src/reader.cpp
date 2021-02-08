@@ -90,14 +90,18 @@ void reader::exec_command(const command_args &cmd) {
         break;
     }
     case opcode::AGGREGATE: {
-        fixed_point ret(0);
-        for (const auto &str : string_split(m_vars.top().str_view(), '\0')) {
-            fixed_point num;
-            if (parse_num(num, std::string(str))) {
-                ret += num;
+        if (! m_vars.top().empty()) {
+            fixed_point ret(0);
+            for (const auto &str : string_split(m_vars.top().str_view(), '\0')) {
+                fixed_point num;
+                if (parse_num(num, std::string(str))) {
+                    ret += num;
+                }
             }
+            m_vars.top() = ret;
+        } else {
+            m_vars.top() = variable::null_var();
         }
-        m_vars.top() = ret;
         break;
     }
     case opcode::NOT: m_vars.top() = !m_vars.top(); break;

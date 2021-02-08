@@ -10,12 +10,6 @@
 #include "lexer.h"
 #include "bytecode.h"
 
-struct spacer {
-    float w = 0, h = 0;
-    spacer() = default;
-    spacer(float w, float h) : w(w), h(h) {}
-};
-
 enum variable_flags {
     VAR_OVERWRITE   = 1 << 0,
     VAR_PARSENUM    = 1 << 1,
