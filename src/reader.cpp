@@ -54,6 +54,11 @@ void reader::exec_command(const command_args &cmd) {
         m_jumped = true;
     };
 
+    auto parse_num = [](fixed_point &num, const std::string &str) {
+        std::istringstream iss(str);
+        return dec::fromStream(iss, dec::decimal_format(intl::decimal_point(), intl::thousand_sep()), num);
+    };
+
     switch(cmd.command()) {
     case opcode::NOP:
     case opcode::COMMENT:
@@ -71,18 +76,30 @@ void reader::exec_command(const command_args &cmd) {
         m_out.warnings.push_back(std::move(m_vars.top().str()));
         m_vars.pop();
         break;
-    case opcode::PARSENUM:
-        if (m_vars.top().type() == VAR_STRING) {
-            std::istringstream iss(m_vars.top().str());
+    case opcode::PARSEINT: m_vars.top() = m_vars.top().as_int(); break;
+    case opcode::PARSENUM: {
+        auto &var = m_vars.top();
+        if (var.type() == VAR_STRING) {
             fixed_point num;
-            if (dec::fromStream(iss, dec::decimal_format(intl::decimal_point(), intl::thousand_sep()), num)) {
-                m_vars.top() = num;
+            if (parse_num(num, var.str())) {
+                var = num;
             } else {
-                m_vars.top() = variable::null_var();
+                var = variable::null_var();
             }
         }
         break;
-    case opcode::PARSEINT: m_vars.top() = m_vars.top().as_int(); break;
+    }
+    case opcode::AGGREGATE: {
+        fixed_point ret(0);
+        for (const auto &str : string_split(m_vars.top().str_view(), '\0')) {
+            fixed_point num;
+            if (parse_num(num, std::string(str))) {
+                ret += num;
+            }
+        }
+        m_vars.top() = ret;
+        break;
+    }
     case opcode::NOT: m_vars.top() = !m_vars.top(); break;
     case opcode::NEG: m_vars.top() = -m_vars.top(); break;
 #define OP(x) exec_operator([](const auto &a, const auto &b) { return x; })

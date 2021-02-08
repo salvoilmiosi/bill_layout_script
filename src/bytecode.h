@@ -54,6 +54,7 @@ struct jump_address {
     O(ADDWARNING),                  /* var_stack -> warnings */ \
     O(PARSENUM),                    /* var_stack -> parse_num -> var_stack */ \
     O(PARSEINT),                    /* var_stack -> parse_int -> var_stack */ \
+    O(AGGREGATE),                   /* var_stack -> split -> parse_int -> sum -> var_stack */ \
     O(EQ),                          /* var_stack * 2 -> a == b -> var_stack */ \
     O(NEQ),                         /* var_stack * 2 -> a != b -> var_stack */ \
     O(AND),                         /* var_stack * 2 -> a && b -> var_stack */ \

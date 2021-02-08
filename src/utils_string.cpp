@@ -9,8 +9,8 @@
 
 #include "intl.h"
 
-std::vector<std::string> string_split(const std::string &str, char separator) {
-    std::vector<std::string> ret;
+std::vector<std::string_view> string_split(std::string_view str, char separator) {
+    std::vector<std::string_view> ret;
 
     size_t start = 0;
     size_t end = str.find(separator);

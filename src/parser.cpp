@@ -152,21 +152,8 @@ bool parser::read_statement() {
             break;
         }
 
-        if (flags & VAR_SUM_ALL) {
-            add_line(opcode::MOVCONTENT);
-            add_line(opcode::SUBVIEW);
-            add_line(opcode::PUSHNULL);
-            std::string label_begin = fmt::format("__sum_{}", m_code.size());
-            std::string label_end = fmt::format("__endsum_{}", m_code.size());
-            add_label(label_begin);
-            add_line(opcode::NEXTRESULT);
-            add_line(opcode::JTE, jump_address{label_end, 0});
-            add_line(opcode::PUSHVIEW);
-            add_line(opcode::PARSENUM);
-            add_line(opcode::ADD);
-            add_line(opcode::JMP, jump_address{label_begin, 0});
-            add_label(label_end);
-            add_line(opcode::POPCONTENT);
+        if (flags & VAR_AGGREGATE) {
+            add_line(opcode::AGGREGATE);
         } else if (flags & VAR_PARSENUM) {
             add_line(opcode::PARSENUM);
         }
@@ -336,7 +323,7 @@ int parser::read_variable(bool read_only) {
             break;
         case TOK_CARET:
             if (read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
-            flags |= VAR_SUM_ALL;
+            flags |= VAR_AGGREGATE;
             break;
         case TOK_AMPERSAND:
             if (!read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
@@ -477,6 +464,7 @@ void parser::read_function() {
         switch (hash(fun_name)) {
         case hash("num"):       call_op(1, opcode::PARSENUM); break;
         case hash("int"):       call_op(1, opcode::PARSEINT); break;
+        case hash("aggregate"): call_op(1, opcode::AGGREGATE); break;
         case hash("null"):      call_op(0, opcode::PUSHNULL); break;
         case hash("ate"):       call_op(0, opcode::ATE); break;
         case hash("boxwidth"):  call_op(0, opcode::PUSHNUM, fixed_point(current_box->w)); break;

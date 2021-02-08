@@ -22,7 +22,7 @@ enum variable_flags {
     VAR_INCREASE    = 1 << 2,
     VAR_DECREASE    = 1 << 3,
     VAR_MOVE        = 1 << 4,
-    VAR_SUM_ALL     = 1 << 5,
+    VAR_AGGREGATE   = 1 << 5,
 };
 
 enum parser_flags {

@@ -5,7 +5,7 @@
 #include <string>
 
 // divide una stringa per separatore
-std::vector<std::string> string_split(const std::string &str, char separator = ',');
+std::vector<std::string_view> string_split(std::string_view str, char separator = ',');
 
 // unisce tutte le stringhe in un vettore di stringhe
 std::string string_join(const std::vector<std::string> &vec, std::string_view separator = " ");
