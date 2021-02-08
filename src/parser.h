@@ -10,11 +10,11 @@
 #include "lexer.h"
 #include "bytecode.h"
 
-enum variable_flags {
-    VAR_OVERWRITE   = 1 << 0,
-    VAR_PARSENUM    = 1 << 1,
-    VAR_AGGREGATE   = 1 << 2,
-    VAR_MOVE        = 1 << 3,
+enum variable_prefixes {
+    VP_OVERWRITE   = 1 << 0,
+    VP_PARSENUM    = 1 << 1,
+    VP_AGGREGATE   = 1 << 2,
+    VP_MOVE        = 1 << 3,
 };
 
 enum parser_flags {

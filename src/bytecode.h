@@ -29,15 +29,30 @@ enum class spacer_index : uint8_t SPACER_INDICES;
 constexpr const char *spacer_index_names[] = SPACER_INDICES;
 #undef SPACER
 
+#define SEL_VAR_FLAGS { \
+    S(DYN_IDX,      0), \
+    S(DYN_LEN,      1), \
+    S(EACH,         2), \
+    S(APPEND,       3) \
+}
+
+#define S(n, v) SEL_##n = 1 << v
+enum variable_select_flags SEL_VAR_FLAGS;
+#undef S
+#define S(n, v) #n
+static const char *variable_select_flag_names[] = SEL_VAR_FLAGS;
+#undef S
+
 struct variable_name {
     std::string name;
-    bool global;
+    bool global = false;
 };
 
-struct variable_idx {
+struct variable_selector {
     variable_name name;
-    small_int index;
-    small_int range_len;
+    small_int index = 0;
+    small_int length = 1;
+    uint8_t flags = 0;
 };
 
 struct jump_address {
@@ -69,10 +84,7 @@ struct jump_address {
     O(LT),                          /* var_stack * 2 -> a < b -> var_stack */ \
     O(GEQ),                         /* var_stack * 2 -> a >= b -> var_stack */ \
     O(LEQ),                         /* var_stack * 2 -> a >= b -> var_stack */ \
-    O(SELVAR,       variable_idx),  /* (name, index, size) -> ref_stack */ \
-    O(SELVARTOP,    variable_name), /* var_stack -> (name, top, 1) -> ref_stack */ \
-    O(SELRANGETOP,  variable_name), /* var_stack * 2 -> (name, top-1, top) -> ref_stack */ \
-    O(SELRANGEALL,  variable_name), /* (name, 0, size) -> ref_stack */ \
+    O(SELVAR,   variable_selector), /* (name, index, size, flags) -> ref_stack */ \
     O(ISSET,        variable_name), /* ref_stack -> size() != 0 -> var_stack */ \
     O(GETSIZE,      variable_name), /* ref_stack -> size() -> var_stack */ \
     O(CLEAR),                       /* ref_stack -> clear */ \

@@ -120,29 +120,23 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::GEQ: OP(a >= b); break;
     case opcode::LEQ: OP(a <= b); break;
 #undef OP
-    case opcode::SELVARTOP:
-        m_refs.emplace_back(create_ref(cmd.get<variable_name>(),
-            m_vars.top().as_int(), 1));
-        m_vars.pop();
-        break;
-    case opcode::SELRANGEALL: {
-        auto ref = create_ref(cmd.get<variable_name>());
-        ref.range_len = ref.size();
-        m_refs.push(std::move(ref));
-        break;
-    }
     case opcode::SELVAR: {
-        const auto &var_idx = cmd.get<variable_idx>();
-        m_refs.push(create_ref(var_idx.name,
-            var_idx.index, var_idx.range_len));
-        break;
-    }
-    case opcode::SELRANGETOP: {
-        auto ref = create_ref(cmd.get<variable_name>());
-        ref.range_len = m_vars.top().as_int();
-        m_vars.pop();
-        ref.index = m_vars.top().as_int();
-        m_vars.pop();
+        auto var_idx = cmd.get<variable_selector>();
+        if (var_idx.flags & SEL_DYN_LEN) {
+            var_idx.length = m_vars.top().as_int();
+            m_vars.pop();
+        }
+        if (var_idx.flags & SEL_DYN_IDX) {
+            var_idx.index = m_vars.top().as_int();
+            m_vars.pop();
+        }
+        auto ref = create_ref(var_idx.name, var_idx.index, var_idx.length);
+        if (var_idx.flags & SEL_EACH) {
+            ref.index = 0;
+            ref.length = ref.size();
+        } else if (var_idx.flags & SEL_APPEND) {
+            ref.index = ref.size();
+        }
         m_refs.push(std::move(ref));
         break;
     }

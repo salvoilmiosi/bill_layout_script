@@ -92,13 +92,18 @@ int MainApp::OnRun() {
                 break;
             }
             case opcode::SELVAR: {
-                auto args = line.get<variable_idx>();
-                std::cout << ' ' << args.name << ' ' << int(args.index) << ':' << int(args.range_len);
+                auto args = line.get<variable_selector>();
+                std::cout << ' ' << args.name << ' ' << int(args.index);
+                if (args.length != 1) {
+                    std::cout << ':' << int(args.length);
+                }
+                for (uint8_t i=0; i<std::size(variable_select_flag_names); ++i) {
+                    if (args.flags & (1 << i)) {
+                        std::cout << ' ' << variable_select_flag_names[i];
+                    }
+                }
                 break;
             }
-            case opcode::SELVARTOP:
-            case opcode::SELRANGETOP:
-            case opcode::SELRANGEALL:
             case opcode::ISSET:
             case opcode::GETSIZE:
                 std::cout << ' ' << line.get<variable_name>();

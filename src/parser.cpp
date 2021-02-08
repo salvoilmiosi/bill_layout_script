@@ -139,7 +139,7 @@ bool parser::read_statement() {
     case TOK_END_OF_FILE:
         return false;
     default: {
-        int flags = read_variable(false);
+        int prefixes = read_variable(false);
         
         auto tok = m_lexer.peek();
         opcode assign_op = opcode::SETVAR;
@@ -158,9 +158,9 @@ bool parser::read_statement() {
             break;
         }
 
-        if (flags & VAR_AGGREGATE)  add_line(opcode::AGGREGATE);
-        if (flags & VAR_PARSENUM)   add_line(opcode::PARSENUM);
-        if (flags & VAR_OVERWRITE)  add_line(opcode::RESETVAR);
+        if (prefixes & VP_AGGREGATE)  add_line(opcode::AGGREGATE);
+        if (prefixes & VP_PARSENUM)   add_line(opcode::PARSENUM);
+        if (prefixes & VP_OVERWRITE)  add_line(opcode::RESETVAR);
         
         add_line(assign_op);
     }
@@ -286,8 +286,8 @@ void parser::sub_expression() {
         add_line(opcode::PUSHVIEW);
         break;
     default: {
-        int flags = read_variable(true);
-        if (flags & VAR_MOVE) {
+        int prefixes = read_variable(true);
+        if (prefixes & VP_MOVE) {
             add_line(opcode::MOVEVAR);
         } else {
             add_line(opcode::PUSHVAR);
@@ -297,13 +297,9 @@ void parser::sub_expression() {
 }
 
 int parser::read_variable(bool read_only) {
-    int flags = 0;
-    bool isglobal = false;
-    bool getindex = false;
-    bool getindexlast = false;
-    bool rangeall = false;
-    small_int index = 0;
-    small_int index_last = -1;
+    int prefixes = 0;
+
+    variable_selector var_idx;
 
     bool in_loop = true;
     token tok_modifier;
@@ -311,23 +307,23 @@ int parser::read_variable(bool read_only) {
         tok_modifier = m_lexer.next();
         switch (tok_modifier.type) {
         case TOK_GLOBAL:
-            isglobal = true;
+            var_idx.name.global = true;
             break;
         case TOK_PERCENT:
             if (read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
-            flags |= VAR_PARSENUM;
+            prefixes |= VP_PARSENUM;
             break;
         case TOK_CARET:
             if (read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
-            flags |= VAR_AGGREGATE;
+            prefixes |= VP_AGGREGATE;
             break;
         case TOK_TILDE:
             if (read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
-            flags |= VAR_OVERWRITE;
+            prefixes |= VP_OVERWRITE;
             break;
         case TOK_AMPERSAND:
             if (!read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
-            flags |= VAR_MOVE;
+            prefixes |= VP_MOVE;
             break;
         case TOK_IDENTIFIER:
             in_loop = false;
@@ -336,62 +332,59 @@ int parser::read_variable(bool read_only) {
             throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
         }
     }
-    
+
     // dopo l'ultima call a next tok_modifier punta al nome della variabile
-    variable_name name{std::string(tok_modifier.value), isglobal};
+    var_idx.name.name = std::string(tok_modifier.value);
 
     if (m_lexer.check_next(TOK_BRACKET_BEGIN)) { // variable[
         token tok = m_lexer.peek();
         switch (tok.type) {
-        case TOK_BRACKET_END: // variable[] -- aggiunge alla fine
-            if (read_only) throw unexpected_token(tok, TOK_INTEGER);
-            index = -1;
-            break;
-        case TOK_COLON: // variable[:] -- seleziona range intero
+        case TOK_COLON: {
             if (read_only) throw unexpected_token(tok, TOK_INTEGER);
             m_lexer.advance(tok);
-            rangeall = true;
-            break;
-        case TOK_INTEGER: // variable[int
-            m_lexer.advance(tok);
-            index = cstoi(tok.value);
-            if (m_lexer.check_next(TOK_COLON) && !read_only) { // variable[int:
-                if (m_lexer.check_next(TOK_INTEGER)) { // variable[a:b] -- seleziona range
-                    index_last = cstoi(tok.value);
-                } else { // variable[int:expr] -- seleziona range
-                    add_line(opcode::PUSHNUM, fixed_point(index));
-                    read_expression();
-                    getindex = true;
-                    getindexlast = true;
-                }
+            tok = m_lexer.peek();
+            switch (tok.type) {
+            case TOK_BRACKET_END:
+                var_idx.flags |= SEL_EACH; // variable[:]
+                break;
+            case TOK_INTEGER: // variable[:N] -- append N times
+                m_lexer.advance(tok);
+                var_idx.flags |= SEL_APPEND;
+                var_idx.length = cstoi(tok.value);
+                break;
+            default:
+                read_expression();
+                var_idx.flags |= SEL_APPEND | SEL_DYN_LEN;
             }
             break;
-        default: // variable[expr
-            read_expression();
-            getindex = true;
-            if (m_lexer.check_next(TOK_COLON) && !read_only) { // variable[expr:expr]
+        }
+        case TOK_BRACKET_END:
+            if (read_only) throw unexpected_token(tok, TOK_INTEGER);
+            var_idx.flags |= SEL_APPEND; // variable[] -- append
+            break;
+        default:
+            if (tok = m_lexer.check_next(TOK_INTEGER)) { // variable[N]
+                var_idx.index = cstoi(tok.value);
+            } else {
                 read_expression();
-                getindexlast = true;
+                var_idx.flags |= SEL_DYN_IDX;
+            }
+            if (tok = m_lexer.check_next(TOK_COLON)) { // variable[N:M] -- M times after index N
+                if (read_only) throw unexpected_token(tok, TOK_BRACKET_END);
+                if (tok = m_lexer.check_next(TOK_INTEGER)) {
+                    var_idx.length = cstoi(tok.value);
+                } else {
+                    read_expression();
+                    var_idx.flags |= SEL_DYN_LEN;
+                }
             }
         }
         m_lexer.require(TOK_BRACKET_END);
     }
 
-    if (rangeall) {
-        add_line(opcode::SELRANGEALL, name);
-    } else if (getindex) {
-        if (getindexlast) {
-            add_line(opcode::SELRANGETOP, name);
-        } else {
-            add_line(opcode::SELVARTOP, name);
-        }
-    } else if (index_last >= 0) {
-        add_line(opcode::SELVAR, variable_idx{name, index, index_last});
-    } else {
-        add_line(opcode::SELVAR, variable_idx{name, index, 1});
-    }
+    add_line(opcode::SELVAR, var_idx);
 
-    return flags;
+    return prefixes;
 }
 
 void parser::read_function() {

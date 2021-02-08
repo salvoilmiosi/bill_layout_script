@@ -64,11 +64,11 @@ public:
 class variable_ref : public multimap_range<std::string, variable> {
 public:
     size_t index = 0;
-    size_t range_len = 0;
+    size_t length = 0;
 
 public:
-    variable_ref(map_type &map, const std::string &key, size_t index = 0, size_t range_len = 0) :
-        multimap_range(map, key), index(index), range_len(range_len) {}
+    variable_ref(map_type &map, const std::string &key, size_t index = 0, size_t length = 0) :
+        multimap_range(map, key), index(index), length(length) {}
 
 public:
     const variable &get_value() const {
@@ -90,20 +90,18 @@ public:
     void set_value(variable &&value, bool increase = false) {
         if (value.empty()) return;
 
-        if (index == -1) index = size();
-
-        resize(index + range_len);
+        resize(index + length);
 
         auto it = std::next(begin(), index);
 
         if (increase) {
-            std::for_each_n(it, range_len, [&](auto &var) {
+            std::for_each_n(it, length, [&](auto &var) {
                 var.second += value;
             });
-        } else if (range_len == 1) {
+        } else if (length == 1) {
             it->second = std::move(value);
         } else {
-            std::for_each_n(it, range_len, [&](auto &var) {
+            std::for_each_n(it, length, [&](auto &var) {
                 var.second = value;
             });
         }
