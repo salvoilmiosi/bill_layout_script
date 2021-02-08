@@ -26,7 +26,10 @@
     T(TOK_BRACE_BEGIN,      "{"), \
     T(TOK_BRACE_END,        "}"), \
     T(TOK_ASSIGN,           "="), \
+    T(TOK_ADD_ASSIGN,       "+="), \
+    T(TOK_SUB_ASSIGN,       "-="), \
     T(TOK_CONTENT,          "@"), \
+    T(TOK_TILDE,            "~"), \
     T(TOK_COLON,            ":"), \
     T(TOK_GLOBAL,           "::"), \
     T(TOK_PERCENT,          "%"), \

@@ -44,7 +44,7 @@ std::string quoted_string(const std::string &str) {
 
 static std::ostream &operator << (std::ostream &out, const variable_name &name) {
     if (name.global) {
-        out << token_names[int(TOK_GLOBAL)];
+        out << "GLOBAL ";
     }
     out << name.name;
     return out;

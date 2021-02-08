@@ -143,7 +143,7 @@ $with(_dettaglio) {
     }
 
     $step($captures(@,$format(/al \d\d\.$0 Euro\/kWh (\N) (\N)/,_mese))) {
-      %prezzo_energia[0:3] %energia_attiva:
+      %prezzo_energia[0:3] %~energia_attiva
     }
   }
 

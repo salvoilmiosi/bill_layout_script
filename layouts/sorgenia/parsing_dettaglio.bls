@@ -29,7 +29,7 @@ $with(::_dettaglio) {
   }
 
   $step($captures(@,/Prezzo energia(?: monorario)? euro\/kWh (\N) (\N)/)) {
-    %prezzo_energia[0:3] %energia_attiva: 
+    %prezzo_energia[0:3] %~energia_attiva
   }
 
   %sbilanciamento=$search(@,/Incremento prezzo euro\/kWh (\N)/)

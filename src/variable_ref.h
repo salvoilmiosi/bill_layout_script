@@ -61,12 +61,6 @@ public:
     }
 };
 
-enum set_flags {
-    SET_ASSIGN = 0,
-    SET_RESET = 1 << 0,
-    SET_INCREASE = 1 << 1
-};
-
 class variable_ref : public multimap_range<std::string, variable> {
 public:
     size_t index = 0;
@@ -93,10 +87,8 @@ public:
         }
     }
 
-    void set_value(variable &&value, set_flags flags = SET_ASSIGN) {
+    void set_value(variable &&value, bool increase = false) {
         if (value.empty()) return;
-
-        if (flags & SET_RESET) clear();
 
         if (index == -1) index = size();
 
@@ -104,7 +96,7 @@ public:
 
         auto it = std::next(begin(), index);
 
-        if (flags & SET_INCREASE) {
+        if (increase) {
             std::for_each_n(it, range_len, [&](auto &var) {
                 var.second += value;
             });

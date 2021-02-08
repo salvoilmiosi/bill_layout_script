@@ -164,6 +164,9 @@ token lexer::next(bool do_advance) {
     case '@':
         tok.type = TOK_CONTENT;
         break;
+    case '~':
+        tok.type = TOK_TILDE;
+        break;
     case ':':
         if (*m_current == ':') {
             nextChar();
@@ -173,10 +176,20 @@ token lexer::next(bool do_advance) {
         }
         break;
     case '+':
-        tok.type = TOK_PLUS;
+        if (*m_current == '=') {
+            nextChar();
+            tok.type = TOK_ADD_ASSIGN;
+        } else {
+            tok.type = TOK_PLUS;
+        }
         break;
     case '-':
-        tok.type = TOK_MINUS;
+        if (*m_current == '=') {
+            nextChar();
+            tok.type = TOK_SUB_ASSIGN;
+        } else {
+            tok.type = TOK_MINUS;
+        }
         break;
     case '>':
         if (*m_current == '=') {

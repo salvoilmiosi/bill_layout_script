@@ -172,13 +172,23 @@ void reader::exec_command(const command_args &cmd) {
         m_refs.top().clear();
         m_refs.pop();
         break;
+    case opcode::RESETVAR:
+        if (!m_vars.top().empty()) {
+            m_refs.top().clear();
+        }
+        break;
     case opcode::SETVAR:
-        m_refs.top().set_value(std::move(m_vars.top()), SET_ASSIGN);
+        m_refs.top().set_value(std::move(m_vars.top()));
         m_vars.pop();
         m_refs.pop();
         break;
-    case opcode::RESETVAR:
-        m_refs.top().set_value(std::move(m_vars.top()), SET_RESET);
+    case opcode::INC:
+        m_refs.top().set_value(std::move(m_vars.top()), true);
+        m_vars.pop();
+        m_refs.pop();
+        break;
+    case opcode::DEC:
+        m_refs.top().set_value(- m_vars.top(), true);
         m_vars.pop();
         m_refs.pop();
         break;
@@ -220,16 +230,6 @@ void reader::exec_command(const command_args &cmd) {
             m_program_counter += cmd.get<jump_address>().address;
             m_jumped = true;
         }
-        break;
-    case opcode::INC:
-        m_refs.top().set_value(std::move(m_vars.top()), SET_INCREASE);
-        m_vars.pop();
-        m_refs.pop();
-        break;
-    case opcode::DEC:
-        m_refs.top().set_value(- m_vars.top(), SET_INCREASE);
-        m_vars.pop();
-        m_refs.pop();
         break;
     case opcode::MOVCONTENT:
         m_contents.push(std::move(m_vars.top().str()));

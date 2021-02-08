@@ -142,7 +142,13 @@ bool parser::read_statement() {
         int flags = read_variable(false);
         
         auto tok = m_lexer.peek();
+        opcode assign_op = opcode::SETVAR;
+        
         switch (tok.type) {
+        case TOK_ADD_ASSIGN:
+        case TOK_SUB_ASSIGN:
+            assign_op = tok.type == TOK_ADD_ASSIGN ? opcode::INC : opcode::SUB;
+            [[fallthrough]];
         case TOK_ASSIGN:
             m_lexer.advance(tok);
             read_expression();
@@ -152,21 +158,11 @@ bool parser::read_statement() {
             break;
         }
 
-        if (flags & VAR_AGGREGATE) {
-            add_line(opcode::AGGREGATE);
-        } else if (flags & VAR_PARSENUM) {
-            add_line(opcode::PARSENUM);
-        }
+        if (flags & VAR_AGGREGATE)  add_line(opcode::AGGREGATE);
+        if (flags & VAR_PARSENUM)   add_line(opcode::PARSENUM);
+        if (flags & VAR_OVERWRITE)  add_line(opcode::RESETVAR);
         
-        if (flags & VAR_RESET) {
-            add_line(opcode::RESETVAR);
-        } else if (flags & VAR_INCREASE) {
-            add_line(opcode::INC);
-        } else if (flags & VAR_DECREASE) {
-            add_line(opcode::DEC);
-        } else {
-            add_line(opcode::SETVAR);
-        }
+        add_line(assign_op);
     }
     }
     return true;
@@ -325,6 +321,10 @@ int parser::read_variable(bool read_only) {
             if (read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
             flags |= VAR_AGGREGATE;
             break;
+        case TOK_TILDE:
+            if (read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
+            flags |= VAR_OVERWRITE;
+            break;
         case TOK_AMPERSAND:
             if (!read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
             flags |= VAR_MOVE;
@@ -375,26 +375,6 @@ int parser::read_variable(bool read_only) {
             }
         }
         m_lexer.require(TOK_BRACKET_END);
-    }
-
-    if (!read_only) {
-        token tok = m_lexer.peek();
-        switch(tok.type) {
-        case TOK_PLUS:
-            flags |= VAR_INCREASE;
-            m_lexer.advance(tok);
-            break;
-        case TOK_MINUS:
-            flags |= VAR_DECREASE;
-            m_lexer.advance(tok);
-            break;
-        case TOK_COLON:
-            flags |= VAR_RESET;
-            m_lexer.advance(tok);
-            break;
-        default:
-            break;
-        }
     }
 
     if (rangeall) {

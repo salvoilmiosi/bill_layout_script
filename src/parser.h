@@ -17,12 +17,10 @@ struct spacer {
 };
 
 enum variable_flags {
-    VAR_RESET       = 1 << 0,
+    VAR_OVERWRITE   = 1 << 0,
     VAR_PARSENUM    = 1 << 1,
-    VAR_INCREASE    = 1 << 2,
-    VAR_DECREASE    = 1 << 3,
-    VAR_MOVE        = 1 << 4,
-    VAR_AGGREGATE   = 1 << 5,
+    VAR_AGGREGATE   = 1 << 2,
+    VAR_MOVE        = 1 << 3,
 };
 
 enum parser_flags {
