@@ -10,8 +10,8 @@ std::vector<std::string_view> string_split(std::string_view str, char separator 
 // unisce tutte le stringhe in un vettore di stringhe
 std::string string_join(const std::vector<std::string> &vec, std::string_view separator = " ");
 
-// sostituisce tutte le occorrenze di una stringa in un'altra, restituisce il numero di valori trovati
-int string_replace(std::string &str, std::string_view from, std::string_view to);
+// sostituisce tutte le occorrenze di una stringa in un'altra
+void string_replace(std::string &str, std::string_view from, std::string_view to);
 
 // restituisce una copia in minuscolo della stringa di input
 std::string string_tolower(std::string str);
@@ -56,7 +56,7 @@ std::string search_regex_captures(std::string_view regex, std::string_view value
 std::string search_regex(std::string_view format, std::string_view value, int index);
 
 // rimpiazza in str le occorrenze di format in value
-std::string &string_replace_regex(std::string &value, std::string_view format, const std::string &str);
+std::string string_replace_regex(const std::string &value, std::string_view format, const std::string &str);
 
 // converte ogni carattere di spazio in " "
 std::string singleline(std::string input);

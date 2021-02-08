@@ -82,32 +82,27 @@ template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : check_ar
     using types = type_list<Ts ...>;
 };
 
-template<typename T, typename InputIt, typename Function>
-constexpr std::vector<T> transformed_vector(InputIt begin, InputIt end, Function fun) {
-    std::vector<T> ret;
-    for (;begin!=end; ++begin) {
-        ret.emplace_back(std::move(fun(*begin)));
-    }
-    return ret;
-}
-
 template<typename T> using convert_type = std::conditional_t<
     is_convertible<std::add_lvalue_reference_t<std::decay_t<T>>>,
         std::add_lvalue_reference_t<std::decay_t<T>>,
         std::decay_t<T>>;
 
-template<typename TypeList, size_t I> inline get_nth_t<I, TypeList> get_arg(arg_list &args) {
+template<typename TypeList, size_t I> inline auto get_arg(arg_list &args) {
     using type = convert_type<get_nth_t<I, TypeList>>;
     if constexpr (is_optional<type>{}) {
         using opt_type = typename type::value_type;
         if (I >= args.size()) {
-            return std::nullopt;
+            return std::optional<opt_type>(std::nullopt);
         } else {
-            return std::move(convert_var<convert_type<opt_type>>(args[I]));
+            return std::optional<opt_type>(std::move(convert_var<convert_type<opt_type>>(args[I])));
         }
     } else if constexpr (is_vector<type>{}) {
         using vec_type = typename type::value_type;
-        return transformed_vector<vec_type>(args.begin() + I, args.end(), convert_var<convert_type<vec_type>>);
+        std::vector<vec_type> ret;
+        for (auto it = args.begin() + I; it != args.end(); ++it) {
+            ret.emplace_back(std::move(convert_var<convert_type<vec_type>>(*it)));
+        }
+        return ret;
     } else {
         return std::move(convert_var<type>(args[I]));
     }
@@ -200,7 +195,7 @@ static const std::unordered_map<std::string, function_handler> lookup {
             return variable::null_var();
         }
     }},
-    {"format", [](std::string_view format, std::vector<std::string> args) {
+    {"format", [](std::string_view format, const std::vector<std::string> &args) {
         return string_format(format, args);
     }},
     {"coalesce", [](std::vector<variable> args) {

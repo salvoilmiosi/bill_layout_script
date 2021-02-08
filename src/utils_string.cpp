@@ -61,18 +61,15 @@ void string_trim(std::string &str) {
     }).base(), str.end());
 }
 
-int string_replace(std::string &str, std::string_view from, std::string_view to) {
+void string_replace(std::string &str, std::string_view from, std::string_view to) {
     size_t index = 0;
-    int count = 0;
     while (true) {
         index = str.find(from, index);
         if (index == std::string::npos) break;
 
         str.replace(index, from.size(), to);
         index += to.size();
-        ++count;
     }
-    return count;
 }
 
 std::string read_all(std::istream &stream) {
@@ -183,8 +180,8 @@ std::string search_regex(std::string_view format, std::string_view value, int in
     }
 }
 
-std::string &string_replace_regex(std::string &value, std::string_view format, const std::string &str) {
-    return value = std::regex_replace(value, create_regex(format), str);
+std::string string_replace_regex(const std::string &value, std::string_view format, const std::string &str) {
+    return std::regex_replace(value, create_regex(format), str);
 }
 
 std::string singleline(std::string input) {
