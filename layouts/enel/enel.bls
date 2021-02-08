@@ -194,9 +194,9 @@ $with(::_dettaglio) {
   }
   $between("SPESA PER IL TRASPORTO", "Totale spesa per il trasporto") {
     $with($matches(@,$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
-      ^trasporto_gestione=$matches(@,/mesi.?1 (\N)/)
-      ^trasporto_gestione=$matches(@,/\/kWh \N \N (\N)/)
-      ^trasporto_gestione=$matches(@,/\/kVarh \N \N (\N)/)
+      ^trasporto_gestione+=$matches(@,/mesi.?1 (\N)/)
+      ^trasporto_gestione+=$matches(@,/\/kWh \N \N (\N)/)
+      ^trasporto_gestione+=$matches(@,/\/kVarh \N \N (\N)/)
       %potenza[0:3]=$search(@,/kW (\N)/)
     }
   }
