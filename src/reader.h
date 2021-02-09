@@ -74,8 +74,6 @@ public:
 
 private:
     void exec_command(const command_args &cmd);
-    void read_box(pdf_rect box);
-    void call_function(const std::string &name, size_t numargs);
 
 private:
     simple_stack<variable> m_vars;

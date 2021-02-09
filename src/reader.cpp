@@ -81,6 +81,29 @@ void reader::exec_command(const command_args &cmd) {
         return dec::fromStream(iss, dec::decimal_format(intl::decimal_point(), intl::thousand_sep()), num);
     };
 
+    auto read_box = [&](pdf_rect box) {
+        box.page += m_spacer.page;
+        box.x += m_spacer.x;
+        box.y += m_spacer.y;
+        box.w += m_spacer.w;
+        box.h += m_spacer.h;
+        m_spacer = {};
+
+        m_last_box_page = box.page;
+
+        m_contents = {};
+
+        m_contents.push(m_doc->get_text(box));
+    };
+
+    auto call_function = [&](const command_call &cmd) {
+        variable ret = find_function(cmd.name)(arg_list(
+            m_vars.end() - cmd.numargs,
+            m_vars.end()));
+        m_vars.resize(m_vars.size() - cmd.numargs);
+        m_vars.push(std::move(ret));
+    };
+
     switch(cmd.command()) {
     case opcode::NOP:
     case opcode::COMMENT:
@@ -88,11 +111,9 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::RDBOX:
         read_box(cmd.get<pdf_rect>());
         break;
-    case opcode::CALL: {
-        const auto &call = cmd.get<command_call>();
-        call_function(call.name, call.numargs);
+    case opcode::CALL:
+        call_function(cmd.get<command_call>());
         break;
-    }
     case opcode::THROWERR: throw layout_error(m_vars.top().str()); break;
     case opcode::ADDWARNING:
         m_out.warnings.push_back(std::move(m_vars.top().str()));
@@ -303,27 +324,4 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
     } else {
         return it->second;
     }
-}
-
-void reader::read_box(pdf_rect box) {
-    box.page += m_spacer.page;
-    box.x += m_spacer.x;
-    box.y += m_spacer.y;
-    box.w += m_spacer.w;
-    box.h += m_spacer.h;
-    m_spacer = {};
-
-    m_last_box_page = box.page;
-
-    m_contents = {};
-
-    m_contents.push(m_doc->get_text(box));
-}
-
-void reader::call_function(const std::string &name, size_t numargs) {
-    variable ret = find_function(name)(arg_list(
-        m_vars.end() - numargs,
-        m_vars.end()));
-    m_vars.resize(m_vars.size() - numargs);
-    m_vars.push(std::move(ret));
 }
