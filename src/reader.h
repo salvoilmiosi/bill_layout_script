@@ -81,8 +81,8 @@ private:
     simple_stack<variable> m_vars;
     simple_stack<content_view> m_contents;
     simple_stack<variable_ref> m_refs;
-
-    simple_stack<size_t> m_return_addrs;
+    
+    static_stack<size_t> m_return_addrs;
 
     // nome file layout -> indirizzo in m_code
     std::map<std::filesystem::path, size_t> m_loaded_layouts;

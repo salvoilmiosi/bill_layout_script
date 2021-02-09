@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+constexpr char RESULT_SEPARATOR = '\x1f';
+
 // divide una stringa per separatore
 std::vector<std::string_view> string_split(std::string_view str, char separator = ',');
 

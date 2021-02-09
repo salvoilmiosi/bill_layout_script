@@ -39,13 +39,35 @@ void reader::exec_command(const command_args &cmd) {
         m_vars.push(std::move(ret));
     };
 
-    auto create_ref = [&](const std::string &name, bool global, auto ... args) {
-        if (global) {
-            return variable_ref(m_out.globals, name, args ...);
-        } else {
+    auto create_ref = [&](const variable_selector &sel) {
+        if (!(sel.flags & SEL_GLOBAL)) {
             while (m_out.values.size() <= m_current_table) m_out.values.emplace_back();
-            return variable_ref(m_out.values[m_current_table], name, args ...);
         }
+        
+        auto ref = variable_ref(
+            (sel.flags & SEL_GLOBAL) ? m_out.globals : m_out.values[m_current_table],
+            sel.name, sel.index, sel.length);
+
+        if (sel.flags & SEL_DYN_LEN) {
+            ref.length = m_vars.top().as_int();
+            m_vars.pop();
+        }
+
+        if (sel.flags & SEL_DYN_IDX) {
+            ref.index = m_vars.top().as_int();
+            m_vars.pop();
+        }
+
+        if (sel.flags & SEL_EACH) {
+            ref.index = 0;
+            ref.length = ref.size();
+        }
+        
+        if (sel.flags & SEL_APPEND) {
+            ref.index = ref.size();
+        }
+
+        return ref;
     };
 
     auto jump_subroutine = [&](size_t address) {
@@ -92,9 +114,10 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::AGGREGATE: {
         if (! m_vars.top().empty()) {
             fixed_point ret(0);
-            for (const auto &str : string_split(m_vars.top().str_view(), '\0')) {
+            content_view view(std::move(m_vars.top().str()));
+            for (view.new_subview(); !view.token_end(); view.next_result()) {
                 fixed_point num;
-                if (parse_num(num, std::string(str))) {
+                if (parse_num(num, std::string(view.view()))) {
                     ret += num;
                 }
             }
@@ -120,36 +143,17 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::GEQ: OP(a >= b); break;
     case opcode::LEQ: OP(a <= b); break;
 #undef OP
-    case opcode::SELVAR: {
-        auto var_idx = cmd.get<variable_selector>();
-        if (var_idx.flags & SEL_DYN_LEN) {
-            var_idx.length = m_vars.top().as_int();
-            m_vars.pop();
-        }
-        if (var_idx.flags & SEL_DYN_IDX) {
-            var_idx.index = m_vars.top().as_int();
-            m_vars.pop();
-        }
-        auto ref = create_ref(var_idx.name, var_idx.flags & SEL_GLOBAL, var_idx.index, var_idx.length);
-        if (var_idx.flags & SEL_EACH) {
-            ref.index = 0;
-            ref.length = ref.size();
-        } else if (var_idx.flags & SEL_APPEND) {
-            ref.index = ref.size();
-        }
-        m_refs.push(std::move(ref));
+    case opcode::SELVAR:
+        m_refs.push(create_ref(cmd.get<variable_selector>()));
         break;
-    }
-    case opcode::ISSET: {
-        const auto &name = cmd.get<variable_name>();
-        m_vars.push(create_ref(name.name, name.global).size() != 0);
+    case opcode::ISSET:
+        m_vars.push(m_refs.top().size() != 0);
+        m_refs.pop();
         break;
-    }
-    case opcode::GETSIZE: {
-        const auto &name = cmd.get<variable_name>();
-        m_vars.push(create_ref(name.name, name.global).size());
+    case opcode::GETSIZE:
+        m_vars.push(m_refs.top().size());
+        m_refs.pop();
         break;
-    }
     case opcode::MVBOX:
         switch (cmd.get<spacer_index>()) {
         case spacer_index::SPACER_PAGE:

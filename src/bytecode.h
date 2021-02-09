@@ -44,11 +44,6 @@ enum variable_select_flags SEL_VAR_FLAGS;
 static const char *variable_select_flag_names[] = SEL_VAR_FLAGS;
 #undef S
 
-struct variable_name {
-    std::string name;
-    bool global = false;
-};
-
 struct variable_selector {
     std::string name;
     small_int index = 0;
@@ -86,8 +81,8 @@ struct jump_address {
     O(GEQ),                         /* var_stack * 2 -> a >= b -> var_stack */ \
     O(LEQ),                         /* var_stack * 2 -> a >= b -> var_stack */ \
     O(SELVAR,   variable_selector), /* (name, index, size, flags) -> ref_stack */ \
-    O(ISSET,        variable_name), /* ref_stack -> size() != 0 -> var_stack */ \
-    O(GETSIZE,      variable_name), /* ref_stack -> size() -> var_stack */ \
+    O(ISSET),                       /* ref_stack -> size() != 0 -> var_stack */ \
+    O(GETSIZE),                     /* ref_stack -> size() -> var_stack */ \
     O(CLEAR),                       /* ref_stack -> clear */ \
     O(SETVAR),                      /* ref_stack, var_stack -> set */ \
     O(RESETVAR),                    /* ref_stack, var_stack -> reset */ \

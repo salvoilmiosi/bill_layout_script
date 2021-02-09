@@ -42,14 +42,6 @@ std::string quoted_string(const std::string &str) {
     return ret;
 }
 
-static std::ostream &operator << (std::ostream &out, const variable_name &name) {
-    out << name.name;
-    if (name.global) {
-        out << " GLOBAL";
-    }
-    return out;
-}
-
 int MainApp::OnRun() {
     try {
         parser my_parser;
@@ -104,10 +96,6 @@ int MainApp::OnRun() {
                 }
                 break;
             }
-            case opcode::ISSET:
-            case opcode::GETSIZE:
-                std::cout << ' ' << line.get<variable_name>();
-                break;
             case opcode::PUSHNUM:
                 std::cout << ' ' << line.get<fixed_point>();
                 break;

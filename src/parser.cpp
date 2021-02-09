@@ -398,7 +398,8 @@ void parser::read_function() {
         bool isglobal = m_lexer.check_next(TOK_GLOBAL);
         auto tok_var = m_lexer.require(TOK_IDENTIFIER);
         m_lexer.require(TOK_PAREN_END);
-        add_line(fun_name == "isset" ? opcode::ISSET : opcode::GETSIZE, variable_name{std::string(tok_var.value), isglobal});
+        add_line(opcode::SELVAR, variable_selector{std::string(tok_var.value), 0, 0, uint8_t(SEL_GLOBAL & (-isglobal))});
+        add_line(fun_name == "isset" ? opcode::ISSET : opcode::GETSIZE);
         break;
     }
     default: {

@@ -147,7 +147,7 @@ std::string search_regex_all(std::string_view format, std::string_view value, in
     bool first = true;
     for (; it != std::cregex_iterator(); ++it) {
         if (!first) {
-            ret += '\0';
+            ret += RESULT_SEPARATOR;
         }
         first = false;
         ret += it->str(index);
@@ -162,7 +162,7 @@ std::string search_regex_captures(std::string_view format, std::string_view valu
     if (std::regex_search(value.begin(), value.end(), match, expression)) {
         for (size_t i=1; i<match.size(); ++i) {
             if (i != 1) {
-                ret += '\0';
+                ret += RESULT_SEPARATOR;
             }
             ret += match.str(i);
         }
