@@ -43,10 +43,10 @@ std::string quoted_string(const std::string &str) {
 }
 
 static std::ostream &operator << (std::ostream &out, const variable_name &name) {
-    if (name.global) {
-        out << "GLOBAL ";
-    }
     out << name.name;
+    if (name.global) {
+        out << " GLOBAL";
+    }
     return out;
 }
 

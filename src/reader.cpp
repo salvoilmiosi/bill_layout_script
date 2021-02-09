@@ -39,12 +39,12 @@ void reader::exec_command(const command_args &cmd) {
         m_vars.push(std::move(ret));
     };
 
-    auto create_ref = [&](const variable_name &name, auto ... args) {
-        if (name.global) {
-            return variable_ref(m_out.globals, name.name, args ...);
+    auto create_ref = [&](const std::string &name, bool global, auto ... args) {
+        if (global) {
+            return variable_ref(m_out.globals, name, args ...);
         } else {
             while (m_out.values.size() <= m_current_table) m_out.values.emplace_back();
-            return variable_ref(m_out.values[m_current_table], name.name, args ...);
+            return variable_ref(m_out.values[m_current_table], name, args ...);
         }
     };
 
@@ -130,7 +130,7 @@ void reader::exec_command(const command_args &cmd) {
             var_idx.index = m_vars.top().as_int();
             m_vars.pop();
         }
-        auto ref = create_ref(var_idx.name, var_idx.index, var_idx.length);
+        auto ref = create_ref(var_idx.name, var_idx.flags & SEL_GLOBAL, var_idx.index, var_idx.length);
         if (var_idx.flags & SEL_EACH) {
             ref.index = 0;
             ref.length = ref.size();
@@ -140,12 +140,16 @@ void reader::exec_command(const command_args &cmd) {
         m_refs.push(std::move(ref));
         break;
     }
-    case opcode::ISSET:
-        m_vars.push(create_ref(cmd.get<variable_name>()).size() != 0);
+    case opcode::ISSET: {
+        const auto &name = cmd.get<variable_name>();
+        m_vars.push(create_ref(name.name, name.global).size() != 0);
         break;
-    case opcode::GETSIZE:
-        m_vars.push(create_ref(cmd.get<variable_name>()).size());
+    }
+    case opcode::GETSIZE: {
+        const auto &name = cmd.get<variable_name>();
+        m_vars.push(create_ref(name.name, name.global).size());
         break;
+    }
     case opcode::MVBOX:
         switch (cmd.get<spacer_index>()) {
         case spacer_index::SPACER_PAGE:

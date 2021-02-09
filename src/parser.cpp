@@ -307,7 +307,7 @@ int parser::read_variable(bool read_only) {
         tok_modifier = m_lexer.next();
         switch (tok_modifier.type) {
         case TOK_GLOBAL:
-            var_idx.name.global = true;
+            var_idx.flags |= SEL_GLOBAL;
             break;
         case TOK_PERCENT:
             if (read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
@@ -334,7 +334,7 @@ int parser::read_variable(bool read_only) {
     }
 
     // dopo l'ultima call a next tok_modifier punta al nome della variabile
-    var_idx.name.name = std::string(tok_modifier.value);
+    var_idx.name = std::string(tok_modifier.value);
 
     if (m_lexer.check_next(TOK_BRACKET_BEGIN)) { // variable[
         token tok = m_lexer.peek();

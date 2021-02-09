@@ -30,13 +30,14 @@ constexpr const char *spacer_index_names[] = SPACER_INDICES;
 #undef SPACER
 
 #define SEL_VAR_FLAGS { \
-    S(DYN_IDX,      0), \
-    S(DYN_LEN,      1), \
-    S(EACH,         2), \
-    S(APPEND,       3) \
+    S(GLOBAL,       0), \
+    S(DYN_IDX,      1), \
+    S(DYN_LEN,      2), \
+    S(EACH,         3), \
+    S(APPEND,       4), \
 }
 
-#define S(n, v) SEL_##n = 1 << v
+#define S(n, v) SEL_##n = (1 << v)
 enum variable_select_flags SEL_VAR_FLAGS;
 #undef S
 #define S(n, v) #n
@@ -49,7 +50,7 @@ struct variable_name {
 };
 
 struct variable_selector {
-    variable_name name;
+    std::string name;
     small_int index = 0;
     small_int length = 1;
     uint8_t flags = 0;
