@@ -89,7 +89,7 @@ $if($contains(@,"Dati di fornitura")) {
 ### Mode RAW
 ### Rect 1 0.066170394 0.32745665 0.42907363 0.2335468
 ### Script
-iva=$search(@,/IVA (\d%)/)
+iva=$search(@,/IVA (\N%)/)
 $ifnot(::spacer_multipod) {
   %spesa_materia_energia=$search(@,/Corrispettivi energia (\N)/)
   %spesa_materia_energia=$search(@,/Spese per l'energia (\N)/)
