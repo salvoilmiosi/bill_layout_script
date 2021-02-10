@@ -147,7 +147,7 @@ bool parser::read_statement() {
         switch (tok.type) {
         case TOK_ADD_ASSIGN:
         case TOK_SUB_ASSIGN:
-            assign_op = tok.type == TOK_ADD_ASSIGN ? opcode::INC : opcode::SUB;
+            assign_op = tok.type == TOK_ADD_ASSIGN ? opcode::INC : opcode::DEC;
             [[fallthrough]];
         case TOK_ASSIGN:
             m_lexer.advance(tok);
@@ -160,9 +160,15 @@ bool parser::read_statement() {
 
         if (prefixes & VP_AGGREGATE)  add_line(opcode::AGGREGATE);
         if (prefixes & VP_PARSENUM)   add_line(opcode::PARSENUM);
-        if (prefixes & VP_OVERWRITE)  add_line(opcode::RESETVAR);
-        
-        add_line(assign_op);
+
+        if (prefixes & VP_OVERWRITE)  {
+            if (assign_op == opcode::DEC) {
+                add_line(opcode::NEG);
+            }
+            add_line(opcode::RESETVAR);
+        } else {
+            add_line(assign_op);
+        }
     }
     }
     return true;

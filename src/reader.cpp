@@ -198,7 +198,7 @@ void reader::exec_command(const command_args &cmd) {
         if (!m_vars.top().empty()) {
             m_refs.top().clear();
         }
-        break;
+        [[fallthrough]];
     case opcode::SETVAR:
         m_refs.top().set_value(std::move(m_vars.top()));
         m_vars.pop();
