@@ -46,7 +46,7 @@ int MainApp::OnRun() {
     try {
         parser my_parser;
         if (!skip_comments) {
-            my_parser.add_flags(FLAGS_DEBUG);
+            my_parser.add_flags(PARSER_ADD_COMMENTS);
         }
         my_parser.read_layout(bill_layout_script::from_file(input_bls));
 

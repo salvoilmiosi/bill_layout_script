@@ -43,7 +43,7 @@ void parser::add_label(const std::string &label) {
 }
 
 void parser::read_box(const layout_box &box) {
-    if (m_flags & FLAGS_DEBUG && !box.name.empty()) {
+    if (m_flags & PARSER_ADD_COMMENTS && !box.name.empty()) {
         add_line(opcode::COMMENT, "### " + box.name);
     }
     current_box = &box;
@@ -58,7 +58,7 @@ void parser::read_box(const layout_box &box) {
         throw unexpected_token(tok_label, TOK_IDENTIFIER);
     }
 
-    if (m_flags & FLAGS_DEBUG) {
+    if (m_flags & PARSER_ADD_COMMENTS) {
         m_lexer.set_bytecode(&m_code);
     }
     m_lexer.set_script(box.spacers);
@@ -301,40 +301,30 @@ int parser::read_variable(bool read_only) {
 
     variable_selector var_idx;
 
+    token tok_prefix;
+
+    auto add_flags_to = [&](auto &out, auto flags, bool condition) {
+        if ((out & flags) || !condition) throw unexpected_token(tok_prefix, TOK_IDENTIFIER);
+        out |= flags;
+    };
+    
     bool in_loop = true;
-    token tok_modifier;
     while (in_loop) {
-        tok_modifier = m_lexer.next();
-        switch (tok_modifier.type) {
-        case TOK_GLOBAL:
-            var_idx.flags |= SEL_GLOBAL;
-            break;
-        case TOK_PERCENT:
-            if (read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
-            prefixes |= VP_PARSENUM;
-            break;
-        case TOK_CARET:
-            if (read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
-            prefixes |= VP_AGGREGATE;
-            break;
-        case TOK_TILDE:
-            if (read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
-            prefixes |= VP_OVERWRITE;
-            break;
-        case TOK_AMPERSAND:
-            if (!read_only) throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
-            prefixes |= VP_MOVE;
-            break;
+        tok_prefix = m_lexer.next();
+        switch (tok_prefix.type) {
+        case TOK_GLOBAL:    add_flags_to(var_idx.flags, SEL_GLOBAL, true); break;
+        case TOK_PERCENT:   add_flags_to(prefixes, VP_PARSENUM, !read_only); break;
+        case TOK_CARET:     add_flags_to(prefixes, VP_AGGREGATE, !read_only); break;
+        case TOK_TILDE:     add_flags_to(prefixes, VP_OVERWRITE, !read_only); break;
+        case TOK_AMPERSAND: add_flags_to(prefixes, VP_MOVE, read_only); break;
         case TOK_IDENTIFIER:
+            var_idx.name = std::string(tok_prefix.value);
             in_loop = false;
             break;
         default:
-            throw unexpected_token(tok_modifier, TOK_IDENTIFIER);
+            throw unexpected_token(tok_prefix, TOK_IDENTIFIER);
         }
     }
-
-    // dopo l'ultima call a next tok_modifier punta al nome della variabile
-    var_idx.name = std::string(tok_modifier.value);
 
     if (m_lexer.check_next(TOK_BRACKET_BEGIN)) { // variable[
         token tok = m_lexer.peek();

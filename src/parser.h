@@ -18,8 +18,7 @@ enum variable_prefixes {
 };
 
 enum parser_flags {
-    FLAGS_NONE = 0,
-    FLAGS_DEBUG = 1 << 0,
+    PARSER_ADD_COMMENTS = 1 << 0
 };
 
 class parser {
@@ -72,7 +71,7 @@ private:
 
     std::map<std::string, size_t> m_labels;
 
-    uint8_t m_flags = FLAGS_NONE;
+    uint8_t m_flags = 0;
 
     friend class lexer;
 };
