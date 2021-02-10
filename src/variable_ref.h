@@ -6,14 +6,14 @@
 
 #include "variable.h"
 
-template<typename Key, typename Value>
+template<typename Map>
 class multimap_range {
 public:
-    using key_type = Key;
-    using value_type = Value;
+    using key_type = typename Map::key_type;
+    using value_type = typename Map::mapped_type;
 
-    using map_type = std::multimap<key_type, value_type>;
-    using iterator_type = typename map_type::iterator;
+    using map_type = Map;
+    using iterator_type = typename Map::iterator;
 
 private:
     map_type &m_map;
@@ -48,6 +48,14 @@ public:
         m_len = 0;
     }
 
+    value_type &at(size_t index) const {
+        if (index < size()) {
+            return std::next(begin(), index)->second;
+        } else {
+            throw std::out_of_range("Out of range");
+        }
+    }
+
     size_t size() const {
         return m_len;
     }
@@ -61,28 +69,47 @@ public:
     }
 };
 
-class variable_ref : public multimap_range<std::string, variable> {
+struct variable_key {
+    std::string name;
+    uint8_t table_index;
+
+    static constexpr uint8_t global_index = -1;
+
+    inline bool operator == (const variable_key &other) const = default;
+
+    inline auto operator <=> (const variable_key &other) const {
+        if (table_index == other.table_index) {
+            return name <=> other.name;
+        } else {
+            return table_index <=> other.table_index;
+        }
+    };
+};
+
+using variable_map = std::multimap<variable_key, variable>;
+
+class variable_ref : public multimap_range<variable_map> {
 public:
     size_t index = 0;
     size_t length = 0;
 
 public:
-    variable_ref(map_type &map, const std::string &key, size_t index = 0, size_t length = 0) :
+    variable_ref(map_type &map, const key_type &key, size_t index = 0, size_t length = 0) :
         multimap_range(map, key), index(index), length(length) {}
 
 public:
     const variable &get_value() const {
-        if (index < size()) {
-            return std::next(begin(), index)->second;
-        } else {
+        try {
+            return at(index);
+        } catch (const std::out_of_range &) {
             return variable::null_var();
         }
     }
 
     variable get_moved() {
-        if (index < size()) {
-            return std::move(std::next(begin(), index)->second);
-        } else {
+        try {
+            return std::move(at(index));
+        } catch (const std::out_of_range &) {
             return variable();
         }
     }

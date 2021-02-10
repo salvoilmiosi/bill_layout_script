@@ -140,7 +140,7 @@ void output_dialog::OnLayoutError(wxCommandEvent &evt) {
 
 void output_dialog::OnReadCompleted(wxCommandEvent &evt) {
     m_page->Append("Globali");
-    for (int i=1; i <= m_output.values.size(); ++i) {
+    for (int i=1; i <= m_output.table_index + 1; ++i) {
         m_page->Append(wxString::Format("%i", i));
     }
     m_page->SetSelection(m_output.values.size() > 0 ? 1 : 0);
@@ -157,22 +157,24 @@ void output_dialog::updateItems() {
     auto col_name = m_list_ctrl->AppendColumn("Nome", wxLIST_FORMAT_LEFT, 150);
     auto col_value = m_list_ctrl->AppendColumn("Valore", wxLIST_FORMAT_LEFT, 150);
 
-    auto display_page = [&](const variable_map &map) {
+    auto display_page = [&](const variable_map &map, int table_index) {
         size_t n=0;
         std::string old_name;
-        for (auto &[name, var] : map) {
-            if (!m_show_debug->GetValue() && name.front() == '_') {
+        for (auto &[key, var] : map) {
+            if (key.table_index != table_index) continue;
+
+            if (!m_show_debug->GetValue() && key.name.front() == '_') {
                 continue;
             }
             wxListItem item;
             item.SetId(n);
             m_list_ctrl->InsertItem(item);
 
-            if (old_name != name) {
-                m_list_ctrl->SetItem(n, col_name, name);
+            if (old_name != key.name) {
+                m_list_ctrl->SetItem(n, col_name, key.name);
             }
             m_list_ctrl->SetItem(n, col_value, wxString(var.str().c_str(), wxConvUTF8));
-            old_name = name;
+            old_name = key.name;
             ++n;
         }
     };
@@ -180,7 +182,7 @@ void output_dialog::updateItems() {
     if (m_page->GetValue() == "Globali") {
         m_page->SetSelection(0);
         
-        display_page(m_output.globals);
+        display_page(m_output.values, variable_key::global_index);
     } else {
         long selected_page;
         if (!m_page->GetValue().ToLong(&selected_page)) {
@@ -196,6 +198,6 @@ void output_dialog::updateItems() {
         m_page->SetSelection(selected_page);
         --selected_page;
 
-        display_page(m_output.values[int(selected_page)]);
+        display_page(m_output.values, selected_page);
     }
 }

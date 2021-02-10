@@ -22,11 +22,10 @@ struct box_spacer {
     int page = 0;
 };
 
-using variable_map = std::multimap<std::string, variable>;
-
 struct reader_output {
-    variable_map globals;
-    std::vector<variable_map> values;
+    variable_map values;
+    uint8_t table_index = 0;
+
     std::vector<std::string> warnings;
     std::vector<std::filesystem::path> layouts;
 };
@@ -87,8 +86,6 @@ private:
 
     box_spacer m_spacer;
     int m_last_box_page;
-
-    size_t m_current_table;
 
     size_t m_program_counter;
     bool m_jumped = false;

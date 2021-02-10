@@ -16,7 +16,6 @@ void reader::start() {
     m_spacer = {};
     m_last_box_page = 0;
 
-    m_current_table = 0;
     m_program_counter = 0;
     m_jumped = false;
 
@@ -40,13 +39,9 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto create_ref = [&](const variable_selector &sel) {
-        if (!(sel.flags & SEL_GLOBAL)) {
-            while (m_out.values.size() <= m_current_table) m_out.values.emplace_back();
-        }
-        
-        auto ref = variable_ref(
-            (sel.flags & SEL_GLOBAL) ? m_out.globals : m_out.values[m_current_table],
-            sel.name, sel.index, sel.length);
+        auto ref = variable_ref(m_out.values,
+            variable_key{sel.name, (sel.flags & SEL_GLOBAL) ? variable_key::global_index : m_out.table_index},
+            sel.index, sel.length);
 
         if (sel.flags & SEL_DYN_LEN) {
             ref.length = m_vars.top().as_int();
@@ -275,7 +270,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SUBVIEW: m_contents.top().new_subview(); break;
     case opcode::RESETVIEW: m_contents.top().reset_view(); break;
     case opcode::NEXTRESULT: m_contents.top().next_result(); break;
-    case opcode::NEXTTABLE: ++m_current_table; break;
+    case opcode::NEXTTABLE: ++m_out.table_index; break;
     case opcode::ATE: m_vars.push(m_last_box_page > m_doc->num_pages()); break;
     case opcode::RET:
         if (!m_return_addrs.empty()) {

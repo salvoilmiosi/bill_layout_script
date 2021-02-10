@@ -52,19 +52,6 @@ int MainApp::OnRun() {
         std::cout << result;
         return 1;
     };
-    
-    auto write_values = [&](const variable_map &values) {
-        Json::Value ret = Json::objectValue;
-        for (auto &[name, var] : values) {
-            if (name.front() == '_' && !show_debug) {
-                continue;
-            }
-            auto &json_arr = ret[name];
-            if (json_arr.isNull()) json_arr = Json::arrayValue;
-            json_arr.append(var.str());
-        }
-        return ret;
-    };
 
     try {
         pdf_document my_doc(input_pdf);
@@ -76,13 +63,29 @@ int MainApp::OnRun() {
 
         const auto &out = my_reader.get_output();
 
-        if (show_globals) {
-            result["globals"] = write_values(out.globals);
-        }
-        
         Json::Value &json_values = result["values"] = Json::arrayValue;
-        for (auto &v : out.values) {
-            json_values.append(write_values(v));
+        
+        auto write_var = [](Json::Value &table, const std::string &name, const variable &var) {
+            if (table.isNull()) table = Json::objectValue;
+            auto &json_arr = table[name];
+            if (json_arr.isNull()) json_arr = Json::arrayValue;
+            json_arr.append(var.str());
+        };
+
+        for (auto &[key, var] : out.values) {
+            if (key.name.front() == '_' && !show_debug) {
+                continue;
+            }
+            if (key.table_index == variable_key::global_index) {
+                if (show_globals) {
+                    write_var(result["globals"], key.name, var);
+                }
+            } else {
+                while (json_values.size() <= key.table_index) {
+                    json_values.append(Json::objectValue);
+                }
+                write_var(json_values[key.table_index], key.name, var);
+            }
         }
 
         for (auto &v : out.warnings) {
