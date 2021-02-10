@@ -6,6 +6,10 @@
 
 #include <sstream>
 
+reader::~reader() {
+    intl::reset_language();
+}
+
 void reader::start() {
     m_vars.clear();
     m_contents.clear();
@@ -303,7 +307,7 @@ void reader::exec_command(const command_args &cmd) {
         jump_subroutine(add_layout(cmd.get<std::filesystem::path>()));
         break;
     case opcode::SETLANG:
-        m_locale.set_language(cmd.get<int>());
+        intl::set_language(cmd.get<intl::language>());
         break;
     }
 }

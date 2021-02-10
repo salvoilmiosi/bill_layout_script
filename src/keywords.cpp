@@ -241,7 +241,7 @@ void parser::read_keyword() {
         auto imported_file = std::filesystem::canonical(m_layout->filename().parent_path() / (tok_layout_name.parse_string() + ".bls"));
         if (fun_name == "import") {
             add_line(opcode::IMPORT, imported_file);
-            if (m_layout->language_code != 0) {
+            if (intl::valid_language(m_layout->language_code)) {
                 add_line(opcode::SETLANG, m_layout->language_code);
             }
         } else {

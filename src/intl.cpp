@@ -1,5 +1,6 @@
 #include "intl.h"
 
+#include <wx/intl.h>
 #include <fmt/format.h>
 #include <stdexcept>
 
@@ -7,6 +8,8 @@ namespace intl {
     static char g_decimal_point;
     static char g_thousand_sep;
     static std::string g_number_format;
+
+    static wxLocale *g_locale = nullptr;
 
     char decimal_point() {
         return g_decimal_point;
@@ -20,15 +23,15 @@ namespace intl {
         return g_number_format;
     }
 
-    std::string language_string(int lang) {
+    std::string language_string(language lang) {
         return wxLocale::GetLanguageCanonicalName(lang).ToStdString();
     }
 
-    std::string language_name(int lang) {
+    std::string language_name(language lang) {
         return wxLocale::GetLanguageName(lang).ToStdString();
     }
 
-    int language_int(const std::string &lang) {
+    language language_code(const std::string &lang) {
         auto info = wxLocale::FindLanguageInfo(lang);
         if (info) {
             return info->Language;
@@ -37,8 +40,12 @@ namespace intl {
         }
     }
 
-    int system_language() {
+    language system_language() {
         return wxLocale::GetSystemLanguage();
+    }
+
+    bool valid_language(language lang) {
+        return lang != 0;
     }
 
     static void set_strings() {
@@ -71,30 +78,28 @@ namespace intl {
             + char_to_regex_str(g_thousand_sep) + "\\d{3})*(?:"
             + char_to_regex_str(g_decimal_point) + "\\d+)?|\\d+)(?!\\d)";
     }
-    
-    locale::locale() {
-        m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
-        set_strings();
-    }
 
-    locale::~locale() {
-        delete m_locale;
-        set_strings();
-    }
-
-    void locale::set_language(int lang) {
+    void set_language(language lang) {
         if (wxLocale::IsAvailable(lang)) {
-            if (m_locale) {
-                if (lang == m_locale->GetLanguage()) {
+            if (g_locale) {
+                if (lang == g_locale->GetLanguage()) {
                     return;
                 }
-                delete m_locale;
+                delete g_locale;
             }
-            m_locale = new wxLocale(lang);
+            g_locale = new wxLocale(lang);
             set_strings();
         } else {
             throw std::runtime_error(fmt::format("Lingua non supportata: {}", language_name(lang)));
         }
+    }
+
+    void reset_language() {
+        if (g_locale) {
+            delete g_locale;
+            g_locale = nullptr;
+        }
+        set_strings();
     }
 
 }

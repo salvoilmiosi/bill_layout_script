@@ -117,8 +117,8 @@ struct jump_address {
     O(ATE),                         /* m_ate -> var_stack */ \
     O(IMPORT,    std::filesystem::path), /* importa il file e lo esegue */ \
     O(SETLAYOUT, std::filesystem::path), /* IMPORT + hint per autolayout */ \
-    O(COMMENT,      std::string),   /* dati ignorati */ \
-    O(SETLANG,      int),           /* imposta la lingua del layout */ \
+    O(COMMENT, std::string),        /* dati ignorati */ \
+    O(SETLANG, intl::language), /* imposta la lingua del layout */ \
 }
 
 #define O_1_ARGS(x) O_IMPL(x, void)

@@ -37,6 +37,7 @@ enum reader_flags {
 class reader {
 public:
     reader() = default;
+    ~reader();
 
     reader(const pdf_document &doc) {
         set_document(doc);
@@ -100,8 +101,6 @@ private:
     uint8_t m_flags = 0;
 
     reader_output m_out;
-
-    intl::locale m_locale;
 };
 
 #endif

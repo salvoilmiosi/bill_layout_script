@@ -103,7 +103,7 @@ int MainApp::OnRun() {
                 std::cout << ' ' << quoted_string(line.get<std::string>());
                 break;
             case opcode::SETLANG:
-                std::cout << ' ' << intl::language_string(line.get<int>());
+                std::cout << ' ' << intl::language_string(line.get<intl::language>());
                 break;
             case opcode::IMPORT:
             case opcode::SETLAYOUT:

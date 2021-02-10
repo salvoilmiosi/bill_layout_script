@@ -2,6 +2,7 @@
 #define __BOX_LAYOUT_H__
 
 #include "pdf_document.h"
+#include "intl.h"
 
 #include <memory>
 #include <vector>
@@ -36,7 +37,7 @@ std::istream &operator >> (std::istream &in, class bill_layout_script &obj);
 class bill_layout_script {
 public:
     std::vector<box_ptr> m_boxes;
-    int language_code = 0;
+    intl::language language_code{};
 
 public:
     bill_layout_script() = default;
@@ -44,7 +45,7 @@ public:
     void clear() {
         m_boxes.clear();
         m_filename.clear();
-        language_code = 0;
+        language_code = {};
     }
 
     const std::filesystem::path &filename() const {

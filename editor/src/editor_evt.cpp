@@ -119,23 +119,23 @@ void frame_editor::OpenControlScript(wxCommandEvent &evt) {
 
 void frame_editor::OnSetLanguage(wxCommandEvent &evt) {
     static wxArrayString choices;
-    static std::vector<int> lang_codes;
+    static std::vector<intl::language> lang_codes;
 
     if (choices.empty()) {
         choices.push_back("(Seleziona una lingua)");
         lang_codes.push_back(0);
         for (int lang = wxLANGUAGE_UNKNOWN + 1; lang != wxLANGUAGE_USER_DEFINED; ++lang) {
             if (wxLocale::IsAvailable(lang)) {
-                choices.push_back(intl::language_name(lang));
-                lang_codes.push_back(lang);
+                choices.push_back(wxLocale::GetLanguageName(lang));
+                lang_codes.push_back(intl::language(lang));
             }
         }
     }
 
     wxSingleChoiceDialog diag(this, "Cambia la lingua del layout", "Lingua Layout", choices);
 
-    int lang = layout.language_code;
-    if (lang == 0) {
+    intl::language lang = layout.language_code;
+    if (!intl::valid_language(lang)) {
         lang = intl::system_language();
     }
     auto selected = std::find(lang_codes.begin(), lang_codes.end(), lang);

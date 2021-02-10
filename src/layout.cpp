@@ -9,7 +9,7 @@
 
 std::ostream &operator << (std::ostream &output, const bill_layout_script &layout) {
     output << "### Bill Layout Script\n";
-    if (layout.language_code != 0) {
+    if (intl::valid_language(layout.language_code)) {
         output << fmt::format("### Language {}\n", intl::language_string(layout.language_code));
     }
 
@@ -151,7 +151,7 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                 layout.m_boxes.push_back(current);
             }
         } else if (auto suf = suffix(line, "### Language")) {
-            layout.language_code = intl::language_int(std::string(suf.value));
+            layout.language_code = intl::language_code(std::string(suf.value));
         } else if (line.front() != '#') {
             throw layout_error("Token non valido");
         }
