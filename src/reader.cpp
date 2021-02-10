@@ -170,7 +170,7 @@ void reader::exec_command(const command_args &cmd) {
         m_vars.push(m_refs.top().size());
         m_refs.pop();
         break;
-    case opcode::MVBOX:
+    case opcode::MVBOX: 
         switch (cmd.get<spacer_index>()) {
         case spacer_index::SPACER_PAGE:
             m_spacer.page += m_vars.top().as_int();
@@ -182,10 +182,20 @@ void reader::exec_command(const command_args &cmd) {
             m_spacer.y += m_vars.top().as_double();
             break;
         case spacer_index::SPACER_W:
+        case spacer_index::SPACER_RIGHT:
             m_spacer.w += m_vars.top().as_double();
             break;
         case spacer_index::SPACER_H:
+        case spacer_index::SPACER_BOTTOM:
             m_spacer.h += m_vars.top().as_double();
+            break;
+        case spacer_index::SPACER_TOP:
+            m_spacer.y += m_vars.top().as_double();
+            m_spacer.h -= m_vars.top().as_double();
+            break;
+        case spacer_index::SPACER_LEFT:
+            m_spacer.x += m_vars.top().as_double();
+            m_spacer.w -= m_vars.top().as_double();
             break;
         }
         m_vars.pop();

@@ -19,7 +19,11 @@ struct command_call {
     SPACER(X), \
     SPACER(Y), \
     SPACER(W), \
-    SPACER(H) \
+    SPACER(H), \
+    SPACER(TOP), \
+    SPACER(RIGHT), \
+    SPACER(BOTTOM), \
+    SPACER(LEFT), \
 }
 
 #define SPACER(x) SPACER_##x

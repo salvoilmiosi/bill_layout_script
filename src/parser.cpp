@@ -85,6 +85,22 @@ void parser::read_box(const layout_box &box) {
             case hash("height"):
                 index = spacer_index::SPACER_H;
                 break;
+            case hash("t"):
+            case hash("top"):
+                index = spacer_index::SPACER_TOP;
+                break;
+            case hash("r"):
+            case hash("right"):
+                index = spacer_index::SPACER_RIGHT;
+                break;
+            case hash("b"):
+            case hash("bottom"):
+                index = spacer_index::SPACER_BOTTOM;
+                break;
+            case hash("l"):
+            case hash("left"):
+                index = spacer_index::SPACER_LEFT;
+                break;
             default:
                 throw unexpected_token(tok);
             }
