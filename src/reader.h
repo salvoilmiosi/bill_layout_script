@@ -37,7 +37,6 @@ enum reader_flags {
 class reader {
 public:
     reader() = default;
-    ~reader();
 
     reader(const pdf_document &doc) {
         set_document(doc);

@@ -6,10 +6,6 @@
 
 #include <sstream>
 
-reader::~reader() {
-    intl::reset_language();
-}
-
 void reader::start() {
     m_vars.clear();
     m_contents.clear();
@@ -33,6 +29,8 @@ void reader::start() {
             m_jumped = false;
         }
     }
+    
+    intl::reset_language();
 }
 
 void reader::exec_command(const command_args &cmd) {
@@ -43,7 +41,7 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto create_ref = [&](const variable_selector &sel) {
-        auto ref = variable_ref(m_out.values,
+        variable_ref ref(m_out.values,
             variable_key{sel.name, (sel.flags & SEL_GLOBAL) ? variable_key::global_index : m_out.table_index},
             sel.index, sel.length);
 
