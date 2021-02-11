@@ -238,7 +238,7 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_BEGIN);
         auto tok_layout_name = m_lexer.require(TOK_STRING);
         m_lexer.require(TOK_PAREN_END);
-        auto imported_file = std::filesystem::canonical(m_layout->filename().parent_path() / (tok_layout_name.parse_string() + ".bls"));
+        auto imported_file = std::filesystem::canonical(m_layout->m_filename.parent_path() / (tok_layout_name.parse_string() + ".bls"));
         if (fun_name == "import") {
             add_line(opcode::IMPORT, imported_file);
             if (intl::valid_language(m_layout->language_code)) {

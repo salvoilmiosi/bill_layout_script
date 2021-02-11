@@ -323,7 +323,7 @@ void reader::exec_command(const command_args &cmd) {
 size_t reader::add_layout(const bill_layout_script &layout) {
     size_t new_addr = m_code.size();
 
-    m_layouts.push_back(layout.filename());
+    m_layouts.push_back(std::filesystem::canonical(layout.m_filename).string());
     
     auto new_code = parser(layout).get_bytecode();
     std::copy(

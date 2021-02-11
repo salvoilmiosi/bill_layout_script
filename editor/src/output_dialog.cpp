@@ -88,8 +88,8 @@ reader_thread::~reader_thread() {
 
 wxThread::ExitCode reader_thread::Entry() {
     try {
-        if (layout.filename().empty()) {
-            layout.set_filename(parent->parent->getControlScript().ToStdString());
+        if (layout.m_filename.empty()) {
+            layout.m_filename = parent->parent->getControlScript().ToStdString();
         }
         m_reader.add_layout(std::move(layout));
         m_reader.start();

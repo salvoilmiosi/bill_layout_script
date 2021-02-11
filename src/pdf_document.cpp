@@ -16,7 +16,7 @@ void pdf_document::open(const std::filesystem::path &filename) {
         throw pdf_error("Documento pdf invalido");
     }
 
-    m_filename = std::filesystem::canonical(filename);
+    m_filename = filename;
 
     m_pages.clear();
     for (size_t i=0; i < m_document->pages(); ++i) {

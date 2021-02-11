@@ -55,8 +55,7 @@ std::pair<box_ptr, int> getBoxResizeNode(bill_layout_script &layout, float x, fl
 
 bill_layout_script copyLayout(const bill_layout_script &layout) {
     bill_layout_script ret;
-    const auto &filename = layout.filename();
-    if (!filename.empty()) ret.set_filename(filename);
+    ret.m_filename = layout.m_filename;
     ret.language_code = layout.language_code;
     for (auto &ptr : layout.m_boxes) {
         ret.m_boxes.push_back(std::make_shared<layout_box>(*ptr));
