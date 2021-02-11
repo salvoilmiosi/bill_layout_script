@@ -61,8 +61,6 @@ int MainApp::OnRun() {
         }
         my_reader.start();
 
-        const auto &out = my_reader.get_output();
-
         Json::Value &json_values = result["values"] = Json::arrayValue;
         
         auto write_var = [](Json::Value &table, const std::string &name, const variable &var) {
@@ -72,7 +70,7 @@ int MainApp::OnRun() {
             json_arr.append(var.str());
         };
 
-        for (auto &[key, var] : out.values) {
+        for (auto &[key, var] : my_reader.get_values()) {
             if (key.name.front() == '_' && !show_debug) {
                 continue;
             }
@@ -88,14 +86,14 @@ int MainApp::OnRun() {
             }
         }
 
-        for (auto &v : out.warnings) {
+        for (auto &v : my_reader.get_warnings()) {
             Json::Value &warnings = result["warnings"];
             if (warnings.isNull()) warnings = Json::arrayValue;
             warnings.append(v);
         }
 
         auto &json_layouts = result["layouts"] = Json::arrayValue;
-        for (auto &l : out.layouts) {
+        for (auto &l : my_reader.get_layouts()) {
             json_layouts.append(l.string());
         }
 

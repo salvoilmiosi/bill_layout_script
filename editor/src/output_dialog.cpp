@@ -88,19 +88,17 @@ reader_thread::~reader_thread() {
 
 wxThread::ExitCode reader_thread::Entry() {
     try {
-        bill_layout_script layout_copy = layout;
-        if (layout_copy.filename().empty()) {
-            layout_copy.set_filename(parent->parent->getControlScript().ToStdString());
+        if (layout.filename().empty()) {
+            layout.set_filename(parent->parent->getControlScript().ToStdString());
         }
-        m_reader.add_layout(std::move(layout_copy));
+        m_reader.add_layout(std::move(layout));
         m_reader.start();
         if (!m_aborted) {
-            parent->m_output = m_reader.get_output();
             wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
 
-            if (!parent->m_output.warnings.empty()) {
+            if (!m_reader.get_warnings().empty()) {
                 auto *evt = new wxThreadEvent(wxEVT_COMMAND_LAYOUT_ERROR);
-                std::string warnings = string_join(parent->m_output.warnings, "\n\n");
+                std::string warnings = string_join(m_reader.get_warnings(), "\n\n");
                 evt->SetString(wxString(warnings.c_str(), wxConvUTF8));
                 wxQueueEvent(parent, evt);
             }
@@ -123,7 +121,9 @@ void output_dialog::compileAndRead() {
     if (m_thread || ! parent->getPdfDocument().isopen()) {
         wxBell();
     } else {
-        m_thread = new reader_thread(this, parent->layout, parent->getPdfDocument());
+        m_reader.clear();
+        m_reader.set_document(parent->getPdfDocument());
+        m_thread = new reader_thread(this, m_reader, parent->layout);
         if (m_thread->Run() != wxTHREAD_NO_ERROR) {
             delete m_thread;
             m_thread = nullptr;
@@ -140,10 +140,10 @@ void output_dialog::OnLayoutError(wxCommandEvent &evt) {
 
 void output_dialog::OnReadCompleted(wxCommandEvent &evt) {
     m_page->Append("Globali");
-    for (int i=1; i <= m_output.table_index + 1; ++i) {
+    for (int i=1; i <= m_reader.get_table_count(); ++i) {
         m_page->Append(wxString::Format("%i", i));
     }
-    m_page->SetSelection(m_output.values.size() > 0 ? 1 : 0);
+    m_page->SetSelection(1);
     updateItems();
 }
 
@@ -152,15 +152,17 @@ void output_dialog::OnUpdate(wxCommandEvent &evt) {
 }
 
 void output_dialog::updateItems() {
+    if (m_reader.is_running()) return;
+
     m_list_ctrl->ClearAll();
 
     auto col_name = m_list_ctrl->AppendColumn("Nome", wxLIST_FORMAT_LEFT, 150);
     auto col_value = m_list_ctrl->AppendColumn("Valore", wxLIST_FORMAT_LEFT, 150);
 
-    auto display_page = [&](const variable_map &map, int table_index) {
+    auto display_page = [&](int table_index) {
         size_t n=0;
         std::string old_name;
-        for (auto &[key, var] : map) {
+        for (auto &[key, var] : m_reader.get_values()) {
             if (key.table_index != table_index) continue;
 
             if (!m_show_debug->GetValue() && key.name.front() == '_') {
@@ -182,7 +184,7 @@ void output_dialog::updateItems() {
     if (m_page->GetValue() == "Globali") {
         m_page->SetSelection(0);
         
-        display_page(m_output.values, variable_key::global_index);
+        display_page(variable_key::global_index);
     } else {
         long selected_page;
         if (!m_page->GetValue().ToLong(&selected_page)) {
@@ -190,14 +192,13 @@ void output_dialog::updateItems() {
             return;
         }
 
-        if (selected_page > m_output.values.size() || selected_page <= 0) {
+        if (selected_page > m_reader.get_table_count() || selected_page <= 0) {
             wxBell();
             return;
         }
 
         m_page->SetSelection(selected_page);
-        --selected_page;
 
-        display_page(m_output.values, selected_page);
+        display_page(selected_page - 1);
     }
 }

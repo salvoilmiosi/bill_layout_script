@@ -14,8 +14,8 @@ class output_dialog;
 
 class reader_thread : public wxThread {
 public:
-    reader_thread(output_dialog *parent, const bill_layout_script &layout, const pdf_document &doc)
-        : parent(parent), layout(layout), m_reader(doc) {}
+    reader_thread(output_dialog *parent, reader &m_reader, const bill_layout_script &layout)
+        : parent(parent), layout(layout), m_reader(m_reader) {}
     ~reader_thread();
 
     void abort();
@@ -24,10 +24,10 @@ protected:
     virtual ExitCode Entry();
 
 private:
+    reader &m_reader;
     output_dialog *parent;
 
     bill_layout_script layout;
-    reader m_reader;
     bool m_aborted = false;
 };
 
@@ -44,7 +44,7 @@ private:
     wxListCtrl *m_list_ctrl;
 
     reader_thread *m_thread = nullptr;
-    reader_output m_output;
+    reader m_reader;
     
     TextDialog *error_dialog;
 

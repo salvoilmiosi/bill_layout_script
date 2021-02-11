@@ -22,14 +22,6 @@ struct box_spacer {
     int page = 0;
 };
 
-struct reader_output {
-    variable_map values;
-    uint8_t table_index = 0;
-
-    std::vector<std::string> warnings;
-    std::vector<std::filesystem::path> layouts;
-};
-
 enum reader_flags {
     READER_HALT_ON_SETLAYOUT = 1 << 0,
 };
@@ -55,34 +47,42 @@ public:
 
     // ritorna l'indirizzo del codice aggiunto
     size_t add_layout(const bill_layout_script &layout);
-    size_t add_layout(const std::filesystem::path &filename);
 
     void add_flags(reader_flags flags) {
         m_flags |= flags;
     }
 
+    void clear();
     void start();
 
-    const reader_output &get_output() {
-        return m_out;
-    }
+    const auto &get_values() { return m_values; }
+    const auto &get_warnings() { return m_warnings; }
+    const size_t get_table_count() { return m_table_index + 1; }
+    const auto get_layouts() { return m_layouts; }
 
+    bool is_running() {
+        return m_running;
+    }
     void halt() {
         m_running = false;
     }
 
 private:
     void exec_command(const command_args &cmd);
+    bytecode m_code;
 
-private:
+    variable_map m_values;
+    uint8_t m_table_index = 0;
+
     simple_stack<variable> m_vars;
     simple_stack<content_view> m_contents;
     simple_stack<variable_ref> m_refs;
     
     static_stack<size_t> m_return_addrs;
 
-    // nome file layout -> indirizzo in m_code
-    std::map<std::filesystem::path, size_t> m_loaded_layouts;
+    std::vector<std::filesystem::path> m_layouts;
+
+    std::vector<std::string> m_warnings;
 
     box_spacer m_spacer;
     int m_last_box_page;
@@ -91,15 +91,9 @@ private:
     bool m_jumped = false;
     
     std::atomic<bool> m_running = false;
-
-private:
-    const pdf_document *m_doc = nullptr;
-
-    bytecode m_code;
-
     uint8_t m_flags = 0;
 
-    reader_output m_out;
+    const pdf_document *m_doc = nullptr;
 };
 
 #endif

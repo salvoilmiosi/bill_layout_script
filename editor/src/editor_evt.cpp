@@ -159,7 +159,7 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
         my_reader.add_flags(READER_HALT_ON_SETLAYOUT);
         my_reader.start();
 
-        auto &layouts = my_reader.get_output().layouts;
+        auto &layouts = my_reader.get_layouts();
         if (layouts.size() <= 1) {
             wxMessageBox("Impossibile determinare il layout di questo file", "Errore", wxOK | wxICON_WARNING);
         } else if (saveIfModified()) {

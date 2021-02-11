@@ -6,12 +6,19 @@
 
 #include <sstream>
 
+void reader::clear() {
+    m_values.clear();
+    m_warnings.clear();
+    m_layouts.clear();
+    m_table_index = 0;
+    m_flags = 0;
+}
+
 void reader::start() {
     m_vars.clear();
     m_contents.clear();
     m_refs.clear();
     m_return_addrs.clear();
-    m_loaded_layouts.clear();
 
     m_spacer = {};
     m_last_box_page = 0;
@@ -41,8 +48,8 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto create_ref = [&](const variable_selector &sel) {
-        variable_ref ref(m_out.values,
-            variable_key{sel.name, (sel.flags & SEL_GLOBAL) ? variable_key::global_index : m_out.table_index},
+        variable_ref ref(m_values,
+            variable_key{sel.name, (sel.flags & SEL_GLOBAL) ? variable_key::global_index : m_table_index},
             sel.index, sel.length);
 
         if (sel.flags & SEL_DYN_LEN) {
@@ -113,7 +120,7 @@ void reader::exec_command(const command_args &cmd) {
         break;
     case opcode::THROWERR: throw layout_error(m_vars.top().str()); break;
     case opcode::ADDWARNING:
-        m_out.warnings.push_back(std::move(m_vars.top().str()));
+        m_warnings.push_back(std::move(m_vars.top().str()));
         m_vars.pop();
         break;
     case opcode::PARSEINT: m_vars.top() = m_vars.top().as_int(); break;
@@ -282,7 +289,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SUBVIEW: m_contents.top().new_subview(); break;
     case opcode::RESETVIEW: m_contents.top().reset_view(); break;
     case opcode::NEXTRESULT: m_contents.top().next_result(); break;
-    case opcode::NEXTTABLE: ++m_out.table_index; break;
+    case opcode::NEXTTABLE: ++m_table_index; break;
     case opcode::ATE: m_vars.push(m_last_box_page > m_doc->num_pages()); break;
     case opcode::RET:
         if (!m_return_addrs.empty()) {
@@ -296,14 +303,17 @@ void reader::exec_command(const command_args &cmd) {
         break;
     case opcode::SETLAYOUT:
         if (m_flags & READER_HALT_ON_SETLAYOUT) {
-            m_out.layouts.push_back(cmd.get<std::filesystem::path>());
+            m_layouts.push_back(cmd.get<std::filesystem::path>());
             halt();
             break;
         }
         [[fallthrough]];
-    case opcode::IMPORT:
-        jump_subroutine(add_layout(cmd.get<std::filesystem::path>()));
+    case opcode::IMPORT: {
+        size_t addr = add_layout(bill_layout_script::from_file(cmd.get<std::filesystem::path>()));
+        m_code[m_program_counter] = command_args{opcode::JSR, jump_address{"", int16_t(addr - m_program_counter)}};
+        jump_subroutine(addr);
         break;
+    }
     case opcode::SETLANG:
         intl::set_language(cmd.get<intl::language>());
         break;
@@ -311,10 +321,10 @@ void reader::exec_command(const command_args &cmd) {
 }
 
 size_t reader::add_layout(const bill_layout_script &layout) {
-    m_out.layouts.push_back(layout.filename());
     size_t new_addr = m_code.size();
-    m_loaded_layouts.emplace(layout.filename(), new_addr);
 
+    m_layouts.push_back(layout.filename());
+    
     auto new_code = parser(layout).get_bytecode();
     std::copy(
         std::move_iterator(new_code.begin()),
@@ -322,13 +332,4 @@ size_t reader::add_layout(const bill_layout_script &layout) {
         std::back_inserter(m_code)
     );
     return new_addr;
-}
-
-size_t reader::add_layout(const std::filesystem::path &filename) {
-    auto it = m_loaded_layouts.find(filename);
-    if (it == m_loaded_layouts.end()) {
-        return add_layout(bill_layout_script::from_file(filename));
-    } else {
-        return it->second;
-    }
 }
