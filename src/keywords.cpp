@@ -201,12 +201,15 @@ void parser::read_keyword() {
         read_statement();
         add_line(opcode::RESETVIEW);
         break;
-    case hash("clear"):
+    case hash("clear"): {
         m_lexer.require(TOK_PAREN_BEGIN);
-        read_variable(true);
+        bool isglobal = m_lexer.check_next(TOK_GLOBAL);
+        auto tok_var = m_lexer.require(TOK_IDENTIFIER);
         m_lexer.require(TOK_PAREN_END);
+        add_line(opcode::SELVAR, variable_selector{std::string(tok_var.value), 0, 0, uint8_t(SEL_GLOBAL & (-isglobal))});
         add_line(opcode::CLEAR);
         break;
+    }
     case hash("nexttable"):
         m_lexer.require(TOK_PAREN_BEGIN);
         m_lexer.require(TOK_PAREN_END);

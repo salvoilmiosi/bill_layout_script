@@ -45,13 +45,8 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
 }
 
 int MainApp::OnRun() {
+    int retcode = 0;
     Json::Value result = Json::objectValue;
-
-    auto output_error = [&](const std::string &message) {
-        result["error"] = message;
-        std::cout << result;
-        return 1;
-    };
 
     try {
         pdf_document my_doc(input_pdf);
@@ -98,11 +93,17 @@ int MainApp::OnRun() {
         }
 
         std::cout << result;
+    } catch (const layout_error &error) {
+        result["error"] = error.what();
+        retcode = 1;
     } catch (const std::exception &error) {
-        return output_error(error.what());
+        result["error"] = error.what();
+        retcode = 2;
     } catch (...) {
-        return output_error("Errore sconosciuto");
+        result["error"] = "Errore sconosciuto";
+        retcode = 3;
     }
 
-    return 0;
+    std::cout << result;
+    return retcode;
 }
