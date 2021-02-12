@@ -129,30 +129,25 @@ void parser::read_box(const layout_box &box) {
     add_line(opcode::RDBOX, pdf_rect(box));
 
     m_lexer.set_script(box.script);
-    while (read_statement());
+    while (read_statement(false));
 }
 
-bool parser::read_statement() {
+bool parser::read_statement(bool throw_on_eof) {
     auto tok_first = m_lexer.peek();
     switch (tok_first.type) {
     case TOK_BRACE_BEGIN:
         m_lexer.advance(tok_first);
-        while (true) {
-            auto tok = m_lexer.peek();
-            if (tok.type == TOK_BRACE_END) {
-                m_lexer.advance(tok);
-                break;
-            } else if (tok.type != TOK_END_OF_FILE) {
-                read_statement();
-            } else {
-                throw unexpected_token(tok, TOK_BRACE_END);
-            }
+        while (!m_lexer.check_next(TOK_BRACE_END)) {
+            read_statement();
         }
         break;
     case TOK_FUNCTION:
         read_keyword();
         break;
     case TOK_END_OF_FILE:
+        if (throw_on_eof) {
+            throw unexpected_token(tok_first);
+        }
         return false;
     default: {
         int prefixes = read_variable(false);
@@ -417,26 +412,18 @@ void parser::read_function() {
     default: {
         small_int num_args = 0;
         m_lexer.require(TOK_PAREN_BEGIN);
-        while (true) {
-            auto tok = m_lexer.peek();
-            if (tok.type == TOK_PAREN_END) {
-                m_lexer.advance(tok);
+        while (!m_lexer.check_next(TOK_PAREN_END)) {
+            ++num_args;
+            read_expression();
+            auto tok_comma = m_lexer.peek();
+            switch (tok_comma.type) {
+            case TOK_COMMA:
+                m_lexer.advance(tok_comma);
                 break;
-            } else if (tok.type != TOK_END_OF_FILE) {
-                ++num_args;
-                read_expression();
-                auto tok_comma = m_lexer.peek();
-                switch (tok_comma.type) {
-                case TOK_COMMA:
-                    m_lexer.advance(tok_comma);
-                    break;
-                case TOK_PAREN_END:
-                    break;
-                default:
-                    unexpected_token(tok_comma, TOK_PAREN_END);
-                }
-            } else {
-                throw unexpected_token(tok, TOK_PAREN_END);
+            case TOK_PAREN_END:
+                break;
+            default:
+                throw unexpected_token(tok_comma, TOK_PAREN_END);
             }
         }
 
