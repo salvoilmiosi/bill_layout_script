@@ -109,13 +109,24 @@ int MainApp::OnRun() {
             case opcode::SETLAYOUT:
                 std::cout << ' ' << quoted_string(line.get<std::filesystem::path>().string());
                 break;
+            case opcode::UNEVAL_JUMP: {
+                auto args = line.get<jump_uneval>();
+                std::cout << ' ' << opcode_names[int(args.cmd)] << ' ' << args.label;
+                break;
+            }
             case opcode::JMP:
             case opcode::JSR:
             case opcode::JZ:
             case opcode::JNZ:
-            case opcode::JTE:
-                std::cout << ' ' << line.get<jump_address>().label;
+            case opcode::JTE: {
+                auto addr = line.get<jump_address>();
+                if (auto jt = inv_labels.find(it - code.begin() + addr); jt != inv_labels.end()) {
+                    std::cout << ' ' << jt->second;
+                } else {
+                    std::cout << ' ' << addr;
+                }
                 break;
+            }
             default:
                 break;
             }

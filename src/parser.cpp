@@ -25,10 +25,10 @@ void parser::read_layout(const bill_layout_script &layout) {
     }
 
     for (auto line = m_code.begin(); line != m_code.end(); ++line) {
-        if (line->type() == typeid(jump_address)) {
-            auto &addr = line->get<jump_address>();
+        if (line->command() == opcode::UNEVAL_JUMP) {
+            auto &addr = line->get<jump_uneval>();
             if (auto it = m_labels.find(addr.label); it != m_labels.end()) {
-                addr.address = it->second - (line - m_code.begin());
+                *line = command_args(addr.cmd, jump_address(it->second - (line - m_code.begin())));
             } else {
                 throw layout_error(fmt::format("Etichetta sconosciuta: {}", addr.label));
             }

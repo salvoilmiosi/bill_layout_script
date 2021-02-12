@@ -55,10 +55,7 @@ struct variable_selector {
     uint8_t flags = 0;
 };
 
-struct jump_address {
-    std::string label;
-    int16_t address; // indirizzo relativo
-};
+typedef int16_t jump_address; // indirizzo relativo
 
 #define OPCODES { \
     O(NOP),                         /* no operation */ \
@@ -96,6 +93,7 @@ struct jump_address {
     O(PUSHVAR),                     /* ref_stack -> var_stack */ \
     O(PUSHNULL),                    /* null -> var_stack */ \
     O(MOVEVAR),                     /* ref_stack -> (move) var_stack */ \
+    O(UNEVAL_JUMP,  jump_uneval),   /* unevaluated jump, sara' sostituito con opcode */ \
     O(JMP,          jump_address),  /* unconditional jump */ \
     O(JSR,          jump_address),  /* program_counter -> return_addrs -- jump to subroutine */ \
     O(JZ,           jump_address),  /* var_stack -> jump if top == 0 */ \
@@ -136,9 +134,15 @@ enum class opcode : uint8_t OPCODES;
 static const char *opcode_names[] = OPCODES;
 #undef O_IMPL
 
+struct jump_uneval {
+    opcode cmd;
+    std::string label;
+};
+
 #define O_IMPL(x, t) &typeid(t)
 static const std::type_info *opcode_types[] = OPCODES;
 #undef O_IMPL
+
 class command_args {
 private:
     opcode m_command;

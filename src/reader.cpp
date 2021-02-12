@@ -246,29 +246,29 @@ void reader::exec_command(const command_args &cmd) {
         m_refs.pop();
         break;
     case opcode::JMP:
-        m_program_counter += cmd.get<jump_address>().address;
+        m_program_counter += cmd.get<jump_address>();
         m_jumped = true;
         break;
     case opcode::JSR:
-        jump_subroutine(m_program_counter + cmd.get<jump_address>().address);
+        jump_subroutine(m_program_counter + cmd.get<jump_address>());
         break;
     case opcode::JZ:
         if (!m_vars.top().as_bool()) {
-            m_program_counter += cmd.get<jump_address>().address;
+            m_program_counter += cmd.get<jump_address>();
             m_jumped = true;
         }
         m_vars.pop();
         break;
     case opcode::JNZ:
         if (m_vars.top().as_bool()) {
-            m_program_counter += cmd.get<jump_address>().address;
+            m_program_counter += cmd.get<jump_address>();
             m_jumped = true;
         }
         m_vars.pop();
         break;
     case opcode::JTE:
         if (m_contents.top().token_end()) {
-            m_program_counter += cmd.get<jump_address>().address;
+            m_program_counter += cmd.get<jump_address>();
             m_jumped = true;
         }
         break;
@@ -310,7 +310,7 @@ void reader::exec_command(const command_args &cmd) {
         [[fallthrough]];
     case opcode::IMPORT: {
         size_t addr = add_layout(bill_layout_script::from_file(cmd.get<std::filesystem::path>()));
-        m_code[m_program_counter] = command_args{opcode::JSR, jump_address{"", int16_t(addr - m_program_counter)}};
+        m_code[m_program_counter] = command_args{opcode::JSR, jump_address(addr - m_program_counter)};
         jump_subroutine(addr);
         break;
     }

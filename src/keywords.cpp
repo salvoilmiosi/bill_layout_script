@@ -20,7 +20,7 @@ void parser::read_keyword() {
             m_lexer.require(TOK_PAREN_BEGIN);
             read_expression();
             m_lexer.require(TOK_PAREN_END);
-            add_line(condition_positive ? opcode::JZ : opcode::JNZ, jump_address{endif_label, 0});
+            add_line(opcode::UNEVAL_JUMP, jump_uneval{condition_positive ? opcode::JZ : opcode::JNZ, endif_label});
             read_statement();
             auto tok_if = m_lexer.peek();
             if (tok_if.type == TOK_FUNCTION) {
@@ -30,7 +30,7 @@ void parser::read_keyword() {
                     m_lexer.advance(tok_if);
                     has_endelse = true;
                     has_endif = true;
-                    add_line(opcode::JMP, jump_address{endelse_label, 0});
+                    add_line(opcode::UNEVAL_JUMP, jump_uneval{opcode::JMP, endelse_label});
                     add_label(endif_label);
                     read_statement();
                     in_loop = false;
@@ -40,7 +40,7 @@ void parser::read_keyword() {
                     m_lexer.advance(tok_if);
                     condition_positive = fun_name == "elif";
                     has_endelse = true;
-                    add_line(opcode::JMP, jump_address{endelse_label, 0});
+                    add_line(opcode::UNEVAL_JUMP, jump_uneval{opcode::JMP, endelse_label});
                     break;
                 default:
                     in_loop = false;
@@ -59,10 +59,10 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_BEGIN);
         add_label(while_label);
         read_expression();
-        add_line(opcode::JZ, jump_address{endwhile_label, 0});
+        add_line(opcode::UNEVAL_JUMP, jump_uneval{opcode::JZ, endwhile_label});
         m_lexer.require(TOK_PAREN_END);
         read_statement();
-        add_line(opcode::JMP, jump_address{while_label, 0});
+        add_line(opcode::UNEVAL_JUMP, jump_uneval{opcode::JMP, while_label});
         add_label(endwhile_label);
         break;
     }
@@ -74,7 +74,7 @@ void parser::read_keyword() {
         m_lexer.require(TOK_COMMA);
         add_label(for_label);
         read_expression();
-        add_line(opcode::JZ, jump_address{endfor_label, 0});
+        add_line(opcode::UNEVAL_JUMP, jump_uneval{opcode::JZ, endfor_label});
         m_lexer.require(TOK_COMMA);
         size_t increase_stmt_begin = m_code.size();
         read_statement();
@@ -82,14 +82,14 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_END);
         read_statement();
         vector_move_to_end(m_code, increase_stmt_begin, increase_stmt_end);
-        add_line(opcode::JMP, jump_address{for_label, 0});
+        add_line(opcode::UNEVAL_JUMP, jump_uneval{opcode::JMP, for_label});
         add_label(endfor_label);
         break;
     }
     case hash("goto"): {
         m_lexer.require(TOK_PAREN_BEGIN);
         auto tok = m_lexer.require(TOK_IDENTIFIER);
-        add_line(opcode::JMP, jump_address{fmt::format("__label_{}", tok.value), 0});
+        add_line(opcode::UNEVAL_JUMP, jump_uneval{opcode::JMP, fmt::format("__label_{}", tok.value)});
         m_lexer.require(TOK_PAREN_END);
         break;
     }
@@ -101,7 +101,7 @@ void parser::read_keyword() {
         std::string fun_label = fmt::format("__function_{}", name.value);
         std::string endfun_label = fmt::format("__endfunction_{}", name.value);
 
-        add_line(opcode::JMP, jump_address{endfun_label, 0});
+        add_line(opcode::UNEVAL_JUMP, jump_uneval{opcode::JMP, endfun_label});
         add_label(fun_label);
         read_statement();
         add_line(opcode::RET);
@@ -111,7 +111,7 @@ void parser::read_keyword() {
     case hash("call"): {
         m_lexer.require(TOK_PAREN_BEGIN);
         auto tok = m_lexer.require(TOK_IDENTIFIER);
-        add_line(opcode::JSR, jump_address{fmt::format("__function_{}", tok.value), 0});
+        add_line(opcode::UNEVAL_JUMP, jump_uneval{opcode::JSR, fmt::format("__function_{}", tok.value)});
         m_lexer.require(TOK_PAREN_END);
         break;
     }
@@ -128,9 +128,9 @@ void parser::read_keyword() {
         add_line(opcode::SUBVIEW);
         add_label(lines_label);
         add_line(opcode::NEXTRESULT);
-        add_line(opcode::JTE, jump_address{endlines_label, 0});
+        add_line(opcode::UNEVAL_JUMP, jump_uneval{opcode::JTE, endlines_label});
         read_statement();
-        add_line(opcode::JMP, jump_address{lines_label, 0});
+        add_line(opcode::UNEVAL_JUMP, jump_uneval{opcode::JMP, lines_label});
         add_label(endlines_label);
         if (pushed_content) {
             add_line(opcode::POPCONTENT);
