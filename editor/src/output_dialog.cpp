@@ -11,6 +11,7 @@
 
 enum {
     CTL_DEBUG,
+    CTL_GLOBALS,
     CTL_OUTPUT_PAGE,
     TOOL_UPDATE,
     TOOL_ABORT,
@@ -22,7 +23,8 @@ BEGIN_EVENT_TABLE(output_dialog, wxDialog)
     EVT_MENU(TOOL_UPDATE, output_dialog::OnClickUpdate)
     EVT_MENU(TOOL_ABORT, output_dialog::OnClickAbort)
     EVT_CHECKBOX(CTL_DEBUG, output_dialog::OnUpdate)
-    EVT_COMBOBOX (CTL_OUTPUT_PAGE, output_dialog::OnUpdate)
+    EVT_CHECKBOX(CTL_GLOBALS, output_dialog::OnUpdate)
+    EVT_SPINCTRL (CTL_OUTPUT_PAGE, output_dialog::OnUpdateSpin)
     EVT_TEXT_ENTER (CTL_OUTPUT_PAGE, output_dialog::OnUpdate)
     EVT_COMMAND(wxID_ANY, wxEVT_COMMAND_READ_COMPLETE, output_dialog::OnReadCompleted)
     EVT_COMMAND(wxID_ANY, wxEVT_COMMAND_LAYOUT_ERROR, output_dialog::OnLayoutError)
@@ -48,10 +50,13 @@ output_dialog::output_dialog(frame_editor *parent) :
 
     toolbar->AddStretchableSpace();
 
-    m_show_debug = new wxCheckBox(toolbar, CTL_DEBUG, "Mostra debug");
-    toolbar->AddControl(m_show_debug, "Mostra debug");
+    m_show_debug = new wxCheckBox(toolbar, CTL_DEBUG, "Debug");
+    toolbar->AddControl(m_show_debug, "Debug");
 
-    m_page = new wxComboBox(toolbar, CTL_OUTPUT_PAGE, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxTE_PROCESS_ENTER);
+    m_show_globals = new wxCheckBox(toolbar, CTL_GLOBALS, "Globali");
+    toolbar->AddControl(m_show_globals, "Globali");
+
+    m_page = new wxSpinCtrl(toolbar, CTL_OUTPUT_PAGE, wxEmptyString, wxDefaultPosition, wxSize(100, -1), wxSP_ARROW_KEYS | wxTE_PROCESS_ENTER, 0, 0);
 
     toolbar->AddControl(m_page, "Pagina");
 
@@ -129,7 +134,8 @@ void output_dialog::compileAndRead() {
             m_thread = nullptr;
         }
 
-        m_page->Clear();
+        m_page->SetRange(0, 0);
+        m_page->SetValue("");
         m_list_ctrl->ClearAll();
     }
 }
@@ -139,11 +145,12 @@ void output_dialog::OnLayoutError(wxCommandEvent &evt) {
 }
 
 void output_dialog::OnReadCompleted(wxCommandEvent &evt) {
-    m_page->Append("Globali");
-    for (int i=1; i <= m_reader.get_table_count(); ++i) {
-        m_page->Append(wxString::Format("%i", i));
-    }
-    m_page->SetSelection(1);
+    m_page->SetRange(1, m_reader.get_table_count());
+    m_page->SetValue(1);
+    updateItems();
+}
+
+void output_dialog::OnUpdateSpin(wxSpinEvent &evt) {
     updateItems();
 }
 
@@ -181,24 +188,10 @@ void output_dialog::updateItems() {
         }
     };
 
-    if (m_page->GetValue() == "Globali") {
-        m_page->SetSelection(0);
-        
+    if (m_show_globals->GetValue()) {
         display_page(variable_key::global_index);
     } else {
-        long selected_page;
-        if (!m_page->GetValue().ToLong(&selected_page)) {
-            wxBell();
-            return;
-        }
-
-        if (selected_page > m_reader.get_table_count() || selected_page <= 0) {
-            wxBell();
-            return;
-        }
-
-        m_page->SetSelection(selected_page);
-
-        display_page(selected_page - 1);
+        display_page(m_page->GetValue() - 1);
+        m_page->SetValue(wxString::Format("%i/%i", m_page->GetValue(), m_page->GetMax()));
     }
 }

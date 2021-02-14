@@ -33,8 +33,8 @@ BEGIN_EVENT_TABLE(frame_editor, wxFrame)
     EVT_MENU (MENU_SETLANGUAGE, frame_editor::OnSetLanguage)
     EVT_BUTTON(CTL_AUTO_LAYOUT, frame_editor::OnAutoLayout)
     EVT_BUTTON (CTL_LOAD_PDF, frame_editor::OnLoadPdf)
-    EVT_COMBOBOX (CTL_PAGE, frame_editor::OnPageSelect)
-    EVT_TEXT_ENTER (CTL_PAGE, frame_editor::OnPageSelect)
+    EVT_SPINCTRL (CTL_PAGE, frame_editor::OnPageSelect)
+    EVT_TEXT_ENTER (CTL_PAGE, frame_editor::OnPageEnter)
     EVT_COMMAND_SCROLL_THUMBTRACK (CTL_SCALE, frame_editor::OnScaleChange)
     EVT_COMMAND_SCROLL_CHANGED (CTL_SCALE, frame_editor::OnScaleChangeFinal)
     EVT_TOOL (TOOL_SELECT, frame_editor::OnChangeTool)
@@ -138,7 +138,7 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     wxButton *btn_auto_layout = new wxButton(toolbar_top, CTL_AUTO_LAYOUT, "Auto carica layout", wxDefaultPosition, wxSize(150, -1));
     toolbar_top->AddControl(btn_auto_layout, "Determina il layout di questo file automaticamente");
 
-    m_page = new wxComboBox(toolbar_top, CTL_PAGE, "Pagina", wxDefaultPosition, wxSize(100, -1), 0, nullptr, wxTE_PROCESS_ENTER);
+    m_page = new wxSpinCtrl(toolbar_top, CTL_PAGE, "Pagina", wxDefaultPosition, wxSize(100, -1), wxTE_PROCESS_ENTER | wxSP_ARROW_KEYS, 0, 0);
     toolbar_top->AddControl(m_page, "Pagina");
 
     m_scale = new wxSlider(toolbar_top, CTL_SCALE, 50, 1, 100, wxDefaultPosition, wxSize(200, -1));
@@ -282,10 +282,7 @@ void frame_editor::updateLayout(bool addToHistory) {
 void frame_editor::loadPdf(const wxString &filename) {
     try {
         m_doc.open(filename.ToStdString());
-        m_page->Clear();
-        for (int i=1; i<=m_doc.num_pages(); ++i) {
-            m_page->Append(wxString::Format("%i", i));
-        }
+        m_page->SetRange(1, m_doc.num_pages());
         setSelectedPage(1, true);
 
         m_pdf_history->AddFileToHistory(m_doc.filename().string());
@@ -322,7 +319,7 @@ void frame_editor::setSelectedPage(int page, bool force) {
     
     selected_page = page;
 
-    m_page->SetSelection(page - 1);
+    m_page->SetValue(wxString::Format("%i/%i", page, m_page->GetMax()));
     m_image->setImage(pdf_to_image(m_doc, page));
 }
 

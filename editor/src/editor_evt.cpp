@@ -182,15 +182,14 @@ void frame_editor::OnLoadPdf(wxCommandEvent &evt) {
     updateLayout(false);
 }
 
-void frame_editor::OnPageSelect(wxCommandEvent &evt) {
+void frame_editor::OnPageSelect(wxSpinEvent &evt) {
+    OnPageEnter(evt);
+}
+
+void frame_editor::OnPageEnter(wxCommandEvent &evt) {
     if (!m_doc.isopen()) return;
 
-    long selected_page;
-    if (m_page->GetValue().ToLong(&selected_page)) {
-        setSelectedPage(selected_page);
-    } else {
-        wxBell();
-    }
+    setSelectedPage(m_page->GetValue());
 }
 
 void frame_editor::OnChangeTool(wxCommandEvent &evt) {

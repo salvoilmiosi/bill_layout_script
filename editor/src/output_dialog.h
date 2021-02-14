@@ -39,8 +39,9 @@ public:
 private:
     frame_editor *parent;
 
+    wxCheckBox *m_show_globals;
     wxCheckBox *m_show_debug;
-    wxComboBox *m_page;
+    wxSpinCtrl *m_page;
     wxListCtrl *m_list_ctrl;
 
     reader_thread *m_thread = nullptr;
@@ -48,12 +49,15 @@ private:
     
     TextDialog *error_dialog;
 
+    void OnUpdateSpin(wxSpinEvent &evt);
     void OnUpdate(wxCommandEvent &evt);
+
     void OnClickUpdate(wxCommandEvent &evt);
     void OnClickAbort(wxCommandEvent &evt);
 
     void OnReadCompleted(wxCommandEvent &evt);
     void OnLayoutError(wxCommandEvent &evt);
+
     void updateItems();
 
     DECLARE_EVENT_TABLE()
