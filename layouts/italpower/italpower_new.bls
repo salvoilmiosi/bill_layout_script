@@ -1,0 +1,107 @@
+### Bill Layout Script
+### Language it_IT
+
+### Box Nome Fornitore
+### Type NOREAD
+### Mode DEFAULT
+### Rect 1 0.038709678 0.050171036 0.33225808 0.07639681
+### Goto Label nome_fornitore
+### Script
+nome_fornitore="Italpower"
+### End Script
+### End Box
+
+### Box Dati Cliente
+### Type RECTANGLE
+### Mode LAYOUT
+### Rect 1 0.045161292 0.16647662 0.42580646 0.13568985
+### Script
+$step($captures(@,/CODICE CLIENTE: (\w+) Intestatario del contratto: (.+)\n/)) {
+  numero_cliente
+  ragione_sociale
+}
+### End Script
+### End Box
+
+### Box Numero / Data Fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Rect 1 0.043548387 0.30216646 0.43387097 0.076950006
+### Script
+numero_fattura=$search(@,/N\u00b0 (\w+)/)
+data_fattura=$date(@,"%d/%m/%Y")
+### End Script
+### End Box
+
+### Box Totale Fattura / Scadenza
+### Type RECTANGLE
+### Mode LAYOUT
+### Rect 1 0.5302594 0.44806516 0.4034582 0.10997964
+### Script
+%totale_fattura=$search(@,/IMPORTO DA PAGARE \u20ac (\N)/)
+data_scadenza=$date(@,"%d %B %Y")
+### End Script
+### End Box
+
+### Box IVA
+### Type RECTANGLE
+### Mode DEFAULT
+### Rect 2 0.038709678 0.18244013 0.91290325 0.32155073
+### Script
+iva=$search(@,/IVA (\N%)/)
+### End Script
+### End Box
+
+### Box Dati Fornitura
+### Type RECTANGLE
+### Mode LAYOUT
+### Rect 3 0.044354837 0.1378327 0.43145162 0.23479088
+### Script
+indirizzo_fornitura=$singleline($search(@,/Le stiamo fornendo energia elettrica in \u2022 ([^]+?\d{5}.+)\n/))
+### End Script
+### End Box
+
+### Box Caratteristiche Tecniche
+### Type RECTANGLE
+### Mode LAYOUT
+### Rect 3 0.50537634 0.13593157 0.4408602 0.24239543
+### Script
+codice_pod=$search(@,/Cod\. POD punto prelievo: (\w+)/)
+%potenza[0:3]=$search(@,/Potenza impegnata: (\N) kW/)
+### End Script
+### End Box
+
+### Box Periodo
+### Type RECTANGLE
+### Mode DEFAULT
+### Rect 1 0.04886364 0.37911648 0.4227273 0.025702812
+### Script
+mese_fattura=$month(@,"%b. %Y")
+### End Script
+### End Box
+
+### Box Elementi di Dettaglio
+### Type RECTANGLE
+### Mode RAW
+### Rect 4 0.033602152 0.08460076 0.9260753 0.82509506
+### Script
+_periodo=$format(/\d\d\/\d\d\/\d\d\d\d-\s*\d\d\/$0/,$date_format(mese_fattura,"%m/%Y"))
+%pcv=$search(@,$format(/Commercializzazione e vendita \(PCV1\) - Periodo $0 Euro\/POD\/mese \N \N (\N)/,_periodo))
+$step($captures(@,$format(/Energia - F1 - Periodo $0 Euro\/kWh (\N) (\N)/,_periodo))) {
+  %prezzo_energia[0] %energia_attiva[0]
+}
+$step($captures(@,$format(/Energia - F2 - Periodo $0 Euro\/kWh (\N) (\N)/,_periodo))) {
+  %prezzo_energia[1] %energia_attiva[1]
+}
+$step($captures(@,$format(/Energia - F3 - Periodo $0 Euro\/kWh (\N) (\N)/,_periodo))) {
+  %prezzo_energia[2] %energia_attiva[2]
+}
+%disp_var=$search(@,$format(/Dispacciamento - Periodo $0 Euro\/kWh (\N)/,_periodo))
+%spesa_materia_energia=$search(@,/Totale materia energia (\N)/)
+%potenza[0:3]=$search(@,$format(/Quota Potenza - trasporto - Periodo $0 Euro\/POD\/mese \N (\N)/,_periodo))
+%trasporto_gestione=$search(@,/Totale Trasporto e gestione del contatore (\N)/)
+%oneri=$search(@,/Totale oneri di sistema (\N)/)
+%accise=$search($search(@,/Accisa sull'energia elettrica\n((?:.+\n)+)(?:Totale|$)/),
+	$format(/Consumi fino a 200\.000 kWh - Periodo $0 Euro\/kWh \N \N (\N)/,_periodo))
+### End Script
+### End Box

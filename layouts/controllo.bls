@@ -6,7 +6,7 @@
 ### Rect 1 0 0 0 0
 ### Script
 $if  ($contains(@,"Axpo Italia SpA")) $import("axpo/controllo")
-$elif($contains(@,"ITALPOWER ENERGIA")) $setlayout("italpower")
+$elif($contains(@,"ITALPOWER ENERGIA")) $import("italpower/controllo")
 $elif($contains(@,"Sorgenia S.p.A")) $import("sorgenia/controllo")
 $elif($contains(@,"www.lenergia.eu")) $setlayout("lenergia")
 $elif($contains(@,"Servizio Elettrico Nazionale SpA")) $setlayout("enel/sen")
