@@ -7,6 +7,7 @@
 #include <sstream>
 
 void reader::clear() {
+    m_code.clear();
     m_values.clear();
     m_warnings.clear();
     m_layouts.clear();
@@ -38,6 +39,7 @@ void reader::start() {
     }
     
     intl::reset_language();
+    m_running = false;
 }
 
 void reader::exec_command(const command_args &cmd) {
