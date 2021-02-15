@@ -138,7 +138,7 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     wxButton *btn_auto_layout = new wxButton(toolbar_top, CTL_AUTO_LAYOUT, "Auto carica layout", wxDefaultPosition, wxSize(150, -1));
     toolbar_top->AddControl(btn_auto_layout, "Determina il layout di questo file automaticamente");
 
-    m_page = new wxSpinCtrl(toolbar_top, CTL_PAGE, "Pagina", wxDefaultPosition, wxSize(100, -1), wxTE_PROCESS_ENTER | wxSP_ARROW_KEYS, 0, 0);
+    m_page = new wxSpinCtrl(toolbar_top, CTL_PAGE, "Pagina", wxDefaultPosition, wxSize(150, -1), wxTE_PROCESS_ENTER | wxSP_ARROW_KEYS, 0, 0);
     toolbar_top->AddControl(m_page, "Pagina");
 
     m_scale = new wxSlider(toolbar_top, CTL_SCALE, 50, 1, 100, wxDefaultPosition, wxSize(200, -1));

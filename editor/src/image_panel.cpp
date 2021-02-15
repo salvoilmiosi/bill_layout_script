@@ -28,16 +28,16 @@ void wxImagePanel::rescale(float factor, wxImageResizeQuality quality) {
 }
 
 void wxImagePanel::render(wxDC &dc) {
-    if (raw_image.IsOk()) {
-        dc.DrawBitmap(scaled_image, 0, 0);
-    }
+    dc.DrawBitmap(scaled_image, 0, 0);
 }
 
 void wxImagePanel::OnDraw(wxDC &dc) {
-    wxBufferedDC buf_dc(&dc, wxSize(
-        std::max(scaled_image.GetWidth(), GetSize().GetWidth()),
-        std::max(scaled_image.GetHeight(), GetSize().GetHeight())
-    ), wxBUFFER_VIRTUAL_AREA);
-    buf_dc.Clear();
-    render(buf_dc);
+    if (scaled_image.IsOk()) {
+        wxBufferedDC buf_dc(&dc, wxSize(
+            std::max(scaled_image.GetWidth(), GetSize().GetWidth()),
+            std::max(scaled_image.GetHeight(), GetSize().GetHeight())
+        ), wxBUFFER_VIRTUAL_AREA);
+        buf_dc.Clear();
+        render(buf_dc);
+    }
 }

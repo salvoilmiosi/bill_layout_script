@@ -14,11 +14,11 @@ public:
     void rescale(float factor, wxImageResizeQuality quality = wxIMAGE_QUALITY_NORMAL);
 
     double scaled_width() {
-        return scaled_image.GetWidth();
+        return scaled_image.IsOk() ? scaled_image.GetWidth() : 1;
     }
 
     double scaled_height() {
-        return scaled_image.GetHeight();
+        return scaled_image.IsOk() ? scaled_image.GetHeight() : 1;
     }
 
 protected:

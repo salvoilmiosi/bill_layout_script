@@ -56,7 +56,7 @@ output_dialog::output_dialog(frame_editor *parent) :
     m_show_globals = new wxCheckBox(toolbar, CTL_GLOBALS, "Globali");
     toolbar->AddControl(m_show_globals, "Globali");
 
-    m_page = new wxSpinCtrl(toolbar, CTL_OUTPUT_PAGE, wxEmptyString, wxDefaultPosition, wxSize(100, -1), wxSP_ARROW_KEYS | wxTE_PROCESS_ENTER, 0, 0);
+    m_page = new wxSpinCtrl(toolbar, CTL_OUTPUT_PAGE, wxEmptyString, wxDefaultPosition, wxSize(150, -1), wxSP_ARROW_KEYS | wxTE_PROCESS_ENTER, 0, 0);
 
     toolbar->AddControl(m_page, "Pagina");
 
