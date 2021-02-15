@@ -18,9 +18,9 @@ void reader::clear() {
 void reader::start() {
     m_vars.clear();
     m_contents.clear();
-    m_refs.clear();
     m_return_addrs.clear();
 
+    m_selected = {};
     m_spacer = {};
     m_last_box_page = 0;
 
@@ -171,15 +171,13 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::LEQ: OP(a <= b); break;
 #undef OP
     case opcode::SELVAR:
-        m_refs.push(create_ref(cmd.get<variable_selector>()));
+        m_selected = create_ref(cmd.get<variable_selector>());
         break;
     case opcode::ISSET:
-        m_vars.push(m_refs.top().size() != 0);
-        m_refs.pop();
+        m_vars.push(m_selected.size() != 0);
         break;
     case opcode::GETSIZE:
-        m_vars.push(m_refs.top().size());
-        m_refs.pop();
+        m_vars.push(m_selected.size());
         break;
     case opcode::MVBOX: 
         switch (cmd.get<spacer_index>()) {
@@ -212,40 +210,34 @@ void reader::exec_command(const command_args &cmd) {
         m_vars.pop();
         break;
     case opcode::CLEAR:
-        m_refs.top().clear();
-        m_refs.pop();
+        m_selected.clear();
         break;
     case opcode::RESETVAR:
         if (!m_vars.top().empty()) {
-            m_refs.top().clear();
+            m_selected.clear();
         }
         [[fallthrough]];
     case opcode::SETVAR:
-        m_refs.top().set_value(std::move(m_vars.top()));
+        m_selected.set_value(std::move(m_vars.top()));
         m_vars.pop();
-        m_refs.pop();
         break;
     case opcode::INC:
-        m_refs.top().set_value(std::move(m_vars.top()), true);
+        m_selected.set_value(std::move(m_vars.top()), true);
         m_vars.pop();
-        m_refs.pop();
         break;
     case opcode::DEC:
-        m_refs.top().set_value(- m_vars.top(), true);
+        m_selected.set_value(- m_vars.top(), true);
         m_vars.pop();
-        m_refs.pop();
         break;
     case opcode::PUSHVIEW:  m_vars.push(m_contents.top().view()); break;
     case opcode::PUSHNUM:   m_vars.push(cmd.get<fixed_point>()); break;
     case opcode::PUSHSTR:   m_vars.push(cmd.get<std::string>()); break;
     case opcode::PUSHVAR:
-        m_vars.push(m_refs.top().get_value());
-        m_refs.pop();
+        m_vars.push(m_selected.get_value());
         break;
     case opcode::PUSHNULL: m_vars.push(variable::null_var()); break;
     case opcode::MOVEVAR:
-        m_vars.push(m_refs.top().get_moved());
-        m_refs.pop();
+        m_vars.push(m_selected.get_moved());
         break;
     case opcode::JMP:
         m_program_counter += cmd.get<jump_address>();

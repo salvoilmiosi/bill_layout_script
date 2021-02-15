@@ -91,8 +91,6 @@ int MainApp::OnRun() {
         for (auto &l : my_reader.get_layouts()) {
             json_layouts.append(l.string());
         }
-
-        std::cout << result;
     } catch (const layout_error &error) {
         result["error"] = error.what();
         retcode = 1;

@@ -16,7 +16,7 @@ public:
     using iterator_type = typename Map::iterator;
 
 private:
-    map_type &m_map;
+    map_type *m_map = nullptr;
     key_type m_key;
 
     iterator_type m_begin;
@@ -25,8 +25,10 @@ private:
     size_t m_len;
 
 public:
-    multimap_range(map_type &map, const key_type &key) : m_map(map), m_key(key) {
-        auto range = m_map.equal_range(m_key);
+    multimap_range() = default;
+
+    multimap_range(map_type &map, const key_type &key) : m_map(&map), m_key(key) {
+        auto range = m_map->equal_range(m_key);
         m_begin = range.first;
         m_end = range.second;
         m_len = std::distance(m_begin, m_end);
@@ -34,7 +36,7 @@ public:
 
     void resize(size_t newlen) {
         while (newlen > m_len) {
-            auto it = m_map.emplace_hint(m_end, m_key, value_type());
+            auto it = m_map->emplace_hint(m_end, m_key, value_type());
             if (m_len == 0) {
                 m_begin = it;
             }
@@ -44,7 +46,7 @@ public:
     }
 
     void clear() {
-        m_begin = m_end = m_map.erase(m_begin, m_end);
+        m_begin = m_end = m_map->erase(m_begin, m_end);
         m_len = 0;
     }
 
@@ -94,6 +96,8 @@ public:
     size_t length = 0;
 
 public:
+    variable_ref() = default;
+
     variable_ref(map_type &map, const key_type &key, size_t index = 0, size_t length = 0) :
         multimap_range(map, key), index(index), length(length) {}
 

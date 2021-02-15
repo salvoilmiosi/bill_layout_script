@@ -150,7 +150,9 @@ bool parser::read_statement(bool throw_on_eof) {
         }
         return false;
     default: {
+        size_t selvar_begin = m_code.size();
         int prefixes = read_variable(false);
+        size_t selvar_end = m_code.size();
         
         auto tok = m_lexer.peek();
         opcode assign_op = opcode::SETVAR;
@@ -176,10 +178,10 @@ bool parser::read_statement(bool throw_on_eof) {
             if (assign_op == opcode::DEC) {
                 add_line(opcode::NEG);
             }
-            add_line(opcode::RESETVAR);
-        } else {
-            add_line(assign_op);
+            assign_op = opcode::RESETVAR;
         }
+        vector_move_to_end(m_code, selvar_begin, selvar_end);
+        add_line(assign_op);
     }
     }
     return true;

@@ -76,9 +76,9 @@ private:
 
     simple_stack<variable> m_vars;
     simple_stack<content_view> m_contents;
-    simple_stack<variable_ref> m_refs;
-    
     static_stack<size_t> m_return_addrs;
+
+    variable_ref m_selected;
 
     std::vector<std::filesystem::path> m_layouts;
 
