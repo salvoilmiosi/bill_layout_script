@@ -147,13 +147,13 @@ ragione_sociale
 ### End Script
 ### End Box
 
-### Box Consumi rilevati
+### Box Tabella Consumi Rilevati
 ### Type PAGE
-### Mode RAW
-### Rect 2 0.05040323 0.36969072 0.66280246 0.048995156
+### Mode LAYOUT
+### Rect 2 0.036093418 0.37809452 0.68683654 0.074268565
 ### Script
-$between("Consumi rilevati", "INFORMAZIONI PER I CLIENTI") {
-  $step($captures(@,$format(/al \d\d\.$0 (\N) (\N) (\N) (\N) (\N) (\N) \N \N \N (\N) (\N) (\N)/,$date_format(mese_fattura,"%m.%Y")))) {
+$between($if($contains(@,"Dettaglio dei consumi"),"Dettaglio dei consumi","Consumi rilevati"),"INFORMAZIONI PER I CLIENTI") {
+  $step($captures(@,$format(/(\N) (\N) (\N) (\N) (\N) (\N) \N \N \N (\N) (\N) (\N) reale al \d\d\.$0/,$date_format(mese_fattura,"%m.%Y")))) {
     %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
     %potenza[0] %potenza[1] %potenza[2]

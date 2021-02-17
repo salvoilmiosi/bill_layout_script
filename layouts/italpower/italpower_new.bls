@@ -80,6 +80,30 @@ mese_fattura=$month(@,"%b. %Y")
 ### End Script
 ### End Box
 
+### Box Energia Attiva Rilevata / Reattiva
+### Type PAGE
+### Mode LAYOUT
+### Rect 3 0.048387095 0.6624857 0.89870286 0.055942718
+### Script
+$between("RIEPILOGO LETTURE E CONSUMI","CONSUMI FATTURATI") {
+  _pos_f1=$strlen($search(@,/(.+F1)/))
+  $with($search(@,/(.+Dal Al.+)/)) {
+    _len_col=12
+    $setbegin(_pos_f1)
+    _pos_attiva=$indexof(@,"Consumi")
+    $setbegin(_pos_attiva + _len_col)
+    _pos_reattiva=$indexof(@,"Consumi")
+    _fmt_table=$format(/.{$0}(.{$2}).{$1}(.{$2})/,_pos_attiva,_pos_reattiva,_len_col)
+  }
+  $foreach($captures(@,$format(/\d\d\/$0 F1(.+)\n F2(.+)\n F3(.+)/,$date_format(mese_fattura,"%m/%Y")))) {
+    $step($captures(@,_fmt_table)) {
+      %energia_attiva_rilevata[] %energia_reattiva[]
+    }
+  }
+}
+### End Script
+### End Box
+
 ### Box Elementi di Dettaglio
 ### Type RECTANGLE
 ### Mode RAW
@@ -103,5 +127,6 @@ $step($captures(@,$format(/Energia - F3 - Periodo $0 Euro\/kWh (\N) (\N)/,_perio
 %oneri=$search(@,/Totale oneri di sistema (\N)/)
 %accise=$search($search(@,/Accisa sull'energia elettrica\n((?:.+\n)+)(?:Totale|$)/),
 	$format(/Consumi fino a 200\.000 kWh - Periodo $0 Euro\/kWh \N \N (\N)/,_periodo))
+%imponibile=$search(@,/IVA \N% (\N)/)
 ### End Script
 ### End Box
