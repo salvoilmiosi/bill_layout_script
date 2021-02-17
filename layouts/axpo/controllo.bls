@@ -3,7 +3,8 @@
 ### Box Controllo layout
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.03202087 0.06875042 0.19449715 0.03605205
+### Page 1
+### Rect 0.03202087 0.06875042 0.19449715 0.03605205
 ### Script
 $if($contains(@,"C/O MILANO CENTRO")) {
   $setlayout("axpo_old")

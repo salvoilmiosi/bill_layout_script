@@ -4,7 +4,8 @@
 ### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.031192327 0.89656824 0.46658522 0.10482951
+### Page 1
+### Rect 0.031192327 0.89656824 0.46658522 0.10482951
 ### Goto Label convalida
 ### Spacers
 p+::off_allegati
@@ -21,7 +22,8 @@ $elifnot($contains(@,"GREEN NETWORK S.p.A.\nSociet\u00e0 a Socio Unico")) {
 ### Box Nome Fornitore
 ### Type NOREAD
 ### Mode DEFAULT
-### Rect 1 0.020967742 0.012542759 0.5112903 0.09464082
+### Page 1
+### Rect 0.020967742 0.012542759 0.5112903 0.09464082
 ### Script
 fornitore="Green network"
 ### End Script
@@ -30,7 +32,8 @@ fornitore="Green network"
 ### Box Numero fattura
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.09354839 0.11060433 0.4394109 0.033067275
+### Page 1
+### Rect 0.09354839 0.11060433 0.4394109 0.033067275
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -43,7 +46,8 @@ data_fattura=$date(@,"%d/%m/%Y")
 ### Box Periodo
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.03928867 0.16592112 0.24503723 0.03727743
+### Page 1
+### Rect 0.03928867 0.16592112 0.24503723 0.03727743
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -56,7 +60,8 @@ data_scadenza=$date(@,"%d %B %Y",/scadenza (\D)/)
 ### Box Sintesi degli importi
 ### Type RECTANGLE
 ### Mode RAW
-### Rect 1 0.52364117 0.29990157 0.43968183 0.19759141
+### Page 1
+### Rect 0.52364117 0.29990157 0.43968183 0.19759141
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -70,7 +75,8 @@ p+::off_allegati
 ### Box Dati Cliente
 ### Type RECTANGLE
 ### Mode RAW
-### Rect 1 0.041979674 0.54357165 0.46067166 0.10074819
+### Page 1
+### Rect 0.041979674 0.54357165 0.46067166 0.10074819
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -82,7 +88,8 @@ ragione_sociale=$search(@,/Ragione sociale: (.+)\n/)
 ### Box Dati fornitura
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 2 0.056341138 0.09997775 0.5413168 0.10933912
+### Page 2
+### Rect 0.056341138 0.09997775 0.5413168 0.10933912
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -97,7 +104,8 @@ codice_pod=$search(@,/POD: (.+?)\b/)
 ### Box IVA
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.045293856 0.7169522 0.115996465 0.037487745
+### Page 1
+### Rect 0.045293856 0.7169522 0.115996465 0.037487745
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -109,7 +117,8 @@ iva=$percent($search(@,/(\N)/))
 ### Box Imponibile
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.2695537 0.7161712 0.115996465 0.039049685
+### Page 1
+### Rect 0.2695537 0.7161712 0.115996465 0.039049685
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -121,7 +130,8 @@ p+::off_allegati
 ### Box Riepilogo consumi
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 2 0.046473484 0.21838704 0.9060928 0.1700713
+### Page 2
+### Rect 0.046473484 0.21838704 0.9060928 0.1700713
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -141,7 +151,8 @@ $step($captures(@,$format(/\d\d\/$0 \d\d\/$0 Consumi \w+ \N (\N) (\N) (\N) \N (\
 ### Box Accise
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 2 0.039170507 0.39094317 0.7842165 0.09936473
+### Page 2
+### Rect 0.039170507 0.39094317 0.7842165 0.09936473
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -153,7 +164,8 @@ p+::off_allegati
 ### Box Prezzo Energia
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 5 0.04297042 0.13301076 0.9153139 0.27221686
+### Page 5
+### Rect 0.04297042 0.13301076 0.9153139 0.27221686
 ### Spacers
 p+::off_allegati
 ### End Spacers

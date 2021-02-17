@@ -17,7 +17,8 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script &layou
         output << fmt::format("\n### Box {}\n", box->name);
         output << fmt::format("### Type {}\n", box_type_strings[int(box->type)]);
         output << fmt::format("### Mode {}\n", read_mode_strings[int(box->mode)]);
-        output << fmt::format("### Rect {} {} {} {} {}\n", box->page, box->x, box->y, box->w, box->h);
+        output << fmt::format("### Page {}\n", box->page);
+        output << fmt::format("### Rect {} {} {} {}\n", box->x, box->y, box->w, box->h);
         if (!box->goto_label.empty()) {
             output << fmt::format("### Goto Label {}\n", box->goto_label);
         }
@@ -102,10 +103,12 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                     } else {
                         throw layout_error(fmt::format("Token 'Mode' non valido: {}", suf.value));
                     }
+                } else if (auto suf = suffix(line, "### Page")) {
+                    current->page = cstoi(suf.value);
                 } else if (auto suf = suffix(line, "### Rect")) {
                     std::istringstream ss(std::string(suf.value));
                     ss.imbue(std::locale::classic());
-                    ss >> current->page >> current->x >> current->y >> current->w >> current->h;
+                    ss >> current->x >> current->y >> current->w >> current->h;
                     if (ss.fail()) {
                         throw layout_error("Formato non valido");
                     }

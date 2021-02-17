@@ -4,7 +4,8 @@
 ### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.037950665 0.5240123 0.4743833 0.03269837
+### Page 1
+### Rect 0.037950665 0.5240123 0.4743833 0.03269837
 ### Script
 $if(@ != "Servizio di fornitura energia elettrica") {
   $error("Sorgenia (gen16): Stringa di Convalida Errata")
@@ -15,7 +16,8 @@ $if(@ != "Servizio di fornitura energia elettrica") {
 ### Box Nome Fornitore
 ### Type NOREAD
 ### Mode DEFAULT
-### Rect 1 0.043548387 0.034207527 0.3548387 0.08437856
+### Page 1
+### Rect 0.043548387 0.034207527 0.3548387 0.08437856
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Sorgenia"
@@ -25,7 +27,8 @@ fornitore="Sorgenia"
 ### Box Codice Cliente
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.045161292 0.21664767 0.40967742 0.021664754
+### Page 1
+### Rect 0.045161292 0.21664767 0.40967742 0.021664754
 ### Script
 numero_cliente=$search(@,/Codice Cliente (.+)/)
 ### End Script
@@ -34,7 +37,8 @@ numero_cliente=$search(@,/Codice Cliente (.+)/)
 ### Box Ragione Sociale
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.49973556 0.19253415 0.408514 0.08879002
+### Page 1
+### Rect 0.49973556 0.19253415 0.408514 0.08879002
 ### Script
 $setend($indexof(@,"\n"))
 ragione_sociale
@@ -44,7 +48,8 @@ ragione_sociale
 ### Box Dati fornitura
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 1 0.03701745 0.30936313 0.42570066 0.20374973
+### Page 1
+### Rect 0.03701745 0.30936313 0.42570066 0.20374973
 ### Script
 codice_pod=$search(@,/POD \(Punto di prelievo\): (.+)/)
 indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura:\n([^]+)/))
@@ -55,7 +60,8 @@ indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura:\n([^]+)/))
 ### Box Periodo
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.26176625 0.5822756 0.23662084 0.025235059
+### Page 1
+### Rect 0.26176625 0.5822756 0.23662084 0.025235059
 ### Script
 mese_fattura=$month(@,"%B %Y")
 $ifnot($isset(mese_fattura)) {
@@ -76,7 +82,8 @@ $if($isset(mese_fine)) {
 ### Box Data Scadenza
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.50898993 0.55890983 0.39132738 0.09159392
+### Page 1
+### Rect 0.50898993 0.55890983 0.39132738 0.09159392
 ### Script
 data_scadenza=$date(@,"%d/%m/%Y")
 numero_fattura=$search(@,/Fattura n\u00b0 (.+)/)
@@ -87,7 +94,8 @@ data_fattura=$date(@,"%d/%m/%Y",/Del: (\D)/)
 ### Box Totale Fattura
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.26176625 0.55984443 0.20227392 0.023365796
+### Page 1
+### Rect 0.26176625 0.55984443 0.20227392 0.023365796
 ### Script
 %totale_fattura=$search(@,/euro (\N)/)
 ### End Script
@@ -96,7 +104,8 @@ data_fattura=$date(@,"%d/%m/%Y",/Del: (\D)/)
 ### Box Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 2 0.0315568 0.02850627 0.9274193 0.91467947
+### Page 2
+### Rect 0.0315568 0.02850627 0.9274193 0.91467947
 ### Script
 $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")))
 $setend($indexof(@,"\n",$indexof(@,"FORNITURA DI")))
@@ -125,7 +134,8 @@ $step($captures(@,/Prezzo F3 euro\/kWh (\N) (\N)/)) {
 ### Box Prossima Pagina
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 2 0.036764704 0.0058689383 0.030834913 0.017606815
+### Page 2
+### Rect 0.036764704 0.0058689383 0.030834913 0.017606815
 ### Script
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {

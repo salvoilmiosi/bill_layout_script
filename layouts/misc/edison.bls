@@ -4,7 +4,8 @@
 ### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.7381144 0.0045636054 0.23529412 0.022818027
+### Page 1
+### Rect 0.7381144 0.0045636054 0.23529412 0.022818027
 ### Script
 $if(@ != "ENERGIA ELETTRICA") {
   $error("Edison: Stringa di Convalida Errata")
@@ -15,7 +16,8 @@ $if(@ != "ENERGIA ELETTRICA") {
 ### Box Nome Fornitore
 ### Type NOREAD
 ### Mode DEFAULT
-### Rect 1 0.016116036 0.036508843 0.20145044 0.07529949
+### Page 1
+### Rect 0.016116036 0.036508843 0.20145044 0.07529949
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Edison"
@@ -25,7 +27,8 @@ fornitore="Edison"
 ### Box Numero / Data Fattura
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.33843675 0.02457326 0.31240317 0.018429944
+### Page 1
+### Rect 0.33843675 0.02457326 0.31240317 0.018429944
 ### Script
 numero_fattura=$search(@,/Fattura N\u00b0 (\N)/)
 data_fattura=$date(@,"%d %B %Y")
@@ -35,7 +38,8 @@ data_fattura=$date(@,"%d %B %Y")
 ### Box Ragione Sociale
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.008058018 0.11409014 0.21112007 0.092413
+### Page 1
+### Rect 0.008058018 0.11409014 0.21112007 0.092413
 ### Script
 ragione_sociale=$search(@,/Spettabile\n(.+)/)
 ### End Script
@@ -44,7 +48,8 @@ ragione_sociale=$search(@,/Spettabile\n(.+)/)
 ### Box Dati Fornitura
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.33843675 0.10610382 0.29814664 0.10952653
+### Page 1
+### Rect 0.33843675 0.10610382 0.29814664 0.10952653
 ### Script
 indirizzo_fornitura=$singleline($search(@,/Punto di fornitura\n(.+\n.+)/))
 potenza[0:3]=$search(@,/Potenza impegnata: (\N) kW/)
@@ -54,7 +59,8 @@ potenza[0:3]=$search(@,/Potenza impegnata: (\N) kW/)
 ### Box N Cliente / POD
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.6817083 0.100399315 0.30136988 0.057045065
+### Page 1
+### Rect 0.6817083 0.100399315 0.30136988 0.057045065
 ### Script
 numero_cliente=$search(@,/Codice Cliente (.+)/)
 codice_pod=$search(@,/POD (.+)/)
@@ -64,7 +70,8 @@ codice_pod=$search(@,/POD (.+)/)
 ### Box Periodo
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.33843675 0.0045636054 0.3142627 0.019395322
+### Page 1
+### Rect 0.33843675 0.0045636054 0.3142627 0.019395322
 ### Script
 mese_fattura=$month(@,"%B %Y")
 mese_fine=$month(@,"%B %Y",/\D - (\D)/)
@@ -78,7 +85,8 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 ### Box Totale / Scadenza
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.031412613 0.35290596 0.24993515 0.14338613
+### Page 1
+### Rect 0.031412613 0.35290596 0.24993515 0.14338613
 ### Script
 %totale_fattura=$search(@,/(\N)/)
 data_scadenza=$date(@,"%d %B %Y")
@@ -88,7 +96,8 @@ data_scadenza=$date(@,"%d %B %Y")
 ### Box Consumi Rilevati
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 1 0.32505226 0.58302 0.6542018 0.22527969
+### Page 1
+### Rect 0.32505226 0.58302 0.6542018 0.22527969
 ### Script
 $step($captures($replace(@,"\u2212","-"),
   $format(/\w+ \d\d\/\d\d\/\d\d\d\d - \d\d\/$0 (\N) (\N) (\N)/,_mese)))
@@ -101,7 +110,8 @@ $step($captures($replace(@,"\u2212","-"),
 ### Box Dettaglio Spese
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 4 0.013715775 0.0849123 0.96867657 0.8248623
+### Page 4
+### Rect 0.013715775 0.0849123 0.96867657 0.8248623
 ### Script
 $step($captures(@,$format(/Componente energia - F1 .+ al \d\d\/$0 \u20ac\/kWh (\N) (\N) kWh/,_mese))) {
   %prezzo_energia[0] %energia_attiva[0]
@@ -134,7 +144,8 @@ $between("Imposte e IVA","TOTALE") {
 ### Box Prossima Pagina
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 4 0.2610798 0.046750285 0.0467365 0.030786773
+### Page 4
+### Rect 0.2610798 0.046750285 0.0467365 0.030786773
 ### Script
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {

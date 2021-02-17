@@ -4,7 +4,8 @@
 ### Box Parsing Dettaglio
 ### Type NOREAD
 ### Mode DEFAULT
-### Rect 1 0 0 0 0
+### Page 1
+### Rect 0 0 0 0
 ### Script
 $with(::_dettaglio) {
   ^cts=$matches(@,/Corrispettivo Tariffario Specifico dal \d\d\/\d\d\/\d\d\d\d al \d\d\/\d\d\/\d\d\d\d (\N)/)

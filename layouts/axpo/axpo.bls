@@ -4,7 +4,8 @@
 ### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.78485096 0.023945268 0.20306204 0.07639681
+### Page 1
+### Rect 0.78485096 0.023945268 0.20306204 0.07639681
 ### Script
 $if(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero")
   $error("Axpo: Stringa di Convalida Errata")
@@ -14,7 +15,8 @@ $if(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero")
 ### Box Nome Fornitore
 ### Type NOREAD
 ### Mode DEFAULT
-### Rect 1 0.020967742 0.021664767 0.23548387 0.069555305
+### Page 1
+### Rect 0.020967742 0.021664767 0.23548387 0.069555305
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Axpo"
@@ -24,7 +26,8 @@ fornitore="Axpo"
 ### Box Ragione sociale
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.51044726 0.16909401 0.4719575 0.050533842
+### Page 1
+### Rect 0.51044726 0.16909401 0.4719575 0.050533842
 ### Script
 ragione_sociale
 ### End Script
@@ -33,7 +36,8 @@ ragione_sociale
 ### Box Totale da pagare / scadenza
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.6150193 0.3080678 0.35555232 0.10002199
+### Page 1
+### Rect 0.6150193 0.3080678 0.35555232 0.10002199
 ### Script
 %totale_fattura=$search(@,/TOTALE DA PAGARE (\N)/)
 data_scadenza=$date(@,"%d.%m.%Y",/entro il (\D)/)
@@ -43,7 +47,8 @@ data_scadenza=$date(@,"%d.%m.%Y",/entro il (\D)/)
 ### Box Dati bolletta
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.0315568 0.09791284 0.22615707 0.31941897
+### Page 1
+### Rect 0.0315568 0.09791284 0.22615707 0.31941897
 ### Script
 numero_fattura=$search(@,/N\. fattura (\N)/)
 data_fattura=$date(@,"%d.%m.%Y",/N\. fattura \N del (\D)/)
@@ -58,7 +63,8 @@ _mese=$date_format(mese_fattura,"%m.%Y")
 ### Box Dettaglio Costi
 ### Type RECTANGLE
 ### Mode RAW
-### Rect 1 0.047653962 0.65514416 0.4389663 0.23846543
+### Page 1
+### Rect 0.047653962 0.65514416 0.4389663 0.23846543
 ### Script
 iva=$search(@,/Importo IVA (\N%)/)
 $if($isset(codice_pod)) {
@@ -74,7 +80,8 @@ $if($isset(codice_pod)) {
 ### Box Dati fornitura multi POD
 ### Type RECTANGLE
 ### Mode RAW
-### Rect 2 0.04193548 0.13418806 0.22741936 0.11324638
+### Page 2
+### Rect 0.04193548 0.13418806 0.22741936 0.11324638
 ### Spacers
 p+::next_page
 ### End Spacers
@@ -89,7 +96,8 @@ $ifnot($isset(codice_pod)) {
 ### Box Energia Reattiva
 ### Type PAGE
 ### Mode RAW
-### Rect 2 0.03181463 0.2576967 0.94399184 0.25427598
+### Page 2
+### Rect 0.03181463 0.2576967 0.94399184 0.25427598
 ### Spacers
 p+::next_page
 ### End Spacers
@@ -105,7 +113,8 @@ $if($contains(@,"Energia Reattiva")) {
 ### Box Lettura Quadro Dettaglio
 ### Type RECTANGLE
 ### Mode RAW
-### Rect 3 0.032258064 0.090079814 0.95483875 0.8289623
+### Page 3
+### Rect 0.032258064 0.090079814 0.95483875 0.8289623
 ### Goto Label quadro_dettaglio
 ### Spacers
 p+::next_page
@@ -123,7 +132,8 @@ $ifnot($ate() || $contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) 
 ### Box Parsing Quadro Dettaglio
 ### Type NOREAD
 ### Mode RAW
-### Rect 3 0.21504012 0.053452756 0.04193318 0.029393759
+### Page 3
+### Rect 0.21504012 0.053452756 0.04193318 0.029393759
 ### Script
 $with(_dettaglio) {
   %sbilanciamento=$search($search(@,/Sbilanciamento\n((dal.+\n)+)/),
@@ -165,7 +175,8 @@ $with(_dettaglio) {
 ### Box Prossima Pagina
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 3 0.03840065 0.0989254 0.22611547 0.032341655
+### Page 3
+### Rect 0.03840065 0.0989254 0.22611547 0.032341655
 ### Spacers
 p+::next_page
 ### End Spacers

@@ -3,7 +3,8 @@
 ### Box Identifica Layout
 ### Type WHOLEFILE
 ### Mode DEFAULT
-### Rect 1 0 0 0 0
+### Page 1
+### Rect 0 0 0 0
 ### Script
 $if  ($contains(@,"Axpo Italia SpA")) $import("axpo/controllo")
 $elif($contains(@,"ITALPOWER ENERGIA")) $import("italpower/controllo")

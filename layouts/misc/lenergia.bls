@@ -4,7 +4,8 @@
 ### Box Nome Fornitore
 ### Type NOREAD
 ### Mode DEFAULT
-### Rect 1 0.0580645 0.018244 0.35 0.114025
+### Page 1
+### Rect 0.0580645 0.018244 0.35 0.114025
 ### Script
 fornitore="Lenergia"
 ### End Script
@@ -13,7 +14,8 @@ fornitore="Lenergia"
 ### Box Dati fattura
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 1 0.512487 0.0275867 0.474766 0.12414
+### Page 1
+### Rect 0.512487 0.0275867 0.474766 0.12414
 ### Script
 numero_cliente=$search(@,/Codice Cliente: (.+)\n/)
 numero_fattura=$search(@,/fattura n\. (\N) /)
@@ -26,7 +28,8 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 ### Box Totale fattura
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.110562 0.362306 0.332986 0.0358627
+### Page 1
+### Rect 0.110562 0.362306 0.332986 0.0358627
 ### Script
 %totale_fattura
 ### End Script
@@ -35,7 +38,8 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 ### Box Data scadenza
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.112903 0.420753 0.333871 0.0342075
+### Page 1
+### Rect 0.112903 0.420753 0.333871 0.0342075
 ### Script
 data_scadenza=$date(@,"%d/%m/%Y")
 ### End Script
@@ -44,7 +48,8 @@ data_scadenza=$date(@,"%d/%m/%Y")
 ### Box Intestatario della fattura
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.105359 0.220694 0.348595 0.0551734
+### Page 1
+### Rect 0.105359 0.220694 0.348595 0.0551734
 ### Script
 ragione_sociale=$search(@,/^(.+)\n/)
 indirizzo_fornitura=$singleline($search(@,/^.+\n([^]+?\d{5}.+)\n/))
@@ -54,7 +59,8 @@ indirizzo_fornitura=$singleline($search(@,/^.+\n([^]+?\d{5}.+)\n/))
 ### Box Sintesi degli importi fatturati
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 1 0.51769 0.340236 0.469563 0.205061
+### Page 1
+### Rect 0.51769 0.340236 0.469563 0.205061
 ### Script
 %spesa_materia_energia=$search(@,/Spesa per la materia Energia (\N)\n/)
 %trasporto_gestione=$search(@,/Servizi di rete (\N)\n/)
@@ -65,7 +71,8 @@ indirizzo_fornitura=$singleline($search(@,/^.+\n([^]+?\d{5}.+)\n/))
 ### Box Dettaglio fiscale/IVA
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 1 0.516389 0.570125 0.474766 0.0855188
+### Page 1
+### Rect 0.516389 0.570125 0.474766 0.0855188
 ### Script
 $step($captures(@,/IVA (\N%) (\N)/)) {
   iva %imponibile
@@ -76,7 +83,8 @@ $step($captures(@,/IVA (\N%) (\N)/)) {
 ### Box Dati Fornitura
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 2 0.0684262 0.0233233 0.904203 0.17188616
+### Page 2
+### Rect 0.0684262 0.0233233 0.904203 0.17188616
 ### Script
 codice_pod=$search(@,/Codice punto di erogazione \(POD\): ([a-zA-Z0-9]+)/)
 ### End Script
@@ -85,7 +93,8 @@ codice_pod=$search(@,/Codice punto di erogazione \(POD\): ([a-zA-Z0-9]+)/)
 ### Box Energia Reattiva / Potenza
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 2 0.035119668 0.2005698 0.92351717 0.6100175
+### Page 2
+### Rect 0.035119668 0.2005698 0.92351717 0.6100175
 ### Script
 $step($captures(@,$format(/\d\d\/$0 Energia Attiva kWh (\N) (\N) (\N)/,_mese))) {
     %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
@@ -102,7 +111,8 @@ $step($captures(@,$format(/\d\d\/$0 Potenza kW (\N) (\N) (\N)/,_mese))) {
 ### Box Quadro Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 5 0.053763438 0.06647673 0.912485 0.8831909
+### Page 5
+### Rect 0.053763438 0.06647673 0.912485 0.8831909
 ### Goto Label quadro_dettaglio
 ### Spacers
 p+::page_offset
@@ -128,7 +138,8 @@ $step($captures(@,$format(/Indice mese di competenza F3 .+ \d\d\/$0 \u20ac\/kWh 
 ### Box Controllo Prossima Pagina
 ### Type NOREAD
 ### Mode DEFAULT
-### Rect 6 0.091051 0.038599394 0.03381893 0.023894865
+### Page 6
+### Rect 0.091051 0.038599394 0.03381893 0.023894865
 ### Spacers
 p+::page_offset
 ### End Spacers

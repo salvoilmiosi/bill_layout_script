@@ -4,7 +4,8 @@
 ### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.07538146 0.31081033 0.82919604 0.024828043
+### Page 1
+### Rect 0.07538146 0.31081033 0.82919604 0.024828043
 ### Script
 $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
   $error("Sorgenia: Stringa di Convalida Errata")
@@ -14,7 +15,8 @@ $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
 ### Box Lettura Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 3 0.040290102 0.080957815 0.91055596 0.86431015
+### Page 3
+### Rect 0.040290102 0.080957815 0.91055596 0.86431015
 ### Goto Label lettura_dati
 ### Spacers
 p+::next_page
@@ -32,7 +34,8 @@ $ifnot($ate() || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
 ### Box Nome Fornitore
 ### Type NOREAD
 ### Mode DEFAULT
-### Rect 1 0.061290324 0.04104903 0.36129034 0.08323831
+### Page 1
+### Rect 0.061290324 0.04104903 0.36129034 0.08323831
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Sorgenia"
@@ -42,7 +45,8 @@ fornitore="Sorgenia"
 ### Box Numero cliente
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 1 0.48481974 0.010436194 0.46489564 0.104729146
+### Page 1
+### Rect 0.48481974 0.010436194 0.46489564 0.104729146
 ### Script
 numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 ### End Script
@@ -51,7 +55,8 @@ numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 ### Box Ragione sociale
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.076612905 0.15037057 0.38810483 0.02850627
+### Page 1
+### Rect 0.076612905 0.15037057 0.38810483 0.02850627
 ### Script
 ragione_sociale
 ### End Script
@@ -60,7 +65,8 @@ ragione_sociale
 ### Box Numero / Data Fattura
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 1 0.078366615 0.33640674 0.38614953 0.039876044
+### Page 1
+### Rect 0.078366615 0.33640674 0.38614953 0.039876044
 ### Script
 numero_fattura=$search(@,/N\. fattura (.+)/)
 data_fattura=$date(@,"%d/%m/%Y",/Emessa il (\D)/)
@@ -70,7 +76,8 @@ data_fattura=$date(@,"%d/%m/%Y",/Emessa il (\D)/)
 ### Box POD / Indirizzo
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 1 0.47096774 0.33537194 0.46042183 0.05117309
+### Page 1
+### Rect 0.47096774 0.33537194 0.46042183 0.05117309
 ### Script
 codice_pod=$search(@,/per il punto di fornitura \(POD\) ([0-9A-Z]+)/)
 indirizzo_fornitura=$singleline($search(@,/\ndi ([^]+\(..\))/))
@@ -80,7 +87,8 @@ indirizzo_fornitura=$singleline($search(@,/\ndi ([^]+\(..\))/))
 ### Box Periodo
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.07358871 0.4846066 0.31149194 0.023517672
+### Page 1
+### Rect 0.07358871 0.4846066 0.31149194 0.023517672
 ### Script
 mese_fattura=$month(@,"%B %Y")
 mese_fine=$month(@,"%B %Y",/\D\/(\D)/)
@@ -94,7 +102,8 @@ $ifnot($isset(mese_fattura)) {
 ### Box Data scadenza
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.7051532 0.43586698 0.23481973 0.04943812
+### Page 1
+### Rect 0.7051532 0.43586698 0.23481973 0.04943812
 ### Script
 data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/)
 ### End Script
@@ -103,7 +112,8 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/)
 ### Box Totale spesa
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.31451613 0.43543327 0.36794356 0.033494867
+### Page 1
+### Rect 0.31451613 0.43543327 0.36794356 0.033494867
 ### Script
 %totale_fattura
 ### End Script
@@ -112,7 +122,8 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/)
 ### Box Potenza Impegnata
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 2 0.6946011 0.085518815 0.26752618 0.05359179
+### Page 2
+### Rect 0.6946011 0.085518815 0.26752618 0.05359179
 ### Script
 %potenza[0:3]=$search(@,/Potenza impegnata: (\N)/)
 ### End Script
@@ -121,7 +132,8 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/)
 ### Box Energia Attiva
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 2 0.058017727 0.3854048 0.35532874 0.53301203
+### Page 2
+### Rect 0.058017727 0.3854048 0.35532874 0.53301203
 ### Script
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
@@ -136,7 +148,8 @@ $step($captures($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/),
 ### Box Energia Reattiva
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 2 0.058017727 0.38654503 0.2352941 0.53301203
+### Page 2
+### Rect 0.058017727 0.38654503 0.2352941 0.53301203
 ### Script
 ### Il rettangolo e' alto perche' il layout shifta verticalmente
 
@@ -151,7 +164,8 @@ $step($captures($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/),
 ### Box Parsing Dettaglio
 ### Type NOREAD
 ### Mode DEFAULT
-### Rect 3 0.26032954 0.030786771 0.057603687 0.04479557
+### Page 3
+### Rect 0.26032954 0.030786771 0.057603687 0.04479557
 ### Script
 $import("parsing_dettaglio")
 $if($isset(mese_fine)) {

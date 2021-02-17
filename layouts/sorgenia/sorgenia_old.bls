@@ -4,7 +4,8 @@
 ### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.07399102 0.30294654 0.82919604 0.024828043
+### Page 1
+### Rect 0.07399102 0.30294654 0.82919604 0.024828043
 ### Goto Label convalida
 ### Spacers
 p+::off_allegati
@@ -21,7 +22,8 @@ $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO") {
 ### Box Lettura Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 3 0.040290102 0.080957815 0.91055596 0.8734165
+### Page 3
+### Rect 0.040290102 0.080957815 0.91055596 0.8734165
 ### Goto Label lettura_dati
 ### Spacers
 p+::off_allegati p+::next_page
@@ -39,7 +41,8 @@ $ifnot($ate() || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
 ### Box Nome Fornitore
 ### Type NOREAD
 ### Mode DEFAULT
-### Rect 1 0.061290324 0.04104903 0.36129034 0.08323831
+### Page 1
+### Rect 0.061290324 0.04104903 0.36129034 0.08323831
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Sorgenia"
@@ -49,7 +52,8 @@ fornitore="Sorgenia"
 ### Box Numero cliente
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 1 0.48481974 0.010436194 0.46489564 0.104729146
+### Page 1
+### Rect 0.48481974 0.010436194 0.46489564 0.104729146
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -61,7 +65,8 @@ numero_cliente=$search(@,/(\N)/)
 ### Box Ragione sociale
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.076612905 0.15037057 0.38810483 0.02850627
+### Page 1
+### Rect 0.076612905 0.15037057 0.38810483 0.02850627
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -73,7 +78,8 @@ ragione_sociale
 ### Box Numero / Data fattura
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 1 0.08320533 0.3307055 0.34372735 0.038518578
+### Page 1
+### Rect 0.08320533 0.3307055 0.34372735 0.038518578
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -86,7 +92,8 @@ data_fattura=$date(@,"%d/%m/%Y",/Emessa il (\D)/)
 ### Box POD / Indirizzo
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 1 0.43225807 0.32853043 0.48138958 0.06241271
+### Page 1
+### Rect 0.43225807 0.32853043 0.48138958 0.06241271
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -99,7 +106,8 @@ indirizzo_fornitura=$singleline($search(@,/\ndi ([^]+\(..\))/))
 ### Box Periodo
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.07073511 0.422843 0.3672129 0.11006591
+### Page 1
+### Rect 0.07073511 0.422843 0.3672129 0.11006591
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -116,7 +124,8 @@ $ifnot($isset(mese_fattura)) {
 ### Box Data scadenza
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.6679324 0.422843 0.23481973 0.11006591
+### Page 1
+### Rect 0.6679324 0.422843 0.23481973 0.11006591
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -128,7 +137,8 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/)
 ### Box Totale spesa
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.43870968 0.4244267 0.21856391 0.10689852
+### Page 1
+### Rect 0.43870968 0.4244267 0.21856391 0.10689852
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -140,7 +150,8 @@ p+::off_allegati
 ### Box Potenza Impegnata
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 1 0.65733 0.66411793 0.26752618 0.12493569
+### Page 1
+### Rect 0.65733 0.66411793 0.26752618 0.12493569
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -152,7 +163,8 @@ p+::off_allegati
 ### Box Energia Attiva
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 2 0.058017727 0.3854048 0.35532874 0.53301203
+### Page 2
+### Rect 0.058017727 0.3854048 0.35532874 0.53301203
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -170,7 +182,8 @@ $step($captures($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/),
 ### Box Energia Reattiva
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 2 0.058017727 0.38654503 0.25530854 0.53301203
+### Page 2
+### Rect 0.058017727 0.38654503 0.25530854 0.53301203
 ### Spacers
 p+::off_allegati
 ### End Spacers
@@ -188,7 +201,8 @@ $step($captures($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/),
 ### Box Parsing Dettaglio
 ### Type NOREAD
 ### Mode DEFAULT
-### Rect 3 0.259447 0.028506272 0.057603687 0.04479557
+### Page 3
+### Rect 0.259447 0.028506272 0.057603687 0.04479557
 ### Spacers
 p+::off_allegati
 ### End Spacers

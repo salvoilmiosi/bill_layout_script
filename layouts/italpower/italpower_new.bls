@@ -4,7 +4,8 @@
 ### Box Nome Fornitore
 ### Type NOREAD
 ### Mode DEFAULT
-### Rect 1 0.038709678 0.050171036 0.33225808 0.07639681
+### Page 1
+### Rect 0.038709678 0.050171036 0.33225808 0.07639681
 ### Goto Label nome_fornitore
 ### Script
 nome_fornitore="Italpower"
@@ -14,7 +15,8 @@ nome_fornitore="Italpower"
 ### Box Dati Cliente
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 1 0.045161292 0.16647662 0.42580646 0.13568985
+### Page 1
+### Rect 0.045161292 0.16647662 0.42580646 0.13568985
 ### Script
 $step($captures(@,/CODICE CLIENTE: (\w+) Intestatario del contratto: (.+)\n/)) {
   numero_cliente
@@ -26,7 +28,8 @@ $step($captures(@,/CODICE CLIENTE: (\w+) Intestatario del contratto: (.+)\n/)) {
 ### Box Numero / Data Fattura
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.043548387 0.30216646 0.43387097 0.076950006
+### Page 1
+### Rect 0.043548387 0.30216646 0.43387097 0.076950006
 ### Script
 numero_fattura=$search(@,/N\u00b0 (\w+)/)
 data_fattura=$date(@,"%d/%m/%Y")
@@ -36,7 +39,8 @@ data_fattura=$date(@,"%d/%m/%Y")
 ### Box Totale Fattura / Scadenza
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 1 0.5302594 0.44806516 0.4034582 0.10997964
+### Page 1
+### Rect 0.5302594 0.44806516 0.4034582 0.10997964
 ### Script
 %totale_fattura=$search(@,/IMPORTO DA PAGARE \u20ac (\N)/)
 data_scadenza=$date(@,"%d %B %Y")
@@ -46,7 +50,8 @@ data_scadenza=$date(@,"%d %B %Y")
 ### Box IVA
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 2 0.038709678 0.18244013 0.91290325 0.32155073
+### Page 2
+### Rect 0.038709678 0.18244013 0.91290325 0.32155073
 ### Script
 iva=$search(@,/IVA (\N%)/)
 ### End Script
@@ -55,7 +60,8 @@ iva=$search(@,/IVA (\N%)/)
 ### Box Dati Fornitura
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 3 0.044354837 0.1378327 0.43145162 0.23479088
+### Page 3
+### Rect 0.044354837 0.1378327 0.43145162 0.23479088
 ### Script
 indirizzo_fornitura=$singleline($search(@,/Le stiamo fornendo energia elettrica in \u2022 ([^]+?\d{5}.+)\n/))
 ### End Script
@@ -64,7 +70,8 @@ indirizzo_fornitura=$singleline($search(@,/Le stiamo fornendo energia elettrica 
 ### Box Caratteristiche Tecniche
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Rect 3 0.50537634 0.13593157 0.4408602 0.24239543
+### Page 3
+### Rect 0.50537634 0.13593157 0.4408602 0.24239543
 ### Script
 codice_pod=$search(@,/Cod\. POD punto prelievo: (\w+)/)
 %potenza[0:3]=$search(@,/Potenza impegnata: (\N) kW/)
@@ -74,7 +81,8 @@ codice_pod=$search(@,/Cod\. POD punto prelievo: (\w+)/)
 ### Box Periodo
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Rect 1 0.04886364 0.37911648 0.4227273 0.025702812
+### Page 1
+### Rect 0.04886364 0.37911648 0.4227273 0.025702812
 ### Script
 mese_fattura=$month(@,"%b. %Y")
 ### End Script
@@ -83,7 +91,8 @@ mese_fattura=$month(@,"%b. %Y")
 ### Box Energia Attiva Rilevata / Reattiva
 ### Type PAGE
 ### Mode LAYOUT
-### Rect 3 0.048387095 0.6624857 0.89870286 0.055942718
+### Page 3
+### Rect 0.048387095 0.6624857 0.89870286 0.055942718
 ### Script
 $between("RIEPILOGO LETTURE E CONSUMI","CONSUMI FATTURATI") {
   _pos_f1=$strlen($search(@,/(.+F1)/))
@@ -107,7 +116,8 @@ $between("RIEPILOGO LETTURE E CONSUMI","CONSUMI FATTURATI") {
 ### Box Elementi di Dettaglio
 ### Type RECTANGLE
 ### Mode RAW
-### Rect 4 0.033602152 0.08460076 0.9260753 0.82509506
+### Page 4
+### Rect 0.033602152 0.08460076 0.9260753 0.82509506
 ### Script
 _periodo=$format(/\d\d\/\d\d\/\d\d\d\d-\s*\d\d\/$0/,$date_format(mese_fattura,"%m/%Y"))
 %pcv=$search(@,$format(/Commercializzazione e vendita \(PCV1\) - Periodo $0 Euro\/POD\/mese \N \N (\N)/,_periodo))
