@@ -24,6 +24,20 @@ std::vector<std::string_view> string_split(std::string_view str, char separator)
     return ret;
 }
 
+std::string string_split_n(std::string_view str, int nparts) {
+    std::string ret;
+    float len = float(str.size()) / nparts;
+    float loc = 0;
+    for (int i=0; i<nparts; ++i) {
+        if (i != 0) {
+            ret += RESULT_SEPARATOR;
+        }
+        ret += str.substr(std::round(loc), std::round(loc + len) - std::round(loc));
+        loc += len;
+    }
+    return ret;
+}
+
 std::string string_join(const std::vector<std::string> &vec, std::string_view separator) {
     std::string out;
     for (auto it = vec.begin(); it<vec.end(); ++it) {
@@ -76,14 +90,29 @@ std::string read_all(std::istream &stream) {
     return std::string(std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
 }
 
-int cstoi(std::string_view str) {
-    int ret;
+template<typename T>
+inline T cston(std::string_view str) {
+    T ret;
     auto result = std::from_chars(str.begin(), str.end(), ret);
     if (result.ec == std::errc::invalid_argument) {
         throw std::invalid_argument(std::string(str));
     }
     return ret;
 }
+
+int cstoi(std::string_view str) {
+    return cston<int>(str);
+}
+
+#ifdef CHARCONV_FLOAT
+float cstof(std::string_view str) {
+    return cston<float>(str);
+}
+
+double cstod(std::string_view str) {
+    return cston<double>(str);
+}
+#endif
 
 size_t string_findicase(std::string_view str, std::string_view str2, size_t index) {
     return std::distance(str.begin(), std::search(

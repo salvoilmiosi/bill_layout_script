@@ -140,6 +140,9 @@ static const std::unordered_map<std::string, function_handler> lookup {
     {"captures", [](std::string_view str, std::string_view regex) {
         return search_regex_captures(regex, str);
     }},
+    {"split", [](std::string_view str, int nparts) {
+        return string_split_n(str, nparts);
+    }},
     {"date", [](std::string_view str, const std::string &format, std::optional<std::string_view> regex, std::optional<int> index) {
         return parse_date(format, str, regex.value_or(""), index.value_or(1));
     }},

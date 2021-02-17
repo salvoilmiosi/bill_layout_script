@@ -9,6 +9,9 @@ constexpr char RESULT_SEPARATOR = '\x1f';
 // divide una stringa per separatore
 std::vector<std::string_view> string_split(std::string_view str, char separator = ',');
 
+// divide una stringa in n parti di lunghezza equivalente
+std::string string_split_n(std::string_view str, int nparts);
+
 // unisce tutte le stringhe in un vettore di stringhe
 std::string string_join(const std::vector<std::string> &vec, std::string_view separator = " ");
 
