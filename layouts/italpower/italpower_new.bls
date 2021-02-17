@@ -47,12 +47,13 @@ data_scadenza=$date(@,"%d %B %Y")
 ### End Script
 ### End Box
 
-### Box IVA
+### Box Dettaglio Importi
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 2
 ### Rect 0.038709678 0.18244013 0.91290325 0.32155073
 ### Script
+%altre_partite=$search(@,/ALTRE PARTITE (\N)/)
 iva=$search(@,/IVA (\N%)/)
 ### End Script
 ### End Box
@@ -133,10 +134,12 @@ $step($captures(@,$format(/Energia - F3 - Periodo $0 Euro\/kWh (\N) (\N)/,_perio
 %disp_var=$search(@,$format(/Dispacciamento - Periodo $0 Euro\/kWh (\N)/,_periodo))
 %spesa_materia_energia=$search(@,/Totale materia energia (\N)/)
 %potenza[0:3]=$search(@,$format(/Quota Potenza - trasporto - Periodo $0 Euro\/POD\/mese \N (\N)/,_periodo))
+^penale_reattiva_inf75=$matches(@,$format(/Energia Reattiva \(tra il 33 % ed il 75 %\) - F[1-3] - Periodo $0 Euro\/kVarh \N \N (\N)/,_periodo))
+^penale_reattiva_sup75=$matches(@,$format(/Energia Reattiva \(oltre il 75 %\) - F[1-3] - Periodo $0 Euro\/kVarh \N \N (\N)/,_periodo))
 %trasporto_gestione=$search(@,/Totale Trasporto e gestione del contatore (\N)/)
 %oneri=$search(@,/Totale oneri di sistema (\N)/)
 %accise=$search($search(@,/Accisa sull'energia elettrica\n((?:.+\n)+)(?:Totale|$)/),
 	$format(/Consumi fino a 200\.000 kWh - Periodo $0 Euro\/kWh \N \N (\N)/,_periodo))
-%imponibile=$search(@,/IVA \N% (\N)/)
+imponibile=$num($search(@,/IVA \N% (\N)/))+altre_partite
 ### End Script
 ### End Box
