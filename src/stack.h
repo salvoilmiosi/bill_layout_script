@@ -12,8 +12,10 @@ template<typename T, typename Container = std::vector<T>> struct simple_stack : 
         base::push_back(std::forward<decltype(value)>(value));
     }
 
-    constexpr void pop() {
+    constexpr T pop() {
+        T ret = std::move(base::back());
         base::pop_back();
+        return ret;
     }
 };
 
