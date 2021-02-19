@@ -71,6 +71,8 @@ private:
 
     std::map<std::string, size_t> m_labels;
 
+    std::vector<std::pair<std::string, std::string>> m_loop_labels;
+
     uint8_t m_flags = 0;
 
     friend class lexer;

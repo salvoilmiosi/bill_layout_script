@@ -56,6 +56,7 @@ void parser::read_keyword() {
     case hash("while"): {
         std::string while_label = fmt::format("__while_{}", m_code.size());
         std::string endwhile_label = fmt::format("__endwhile_{}", m_code.size());
+        m_loop_labels.push_back({while_label, endwhile_label});
         m_lexer.require(TOK_PAREN_BEGIN);
         add_label(while_label);
         read_expression();
@@ -64,11 +65,13 @@ void parser::read_keyword() {
         read_statement();
         add_line(opcode::UNEVAL_JUMP, jump_uneval{opcode::JMP, while_label});
         add_label(endwhile_label);
+        m_loop_labels.pop_back();
         break;
     }
     case hash("for"): {
         std::string for_label = fmt::format("__for_{}", m_code.size());
         std::string endfor_label = fmt::format("__endfor_{}", m_code.size());
+        m_loop_labels.push_back({for_label, endfor_label});
         m_lexer.require(TOK_PAREN_BEGIN);
         read_statement();
         m_lexer.require(TOK_COMMA);
@@ -84,6 +87,7 @@ void parser::read_keyword() {
         vector_move_to_end(m_code, increase_stmt_begin, increase_stmt_end);
         add_line(opcode::UNEVAL_JUMP, jump_uneval{opcode::JMP, for_label});
         add_label(endfor_label);
+        m_loop_labels.pop_back();
         break;
     }
     case hash("goto"): {
@@ -118,6 +122,7 @@ void parser::read_keyword() {
     case hash("foreach"): {
         std::string lines_label = fmt::format("__lines_{}", m_code.size());
         std::string endlines_label = fmt::format("__endlines_{}", m_code.size());
+        m_loop_labels.push_back({lines_label, endlines_label});
         bool pushed_content = false;
         if (m_lexer.check_next(TOK_PAREN_BEGIN)) {
             read_expression();
@@ -137,6 +142,7 @@ void parser::read_keyword() {
         } else {
             add_line(opcode::RESETVIEW);
         }
+        m_loop_labels.pop_back();
         break;
     }
     case hash("with"): {
@@ -253,6 +259,15 @@ void parser::read_keyword() {
         }
         break;
     }
+    case hash("break"):
+    case hash("continue"):
+        m_lexer.require(TOK_PAREN_BEGIN);
+        m_lexer.require(TOK_PAREN_END);
+        if (m_loop_labels.size() == 0) {
+            throw parsing_error("Non in un loop", tok_name);
+        }
+        add_line(opcode::UNEVAL_JUMP, jump_uneval{opcode::JMP, fun_name == "break" ? m_loop_labels.back().second : m_loop_labels.back().first});
+        break;
     default:
         throw parsing_error("Parola chiave sconosciuta", tok_name);
     }
