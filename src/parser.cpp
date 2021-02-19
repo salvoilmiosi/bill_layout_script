@@ -42,6 +42,10 @@ void parser::add_label(const std::string &label) {
     }
 }
 
+void parser::add_jump(opcode cmd, const std::string &label) {
+    add_line(opcode::UNEVAL_JUMP, jump_uneval{cmd, label});
+}
+
 void parser::read_box(const layout_box &box) {
     if (m_flags & PARSER_ADD_COMMENTS && !box.name.empty()) {
         add_line(opcode::COMMENT, "### " + box.name);

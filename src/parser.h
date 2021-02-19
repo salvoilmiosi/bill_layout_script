@@ -9,6 +9,7 @@
 #include "layout.h"
 #include "lexer.h"
 #include "bytecode.h"
+#include "stack.h"
 
 enum variable_prefixes {
     VP_OVERWRITE   = 1 << 0,
@@ -19,6 +20,11 @@ enum variable_prefixes {
 
 enum parser_flags {
     PARSER_ADD_COMMENTS = 1 << 0
+};
+
+struct loop_label_pair {
+    std::string continue_label;
+    std::string break_label;
 };
 
 class parser {
@@ -62,6 +68,7 @@ private:
     }
 
     void add_label(const std::string &label);
+    void add_jump(opcode cmd, const std::string &label);
 
 private:
     const bill_layout_script *m_layout = nullptr;
@@ -71,7 +78,7 @@ private:
 
     std::map<std::string, size_t> m_labels;
 
-    std::vector<std::pair<std::string, std::string>> m_loop_labels;
+    simple_stack<loop_label_pair> m_loop_labels;
 
     uint8_t m_flags = 0;
 
