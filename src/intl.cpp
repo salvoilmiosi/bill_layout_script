@@ -5,9 +5,8 @@
 #include <stdexcept>
 
 namespace intl {
-    static char g_decimal_point;
-    static char g_thousand_sep;
-    static std::string g_number_format;
+    static char g_decimal_point = '.';
+    static char g_thousand_sep = ',';
 
     static wxLocale *g_locale = nullptr;
 
@@ -17,10 +16,6 @@ namespace intl {
 
     char thousand_sep() {
         return g_thousand_sep;
-    }
-
-    const std::string &number_format() {
-        return g_number_format;
     }
 
     std::string language_string(language lang) {
@@ -51,32 +46,6 @@ namespace intl {
     static void set_strings() {
         g_decimal_point = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER).at(0);
         g_thousand_sep = wxLocale::GetInfo(wxLOCALE_THOUSANDS_SEP, wxLOCALE_CAT_NUMBER).at(0);
-
-        auto char_to_regex_str = [](char c) -> std::string {
-            switch (c) {
-            case '.':
-            case '+':
-            case '*':
-            case '?':
-            case '^':
-            case '$':
-            case '(':
-            case ')':
-            case '[':
-            case ']':
-            case '{':
-            case '}':
-            case '|':
-            case '\\':
-                return std::string("\\") + c;
-            case '\0':  return "";
-            default:    return std::string(&c, 1);
-            }
-        };
-
-        g_number_format = "-?(?:\\d{1,3}(?:"
-            + char_to_regex_str(g_thousand_sep) + "\\d{3})*(?:"
-            + char_to_regex_str(g_decimal_point) + "\\d+)?|\\d+)(?!\\d)";
     }
 
     void set_language(language lang) {

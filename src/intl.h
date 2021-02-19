@@ -10,8 +10,6 @@ namespace intl {
 
     char thousand_sep();
 
-    const std::string &number_format();
-
     std::string language_string(language lang);
 
     std::string language_name(language lang);

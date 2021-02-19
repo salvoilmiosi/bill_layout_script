@@ -162,8 +162,33 @@ std::string string_format(std::string_view str, const std::vector<std::string> &
 static std::regex create_regex(std::string_view fmt_view) {
     try {
         std::string format(fmt_view);
-        string_replace(format, "\\N", intl::number_format());
-        return std::regex(format.begin(), format.end(), std::regex::icase);
+
+        auto char_to_regex_str = [](char c) -> std::string {
+            switch (c) {
+            case '.':
+            case '+':
+            case '*':
+            case '?':
+            case '^':
+            case '$':
+            case '(':
+            case ')':
+            case '[':
+            case ']':
+            case '{':
+            case '}':
+            case '|':
+            case '\\':
+                return std::string("\\") + c;
+            case '\0':  return "";
+            default:    return std::string(&c, 1);
+            }
+        };
+
+        string_replace(format, "\\N", "-?(?:\\d{1,3}(?:"
+            + char_to_regex_str(intl::thousand_sep()) + "\\d{3})*(?:"
+            + char_to_regex_str(intl::decimal_point()) + "\\d+)?|\\d+)(?!\\d)");
+        return std::regex(format, std::regex::icase);
     } catch (const std::regex_error &error) {
         throw std::runtime_error(fmt::format("Espressione regolare non valida: {0}\n{1}", fmt_view, error.what()));
     }
