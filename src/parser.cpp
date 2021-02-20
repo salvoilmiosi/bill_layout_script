@@ -12,12 +12,12 @@ void parser::read_layout(const bill_layout_script &layout) {
     
     try {
         if (intl::valid_language(layout.language_code)) {
-            add_line(opcode::SETLANG, layout.language_code);
+            add_line<opcode::SETLANG>(layout.language_code);
         }
         for (auto &box : layout.m_boxes) {
             read_box(*box);
         }
-        add_line(opcode::RET);
+        add_line<opcode::RET>();
     } catch (const parsing_error &error) {
         throw layout_error(fmt::format("{}: {}\n{}",
             current_box->name, error.what(),
@@ -26,7 +26,7 @@ void parser::read_layout(const bill_layout_script &layout) {
 
     for (auto line = m_code.begin(); line != m_code.end(); ++line) {
         if (line->command() == opcode::UNEVAL_JUMP) {
-            auto &addr = line->get<jump_uneval>();
+            auto &addr = line->get_args<opcode::UNEVAL_JUMP>();
             if (auto it = m_labels.find(addr.label); it != m_labels.end()) {
                 *line = command_args(addr.cmd, jump_address(it->second - (line - m_code.begin())));
             } else {
@@ -42,13 +42,9 @@ void parser::add_label(const std::string &label) {
     }
 }
 
-void parser::add_jump(opcode cmd, const std::string &label) {
-    add_line(opcode::UNEVAL_JUMP, jump_uneval{cmd, label});
-}
-
 void parser::read_box(const layout_box &box) {
     if (m_flags & PARSER_ADD_COMMENTS && !box.name.empty()) {
-        add_line(opcode::COMMENT, "### " + box.name);
+        add_line<opcode::COMMENT>("### " + box.name);
     }
     current_box = &box;
 
@@ -121,8 +117,8 @@ void parser::read_box(const layout_box &box) {
                 throw unexpected_token(tok_sign, TOK_PLUS);
             }
             read_expression();
-            if (negative) add_line(opcode::NEG);
-            add_line(opcode::MVBOX, index);
+            if (negative) add_line<opcode::NEG>();
+            add_line<opcode::MVBOX>(index);
         } else if (tok.type != TOK_END_OF_FILE) {
             throw unexpected_token(tok, TOK_IDENTIFIER);
         } else {
@@ -130,7 +126,7 @@ void parser::read_box(const layout_box &box) {
         }
     }
 
-    add_line(opcode::RDBOX, pdf_rect(box));
+    add_line<opcode::RDBOX>(pdf_rect(box));
 
     m_lexer.set_script(box.script);
     while (read_statement(false));
@@ -171,21 +167,21 @@ bool parser::read_statement(bool throw_on_eof) {
             read_expression();
             break;
         default:
-            add_line(opcode::PUSHVIEW);
+            add_line<opcode::PUSHVIEW>();
             break;
         }
 
-        if (prefixes & VP_AGGREGATE)  add_line(opcode::AGGREGATE);
-        if (prefixes & VP_PARSENUM)   add_line(opcode::PARSENUM);
+        if (prefixes & VP_AGGREGATE)  add_line<opcode::AGGREGATE>();
+        if (prefixes & VP_PARSENUM)   add_line<opcode::PARSENUM>();
 
         if (prefixes & VP_OVERWRITE)  {
             if (assign_op == opcode::DEC) {
-                add_line(opcode::NEG);
+                add_line<opcode::NEG>();
             }
             assign_op = opcode::RESETVAR;
         }
         vector_move_to_end(m_code, selvar_begin, selvar_end);
-        add_line(assign_op);
+        m_code.emplace_back(assign_op);
     }
     }
     return true;
@@ -245,7 +241,7 @@ void parser::read_expression() {
         if (op_prec(tok_op.type) > 0) {
             m_lexer.advance(tok_op);
             if (!op_stack.empty() && op_prec(op_stack.back()) >= op_prec(tok_op.type)) {
-                add_line(op_opcode(op_stack.back()));
+                m_code.emplace_back(op_opcode(op_stack.back()));
                 op_stack.pop_back();
             }
             op_stack.push_back(tok_op.type);
@@ -256,7 +252,7 @@ void parser::read_expression() {
     }
 
     while (!op_stack.empty()) {
-        add_line(op_opcode(op_stack.back()));
+        m_code.emplace_back(op_opcode(op_stack.back()));
         op_stack.pop_back();
     }
 }
@@ -275,7 +271,7 @@ void parser::sub_expression() {
     case TOK_NOT:
         m_lexer.advance(tok_first);
         sub_expression();
-        add_line(opcode::NOT);
+        add_line<opcode::NOT>();
         break;
     case TOK_MINUS: {
         m_lexer.advance(tok_first);
@@ -284,36 +280,36 @@ void parser::sub_expression() {
         case TOK_INTEGER:
         case TOK_NUMBER:
             m_lexer.advance(tok_num);
-            add_line(opcode::PUSHNUM, -fixed_point(std::string(tok_num.value)));
+            add_line<opcode::PUSHNUM>(-fixed_point(std::string(tok_num.value)));
             break;
         default:
             sub_expression();
-            add_line(opcode::NEG);
+            add_line<opcode::NEG>();
         }
         break;
     }
     case TOK_INTEGER:
     case TOK_NUMBER:
         m_lexer.advance(tok_first);
-        add_line(opcode::PUSHNUM, fixed_point(std::string(tok_first.value)));
+        add_line<opcode::PUSHNUM>(fixed_point(std::string(tok_first.value)));
         break;
     case TOK_SLASH: 
-        add_line(opcode::PUSHSTR, m_lexer.require(TOK_REGEXP).parse_string());
+        add_line<opcode::PUSHSTR>(m_lexer.require(TOK_REGEXP).parse_string());
         break;
     case TOK_STRING:
         m_lexer.advance(tok_first);
-        add_line(opcode::PUSHSTR, tok_first.parse_string());
+        add_line<opcode::PUSHSTR>(tok_first.parse_string());
         break;
     case TOK_CONTENT:
         m_lexer.advance(tok_first);
-        add_line(opcode::PUSHVIEW);
+        add_line<opcode::PUSHVIEW>();
         break;
     default: {
         int prefixes = read_variable(true);
         if (prefixes & VP_MOVE) {
-            add_line(opcode::MOVEVAR);
+            add_line<opcode::MOVEVAR>();
         } else {
-            add_line(opcode::PUSHVAR);
+            add_line<opcode::PUSHVAR>();
         }
     }
     }
@@ -395,7 +391,7 @@ int parser::read_variable(bool read_only) {
         m_lexer.require(TOK_BRACKET_END);
     }
 
-    add_line(opcode::SELVAR, var_idx);
+    add_line<opcode::SELVAR>(var_idx);
 
     return prefixes;
 }
@@ -411,8 +407,8 @@ void parser::read_function() {
         bool isglobal = m_lexer.check_next(TOK_GLOBAL);
         auto tok_var = m_lexer.require(TOK_IDENTIFIER);
         m_lexer.require(TOK_PAREN_END);
-        add_line(opcode::SELVAR, variable_selector{std::string(tok_var.value), 0, 0, uint8_t(SEL_GLOBAL & (-isglobal))});
-        add_line(fun_name == "isset" ? opcode::ISSET : opcode::GETSIZE);
+        add_line<opcode::SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), uint8_t(SEL_GLOBAL & (-isglobal)));
+        m_code.emplace_back(fun_name == "isset" ? opcode::ISSET : opcode::GETSIZE);
         break;
     }
     default: {
@@ -433,11 +429,11 @@ void parser::read_function() {
             }
         }
 
-        auto call_op = [&](int should_be, auto && ... args) {
+        auto call_op = [&] (int should_be, auto && ... args) {
             if (num_args != should_be) {
                 throw invalid_numargs(fun_name, should_be, should_be, tok_fun_name);
             }
-            add_line(std::forward<decltype(args)>(args) ...);
+            m_code.emplace_back(std::forward<decltype(args)>(args) ...);
         };
 
         switch (hash(fun_name)) {
@@ -454,7 +450,7 @@ void parser::read_function() {
                 if (num_args < fun.minargs || num_args > fun.maxargs) {
                     throw invalid_numargs(fun_name, fun.minargs, fun.maxargs, tok_fun_name);
                 }
-                add_line(opcode::CALL, command_call{fun_name, num_args});
+                add_line<opcode::CALL>(fun_name, num_args);
             } catch (const std::out_of_range &error) {
                 throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
             }

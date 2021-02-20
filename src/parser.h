@@ -62,13 +62,16 @@ private:
     int read_variable(bool read_only = false);
 
 private:
-    template<typename ... Ts>
+    template<opcode Cmd, typename ... Ts>
     void add_line(Ts && ... args) {
-        m_code.emplace_back(std::forward<Ts>(args)...);
+        if constexpr (std::is_void_v<opcode_type<Cmd>>) {
+            m_code.emplace_back(Cmd);
+        } else {
+            m_code.emplace_back(Cmd, opcode_type<Cmd>{ std::forward<Ts>(args) ... });
+        }
     }
 
     void add_label(const std::string &label);
-    void add_jump(opcode cmd, const std::string &label);
 
 private:
     const bill_layout_script *m_layout = nullptr;

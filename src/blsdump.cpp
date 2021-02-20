@@ -63,28 +63,28 @@ int MainApp::OnRun() {
             }
             auto &line = *it;
             if (line.command() == opcode::COMMENT) {
-                std::cout << line.get<std::string>() << std::endl;
+                std::cout << line.get_args<opcode::COMMENT>() << std::endl;
                 continue;
             }
             std::cout << '\t' << opcode_names[int(line.command())];
             switch (line.command()) {
             case opcode::RDBOX: {
-                auto box = line.get<pdf_rect>();
+                auto box = line.get_args<opcode::RDBOX>();
                 std::cout << ' ' << read_mode_strings[int(box.mode)];
                 std::cout << ' ' << box_type_strings[int(box.type)];
                 std::cout << ' ' << int(box.page) << ' ' << box.x << ' ' << box.y << ' ' << box.w << ' ' << box.h;
                 break;
             }
             case opcode::MVBOX:
-                std::cout << ' ' << spacer_index_names[int(line.get<spacer_index>())];
+                std::cout << ' ' << spacer_index_names[int(line.get_args<opcode::MVBOX>())];
                 break;
             case opcode::CALL: {
-                auto args = line.get<command_call>();
+                auto args = line.get_args<opcode::CALL>();
                 std::cout << ' ' << args.name << ' ' << int(args.numargs);
                 break;
             }
             case opcode::SELVAR: {
-                auto args = line.get<variable_selector>();
+                auto args = line.get_args<opcode::SELVAR>();
                 std::cout << ' ' << args.name << ' ' << int(args.index);
                 if (args.length != 1) {
                     std::cout << ':' << int(args.length);
@@ -97,20 +97,20 @@ int MainApp::OnRun() {
                 break;
             }
             case opcode::PUSHNUM:
-                std::cout << ' ' << line.get<fixed_point>();
+                std::cout << ' ' << line.get_args<opcode::PUSHNUM>();
                 break;
             case opcode::PUSHSTR:
-                std::cout << ' ' << quoted_string(line.get<std::string>());
+                std::cout << ' ' << quoted_string(line.get_args<opcode::PUSHSTR>());
                 break;
             case opcode::SETLANG:
-                std::cout << ' ' << intl::language_string(line.get<intl::language>());
+                std::cout << ' ' << intl::language_string(line.get_args<opcode::SETLANG>());
                 break;
             case opcode::IMPORT:
             case opcode::SETLAYOUT:
-                std::cout << ' ' << quoted_string(line.get<std::filesystem::path>().string());
+                std::cout << ' ' << quoted_string(line.get_args<opcode::IMPORT>().string());
                 break;
             case opcode::UNEVAL_JUMP: {
-                auto args = line.get<jump_uneval>();
+                auto args = line.get_args<opcode::UNEVAL_JUMP>();
                 std::cout << ' ' << opcode_names[int(args.cmd)] << ' ' << args.label;
                 break;
             }
@@ -119,7 +119,7 @@ int MainApp::OnRun() {
             case opcode::JZ:
             case opcode::JNZ:
             case opcode::JTE: {
-                auto addr = line.get<jump_address>();
+                auto addr = line.get_args<opcode::JMP>();
                 if (auto jt = inv_labels.find(it - code.begin() + addr); jt != inv_labels.end()) {
                     std::cout << ' ' << jt->second;
                 } else {
