@@ -165,7 +165,9 @@ ragione_sociale
 ### Page 2
 ### Rect 0.036093418 0.37809452 0.68683654 0.074268565
 ### Script
-$between($if($contains(@,"Dettaglio dei consumi"),"Dettaglio dei consumi","Consumi rilevati"),"INFORMAZIONI PER I CLIENTI") {
+$newview {
+  $setbegin($min($indexof(@,"Dettaglio dei consumi"),$indexof(@,"Consumi rilevati")))
+  $setend($indexof(@,"INFORMAZIONI PER I CLIENTI"))
   $step($captures(@,$format(/(\N) (\N) (\N) (\N) (\N) (\N) \N \N \N (\N) (\N) (\N) reale al \d\d\.$0/,$date_format(mese_fattura,"%m.%Y")))) {
     %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]

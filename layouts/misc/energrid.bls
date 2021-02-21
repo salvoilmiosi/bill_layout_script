@@ -140,7 +140,7 @@ $if(_pod_dettaglio!=codice_pod) {
 p+_off_dettaglio
 ### End Spacers
 ### Script
-$between("DETTAGLIO IMPORTI PRIMO ADDEBITO","TOTALE (Salvo conguagli, errori e omissioni)") {
+$between("DETTAGLIO IMPORTI","TOTALE (Salvo conguagli, errori e omissioni)") {
   $between("Spese per la materia energia","Spese per trasporto") {
     %spesa_materia_energia=$search(@,/(\N)/)
     $step($captures(@,$format(/Componente di Generazione fascia F1 .+ al \d\d\/$0 Euro\/kWh (\N) (\N)/,_mese))) {

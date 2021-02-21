@@ -21,7 +21,7 @@ def filter_and_upload(f, do_upload = True):
     with open(f, 'r') as file:
         data = json.loads(file.read())
     for x in data:
-        if 'conguaglio' in x or any(datetime.strptime(t['mese_fattura'][0],'%Y-%m').year < 2019 for t in x['values']):
+        if 'conguaglio' in x or (filter_year != 0 and any(datetime.strptime(t['mese_fattura'][0],'%Y-%m').year < filter_year for t in x['values'])):
             x['values'] = []
     if do_upload:
         response = session.put(address + '/zelda/fornitura.ws?f=importDatiFattureJSON', json.dumps(data))
@@ -30,6 +30,11 @@ def filter_and_upload(f, do_upload = True):
             print(f)
         else:
             print(f, colored(uploadr['head']['status']['message'],'red'))
+
+try:
+    filter_year = int(input("Filtrare fatture prima dell'anno: "))
+except ValueError:
+    filter_year = 0
 
 do_upload = input('Proseguire? S/n ').lower() in ('s','')
 

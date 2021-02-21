@@ -15,9 +15,8 @@ $with(::_dettaglio) {
   $setend($indexof(@,"\n",$indexof(@,"FORNITURA DI")))
 
   %pcv=$search(@,/PCV euro\/cliente\/mese \N \N (\N)/)
-  %spesa_materia_energia=$search(@,/DETTAGLIO DELLA SPESA PER LA MATERIA ENERGIA[^]+?(\N) DETTAGLIO/)
-  %spesa_materia_energia=$search(@,/DETTAGLIO DELLA SPESA PER L\u2019ENERGIA ELETTRICA[^]+?(\N) DETTAGLIO/)
-  %trasporto_gestione=$search(@,/DETTAGLIO DELLA SPESA PER TRASPORTO ENERGIA, GESTIONE CONTATORE E ONERI DI SISTEMA[^]+?(\N) IMPOSTE/)
+  %spesa_materia_energia=$search(@,/DETTAGLIO DELLA SPESA PER (?:L\u2019ENERGIA ELETTRICA|LA MATERIA ENERGIA)[^]+?(\N) DETTAGLIO/)
+  %trasporto_gestione=$search(@,/DETTAGLIO DELLA SPESA PER (?:IL TRASPORTO, GESTIONE DEL CONTATORE|TRASPORTO ENERGIA, GESTIONE CONTATORE) E ONERI DI SISTEMA[^]+?(\N) IMPOSTE/)
 
   $step($captures(@,/Prezzo (?:F1|Picco|Ore Giorno) euro\/kWh (\N) (\N)/)) {
     %prezzo_energia[0] %energia_attiva[0]
