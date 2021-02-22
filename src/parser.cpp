@@ -24,13 +24,15 @@ void parser::read_layout(const bill_layout_script &layout) {
             m_lexer.token_location_info(error.location())));
     }
 
-    for (auto line = m_code.begin(); line != m_code.end(); ++line) {
-        if (line->command() == opcode::UNEVAL_JUMP) {
-            auto &addr = line->get_args<opcode::UNEVAL_JUMP>();
-            if (auto it = m_labels.find(addr.label); it != m_labels.end()) {
-                *line = command_args(addr.cmd, jump_address(it->second - (line - m_code.begin())));
-            } else {
-                throw layout_error(fmt::format("Etichetta sconosciuta: {}", addr.label));
+    if (!(m_flags & PARSER_NO_EVAL_JUMPS)) {
+        for (auto line = m_code.begin(); line != m_code.end(); ++line) {
+            if (line->command() == opcode::UNEVAL_JUMP) {
+                auto &addr = line->get_args<opcode::UNEVAL_JUMP>();
+                if (auto it = m_labels.find(addr.label); it != m_labels.end()) {
+                    *line = command_args(addr.cmd, jump_address(it->second - (line - m_code.begin())));
+                } else {
+                    throw layout_error(fmt::format("Etichetta sconosciuta: {}", addr.label));
+                }
             }
         }
     }

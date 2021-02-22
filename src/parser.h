@@ -19,7 +19,8 @@ enum variable_prefixes {
 };
 
 enum parser_flags {
-    PARSER_ADD_COMMENTS = 1 << 0
+    PARSER_ADD_COMMENTS  = 1 << 0,
+    PARSER_NO_EVAL_JUMPS = 1 << 1,
 };
 
 struct loop_label_pair {
