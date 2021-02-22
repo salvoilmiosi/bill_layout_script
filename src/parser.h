@@ -12,10 +12,11 @@
 #include "stack.h"
 
 enum variable_prefixes {
-    VP_OVERWRITE   = 1 << 0,
-    VP_PARSENUM    = 1 << 1,
-    VP_AGGREGATE   = 1 << 2,
-    VP_MOVE        = 1 << 3,
+    VP_OVERWRITE    = 1 << 0,
+    VP_PARSENUM     = 1 << 1,
+    VP_AGGREGATE    = 1 << 2,
+    VP_MOVE         = 1 << 3,
+    VP_FORCE        = 1 << 4,
 };
 
 enum parser_flags {

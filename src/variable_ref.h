@@ -5,6 +5,7 @@
 #include <map>
 
 #include "variable.h"
+#include "bytecode.h"
 
 template<typename Map>
 class multimap_range {
@@ -118,16 +119,21 @@ public:
         }
     }
 
-    void set_value(variable &&value, bool increase = false) {
-        if (value.empty()) return;
+    void set_value(variable &&value, uint8_t flags) {
+        if (!(flags & SET_FORCE) && value.empty()) return;
+        if (flags & SET_OVERWRITE) clear();
 
         resize(index + length);
 
         auto it = std::next(begin(), index);
 
-        if (increase) {
+        if (flags & SET_INCREASE) {
             std::for_each_n(it, length, [&](auto &var) {
                 var.second += value;
+            });
+        } else if (flags & SET_DECREASE) {
+            std::for_each_n(it, length, [&](auto &var) {
+                var.second += -value;
             });
         } else if (length == 1) {
             it->second = std::move(value);

@@ -157,12 +157,12 @@ bool parser::read_statement(bool throw_on_eof) {
         size_t selvar_end = m_code.size();
         
         auto tok = m_lexer.peek();
-        opcode assign_op = opcode::SETVAR;
+        uint8_t flags = 0;
         
         switch (tok.type) {
         case TOK_ADD_ASSIGN:
         case TOK_SUB_ASSIGN:
-            assign_op = tok.type == TOK_ADD_ASSIGN ? opcode::INC : opcode::DEC;
+            flags |= tok.type == TOK_ADD_ASSIGN ? SET_INCREASE : SET_DECREASE;
             [[fallthrough]];
         case TOK_ASSIGN:
             m_lexer.advance(tok);
@@ -175,15 +175,11 @@ bool parser::read_statement(bool throw_on_eof) {
 
         if (prefixes & VP_AGGREGATE)  add_line<opcode::AGGREGATE>();
         if (prefixes & VP_PARSENUM)   add_line<opcode::PARSENUM>();
+        if (prefixes & VP_OVERWRITE)  flags |= SET_OVERWRITE;
+        if (prefixes & VP_FORCE)      flags |= SET_FORCE;
 
-        if (prefixes & VP_OVERWRITE)  {
-            if (assign_op == opcode::DEC) {
-                add_line<opcode::NEG>();
-            }
-            assign_op = opcode::RESETVAR;
-        }
         vector_move_to_end(m_code, selvar_begin, selvar_end);
-        m_code.emplace_back(assign_op);
+        add_line<opcode::SETVAR>(flags);
     }
     }
     return true;
@@ -324,7 +320,7 @@ int parser::read_variable(bool read_only) {
 
     token tok_prefix;
 
-    auto add_flags_to = [&](auto &out, auto flags, bool condition) {
+    auto add_flags_to = [&](auto &out, auto flags, bool condition = true) {
         if ((out & flags) || !condition) throw unexpected_token(tok_prefix, TOK_IDENTIFIER);
         out |= flags;
     };
@@ -333,10 +329,11 @@ int parser::read_variable(bool read_only) {
     while (in_loop) {
         tok_prefix = m_lexer.next();
         switch (tok_prefix.type) {
-        case TOK_GLOBAL:    add_flags_to(var_idx.flags, SEL_GLOBAL, true); break;
+        case TOK_GLOBAL:    add_flags_to(var_idx.flags, SEL_GLOBAL); break;
         case TOK_PERCENT:   add_flags_to(prefixes, VP_PARSENUM, !read_only); break;
         case TOK_CARET:     add_flags_to(prefixes, VP_AGGREGATE, !read_only); break;
         case TOK_TILDE:     add_flags_to(prefixes, VP_OVERWRITE, !read_only); break;
+        case TOK_NOT:       add_flags_to(prefixes, VP_FORCE, !read_only); break;
         case TOK_AMPERSAND: add_flags_to(prefixes, VP_MOVE, read_only); break;
         case TOK_IDENTIFIER:
             var_idx.name = std::string(tok_prefix.value);

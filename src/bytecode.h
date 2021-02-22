@@ -36,8 +36,7 @@ O(SELVAR,   variable_selector) /* (name, index, size, flags) -> ref_stack */ \
 O(ISSET)                       /* ref_stack -> size() != 0 -> var_stack */ \
 O(GETSIZE)                     /* ref_stack -> size() -> var_stack */ \
 O(CLEAR)                       /* ref_stack -> clear */ \
-O(SETVAR)                      /* ref_stack, var_stack -> set */ \
-O(RESETVAR)                    /* ref_stack, var_stack -> reset */ \
+O(SETVAR,       uint8_t)       /* ref_stack, var_stack -> set(flags) */ \
 O(PUSHVIEW)                    /* content_stack -> var_stack */ \
 O(PUSHNUM,      fixed_point)   /* number -> var_stack */ \
 O(PUSHSTR,      std::string)   /* str -> var_stack */ \
@@ -52,8 +51,6 @@ O(JNZ,          jump_address)  /* var_stack -> jump if top != 0 */ \
 O(JTE,          jump_address)  /* jump if content_stack.top at token end */ \
 O(RET)                         /* jump to return_addrs.top, return_addrs.pop, halt if return_addrs.empty */ \
 O(HLT)                         /* ferma l'esecuzione */ \
-O(INC)                         /* ref_stack, var_stack -> += top */ \
-O(DEC)                         /* ref_stack, var_stack -> -= top */ \
 O(MOVCONTENT)                  /* var_stack -> content_stack */ \
 O(SETBEGIN)                    /* var_stack -> content_stack.top.setbegin */ \
 O(SETEND)                      /* var_stack -> content_stack.top.setend */ \
@@ -129,6 +126,20 @@ struct variable_selector {
     small_int length = 1;
     uint8_t flags = 0;
 };
+
+#define SETVAR_FLAGS { \
+    S(FORCE,        0), \
+    S(OVERWRITE,    1), \
+    S(INCREASE,     2), \
+    S(DECREASE,     3), \
+}
+
+#define S(n, v) SET_##n = (1 << v)
+enum setvar_flags SETVAR_FLAGS;
+#undef S
+#define S(n, v) #n
+static const char *setvar_flags_names[] = SETVAR_FLAGS;
+#undef S
 
 typedef int16_t jump_address; // indirizzo relativo
 

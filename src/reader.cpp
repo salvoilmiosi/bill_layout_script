@@ -193,15 +193,8 @@ void reader::exec_command(const command_args &cmd) {
         }
         break;
     }
-    case opcode::CLEAR: m_selected.clear(); break;
-    case opcode::RESETVAR:
-        if (!m_vars.top().empty()) {
-            m_selected.clear();
-        }
-        [[fallthrough]];
-    case opcode::SETVAR:    m_selected.set_value(std::move(m_vars.pop())); break;
-    case opcode::INC:       m_selected.set_value(  m_vars.pop(), true); break;
-    case opcode::DEC:       m_selected.set_value(- m_vars.pop(), true); break;
+    case opcode::CLEAR:     m_selected.clear(); break;
+    case opcode::SETVAR:    m_selected.set_value(m_vars.pop(), cmd.get_args<opcode::SETVAR>()); break;
     case opcode::PUSHVIEW:  m_vars.push(m_contents.top().view()); break;
     case opcode::PUSHNUM:   m_vars.push(cmd.get_args<opcode::PUSHNUM>()); break;
     case opcode::PUSHSTR:   m_vars.push(cmd.get_args<opcode::PUSHSTR>()); break;

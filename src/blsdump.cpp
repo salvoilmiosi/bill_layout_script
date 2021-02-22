@@ -93,6 +93,16 @@ int MainApp::OnRun() {
                 }
                 break;
             }
+            case opcode::SETVAR: {
+                auto flags = line.get_args<opcode::SETVAR>();
+                std::cout << '\t' << opcode_names[int(line.command())];
+                for (uint8_t i=0; i<std::size(setvar_flags_names); ++i) {
+                    if (flags & (1 << i)) {
+                        std::cout << ' ' << setvar_flags_names[i];
+                    }
+                }
+                break;
+            }
             case opcode::PUSHNUM:
                 std::cout << '\t' << opcode_names[int(line.command())] << ' ' << line.get_args<opcode::PUSHNUM>();
                 break;
