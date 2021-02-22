@@ -86,39 +86,40 @@ struct command_call {
     small_int numargs;
 };
 
-#define SPACER_INDICES { \
-    SPACER(PAGE), \
-    SPACER(X), \
-    SPACER(Y), \
-    SPACER(W), \
-    SPACER(H), \
-    SPACER(TOP), \
-    SPACER(RIGHT), \
-    SPACER(BOTTOM), \
-    SPACER(LEFT), \
-}
+#define SPACER_INDICES \
+F(PAGE) \
+F(X) \
+F(Y) \
+F(W) \
+F(H) \
+F(TOP) \
+F(RIGHT) \
+F(BOTTOM) \
+F(LEFT)
 
-#define SPACER(x) SPACER_##x
-enum class spacer_index : uint8_t SPACER_INDICES;
-#undef SPACER
-#define SPACER(x) #x
-constexpr const char *spacer_index_names[] = SPACER_INDICES;
-#undef SPACER
+#define F(x) SPACER_##x,
+enum class spacer_index : uint8_t { SPACER_INDICES };
+#undef F
+#define F(x) #x,
+constexpr const char *spacer_index_names[] = { SPACER_INDICES };
+#undef F
 
-#define SEL_VAR_FLAGS { \
-    S(GLOBAL,       0), \
-    S(DYN_IDX,      1), \
-    S(DYN_LEN,      2), \
-    S(EACH,         3), \
-    S(APPEND,       4), \
-}
+#define SELVAR_FLAGS \
+F(GLOBAL) \
+F(DYN_IDX) \
+F(DYN_LEN) \
+F(EACH) \
+F(APPEND)
 
-#define S(n, v) SEL_##n = (1 << v)
-enum variable_select_flags SEL_VAR_FLAGS;
-#undef S
-#define S(n, v) #n
-static const char *variable_select_flag_names[] = SEL_VAR_FLAGS;
-#undef S
+#define F(x) POS_SEL_##x,
+enum { SELVAR_FLAGS };
+#undef F
+#define F(x) SEL_##x = (1 << POS_SEL_##x),
+enum selvar_flags { SELVAR_FLAGS };
+#undef F
+#define F(x) #x,
+static const char *selvar_flags_names[] = { SELVAR_FLAGS };
+#undef F
 
 struct variable_selector {
     std::string name;
@@ -127,19 +128,21 @@ struct variable_selector {
     uint8_t flags = 0;
 };
 
-#define SETVAR_FLAGS { \
-    S(FORCE,        0), \
-    S(OVERWRITE,    1), \
-    S(INCREASE,     2), \
-    S(DECREASE,     3), \
-}
+#define SETVAR_FLAGS \
+F(FORCE) \
+F(OVERWRITE) \
+F(INCREASE) \
+F(DECREASE)
 
-#define S(n, v) SET_##n = (1 << v)
-enum setvar_flags SETVAR_FLAGS;
-#undef S
-#define S(n, v) #n
-static const char *setvar_flags_names[] = SETVAR_FLAGS;
-#undef S
+#define F(x) POS_SET_##x,
+enum { SETVAR_FLAGS };
+#undef F
+#define F(x) SET_##x = (1 << POS_SET_##x),
+enum setvar_flags { SETVAR_FLAGS };
+#undef F
+#define F(x) #x,
+static const char *setvar_flags_names[] = { SETVAR_FLAGS };
+#undef F
 
 typedef int16_t jump_address; // indirizzo relativo
 

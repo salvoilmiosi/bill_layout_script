@@ -86,9 +86,9 @@ int MainApp::OnRun() {
                 if (args.length != 1) {
                     std::cout << ':' << int(args.length);
                 }
-                for (uint8_t i=0; i<std::size(variable_select_flag_names); ++i) {
+                for (uint8_t i=0; i<std::size(selvar_flags_names); ++i) {
                     if (args.flags & (1 << i)) {
-                        std::cout << ' ' << variable_select_flag_names[i];
+                        std::cout << ' ' << selvar_flags_names[i];
                     }
                 }
                 break;
