@@ -4,9 +4,8 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include <functional>
 #include <fmt/format.h>
-
-#include "bytecode.h"
 
 #define TOKENS { \
     T(TOK_ERROR,            "errore"),          /* errore */ \
@@ -109,8 +108,8 @@ class lexer {
 public:
     void set_script(std::string_view str);
 
-    void set_bytecode(bytecode *code) {
-        m_code = code;
+    void set_comment_callback(auto &&fun) {
+        comment_callback = std::forward<decltype(fun)>(fun);
     }
 
     token next(bool do_advance = true);
@@ -127,7 +126,7 @@ public:
     std::string token_location_info(const token &tok);
 
 private:
-    bytecode *m_code = nullptr;
+    std::function<void(const std::string &)> comment_callback;
 
     size_t last_debug_line;
     std::vector<std::string> debug_lines;

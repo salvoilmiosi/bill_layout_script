@@ -57,7 +57,12 @@ int MainApp::OnRun() {
         }
 
         const auto &code = my_parser.get_bytecode();
+        const auto &comments = my_parser.get_comments();
         for (auto it = code.begin(); it != code.end(); ++it) {
+            auto [comment_begin, comment_end] = comments.equal_range(it - code.begin());
+            for (;comment_begin != comment_end; ++comment_begin) {
+                std::cout << comment_begin->second << std::endl;
+            }
             auto [label_begin, label_end] = inv_labels.equal_range(it - code.begin());
             for (;label_begin != label_end; ++label_begin) {
                 std::cout << label_begin->second << ':' << std::endl;
@@ -134,9 +139,6 @@ int MainApp::OnRun() {
                 }
                 break;
             }
-            case opcode::COMMENT:
-                std::cout << line.get_args<opcode::COMMENT>();
-                break;
             default:
                 std::cout << '\t' << opcode_names[int(line.command())];
                 break;

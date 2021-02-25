@@ -44,13 +44,19 @@ void parser::add_label(const std::string &label) {
     }
 }
 
+void parser::add_comment(const std::string &line) {
+    m_comments.emplace(m_code.size(), line);
+}
+
 void parser::read_box(const layout_box &box) {
     if (m_flags & PARSER_ADD_COMMENTS && !box.name.empty()) {
-        add_line<opcode::COMMENT>("### " + box.name);
+        add_comment("### " + box.name);
     }
     current_box = &box;
 
-    m_lexer.set_bytecode(nullptr);
+    if (m_flags & PARSER_ADD_COMMENTS) {
+        m_lexer.set_comment_callback(nullptr);
+    }
     m_lexer.set_script(box.goto_label);
     auto tok_label = m_lexer.next();
     if (tok_label.type == TOK_IDENTIFIER) {
@@ -61,7 +67,9 @@ void parser::read_box(const layout_box &box) {
     }
 
     if (m_flags & PARSER_ADD_COMMENTS) {
-        m_lexer.set_bytecode(&m_code);
+        m_lexer.set_comment_callback([this](const std::string &line){
+            add_comment(line);
+        });
     }
     m_lexer.set_script(box.spacers);
     while(true) {

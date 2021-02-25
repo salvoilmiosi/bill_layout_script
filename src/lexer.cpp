@@ -43,7 +43,7 @@ void lexer::skipSpaces() {
 }
 
 void lexer::addDebugData() {
-    if (m_code) {
+    if (comment_callback) {
         size_t begin = script.find_first_not_of(" \t\r\n", m_current - script.begin());
         if (begin != std::string::npos && begin != last_debug_line) {
             last_debug_line = begin;
@@ -55,9 +55,9 @@ void lexer::addDebugData() {
 }
 
 void lexer::flushDebugData() {
-    if (m_code) {
+    if (comment_callback) {
         for (auto &line : debug_lines) {
-            m_code->emplace_back(opcode::COMMENT, line);
+            comment_callback(line);
         }
     }
     debug_lines.clear();

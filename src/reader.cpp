@@ -107,9 +107,7 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     switch(cmd.command()) {
-    case opcode::NOP:
-    case opcode::COMMENT:
-        break;
+    case opcode::NOP: break;
     case opcode::RDBOX:         read_box(cmd.get_args<opcode::RDBOX>()); break;
     case opcode::CALL:          call_function(cmd.get_args<opcode::CALL>()); break;
     case opcode::THROWERR:      throw layout_error(m_vars.top().str()); break;

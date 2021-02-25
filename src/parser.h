@@ -62,6 +62,10 @@ public:
         return m_labels;
     }
 
+    const auto &get_comments() {
+        return m_comments;
+    }
+
 private:
     void read_box(const layout_box &box);
     const layout_box *current_box = nullptr;
@@ -86,13 +90,14 @@ private:
     }
 
     void add_label(const std::string &label);
+    void add_comment(const std::string &comment);
 
 private:
     const bill_layout_script *m_layout = nullptr;
 
     lexer m_lexer;
     bytecode m_code;
-
+    std::multimap<size_t, std::string> m_comments;
     std::map<std::string, size_t> m_labels;
 
     simple_stack<loop_label_pair> m_loop_labels;
