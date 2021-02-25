@@ -2,23 +2,21 @@ from multiprocessing import Pool, cpu_count
 from termcolor import colored
 from pathlib import Path
 from datetime import datetime
-import sys
+from argparse import ArgumentParser
 import json
 import pyreader
 
-if len(sys.argv) < 3:
-    print('Argomenti richiesti: input_directory [output] [controllo] [filter_year] [nthreads]')
-    sys.exit()
+parser = ArgumentParser()
+parser.add_argument('input_directory')
+parser.add_argument('output_file')
+parser.add_argument('-s', '--script', default=Path(__file__).resolve().parent.parent / 'layouts/controllo.bls')
+parser.add_argument('-f', '--force-read', action='store_true')
+parser.add_argument('-y', '--filter-year', type=int, default=0)
+parser.add_argument('-j', '--nthreads', type=int, default=cpu_count())
+args = parser.parse_args()
 
-input_directory = Path(sys.argv[1]).resolve()
-output_file = Path(sys.argv[2])
-controllo = Path(sys.argv[3]).resolve() if len(sys.argv) >= 4 else Path(__file__).resolve().parent.parent / 'layouts/controllo.bls'
-filter_year = int(sys.argv[4]) if len(sys.argv) >= 5 else 0
-
-try:
-    nthreads = int(sys.argv[5]) if len(sys.argv) >= 6 else cpu_count()
-except NotImplementedError:
-    nthreads = 1
+input_directory = Path(args.input_directory).resolve()
+output_file = Path(args.output_file)
 
 def check_conguagli(results):
     sorted_data = []
@@ -57,7 +55,7 @@ def read_pdf(pdf_file):
     ret = {'filename':str(pdf_file)}
 
     try:
-        out_dict = pyreader.readpdf(pdf_file, controllo)
+        out_dict = pyreader.readpdf(pdf_file, args.script)
 
         ret['values'] = out_dict['values']
         if not all(y in v for y in ('mese_fattura', 'data_fattura', 'codice_pod') for v in ret['values']):
@@ -80,13 +78,13 @@ def read_pdf(pdf_file):
     return ret
 
 if __name__ == '__main__':
-    in_files = list(filter(lambda f: datetime.fromtimestamp(f.stat().st_mtime).year >= filter_year, input_directory.rglob('*.pdf')))
+    in_files = list(filter(lambda f: datetime.fromtimestamp(f.stat().st_mtime).year >= args.filter_year, input_directory.rglob('*.pdf')))
 
     results = []
     files = []
 
     # Rilegge i vecchi file solo se il layout e' stato ricompilato
-    if output_file.exists():
+    if not args.force_read and output_file.exists():
         with open(output_file, 'r') as fin:
             in_data = json.loads(fin.read())
 
@@ -101,7 +99,7 @@ if __name__ == '__main__':
         files = in_files
 
     if files:
-        with Pool(min(len(files), nthreads)) as pool:
+        with Pool(min(len(files), args.nthreads)) as pool:
             results.extend(pool.map(read_pdf, files))
 
     results = check_conguagli(results)
