@@ -7,15 +7,16 @@ import json
 import pyreader
 
 if len(sys.argv) < 3:
-    print('Argomenti richiesti: input_directory [output] [controllo] [nthreads]')
+    print('Argomenti richiesti: input_directory [output] [controllo] [filter_year] [nthreads]')
     sys.exit()
 
 input_directory = Path(sys.argv[1]).resolve()
 output_file = Path(sys.argv[2])
 controllo = Path(sys.argv[3]).resolve() if len(sys.argv) >= 4 else Path(__file__).resolve().parent.parent / 'layouts/controllo.bls'
+filter_year = int(sys.argv[4]) if len(sys.argv) >= 5 else 0
 
 try:
-    nthreads = int(sys.argv[4]) if len(sys.argv) >= 5 else cpu_count()
+    nthreads = int(sys.argv[5]) if len(sys.argv) >= 6 else cpu_count()
 except NotImplementedError:
     nthreads = 1
 
@@ -79,7 +80,7 @@ def read_pdf(pdf_file):
     return ret
 
 if __name__ == '__main__':
-    in_files = list(input_directory.rglob('*.pdf'))
+    in_files = list(filter(lambda f: datetime.fromtimestamp(f.stat().st_mtime).year >= filter_year, input_directory.rglob('*.pdf')))
 
     results = []
     files = []

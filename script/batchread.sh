@@ -13,7 +13,7 @@ NC='\033[0m'
 mkdir -p $OUT_DIR
 for d in $IN_DIR/*; do
     echo -e "${GREEN}Lettura $(basename "$d")...${NC}"
-    python read.py "$d" "$OUT_DIR/$(basename "$d").json"
+    python read.py "$d" "$OUT_DIR/$(basename "$d").json" "../layouts/controllo.bls" 2020
 done
 
 runtime=$(($(date +%s)-start))
