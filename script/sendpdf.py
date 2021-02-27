@@ -3,6 +3,8 @@ import urllib3
 import json
 from pathlib import Path
 from getpass import getpass
+from datetime import date, datetime
+from termcolor import colored
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 session = requests.Session()
@@ -20,10 +22,8 @@ while True:
     if loginr['head']['status']['code'] == 1:
         break
 
-getfatture = json.loads(session.post(address + '/zelda/fornitura.ws', verify=False, data={'f':'getFatture'}).text)
-
-result = getfatture['body']['getFatture']['fatture']
-fornitori = getfatture['body']['getFatture']['fornitori']
+getFattureRes = session.post(address + '/zelda/fornitura.ws', verify=False, data={'f':'getFatture'})
+getFatture = json.loads(getFattureRes.text)['body']['getFatture']
 
 input_directory = Path(__file__).parent.parent / 'work/letture'
 
@@ -32,26 +32,40 @@ for f in input_directory.rglob('*.json'):
     with open(f, 'r') as fin:
         letture.extend(json.loads(fin.read()))
 
-def find_filename(numero_fattura, id_fornitore):
-    for l in letture:
-        if 'values' in l:
-            for v in l['values']:
-                if 'numero_fattura' in v and v['numero_fattura'][0] == numero_fattura and 'fornitore' in v and v['fornitore'][0] == fornitori[id_fornitore]['nome']:
-                    return l['filename']
-    return None
-    
-for id_fattura, fattura in result.items():
-    if 'id_file_fattura' in fattura and fattura['id_file_fattura'] is not None and len(fattura['id_file_fattura']) != 0: continue
-    if fattura['numero_fattura'] is None or fattura['numero_fattura'] == '': continue
+def getvalue(obj, key):
+    return obj[key][0] if key in obj else None
 
-    filename = find_filename(fattura['numero_fattura'], fattura['id_fornitore'])
+def find_filename(fattura):
+    fornitura = getFatture['forniture'][fattura['id_fornitura']]
+    gruppo_forniture = getFatture['gruppi_forniture'][fornitura['id_gruppo_forniture']]
+
+    ragione_sociale = getFatture['clienti'][gruppo_forniture['id_cliente']]['ragione_sociale']
+    numero_fattura = fattura['numero_fattura']
+    nome_fornitore = getFatture['fornitori'][fattura['id_fornitore']]['nome']
+
+    codice_pod = fornitura['pod']
+    mese_fattura = date(int(fattura['anno'][0]), int(fattura['mese'][0]), 1)
+
+    print(ragione_sociale, codice_pod, mese_fattura, nome_fornitore, numero_fattura)
+
+    for l in letture:
+        if 'values' not in l: continue
+        for v in l['values']:
+            if getvalue(v, 'fornitore') != nome_fornitore: continue
+            if getvalue(v, 'numero_fattura') == numero_fattura \
+                or (getvalue(v, 'codice_pod') == codice_pod and datetime.strptime(getvalue(v, 'mese_fattura'), '%Y-%m').date() == mese_fattura):
+                return l['filename']
+    return None
+
+for id_fattura, fattura in getFatture['fatture'].items():
+    if 'id_file_fattura' in fattura and fattura['id_file_fattura'] is not None and len(fattura['id_file_fattura']) != 0: continue
+
+    filename = find_filename(fattura)
     if filename is None: continue
 
-    basename = Path(filename).name
     with open(filename, 'rb') as fin:
-        result = session.put(address + '/file.ws?f=save', fin.read(), headers={'X-File-Name': basename, 'Content-Type':'application/pdf'})
-        save = json.loads(result.text)
-        id_file = save['body']['save']['file']['id']
+        saveres = json.loads(session.put(address + '/file.ws?f=save', fin.read(), headers={'X-File-Name': Path(filename).name, 'Content-Type':'application/pdf'}).text)
+        id_file = saveres['body']['save']['file']['id']
 
-        assoc = json.loads(session.post(address + '/zelda/fornitura.ws', verify=False, data={'f':'associaFileFattura','id_fattura':id_fattura,'id_file':id_file}).text)
-        print(filename, assoc['head']['status']['type'])
+        json.loads(session.post(address + '/zelda/fornitura.ws', verify=False, data={'f':'associaFileFattura','id_fattura':id_fattura,'id_file':id_file}).text)
+        print(colored(filename, 'green'))
