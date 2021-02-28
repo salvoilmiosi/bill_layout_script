@@ -103,8 +103,8 @@ def export_file(input_file):
             out.append({'row':row,'conguaglio':'conguaglio' in json_data,'new_pod':new_pod != old_pod})
             old_pod = new_pod
 
-    with open(input_file, 'r') as fin:
-        for r in json.loads(fin.read()):
+    with open(input_file, 'r') as file:
+        for r in json.load(file):
             add_rows(r)
 
     wb = Workbook()

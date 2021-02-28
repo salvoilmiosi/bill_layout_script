@@ -87,8 +87,8 @@ if __name__ == '__main__':
 
     # Rilegge i vecchi file solo se il layout e' stato ricompilato
     if not args.force_read and output_file.exists():
-        with open(output_file, 'r') as fin:
-            in_data = json.loads(fin.read())
+        with open(output_file, 'r') as file:
+            in_data = json.load(file)
 
         for pdf_file in in_files:
             skip = False
@@ -106,5 +106,5 @@ if __name__ == '__main__':
 
     results = check_conguagli(results)
 
-    with open(output_file, 'w') as fout:
-        fout.write(json.dumps(results))
+    with open(output_file, 'w') as file:
+        json.dump(results, file, indent=4)

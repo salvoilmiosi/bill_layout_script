@@ -1,25 +1,21 @@
-import re
-import sys
 import requests
+import urllib3
 import json
+import sys
 from pathlib import Path
 from getpass import getpass
+from datetime import date, datetime
 from termcolor import colored
-from datetime import datetime
-import urllib3
-
-login = {'f':'login'}
-
-address = 'https://portale.bollettaetica.com'
-
-in_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent.parent / 'work/letture'
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 session = requests.Session()
 
+address = 'https://portale.bollettaetica.com'
+in_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent.parent / 'work/letture'
+
 def filter_and_upload(f, do_upload = True):
     with open(f, 'r') as file:
-        data = json.loads(file.read())
+        data = json.load(file)
     for x in data:
         if 'conguaglio' in x or (filter_year != 0 and any(datetime.strptime(t['mese_fattura'][0],'%Y-%m').year < filter_year for t in x['values'])):
             x['values'] = []
@@ -40,6 +36,7 @@ do_upload = input('Proseguire? S/n ').lower() in ('s','')
 
 if do_upload:
     while True:
+        login = {'f':'login'}
         login['login'] = input('Nome utente: ')
         login['password'] = getpass('Password: ')
 
