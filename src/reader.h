@@ -22,9 +22,17 @@ struct box_spacer {
     int page = 0;
 };
 
-enum reader_flags {
-    READER_HALT_ON_SETLAYOUT = 1 << 0,
-};
+#define READER_FLAGS \
+F(HALT_ON_SETLAYOUT) \
+F(USE_CACHED) \
+F(RECURSIVE)
+
+#define F(x) POS_READER_##x,
+enum { READER_FLAGS };
+#undef F
+#define F(x) READER_##x = (1 << POS_READER_##x),
+enum reader_flags { READER_FLAGS };
+#undef F
 
 class reader {
 public:

@@ -23,7 +23,8 @@ private:
     bool show_debug = false;
     bool show_globals = false;
     bool get_layout = false;
-    bool cached = false;
+    bool use_cached = false;
+    bool parse_recursive = false;
 };
 
 wxIMPLEMENT_APP_CONSOLE(MainApp);
@@ -34,7 +35,8 @@ void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
     parser.AddSwitch("d", "show-debug", "Show Debug Variables");
     parser.AddSwitch("g", "show-globals", "Show Global Variables");
     parser.AddSwitch("l", "get-layout", "Halt On $setlayout");
-    parser.AddSwitch("c", "cached", "Read cached script");
+    parser.AddSwitch("c", "use-cached", "Use cached script");
+    parser.AddSwitch("r", "recursive-imports", "Recursive Imports");
 }
 
 bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
@@ -43,7 +45,8 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     show_debug = parser.FoundSwitch("d") == wxCMD_SWITCH_ON;
     show_globals = parser.FoundSwitch("g") == wxCMD_SWITCH_ON;
     get_layout = parser.FoundSwitch("l") == wxCMD_SWITCH_ON;
-    cached = parser.FoundSwitch("c") == wxCMD_SWITCH_ON;
+    use_cached = parser.FoundSwitch("c") == wxCMD_SWITCH_ON;
+    parse_recursive = parser.FoundSwitch("r") == wxCMD_SWITCH_ON;
     return true;
 }
 
@@ -54,8 +57,11 @@ int MainApp::OnRun() {
     try {
         pdf_document my_doc(input_pdf);
         reader my_reader(my_doc);
-        parser my_parser;
-        if (cached) {
+        if (parse_recursive) {
+            my_reader.add_flags(READER_RECURSIVE);
+        }
+        if (use_cached) {
+            my_reader.add_flags(READER_USE_CACHED);
             my_reader.add_cached_layout(input_bls);
         } else {
             my_reader.add_layout(bill_layout_script::from_file(input_bls));

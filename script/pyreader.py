@@ -12,7 +12,7 @@ class Timeout(TimeoutError):
 def readpdf(pdf_file, controllo, cached=False):
     try:
         args = [Path(__file__).parent.parent / 'build/reader', pdf_file, controllo]
-        if cached: args.append('-c')
+        if cached: args.append('-cr')
         proc = subprocess.run(args, capture_output=True, text=True, timeout=5)
         json_out = json.loads(proc.stdout)
         if 'error' in json_out:

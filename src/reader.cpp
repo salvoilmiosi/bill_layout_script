@@ -250,7 +250,12 @@ void reader::exec_command(const command_args &cmd) {
         } else if (args.flags & IMPORT_IGNORE) {
             m_layouts.push_back(args.filename);
         } else {
-            size_t addr = add_layout(bill_layout_script::from_file(args.filename));
+            size_t addr;
+            if (m_flags & READER_USE_CACHED) {
+                addr = add_cached_layout(args.filename);
+            } else {
+                addr = add_layout(bill_layout_script::from_file(args.filename));
+            }
             m_code[m_program_counter] = command_args{opcode::JSR, jump_address(addr - m_program_counter)};
             jump_subroutine(addr);
         }
@@ -264,8 +269,13 @@ size_t reader::add_layout(const bill_layout_script &layout) {
     size_t new_addr = m_code.size();
 
     m_layouts.push_back(std::filesystem::canonical(layout.m_filename));
-    
-    auto new_code = parser(layout).get_bytecode();
+
+    parser my_parser;
+    if (m_flags & READER_RECURSIVE) {
+        my_parser.add_flags(PARSER_RECURSIVE_IMPORTS);
+    }
+    my_parser.read_layout(layout);
+    auto new_code = my_parser.get_bytecode();
     std::copy(
         std::move_iterator(new_code.begin()),
         std::move_iterator(new_code.end()),
@@ -278,7 +288,7 @@ size_t reader::add_layout(const bill_layout_script &layout) {
 size_t reader::add_cached_layout(const std::filesystem::path &filename) {
     size_t new_addr = m_code.size();
 
-    m_layouts.push_back(filename);
+    m_layouts.push_back(std::filesystem::canonical(filename));
 
     auto cache_filename = filename;
     cache_filename.replace_extension(".cache");
@@ -304,7 +314,9 @@ size_t reader::add_cached_layout(const std::filesystem::path &filename) {
 
     if (recompile_cache) {
         parser my_parser;
-        my_parser.add_flags(PARSER_COPY_IMPORTS);
+        if (m_flags & READER_RECURSIVE) {
+            my_parser.add_flags(PARSER_RECURSIVE_IMPORTS);
+        }
         my_parser.read_layout(bill_layout_script::from_file(filename));
         new_code = my_parser.get_bytecode();
         binary_bls::write(new_code, cache_filename);

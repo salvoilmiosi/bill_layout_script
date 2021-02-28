@@ -66,9 +66,8 @@ template<> inline void writeData<fixed_point>(std::ostream &output, const fixed_
 }
 
 template<> inline fixed_point readData<fixed_point>(std::istream &input) {
-    auto num = readData<dec::int64>(input);
     fixed_point ret;
-    ret.setUnbiased(num);
+    ret.setUnbiased(readData<dec::int64>(input));
     return ret;
 }
 

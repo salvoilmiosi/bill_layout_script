@@ -254,14 +254,14 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_END);
         auto imported_file = std::filesystem::canonical(m_layout->m_filename.parent_path() / (tok_layout_name.parse_string() + ".bls"));
         uint8_t flags = 0;
-        if (m_flags & PARSER_COPY_IMPORTS) {
+        if (m_flags & PARSER_RECURSIVE_IMPORTS) {
             flags |= IMPORT_IGNORE;
         }
         if (fun_name == "setlayout") {
             flags |= IMPORT_SETLAYOUT;
         }
         add_line<opcode::IMPORT>(imported_file, flags);
-        if (m_flags & PARSER_COPY_IMPORTS) {
+        if (m_flags & PARSER_RECURSIVE_IMPORTS) {
             parser imported;
             imported.m_flags = m_flags;
             imported.read_layout(bill_layout_script::from_file(imported_file));

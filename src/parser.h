@@ -28,7 +28,7 @@ enum variable_prefixes { VARIABLE_PREFIXES };
 #define PARSER_FLAGS \
 F(ADD_COMMENTS) \
 F(NO_EVAL_JUMPS) \
-F(COPY_IMPORTS)
+F(RECURSIVE_IMPORTS)
 
 #define F(x) POS_PARSER_##x,
 enum { PARSER_FLAGS };
