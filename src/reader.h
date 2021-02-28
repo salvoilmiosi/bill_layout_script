@@ -24,6 +24,7 @@ struct box_spacer {
 
 enum reader_flags {
     READER_HALT_ON_SETLAYOUT = 1 << 0,
+    READER_IGNORE_IMPORT     = 1 << 1,
 };
 
 class reader {
@@ -47,6 +48,8 @@ public:
 
     // ritorna l'indirizzo del codice aggiunto
     size_t add_layout(const bill_layout_script &layout);
+    
+    size_t add_cached_layout(const std::filesystem::path &filename);
 
     void add_flags(reader_flags flags) {
         m_flags |= flags;

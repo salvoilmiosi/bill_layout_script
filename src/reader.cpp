@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "parser.h"
 #include "functions.h"
+#include "binary_bls.h"
 
 #include <sstream>
 
@@ -249,9 +250,13 @@ void reader::exec_command(const command_args &cmd) {
         }
         [[fallthrough]];
     case opcode::IMPORT: {
-        size_t addr = add_layout(bill_layout_script::from_file(cmd.get_args<opcode::IMPORT>()));
-        m_code[m_program_counter] = command_args{opcode::JSR, jump_address(addr - m_program_counter)};
-        jump_subroutine(addr);
+        if (m_flags & READER_IGNORE_IMPORT) {
+            m_layouts.push_back(cmd.get_args<opcode::IMPORT>());
+        } else {
+            size_t addr = add_layout(bill_layout_script::from_file(cmd.get_args<opcode::IMPORT>()));
+            m_code[m_program_counter] = command_args{opcode::JSR, jump_address(addr - m_program_counter)};
+            jump_subroutine(addr);
+        }
         break;
     }
     case opcode::SETLANG: intl::set_language(cmd.get_args<opcode::SETLANG>()); break;
@@ -269,5 +274,51 @@ size_t reader::add_layout(const bill_layout_script &layout) {
         std::move_iterator(new_code.end()),
         std::back_inserter(m_code)
     );
+    m_code.emplace_back(opcode::RET);
+    return new_addr;
+}
+
+size_t reader::add_cached_layout(const std::filesystem::path &filename) {
+    size_t new_addr = m_code.size();
+
+    m_layouts.push_back(filename);
+
+    auto cache_filename = filename;
+    cache_filename.replace_extension(".cache");
+
+    bytecode new_code;
+    bool recompile_cache = true;
+
+    if (std::filesystem::exists(cache_filename)) {
+        recompile_cache = std::filesystem::last_write_time(filename) > std::filesystem::last_write_time(cache_filename);
+        if (!recompile_cache) {
+            new_code = binary_bls::read(cache_filename);
+            for (auto &line : new_code) {
+                if (line.command() == opcode::IMPORT || line.command() == opcode::SETLAYOUT) {
+                    auto layout_filename = line.get_args<opcode::IMPORT>();
+                    if (std::filesystem::last_write_time(layout_filename) > std::filesystem::last_write_time(cache_filename)) {
+                        recompile_cache = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if (recompile_cache) {
+        parser my_parser;
+        my_parser.add_flags(PARSER_COPY_IMPORTS);
+        my_parser.read_layout(bill_layout_script::from_file(filename));
+        new_code = my_parser.get_bytecode();
+        binary_bls::write(new_code, cache_filename);
+    }
+
+    std::copy(
+        std::move_iterator(new_code.begin()),
+        std::move_iterator(new_code.end()),
+        std::back_inserter(m_code)
+    );
+    m_code.emplace_back(opcode::RET);
+    
     return new_addr;
 }

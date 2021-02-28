@@ -248,13 +248,23 @@ void parser::read_keyword() {
         auto tok_layout_name = m_lexer.require(TOK_STRING);
         m_lexer.require(TOK_PAREN_END);
         auto imported_file = std::filesystem::canonical(m_layout->m_filename.parent_path() / (tok_layout_name.parse_string() + ".bls"));
+        auto copy_imported = [&]() {
+            if (m_flags & PARSER_COPY_IMPORTS) {
+                parser imported;
+                imported.add_flags(PARSER_COPY_IMPORTS);
+                imported.read_layout(bill_layout_script::from_file(imported_file));
+                std::copy(std::move_iterator(imported.m_code.begin()), std::move_iterator(imported.m_code.end()), std::back_inserter(m_code));
+            }
+        };
         if (fun_name == "import") {
             add_line<opcode::IMPORT>(imported_file);
+            copy_imported();
             if (intl::valid_language(m_layout->language_code)) {
                 add_line<opcode::SETLANG>(m_layout->language_code);
             }
         } else {
             add_line<opcode::SETLAYOUT>(imported_file);
+            copy_imported();
             add_line<opcode::HLT>();
         }
         break;

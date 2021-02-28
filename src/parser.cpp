@@ -17,7 +17,6 @@ void parser::read_layout(const bill_layout_script &layout) {
         for (auto &box : layout.m_boxes) {
             read_box(*box);
         }
-        add_line<opcode::RET>();
     } catch (const parsing_error &error) {
         throw layout_error(fmt::format("{}: {}\n{}",
             current_box->name, error.what(),

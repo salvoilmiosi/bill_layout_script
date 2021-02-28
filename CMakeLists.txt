@@ -4,6 +4,7 @@ project(layout_bolletta VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
 
 set(liblayout_SRCS
+src/binary_bls.cpp
 src/functions.cpp
 src/keywords.cpp
 src/intl.cpp
