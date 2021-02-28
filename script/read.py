@@ -50,6 +50,8 @@ def check_conguagli(results):
 
     return sorted_data + error_data
 
+required_data = ('fornitore', 'numero_fattura', 'mese_fattura', 'data_fattura', 'codice_pod')
+
 def read_pdf(pdf_file):
     rel_path = pdf_file.relative_to(input_directory)
     ret = {'filename':str(pdf_file)}
@@ -58,7 +60,7 @@ def read_pdf(pdf_file):
         out_dict = pyreader.readpdf(pdf_file, args.script)
 
         ret['values'] = out_dict['values']
-        if not all(y in v for y in ('mese_fattura', 'data_fattura', 'codice_pod') for v in ret['values']):
+        if not all(y in v for y in required_data for v in ret['values']):
             ret['values'] = []
             if 'warnings' not in out_dict: out_dict['warnings'] = []
             out_dict['warnings'].append('Dati Mancanti') 

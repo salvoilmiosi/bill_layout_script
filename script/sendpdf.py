@@ -32,9 +32,6 @@ for f in input_directory.rglob('*.json'):
     with open(f, 'r') as fin:
         letture.extend(json.loads(fin.read()))
 
-def getvalue(obj, key):
-    return obj[key][0] if key in obj else None
-
 def find_filename(fattura):
     fornitura = getFatture['forniture'][fattura['id_fornitura']]
     gruppo_forniture = getFatture['gruppi_forniture'][fornitura['id_gruppo_forniture']]
@@ -51,9 +48,9 @@ def find_filename(fattura):
     for l in letture:
         if 'values' not in l: continue
         for v in l['values']:
-            if getvalue(v, 'fornitore') != nome_fornitore: continue
-            if getvalue(v, 'numero_fattura') == numero_fattura \
-                or (getvalue(v, 'codice_pod') == codice_pod and datetime.strptime(getvalue(v, 'mese_fattura'), '%Y-%m').date() == mese_fattura):
+            if v['fornitore'][0] != nome_fornitore: continue
+            if v['numero_fattura'][0] == numero_fattura \
+                or (v['codice_pod'][0] == codice_pod and datetime.strptime(v['mese_fattura'][0], '%Y-%m').date() == mese_fattura):
                 return l['filename']
     return None
 
