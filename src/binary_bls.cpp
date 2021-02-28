@@ -61,14 +61,6 @@ template<> inline std::string readData<std::string>(std::istream &input) {
     return buffer;
 }
 
-template<> inline void writeData<std::filesystem::path>(std::ostream &output, const std::filesystem::path &filename) {
-    writeData(output, filename.string());
-}
-
-template<> inline std::filesystem::path readData<std::filesystem::path>(std::istream &input) {
-    return readData<std::string>(input);
-}
-
 template<> inline void writeData<fixed_point>(std::ostream &output, const fixed_point &num) {
     writeData<dec::int64>(output, num.getUnbiased());
 }
@@ -134,6 +126,18 @@ template<> inline void writeData<jump_uneval>(std::ostream &, const jump_uneval 
 
 template<> inline jump_uneval readData<jump_uneval>(std::istream &input) {
     return jump_uneval{};
+}
+
+template<> inline void writeData<import_options>(std::ostream &output, const import_options &opts) {
+    writeData(output, opts.filename.string());
+    writeData(output, opts.flags);
+}
+
+template<> inline import_options readData<import_options>(std::istream &input) {
+    import_options opts;
+    opts.filename = readData<std::string>(input);
+    opts.flags = readData<uint8_t>(input);
+    return opts;
 }
 
 template<opcode Cmd, typename T> inline void writeCommandData(std::ostream &output, const command_args &line) {

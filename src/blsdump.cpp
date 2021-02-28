@@ -21,6 +21,8 @@ private:
     std::filesystem::path input_bls;
 
     bool skip_comments;
+    bool copy_imports;
+    bool do_eval_jumps;
 };
 
 wxIMPLEMENT_APP_CONSOLE(MainApp);
@@ -28,11 +30,15 @@ wxIMPLEMENT_APP_CONSOLE(MainApp);
 void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
     parser.AddParam("input-bls");
     parser.AddSwitch("s", "skip-comments", "Skip Comments");
+    parser.AddSwitch("c", "copy-imports", "Copy Imports");
+    parser.AddSwitch("j", "eval-jumps", "Evaluate Jumps");
 }
 
 bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     input_bls = parser.GetParam(0).ToStdString();
     skip_comments = parser.FoundSwitch("s") == wxCMD_SWITCH_ON;
+    copy_imports = parser.FoundSwitch("c") == wxCMD_SWITCH_ON;
+    do_eval_jumps = parser.FoundSwitch("j") == wxCMD_SWITCH_ON;
     return true;
 }
 
@@ -48,7 +54,12 @@ int MainApp::OnRun() {
         if (!skip_comments) {
             my_parser.add_flags(PARSER_ADD_COMMENTS);
         }
-        my_parser.add_flags(PARSER_NO_EVAL_JUMPS);
+        if (copy_imports) {
+            my_parser.add_flags(PARSER_COPY_IMPORTS);
+        }
+        if (!do_eval_jumps) {
+            my_parser.add_flags(PARSER_NO_EVAL_JUMPS);
+        }
         my_parser.read_layout(bill_layout_script::from_file(input_bls));
 
         std::multimap<size_t, std::string> inv_labels;
@@ -117,10 +128,16 @@ int MainApp::OnRun() {
             case opcode::SETLANG:
                 std::cout << '\t' << opcode_names[int(line.command())] << ' ' << intl::language_string(line.get_args<opcode::SETLANG>());
                 break;
-            case opcode::IMPORT:
-            case opcode::SETLAYOUT:
-                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << quoted_string(line.get_args<opcode::IMPORT>().string());
+            case opcode::IMPORT: {
+                auto args = line.get_args<opcode::IMPORT>();
+                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << quoted_string(args.filename.string());
+                for (uint8_t i=0; i<std::size(import_flags_names); ++i) {
+                    if (args.flags & (1 << i)) {
+                        std::cout << ' ' << import_flags_names[i];
+                    }
+                }
                 break;
+            }
             case opcode::UNEVAL_JUMP: {
                 auto args = line.get_args<opcode::UNEVAL_JUMP>();
                 std::cout << opcode_names[int(args.cmd)] << ' ' << args.label;

@@ -9,61 +9,60 @@
 #include "layout.h"
 
 #define OPCODES \
-O(NOP)                         /* no operation */ \
-O(RDBOX,        pdf_rect)      /* poppler.get_text -> content_stack */ \
-O(MVBOX,        spacer_index)  /* var_stack -> spacer[index] */ \
-O(CALL,         command_call)  /* var_stack * numargs -> fun_name -> var_stack */ \
-O(THROWERR)                    /* var_stack -> throw */ \
-O(ADDWARNING)                  /* var_stack -> warnings */ \
-O(PARSENUM)                    /* var_stack -> parse_num -> var_stack */ \
-O(PARSEINT)                    /* var_stack -> parse_int -> var_stack */ \
-O(AGGREGATE)                   /* var_stack -> split -> parse_int -> sum -> var_stack */ \
-O(EQ)                          /* var_stack * 2 -> a == b -> var_stack */ \
-O(NEQ)                         /* var_stack * 2 -> a != b -> var_stack */ \
-O(AND)                         /* var_stack * 2 -> a && b -> var_stack */ \
-O(OR)                          /* var_stack * 2 -> a == b -> var_stack */ \
-O(NEG)                         /* var_stack -> -top -> var_stack */ \
-O(NOT)                         /* var_stack -> !top -> var_stack */ \
-O(ADD)                         /* var_stack * 2 -> a + b -> var_stack */ \
-O(SUB)                         /* var_stack * 2 -> a - b -> var_stack */ \
-O(MUL)                         /* var_stack * 2 -> a * b -> var_stack */ \
-O(DIV)                         /* var_stack * 2 -> a / b -> var_stack */ \
-O(GT)                          /* var_stack * 2 -> a > b -> var_stack */ \
-O(LT)                          /* var_stack * 2 -> a < b -> var_stack */ \
-O(GEQ)                         /* var_stack * 2 -> a >= b -> var_stack */ \
-O(LEQ)                         /* var_stack * 2 -> a >= b -> var_stack */ \
-O(SELVAR,   variable_selector) /* (name, index, size, flags) -> ref_stack */ \
-O(ISSET)                       /* ref_stack -> size() != 0 -> var_stack */ \
-O(GETSIZE)                     /* ref_stack -> size() -> var_stack */ \
-O(CLEAR)                       /* ref_stack -> clear */ \
-O(SETVAR,       uint8_t)       /* ref_stack, var_stack -> set(flags) */ \
-O(PUSHVIEW)                    /* content_stack -> var_stack */ \
-O(PUSHNUM,      fixed_point)   /* number -> var_stack */ \
-O(PUSHSTR,      std::string)   /* str -> var_stack */ \
-O(PUSHVAR)                     /* ref_stack -> var_stack */ \
-O(PUSHNULL)                    /* null -> var_stack */ \
-O(MOVEVAR)                     /* ref_stack -> (move) var_stack */ \
-O(UNEVAL_JUMP,  jump_uneval)   /* unevaluated jump, sara' sostituito con opcode */ \
-O(JMP,          jump_address)  /* unconditional jump */ \
-O(JSR,          jump_address)  /* program_counter -> return_addrs -- jump to subroutine */ \
-O(JZ,           jump_address)  /* var_stack -> jump if top == 0 */ \
-O(JNZ,          jump_address)  /* var_stack -> jump if top != 0 */ \
-O(JTE,          jump_address)  /* jump if content_stack.top at token end */ \
-O(RET)                         /* jump to return_addrs.top, return_addrs.pop, halt if return_addrs.empty */ \
-O(HLT)                         /* ferma l'esecuzione */ \
-O(MOVCONTENT)                  /* var_stack -> content_stack */ \
-O(SETBEGIN)                    /* var_stack -> content_stack.top.setbegin */ \
-O(SETEND)                      /* var_stack -> content_stack.top.setend */ \
-O(NEWVIEW)                     /* content_stack.top.newview() */ \
-O(SUBVIEW)                     /* content_stack.top.newsubview() */ \
-O(RESETVIEW)                   /* content_stack.top.resetview() */ \
-O(NEXTRESULT)                  /* content_stack.top.next_result() */ \
-O(POPCONTENT)                  /* content_stack.pop() */ \
-O(NEXTTABLE)                   /* current_table++ */ \
-O(ATE)                         /* m_ate -> var_stack */ \
-O(IMPORT,    std::filesystem::path) /* importa il file e lo esegue */ \
-O(SETLAYOUT, std::filesystem::path) /* IMPORT + hint per autolayout */ \
-O(SETLANG, intl::language) /* imposta la lingua del layout */
+O(NOP)                          /* no operation */ \
+O(RDBOX, pdf_rect)              /* poppler.get_text -> content_stack */ \
+O(MVBOX, spacer_index)          /* var_stack -> spacer[index] */ \
+O(CALL, command_call)           /* var_stack * numargs -> fun_name -> var_stack */ \
+O(THROWERR)                     /* var_stack -> throw */ \
+O(ADDWARNING)                   /* var_stack -> warnings */ \
+O(PARSENUM)                     /* var_stack -> parse_num -> var_stack */ \
+O(PARSEINT)                     /* var_stack -> parse_int -> var_stack */ \
+O(AGGREGATE)                    /* var_stack -> split -> parse_int -> sum -> var_stack */ \
+O(EQ)                           /* var_stack * 2 -> a == b -> var_stack */ \
+O(NEQ)                          /* var_stack * 2 -> a != b -> var_stack */ \
+O(AND)                          /* var_stack * 2 -> a && b -> var_stack */ \
+O(OR)                           /* var_stack * 2 -> a == b -> var_stack */ \
+O(NEG)                          /* var_stack -> -top -> var_stack */ \
+O(NOT)                          /* var_stack -> !top -> var_stack */ \
+O(ADD)                          /* var_stack * 2 -> a + b -> var_stack */ \
+O(SUB)                          /* var_stack * 2 -> a - b -> var_stack */ \
+O(MUL)                          /* var_stack * 2 -> a * b -> var_stack */ \
+O(DIV)                          /* var_stack * 2 -> a / b -> var_stack */ \
+O(GT)                           /* var_stack * 2 -> a > b -> var_stack */ \
+O(LT)                           /* var_stack * 2 -> a < b -> var_stack */ \
+O(GEQ)                          /* var_stack * 2 -> a >= b -> var_stack */ \
+O(LEQ)                          /* var_stack * 2 -> a >= b -> var_stack */ \
+O(SELVAR, variable_selector)    /* (name, index, size, flags) -> ref_stack */ \
+O(ISSET)                        /* ref_stack -> size() != 0 -> var_stack */ \
+O(GETSIZE)                      /* ref_stack -> size() -> var_stack */ \
+O(CLEAR)                        /* ref_stack -> clear */ \
+O(SETVAR, uint8_t)              /* ref_stack, var_stack -> set(flags) */ \
+O(PUSHVIEW)                     /* content_stack -> var_stack */ \
+O(PUSHNUM, fixed_point)         /* number -> var_stack */ \
+O(PUSHSTR, std::string)         /* str -> var_stack */ \
+O(PUSHVAR)                      /* ref_stack -> var_stack */ \
+O(PUSHNULL)                     /* null -> var_stack */ \
+O(MOVEVAR)                      /* ref_stack -> (move) var_stack */ \
+O(UNEVAL_JUMP, jump_uneval)     /* unevaluated jump, sara' sostituito con opcode */ \
+O(JMP, jump_address)            /* unconditional jump */ \
+O(JSR, jump_address)            /* program_counter -> return_addrs -- jump to subroutine */ \
+O(JZ, jump_address)             /* var_stack -> jump if top == 0 */ \
+O(JNZ, jump_address)            /* var_stack -> jump if top != 0 */ \
+O(JTE, jump_address)            /* jump if content_stack.top at token end */ \
+O(RET)                          /* jump to return_addrs.top, return_addrs.pop, halt if return_addrs.empty */ \
+O(HLT)                          /* ferma l'esecuzione */ \
+O(MOVCONTENT)                   /* var_stack -> content_stack */ \
+O(SETBEGIN)                     /* var_stack -> content_stack.top.setbegin */ \
+O(SETEND)                       /* var_stack -> content_stack.top.setend */ \
+O(NEWVIEW)                      /* content_stack.top.newview() */ \
+O(SUBVIEW)                      /* content_stack.top.newsubview() */ \
+O(RESETVIEW)                    /* content_stack.top.resetview() */ \
+O(NEXTRESULT)                   /* content_stack.top.next_result() */ \
+O(POPCONTENT)                   /* content_stack.pop() */ \
+O(NEXTTABLE)                    /* current_table++ */ \
+O(ATE)                          /* m_ate -> var_stack */ \
+O(IMPORT, import_options)       /* importa il file e lo esegue */ \
+O(SETLANG, intl::language)      /* imposta la lingua del layout */
 
 #define O_1_ARGS(x) O_IMPL(x, void)
 #define O_2_ARGS(x, t) O_IMPL(x, t)
@@ -148,6 +147,25 @@ typedef int16_t jump_address; // indirizzo relativo
 struct jump_uneval {
     opcode cmd;
     std::string label;
+};
+
+#define IMPORT_FLAGS \
+F(IGNORE) \
+F(SETLAYOUT)
+
+#define F(x) POS_IMPORT_##x,
+enum { IMPORT_FLAGS };
+#undef F
+#define F(x) IMPORT_##x = (1 << POS_IMPORT_##x),
+enum import_flags { IMPORT_FLAGS };
+#undef F
+#define F(x) #x,
+static const char *import_flags_names[] = { IMPORT_FLAGS };
+#undef F
+
+struct import_options {
+    std::filesystem::path filename;
+    uint8_t flags;
 };
 
 #define O_IMPL(x, t) template<> struct opcode_type_impl<opcode::x> { using type = t; };

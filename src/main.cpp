@@ -57,7 +57,6 @@ int MainApp::OnRun() {
         parser my_parser;
         if (cached) {
             my_reader.add_cached_layout(input_bls);
-            my_reader.add_flags(READER_IGNORE_IMPORT);
         } else {
             my_reader.add_layout(bill_layout_script::from_file(input_bls));
         }

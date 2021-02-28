@@ -2,6 +2,11 @@
 
 #include "utils.h"
 
+static inline std::string make_label(std::string_view name) {
+    static int n = 0;
+    return fmt::format("__{0}_{1}", name, n++);
+}
+
 void parser::read_keyword() {
     auto tok_name = m_lexer.require(TOK_FUNCTION);
     auto fun_name = tok_name.value.substr(1);
@@ -9,14 +14,14 @@ void parser::read_keyword() {
     switch(hash(fun_name)) {
     case hash("if"):
     case hash("ifnot"): {
-        std::string endelse_label = fmt::format("__endelse_{}", m_code.size());
+        std::string endelse_label = make_label("endelse");
         std::string endif_label;
         bool condition_positive = fun_name == "if";
         bool in_loop = true;
         bool has_endelse = false;
         while (in_loop) {
             bool has_endif = false;
-            endif_label = fmt::format("__endif_{}", m_code.size());
+            endif_label = make_label("endif");
             m_lexer.require(TOK_PAREN_BEGIN);
             read_expression();
             m_lexer.require(TOK_PAREN_END);
@@ -54,8 +59,8 @@ void parser::read_keyword() {
         break;
     }
     case hash("while"): {
-        std::string while_label = fmt::format("__while_{}", m_code.size());
-        std::string endwhile_label = fmt::format("__endwhile_{}", m_code.size());
+        std::string while_label = make_label("while");
+        std::string endwhile_label = make_label("endwhile");
         m_loop_labels.push(loop_label_pair{while_label, endwhile_label});
         m_lexer.require(TOK_PAREN_BEGIN);
         add_label(while_label);
@@ -69,8 +74,8 @@ void parser::read_keyword() {
         break;
     }
     case hash("for"): {
-        std::string for_label = fmt::format("__for_{}", m_code.size());
-        std::string endfor_label = fmt::format("__endfor_{}", m_code.size());
+        std::string for_label = make_label("for");
+        std::string endfor_label = make_label("endfor");
         m_loop_labels.push(loop_label_pair{for_label, endfor_label});
         m_lexer.require(TOK_PAREN_BEGIN);
         read_statement();
@@ -120,8 +125,8 @@ void parser::read_keyword() {
         break;
     }
     case hash("foreach"): {
-        std::string lines_label = fmt::format("__lines_{}", m_code.size());
-        std::string endlines_label = fmt::format("__endlines_{}", m_code.size());
+        std::string lines_label = make_label("lines");
+        std::string endlines_label = make_label("endlines");
         m_loop_labels.push(loop_label_pair{lines_label, endlines_label});
         bool pushed_content = false;
         if (m_lexer.check_next(TOK_PAREN_BEGIN)) {
@@ -248,24 +253,31 @@ void parser::read_keyword() {
         auto tok_layout_name = m_lexer.require(TOK_STRING);
         m_lexer.require(TOK_PAREN_END);
         auto imported_file = std::filesystem::canonical(m_layout->m_filename.parent_path() / (tok_layout_name.parse_string() + ".bls"));
-        auto copy_imported = [&]() {
-            if (m_flags & PARSER_COPY_IMPORTS) {
-                parser imported;
-                imported.add_flags(PARSER_COPY_IMPORTS);
-                imported.read_layout(bill_layout_script::from_file(imported_file));
-                std::copy(std::move_iterator(imported.m_code.begin()), std::move_iterator(imported.m_code.end()), std::back_inserter(m_code));
+        uint8_t flags = 0;
+        if (m_flags & PARSER_COPY_IMPORTS) {
+            flags |= IMPORT_IGNORE;
+        }
+        if (fun_name == "setlayout") {
+            flags |= IMPORT_SETLAYOUT;
+        }
+        add_line<opcode::IMPORT>(imported_file, flags);
+        if (m_flags & PARSER_COPY_IMPORTS) {
+            parser imported;
+            imported.m_flags = m_flags;
+            imported.read_layout(bill_layout_script::from_file(imported_file));
+            auto code_len = m_code.size();
+            std::copy(std::move_iterator(imported.m_code.begin()), std::move_iterator(imported.m_code.end()), std::back_inserter(m_code));
+            for (auto &[line, comment] : imported.m_comments) {
+                m_comments.emplace(code_len + line, std::move(comment));
             }
-        };
-        if (fun_name == "import") {
-            add_line<opcode::IMPORT>(imported_file);
-            copy_imported();
-            if (intl::valid_language(m_layout->language_code)) {
-                add_line<opcode::SETLANG>(m_layout->language_code);
+            for (auto &[label, line] : imported.m_labels) {
+                m_labels.emplace(label, code_len + line);
             }
-        } else {
-            add_line<opcode::SETLAYOUT>(imported_file);
-            copy_imported();
+        }
+        if (flags & IMPORT_SETLAYOUT) {
             add_line<opcode::HLT>();
+        } else if (intl::valid_language(m_layout->language_code)) {
+            add_line<opcode::SETLANG>(m_layout->language_code);
         }
         break;
     }

@@ -242,18 +242,15 @@ void reader::exec_command(const command_args &cmd) {
         }
         [[fallthrough]];
     case opcode::HLT: halt(); break;
-    case opcode::SETLAYOUT:
-        if (m_flags & READER_HALT_ON_SETLAYOUT) {
-            m_layouts.push_back(cmd.get_args<opcode::SETLAYOUT>());
-            halt();
-            break;
-        }
-        [[fallthrough]];
     case opcode::IMPORT: {
-        if (m_flags & READER_IGNORE_IMPORT) {
-            m_layouts.push_back(cmd.get_args<opcode::IMPORT>());
+        const auto &args = cmd.get_args<opcode::IMPORT>();
+        if (args.flags & IMPORT_SETLAYOUT && m_flags & READER_HALT_ON_SETLAYOUT) {
+            m_layouts.push_back(args.filename);
+            halt();
+        } else if (args.flags & IMPORT_IGNORE) {
+            m_layouts.push_back(args.filename);
         } else {
-            size_t addr = add_layout(bill_layout_script::from_file(cmd.get_args<opcode::IMPORT>()));
+            size_t addr = add_layout(bill_layout_script::from_file(args.filename));
             m_code[m_program_counter] = command_args{opcode::JSR, jump_address(addr - m_program_counter)};
             jump_subroutine(addr);
         }
@@ -266,7 +263,7 @@ void reader::exec_command(const command_args &cmd) {
 size_t reader::add_layout(const bill_layout_script &layout) {
     size_t new_addr = m_code.size();
 
-    m_layouts.push_back(std::filesystem::canonical(layout.m_filename).string());
+    m_layouts.push_back(std::filesystem::canonical(layout.m_filename));
     
     auto new_code = parser(layout).get_bytecode();
     std::copy(
@@ -294,8 +291,8 @@ size_t reader::add_cached_layout(const std::filesystem::path &filename) {
         if (!recompile_cache) {
             new_code = binary_bls::read(cache_filename);
             for (auto &line : new_code) {
-                if (line.command() == opcode::IMPORT || line.command() == opcode::SETLAYOUT) {
-                    auto layout_filename = line.get_args<opcode::IMPORT>();
+                if (line.command() == opcode::IMPORT) {
+                    auto layout_filename = line.get_args<opcode::IMPORT>().filename;
                     if (std::filesystem::last_write_time(layout_filename) > std::filesystem::last_write_time(cache_filename)) {
                         recompile_cache = true;
                         break;

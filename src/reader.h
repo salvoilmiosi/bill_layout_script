@@ -24,7 +24,6 @@ struct box_spacer {
 
 enum reader_flags {
     READER_HALT_ON_SETLAYOUT = 1 << 0,
-    READER_IGNORE_IMPORT     = 1 << 1,
 };
 
 class reader {
