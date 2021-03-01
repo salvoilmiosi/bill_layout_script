@@ -164,7 +164,7 @@ bool parser::read_statement(bool throw_on_eof) {
         size_t selvar_end = m_code.size();
         
         auto tok = m_lexer.peek();
-        uint8_t flags = 0;
+        flags_t flags = 0;
         
         switch (tok.type) {
         case TOK_ADD_ASSIGN:
@@ -413,7 +413,7 @@ void parser::read_function() {
         bool isglobal = m_lexer.check_next(TOK_GLOBAL);
         auto tok_var = m_lexer.require(TOK_IDENTIFIER);
         m_lexer.require(TOK_PAREN_END);
-        add_line<opcode::SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), uint8_t(SEL_GLOBAL & (-isglobal)));
+        add_line<opcode::SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), flags_t(SEL_GLOBAL & (-isglobal)));
         m_code.emplace_back(fun_name == "isset" ? opcode::ISSET : opcode::GETSIZE);
         break;
     }

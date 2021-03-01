@@ -74,9 +74,9 @@ public:
 
 struct variable_key {
     std::string name;
-    uint8_t table_index;
+    small_int table_index;
 
-    static constexpr uint8_t global_index = -1;
+    static constexpr small_int global_index = -1;
 
     inline bool operator == (const variable_key &other) const = default;
 
@@ -119,7 +119,7 @@ public:
         }
     }
 
-    void set_value(variable &&value, uint8_t flags) {
+    void set_value(variable &&value, flags_t flags) {
         if (!(flags & SET_FORCE) && value.empty()) return;
         if (flags & SET_OVERWRITE) clear();
 

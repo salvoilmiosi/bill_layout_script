@@ -36,7 +36,7 @@ O(SELVAR, variable_selector)    /* (name, index, size, flags) -> ref_stack */ \
 O(ISSET)                        /* ref_stack -> size() != 0 -> var_stack */ \
 O(GETSIZE)                      /* ref_stack -> size() -> var_stack */ \
 O(CLEAR)                        /* ref_stack -> clear */ \
-O(SETVAR, uint8_t)              /* ref_stack, var_stack -> set(flags) */ \
+O(SETVAR, flags_t)              /* ref_stack, var_stack -> set(flags) */ \
 O(PUSHVIEW)                     /* content_stack -> var_stack */ \
 O(PUSHNUM, fixed_point)         /* number -> var_stack */ \
 O(PUSHSTR, std::string)         /* str -> var_stack */ \
@@ -78,7 +78,13 @@ enum class opcode : uint8_t { OPCODES };
 #define O_IMPL(x, t) #x,
 static const char *opcode_names[] = { OPCODES };
 #undef O_IMPL
-typedef int8_t small_int;
+
+typedef uint8_t small_int;
+
+typedef uint8_t flags_t;
+
+typedef int16_t jump_address; // indirizzo relativo
+
 struct command_call {
     std::string name;
     small_int numargs;
@@ -123,7 +129,7 @@ struct variable_selector {
     std::string name;
     small_int index = 0;
     small_int length = 1;
-    uint8_t flags = 0;
+    flags_t flags = 0;
 };
 
 #define SETVAR_FLAGS \
@@ -141,8 +147,6 @@ enum setvar_flags { SETVAR_FLAGS };
 #define F(x) #x,
 static const char *setvar_flags_names[] = { SETVAR_FLAGS };
 #undef F
-
-typedef int16_t jump_address; // indirizzo relativo
 
 struct jump_uneval {
     opcode cmd;
@@ -165,7 +169,7 @@ static const char *import_flags_names[] = { IMPORT_FLAGS };
 
 struct import_options {
     std::filesystem::path filename;
-    uint8_t flags;
+    flags_t flags;
 };
 
 #define O_IMPL(x, t) template<> struct opcode_type_impl<opcode::x> { using type = t; };

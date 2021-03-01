@@ -102,7 +102,7 @@ int MainApp::OnRun() {
                 if (args.length != 1) {
                     std::cout << ':' << int(args.length);
                 }
-                for (uint8_t i=0; i<std::size(selvar_flags_names); ++i) {
+                for (size_t i=0; i<std::size(selvar_flags_names); ++i) {
                     if (args.flags & (1 << i)) {
                         std::cout << ' ' << selvar_flags_names[i];
                     }
@@ -112,7 +112,7 @@ int MainApp::OnRun() {
             case opcode::SETVAR: {
                 auto flags = line.get_args<opcode::SETVAR>();
                 std::cout << '\t' << opcode_names[int(line.command())];
-                for (uint8_t i=0; i<std::size(setvar_flags_names); ++i) {
+                for (size_t i=0; i<std::size(setvar_flags_names); ++i) {
                     if (flags & (1 << i)) {
                         std::cout << ' ' << setvar_flags_names[i];
                     }
@@ -131,7 +131,7 @@ int MainApp::OnRun() {
             case opcode::IMPORT: {
                 auto args = line.get_args<opcode::IMPORT>();
                 std::cout << '\t' << opcode_names[int(line.command())] << ' ' << quoted_string(args.filename.string());
-                for (uint8_t i=0; i<std::size(import_flags_names); ++i) {
+                for (size_t i=0; i<std::size(import_flags_names); ++i) {
                     if (args.flags & (1 << i)) {
                         std::cout << ' ' << import_flags_names[i];
                     }

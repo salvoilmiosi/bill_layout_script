@@ -82,7 +82,7 @@ private:
     bytecode m_code;
 
     variable_map m_values;
-    uint8_t m_table_index = 0;
+    small_int m_table_index = 0;
 
     simple_stack<variable> m_vars;
     simple_stack<content_view> m_contents;
@@ -101,7 +101,7 @@ private:
     bool m_jumped = false;
     
     std::atomic<bool> m_running = false;
-    uint8_t m_flags = 0;
+    flags_t m_flags = 0;
 
     const pdf_document *m_doc = nullptr;
 };

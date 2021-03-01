@@ -103,7 +103,7 @@ private:
 
     simple_stack<loop_label_pair> m_loop_labels;
 
-    uint8_t m_flags = 0;
+    flags_t m_flags = 0;
 
     friend class lexer;
 };

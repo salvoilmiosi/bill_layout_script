@@ -34,8 +34,8 @@ void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
     parser.AddParam("input-bls");
     parser.AddSwitch("d", "show-debug", "Show Debug Variables");
     parser.AddSwitch("g", "show-globals", "Show Global Variables");
-    parser.AddSwitch("l", "get-layout", "Halt On $setlayout");
-    parser.AddSwitch("c", "use-cached", "Use cached script");
+    parser.AddSwitch("l", "get-layout", "Halt On Setlayout");
+    parser.AddSwitch("c", "use-cached", "Use Cached Scripts");
     parser.AddSwitch("r", "recursive-imports", "Recursive Imports");
 }
 

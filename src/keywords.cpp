@@ -217,7 +217,7 @@ void parser::read_keyword() {
         bool isglobal = m_lexer.check_next(TOK_GLOBAL);
         auto tok_var = m_lexer.require(TOK_IDENTIFIER);
         m_lexer.require(TOK_PAREN_END);
-        add_line<opcode::SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), uint8_t(SEL_GLOBAL & (-isglobal)));
+        add_line<opcode::SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), flags_t(SEL_GLOBAL & (-isglobal)));
         add_line<opcode::CLEAR>();
         break;
     }
@@ -253,7 +253,7 @@ void parser::read_keyword() {
         auto tok_layout_name = m_lexer.require(TOK_STRING);
         m_lexer.require(TOK_PAREN_END);
         auto imported_file = std::filesystem::canonical(m_layout->m_filename.parent_path() / (tok_layout_name.parse_string() + ".bls"));
-        uint8_t flags = 0;
+        flags_t flags = 0;
         if (m_flags & PARSER_RECURSIVE_IMPORTS) {
             flags |= IMPORT_IGNORE;
         }
