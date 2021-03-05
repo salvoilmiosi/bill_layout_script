@@ -195,13 +195,14 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
 void frame_editor::openFile(const wxString &filename) {
     try {
         if (box_dialog::closeAll()) {
-            layout = bill_layout_script::from_file(filename.ToStdString());
+            m_filename = filename.ToStdString();
+            layout = bill_layout_script::from_file(m_filename);
 
             modified = false;
             history.clear();
             updateLayout();
 
-            m_bls_history->AddFileToHistory(layout.m_filename.string());
+            m_bls_history->AddFileToHistory(filename);
             m_config->SetPath("/RecentFiles");
             m_bls_history->Save(*m_config);
             m_config->SetPath("/");
@@ -212,19 +213,18 @@ void frame_editor::openFile(const wxString &filename) {
 }
 
 bool frame_editor::save(bool saveAs) {
-    std::filesystem::path filename = layout.m_filename;
-    if (filename.empty() || saveAs) {
+    if (m_filename.empty() || saveAs) {
         wxString lastLayoutDir = m_config->Read("LastLayoutDir");
-        wxFileDialog diag(this, "Salva Layout Bolletta", lastLayoutDir, layout.m_filename.string(), "File layout (*.bls)|*.bls|Tutti i file (*.*)|*.*", wxFD_SAVE);
+        wxFileDialog diag(this, "Salva Layout Bolletta", lastLayoutDir, m_filename.string(), "File layout (*.bls)|*.bls|Tutti i file (*.*)|*.*", wxFD_SAVE);
 
         if (diag.ShowModal() == wxID_CANCEL)
             return false;
 
         m_config->Write("LastLayoutDir", wxFileName(diag.GetPath()).GetPath());
-        filename = diag.GetPath().ToStdString();
+        m_filename = diag.GetPath().ToStdString();
     }
     try {
-        layout.save_file(filename);
+        layout.save_file(m_filename);
     } catch (const layout_error &error) {
         wxMessageBox(error.what(), "Errore", wxICON_ERROR);
         return false;

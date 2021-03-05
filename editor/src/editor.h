@@ -62,6 +62,7 @@ public:
     }
 
     bill_layout_script layout;
+    std::filesystem::path m_filename;
 
 private:
     void OnNewFile      (wxCommandEvent &evt);

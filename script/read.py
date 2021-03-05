@@ -65,7 +65,7 @@ def read_pdf(pdf_file):
             ret['values'] = []
             if 'warnings' not in out_dict: out_dict['warnings'] = []
             out_dict['warnings'].append('Dati Mancanti') 
-        ret['layouts'] = out_dict['layouts']
+        ret['layouts'] = [str(Path(x).resolve()) for x in out_dict['layouts']]
         if 'warnings' in out_dict:
             ret['warnings'] = out_dict['warnings']
             print(colored('{0} ### {1}'.format(rel_path, ', '.join(out_dict['warnings'])), 'yellow'))

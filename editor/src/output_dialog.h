@@ -27,7 +27,7 @@ private:
     reader &m_reader;
     output_dialog *parent;
 
-    bill_layout_script layout;
+    const bill_layout_script &layout;
     bool m_aborted = false;
 };
 

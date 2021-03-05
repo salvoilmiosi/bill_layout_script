@@ -155,7 +155,8 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     }
 
     try {
-        reader my_reader(m_doc, bill_layout_script::from_file(getControlScript().ToStdString()));
+        reader my_reader(m_doc);
+        my_reader.add_layout(getControlScript().ToStdString());
         my_reader.add_flags(READER_HALT_ON_SETLAYOUT);
         my_reader.start();
 

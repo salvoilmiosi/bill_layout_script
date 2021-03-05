@@ -7,7 +7,8 @@
 #include "fixed_point.h"
 #include "functions.h"
 
-void parser::read_layout(const bill_layout_script &layout) {
+void parser::read_layout(const std::filesystem::path &path, const bill_layout_script &layout) {
+    m_path = path;
     m_layout = &layout;
     
     try {

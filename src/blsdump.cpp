@@ -60,7 +60,7 @@ int MainApp::OnRun() {
         if (!do_eval_jumps) {
             my_parser.add_flags(PARSER_NO_EVAL_JUMPS);
         }
-        my_parser.read_layout(bill_layout_script::from_file(input_bls));
+        my_parser.read_layout(input_bls.parent_path(), bill_layout_script::from_file(input_bls));
 
         std::multimap<size_t, std::string> inv_labels;
         for (auto &[label, addr] : my_parser.get_labels()) {

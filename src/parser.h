@@ -45,15 +45,12 @@ struct loop_label_pair {
 class parser {
 public:
     parser() = default;
-    parser(const bill_layout_script &layout) {
-        read_layout(layout);
-    }
 
     void add_flags(parser_flags flags) {
         m_flags |= flags;
     }
 
-    void read_layout(const bill_layout_script &layout);
+    void read_layout(const std::filesystem::path &path, const bill_layout_script &layout);
 
     auto &get_bytecode() const & {
         return m_code;
@@ -95,6 +92,7 @@ private:
 
 private:
     const bill_layout_script *m_layout = nullptr;
+    std::filesystem::path m_path;
 
     lexer m_lexer;
     bytecode m_code;

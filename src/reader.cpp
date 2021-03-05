@@ -248,15 +248,12 @@ void reader::exec_command(const command_args &cmd) {
             m_layouts.push_back(args.filename);
             halt();
         } else if (args.flags & IMPORT_IGNORE) {
-            m_layouts.push_back(args.filename);
-        } else {
-            size_t addr;
-            if (m_flags & READER_USE_CACHED) {
-                addr = add_cached_layout(args.filename);
-            } else {
-                addr = add_layout(bill_layout_script::from_file(args.filename));
+            if (std::find(m_layouts.begin(), m_layouts.end(), args.filename) == m_layouts.end()) {
+                m_layouts.push_back(args.filename);
             }
-            m_code[m_program_counter] = command_args{opcode::JSR, jump_address(addr - m_program_counter)};
+        } else {
+            size_t addr = add_layout(args.filename);
+            m_code[m_program_counter] = make_command<opcode::JSR>(jump_address(addr - m_program_counter));
             jump_subroutine(addr);
         }
         break;
@@ -265,69 +262,71 @@ void reader::exec_command(const command_args &cmd) {
     }
 }
 
-size_t reader::add_layout(const bill_layout_script &layout) {
-    size_t new_addr = m_code.size();
+size_t reader::add_layout(const std::filesystem::path &filename) {
+    m_layouts.push_back(filename);
 
-    m_layouts.push_back(std::filesystem::canonical(layout.m_filename));
+    if (m_flags & READER_USE_CACHED) {
+        auto cache_filename = filename;
+        cache_filename.replace_extension(".cache");
 
-    parser my_parser;
-    if (m_flags & READER_RECURSIVE) {
-        my_parser.add_flags(PARSER_RECURSIVE_IMPORTS);
-    }
-    my_parser.read_layout(layout);
-    auto new_code = my_parser.get_bytecode();
-    std::copy(
-        std::move_iterator(new_code.begin()),
-        std::move_iterator(new_code.end()),
-        std::back_inserter(m_code)
-    );
-    m_code.emplace_back(opcode::RET);
-    return new_addr;
-}
+        bytecode new_code;
+        bool recompile_cache = true;
 
-size_t reader::add_cached_layout(const std::filesystem::path &filename) {
-    size_t new_addr = m_code.size();
-
-    m_layouts.push_back(std::filesystem::canonical(filename));
-
-    auto cache_filename = filename;
-    cache_filename.replace_extension(".cache");
-
-    bytecode new_code;
-    bool recompile_cache = true;
-
-    if (std::filesystem::exists(cache_filename)) {
-        recompile_cache = std::filesystem::last_write_time(filename) > std::filesystem::last_write_time(cache_filename);
-        if (!recompile_cache) {
-            new_code = binary_bls::read(cache_filename);
-            for (auto &line : new_code) {
-                if (line.command() == opcode::IMPORT) {
-                    auto layout_filename = line.get_args<opcode::IMPORT>().filename;
-                    if (std::filesystem::last_write_time(layout_filename) > std::filesystem::last_write_time(cache_filename)) {
-                        recompile_cache = true;
-                        break;
+        if (std::filesystem::exists(cache_filename)) {
+            recompile_cache = std::filesystem::last_write_time(filename) > std::filesystem::last_write_time(cache_filename);
+            if (!recompile_cache) {
+                new_code = binary_bls::read(cache_filename);
+                for (auto &line : new_code) {
+                    if (line.command() == opcode::IMPORT) {
+                        auto layout_filename = line.get_args<opcode::IMPORT>().filename;
+                        if (std::filesystem::last_write_time(layout_filename) > std::filesystem::last_write_time(cache_filename)) {
+                            recompile_cache = true;
+                            break;
+                        }
                     }
                 }
             }
         }
-    }
 
-    if (recompile_cache) {
+        if (recompile_cache) {
+            parser my_parser;
+            if (m_flags & READER_RECURSIVE) {
+                my_parser.add_flags(PARSER_RECURSIVE_IMPORTS);
+            }
+            my_parser.read_layout(filename.parent_path(), bill_layout_script::from_file(filename));
+            new_code = std::move(my_parser).get_bytecode();
+            binary_bls::write(new_code, cache_filename);
+        }
+
+        return add_code(std::move(new_code));
+    } else {
         parser my_parser;
         if (m_flags & READER_RECURSIVE) {
             my_parser.add_flags(PARSER_RECURSIVE_IMPORTS);
         }
-        my_parser.read_layout(bill_layout_script::from_file(filename));
-        new_code = my_parser.get_bytecode();
-        binary_bls::write(new_code, cache_filename);
+        my_parser.read_layout(filename.parent_path(), bill_layout_script::from_file(filename));
+        return add_code(std::move(my_parser).get_bytecode());
     }
+}
+
+size_t reader::add_layout(const bill_layout_script &layout) {
+    parser my_parser;
+    if (m_flags & READER_RECURSIVE) {
+        my_parser.add_flags(PARSER_RECURSIVE_IMPORTS);
+    }
+    my_parser.read_layout(std::filesystem::current_path(), layout);
+    return add_code(std::move(my_parser).get_bytecode());
+}
+
+size_t reader::add_code(bytecode &&new_code) {
+    size_t addr = m_code.size();
 
     std::copy(
         std::move_iterator(new_code.begin()),
         std::move_iterator(new_code.end()),
         std::back_inserter(m_code)
     );
-    m_code.emplace_back(opcode::RET);
+    m_code.push_back(make_command<opcode::RET>());
     
-    return new_addr;
+    return addr;
 }

@@ -37,7 +37,6 @@ std::istream &operator >> (std::istream &in, class bill_layout_script &obj);
 class bill_layout_script {
 public:
     std::vector<box_ptr> m_boxes;
-    std::filesystem::path m_filename;
     intl::language language_code{};
 
 public:
@@ -45,7 +44,6 @@ public:
 
     void clear() {
         m_boxes.clear();
-        m_filename.clear();
         language_code = {};
     }
 
@@ -56,7 +54,6 @@ public:
             throw layout_error(fmt::format("Impossibile aprire il file {}", filename.string()));
         }
         ifs >> ret;
-        ret.m_filename = filename;
         return ret;
     }
 
@@ -66,7 +63,6 @@ public:
             throw layout_error(fmt::format("Impossibile salvare il file {}", filename.string()));
         }
         ofs << *this;
-        m_filename = filename;
     }
 };
 

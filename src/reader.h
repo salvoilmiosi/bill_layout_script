@@ -42,11 +42,6 @@ public:
         set_document(doc);
     }
 
-    reader(const pdf_document &doc, const bill_layout_script &layout) {
-        set_document(doc);
-        add_layout(layout);
-    }
-
     void set_document(const pdf_document &doc) {
         m_doc = &doc;
     }
@@ -54,9 +49,9 @@ public:
     void set_document(pdf_document &&doc) = delete;
 
     // ritorna l'indirizzo del codice aggiunto
+    size_t add_layout(const std::filesystem::path &filename);
     size_t add_layout(const bill_layout_script &layout);
-    
-    size_t add_cached_layout(const std::filesystem::path &filename);
+    size_t add_code(bytecode &&new_code);
 
     void add_flags(reader_flags flags) {
         m_flags |= flags;
