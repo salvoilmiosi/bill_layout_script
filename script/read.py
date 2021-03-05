@@ -60,9 +60,8 @@ def read_pdf(pdf_file):
     try:
         out_dict = pyreader.readpdf(pdf_file, args.script, cached=args.cached)
 
-        ret['values'] = out_dict['values']
-        if not all(y in v for y in required_data for v in ret['values']):
-            ret['values'] = []
+        ret['values'] = [v for v in out_dict['values'] if all(i in v for i in required_data)]
+        if ret['values'] != out_dict['values']:
             if 'warnings' not in out_dict: out_dict['warnings'] = []
             out_dict['warnings'].append('Dati Mancanti') 
         ret['layouts'] = [str(Path(x).resolve()) for x in out_dict['layouts']]
@@ -80,8 +79,11 @@ def read_pdf(pdf_file):
 
     return ret
 
+def lastmodified(f):
+    return datetime.fromtimestamp(Path(f).stat().st_mtime)
+
 if __name__ == '__main__':
-    in_files = list(filter(lambda f: datetime.fromtimestamp(f.stat().st_mtime).year >= args.filter_year, input_directory.rglob('*.pdf')))
+    in_files = [f for f in input_directory.rglob('*.pdf') if lastmodified(f).year >= args.filter_year]
 
     results = []
     files = []
@@ -94,7 +96,7 @@ if __name__ == '__main__':
         for pdf_file in in_files:
             skip = False
             for old_obj in filter(lambda x : x['filename'] == str(pdf_file), in_data):
-                if 'error' not in old_obj and all(Path(f).stat().st_mtime < output_file.stat().st_mtime for f in old_obj['layouts'] + [pdf_file]):
+                if 'error' not in old_obj and all(lastmodified(f) < lastmodified(output_file) for f in old_obj['layouts'] + [pdf_file]):
                     results.append(old_obj)
                     skip = True
             if not skip: files.append(pdf_file)
