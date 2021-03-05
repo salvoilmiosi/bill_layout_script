@@ -265,57 +265,45 @@ void reader::exec_command(const command_args &cmd) {
 size_t reader::add_layout(const std::filesystem::path &filename) {
     m_layouts.push_back(filename);
 
-    if (m_flags & READER_USE_CACHED) {
-        auto cache_filename = filename;
+    std::filesystem::path cache_filename;
+    
+    bytecode new_code;
+    bool recompile = true;
+
+    if (m_flags & READER_USE_CACHE) {
+        cache_filename = filename;
         cache_filename.replace_extension(".cache");
 
-        bytecode new_code;
-        bool recompile_cache = true;
-
         if (std::filesystem::exists(cache_filename)) {
-            recompile_cache = std::filesystem::last_write_time(filename) > std::filesystem::last_write_time(cache_filename);
-            if (!recompile_cache) {
+            recompile = std::filesystem::last_write_time(filename) > std::filesystem::last_write_time(cache_filename);
+            if (!recompile) {
                 new_code = binary_bls::read(cache_filename);
                 for (auto &line : new_code) {
                     if (line.command() == opcode::IMPORT) {
                         auto layout_filename = line.get_args<opcode::IMPORT>().filename;
                         if (std::filesystem::last_write_time(layout_filename) > std::filesystem::last_write_time(cache_filename)) {
-                            recompile_cache = true;
+                            recompile = true;
                             break;
                         }
                     }
                 }
             }
         }
+    }
 
-        if (recompile_cache) {
-            parser my_parser;
-            if (m_flags & READER_RECURSIVE) {
-                my_parser.add_flags(PARSER_RECURSIVE_IMPORTS);
-            }
-            my_parser.read_layout(filename.parent_path(), bill_layout_script::from_file(filename));
-            new_code = std::move(my_parser).get_bytecode();
-            binary_bls::write(new_code, cache_filename);
-        }
-
-        return add_code(std::move(new_code));
-    } else {
+    if (recompile) {
         parser my_parser;
         if (m_flags & READER_RECURSIVE) {
             my_parser.add_flags(PARSER_RECURSIVE_IMPORTS);
         }
         my_parser.read_layout(filename.parent_path(), bill_layout_script::from_file(filename));
-        return add_code(std::move(my_parser).get_bytecode());
+        new_code = std::move(my_parser).get_bytecode();
+        if (m_flags & READER_USE_CACHE) {
+            binary_bls::write(new_code, cache_filename);
+        }
     }
-}
 
-size_t reader::add_layout(const bill_layout_script &layout) {
-    parser my_parser;
-    if (m_flags & READER_RECURSIVE) {
-        my_parser.add_flags(PARSER_RECURSIVE_IMPORTS);
-    }
-    my_parser.read_layout(std::filesystem::current_path(), layout);
-    return add_code(std::move(my_parser).get_bytecode());
+    return add_code(std::move(new_code));
 }
 
 size_t reader::add_code(bytecode &&new_code) {

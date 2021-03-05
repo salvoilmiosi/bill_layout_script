@@ -18,6 +18,7 @@
 void frame_editor::OnNewFile(wxCommandEvent &evt) {
     if (box_dialog::closeAll() && saveIfModified()) {
         modified = false;
+        m_filename.clear();
         layout.clear();
         history.clear();
         updateLayout(false);

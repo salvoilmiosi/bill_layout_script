@@ -121,10 +121,16 @@ template<> inline variable_selector readData<variable_selector>(std::istream &in
     return sel;
 }
 
-template<> inline void writeData<jump_uneval>(std::ostream &, const jump_uneval &) {}
+template<> inline void writeData<jump_uneval>(std::ostream &output, const jump_uneval &args) {
+    writeData(output, args.cmd);
+    writeData(output, args.label);
+}
 
 template<> inline jump_uneval readData<jump_uneval>(std::istream &input) {
-    return jump_uneval{};
+    jump_uneval jmp;
+    jmp.cmd = readData<opcode>(input);
+    jmp.label = readData<std::string>(input);
+    return jmp;
 }
 
 template<> inline void writeData<import_options>(std::ostream &output, const import_options &opts) {

@@ -23,7 +23,7 @@ private:
     bool show_debug = false;
     bool show_globals = false;
     bool get_layout = false;
-    bool use_cached = false;
+    bool use_cache = false;
     bool parse_recursive = false;
 };
 
@@ -35,7 +35,7 @@ void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
     parser.AddSwitch("d", "show-debug", "Show Debug Variables");
     parser.AddSwitch("g", "show-globals", "Show Global Variables");
     parser.AddSwitch("l", "get-layout", "Halt On Setlayout");
-    parser.AddSwitch("c", "use-cached", "Use Cached Scripts");
+    parser.AddSwitch("c", "use-cache", "Use Script Cache");
     parser.AddSwitch("r", "recursive-imports", "Recursive Imports");
 }
 
@@ -45,7 +45,7 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     show_debug = parser.FoundSwitch("d") == wxCMD_SWITCH_ON;
     show_globals = parser.FoundSwitch("g") == wxCMD_SWITCH_ON;
     get_layout = parser.FoundSwitch("l") == wxCMD_SWITCH_ON;
-    use_cached = parser.FoundSwitch("c") == wxCMD_SWITCH_ON;
+    use_cache = parser.FoundSwitch("c") == wxCMD_SWITCH_ON;
     parse_recursive = parser.FoundSwitch("r") == wxCMD_SWITCH_ON;
     return true;
 }
@@ -60,8 +60,8 @@ int MainApp::OnRun() {
         if (parse_recursive) {
             my_reader.add_flags(READER_RECURSIVE);
         }
-        if (use_cached) {
-            my_reader.add_flags(READER_USE_CACHED);
+        if (use_cache) {
+            my_reader.add_flags(READER_USE_CACHE);
         }
         my_reader.add_layout(input_bls);
         if (get_layout) {

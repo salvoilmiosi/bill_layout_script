@@ -24,7 +24,7 @@ struct box_spacer {
 
 #define READER_FLAGS \
 F(HALT_ON_SETLAYOUT) \
-F(USE_CACHED) \
+F(USE_CACHE) \
 F(RECURSIVE)
 
 #define F(x) POS_READER_##x,
@@ -50,7 +50,6 @@ public:
 
     // ritorna l'indirizzo del codice aggiunto
     size_t add_layout(const std::filesystem::path &filename);
-    size_t add_layout(const bill_layout_script &layout);
     size_t add_code(bytecode &&new_code);
 
     void add_flags(reader_flags flags) {

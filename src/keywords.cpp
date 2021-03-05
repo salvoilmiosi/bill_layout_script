@@ -270,7 +270,11 @@ void parser::read_keyword() {
             imported.m_flags = m_flags;
             imported.read_layout(imported_file.parent_path(), bill_layout_script::from_file(imported_file));
             auto code_len = m_code.size();
-            std::copy(std::move_iterator(imported.m_code.begin()), std::move_iterator(imported.m_code.end()), std::back_inserter(m_code));
+            std::copy(
+                std::move_iterator(imported.m_code.begin()),
+                std::move_iterator(imported.m_code.end()),
+                std::back_inserter(m_code)
+            );
             for (auto &[line, comment] : imported.m_comments) {
                 m_comments.emplace(code_len + line, std::move(comment));
             }

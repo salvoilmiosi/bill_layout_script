@@ -6,6 +6,7 @@
 #include "resources.h"
 #include "editor.h"
 
+#include "parser.h"
 #include "reader.h"
 #include "utils.h"
 
@@ -93,7 +94,11 @@ reader_thread::~reader_thread() {
 
 wxThread::ExitCode reader_thread::Entry() {
     try {
-        m_reader.add_layout(layout);
+        parser my_parser;
+        std::filesystem::path path = parent->parent->m_filename;
+        if (path.empty()) path = std::filesystem::path(parent->parent->getControlScript().ToStdString()).parent_path();
+        my_parser.read_layout(path, layout);
+        m_reader.add_code(std::move(my_parser).get_bytecode());
         m_reader.start();
         if (!m_aborted) {
             wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
