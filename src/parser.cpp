@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include <iostream>
+#include <tuple>
 
 #include "utils.h"
 #include "bytecode.h"
@@ -194,52 +195,43 @@ bool parser::read_statement(bool throw_on_eof) {
 }
 
 void parser::read_expression() {
-#define OPERATORS \
-F(TOK_ASTERISK,     MUL, 6) \
-F(TOK_SLASH,        DIV, 6) \
-F(TOK_PLUS,         ADD, 5) \
-F(TOK_MINUS,        SUB, 5) \
-F(TOK_LESS,         LT,  4) \
-F(TOK_LESS_EQ,      LEQ, 4) \
-F(TOK_GREATER,      GT,  4) \
-F(TOK_GREATER_EQ,   GEQ, 4) \
-F(TOK_EQUALS,       EQ,  3) \
-F(TOK_NOT_EQUALS,   NEQ, 3) \
-F(TOK_AND,          AND, 2) \
-F(TOK_OR,           OR,  1)
-
-#define F(t, o, p) t,
-    token_type operator_tokens[] = { OPERATORS };
-#undef F
-#define F(t, o, p) make_command<opcode::o>(),
-    command_args operator_opcodes[] = { OPERATORS };
-#undef F
-#define F(t, o, p) p,
-    int operator_precedences[] = { OPERATORS };
-#undef F
+    std::tuple<int, command_args, token_type> operators[] = {
+        {6, make_command<opcode::MUL>(),    TOK_ASTERISK},
+        {6, make_command<opcode::DIV>(),    TOK_SLASH},
+        {5, make_command<opcode::ADD>(),    TOK_PLUS},
+        {5, make_command<opcode::SUB>(),    TOK_MINUS},
+        {4, make_command<opcode::LT>(),     TOK_LESS},
+        {4, make_command<opcode::LEQ>(),    TOK_LESS_EQ},
+        {4, make_command<opcode::GT>(),     TOK_GREATER},
+        {4, make_command<opcode::GEQ>(),    TOK_GREATER_EQ},
+        {3, make_command<opcode::EQ>(),     TOK_EQUALS},
+        {3, make_command<opcode::NEQ>(),    TOK_NOT_EQUALS},
+        {2, make_command<opcode::AND>(),    TOK_AND},
+        {1, make_command<opcode::OR>(),     TOK_OR}
+    };
 
     sub_expression();
 
-    std::vector<int> op_stack;
+    std::vector<decltype(+operators)> op_stack;
     
     while (true) {
         auto tok_op = m_lexer.peek();
-        int op_pos = std::distance(std::begin(operator_tokens), std::find(std::begin(operator_tokens), std::end(operator_tokens), tok_op.type));
-        if (op_pos != std::size(operator_tokens)) {
-            m_lexer.advance(tok_op);
-            if (!op_stack.empty() && operator_precedences[op_stack.back()] >= operator_precedences[op_pos]) {
-                m_code.push_back(operator_opcodes[op_stack.back()]);
-                op_stack.pop_back();
-            }
-            op_stack.push_back(op_pos);
-            sub_expression();
-        } else {
-            break;
+        auto it = std::find_if(std::begin(operators), std::end(operators), [&](const auto &it) {
+            return std::get<token_type>(it) == tok_op.type;
+        });
+        if (it == std::end(operators)) break;
+        
+        m_lexer.advance(tok_op);
+        if (!op_stack.empty() && std::get<int>(*op_stack.back()) >= std::get<int>(*it)) {
+            m_code.push_back(std::get<command_args>(*op_stack.back()));
+            op_stack.pop_back();
         }
+        op_stack.push_back(it);
+        sub_expression();
     }
 
     while (!op_stack.empty()) {
-        m_code.push_back(operator_opcodes[op_stack.back()]);
+        m_code.push_back(std::get<command_args>(*op_stack.back()));
         op_stack.pop_back();
     }
 }
