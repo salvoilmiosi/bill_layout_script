@@ -205,7 +205,11 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_BEGIN);
         read_expression();
         m_lexer.require(TOK_PAREN_END);
-        m_code.emplace_back(fun_name == "setbegin" ? opcode::SETBEGIN : opcode::SETEND);
+        if (fun_name == "setbegin") {
+            add_line<opcode::SETBEGIN>();
+        } else {
+            add_line<opcode::SETEND>();
+        }
         break;
     case hash("newview"):
         add_line<opcode::NEWVIEW>();

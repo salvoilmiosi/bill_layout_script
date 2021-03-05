@@ -211,6 +211,16 @@ public:
     }
 };
 
+template<opcode Cmd, typename ... Ts>
+command_args make_command(Ts && ... args) {
+    if constexpr (std::is_void_v<opcode_type<Cmd>>) {
+        static_assert(sizeof...(args) == 0);
+        return command_args(Cmd);
+    } else {
+        return command_args(Cmd, opcode_type<Cmd>{ std::forward<Ts>(args) ... });
+    }
+}
+
 using bytecode = std::vector<command_args>;
 
 #endif

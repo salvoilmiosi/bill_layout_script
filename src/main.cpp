@@ -62,10 +62,8 @@ int MainApp::OnRun() {
         }
         if (use_cached) {
             my_reader.add_flags(READER_USE_CACHED);
-            my_reader.add_cached_layout(input_bls);
-        } else {
-            my_reader.add_layout(bill_layout_script::from_file(input_bls));
         }
+        my_reader.add_layout(input_bls);
         if (get_layout) {
             my_reader.add_flags(READER_HALT_ON_SETLAYOUT);
         }

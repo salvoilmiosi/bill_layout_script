@@ -193,63 +193,44 @@ bool parser::read_statement(bool throw_on_eof) {
 }
 
 void parser::read_expression() {
-    auto op_prec = [](token_type op_type) {
-        switch (op_type) {
-        case TOK_ASTERISK:
-        case TOK_SLASH:
-            return 6;
-        case TOK_PLUS:
-        case TOK_MINUS:
-            return 5;
-        case TOK_LESS:
-        case TOK_LESS_EQ:
-        case TOK_GREATER:
-        case TOK_GREATER_EQ:
-            return 4;
-        case TOK_EQUALS:
-        case TOK_NOT_EQUALS:
-            return 3;
-        case TOK_AND:
-            return 2;
-        case TOK_OR:
-            return 1;
-        default:
-            return 0;
-        }
-    };
+#define OPERATORS \
+F(TOK_ASTERISK,     MUL, 6) \
+F(TOK_SLASH,        DIV, 6) \
+F(TOK_PLUS,         ADD, 5) \
+F(TOK_MINUS,        SUB, 5) \
+F(TOK_LESS,         LT,  4) \
+F(TOK_LESS_EQ,      LEQ, 4) \
+F(TOK_GREATER,      GT,  4) \
+F(TOK_GREATER_EQ,   GEQ, 4) \
+F(TOK_EQUALS,       EQ,  3) \
+F(TOK_NOT_EQUALS,   NEQ, 3) \
+F(TOK_AND,          AND, 2) \
+F(TOK_OR,           OR,  1)
 
-    auto op_opcode = [](token_type op_type) {
-        switch (op_type) {
-        case TOK_ASTERISK:      return opcode::MUL;
-        case TOK_SLASH:         return opcode::DIV;
-        case TOK_PLUS:          return opcode::ADD;
-        case TOK_MINUS:         return opcode::SUB;
-        case TOK_LESS:          return opcode::LT;
-        case TOK_LESS_EQ:       return opcode::LEQ;
-        case TOK_GREATER:       return opcode::GT;
-        case TOK_GREATER_EQ:    return opcode::GEQ;
-        case TOK_EQUALS:        return opcode::EQ;
-        case TOK_NOT_EQUALS:    return opcode::NEQ;
-        case TOK_AND:           return opcode::AND;
-        case TOK_OR:            return opcode::OR;
-        default:
-            throw layout_error("Operatore non valido");
-        }
-    };
+#define F(t, o, p) t,
+    token_type operator_tokens[] = { OPERATORS };
+#undef F
+#define F(t, o, p) make_command<opcode::o>(),
+    command_args operator_opcodes[] = { OPERATORS };
+#undef F
+#define F(t, o, p) p,
+    int operator_precedences[] = { OPERATORS };
+#undef F
 
     sub_expression();
 
-    std::vector<token_type> op_stack;
+    std::vector<int> op_stack;
     
     while (true) {
         auto tok_op = m_lexer.peek();
-        if (op_prec(tok_op.type) > 0) {
+        int op_pos = std::distance(std::begin(operator_tokens), std::find(std::begin(operator_tokens), std::end(operator_tokens), tok_op.type));
+        if (op_pos != std::size(operator_tokens)) {
             m_lexer.advance(tok_op);
-            if (!op_stack.empty() && op_prec(op_stack.back()) >= op_prec(tok_op.type)) {
-                m_code.emplace_back(op_opcode(op_stack.back()));
+            if (!op_stack.empty() && operator_precedences[op_stack.back()] >= operator_precedences[op_pos]) {
+                m_code.push_back(operator_opcodes[op_stack.back()]);
                 op_stack.pop_back();
             }
-            op_stack.push_back(tok_op.type);
+            op_stack.push_back(op_pos);
             sub_expression();
         } else {
             break;
@@ -257,7 +238,7 @@ void parser::read_expression() {
     }
 
     while (!op_stack.empty()) {
-        m_code.emplace_back(op_opcode(op_stack.back()));
+        m_code.push_back(operator_opcodes[op_stack.back()]);
         op_stack.pop_back();
     }
 }
@@ -414,7 +395,11 @@ void parser::read_function() {
         auto tok_var = m_lexer.require(TOK_IDENTIFIER);
         m_lexer.require(TOK_PAREN_END);
         add_line<opcode::SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), flags_t(SEL_GLOBAL & (-isglobal)));
-        m_code.emplace_back(fun_name == "isset" ? opcode::ISSET : opcode::GETSIZE);
+        if (fun_name == "isset") {
+            add_line<opcode::ISSET>();
+        } else {
+            add_line<opcode::GETSIZE>();
+        }
         break;
     }
     default: {
@@ -435,21 +420,21 @@ void parser::read_function() {
             }
         }
 
-        auto call_op = [&] (int should_be, auto && ... args) {
+        auto call_op = [&] (int should_be, command_args &&cmd) {
             if (num_args != should_be) {
                 throw invalid_numargs(fun_name, should_be, should_be, tok_fun_name);
             }
-            m_code.emplace_back(std::forward<decltype(args)>(args) ...);
+            m_code.push_back(std::move(cmd));
         };
 
         switch (hash(fun_name)) {
-        case hash("num"):       call_op(1, opcode::PARSENUM); break;
-        case hash("int"):       call_op(1, opcode::PARSEINT); break;
-        case hash("aggregate"): call_op(1, opcode::AGGREGATE); break;
-        case hash("null"):      call_op(0, opcode::PUSHNULL); break;
-        case hash("ate"):       call_op(0, opcode::ATE); break;
-        case hash("boxwidth"):  call_op(0, opcode::PUSHNUM, fixed_point(current_box->w)); break;
-        case hash("boxheight"): call_op(0, opcode::PUSHNUM, fixed_point(current_box->h)); break;
+        case hash("num"):       call_op(1, make_command<opcode::PARSENUM>()); break;
+        case hash("int"):       call_op(1, make_command<opcode::PARSEINT>()); break;
+        case hash("aggregate"): call_op(1, make_command<opcode::AGGREGATE>()); break;
+        case hash("null"):      call_op(0, make_command<opcode::PUSHNULL>()); break;
+        case hash("ate"):       call_op(0, make_command<opcode::ATE>()); break;
+        case hash("boxwidth"):  call_op(0, make_command<opcode::PUSHNUM>(current_box->w)); break;
+        case hash("boxheight"): call_op(0, make_command<opcode::PUSHNUM>(current_box->h)); break;
         default:
             try {
                 const auto &fun = find_function(fun_name);

@@ -55,15 +55,19 @@ public:
 
     void read_layout(const bill_layout_script &layout);
 
-    const auto &get_bytecode() {
+    auto &get_bytecode() const & {
         return m_code;
     }
+
+    auto &&get_bytecode() && {
+        return std::move(m_code);
+    }
     
-    const auto &get_labels() {
+    const auto &get_labels() const {
         return m_labels;
     }
 
-    const auto &get_comments() {
+    const auto &get_comments() const {
         return m_comments;
     }
 
@@ -83,11 +87,7 @@ private:
 private:
     template<opcode Cmd, typename ... Ts>
     void add_line(Ts && ... args) {
-        if constexpr (std::is_void_v<opcode_type<Cmd>>) {
-            m_code.emplace_back(Cmd);
-        } else {
-            m_code.emplace_back(Cmd, opcode_type<Cmd>{ std::forward<Ts>(args) ... });
-        }
+        m_code.push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
     }
 
     void add_label(const std::string &label);
