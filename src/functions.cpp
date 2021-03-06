@@ -225,6 +225,9 @@ static const std::unordered_map<std::string, function_handler> lookup {
             return variable::null_var();
         }
         return std::move(*std::min_element(args.begin(), args.end()));
+    }},
+    {"mod", [](int a, int b) {
+        return a % b;
     }}
 };
 
