@@ -100,9 +100,9 @@ $between("RIEPILOGO LETTURE E CONSUMI","CONSUMI FATTURATI") {
   $with($search(@,/(.+Dal Al.+)/)) {
     _len_col=12
     $setbegin(_pos_f1)
-    _pos_attiva=$indexof(@,"Consumi")
+    _pos_attiva=$indexof(@,"Consum")
     $setbegin(_pos_attiva + _len_col)
-    _pos_reattiva=$indexof(@,"Consumi")
+    _pos_reattiva=$indexof(@,"Consum")
     _fmt_table=$format(/.{$0}(.{$2}).{$1}(.{$2})/,_pos_attiva,_pos_reattiva,_len_col)
   }
   $foreach($captures(@,$format(/\d\d\/$0 F1(.+)\n F2(.+)\n F3(.+)/,$date_format(mese_fattura,"%m/%Y")))) {
