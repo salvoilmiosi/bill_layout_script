@@ -228,6 +228,9 @@ static const std::unordered_map<std::string, function_handler> lookup {
     }},
     {"mod", [](int a, int b) {
         return a % b;
+    }},
+    {"table_row_regex", [](std::string_view header, const std::vector<std::string> &names) {
+        return table_row_regex(header, names);
     }}
 };
 

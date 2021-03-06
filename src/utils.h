@@ -66,6 +66,9 @@ std::string string_replace_regex(const std::string &value, std::string_view form
 // converte ogni carattere di spazio in " "
 std::string singleline(std::string input);
 
+// restituisce un'espressione regolare che parsa una riga di una tabella
+std::string table_row_regex(std::string_view header, const std::vector<std::string> &names);
+
 // sposta il range indicato alla fine del vettore
 template<typename T>
 void vector_move_to_end(std::vector<T> &vec, size_t begin, size_t end) {

@@ -249,3 +249,17 @@ std::string singleline(std::string input) {
     }
     return input;
 }
+
+std::string table_row_regex(std::string_view header, const std::vector<std::string> &names) {
+    std::string ret;
+    size_t begin = 0;
+    size_t len = 0;
+    for (const auto &name : names) {
+        size_t i = string_findicase(header, name, begin + len);
+        len = name.size();
+        ret += fmt::format("(.{{{}}})", i - begin);
+        begin = i;
+    }
+    ret += "(.+)";
+    return ret;
+}
