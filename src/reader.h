@@ -31,7 +31,7 @@ F(RECURSIVE)
 enum { READER_FLAGS };
 #undef F
 #define F(x) READER_##x = (1 << POS_READER_##x),
-enum reader_flags { READER_FLAGS };
+enum reader_flags : flags_t { READER_FLAGS };
 #undef F
 
 class reader {

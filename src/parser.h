@@ -22,7 +22,7 @@ F(FORCE)
 enum { VARIABLE_PREFIXES };
 #undef F
 #define F(x) VP_##x = (1 << POS_VP_##x),
-enum variable_prefixes { VARIABLE_PREFIXES };
+enum variable_prefixes : flags_t { VARIABLE_PREFIXES };
 #undef F
 
 #define PARSER_FLAGS \
@@ -34,7 +34,7 @@ F(RECURSIVE_IMPORTS)
 enum { PARSER_FLAGS };
 #undef F
 #define F(x) PARSER_##x = (1 << POS_PARSER_##x),
-enum parser_flags { PARSER_FLAGS };
+enum parser_flags : flags_t { PARSER_FLAGS };
 #undef F
 
 struct loop_label_pair {

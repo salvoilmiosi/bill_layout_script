@@ -17,7 +17,7 @@
 }
 
 #define BOX(x, y) BOX_##x
-enum class box_type : uint8_t BOX_TYPES;
+enum box_type : uint8_t BOX_TYPES;
 #undef BOX
 #define BOX(x, y) #x
 constexpr const char *box_type_strings[] = BOX_TYPES;
@@ -33,7 +33,7 @@ constexpr const char *box_type_labels[] = BOX_TYPES;
 }
 
 #define MODE(x, y, z) MODE_##x
-enum class read_mode : uint8_t READ_MODES;
+enum read_mode : uint8_t READ_MODES;
 #undef MODE
 #define MODE(x, y, z) #x
 static const char *read_mode_strings[] = READ_MODES;
@@ -41,13 +41,16 @@ static const char *read_mode_strings[] = READ_MODES;
 #define MODE(x, y, z) y
 static const char *read_mode_labels[] = READ_MODES;
 #undef MODE
+#define MODE(x, y, z) poppler::page::text_layout_enum::z
+static poppler::page::text_layout_enum poppler_modes[] = READ_MODES;
+#undef MODE
 
 struct pdf_rect {
     int page = 0;
     float x, y;
     float w, h;
-    read_mode mode = read_mode::MODE_DEFAULT;
-    box_type type = box_type::BOX_RECTANGLE;
+    read_mode mode = MODE_DEFAULT;
+    box_type type = BOX_RECTANGLE;
 };
 
 class pdf_document {

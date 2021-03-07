@@ -24,10 +24,6 @@ void pdf_document::open(const std::filesystem::path &filename) {
     }
 }
 
-#define MODE(x, y, z) poppler::page::text_layout_enum::z
-static poppler::page::text_layout_enum poppler_modes[] = READ_MODES;
-#undef MODE
-
 std::string pdf_document::get_text(const pdf_rect &rect) const {
     if (!isopen()) return "";
     if (rect.page > num_pages() || rect.page <= 0) return "";
@@ -42,15 +38,15 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
     };
 
     switch (rect.type) {
-    case box_type::BOX_RECTANGLE: {
+    case BOX_RECTANGLE: {
         auto &page = get_page(rect.page);
         auto pgrect = page.page_rect();
         poppler::rectf poppler_rect(rect.x * pgrect.width(), rect.y * pgrect.height(), rect.w * pgrect.width(), rect.h * pgrect.height());
         return to_stdstring(page.text(poppler_rect, poppler_mode));
     }
-    case box_type::BOX_PAGE:
+    case BOX_PAGE:
         return to_stdstring(get_page(rect.page).text(poppler::rectf(), poppler_mode));
-    case box_type::BOX_WHOLEFILE: {
+    case BOX_WHOLEFILE: {
         poppler::ustring ret;
         for (auto &page : m_pages) {
             ret.append(page->text(poppler::rectf(), poppler_mode));

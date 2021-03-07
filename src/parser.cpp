@@ -14,7 +14,7 @@ void parser::read_layout(const std::filesystem::path &path, const bill_layout_sc
     
     try {
         if (intl::valid_language(layout.language_code)) {
-            add_line<opcode::SETLANG>(layout.language_code);
+            add_line<OP_SETLANG>(layout.language_code);
         }
         for (auto &box : layout.m_boxes) {
             read_box(*box);
@@ -27,8 +27,8 @@ void parser::read_layout(const std::filesystem::path &path, const bill_layout_sc
 
     if (!(m_flags & PARSER_NO_EVAL_JUMPS)) {
         for (auto line = m_code.begin(); line != m_code.end(); ++line) {
-            if (line->command() == opcode::UNEVAL_JUMP) {
-                auto &addr = line->get_args<opcode::UNEVAL_JUMP>();
+            if (line->command() == OP_UNEVAL_JUMP) {
+                auto &addr = line->get_args<OP_UNEVAL_JUMP>();
                 if (auto it = m_labels.find(addr.label); it != m_labels.end()) {
                     *line = command_args(addr.cmd, jump_address(it->second - (line - m_code.begin())));
                 } else {
@@ -80,37 +80,37 @@ void parser::read_box(const layout_box &box) {
             switch (hash(tok.value)) {
             case hash("p"):
             case hash("page"):
-                index = spacer_index::SPACER_PAGE;
+                index = SPACER_PAGE;
                 break;
             case hash("x"):
-                index = spacer_index::SPACER_X;
+                index = SPACER_X;
                 break;
             case hash("y"):
-                index = spacer_index::SPACER_Y;
+                index = SPACER_Y;
                 break;
             case hash("w"):
             case hash("width"):
-                index = spacer_index::SPACER_W;
+                index = SPACER_W;
                 break;
             case hash("h"):
             case hash("height"):
-                index = spacer_index::SPACER_H;
+                index = SPACER_H;
                 break;
             case hash("t"):
             case hash("top"):
-                index = spacer_index::SPACER_TOP;
+                index = SPACER_TOP;
                 break;
             case hash("r"):
             case hash("right"):
-                index = spacer_index::SPACER_RIGHT;
+                index = SPACER_RIGHT;
                 break;
             case hash("b"):
             case hash("bottom"):
-                index = spacer_index::SPACER_BOTTOM;
+                index = SPACER_BOTTOM;
                 break;
             case hash("l"):
             case hash("left"):
-                index = spacer_index::SPACER_LEFT;
+                index = SPACER_LEFT;
                 break;
             default:
                 throw unexpected_token(tok);
@@ -128,8 +128,8 @@ void parser::read_box(const layout_box &box) {
                 throw unexpected_token(tok_sign, TOK_PLUS);
             }
             read_expression();
-            if (negative) add_line<opcode::NEG>();
-            add_line<opcode::MVBOX>(index);
+            if (negative) add_line<OP_NEG>();
+            add_line<OP_MVBOX>(index);
         } else if (tok.type != TOK_END_OF_FILE) {
             throw unexpected_token(tok, TOK_IDENTIFIER);
         } else {
@@ -137,7 +137,7 @@ void parser::read_box(const layout_box &box) {
         }
     }
 
-    add_line<opcode::RDBOX>(pdf_rect(box));
+    add_line<OP_RDBOX>(pdf_rect(box));
 
     m_lexer.set_script(box.script);
     while (read_statement(false));
@@ -178,17 +178,17 @@ bool parser::read_statement(bool throw_on_eof) {
             read_expression();
             break;
         default:
-            add_line<opcode::PUSHVIEW>();
+            add_line<OP_PUSHVIEW>();
             break;
         }
 
-        if (prefixes & VP_AGGREGATE)  add_line<opcode::AGGREGATE>();
-        if (prefixes & VP_PARSENUM)   add_line<opcode::PARSENUM>();
+        if (prefixes & VP_AGGREGATE)  add_line<OP_AGGREGATE>();
+        if (prefixes & VP_PARSENUM)   add_line<OP_PARSENUM>();
         if (prefixes & VP_OVERWRITE)  flags |= SET_OVERWRITE;
         if (prefixes & VP_FORCE)      flags |= SET_FORCE;
 
         vector_move_to_end(m_code, selvar_begin, selvar_end);
-        add_line<opcode::SETVAR>(flags);
+        add_line<OP_SETVAR>(flags);
     }
     }
     return true;
@@ -196,18 +196,18 @@ bool parser::read_statement(bool throw_on_eof) {
 
 void parser::read_expression() {
     std::tuple<int, command_args, token_type> operators[] = {
-        {6, make_command<opcode::MUL>(),    TOK_ASTERISK},
-        {6, make_command<opcode::DIV>(),    TOK_SLASH},
-        {5, make_command<opcode::ADD>(),    TOK_PLUS},
-        {5, make_command<opcode::SUB>(),    TOK_MINUS},
-        {4, make_command<opcode::LT>(),     TOK_LESS},
-        {4, make_command<opcode::LEQ>(),    TOK_LESS_EQ},
-        {4, make_command<opcode::GT>(),     TOK_GREATER},
-        {4, make_command<opcode::GEQ>(),    TOK_GREATER_EQ},
-        {3, make_command<opcode::EQ>(),     TOK_EQUALS},
-        {3, make_command<opcode::NEQ>(),    TOK_NOT_EQUALS},
-        {2, make_command<opcode::AND>(),    TOK_AND},
-        {1, make_command<opcode::OR>(),     TOK_OR}
+        {6, make_command<OP_MUL>(),    TOK_ASTERISK},
+        {6, make_command<OP_DIV>(),    TOK_SLASH},
+        {5, make_command<OP_ADD>(),    TOK_PLUS},
+        {5, make_command<OP_SUB>(),    TOK_MINUS},
+        {4, make_command<OP_LT>(),     TOK_LESS},
+        {4, make_command<OP_LEQ>(),    TOK_LESS_EQ},
+        {4, make_command<OP_GT>(),     TOK_GREATER},
+        {4, make_command<OP_GEQ>(),    TOK_GREATER_EQ},
+        {3, make_command<OP_EQ>(),     TOK_EQUALS},
+        {3, make_command<OP_NEQ>(),    TOK_NOT_EQUALS},
+        {2, make_command<OP_AND>(),    TOK_AND},
+        {1, make_command<OP_OR>(),     TOK_OR}
     };
 
     sub_expression();
@@ -250,7 +250,7 @@ void parser::sub_expression() {
     case TOK_NOT:
         m_lexer.advance(tok_first);
         sub_expression();
-        add_line<opcode::NOT>();
+        add_line<OP_NOT>();
         break;
     case TOK_MINUS: {
         m_lexer.advance(tok_first);
@@ -259,36 +259,36 @@ void parser::sub_expression() {
         case TOK_INTEGER:
         case TOK_NUMBER:
             m_lexer.advance(tok_num);
-            add_line<opcode::PUSHNUM>(-fixed_point(std::string(tok_num.value)));
+            add_line<OP_PUSHNUM>(-fixed_point(std::string(tok_num.value)));
             break;
         default:
             sub_expression();
-            add_line<opcode::NEG>();
+            add_line<OP_NEG>();
         }
         break;
     }
     case TOK_INTEGER:
     case TOK_NUMBER:
         m_lexer.advance(tok_first);
-        add_line<opcode::PUSHNUM>(fixed_point(std::string(tok_first.value)));
+        add_line<OP_PUSHNUM>(fixed_point(std::string(tok_first.value)));
         break;
     case TOK_SLASH: 
-        add_line<opcode::PUSHSTR>(m_lexer.require(TOK_REGEXP).parse_string());
+        add_line<OP_PUSHSTR>(m_lexer.require(TOK_REGEXP).parse_string());
         break;
     case TOK_STRING:
         m_lexer.advance(tok_first);
-        add_line<opcode::PUSHSTR>(tok_first.parse_string());
+        add_line<OP_PUSHSTR>(tok_first.parse_string());
         break;
     case TOK_CONTENT:
         m_lexer.advance(tok_first);
-        add_line<opcode::PUSHVIEW>();
+        add_line<OP_PUSHVIEW>();
         break;
     default: {
         int prefixes = read_variable(true);
         if (prefixes & VP_MOVE) {
-            add_line<opcode::MOVEVAR>();
+            add_line<OP_MOVEVAR>();
         } else {
-            add_line<opcode::PUSHVAR>();
+            add_line<OP_PUSHVAR>();
         }
     }
     }
@@ -371,7 +371,7 @@ int parser::read_variable(bool read_only) {
         m_lexer.require(TOK_BRACKET_END);
     }
 
-    add_line<opcode::SELVAR>(var_idx);
+    add_line<OP_SELVAR>(var_idx);
 
     return prefixes;
 }
@@ -387,11 +387,11 @@ void parser::read_function() {
         bool isglobal = m_lexer.check_next(TOK_GLOBAL);
         auto tok_var = m_lexer.require(TOK_IDENTIFIER);
         m_lexer.require(TOK_PAREN_END);
-        add_line<opcode::SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), flags_t(SEL_GLOBAL & (-isglobal)));
+        add_line<OP_SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), flags_t(SEL_GLOBAL & (-isglobal)));
         if (fun_name == "isset") {
-            add_line<opcode::ISSET>();
+            add_line<OP_ISSET>();
         } else {
-            add_line<opcode::GETSIZE>();
+            add_line<OP_GETSIZE>();
         }
         break;
     }
@@ -421,20 +421,20 @@ void parser::read_function() {
         };
 
         switch (hash(fun_name)) {
-        case hash("num"):       call_op(1, make_command<opcode::PARSENUM>()); break;
-        case hash("int"):       call_op(1, make_command<opcode::PARSEINT>()); break;
-        case hash("aggregate"): call_op(1, make_command<opcode::AGGREGATE>()); break;
-        case hash("null"):      call_op(0, make_command<opcode::PUSHNULL>()); break;
-        case hash("ate"):       call_op(0, make_command<opcode::ATE>()); break;
-        case hash("boxwidth"):  call_op(0, make_command<opcode::PUSHNUM>(current_box->w)); break;
-        case hash("boxheight"): call_op(0, make_command<opcode::PUSHNUM>(current_box->h)); break;
+        case hash("num"):       call_op(1, make_command<OP_PARSENUM>()); break;
+        case hash("int"):       call_op(1, make_command<OP_PARSEINT>()); break;
+        case hash("aggregate"): call_op(1, make_command<OP_AGGREGATE>()); break;
+        case hash("null"):      call_op(0, make_command<OP_PUSHNULL>()); break;
+        case hash("ate"):       call_op(0, make_command<OP_ATE>()); break;
+        case hash("boxwidth"):  call_op(0, make_command<OP_PUSHNUM>(current_box->w)); break;
+        case hash("boxheight"): call_op(0, make_command<OP_PUSHNUM>(current_box->h)); break;
         default:
             try {
                 const auto &fun = find_function(fun_name);
                 if (num_args < fun.minargs || num_args > fun.maxargs) {
                     throw invalid_numargs(fun_name, fun.minargs, fun.maxargs, tok_fun_name);
                 }
-                add_line<opcode::CALL>(fun_name, num_args);
+                add_line<OP_CALL>(fun_name, num_args);
             } catch (const std::out_of_range &error) {
                 throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
             }

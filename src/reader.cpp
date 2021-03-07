@@ -108,13 +108,13 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     switch(cmd.command()) {
-    case opcode::NOP: break;
-    case opcode::RDBOX:         read_box(cmd.get_args<opcode::RDBOX>()); break;
-    case opcode::CALL:          call_function(cmd.get_args<opcode::CALL>()); break;
-    case opcode::THROWERR:      throw layout_error(m_vars.top().str()); break;
-    case opcode::ADDWARNING:    m_warnings.push_back(std::move(m_vars.pop().str())); break;
-    case opcode::PARSEINT: m_vars.top() = m_vars.top().as_int(); break;
-    case opcode::PARSENUM: {
+    case OP_NOP: break;
+    case OP_RDBOX:      read_box(cmd.get_args<OP_RDBOX>()); break;
+    case OP_CALL:       call_function(cmd.get_args<OP_CALL>()); break;
+    case OP_THROWERROR: throw layout_error(m_vars.top().str()); break;
+    case OP_WARNING:    m_warnings.push_back(std::move(m_vars.pop().str())); break;
+    case OP_PARSEINT:   m_vars.top() = m_vars.top().as_int(); break;
+    case OP_PARSENUM: {
         auto &var = m_vars.top();
         if (var.type() == VAR_STRING) {
             fixed_point num;
@@ -126,7 +126,7 @@ void reader::exec_command(const command_args &cmd) {
         }
         break;
     }
-    case opcode::AGGREGATE: {
+    case OP_AGGREGATE: {
         if (! m_vars.top().empty()) {
             fixed_point ret(0);
             content_view view(m_vars.top().str());
@@ -142,108 +142,108 @@ void reader::exec_command(const command_args &cmd) {
         }
         break;
     }
-    case opcode::NOT: m_vars.top() = !m_vars.top(); break;
-    case opcode::NEG: m_vars.top() = -m_vars.top(); break;
+    case OP_NOT: m_vars.top() = !m_vars.top(); break;
+    case OP_NEG: m_vars.top() = -m_vars.top(); break;
 #define OP(x) exec_operator([](const auto &a, const auto &b) { return x; })
-    case opcode::EQ:  OP(a == b); break;
-    case opcode::NEQ: OP(a != b); break;
-    case opcode::AND: OP(a && b); break;
-    case opcode::OR:  OP(a || b); break;
-    case opcode::ADD: OP(a + b); break;
-    case opcode::SUB: OP(a - b); break;
-    case opcode::MUL: OP(a * b); break;
-    case opcode::DIV: OP(a / b); break;
-    case opcode::GT:  OP(a > b); break;
-    case opcode::LT:  OP(a < b); break;
-    case opcode::GEQ: OP(a >= b); break;
-    case opcode::LEQ: OP(a <= b); break;
+    case OP_EQ:  OP(a == b); break;
+    case OP_NEQ: OP(a != b); break;
+    case OP_AND: OP(a && b); break;
+    case OP_OR:  OP(a || b); break;
+    case OP_ADD: OP(a + b); break;
+    case OP_SUB: OP(a - b); break;
+    case OP_MUL: OP(a * b); break;
+    case OP_DIV: OP(a / b); break;
+    case OP_GT:  OP(a > b); break;
+    case OP_LT:  OP(a < b); break;
+    case OP_GEQ: OP(a >= b); break;
+    case OP_LEQ: OP(a <= b); break;
 #undef OP
-    case opcode::SELVAR: select_var(cmd.get_args<opcode::SELVAR>()); break;
-    case opcode::ISSET: m_vars.push(m_selected.size() != 0); break;
-    case opcode::GETSIZE: m_vars.push(m_selected.size()); break;
-    case opcode::MVBOX: {
+    case OP_SELVAR: select_var(cmd.get_args<OP_SELVAR>()); break;
+    case OP_ISSET: m_vars.push(m_selected.size() != 0); break;
+    case OP_GETSIZE: m_vars.push(m_selected.size()); break;
+    case OP_MVBOX: {
         auto amt = m_vars.pop();
-        switch (cmd.get_args<opcode::MVBOX>()) {
-        case spacer_index::SPACER_PAGE:
+        switch (cmd.get_args<OP_MVBOX>()) {
+        case SPACER_PAGE:
             m_spacer.page += amt.as_int();
             break;
-        case spacer_index::SPACER_X:
+        case SPACER_X:
             m_spacer.x += amt.as_double();
             break;
-        case spacer_index::SPACER_Y:
+        case SPACER_Y:
             m_spacer.y += amt.as_double();
             break;
-        case spacer_index::SPACER_W:
-        case spacer_index::SPACER_RIGHT:
+        case SPACER_W:
+        case SPACER_RIGHT:
             m_spacer.w += amt.as_double();
             break;
-        case spacer_index::SPACER_H:
-        case spacer_index::SPACER_BOTTOM:
+        case SPACER_H:
+        case SPACER_BOTTOM:
             m_spacer.h += amt.as_double();
             break;
-        case spacer_index::SPACER_TOP:
+        case SPACER_TOP:
             m_spacer.y += amt.as_double();
             m_spacer.h -= amt.as_double();
             break;
-        case spacer_index::SPACER_LEFT:
+        case SPACER_LEFT:
             m_spacer.x += amt.as_double();
             m_spacer.w -= amt.as_double();
             break;
         }
         break;
     }
-    case opcode::CLEAR:     m_selected.clear(); break;
-    case opcode::SETVAR:    m_selected.set_value(m_vars.pop(), cmd.get_args<opcode::SETVAR>()); break;
-    case opcode::PUSHVIEW:  m_vars.push(m_contents.top().view()); break;
-    case opcode::PUSHNUM:   m_vars.push(cmd.get_args<opcode::PUSHNUM>()); break;
-    case opcode::PUSHSTR:   m_vars.push(cmd.get_args<opcode::PUSHSTR>()); break;
-    case opcode::PUSHNULL:  m_vars.push(variable::null_var()); break;
-    case opcode::PUSHVAR:   m_vars.push(m_selected.get_value()); break;
-    case opcode::MOVEVAR:   m_vars.push(m_selected.get_moved()); break;
-    case opcode::JMP:
-        m_program_counter += cmd.get_args<opcode::JMP>();
+    case OP_CLEAR:     m_selected.clear(); break;
+    case OP_SETVAR:    m_selected.set_value(m_vars.pop(), cmd.get_args<OP_SETVAR>()); break;
+    case OP_PUSHVIEW:  m_vars.push(m_contents.top().view()); break;
+    case OP_PUSHNUM:   m_vars.push(cmd.get_args<OP_PUSHNUM>()); break;
+    case OP_PUSHSTR:   m_vars.push(cmd.get_args<OP_PUSHSTR>()); break;
+    case OP_PUSHNULL:  m_vars.push(variable::null_var()); break;
+    case OP_PUSHVAR:   m_vars.push(m_selected.get_value()); break;
+    case OP_MOVEVAR:   m_vars.push(m_selected.get_moved()); break;
+    case OP_JMP:
+        m_program_counter += cmd.get_args<OP_JMP>();
         m_jumped = true;
         break;
-    case opcode::JSR:
-        jump_subroutine(m_program_counter + cmd.get_args<opcode::JSR>());
+    case OP_JSR:
+        jump_subroutine(m_program_counter + cmd.get_args<OP_JSR>());
         break;
-    case opcode::JZ:
+    case OP_JZ:
         if (!m_vars.pop().as_bool()) {
-            m_program_counter += cmd.get_args<opcode::JZ>();
+            m_program_counter += cmd.get_args<OP_JZ>();
             m_jumped = true;
         }
         break;
-    case opcode::JNZ:
+    case OP_JNZ:
         if (m_vars.pop().as_bool()) {
-            m_program_counter += cmd.get_args<opcode::JNZ>();
+            m_program_counter += cmd.get_args<OP_JNZ>();
             m_jumped = true;
         }
         break;
-    case opcode::JTE:
+    case OP_JTE:
         if (m_contents.top().token_end()) {
-            m_program_counter += cmd.get_args<opcode::JTE>();
+            m_program_counter += cmd.get_args<OP_JTE>();
             m_jumped = true;
         }
         break;
-    case opcode::MOVCONTENT: m_contents.push(std::move(m_vars.pop().str())); break;
-    case opcode::POPCONTENT: m_contents.pop(); break;
-    case opcode::SETBEGIN:  m_contents.top().setbegin(m_vars.pop().as_int()); break;
-    case opcode::SETEND:    m_contents.top().setend(m_vars.pop().as_int()); break;
-    case opcode::NEWVIEW: m_contents.top().new_view(); break;
-    case opcode::SUBVIEW: m_contents.top().new_subview(); break;
-    case opcode::RESETVIEW: m_contents.top().reset_view(); break;
-    case opcode::NEXTRESULT: m_contents.top().next_result(); break;
-    case opcode::NEXTTABLE: ++m_table_index; break;
-    case opcode::ATE: m_vars.push(m_last_box_page > m_doc->num_pages()); break;
-    case opcode::RET:
+    case OP_MOVCONTENT: m_contents.push(std::move(m_vars.pop().str())); break;
+    case OP_POPCONTENT: m_contents.pop(); break;
+    case OP_SETBEGIN:  m_contents.top().setbegin(m_vars.pop().as_int()); break;
+    case OP_SETEND:    m_contents.top().setend(m_vars.pop().as_int()); break;
+    case OP_NEWVIEW: m_contents.top().new_view(); break;
+    case OP_SUBVIEW: m_contents.top().new_subview(); break;
+    case OP_RESETVIEW: m_contents.top().reset_view(); break;
+    case OP_NEXTRESULT: m_contents.top().next_result(); break;
+    case OP_NEXTTABLE: ++m_table_index; break;
+    case OP_ATE: m_vars.push(m_last_box_page > m_doc->num_pages()); break;
+    case OP_RET:
         if (!m_return_addrs.empty()) {
             m_program_counter = m_return_addrs.pop();
             break;
         }
         [[fallthrough]];
-    case opcode::HLT: halt(); break;
-    case opcode::IMPORT: {
-        const auto &args = cmd.get_args<opcode::IMPORT>();
+    case OP_HLT: halt(); break;
+    case OP_IMPORT: {
+        const auto &args = cmd.get_args<OP_IMPORT>();
         if (args.flags & IMPORT_SETLAYOUT && m_flags & READER_HALT_ON_SETLAYOUT) {
             m_layouts.push_back(args.filename);
             halt();
@@ -253,12 +253,12 @@ void reader::exec_command(const command_args &cmd) {
             }
         } else {
             size_t addr = add_layout(args.filename);
-            m_code[m_program_counter] = make_command<opcode::JSR>(jump_address(addr - m_program_counter));
+            m_code[m_program_counter] = make_command<OP_JSR>(jump_address(addr - m_program_counter));
             jump_subroutine(addr);
         }
         break;
     }
-    case opcode::SETLANG: intl::set_language(cmd.get_args<opcode::SETLANG>()); break;
+    case OP_SETLANG: intl::set_language(cmd.get_args<OP_SETLANG>()); break;
     }
 }
 
@@ -279,8 +279,8 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
             if (!recompile) {
                 new_code = binary_bls::read(cache_filename);
                 for (auto &line : new_code) {
-                    if (line.command() == opcode::IMPORT) {
-                        auto layout_filename = line.get_args<opcode::IMPORT>().filename;
+                    if (line.command() == OP_IMPORT) {
+                        auto layout_filename = line.get_args<OP_IMPORT>().filename;
                         if (std::filesystem::last_write_time(layout_filename) > std::filesystem::last_write_time(cache_filename)) {
                             recompile = true;
                             break;
@@ -314,7 +314,7 @@ size_t reader::add_code(bytecode &&new_code) {
         std::move_iterator(new_code.end()),
         std::back_inserter(m_code)
     );
-    m_code.push_back(make_command<opcode::RET>());
+    m_code.push_back(make_command<OP_RET>());
     
     return addr;
 }

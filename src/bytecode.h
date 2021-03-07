@@ -13,8 +13,8 @@ O(NOP)                          /* no operation */ \
 O(RDBOX, pdf_rect)              /* poppler.get_text -> content_stack */ \
 O(MVBOX, spacer_index)          /* var_stack -> spacer[index] */ \
 O(CALL, command_call)           /* var_stack * numargs -> fun_name -> var_stack */ \
-O(THROWERR)                     /* var_stack -> throw */ \
-O(ADDWARNING)                   /* var_stack -> warnings */ \
+O(THROWERROR)                        /* var_stack -> throw */ \
+O(WARNING)                      /* var_stack -> warnings */ \
 O(PARSENUM)                     /* var_stack -> parse_num -> var_stack */ \
 O(PARSEINT)                     /* var_stack -> parse_int -> var_stack */ \
 O(AGGREGATE)                    /* var_stack -> split -> parse_int -> sum -> var_stack */ \
@@ -71,8 +71,8 @@ O(SETLANG, intl::language)      /* imposta la lingua del layout */
 #define O_CHOOSER(...) GET_3RD(__VA_ARGS__, O_2_ARGS, O_1_ARGS)
 #define O(...) O_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
-#define O_IMPL(x, t) x,
-enum class opcode : uint8_t { OPCODES };
+#define O_IMPL(x, t) OP_##x,
+enum opcode : uint8_t { OPCODES };
 #undef O_IMPL
 
 #define O_IMPL(x, t) #x,
@@ -102,7 +102,7 @@ F(BOTTOM) \
 F(LEFT)
 
 #define F(x) SPACER_##x,
-enum class spacer_index : uint8_t { SPACER_INDICES };
+enum spacer_index : uint8_t { SPACER_INDICES };
 #undef F
 #define F(x) #x,
 constexpr const char *spacer_index_names[] = { SPACER_INDICES };
@@ -119,7 +119,7 @@ F(APPEND)
 enum { SELVAR_FLAGS };
 #undef F
 #define F(x) SEL_##x = (1 << POS_SEL_##x),
-enum selvar_flags { SELVAR_FLAGS };
+enum selvar_flags : flags_t { SELVAR_FLAGS };
 #undef F
 #define F(x) #x,
 static const char *selvar_flags_names[] = { SELVAR_FLAGS };
@@ -142,7 +142,7 @@ F(DECREASE)
 enum { SETVAR_FLAGS };
 #undef F
 #define F(x) SET_##x = (1 << POS_SET_##x),
-enum setvar_flags { SETVAR_FLAGS };
+enum setvar_flags : flags_t { SETVAR_FLAGS };
 #undef F
 #define F(x) #x,
 static const char *setvar_flags_names[] = { SETVAR_FLAGS };
@@ -161,7 +161,7 @@ F(SETLAYOUT)
 enum { IMPORT_FLAGS };
 #undef F
 #define F(x) IMPORT_##x = (1 << POS_IMPORT_##x),
-enum import_flags { IMPORT_FLAGS };
+enum import_flags : flags_t { IMPORT_FLAGS };
 #undef F
 #define F(x) #x,
 static const char *import_flags_names[] = { IMPORT_FLAGS };
@@ -172,7 +172,7 @@ struct import_options {
     flags_t flags;
 };
 
-#define O_IMPL(x, t) template<> struct opcode_type_impl<opcode::x> { using type = t; };
+#define O_IMPL(x, t) template<> struct opcode_type_impl<OP_##x> { using type = t; };
 template<opcode Cmd> struct opcode_type_impl {};
 template<opcode Cmd> using opcode_type = typename opcode_type_impl<Cmd>::type;
 OPCODES
@@ -184,7 +184,7 @@ private:
     std::any m_data;
 
     bool check_type() const {
-#define O_IMPL(x, t) case opcode::x: return m_data.type() == typeid(opcode_type<opcode::x>);
+#define O_IMPL(x, t) case OP_##x: return m_data.type() == typeid(opcode_type<OP_##x>);
         switch (m_command) {
             OPCODES
         }
@@ -193,7 +193,7 @@ private:
     }
 
 public:
-    command_args(opcode command = opcode::NOP) : m_command(command) {
+    command_args(opcode command = OP_NOP) : m_command(command) {
         assert(check_type());
     }
 

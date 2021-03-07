@@ -145,17 +145,20 @@ template<> inline import_options readData<import_options>(std::istream &input) {
     return opts;
 }
 
-template<opcode Cmd, typename T> inline void writeCommandData(std::ostream &output, const command_args &line) {
-    if constexpr (! std::is_void_v<T>) {
-        writeData<T>(output, line.get_args<Cmd>());
+template<opcode Cmd> inline void writeCommandData(std::ostream &output, const command_args &line) {
+    using type = opcode_type<Cmd>;
+    writeData(output, Cmd);
+    if constexpr (! std::is_void_v<type>) {
+        writeData<type>(output, line.get_args<Cmd>());
     }
 }
 
-template<opcode Cmd, typename T> inline command_args createCommandArgs(std::istream &input) {
-    if constexpr (std::is_void_v<T>) {
+template<opcode Cmd> inline command_args createCommandArgs(std::istream &input) {
+    using type = opcode_type<Cmd>;
+    if constexpr (std::is_void_v<type>) {
         return command_args(Cmd);
     } else {
-        return command_args(Cmd, readData<T>(input));
+        return command_args(Cmd, readData<type>(input));
     }
 }
 
@@ -166,9 +169,8 @@ namespace binary_bls {
         bytecode ret;
 
         while (ifs.peek() != EOF) {
-            opcode cmd = readData<opcode>(ifs);
-#define O_IMPL(x, t) case opcode::x: ret.push_back(createCommandArgs<opcode::x, t>(ifs)); break;
-            switch (cmd) {
+#define O_IMPL(x, t) case OP_##x: ret.push_back(createCommandArgs<OP_##x>(ifs)); break;
+            switch (readData<opcode>(ifs)) {
                 OPCODES
             }
 #undef O_IMPL
@@ -181,8 +183,7 @@ namespace binary_bls {
         std::ofstream ofs(filename, std::ios::binary | std::ios::out);
 
         for (const auto &line : code) {
-            writeData(ofs, line.command());
-#define O_IMPL(x, t) case opcode::x: writeCommandData<opcode::x, t>(ofs, line); break;
+#define O_IMPL(x, t) case OP_##x: writeCommandData<OP_##x>(ofs, line); break;
             switch (line.command()) {
                 OPCODES
             }

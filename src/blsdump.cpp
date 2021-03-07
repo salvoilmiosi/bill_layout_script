@@ -80,24 +80,24 @@ int MainApp::OnRun() {
             }
             auto &line = *it;
             switch (line.command()) {
-            case opcode::RDBOX: {
-                auto box = line.get_args<opcode::RDBOX>();
+            case OP_RDBOX: {
+                auto box = line.get_args<OP_RDBOX>();
                 std::cout << '\t' << opcode_names[int(line.command())];
                 std::cout << ' ' << read_mode_strings[int(box.mode)];
                 std::cout << ' ' << box_type_strings[int(box.type)];
                 std::cout << ' ' << int(box.page) << ' ' << box.x << ' ' << box.y << ' ' << box.w << ' ' << box.h;
                 break;
             }
-            case opcode::MVBOX:
-                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << spacer_index_names[int(line.get_args<opcode::MVBOX>())];
+            case OP_MVBOX:
+                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << spacer_index_names[int(line.get_args<OP_MVBOX>())];
                 break;
-            case opcode::CALL: {
-                auto args = line.get_args<opcode::CALL>();
+            case OP_CALL: {
+                auto args = line.get_args<OP_CALL>();
                 std::cout << '\t' << opcode_names[int(line.command())] << ' ' << args.name << ' ' << int(args.numargs);
                 break;
             }
-            case opcode::SELVAR: {
-                auto args = line.get_args<opcode::SELVAR>();
+            case OP_SELVAR: {
+                auto args = line.get_args<OP_SELVAR>();
                 std::cout << '\t' << opcode_names[int(line.command())] << ' ' << args.name << ' ' << int(args.index);
                 if (args.length != 1) {
                     std::cout << ':' << int(args.length);
@@ -109,8 +109,8 @@ int MainApp::OnRun() {
                 }
                 break;
             }
-            case opcode::SETVAR: {
-                auto flags = line.get_args<opcode::SETVAR>();
+            case OP_SETVAR: {
+                auto flags = line.get_args<OP_SETVAR>();
                 std::cout << '\t' << opcode_names[int(line.command())];
                 for (size_t i=0; i<std::size(setvar_flags_names); ++i) {
                     if (flags & (1 << i)) {
@@ -119,17 +119,17 @@ int MainApp::OnRun() {
                 }
                 break;
             }
-            case opcode::PUSHNUM:
-                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << line.get_args<opcode::PUSHNUM>();
+            case OP_PUSHNUM:
+                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << line.get_args<OP_PUSHNUM>();
                 break;
-            case opcode::PUSHSTR:
-                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << quoted_string(line.get_args<opcode::PUSHSTR>());
+            case OP_PUSHSTR:
+                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << quoted_string(line.get_args<OP_PUSHSTR>());
                 break;
-            case opcode::SETLANG:
-                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << intl::language_string(line.get_args<opcode::SETLANG>());
+            case OP_SETLANG:
+                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << intl::language_string(line.get_args<OP_SETLANG>());
                 break;
-            case opcode::IMPORT: {
-                auto args = line.get_args<opcode::IMPORT>();
+            case OP_IMPORT: {
+                auto args = line.get_args<OP_IMPORT>();
                 std::cout << '\t' << opcode_names[int(line.command())] << ' ' << quoted_string(args.filename.string());
                 for (size_t i=0; i<std::size(import_flags_names); ++i) {
                     if (args.flags & (1 << i)) {
@@ -138,17 +138,17 @@ int MainApp::OnRun() {
                 }
                 break;
             }
-            case opcode::UNEVAL_JUMP: {
-                auto args = line.get_args<opcode::UNEVAL_JUMP>();
+            case OP_UNEVAL_JUMP: {
+                auto args = line.get_args<OP_UNEVAL_JUMP>();
                 std::cout << opcode_names[int(args.cmd)] << ' ' << args.label;
                 break;
             }
-            case opcode::JMP:
-            case opcode::JSR:
-            case opcode::JZ:
-            case opcode::JNZ:
-            case opcode::JTE: {
-                auto addr = line.get_args<opcode::JMP>();
+            case OP_JMP:
+            case OP_JSR:
+            case OP_JZ:
+            case OP_JNZ:
+            case OP_JTE: {
+                auto addr = line.get_args<OP_JMP>();
                 if (auto jt = inv_labels.find(it - code.begin() + addr); jt != inv_labels.end()) {
                     std::cout << '\t' << opcode_names[int(line.command())] << ' ' << jt->second;
                 } else {

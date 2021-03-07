@@ -7,53 +7,51 @@
 #include <functional>
 #include <fmt/format.h>
 
-#define TOKENS { \
-    T(TOK_ERROR,            "errore"),          /* errore */ \
-    T(TOK_END_OF_FILE,      "EOF"),             /* fine file */ \
-    T(TOK_IDENTIFIER,       "identificatore"),  /* [a-bA-B_][a-bA-B0-9_]* */ \
-    T(TOK_STRING,           "\"stringa\""), \
-    T(TOK_REGEXP,           "/regexp/"), \
-    T(TOK_NUMBER,           "numero"),          /* 123.4 */ \
-    T(TOK_INTEGER,          "intero"),          /* 123 */ \
-    T(TOK_FUNCTION,         "$funzione"), \
-    T(TOK_AMPERSAND,        "&"), \
-    T(TOK_PAREN_BEGIN,      "("), \
-    T(TOK_PAREN_END,        ")"), \
-    T(TOK_COMMA,            ","), \
-    T(TOK_BRACKET_BEGIN,    "["), \
-    T(TOK_BRACKET_END,      "]"), \
-    T(TOK_BRACE_BEGIN,      "{"), \
-    T(TOK_BRACE_END,        "}"), \
-    T(TOK_ASSIGN,           "="), \
-    T(TOK_ADD_ASSIGN,       "+="), \
-    T(TOK_SUB_ASSIGN,       "-="), \
-    T(TOK_CONTENT,          "@"), \
-    T(TOK_TILDE,            "~"), \
-    T(TOK_COLON,            ":"), \
-    T(TOK_GLOBAL,           "::"), \
-    T(TOK_PERCENT,          "%"), \
-    T(TOK_CARET,            "^"), \
-    T(TOK_ASTERISK,         "*"), \
-    T(TOK_SLASH,            "/"), \
-    T(TOK_PLUS,             "+"), \
-    T(TOK_MINUS,            "-"), \
-    T(TOK_AND,              "&&"), \
-    T(TOK_OR,               "||"), \
-    T(TOK_NOT,              "!"), \
-    T(TOK_EQUALS,           "=="), \
-    T(TOK_NOT_EQUALS,       "!="), \
-    T(TOK_GREATER,          ">"), \
-    T(TOK_LESS,             "<"), \
-    T(TOK_GREATER_EQ,       ">="), \
-    T(TOK_LESS_EQ,          "<="), \
-}
+#define TOKENS \
+T(ERROR) \
+T(END_OF_FILE) \
+T(IDENTIFIER) \
+T(STRING) \
+T(REGEXP) \
+T(NUMBER) \
+T(INTEGER) \
+T(FUNCTION) \
+T(AMPERSAND) \
+T(PAREN_BEGIN) \
+T(PAREN_END) \
+T(COMMA) \
+T(BRACKET_BEGIN) \
+T(BRACKET_END) \
+T(BRACE_BEGIN) \
+T(BRACE_END) \
+T(ASSIGN) \
+T(ADD_ASSIGN) \
+T(SUB_ASSIGN) \
+T(CONTENT) \
+T(TILDE) \
+T(COLON) \
+T(GLOBAL) \
+T(PERCENT) \
+T(CARET) \
+T(ASTERISK) \
+T(SLASH) \
+T(PLUS) \
+T(MINUS) \
+T(AND) \
+T(OR) \
+T(NOT) \
+T(EQUALS) \
+T(NOT_EQUALS) \
+T(GREATER) \
+T(LESS) \
+T(GREATER_EQ) \
+T(LESS_EQ)
 
-#define T(x, y) x
-enum token_type TOKENS;
+#define T(x) TOK_##x,
+enum token_type { TOKENS };
 #undef T
-
-#define T(x, y) y
-static const char *token_names[] = TOKENS;
+#define T(x) #x,
+static const char *token_names[] = { TOKENS };
 #undef T
 
 struct token {
@@ -80,14 +78,6 @@ public:
     }
 };
 
-inline std::string_view token_string(token tok) {
-    if (tok.type == TOK_END_OF_FILE) {
-        return "EOF";
-    } else {
-        return tok.value;
-    }
-}
-
 class unexpected_token : public parsing_error {
 protected:
     token_type m_expected;
@@ -95,8 +85,8 @@ protected:
 public:
     unexpected_token(token tok, token_type expected = TOK_ERROR)
         : parsing_error(expected == TOK_ERROR
-            ? fmt::format("Imprevisto '{}'", token_string(tok))
-            : fmt::format("Imprevisto '{}', richiesto '{}'", token_string(tok), token_names[expected]), tok),
+            ? fmt::format("Imprevisto '{}'", token_names[tok.type])
+            : fmt::format("Imprevisto '{}', richiesto '{}'", token_names[tok.type], token_names[expected]), tok),
         m_expected(expected) {}
 
     token_type expected() {
