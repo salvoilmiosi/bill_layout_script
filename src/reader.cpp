@@ -94,8 +94,7 @@ void reader::exec_command(const command_args &cmd) {
 
         m_last_box_page = box.page;
 
-        m_contents = {};
-
+        m_contents.clear();
         m_contents.push(m_doc->get_text(box));
     };
 
@@ -129,7 +128,7 @@ void reader::exec_command(const command_args &cmd) {
     case OP_AGGREGATE: {
         if (! m_vars.top().empty()) {
             fixed_point ret(0);
-            content_view view(m_vars.top().str());
+            content_view view(m_vars.top());
             for (view.new_subview(); !view.token_end(); view.next_result()) {
                 fixed_point num;
                 if (parse_num(num, std::string(view.view()))) {
@@ -199,7 +198,7 @@ void reader::exec_command(const command_args &cmd) {
     case OP_PUSHSTR:   m_vars.push(cmd.get_args<OP_PUSHSTR>()); break;
     case OP_PUSHNULL:  m_vars.push(variable::null_var()); break;
     case OP_PUSHVAR:   m_vars.push(m_selected.get_value()); break;
-    case OP_MOVEVAR:   m_vars.push(m_selected.get_moved()); break;
+    case OP_PUSHREF:   m_vars.push(m_selected.get_value().str_view()); break;
     case OP_JMP:
         m_program_counter += cmd.get_args<OP_JMP>();
         m_jumped = true;
@@ -225,7 +224,7 @@ void reader::exec_command(const command_args &cmd) {
             m_jumped = true;
         }
         break;
-    case OP_MOVCONTENT: m_contents.push(std::move(m_vars.pop().str())); break;
+    case OP_ADDCONTENT: m_contents.push(m_vars.pop()); break;
     case OP_POPCONTENT: m_contents.pop(); break;
     case OP_SETBEGIN:  m_contents.top().setbegin(m_vars.pop().as_int()); break;
     case OP_SETEND:    m_contents.top().setend(m_vars.pop().as_int()); break;

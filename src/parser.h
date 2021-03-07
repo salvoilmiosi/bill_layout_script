@@ -15,7 +15,7 @@
 F(OVERWRITE) \
 F(PARSENUM) \
 F(AGGREGATE) \
-F(MOVE) \
+F(REF) \
 F(FORCE)
 
 #define F(x) POS_VP_##x,
@@ -52,7 +52,7 @@ public:
 
     void read_layout(const std::filesystem::path &path, const bill_layout_script &layout);
 
-    auto &get_bytecode() const & {
+    const auto &get_bytecode() const & {
         return m_code;
     }
 

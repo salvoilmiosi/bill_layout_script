@@ -5,8 +5,8 @@
 
 template<typename T> T convert_var(variable &var) = delete;
 
-template<> inline variable    &convert_var<variable &>    (variable &var) { return var; }
-template<> inline std::string &convert_var<std::string &> (variable &var) { return var.str(); }
+template<> inline variable    &&convert_var<variable &&>    (variable &var) { return std::move(var); }
+template<> inline std::string &&convert_var<std::string &&> (variable &var) { return std::move(var).str(); }
 
 template<> inline std::string_view  convert_var<std::string_view> (variable &var) { return var.str_view(); }
 template<> inline fixed_point  convert_var<fixed_point> (variable &var) { return var.number(); }
@@ -21,7 +21,7 @@ template<typename T> constexpr bool is_convertible = requires(variable &v) {
 
 template<typename T> struct is_variable : std::bool_constant<
     is_convertible<std::decay_t<T>> ||
-    is_convertible<std::add_lvalue_reference_t<std::decay_t<T>>>> {};
+    is_convertible<std::add_rvalue_reference_t<std::decay_t<T>>>> {};
 
 template<typename T> struct is_optional_impl : std::false_type {};
 template<typename T> struct is_optional_impl<std::optional<T>> : std::bool_constant<is_variable<T>{}> {};
@@ -83,28 +83,28 @@ template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : check_ar
 };
 
 template<typename T> using convert_type = std::conditional_t<
-    is_convertible<std::add_lvalue_reference_t<std::decay_t<T>>>,
-        std::add_lvalue_reference_t<std::decay_t<T>>,
+    is_convertible<std::add_rvalue_reference_t<std::decay_t<T>>>,
+        std::add_rvalue_reference_t<std::decay_t<T>>,
         std::decay_t<T>>;
 
-template<typename TypeList, size_t I> inline auto get_arg(arg_list &args) {
+template<typename TypeList, size_t I> inline decltype(auto) get_arg(arg_list &args) {
     using type = convert_type<get_nth_t<I, TypeList>>;
     if constexpr (is_optional<type>{}) {
         using opt_type = typename type::value_type;
         if (I >= args.size()) {
             return std::optional<opt_type>(std::nullopt);
         } else {
-            return std::optional<opt_type>(std::move(convert_var<convert_type<opt_type>>(args[I])));
+            return std::optional<opt_type>(convert_var<convert_type<opt_type>>(args[I]));
         }
     } else if constexpr (is_vector<type>{}) {
         using vec_type = typename type::value_type;
         std::vector<vec_type> ret;
         for (auto it = args.begin() + I; it != args.end(); ++it) {
-            ret.emplace_back(std::move(convert_var<convert_type<vec_type>>(*it)));
+            ret.emplace_back(convert_var<convert_type<vec_type>>(*it));
         }
         return ret;
     } else {
-        return std::move(convert_var<type>(args[I]));
+        return convert_var<type>(args[I]);
     }
 }
 
@@ -218,13 +218,13 @@ static const std::unordered_map<std::string, function_handler> lookup {
         if (args.empty()) {
             return variable::null_var();
         }
-        return std::move(*std::max_element(args.begin(), args.end()));
+        return *std::max_element(args.begin(), args.end());
     }},
     {"min", [](std::vector<variable> args) {
         if (args.empty()) {
             return variable::null_var();
         }
-        return std::move(*std::min_element(args.begin(), args.end()));
+        return *std::min_element(args.begin(), args.end());
     }},
     {"mod", [](int a, int b) {
         return a % b;

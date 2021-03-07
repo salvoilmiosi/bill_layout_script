@@ -285,8 +285,8 @@ void parser::sub_expression() {
         break;
     default: {
         int prefixes = read_variable(true);
-        if (prefixes & VP_MOVE) {
-            add_line<OP_MOVEVAR>();
+        if (prefixes & VP_REF) {
+            add_line<OP_PUSHREF>();
         } else {
             add_line<OP_PUSHVAR>();
         }
@@ -315,7 +315,7 @@ int parser::read_variable(bool read_only) {
         case TOK_CARET:     add_flags_to(prefixes, VP_AGGREGATE, !read_only); break;
         case TOK_TILDE:     add_flags_to(prefixes, VP_OVERWRITE, !read_only); break;
         case TOK_NOT:       add_flags_to(prefixes, VP_FORCE, !read_only); break;
-        case TOK_AMPERSAND: add_flags_to(prefixes, VP_MOVE, read_only); break;
+        case TOK_AMPERSAND: add_flags_to(prefixes, VP_REF, read_only); break;
         case TOK_IDENTIFIER:
             var_idx.name = std::string(tok_prefix.value);
             in_loop = false;

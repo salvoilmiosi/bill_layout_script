@@ -50,9 +50,14 @@ public:
     
     variable_type type() const noexcept { return m_type; }
 
-    std::string &str() const noexcept {
+    const std::string &str() const & noexcept {
         set_string();
         return m_str;
+    }
+
+    std::string &&str() && noexcept {
+        set_string();
+        return std::move(m_str);
     }
 
     std::string_view str_view() const noexcept {
@@ -81,6 +86,7 @@ public:
     bool empty() const noexcept;
 
     std::partial_ordering operator <=> (const variable &other) const noexcept;
+    
     bool operator == (const variable &other) const noexcept {
         return std::partial_ordering::equivalent == *this <=> other;
     }

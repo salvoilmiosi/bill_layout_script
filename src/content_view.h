@@ -1,6 +1,7 @@
 #ifndef __CONTENT_VIEW_H__
 #define __CONTENT_VIEW_H__
 
+#include "variable.h"
 #include "utils.h"
 #include "stack.h"
 
@@ -8,20 +9,19 @@ struct view_span {
     size_t m_begin;
     size_t m_end;
     
-    size_t size() const noexcept {
+    constexpr size_t size() const noexcept {
         return m_end - m_begin;
     }
 };
 
 class content_view {
 private:
-    std::string m_text;
+    variable m_value;
     static_stack<view_span> m_spans;
 
 public:
-    template<typename T>
-    content_view(T &&text) : m_text(std::forward<T>(text)) {
-        m_spans.push(view_span{0, m_text.size()});
+    content_view(auto &&value) : m_value(std::forward<decltype(value)>(value)) {
+        m_spans.push(view_span{0, m_value.str_view().size()});
     }
 
     void setbegin(size_t n) {
@@ -50,12 +50,12 @@ public:
     
     void next_result() {
         if (m_spans.size() > 1) {
-            m_spans.top().m_begin = m_text.find_first_not_of(RESULT_SEPARATOR, m_spans.top().m_end);
+            m_spans.top().m_begin = m_value.str_view().find_first_not_of(RESULT_SEPARATOR, m_spans.top().m_end);
             if (token_end()) {
                 m_spans.top().m_begin = m_spans.top().m_end = m_spans[m_spans.size() - 2].m_end;
             } else {
                 m_spans.top().m_end = std::min(
-                    m_text.find_first_of(RESULT_SEPARATOR, m_spans.top().m_begin),
+                    m_value.str_view().find_first_of(RESULT_SEPARATOR, m_spans.top().m_begin),
                     m_spans[m_spans.size() - 2].m_end);
             }
         }
@@ -66,9 +66,7 @@ public:
     }
 
     std::string_view view() const {
-        return std::string_view(
-            m_text.data() + m_spans.top().m_begin,
-            m_spans.top().size());
+        return m_value.str_view().substr(m_spans.top().m_begin, m_spans.top().size());
     }
 };
 

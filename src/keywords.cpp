@@ -132,7 +132,7 @@ void parser::read_keyword() {
         if (m_lexer.check_next(TOK_PAREN_BEGIN)) {
             read_expression();
             m_lexer.require(TOK_PAREN_END);
-            add_line<OP_MOVCONTENT>();
+            add_line<OP_ADDCONTENT>();
             pushed_content = true;
         }
         add_line<OP_SUBVIEW>();
@@ -154,7 +154,7 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_BEGIN);
         read_expression();
         m_lexer.require(TOK_PAREN_END);
-        add_line<OP_MOVCONTENT>();
+        add_line<OP_ADDCONTENT>();
         read_statement();
         add_line<OP_POPCONTENT>();
         break;
@@ -181,7 +181,7 @@ void parser::read_keyword() {
         if (m_lexer.check_next(TOK_PAREN_BEGIN)) {
             read_expression();
             m_lexer.require(TOK_PAREN_END);
-            add_line<OP_MOVCONTENT>();
+            add_line<OP_ADDCONTENT>();
             pushed_content = true;
         }
 

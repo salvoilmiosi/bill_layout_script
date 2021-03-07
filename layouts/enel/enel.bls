@@ -182,7 +182,7 @@ $if($contains(@,"Energia reattiva")) {
 ### Page 3
 ### Rect 0.0903738 0.0063137496 0.053058922 0.03473528
 ### Script
-$with(::_dettaglio) {
+$with(&::_dettaglio) {
   $step($captures(@,$format(/Energia (?:fascia F1|(?:ore di )?picco) dal \d\d\/$0.+kWh (\N) (\N)/,_mese))) {
     %prezzo_energia[0] %energia_attiva[0]
   }

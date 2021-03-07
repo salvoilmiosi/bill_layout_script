@@ -111,14 +111,6 @@ public:
         }
     }
 
-    variable get_moved() {
-        try {
-            return std::move(at(index));
-        } catch (const std::out_of_range &) {
-            return variable();
-        }
-    }
-
     void set_value(variable &&value, flags_t flags) {
         if (!(flags & SET_FORCE) && value.empty()) return;
         if (flags & SET_OVERWRITE) clear();

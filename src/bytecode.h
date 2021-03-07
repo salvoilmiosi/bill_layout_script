@@ -13,7 +13,7 @@ O(NOP)                          /* no operation */ \
 O(RDBOX, pdf_rect)              /* poppler.get_text -> content_stack */ \
 O(MVBOX, spacer_index)          /* var_stack -> spacer[index] */ \
 O(CALL, command_call)           /* var_stack * numargs -> fun_name -> var_stack */ \
-O(THROWERROR)                        /* var_stack -> throw */ \
+O(THROWERROR)                   /* var_stack -> throw */ \
 O(WARNING)                      /* var_stack -> warnings */ \
 O(PARSENUM)                     /* var_stack -> parse_num -> var_stack */ \
 O(PARSEINT)                     /* var_stack -> parse_int -> var_stack */ \
@@ -32,17 +32,17 @@ O(GT)                           /* var_stack * 2 -> a > b -> var_stack */ \
 O(LT)                           /* var_stack * 2 -> a < b -> var_stack */ \
 O(GEQ)                          /* var_stack * 2 -> a >= b -> var_stack */ \
 O(LEQ)                          /* var_stack * 2 -> a >= b -> var_stack */ \
-O(SELVAR, variable_selector)    /* (name, index, size, flags) -> ref_stack */ \
-O(ISSET)                        /* ref_stack -> size() != 0 -> var_stack */ \
-O(GETSIZE)                      /* ref_stack -> size() -> var_stack */ \
-O(CLEAR)                        /* ref_stack -> clear */ \
-O(SETVAR, flags_t)              /* ref_stack, var_stack -> set(flags) */ \
+O(SELVAR, variable_selector)    /* (name, index, size, flags) -> selected */ \
+O(ISSET)                        /* selected -> size() != 0 -> var_stack */ \
+O(GETSIZE)                      /* selected -> size() -> var_stack */ \
+O(CLEAR)                        /* selected -> clear */ \
+O(SETVAR, flags_t)              /* selected, var_stack -> set(flags) */ \
 O(PUSHVIEW)                     /* content_stack -> var_stack */ \
 O(PUSHNUM, fixed_point)         /* number -> var_stack */ \
 O(PUSHSTR, std::string)         /* str -> var_stack */ \
-O(PUSHVAR)                      /* ref_stack -> var_stack */ \
+O(PUSHVAR)                      /* selected -> var_stack */ \
 O(PUSHNULL)                     /* null -> var_stack */ \
-O(MOVEVAR)                      /* ref_stack -> (move) var_stack */ \
+O(PUSHREF)                      /* selected.str_view -> var_stack */ \
 O(UNEVAL_JUMP, jump_uneval)     /* unevaluated jump, sara' sostituito con opcode */ \
 O(JMP, jump_address)            /* unconditional jump */ \
 O(JSR, jump_address)            /* program_counter -> return_addrs -- jump to subroutine */ \
@@ -51,7 +51,7 @@ O(JNZ, jump_address)            /* var_stack -> jump if top != 0 */ \
 O(JTE, jump_address)            /* jump if content_stack.top at token end */ \
 O(RET)                          /* jump to return_addrs.top, return_addrs.pop, halt if return_addrs.empty */ \
 O(HLT)                          /* ferma l'esecuzione */ \
-O(MOVCONTENT)                   /* var_stack -> content_stack */ \
+O(ADDCONTENT)                   /* var_stack -> content_stack */ \
 O(SETBEGIN)                     /* var_stack -> content_stack.top.setbegin */ \
 O(SETEND)                       /* var_stack -> content_stack.top.setend */ \
 O(NEWVIEW)                      /* content_stack.top.newview() */ \

@@ -189,7 +189,7 @@ $newview {
 ### Script
 _mese_full=$date_format(mese_fattura,"%B %Y")
 _mese_abbr=$date_format(mese_fattura,"%m/%Y")
-$with(::_dettaglio) {
+$with(&::_dettaglio) {
   $between("SPESA PER LA MATERIA ENERGIA","TOTALE SPESA PER LA MATERIA ENERGIA") {
     ^spesa_materia_energia+=$matches(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))
     ^spesa_materia_energia+=$matches($matches(@,
