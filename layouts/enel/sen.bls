@@ -168,18 +168,13 @@ ragione_sociale
 $newview {
   $setbegin($min($indexof(@,"Dettaglio dei consumi"),$indexof(@,"Consumi rilevati")))
   $setend($indexof(@,"INFORMAZIONI PER I CLIENTI"))
-  $with($search(@,/(.+F1 F2 F3 F1 F2 F3 F1 F2 F3 F1 F2 F3)/)) {
-    $for(_i=0,_i<12,_i+=1) {
-      _n=$indexof(@,$strcat("F",1+$mod(_i,3)))
-      _indices[]=_n
-      $setbegin(_n)
-    }
-  }
-  _line_regex=$format(/\s{$0}(.{$1})(.{$2})(.{$3})(.{$4})(.{$5})(.{$6}).{$7}.{$8}.{$9}(.{$10})(.{$11})(.+)/,
-    _indices[0],_indices[1],_indices[2],_indices[3],_indices[4],_indices[5],_indices[6],_indices[7],_indices[8],_indices[9],_indices[10],_indices[11])
-  $step($captures(@,$format(/dal \d\d\.\d\d\.\d\d\d\d\n$0reale al \d\d\.$1/,_line_regex,$date_format(mese_fattura,"%m\\.%Y")))) {
+  $step($captures(@,$format(/dal \d\d\.\d\d\.\d\d\d\d\n$0reale al \d\d\.$1/,
+      $table_row_regex($search(@,/(.+F1.+)/),"F1","F2","F3","F1","F2","F3","F1","F2","F3","F1","F2","F3"),
+      $date_format(mese_fattura,"%m\\.%Y")))) {
+    $skip()
     %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
+    $skip() $skip() $skip()
     %potenza[0] %potenza[1] %potenza[2]
   }
 }
