@@ -11,8 +11,8 @@ template<> inline std::string &&convert_var<std::string &&> (variable &var) { re
 template<> inline std::string_view  convert_var<std::string_view> (variable &var) { return var.str_view(); }
 template<> inline fixed_point  convert_var<fixed_point> (variable &var) { return var.number(); }
 template<> inline int          convert_var<int>        (variable &var) { return var.as_int(); }
-template<> inline float        convert_var<float>      (variable &var) { return var.number().getAsDouble(); }
-template<> inline double       convert_var<double>     (variable &var) { return var.number().getAsDouble(); }
+template<> inline float        convert_var<float>      (variable &var) { return var.as_double(); }
+template<> inline double       convert_var<double>     (variable &var) { return var.as_double(); }
 template<> inline bool         convert_var<bool>       (variable &var) { return var.as_bool(); }
 
 template<typename T> constexpr bool is_convertible = requires(variable &v) {
