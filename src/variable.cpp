@@ -30,15 +30,9 @@ variable &variable::operator = (variable &&other) noexcept {
 void variable::set_string() const noexcept {
     if (m_str.empty()) {
         switch (m_type) {
-        case VAR_NUMBER: {
-            m_str = dec::toString(m_num);
-            auto it = m_str.rbegin();
-            for (; *it == '0' && it != m_str.rend(); ++it);
-            if (*it == '.') ++it;
-
-            m_str.erase(it.base(), m_str.end());
+        case VAR_NUMBER:
+            m_str = fixed_point_to_string(m_num);
             break;
-        }
         case VAR_STRING:
             if (!m_view.empty()) {
                 m_str = m_view;
@@ -82,17 +76,35 @@ bool variable::empty() const noexcept {
 }
 
 std::partial_ordering variable::operator <=> (const variable &other) const noexcept {
-    if (m_type == other.m_type) {
-        switch (m_type) {
+    switch (m_type) {
+    case VAR_STRING:
+        switch (other.m_type) {
         case VAR_STRING:
             return str_view() <=> other.str_view();
         case VAR_NUMBER:
+            return std::partial_ordering::unordered;
+        default:
+            return str_view() <=> "";
+        }
+    case VAR_NUMBER:
+        switch (other.m_type) {
+        case VAR_NUMBER:
             return number().getUnbiased() <=> other.number().getUnbiased();
+        case VAR_STRING:
+            return std::partial_ordering::unordered;
+        case VAR_UNDEFINED:
+            return number().getUnbiased() <=> 0;
+        }
+    default:
+        switch (other.m_type) {
+        case VAR_STRING:
+            return "" <=> other.str_view();
+        case VAR_NUMBER:
+            return 0 <=> other.number().getUnbiased();
         default:
             return std::partial_ordering::equivalent;
         }
     }
-    return std::partial_ordering::unordered;
 }
 
 variable &variable::operator += (const variable &other) noexcept {

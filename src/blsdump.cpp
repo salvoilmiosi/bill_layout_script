@@ -120,7 +120,7 @@ int MainApp::OnRun() {
                 break;
             }
             case OP_PUSHNUM:
-                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << line.get_args<OP_PUSHNUM>();
+                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << fixed_point_to_string(line.get_args<OP_PUSHNUM>());
                 break;
             case OP_PUSHSTR:
                 std::cout << '\t' << opcode_names[int(line.command())] << ' ' << quoted_string(line.get_args<OP_PUSHSTR>());

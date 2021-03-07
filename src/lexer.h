@@ -8,7 +8,7 @@
 #include <fmt/format.h>
 
 #define TOKENS \
-T(ERROR) \
+T(INVALID) \
 T(END_OF_FILE) \
 T(IDENTIFIER) \
 T(STRING) \
@@ -59,7 +59,7 @@ struct token {
     std::string_view value;
 
     operator bool () {
-        return type != TOK_ERROR;
+        return type != TOK_INVALID;
     }
 
     std::string parse_string();
@@ -83,8 +83,8 @@ protected:
     token_type m_expected;
 
 public:
-    unexpected_token(token tok, token_type expected = TOK_ERROR)
-        : parsing_error(expected == TOK_ERROR
+    unexpected_token(token tok, token_type expected = TOK_INVALID)
+        : parsing_error(expected == TOK_INVALID
             ? fmt::format("Imprevisto '{}'", token_names[tok.type])
             : fmt::format("Imprevisto '{}', richiesto '{}'", token_names[tok.type], token_names[expected]), tok),
         m_expected(expected) {}

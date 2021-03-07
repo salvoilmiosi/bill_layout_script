@@ -7,7 +7,7 @@
 #include "fixed_point.h"
 #include "bytecode.h"
 
-enum variable_type {
+enum variable_type : uint8_t {
     VAR_UNDEFINED,
     VAR_STRING,
     VAR_NUMBER

@@ -218,7 +218,7 @@ token lexer::next(bool do_advance) {
         break;
     }
 
-    if (!ok) tok.type = TOK_ERROR;
+    if (!ok) tok.type = TOK_INVALID;
     tok.value = std::string_view(start, m_current - start);
 
     if (!do_advance) {
@@ -236,7 +236,7 @@ token lexer::require(token_type type) {
             tok.value = std::string_view(begin, m_current - begin);
             tok.type = TOK_REGEXP;
         } else {
-            tok.type = TOK_ERROR;
+            tok.type = TOK_INVALID;
         }
     } else {
         tok = next();
@@ -250,7 +250,7 @@ token lexer::require(token_type type) {
 token lexer::check_next(token_type type) {
     token tok = peek();
     if (tok.type != type) {
-        tok.type = TOK_ERROR;
+        tok.type = TOK_INVALID;
     } else {
         advance(tok);
     }
