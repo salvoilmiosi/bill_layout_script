@@ -2,12 +2,51 @@
 #define __FUNCTIONS_H__
 
 #include <functional>
+#include <ranges>
 #include <span>
 
 #include "variable.h"
 #include "lexer.h"
 
+template<typename T> T convert_var(variable &var) = delete;
+
+template<> inline variable    &&convert_var<variable &&>    (variable &var) { return std::move(var); }
+template<> inline std::string &&convert_var<std::string &&> (variable &var) { return std::move(var).str(); }
+
+template<> inline std::string_view  convert_var<std::string_view> (variable &var) { return var.str_view(); }
+template<> inline fixed_point  convert_var<fixed_point> (variable &var) { return var.number(); }
+template<> inline int          convert_var<int>        (variable &var) { return var.as_int(); }
+template<> inline float        convert_var<float>      (variable &var) { return var.as_double(); }
+template<> inline double       convert_var<double>     (variable &var) { return var.as_double(); }
+template<> inline bool         convert_var<bool>       (variable &var) { return var.as_bool(); }
+
+template<typename T> constexpr bool is_convertible = requires(variable &v) {
+    convert_var<T>(v);
+};
+
+template<typename T> using convert_type = std::conditional_t<
+    is_convertible<std::add_rvalue_reference_t<std::decay_t<T>>>,
+        std::add_rvalue_reference_t<std::decay_t<T>>,
+        std::decay_t<T>>;
+
+template<typename T>
+struct converter {
+    using out_type = convert_type<T>;
+    out_type operator ()(variable &var) {
+        return convert_var<out_type>(var);
+    }
+};
+
 using arg_list = std::span<variable>;
+
+template<typename T> using varargs_base = std::ranges::transform_view<arg_list, converter<T>>;
+template<typename T> struct varargs : varargs_base<T> {
+    using var_type = T;
+    varargs(auto &&obj) : varargs_base<T>(std::forward<decltype(obj)>(obj), converter<T>{}) {}
+    bool empty() {
+        return varargs_base<T>::size() == 0;
+    }
+};
 
 class invalid_numargs : public parsing_error {
 private:

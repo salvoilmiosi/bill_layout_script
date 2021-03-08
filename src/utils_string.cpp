@@ -122,7 +122,7 @@ size_t string_findicase(std::string_view str, std::string_view str2, size_t inde
     ));
 }
 
-std::string string_format(std::string_view str, const std::vector<std::string> &fmt_args) {
+std::string string_format(std::string_view str, varargs<std::string> &fmt_args) {
     static constexpr char FORMAT_CHAR = '$';
     std::string ret;
     auto it = str.begin();
@@ -250,7 +250,7 @@ std::string singleline(std::string input) {
     return input;
 }
 
-std::string table_row_regex(std::string_view header, const std::vector<std::string> &names) {
+std::string table_row_regex(std::string_view header, varargs<std::string> &names) {
     std::string ret;
     size_t begin = 0;
     size_t len = 0;
