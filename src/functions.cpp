@@ -3,9 +3,7 @@
 
 #include <optional>
 
-template<typename T> struct is_variable : std::bool_constant<
-    is_convertible<std::decay_t<T>> ||
-    is_convertible<std::add_rvalue_reference_t<std::decay_t<T>>>> {};
+template<typename T> struct is_variable : std::bool_constant<! std::is_void_v<convert_rvalue<T>>> {};
 
 template<typename T> struct is_optional_impl : std::false_type {};
 template<typename T> struct is_optional_impl<std::optional<T>> : std::bool_constant<is_variable<T>{}> {};
@@ -67,18 +65,18 @@ template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : check_ar
 };
 
 template<typename TypeList, size_t I> inline decltype(auto) get_arg(arg_list &args) {
-    using type = convert_type<get_nth_t<I, TypeList>>;
+    using type = std::decay_t<get_nth_t<I, TypeList>>;
     if constexpr (is_optional<type>{}) {
         using opt_type = typename type::value_type;
         if (I >= args.size()) {
             return std::optional<opt_type>(std::nullopt);
         } else {
-            return std::optional<opt_type>(convert_var<convert_type<opt_type>>(args[I]));
+            return std::optional<opt_type>(convert_var<convert_rvalue<opt_type>>(args[I]));
         }
     } else if constexpr (is_varargs<type>{}) {
         return varargs<typename type::var_type>(args.subspan(I));
     } else {
-        return convert_var<type>(args[I]);
+        return convert_var<convert_rvalue<type>>(args[I]);
     }
 }
 
@@ -172,7 +170,7 @@ static const std::unordered_map<std::string, function_handler> lookup {
             return variable::null_var();
         }
     }},
-    {"format", [](std::string_view format, varargs<std::string> args) {
+    {"format", [](std::string_view format, varargs<std::string_view> args) {
         return string_format(format, args);
     }},
     {"coalesce", [](varargs<variable> args) {
@@ -181,10 +179,10 @@ static const std::unordered_map<std::string, function_handler> lookup {
         }
         return variable::null_var();
     }},
-    {"strcat", [](varargs<std::string> args) {
+    {"strcat", [](varargs<std::string_view> args) {
         std::string var;
         for (const auto &arg : args) {
-            var += arg;
+            var.append(arg.begin(), arg.end());
         }
         return var;
     }},
@@ -203,7 +201,7 @@ static const std::unordered_map<std::string, function_handler> lookup {
     {"mod", [](int a, int b) {
         return a % b;
     }},
-    {"table_row_regex", [](std::string_view header, varargs<std::string> names) {
+    {"table_row_regex", [](std::string_view header, varargs<std::string_view> names) {
         return table_row_regex(header, names);
     }}
 };

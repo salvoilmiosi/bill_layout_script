@@ -39,7 +39,7 @@ int cstoi(std::string_view str);
 size_t string_findicase(std::string_view str, std::string_view str2, size_t index);
 
 // Formatta la stringa data, sostituendo $0 in fmt_args[0], $1 in fmt_args[1] e così via
-std::string string_format(std::string_view str, varargs<std::string> &fmt_args);
+std::string string_format(std::string_view str, const varargs<std::string_view> &fmt_args);
 
 // converte i vari formati di data in formato yyyy-mm-dd
 std::string parse_date(const std::string &format, std::string_view value, std::string_view regex, int index);
@@ -69,7 +69,7 @@ std::string string_replace_regex(const std::string &value, std::string_view form
 std::string singleline(std::string input);
 
 // restituisce un'espressione regolare che parsa una riga di una tabella
-std::string table_row_regex(std::string_view header, varargs<std::string> &names);
+std::string table_row_regex(std::string_view header, const varargs<std::string_view> &names);
 
 // sposta il range indicato alla fine del vettore
 template<typename T>
