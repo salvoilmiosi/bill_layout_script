@@ -80,7 +80,6 @@ private:
 
     simple_stack<variable> m_vars;
     simple_stack<content_view> m_contents;
-    static_stack<size_t> m_return_addrs;
 
     variable_ref m_selected;
 

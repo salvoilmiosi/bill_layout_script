@@ -2,7 +2,19 @@
 #define __STACK_H__
 
 #include <vector>
-template<typename T, typename Container = std::vector<T>> struct simple_stack : public Container {
+
+constexpr size_t MAX_SIZE = 8;
+constexpr size_t DEFAULT_SIZE = 32;
+
+template<typename T, size_t N = DEFAULT_SIZE>
+struct auto_reserve_vector : std::vector<T> {
+    using base = std::vector<T>;
+    auto_reserve_vector() {
+        base::reserve(N);
+    }
+};
+
+template<typename T, typename Container = auto_reserve_vector<T>> struct simple_stack : public Container {
     using base = Container;
     
     constexpr T &top() { return base::back(); }
@@ -18,8 +30,6 @@ template<typename T, typename Container = std::vector<T>> struct simple_stack : 
         return ret;
     }
 };
-
-constexpr size_t MAX_SIZE = 8;
 
 template<typename T, size_t N = MAX_SIZE> class static_vector {
 private:

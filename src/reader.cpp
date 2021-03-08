@@ -19,7 +19,6 @@ void reader::clear() {
 void reader::start() {
     m_vars.clear();
     m_contents.clear();
-    m_return_addrs.clear();
 
     m_selected = {};
     m_spacer = {};
@@ -74,7 +73,9 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto jump_subroutine = [&](size_t address) {
-        m_return_addrs.push(m_program_counter);
+        fixed_point return_addr;
+        return_addr.setUnbiased(m_program_counter);
+        m_vars.push(return_addr);
         m_program_counter = address;
         m_jumped = true;
     };
@@ -234,12 +235,7 @@ void reader::exec_command(const command_args &cmd) {
     case OP_NEXTRESULT: m_contents.top().next_result(); break;
     case OP_NEXTTABLE: ++m_table_index; break;
     case OP_ATE: m_vars.push(m_last_box_page > m_doc->num_pages()); break;
-    case OP_RET:
-        if (!m_return_addrs.empty()) {
-            m_program_counter = m_return_addrs.pop();
-            break;
-        }
-        [[fallthrough]];
+    case OP_RET: m_program_counter = m_vars.pop().number().getUnbiased(); break;
     case OP_HLT: halt(); break;
     case OP_IMPORT: {
         const auto &args = cmd.get_args<OP_IMPORT>();
@@ -313,7 +309,11 @@ size_t reader::add_code(bytecode &&new_code) {
         std::move_iterator(new_code.end()),
         std::back_inserter(m_code)
     );
-    m_code.push_back(make_command<OP_RET>());
+    if (addr == 0) {
+        m_code.push_back(make_command<OP_HLT>());
+    } else {
+        m_code.push_back(make_command<OP_RET>());
+    }
     
     return addr;
 }
