@@ -56,7 +56,7 @@ mese_fattura=$month(@,"%d.%m.%Y",/PERIODO \D - (\D)/)
 numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
 indirizzo_fornitura=$singleline($search(@,/FORNIAMO ENERGIA IN\n([^]+?\d{5}.+)\n/))
-_mese=$date_format(mese_fattura,"%m.%Y")
+_mese=$date_format(mese_fattura,"%m\\.%Y")
 ### End Script
 ### End Box
 
