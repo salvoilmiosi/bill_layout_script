@@ -93,7 +93,7 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
         case TOOL_DELETEBOX: {
             auto it = getBoxAt(app->layout, start_pt.x, start_pt.y, app->getSelectedPage());
             if (box_dialog::closeDialog(it)) {
-                app->layout.m_boxes.erase(std::find(app->layout.m_boxes.begin(), app->layout.m_boxes.end(), it));
+                app->layout.m_boxes.erase(std::ranges::find(app->layout.m_boxes, it));
                 app->updateLayout();
                 Refresh();
             }

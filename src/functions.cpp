@@ -190,13 +190,13 @@ static const std::unordered_map<std::string, function_handler> lookup {
         if (args.empty()) {
             return variable::null_var();
         }
-        return *std::max_element(args.begin(), args.end());
+        return *std::ranges::max_element(args);
     }},
     {"min", [](varargs<variable> args) {
         if (args.empty()) {
             return variable::null_var();
         }
-        return *std::min_element(args.begin(), args.end());
+        return *std::ranges::min_element(args);
     }},
     {"mod", [](int a, int b) {
         return a % b;

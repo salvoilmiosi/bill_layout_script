@@ -6,11 +6,11 @@ box_ptr getBoxAt(bill_layout_script &layout, float x, float y, int page) {
     auto check_box = [&](const layout_box &box) {
         return (x > box.x && x < box.x + box.w && y > box.y && y < box.y + box.h && box.page == page);
     };
-    for (auto it = layout.m_boxes.begin(); it != layout.m_boxes.end(); ++it) {
-        if ((*it)->selected && check_box(**it)) return *it;
+    for (const auto &box : layout.m_boxes) {
+        if (box->selected && check_box(*box)) return box;
     }
-    for (auto it = layout.m_boxes.begin(); it != layout.m_boxes.end(); ++it) {
-        if (check_box(**it)) return *it;
+    for (const auto &box : layout.m_boxes) {
+        if (check_box(*box)) return box;
     }
     return nullptr;
 }
@@ -18,7 +18,7 @@ box_ptr getBoxAt(bill_layout_script &layout, float x, float y, int page) {
 std::pair<box_ptr, int> getBoxResizeNode(bill_layout_script &layout, float x, float y, int page, float scalex, float scaley) {
     float nw = RESIZE_TOLERANCE / scalex;
     float nh = RESIZE_TOLERANCE / scaley;
-    auto check_box = [&](box_ptr &it) -> std::pair<box_ptr, int> {
+    auto check_box = [&](const box_ptr &it) -> std::pair<box_ptr, int> {
         layout_box &box = *it;
         if (box.page == page) {
             int node = 0;
@@ -40,14 +40,14 @@ std::pair<box_ptr, int> getBoxResizeNode(bill_layout_script &layout, float x, fl
         }
         return std::make_pair(nullptr, 0);
     };
-    for (auto it = layout.m_boxes.begin(); it != layout.m_boxes.end(); ++it) {
-        if ((*it)->selected) {
-            auto res = check_box(*it);
+    for (const auto &box : layout.m_boxes) {
+        if (box->selected) {
+            auto res = check_box(box);
             if (res.second) return res;
         }
     }
-    for (auto it = layout.m_boxes.begin(); it != layout.m_boxes.end(); ++it) {
-        auto res = check_box(*it);
+    for (const auto &box : layout.m_boxes) {
+        auto res = check_box(box);
         if (res.second) return res;
     }
     return std::make_pair(nullptr, 0);

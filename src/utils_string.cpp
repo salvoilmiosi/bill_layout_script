@@ -50,22 +50,22 @@ std::string string_join(const std::vector<std::string> &vec, std::string_view se
 };
 
 std::string string_tolower(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(), [](auto ch) {
-        return std::tolower(ch);
-    });
+    for (char &c : str) {
+        c = std::tolower(c);
+    };
     return str;
 }
 
 std::string string_toupper(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(), [](auto ch) {
-        return std::toupper(ch);
-    });
+    for (char &c : str) {
+        c = std::toupper(c);
+    };
     return str;
 }
 
 void string_trim(std::string &str) {
 #ifdef _WIN32
-    str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+    std::erase(str, '\r');
 #endif
     str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](auto ch) {
         return !std::isspace(ch);

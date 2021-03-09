@@ -67,9 +67,9 @@ struct suffix {
 };
 
 std::istream &getline_clearcr(std::istream &input, std::string &line) {
-    auto &ret = std::getline(input, line);
-    line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-    return ret;
+    std::getline(input, line);
+    std::erase(line, '\r');
+    return input;
 }
 
 std::istream &operator >> (std::istream &input, bill_layout_script &layout) {

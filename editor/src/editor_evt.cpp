@@ -139,7 +139,7 @@ void frame_editor::OnSetLanguage(wxCommandEvent &evt) {
     if (!intl::valid_language(lang)) {
         lang = intl::system_language();
     }
-    auto selected = std::find(lang_codes.begin(), lang_codes.end(), lang);
+    auto selected = std::ranges::find(lang_codes, lang);
     if (selected != lang_codes.end()) {    
         diag.SetSelection(selected - lang_codes.begin());
     }

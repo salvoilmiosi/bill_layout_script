@@ -243,7 +243,7 @@ void reader::exec_command(const command_args &cmd) {
             m_layouts.push_back(args.filename);
             halt();
         } else if (args.flags & IMPORT_IGNORE) {
-            if (std::find(m_layouts.begin(), m_layouts.end(), args.filename) == m_layouts.end()) {
+            if (std::ranges::find(m_layouts, args.filename) == m_layouts.end()) {
                 m_layouts.push_back(args.filename);
             }
         } else {
@@ -304,11 +304,7 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
 size_t reader::add_code(bytecode &&new_code) {
     size_t addr = m_code.size();
 
-    std::copy(
-        std::move_iterator(new_code.begin()),
-        std::move_iterator(new_code.end()),
-        std::back_inserter(m_code)
-    );
+    std::ranges::move(new_code, std::back_inserter(m_code));
     if (addr == 0) {
         m_code.push_back(make_command<OP_HLT>());
     } else {

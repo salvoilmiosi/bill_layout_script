@@ -13,7 +13,7 @@ bill_layout_script copyLayout(const bill_layout_script &layout);
 
 template<typename ... Ts>
 static box_ptr &insertAfterSelected(bill_layout_script &layout, Ts && ... args) {
-    auto it = std::find_if(layout.m_boxes.begin(), layout.m_boxes.end(), [](const box_ptr &ptr) {
+    auto it = std::ranges::find_if(layout.m_boxes, [](const box_ptr &ptr) {
         return ptr->selected;
     });
     if (it != layout.m_boxes.end()) ++it;
