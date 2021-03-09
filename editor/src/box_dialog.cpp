@@ -77,8 +77,8 @@ enum {
     BUTTON_TEST = 1001
 };
 
-box_dialog::box_dialog(frame_editor *parent, const box_ptr &out_box) :
-    wxDialog(parent, wxID_ANY, "Modifica Rettangolo", wxDefaultPosition, wxSize(700, 500), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), out_box(out_box), app(parent)
+box_dialog::box_dialog(frame_editor *parent, layout_box &out_box) :
+    wxDialog(parent, wxID_ANY, "Modifica Rettangolo", wxDefaultPosition, wxSize(700, 500), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), m_box(out_box), app(parent)
 {
     wxBoxSizer *top_level = new wxBoxSizer(wxVERTICAL);
 
@@ -94,8 +94,6 @@ box_dialog::box_dialog(frame_editor *parent, const box_ptr &out_box) :
 
         sizer->Add(hsizer, vprop, wxEXPAND | wxALL, 5);
     };
-
-    m_box = *out_box;
     
     addLabelAndCtrl("Nome:", 0, 1, new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, StringValidator(&m_box.name)));
 
@@ -149,20 +147,20 @@ box_dialog::box_dialog(frame_editor *parent, const box_ptr &out_box) :
     reader_output = new TextDialog(this, "Risultato Lettura");
 }
 
-std::map<box_ptr, box_dialog *> box_dialog::open_dialogs;
+std::map<layout_box *, box_dialog *> box_dialog::open_dialogs;
 
-box_dialog *box_dialog::openDialog(frame_editor *parent, const box_ptr &out_box) {
-    auto it = open_dialogs.find(out_box);
+box_dialog *box_dialog::openDialog(frame_editor *parent, layout_box &out_box) {
+    auto it = open_dialogs.find(&out_box);
     if (it != open_dialogs.end()) {
         it->second->Raise();
         return it->second;
     } else {
-        return open_dialogs[out_box] = new box_dialog(parent, out_box);
+        return open_dialogs[&out_box] = new box_dialog(parent, out_box);
     }
 }
 
-bool box_dialog::closeDialog(const box_ptr &out_box) {
-    auto it = open_dialogs.find(out_box);
+bool box_dialog::closeDialog(layout_box &out_box) {
+    auto it = open_dialogs.find(&out_box);
     if (it != open_dialogs.end()) {
         it->second->Raise();
         return it->second->Close();
@@ -188,9 +186,7 @@ BEGIN_EVENT_TABLE(box_dialog, wxDialog)
 END_EVENT_TABLE()
 
 void box_dialog::saveBox() {
-    m_box = *out_box;
     TransferDataFromWindow();
-    *out_box = m_box;
     app->updateLayout();
 }
 
@@ -208,9 +204,10 @@ void box_dialog::OnCancel(wxCommandEvent &evt) {
 }
 
 void box_dialog::OnTest(wxCommandEvent &evt) {
-    m_box = *out_box;
+    auto box_copy = m_box;
     TransferDataFromWindow();
-    std::string text = app->getPdfDocument().get_text(m_box);
+    m_box = box_copy;
+    std::string text = app->getPdfDocument().get_text(box_copy);
     reader_output->ShowText(wxString(text.c_str(), wxConvUTF8));
 }
 
@@ -224,21 +221,24 @@ static bool operator == (const layout_box &a, const layout_box &b) {
 }
 
 void box_dialog::OnClose(wxCloseEvent &evt) {
+    auto box_copy = m_box;
     TransferDataFromWindow();
-    if (*out_box != m_box) {
+    if (box_copy != m_box) {
         wxMessageDialog dialog(this, "Salvare le modifiche?", "Layout Bolletta", wxYES_NO | wxCANCEL | wxICON_WARNING);
 
         switch (dialog.ShowModal()) {
         case wxID_YES:
-            saveBox();
+            app->updateLayout();
             break;
         case wxID_NO:
+            m_box = box_copy;
             break;
         case wxID_CANCEL:
+            m_box = box_copy;
             evt.Veto();
             return;
         }
     }
-    open_dialogs.erase(out_box);
+    open_dialogs.erase(&m_box);
     Destroy();
 }

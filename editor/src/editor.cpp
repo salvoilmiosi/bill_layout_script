@@ -251,16 +251,17 @@ bool frame_editor::saveIfModified() {
 
 void frame_editor::updateLayout(bool addToHistory) {
     m_list_boxes->Clear();
-    for (size_t i=0; i<layout.m_boxes.size(); ++i) {
-        auto &box = layout.m_boxes[i];
-        if (box->name.empty()) {
+    size_t i = 0;
+    for (auto &box : layout.m_boxes) {
+        if (box.name.empty()) {
             m_list_boxes->Append("(Senza nome)");
         } else {
-            m_list_boxes->Append(box->name);
+            m_list_boxes->Append(box.name);
         }
-        if (box->selected) {
+        if (box.selected) {
             m_list_boxes->SetSelection(i);
         }
+        ++i;
     }
     m_image->Refresh();
 
@@ -271,7 +272,7 @@ void frame_editor::updateLayout(bool addToHistory) {
         while (!history.empty() && history.end() > currentHistory + 1) {
             history.pop_back();
         }
-        history.push_back(copyLayout(layout));
+        history.push_back(layout);
         if (history.size() > MAX_HISTORY_SIZE) {
             history.pop_front();
         }
@@ -323,14 +324,16 @@ void frame_editor::setSelectedPage(int page, bool force) {
     m_image->setImage(pdf_to_image(m_doc, page));
 }
 
-void frame_editor::selectBox(const box_ptr &box) {
-    for (size_t i=0; i<layout.m_boxes.size(); ++i) {
-        if (layout.m_boxes[i] == box) {
+void frame_editor::selectBox(layout_box *box) {
+    int i = 0;
+    for (auto &b : layout.m_boxes) {
+        if (&b == box) {
             m_list_boxes->SetSelection(i);
-            layout.m_boxes[i]->selected = true;
+            b.selected = true;
         } else {
-            layout.m_boxes[i]->selected = false;
+            b.selected = false;
         }
+        ++i;
     }
     if (box) {
         setSelectedPage(box->page);

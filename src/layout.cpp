@@ -14,30 +14,30 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script &layou
     }
 
     for (auto &box : layout.m_boxes) {
-        output << fmt::format("\n### Box {}\n", box->name);
-        output << fmt::format("### Type {}\n", box_type_strings[int(box->type)]);
-        output << fmt::format("### Mode {}\n", read_mode_strings[int(box->mode)]);
-        output << fmt::format("### Page {}\n", box->page);
-        output << fmt::format("### Rect {} {} {} {}\n", box->x, box->y, box->w, box->h);
-        if (!box->goto_label.empty()) {
-            output << fmt::format("### Goto Label {}\n", box->goto_label);
+        output << fmt::format("\n### Box {}\n", box.name);
+        output << fmt::format("### Type {}\n", box_type_strings[int(box.type)]);
+        output << fmt::format("### Mode {}\n", read_mode_strings[int(box.mode)]);
+        output << fmt::format("### Page {}\n", box.page);
+        output << fmt::format("### Rect {} {} {} {}\n", box.x, box.y, box.w, box.h);
+        if (!box.goto_label.empty()) {
+            output << fmt::format("### Goto Label {}\n", box.goto_label);
         }
-        if (!box->spacers.empty()) {
+        if (!box.spacers.empty()) {
             output << "### Spacers\n";
-            for (auto &line : string_split(box->spacers, '\n')) {
+            for (auto &line : string_split(box.spacers, '\n')) {
                 if (line == "### End Spacers") {
-                    throw layout_error(fmt::format("In {}:\nInvalido Token End Spacers", box->name.empty() ? std::string("(Box senza nome)") : box->name));
+                    throw layout_error(fmt::format("In {}:\nInvalido Token End Spacers", box.name.empty() ? std::string("(Box senza nome)") : box.name));
                 } else {
                     output << line << '\n';
                 }
             }
             output << "### End Spacers\n";
         }
-        if (!box->script.empty()) {
+        if (!box.script.empty()) {
             output << "### Script\n";
-            for (auto &line : string_split(box->script, '\n')) {
+            for (auto &line : string_split(box.script, '\n')) {
                 if (line == "### End Script") {
-                    throw layout_error(fmt::format("In {}:\nInvalido Token End Script", box->name.empty() ? std::string("(Box senza nome)") : box->name));
+                    throw layout_error(fmt::format("In {}:\nInvalido Token End Script", box.name.empty() ? std::string("(Box senza nome)") : box.name));
                 } else {
                     output << line << '\n';
                 }
@@ -81,8 +81,8 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
     while (getline_clearcr(input, line)) {
         if (line.empty()) continue;
         if (auto suf = suffix(line, "### Box")) {
-            auto current = std::make_shared<layout_box>();
-            current->name = suf.value;
+            layout_box current = {};
+            current.name = suf.value;
             bool fail = true;
             while (getline_clearcr(input, line)) {
                 if (line.empty()) continue;
@@ -92,28 +92,28 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                 } else if (auto suf = suffix(line, "### Type")) {
                     auto it = std::find(std::begin(box_type_strings), std::end(box_type_strings), suf.value);
                     if (it != std::end(box_type_strings)) {
-                        current->type = static_cast<box_type>(it - box_type_strings);
+                        current.type = static_cast<box_type>(it - box_type_strings);
                     } else {
                         throw layout_error(fmt::format("Token 'Type' non valido: {}", suf.value));
                     }
                 } else if (auto suf = suffix(line, "### Mode")) {
                     auto it = std::find(std::begin(read_mode_strings), std::end(read_mode_strings), suf.value);
                     if (it != std::end(read_mode_strings)) {
-                        current->mode = static_cast<read_mode>(it - read_mode_strings);
+                        current.mode = static_cast<read_mode>(it - read_mode_strings);
                     } else {
                         throw layout_error(fmt::format("Token 'Mode' non valido: {}", suf.value));
                     }
                 } else if (auto suf = suffix(line, "### Page")) {
-                    current->page = cstoi(suf.value);
+                    current.page = cstoi(suf.value);
                 } else if (auto suf = suffix(line, "### Rect")) {
                     std::istringstream ss(std::string(suf.value));
                     ss.imbue(std::locale::classic());
-                    ss >> current->x >> current->y >> current->w >> current->h;
+                    ss >> current.x >> current.y >> current.w >> current.h;
                     if (ss.fail()) {
                         throw layout_error("Formato non valido");
                     }
                 } else if (auto suf = suffix(line, "### Goto Label")) {
-                    current->goto_label = suf.value;
+                    current.goto_label = suf.value;
                 } else if (line == "### Spacers") {
                     bool fail = true;
                     bool first_line = true; 
@@ -122,9 +122,9 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                             fail = false;
                             break;
                         }
-                        if (!first_line) current->spacers += '\n';
+                        if (!first_line) current.spacers += '\n';
                         first_line = false;
-                        current->spacers += line;
+                        current.spacers += line;
                     }
                     if (fail) {
                         throw layout_error("Token End Spacers non trovato");
@@ -137,9 +137,9 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
                             fail = false;
                             break;
                         }
-                        if (!first_line) current->script += '\n';
+                        if (!first_line) current.script += '\n';
                         first_line = false;
-                        current->script += line;
+                        current.script += line;
                     }
                     if (fail) {
                         throw layout_error("Token End Script non trovato");

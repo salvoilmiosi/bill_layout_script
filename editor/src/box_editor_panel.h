@@ -15,7 +15,7 @@ public:
         selected_tool = tool;
     }
 
-    void setSelectedBox(const box_ptr &box) {
+    void setSelectedBox(layout_box *box) {
         selected_box = box;
     }
 
@@ -44,7 +44,7 @@ private:
     TextDialog *info_dialog;
 
     wxRealPoint start_pt, end_pt, dragging_offset;
-    box_ptr selected_box;
+    layout_box *selected_box;
     char resize_node = 0;
     bool mouseIsDown = false;
 

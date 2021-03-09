@@ -14,7 +14,6 @@
 #include "layout.h"
 
 #include <deque>
-#include <memory>
 
 constexpr size_t MAX_RECENT_FILES_HISTORY = 10;
 constexpr size_t MAX_RECENT_PDFS_HISTORY = 10;
@@ -48,7 +47,7 @@ public:
         return selected_page;
     }
     void setSelectedPage(int page, bool force = false);
-    void selectBox(const box_ptr &box);
+    void selectBox(layout_box *box);
     
     void openFile(const wxString &filename);
     void loadPdf(const wxString &pdf_filename);

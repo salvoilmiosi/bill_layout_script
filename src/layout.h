@@ -4,8 +4,7 @@
 #include "pdf_document.h"
 #include "intl.h"
 
-#include <memory>
-#include <vector>
+#include <list>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -29,14 +28,12 @@ struct layout_error : std::runtime_error {
     layout_error(auto &&message) : std::runtime_error(std::forward<decltype(message)>(message)) {}
 };
 
-using box_ptr = std::shared_ptr<layout_box>;
-
 std::ostream &operator << (std::ostream &out, const class bill_layout_script &obj);
 std::istream &operator >> (std::istream &in, class bill_layout_script &obj);
 
 class bill_layout_script {
 public:
-    std::vector<box_ptr> m_boxes;
+    std::list<layout_box> m_boxes;
     intl::language language_code{};
 
 public:

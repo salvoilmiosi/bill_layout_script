@@ -64,7 +64,7 @@ void frame_editor::OnUndo(wxCommandEvent &evt) {
     if (currentHistory > history.begin()) {
         if (box_dialog::closeAll()) {
             --currentHistory;
-            layout = copyLayout(*currentHistory);
+            layout = *currentHistory;
             updateLayout(false);
         }
     } else {
@@ -76,7 +76,7 @@ void frame_editor::OnRedo(wxCommandEvent &evt) {
     if (currentHistory < history.end() - 1) {
         if (box_dialog::closeAll()) {
             ++currentHistory;
-            layout = copyLayout(*currentHistory);
+            layout = *currentHistory;
             updateLayout(false);
         }
     } else {
@@ -86,9 +86,10 @@ void frame_editor::OnRedo(wxCommandEvent &evt) {
 
 void frame_editor::OnCut(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0 && SetClipboard(*layout.m_boxes[selection])) {
-        if (box_dialog::closeDialog(layout.m_boxes[selection])) {
-            layout.m_boxes.erase(layout.m_boxes.begin() + selection);
+    if (selection >= 0) {
+        auto it = std::next(layout.m_boxes.begin(), selection);
+        if (SetClipboard(*it) && box_dialog::closeDialog(*it)) {
+            layout.m_boxes.erase(it);
             updateLayout();
         }
     }
@@ -97,7 +98,8 @@ void frame_editor::OnCut(wxCommandEvent &evt) {
 void frame_editor::OnCopy(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0) {
-        SetClipboard(*layout.m_boxes[selection]);
+        auto it = std::next(layout.m_boxes.begin(), selection);
+        SetClipboard(*it);
     }
 }
 
@@ -111,7 +113,7 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
     
     auto &box = insertAfterSelected(layout, std::move(clipboard));
     updateLayout();
-    selectBox(box);
+    selectBox(&box);
 }
 
 void frame_editor::OpenControlScript(wxCommandEvent &evt) {
@@ -201,7 +203,8 @@ void frame_editor::OnChangeTool(wxCommandEvent &evt) {
 void frame_editor::OnSelectBox(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0 && selection < (int) layout.m_boxes.size()) {
-        selectBox(layout.m_boxes[selection]);
+        auto it = std::next(layout.m_boxes.begin(), selection);
+        selectBox(&*it);
     } else {
         selectBox(nullptr);
     }
@@ -210,15 +213,17 @@ void frame_editor::OnSelectBox(wxCommandEvent &evt) {
 void frame_editor::EditSelectedBox(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0 && selection < (int) layout.m_boxes.size()) {
-        box_dialog::openDialog(this, layout.m_boxes[selection]);
+        auto it = std::next(layout.m_boxes.begin(), selection);
+        box_dialog::openDialog(this, *it);
     }
 }
 
 void frame_editor::OnDelete(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0 && selection < (int) layout.m_boxes.size()) {
-        if (box_dialog::closeDialog(layout.m_boxes[selection])) {
-            layout.m_boxes.erase(layout.m_boxes.begin() + selection);
+        auto it = std::next(layout.m_boxes.begin(), selection);
+        if (box_dialog::closeDialog(*it)) {
+            layout.m_boxes.erase(it);
             updateLayout();
         }
     }
@@ -233,7 +238,8 @@ void frame_editor::OnReadData(wxCommandEvent &evt) {
 void frame_editor::OnMoveUp(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection > 0) {
-        std::swap(layout.m_boxes[selection], layout.m_boxes[selection-1]);
+        auto it = std::next(layout.m_boxes.begin(), selection);
+        layout.m_boxes.splice(std::prev(it), layout.m_boxes, it);
         updateLayout();
     }
 }
@@ -241,7 +247,8 @@ void frame_editor::OnMoveUp(wxCommandEvent &evt) {
 void frame_editor::OnMoveDown(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0 && selection < (int)layout.m_boxes.size() - 1) {
-        std::swap(layout.m_boxes[selection], layout.m_boxes[selection+1]);
+        auto it = std::next(layout.m_boxes.begin(), selection);
+        layout.m_boxes.splice(it, layout.m_boxes, std::next(it));
         updateLayout();
     }
 }

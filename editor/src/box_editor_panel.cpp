@@ -40,13 +40,13 @@ void box_editor_panel::render(wxDC &dc) {
 
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     for (auto &box : app->layout.m_boxes) {
-        if (box->page == app->getSelectedPage()) {
-            if (box->selected) {
+        if (box.page == app->getSelectedPage()) {
+            if (box.selected) {
                 dc.SetPen(*wxBLACK_DASHED_PEN);
             } else {
                 dc.SetPen(*wxBLACK_PEN);
             }
-            pdf_rect r = *box;
+            pdf_rect r = box;
             clamp_rect(r);
             dc.DrawRectangle(
                 r.x * scaled_width(),
@@ -75,25 +75,28 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
     start_pt = screen_to_layout(evt.GetPosition());
     if (raw_image.IsOk() && !mouseIsDown) {
         switch (selected_tool) {
-        case TOOL_SELECT:
-            selected_box = getBoxAt(app->layout, start_pt.x, start_pt.y, app->getSelectedPage());
-            if (selected_box) {
+        case TOOL_SELECT: {
+            auto it = getBoxAt(app->layout, start_pt.x, start_pt.y, app->getSelectedPage());
+            if (it != app->layout.m_boxes.end()) {
+                selected_box = &*it;
                 dragging_offset.x = selected_box->x - start_pt.x;
                 dragging_offset.y = selected_box->y - start_pt.y;
                 app->selectBox(selected_box);
                 mouseIsDown = true;
             } else {
+                selected_box = nullptr;
                 app->selectBox(nullptr);
             }
             break;
+        }
         case TOOL_NEWBOX:
         case TOOL_TEST:
             mouseIsDown = true;
             break;
         case TOOL_DELETEBOX: {
             auto it = getBoxAt(app->layout, start_pt.x, start_pt.y, app->getSelectedPage());
-            if (box_dialog::closeDialog(it)) {
-                app->layout.m_boxes.erase(std::ranges::find(app->layout.m_boxes, it));
+            if (it != app->layout.m_boxes.end() && box_dialog::closeDialog(*it)) {
+                app->layout.m_boxes.erase(it);
                 app->updateLayout();
                 Refresh();
             }
@@ -101,12 +104,13 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
         }
         case TOOL_RESIZE: {
             auto node = getBoxResizeNode(app->layout, start_pt.x, start_pt.y, app->getSelectedPage(), scaled_width(), scaled_height());
-            selected_box = node.first;
             if (node.second) {
+                selected_box = &*node.first;
                 resize_node = node.second;
                 app->selectBox(selected_box);
                 mouseIsDown = true;
             } else {
+                selected_box = nullptr;
                 app->selectBox(nullptr);
             }
             break;
@@ -131,14 +135,14 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 break;
             case TOOL_NEWBOX: {
                 auto &box = insertAfterSelected(app->layout);
-                box->x = std::min(start_pt.x, end_pt.x);
-                box->y = std::min(start_pt.y, end_pt.y);
-                box->w = std::abs(start_pt.x - end_pt.x);
-                box->h = std::abs(start_pt.y - end_pt.y);
-                clamp_rect(*box);
-                box->page = app->getSelectedPage();
+                box.x = std::min(start_pt.x, end_pt.x);
+                box.y = std::min(start_pt.y, end_pt.y);
+                box.w = std::abs(start_pt.x - end_pt.x);
+                box.h = std::abs(start_pt.y - end_pt.y);
+                clamp_rect(box);
+                box.page = app->getSelectedPage();
                 app->updateLayout();
-                app->selectBox(box);
+                app->selectBox(&box);
                 box_dialog::openDialog(app, box);
                 break;
             }
@@ -191,7 +195,7 @@ void box_editor_panel::OnDoubleClick(wxMouseEvent &evt) {
     switch (selected_tool) {
     case TOOL_SELECT:
         if (selected_box) {
-            box_dialog::openDialog(app, selected_box);
+            box_dialog::openDialog(app, *selected_box);
         }
     default:
         break;

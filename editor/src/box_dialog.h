@@ -8,12 +8,12 @@
 
 class box_dialog : public wxDialog {
 public:
-    static box_dialog *openDialog(class frame_editor *app, const box_ptr &box);
-    static bool closeDialog(const box_ptr &box);
+    static box_dialog *openDialog(class frame_editor *app, layout_box &box);
+    static bool closeDialog(layout_box &box);
     static bool closeAll();
 
 private:
-    box_dialog(class frame_editor *parent, const box_ptr &box);
+    box_dialog(class frame_editor *parent, layout_box &box);
 
 private:
     void saveBox();
@@ -25,10 +25,9 @@ private:
     void OnClose(wxCloseEvent &evt);
 
 private:
-    static std::map<box_ptr, box_dialog *> open_dialogs;
+    static std::map<layout_box *, box_dialog *> open_dialogs;
 
-    layout_box m_box;
-    box_ptr out_box;
+    layout_box &m_box;
 
     class frame_editor *app;
     TextDialog *reader_output;

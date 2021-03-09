@@ -4,7 +4,6 @@
 #include <iostream>
 #include <map>
 #include <vector>
-#include <memory>
 #include <atomic>
 
 #include "variable.h"
