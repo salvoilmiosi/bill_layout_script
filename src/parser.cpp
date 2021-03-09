@@ -16,7 +16,7 @@ void parser::read_layout(const std::filesystem::path &path, const bill_layout_sc
         if (intl::valid_language(layout.language_code)) {
             add_line<OP_SETLANG>(layout.language_code);
         }
-        for (auto &box : layout.m_boxes) {
+        for (auto &box : layout) {
             read_box(box);
         }
     } catch (const parsing_error &error) {

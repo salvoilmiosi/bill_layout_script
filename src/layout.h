@@ -8,13 +8,12 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <algorithm>
 
 #include <fmt/format.h>
 
-#define RESIZE_TOP      1 << 0
-#define RESIZE_BOTTOM   1 << 1
-#define RESIZE_LEFT     1 << 2
-#define RESIZE_RIGHT    1 << 4
+typedef uint8_t small_int;
+typedef uint8_t flags_t;
 
 struct layout_box : public pdf_rect {
     bool selected = false;
@@ -31,17 +30,29 @@ struct layout_error : std::runtime_error {
 std::ostream &operator << (std::ostream &out, const class bill_layout_script &obj);
 std::istream &operator >> (std::istream &in, class bill_layout_script &obj);
 
-class bill_layout_script {
+class bill_layout_script : public std::list<layout_box> {
 public:
-    std::list<layout_box> m_boxes;
     intl::language language_code{};
 
 public:
     bill_layout_script() = default;
 
     void clear() {
-        m_boxes.clear();
+        std::list<layout_box>::clear();
         language_code = {};
+    }
+
+    auto get_selected_box() {
+        return std::ranges::find_if(*this, [](const auto &box) {
+            return box.selected;
+        });
+    };
+    
+    template<typename ... Ts>
+    auto insert_after_selected(Ts && ... args) {
+        auto it = get_selected_box();
+        if (it != end()) ++it;
+        return emplace(it, std::forward<Ts>(args) ...);
     }
 
     static bill_layout_script from_file(const std::filesystem::path &filename) {

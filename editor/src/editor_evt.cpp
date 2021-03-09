@@ -7,7 +7,6 @@
 
 #include "utils.h"
 
-#include "layout_ext.h"
 #include "clipboard.h"
 #include "box_editor_panel.h"
 #include "box_dialog.h"
@@ -87,9 +86,9 @@ void frame_editor::OnRedo(wxCommandEvent &evt) {
 void frame_editor::OnCut(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0) {
-        auto it = std::next(layout.m_boxes.begin(), selection);
+        auto it = std::next(layout.begin(), selection);
         if (SetClipboard(*it) && box_dialog::closeDialog(*it)) {
-            layout.m_boxes.erase(it);
+            layout.erase(it);
             updateLayout();
         }
     }
@@ -98,7 +97,7 @@ void frame_editor::OnCut(wxCommandEvent &evt) {
 void frame_editor::OnCopy(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection >= 0) {
-        auto it = std::next(layout.m_boxes.begin(), selection);
+        auto it = std::next(layout.begin(), selection);
         SetClipboard(*it);
     }
 }
@@ -111,7 +110,7 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
         clipboard.page = selected_page;
     }
     
-    auto &box = insertAfterSelected(layout, std::move(clipboard));
+    auto &box = *layout.insert_after_selected(std::move(clipboard));
     updateLayout();
     selectBox(&box);
 }
@@ -202,8 +201,8 @@ void frame_editor::OnChangeTool(wxCommandEvent &evt) {
 
 void frame_editor::OnSelectBox(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0 && selection < (int) layout.m_boxes.size()) {
-        auto it = std::next(layout.m_boxes.begin(), selection);
+    if (selection >= 0 && selection < (int) layout.size()) {
+        auto it = std::next(layout.begin(), selection);
         selectBox(&*it);
     } else {
         selectBox(nullptr);
@@ -212,18 +211,18 @@ void frame_editor::OnSelectBox(wxCommandEvent &evt) {
 
 void frame_editor::EditSelectedBox(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0 && selection < (int) layout.m_boxes.size()) {
-        auto it = std::next(layout.m_boxes.begin(), selection);
+    if (selection >= 0 && selection < (int) layout.size()) {
+        auto it = std::next(layout.begin(), selection);
         box_dialog::openDialog(this, *it);
     }
 }
 
 void frame_editor::OnDelete(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0 && selection < (int) layout.m_boxes.size()) {
-        auto it = std::next(layout.m_boxes.begin(), selection);
+    if (selection >= 0 && selection < (int) layout.size()) {
+        auto it = std::next(layout.begin(), selection);
         if (box_dialog::closeDialog(*it)) {
-            layout.m_boxes.erase(it);
+            layout.erase(it);
             updateLayout();
         }
     }
@@ -238,17 +237,17 @@ void frame_editor::OnReadData(wxCommandEvent &evt) {
 void frame_editor::OnMoveUp(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
     if (selection > 0) {
-        auto it = std::next(layout.m_boxes.begin(), selection);
-        layout.m_boxes.splice(std::prev(it), layout.m_boxes, it);
+        auto it = std::next(layout.begin(), selection);
+        layout.splice(std::prev(it), layout, it);
         updateLayout();
     }
 }
 
 void frame_editor::OnMoveDown(wxCommandEvent &evt) {
     int selection = m_list_boxes->GetSelection();
-    if (selection >= 0 && selection < (int)layout.m_boxes.size() - 1) {
-        auto it = std::next(layout.m_boxes.begin(), selection);
-        layout.m_boxes.splice(it, layout.m_boxes, std::next(it));
+    if (selection >= 0 && selection < (int)layout.size() - 1) {
+        auto it = std::next(layout.begin(), selection);
+        layout.splice(it, layout, std::next(it));
         updateLayout();
     }
 }

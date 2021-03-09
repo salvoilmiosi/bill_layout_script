@@ -39,7 +39,7 @@ void box_editor_panel::render(wxDC &dc) {
     wxImagePanel::render(dc);
 
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    for (auto &box : app->layout.m_boxes) {
+    for (auto &box : app->layout) {
         if (box.page == app->getSelectedPage()) {
             if (box.selected) {
                 dc.SetPen(*wxBLACK_DASHED_PEN);
@@ -71,13 +71,74 @@ void box_editor_panel::render(wxDC &dc) {
     }
 }
 
+
+bill_layout_script::iterator box_editor_panel::getBoxAt(float x, float y) {
+    auto check_box = [&](const layout_box &box) {
+        return (x > box.x && x < box.x + box.w && y > box.y && y < box.y + box.h && box.page == app->getSelectedPage());
+    };
+    if (auto it = app->layout.get_selected_box(); it != app->layout.end() && check_box(*it)) return it;
+    return std::ranges::find_if(app->layout, check_box);
+};
+
+#define RESIZE_NODES \
+F(TOP) \
+F(LEFT) \
+F(BOTTOM) \
+F(RIGHT)
+
+#define F(x) POS_RESIZE_##x,
+enum { RESIZE_NODES };
+#undef F
+#define F(x) RESIZE_##x = 1 << POS_RESIZE_##x,
+enum resize_nodes : flags_t { RESIZE_NODES };
+#undef F
+
+std::pair<bill_layout_script::iterator, flags_t> box_editor_panel::getBoxResizeNode(float x, float y) {
+    constexpr float RESIZE_TOLERANCE = 8.f;
+
+    float nw = RESIZE_TOLERANCE / scaled_width();
+    float nh = RESIZE_TOLERANCE / scaled_height();
+
+    auto check_box = [&](const layout_box &box) {
+        if (box.page == app->getSelectedPage()) {
+            int node = 0;
+            if (y > box.y - nh && y < box.y + box.h + nh) {
+                if (x > box.x - nw && x < box.x + nw) {
+                    node |= RESIZE_LEFT;
+                } else if (x > box.x + box.w - nw && x < box.x + box.w + nw) {
+                    node |= RESIZE_RIGHT;
+                }
+            }
+            if (x > box.x - nw && x < box.x + box.w + nw) {
+                if (y > box.y - nh && y < box.y + nh) {
+                    node |= RESIZE_TOP;
+                } else if (y > box.y + box.h - nh && y < box.y + box.h + nh) {
+                    node |= RESIZE_BOTTOM;
+                }
+            }
+            return node;
+        }
+        return 0;
+    };
+    if (auto it = app->layout.get_selected_box(); it != app->layout.end()) {
+        auto node = check_box(*it);
+        if (node) return std::make_pair(it, node);
+    }
+    auto it = app->layout.begin();
+    for (; it != app->layout.end(); ++it) {
+        int node = check_box(*it);
+        if (node) return std::make_pair(it, node);
+    }
+    return std::make_pair(it, 0);
+};
+
 void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
     start_pt = screen_to_layout(evt.GetPosition());
     if (raw_image.IsOk() && !mouseIsDown) {
         switch (selected_tool) {
         case TOOL_SELECT: {
-            auto it = getBoxAt(app->layout, start_pt.x, start_pt.y, app->getSelectedPage());
-            if (it != app->layout.m_boxes.end()) {
+            auto it = getBoxAt(start_pt.x, start_pt.y);
+            if (it != app->layout.end()) {
                 selected_box = &*it;
                 dragging_offset.x = selected_box->x - start_pt.x;
                 dragging_offset.y = selected_box->y - start_pt.y;
@@ -94,16 +155,16 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
             mouseIsDown = true;
             break;
         case TOOL_DELETEBOX: {
-            auto it = getBoxAt(app->layout, start_pt.x, start_pt.y, app->getSelectedPage());
-            if (it != app->layout.m_boxes.end() && box_dialog::closeDialog(*it)) {
-                app->layout.m_boxes.erase(it);
+            auto it = getBoxAt(start_pt.x, start_pt.y);
+            if (it != app->layout.end() && box_dialog::closeDialog(*it)) {
+                app->layout.erase(it);
                 app->updateLayout();
                 Refresh();
             }
             break;
         }
         case TOOL_RESIZE: {
-            auto node = getBoxResizeNode(app->layout, start_pt.x, start_pt.y, app->getSelectedPage(), scaled_width(), scaled_height());
+            auto node = getBoxResizeNode(start_pt.x, start_pt.y);
             if (node.second) {
                 selected_box = &*node.first;
                 resize_node = node.second;
@@ -134,7 +195,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 }
                 break;
             case TOOL_NEWBOX: {
-                auto &box = insertAfterSelected(app->layout);
+                auto &box = *app->layout.insert_after_selected();
                 box.x = std::min(start_pt.x, end_pt.x);
                 box.y = std::min(start_pt.y, end_pt.y);
                 box.w = std::abs(start_pt.x - end_pt.x);
@@ -236,7 +297,7 @@ void box_editor_panel::OnMouseMove(wxMouseEvent &evt) {
     } else {
         switch (selected_tool) {
         case TOOL_RESIZE:
-            auto node = getBoxResizeNode(app->layout, end_pt.x, end_pt.y, app->getSelectedPage(), scaled_width(), scaled_height());
+            auto node = getBoxResizeNode(end_pt.x, end_pt.y);
             switch (node.second) {
             case RESIZE_LEFT:
             case RESIZE_RIGHT:

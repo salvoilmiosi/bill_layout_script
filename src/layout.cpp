@@ -13,7 +13,7 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script &layou
         output << fmt::format("### Language {}\n", intl::language_string(layout.language_code));
     }
 
-    for (auto &box : layout.m_boxes) {
+    for (auto &box : layout) {
         output << fmt::format("\n### Box {}\n", box.name);
         output << fmt::format("### Type {}\n", box_type_strings[int(box.type)]);
         output << fmt::format("### Mode {}\n", read_mode_strings[int(box.mode)]);
@@ -151,7 +151,7 @@ std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
             if (fail) {
                 throw layout_error("Token End Box non trovato");
             } else {
-                layout.m_boxes.push_back(current);
+                layout.push_back(current);
             }
         } else if (auto suf = suffix(line, "### Language")) {
             layout.language_code = intl::language_code(std::string(suf.value));

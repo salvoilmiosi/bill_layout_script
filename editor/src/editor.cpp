@@ -252,7 +252,7 @@ bool frame_editor::saveIfModified() {
 void frame_editor::updateLayout(bool addToHistory) {
     m_list_boxes->Clear();
     size_t i = 0;
-    for (auto &box : layout.m_boxes) {
+    for (auto &box : layout) {
         if (box.name.empty()) {
             m_list_boxes->Append("(Senza nome)");
         } else {
@@ -326,7 +326,7 @@ void frame_editor::setSelectedPage(int page, bool force) {
 
 void frame_editor::selectBox(layout_box *box) {
     int i = 0;
-    for (auto &b : layout.m_boxes) {
+    for (auto &b : layout) {
         if (&b == box) {
             m_list_boxes->SetSelection(i);
             b.selected = true;

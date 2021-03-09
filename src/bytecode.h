@@ -79,10 +79,6 @@ enum opcode : uint8_t { OPCODES };
 static const char *opcode_names[] = { OPCODES };
 #undef O_IMPL
 
-typedef uint8_t small_int;
-
-typedef uint8_t flags_t;
-
 typedef int16_t jump_address; // indirizzo relativo
 
 struct command_call {

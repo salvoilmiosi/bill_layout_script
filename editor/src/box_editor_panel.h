@@ -5,8 +5,6 @@
 #include "editor.h"
 #include "text_dialog.h"
 
-#include "layout_ext.h"
-
 class box_editor_panel : public wxImagePanel {
 public:
     box_editor_panel(wxWindow *parent, class frame_editor *app);
@@ -37,6 +35,9 @@ private:
             std::clamp(yy / scaled_height(), 0.0, 1.0)
         );
     }
+
+    bill_layout_script::iterator getBoxAt(float x, float y);
+    std::pair<bill_layout_script::iterator, flags_t> getBoxResizeNode(float x, float y);
 
 private:
     class frame_editor *app;
