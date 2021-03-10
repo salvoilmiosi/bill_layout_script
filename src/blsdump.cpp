@@ -10,6 +10,7 @@
 #include "fixed_point.h"
 #include "utils.h"
 #include "intl.h"
+#include "binary_bls.h"
 
 class MainApp : public wxAppConsole {
 public:
@@ -19,6 +20,7 @@ public:
 
 private:
     std::filesystem::path input_bls;
+    std::filesystem::path output_cache;
 
     bool skip_comments;
     bool recursive_imports;
@@ -32,6 +34,7 @@ void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
     parser.AddSwitch("s", "skip-comments", "Skip Comments");
     parser.AddSwitch("r", "recursive-imports", "Recursive Imports");
     parser.AddSwitch("j", "eval-jumps", "Evaluate Jumps");
+    parser.AddOption("o", "output-cache", "Output Cache");
 }
 
 bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
@@ -39,6 +42,9 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     skip_comments = parser.FoundSwitch("s") == wxCMD_SWITCH_ON;
     recursive_imports = parser.FoundSwitch("r") == wxCMD_SWITCH_ON;
     do_eval_jumps = parser.FoundSwitch("j") == wxCMD_SWITCH_ON;
+    if (wxString str; parser.Found("o", &str)) {
+        output_cache = str.ToStdString();
+    }
     return true;
 }
 
@@ -68,6 +74,9 @@ int MainApp::OnRun() {
         }
 
         const auto &code = my_parser.get_bytecode();
+        if (!output_cache.empty()) {
+            binary_bls::write(code, output_cache);
+        }
         const auto &comments = my_parser.get_comments();
         for (auto it = code.begin(); it != code.end(); ++it) {
             auto [comment_begin, comment_end] = comments.equal_range(it - code.begin());
