@@ -17,23 +17,6 @@ O(MVBOX, spacer_index)          /* var_stack -> spacer[index] */ \
 O(CALL, command_call)           /* var_stack * numargs -> fun_name -> var_stack */ \
 O(THROWERROR)                   /* var_stack -> throw */ \
 O(WARNING)                      /* var_stack -> warnings */ \
-O(PARSENUM)                     /* var_stack -> parse_num -> var_stack */ \
-O(PARSEINT)                     /* var_stack -> parse_int -> var_stack */ \
-O(AGGREGATE)                    /* var_stack -> split -> parse_int -> sum -> var_stack */ \
-O(EQ)                           /* var_stack * 2 -> a == b -> var_stack */ \
-O(NEQ)                          /* var_stack * 2 -> a != b -> var_stack */ \
-O(AND)                          /* var_stack * 2 -> a && b -> var_stack */ \
-O(OR)                           /* var_stack * 2 -> a == b -> var_stack */ \
-O(NEG)                          /* var_stack -> -top -> var_stack */ \
-O(NOT)                          /* var_stack -> !top -> var_stack */ \
-O(ADD)                          /* var_stack * 2 -> a + b -> var_stack */ \
-O(SUB)                          /* var_stack * 2 -> a - b -> var_stack */ \
-O(MUL)                          /* var_stack * 2 -> a * b -> var_stack */ \
-O(DIV)                          /* var_stack * 2 -> a / b -> var_stack */ \
-O(GT)                           /* var_stack * 2 -> a > b -> var_stack */ \
-O(LT)                           /* var_stack * 2 -> a < b -> var_stack */ \
-O(GEQ)                          /* var_stack * 2 -> a >= b -> var_stack */ \
-O(LEQ)                          /* var_stack * 2 -> a >= b -> var_stack */ \
 O(SELVAR, variable_selector)    /* (name, index, size, flags) -> selected */ \
 O(ISSET)                        /* selected -> size() != 0 -> var_stack */ \
 O(GETSIZE)                      /* selected -> size() -> var_stack */ \
@@ -43,7 +26,6 @@ O(PUSHVIEW)                     /* content_stack -> var_stack */ \
 O(PUSHNUM, fixed_point)         /* number -> var_stack */ \
 O(PUSHSTR, std::string)         /* str -> var_stack */ \
 O(PUSHVAR)                      /* selected -> var_stack */ \
-O(PUSHNULL)                     /* null -> var_stack */ \
 O(PUSHREF)                      /* selected.str_view -> var_stack */ \
 O(UNEVAL_JUMP, jump_uneval)     /* unevaluated jump, sara' sostituito con opcode */ \
 O(JMP, jump_address)            /* unconditional jump */ \
@@ -211,7 +193,7 @@ public:
 
 template<opcode Cmd, typename ... Ts>
 command_args make_command(Ts && ... args) {
-    return command_args(Cmd, opcode_type<Cmd>{ std::forward<Ts>(args) ... });
+    return command_args(Cmd, opcode_type<Cmd>( std::forward<Ts>(args) ... ));
 }
 
 template<opcode Cmd> requires std::is_void_v<opcode_type<Cmd>>

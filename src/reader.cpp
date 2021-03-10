@@ -43,12 +43,6 @@ void reader::start() {
 }
 
 void reader::exec_command(const command_args &cmd) {
-    auto exec_operator = [&](auto op) {
-        auto ret = op(m_vars[m_vars.size() - 2], m_vars.top());
-        m_vars.resize(m_vars.size() - 2);
-        m_vars.push(std::move(ret));
-    };
-
     auto select_var = [&](const variable_selector &sel) {
         m_selected = variable_ref(m_values,
             variable_key{sel.name, (sel.flags & SEL_GLOBAL) ? variable_key::global_index : m_table_index},
@@ -80,11 +74,6 @@ void reader::exec_command(const command_args &cmd) {
         m_jumped = true;
     };
 
-    auto parse_num = [](fixed_point &num, const std::string &str) {
-        std::istringstream iss(str);
-        return dec::fromStream(iss, dec::decimal_format(intl::decimal_point(), intl::thousand_sep()), num);
-    };
-
     auto read_box = [&](pdf_rect box) {
         box.page += m_spacer.page;
         box.x += m_spacer.x;
@@ -113,51 +102,6 @@ void reader::exec_command(const command_args &cmd) {
     case OP_CALL:       call_function(cmd.get_args<OP_CALL>()); break;
     case OP_THROWERROR: throw layout_error(m_vars.top().str()); break;
     case OP_WARNING:    m_warnings.push_back(std::move(m_vars.pop().str())); break;
-    case OP_PARSEINT:   m_vars.top() = m_vars.top().as_int(); break;
-    case OP_PARSENUM: {
-        auto &var = m_vars.top();
-        if (var.type() == VAR_STRING) {
-            fixed_point num;
-            if (parse_num(num, var.str())) {
-                var = num;
-            } else {
-                var = variable::null_var();
-            }
-        }
-        break;
-    }
-    case OP_AGGREGATE: {
-        if (! m_vars.top().empty()) {
-            fixed_point ret(0);
-            content_view view(m_vars.top());
-            for (view.new_subview(); !view.token_end(); view.next_result()) {
-                fixed_point num;
-                if (parse_num(num, std::string(view.view()))) {
-                    ret += num;
-                }
-            }
-            m_vars.top() = ret;
-        } else {
-            m_vars.top() = variable::null_var();
-        }
-        break;
-    }
-    case OP_NOT: m_vars.top() = !m_vars.top(); break;
-    case OP_NEG: m_vars.top() = -m_vars.top(); break;
-#define OP(x) exec_operator([](const auto &a, const auto &b) { return x; })
-    case OP_EQ:  OP(a == b); break;
-    case OP_NEQ: OP(a != b); break;
-    case OP_AND: OP(a && b); break;
-    case OP_OR:  OP(a || b); break;
-    case OP_ADD: OP(a + b); break;
-    case OP_SUB: OP(a - b); break;
-    case OP_MUL: OP(a * b); break;
-    case OP_DIV: OP(a / b); break;
-    case OP_GT:  OP(a > b); break;
-    case OP_LT:  OP(a < b); break;
-    case OP_GEQ: OP(a >= b); break;
-    case OP_LEQ: OP(a <= b); break;
-#undef OP
     case OP_SELVAR: select_var(cmd.get_args<OP_SELVAR>()); break;
     case OP_ISSET: m_vars.push(m_selected.size() != 0); break;
     case OP_GETSIZE: m_vars.push(m_selected.size()); break;
@@ -197,7 +141,6 @@ void reader::exec_command(const command_args &cmd) {
     case OP_PUSHVIEW:  m_vars.push(m_contents.top().view()); break;
     case OP_PUSHNUM:   m_vars.push(cmd.get_args<OP_PUSHNUM>()); break;
     case OP_PUSHSTR:   m_vars.push(cmd.get_args<OP_PUSHSTR>()); break;
-    case OP_PUSHNULL:  m_vars.push(variable::null_var()); break;
     case OP_PUSHVAR:   m_vars.push(m_selected.get_value()); break;
     case OP_PUSHREF:   m_vars.push(m_selected.get_value().str_view()); break;
     case OP_JMP:

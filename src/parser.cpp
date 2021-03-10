@@ -128,7 +128,7 @@ void parser::read_box(const layout_box &box) {
                 throw unexpected_token(tok_sign, TOK_PLUS);
             }
             read_expression();
-            if (negative) add_line<OP_NEG>();
+            if (negative) add_line<OP_CALL>("neg", 1);
             add_line<OP_MVBOX>(index);
         } else if (tok.type != TOK_END_OF_FILE) {
             throw unexpected_token(tok, TOK_IDENTIFIER);
@@ -182,8 +182,8 @@ bool parser::read_statement(bool throw_on_eof) {
             break;
         }
 
-        if (prefixes & VP_AGGREGATE)  add_line<OP_AGGREGATE>();
-        if (prefixes & VP_PARSENUM)   add_line<OP_PARSENUM>();
+        if (prefixes & VP_AGGREGATE)  add_line<OP_CALL>("aggregate", 1);
+        if (prefixes & VP_PARSENUM)   add_line<OP_CALL>("num", 1);
         if (prefixes & VP_OVERWRITE)  flags |= SET_OVERWRITE;
         if (prefixes & VP_FORCE)      flags |= SET_FORCE;
 
@@ -196,18 +196,18 @@ bool parser::read_statement(bool throw_on_eof) {
 
 void parser::read_expression() {
     std::tuple<int, command_args, token_type> operators[] = {
-        {6, make_command<OP_MUL>(),    TOK_ASTERISK},
-        {6, make_command<OP_DIV>(),    TOK_SLASH},
-        {5, make_command<OP_ADD>(),    TOK_PLUS},
-        {5, make_command<OP_SUB>(),    TOK_MINUS},
-        {4, make_command<OP_LT>(),     TOK_LESS},
-        {4, make_command<OP_LEQ>(),    TOK_LESS_EQ},
-        {4, make_command<OP_GT>(),     TOK_GREATER},
-        {4, make_command<OP_GEQ>(),    TOK_GREATER_EQ},
-        {3, make_command<OP_EQ>(),     TOK_EQUALS},
-        {3, make_command<OP_NEQ>(),    TOK_NOT_EQUALS},
-        {2, make_command<OP_AND>(),    TOK_AND},
-        {1, make_command<OP_OR>(),     TOK_OR}
+        {6, make_command<OP_CALL>("mul", 2),    TOK_ASTERISK},
+        {6, make_command<OP_CALL>("div", 2),    TOK_SLASH},
+        {5, make_command<OP_CALL>("add", 2),    TOK_PLUS},
+        {5, make_command<OP_CALL>("sub", 2),    TOK_MINUS},
+        {4, make_command<OP_CALL>("lt", 2),     TOK_LESS},
+        {4, make_command<OP_CALL>("leq", 2),    TOK_LESS_EQ},
+        {4, make_command<OP_CALL>("gt", 2),     TOK_GREATER},
+        {4, make_command<OP_CALL>("geq", 2),    TOK_GREATER_EQ},
+        {3, make_command<OP_CALL>("eq", 2),     TOK_EQUALS},
+        {3, make_command<OP_CALL>("neq", 2),    TOK_NOT_EQUALS},
+        {2, make_command<OP_CALL>("and", 2),    TOK_AND},
+        {1, make_command<OP_CALL>("or", 2),     TOK_OR}
     };
 
     sub_expression();
@@ -250,7 +250,7 @@ void parser::sub_expression() {
     case TOK_NOT:
         m_lexer.advance(tok_first);
         sub_expression();
-        add_line<OP_NOT>();
+        add_line<OP_CALL>("not", 1);
         break;
     case TOK_MINUS: {
         m_lexer.advance(tok_first);
@@ -263,7 +263,7 @@ void parser::sub_expression() {
             break;
         default:
             sub_expression();
-            add_line<OP_NEG>();
+            add_line<OP_CALL>("neg", 1);
         }
         break;
     }
@@ -421,10 +421,6 @@ void parser::read_function() {
         };
 
         switch (hash(fun_name)) {
-        case hash("num"):       call_op(1, make_command<OP_PARSENUM>()); break;
-        case hash("int"):       call_op(1, make_command<OP_PARSEINT>()); break;
-        case hash("aggregate"): call_op(1, make_command<OP_AGGREGATE>()); break;
-        case hash("null"):      call_op(0, make_command<OP_PUSHNULL>()); break;
         case hash("ate"):       call_op(0, make_command<OP_ATE>()); break;
         case hash("boxwidth"):  call_op(0, make_command<OP_PUSHNUM>(current_box->w)); break;
         case hash("boxheight"): call_op(0, make_command<OP_PUSHNUM>(current_box->h)); break;

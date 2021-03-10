@@ -164,12 +164,12 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_BEGIN);
         add_line<OP_PUSHVIEW>();
         read_expression();
-        add_line<OP_CALL>("indexof", small_int(2));
+        add_line<OP_CALL>("indexof", 2);
         add_line<OP_SETBEGIN>();
         m_lexer.require(TOK_COMMA);
         add_line<OP_PUSHVIEW>();
         read_expression();
-        add_line<OP_CALL>("indexof", small_int(2));
+        add_line<OP_CALL>("indexof", 2);
         add_line<OP_SETEND>();
         m_lexer.require(TOK_PAREN_END);
         read_statement();

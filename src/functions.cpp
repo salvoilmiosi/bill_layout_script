@@ -1,8 +1,11 @@
 #include "functions.h"
 #include "utils.h"
+#include "intl.h"
+#include "content_view.h"
 
 #include <optional>
 #include <algorithm>
+#include <map>
 
 template<typename T> struct is_variable : std::bool_constant<! std::is_void_v<convert_rvalue<T>>> {};
 
@@ -103,7 +106,53 @@ function_handler::function_handler(Function fun) {
     maxargs = fun_args::maxargs;
 }
 
-static const std::unordered_map<std::string, function_handler> lookup {
+
+static bool parse_num(fixed_point &num, const std::string &str) {
+    std::istringstream iss(str);
+    return dec::fromStream(iss, dec::decimal_format(intl::decimal_point(), intl::thousand_sep()), num);
+};
+
+static const std::map<std::string, function_handler> lookup {
+    {"eq",  [](const variable &a, const variable &b) { return a == b; }},
+    {"neq", [](const variable &a, const variable &b) { return a != b; }},
+    {"lt",  [](const variable &a, const variable &b) { return a < b; }},
+    {"gt",  [](const variable &a, const variable &b) { return a > b; }},
+    {"leq", [](const variable &a, const variable &b) { return a <= b; }},
+    {"geq", [](const variable &a, const variable &b) { return a >= b; }},
+    {"int", [](int a) { return a; }},
+    {"mod", [](int a, int b) { return a % b; }},
+    {"add", [](fixed_point a, fixed_point b) { return a + b; }},
+    {"sub", [](fixed_point a, fixed_point b) { return a - b; }},
+    {"mul", [](fixed_point a, fixed_point b) { return a * b; }},
+    {"div", [](fixed_point a, fixed_point b) { return a / b; }},
+    {"neg", [](fixed_point a) { return -a; }},
+    {"not", [](bool a) { return !a; }},
+    {"and", [](bool a, bool b) { return a && b; }},
+    {"or",  [](bool a, bool b) { return a || b; }},
+    {"null", []{ return variable::null_var(); }},
+    {"num", [](const variable &var) {
+        if (var.type() == VAR_STRING) {
+            fixed_point num;
+            if (parse_num(num, var.str())) {
+                return variable(num);
+            }
+        }
+        return variable::null_var();
+    }},
+    {"aggregate", [](const variable &var) {
+        if (!var.empty()) {
+            fixed_point ret(0);
+            content_view view(var);
+            for (view.new_subview(); !view.token_end(); view.next_result()) {
+                fixed_point num;
+                if (parse_num(num, std::string(view.view()))) {
+                    ret += num;
+                }
+            }
+            return variable(ret);
+        }
+        return variable::null_var();
+    }},
     {"search", [](std::string_view str, std::string_view regex, std::optional<int> index) {
         return search_regex(regex, str, index.value_or(1));
     }},
@@ -198,9 +247,6 @@ static const std::unordered_map<std::string, function_handler> lookup {
             return variable::null_var();
         }
         return *std::ranges::min_element(args);
-    }},
-    {"mod", [](int a, int b) {
-        return a % b;
     }},
     {"table_row_regex", [](std::string_view header, varargs<std::string_view> names) {
         return table_row_regex(header, names);

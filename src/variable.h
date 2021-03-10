@@ -90,32 +90,6 @@ public:
         return std::partial_ordering::equivalent == *this <=> other;
     }
 
-    bool operator && (const variable &other) const noexcept {
-        return as_bool() && other.as_bool();
-    }
-    bool operator || (const variable &other) const noexcept {
-        return as_bool() || other.as_bool();
-    }
-    bool operator ! () const noexcept {
-        return !as_bool();
-    }
-
-    variable operator - () const noexcept {
-        return -number();
-    }
-    variable operator + (const variable &other) const noexcept {
-        return number() + other.number();
-    }
-    variable operator - (const variable &other) const noexcept {
-        return number() - other.number();
-    }
-    variable operator * (const variable &other) const noexcept {
-        return number() * other.number();
-    }
-    variable operator / (const variable &other) const noexcept {
-        return number() / other.number();
-    }
-
     variable &operator += (const variable &other) noexcept;
 
 private:
