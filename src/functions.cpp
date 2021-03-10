@@ -96,11 +96,11 @@ function_handler::function_handler(Function fun) {
     // Viene creata una closure che passa automaticamente gli argomenti
     // da arg_list alla funzione fun, convertendoli nei tipi giusti
 
-    m_fun = [fun](arg_list &&args) -> variable {
+    function_base::operator = ([fun](arg_list &&args) -> variable {
         return [&] <std::size_t ... Is> (std::index_sequence<Is...>) {
             return fun(get_arg<typename fun_args::types, Is>(args) ...);
         }(std::make_index_sequence<fun_args::types::size>{});
-    };
+    });
 
     minargs = fun_args::minargs;
     maxargs = fun_args::maxargs;

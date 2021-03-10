@@ -77,19 +77,12 @@ public:
         : parsing_error(get_message(fun_name, minargs, maxargs), tok) {}
 };
 
-class function_handler {
-public:
+using function_base = std::function<variable(arg_list&&)>;
+struct function_handler : function_base {
     size_t minargs;
     size_t maxargs;
 
     template<typename Function> function_handler(Function fun);
-
-    variable operator ()(auto &&args) const {
-        return m_fun(std::forward<decltype(args)>(args));
-    }
-
-private:
-    std::function<variable(arg_list&&)> m_fun;
 };
 
 const function_handler &find_function(const std::string &name);
