@@ -251,17 +251,12 @@ bool frame_editor::saveIfModified() {
 
 void frame_editor::updateLayout(bool addToHistory) {
     m_list_boxes->Clear();
-    size_t i = 0;
     for (auto &box : layout) {
         if (box.name.empty()) {
             m_list_boxes->Append("(Senza nome)");
         } else {
             m_list_boxes->Append(box.name);
         }
-        if (box.selected) {
-            m_list_boxes->SetSelection(i);
-        }
-        ++i;
     }
     m_image->Refresh();
 
@@ -329,9 +324,6 @@ void frame_editor::selectBox(layout_box *box) {
     for (auto &b : layout) {
         if (&b == box) {
             m_list_boxes->SetSelection(i);
-            b.selected = true;
-        } else {
-            b.selected = false;
         }
         ++i;
     }

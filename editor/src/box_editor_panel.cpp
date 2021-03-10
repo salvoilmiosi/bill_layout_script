@@ -41,7 +41,7 @@ void box_editor_panel::render(wxDC &dc) {
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     for (auto &box : app->layout) {
         if (box.page == app->getSelectedPage()) {
-            if (box.selected) {
+            if (selected_box == &box) {
                 dc.SetPen(*wxBLACK_DASHED_PEN);
             } else {
                 dc.SetPen(*wxBLACK_PEN);
@@ -76,7 +76,7 @@ bill_layout_script::iterator box_editor_panel::getBoxAt(float x, float y) {
     auto check_box = [&](const layout_box &box) {
         return (x > box.x && x < box.x + box.w && y > box.y && y < box.y + box.h && box.page == app->getSelectedPage());
     };
-    if (auto it = app->layout.get_selected_box(); it != app->layout.end() && check_box(*it)) return it;
+    if (selected_box && check_box(*selected_box)) return app->layout.get_box_iterator(selected_box);
     return std::ranges::find_if(app->layout, check_box);
 };
 
@@ -120,9 +120,9 @@ std::pair<bill_layout_script::iterator, flags_t> box_editor_panel::getBoxResizeN
         }
         return 0;
     };
-    if (auto it = app->layout.get_selected_box(); it != app->layout.end()) {
-        auto node = check_box(*it);
-        if (node) return std::make_pair(it, node);
+    if (selected_box) {
+        auto node = check_box(*selected_box);
+        if (node) return std::make_pair(app->layout.get_box_iterator(selected_box), node);
     }
     auto it = app->layout.begin();
     for (; it != app->layout.end(); ++it) {
@@ -192,10 +192,11 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                 if (selected_box && start_pt != end_pt) {
                     clamp_rect(*selected_box);
                     app->updateLayout();
+                    app->selectBox(selected_box);
                 }
                 break;
             case TOOL_NEWBOX: {
-                auto &box = *app->layout.insert_after_selected();
+                auto &box = *app->layout.insert_after(app->layout.get_box_iterator(selected_box));
                 box.x = std::min(start_pt.x, end_pt.x);
                 box.y = std::min(start_pt.y, end_pt.y);
                 box.w = std::abs(start_pt.x - end_pt.x);
@@ -240,6 +241,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                             selected_box->y -= selected_box->h;
                         }
                         app->updateLayout();
+                        app->selectBox(selected_box);
                     }
                 }
                 OnMouseMove(evt); // changes cursor
@@ -344,6 +346,7 @@ void box_editor_panel::OnKeyUp(wxKeyEvent &evt) {
         case WXK_UP:
         case WXK_DOWN:
             app->updateLayout();
+            app->selectBox(selected_box);
         }
     }
 }

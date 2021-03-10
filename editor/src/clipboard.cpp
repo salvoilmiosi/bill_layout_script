@@ -23,7 +23,6 @@ BoxDataObject::BoxDataObject(const layout_box &box) : BoxDataObject() {
     add_data(box.page);
     add_data(box.mode);
     add_data(box.type);
-    add_data(box.selected);
     add_string(box.name);
     add_string(box.script);
     add_string(box.spacers);
@@ -60,7 +59,6 @@ layout_box BoxDataObject::GetLayoutBox() const {
     get_data(box.page);
     get_data(box.mode);
     get_data(box.type);
-    get_data(box.selected);
     get_string(box.name);
     get_string(box.script);
     get_string(box.spacers);

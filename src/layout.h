@@ -16,7 +16,6 @@ typedef uint8_t small_int;
 typedef uint8_t flags_t;
 
 struct layout_box : public pdf_rect {
-    bool selected = false;
     std::string name;
     std::string script;
     std::string spacers;
@@ -42,17 +41,16 @@ public:
         language_code = {};
     }
 
-    auto get_selected_box() {
-        return std::ranges::find_if(*this, [](const auto &box) {
-            return box.selected;
+    auto get_box_iterator(const layout_box *ptr) {
+        return std::ranges::find_if(*this, [&](const auto &box) {
+            return &box == ptr;
         });
     };
     
     template<typename ... Ts>
-    auto insert_after_selected(Ts && ... args) {
-        auto it = get_selected_box();
-        if (it != end()) ++it;
-        return emplace(it, std::forward<Ts>(args) ...);
+    auto insert_after(iterator pos, Ts && ... args) {
+        if (pos != end()) ++pos;
+        return emplace(pos, std::forward<Ts>(args) ...);
     }
 
     static bill_layout_script from_file(const std::filesystem::path &filename) {

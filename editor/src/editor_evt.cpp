@@ -110,7 +110,12 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
         clipboard.page = selected_page;
     }
     
-    auto &box = *layout.insert_after_selected(std::move(clipboard));
+    int selection = m_list_boxes->GetSelection();
+    bill_layout_script::iterator selected = layout.end();
+    if (selection >= 0) {
+        selected = std::next(layout.begin(), selection);
+    }
+    auto &box = *layout.insert_after(selected, std::move(clipboard));
     updateLayout();
     selectBox(&box);
 }
@@ -240,6 +245,7 @@ void frame_editor::OnMoveUp(wxCommandEvent &evt) {
         auto it = std::next(layout.begin(), selection);
         layout.splice(std::prev(it), layout, it);
         updateLayout();
+        selectBox(&*it);
     }
 }
 
@@ -249,6 +255,7 @@ void frame_editor::OnMoveDown(wxCommandEvent &evt) {
         auto it = std::next(layout.begin(), selection);
         layout.splice(it, layout, std::next(it));
         updateLayout();
+        selectBox(&*it);
     }
 }
 

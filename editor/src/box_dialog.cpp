@@ -188,6 +188,7 @@ END_EVENT_TABLE()
 void box_dialog::saveBox() {
     TransferDataFromWindow();
     app->updateLayout();
+    app->selectBox(&m_box);
 }
 
 void box_dialog::OnApply(wxCommandEvent &evt) {
@@ -229,6 +230,7 @@ void box_dialog::OnClose(wxCloseEvent &evt) {
         switch (dialog.ShowModal()) {
         case wxID_YES:
             app->updateLayout();
+            app->selectBox(&m_box);
             break;
         case wxID_NO:
             m_box = box_copy;
