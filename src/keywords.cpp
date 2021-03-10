@@ -268,7 +268,7 @@ void parser::read_keyword() {
         if (m_flags & PARSER_RECURSIVE_IMPORTS) {
             parser imported;
             imported.m_flags = m_flags;
-            imported.read_layout(imported_file.parent_path(), bill_layout_script::from_file(imported_file));
+            imported.read_layout(imported_file.parent_path(), box_vector::from_file(imported_file));
             auto code_len = m_code.size();
             std::ranges::move(imported.m_code, std::back_inserter(m_code));
             for (auto &[line, comment] : imported.m_comments) {

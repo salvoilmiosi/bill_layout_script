@@ -1,5 +1,3 @@
-#include "layout.h"
-#include "bytecode.h"
 #include "fixed_point.h"
 #include "utils.h"
 #include "intl.h"
@@ -7,7 +5,8 @@
 #include <iostream>
 #include <fstream>
 
-std::ostream &operator << (std::ostream &output, const bill_layout_script &layout) {
+template<template<typename> typename Container>
+std::ostream &operator << (std::ostream &output, const bill_layout_script<Container> &layout) {
     output << "### Bill Layout Script\n";
     if (intl::valid_language(layout.language_code)) {
         output << fmt::format("### Language {}\n", intl::language_string(layout.language_code));
@@ -66,13 +65,14 @@ struct suffix {
     bool valid = false;
 };
 
-std::istream &getline_clearcr(std::istream &input, std::string &line) {
+static std::istream &getline_clearcr(std::istream &input, std::string &line) {
     std::getline(input, line);
     std::erase(line, '\r');
     return input;
 }
 
-std::istream &operator >> (std::istream &input, bill_layout_script &layout) {
+template<template<typename> typename Container>
+std::istream &operator >> (std::istream &input, bill_layout_script<Container> &layout) {
     std::string line;
 
     layout.clear();

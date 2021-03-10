@@ -72,7 +72,7 @@ void box_editor_panel::render(wxDC &dc) {
 }
 
 
-bill_layout_script::iterator box_editor_panel::getBoxAt(float x, float y) {
+box_list::iterator box_editor_panel::getBoxAt(float x, float y) {
     auto check_box = [&](const layout_box &box) {
         return (x > box.x && x < box.x + box.w && y > box.y && y < box.y + box.h && box.page == app->getSelectedPage());
     };
@@ -93,7 +93,7 @@ enum { RESIZE_NODES };
 enum resize_nodes : flags_t { RESIZE_NODES };
 #undef F
 
-std::pair<bill_layout_script::iterator, flags_t> box_editor_panel::getBoxResizeNode(float x, float y) {
+std::pair<box_list::iterator, flags_t> box_editor_panel::getBoxResizeNode(float x, float y) {
     constexpr float RESIZE_TOLERANCE = 8.f;
 
     float nw = RESIZE_TOLERANCE / scaled_width();

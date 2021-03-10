@@ -2,6 +2,7 @@
 #include "utils.h"
 
 #include <optional>
+#include <algorithm>
 
 template<typename T> struct is_variable : std::bool_constant<! std::is_void_v<convert_rvalue<T>>> {};
 

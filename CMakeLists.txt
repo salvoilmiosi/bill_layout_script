@@ -8,7 +8,6 @@ src/binary_bls.cpp
 src/functions.cpp
 src/keywords.cpp
 src/intl.cpp
-src/layout.cpp
 src/lexer.cpp
 src/parser.cpp
 src/parse_string.cpp

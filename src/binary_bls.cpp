@@ -1,6 +1,6 @@
 #include "binary_bls.h"
 
-#include <iostream>
+#include <fstream>
 
 typedef uint16_t string_size;
 

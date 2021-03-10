@@ -60,7 +60,7 @@ public:
         return m_doc;
     }
 
-    bill_layout_script layout;
+    box_list layout;
     std::filesystem::path m_filename;
 
 private:
@@ -111,8 +111,8 @@ private:
 
     wxListBox *m_list_boxes;
 
-    std::deque<bill_layout_script> history;
-    std::deque<bill_layout_script>::iterator currentHistory;
+    std::deque<box_list> history;
+    std::deque<box_list>::iterator currentHistory;
 
     bool modified = false;
 

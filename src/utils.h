@@ -8,6 +8,9 @@
 
 constexpr char RESULT_SEPARATOR = '\x1f';
 
+typedef uint8_t small_int;
+typedef uint8_t flags_t;
+
 // divide una stringa per separatore
 std::vector<std::string_view> string_split(std::string_view str, char separator = ',');
 

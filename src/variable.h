@@ -5,7 +5,6 @@
 #include <string_view>
 
 #include "fixed_point.h"
-#include "bytecode.h"
 
 enum variable_type : uint8_t {
     VAR_UNDEFINED,

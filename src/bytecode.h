@@ -5,8 +5,10 @@
 #include <typeinfo>
 #include <cassert>
 
+#include "pdf_document.h"
+#include "utils.h"
 #include "fixed_point.h"
-#include "layout.h"
+#include "intl.h"
 
 #define OPCODES \
 O(NOP)                          /* no operation */ \

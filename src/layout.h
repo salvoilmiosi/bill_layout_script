@@ -12,9 +12,6 @@
 
 #include <fmt/format.h>
 
-typedef uint8_t small_int;
-typedef uint8_t flags_t;
-
 struct layout_box : public pdf_rect {
     std::string name;
     std::string script;
@@ -26,18 +23,17 @@ struct layout_error : std::runtime_error {
     layout_error(auto &&message) : std::runtime_error(std::forward<decltype(message)>(message)) {}
 };
 
-std::ostream &operator << (std::ostream &out, const class bill_layout_script &obj);
-std::istream &operator >> (std::istream &in, class bill_layout_script &obj);
-
-class bill_layout_script : public std::list<layout_box> {
+template<template<typename> typename Container>
+class bill_layout_script : public Container<layout_box> {
 public:
+    using base = Container<layout_box>;
     intl::language language_code{};
 
 public:
     bill_layout_script() = default;
 
     void clear() {
-        std::list<layout_box>::clear();
+        base::clear();
         language_code = {};
     }
 
@@ -48,9 +44,9 @@ public:
     };
     
     template<typename ... Ts>
-    auto insert_after(iterator pos, Ts && ... args) {
-        if (pos != end()) ++pos;
-        return emplace(pos, std::forward<Ts>(args) ...);
+    auto insert_after(base::iterator pos, Ts && ... args) {
+        if (pos != base::end()) ++pos;
+        return base::emplace(pos, std::forward<Ts>(args) ...);
     }
 
     static bill_layout_script from_file(const std::filesystem::path &filename) {
@@ -71,5 +67,10 @@ public:
         ofs << *this;
     }
 };
+
+using box_list = bill_layout_script<std::list>;
+using box_vector = bill_layout_script<std::vector>;
+
+#include "layout.tcc"
 
 #endif

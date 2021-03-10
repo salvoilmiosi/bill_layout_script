@@ -196,7 +196,7 @@ void frame_editor::openFile(const wxString &filename) {
     try {
         if (box_dialog::closeAll()) {
             m_filename = filename.ToStdString();
-            layout = bill_layout_script::from_file(m_filename);
+            layout = box_list::from_file(m_filename);
 
             modified = false;
             history.clear();

@@ -88,6 +88,11 @@ void output_dialog::OnClickAbort(wxCommandEvent &) {
     }
 }
 
+reader_thread::reader_thread(output_dialog *parent, reader &m_reader, const box_list &layout) : parent(parent), m_reader(m_reader) {
+    std::ranges::copy(layout, std::back_inserter(m_layout));
+    m_layout.language_code = layout.language_code;
+}
+
 reader_thread::~reader_thread() {
     parent->m_thread = nullptr;
 }
@@ -98,7 +103,7 @@ wxThread::ExitCode reader_thread::Entry() {
         std::filesystem::path path = parent->parent->m_filename;
         if (path.empty()) path = std::filesystem::path(parent->parent->getControlScript().ToStdString());
         path = path.parent_path();
-        my_parser.read_layout(path, layout);
+        my_parser.read_layout(path, m_layout);
         m_reader.add_code(std::move(my_parser).get_bytecode());
         m_reader.start();
         if (!m_aborted) {

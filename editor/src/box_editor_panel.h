@@ -36,8 +36,8 @@ private:
         );
     }
 
-    bill_layout_script::iterator getBoxAt(float x, float y);
-    std::pair<bill_layout_script::iterator, flags_t> getBoxResizeNode(float x, float y);
+    box_list::iterator getBoxAt(float x, float y);
+    std::pair<box_list::iterator, flags_t> getBoxResizeNode(float x, float y);
 
 private:
     class frame_editor *app;

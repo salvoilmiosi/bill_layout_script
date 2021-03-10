@@ -14,8 +14,7 @@ class output_dialog;
 
 class reader_thread : public wxThread {
 public:
-    reader_thread(output_dialog *parent, reader &m_reader, const bill_layout_script &layout)
-        : parent(parent), layout(layout), m_reader(m_reader) {}
+    reader_thread(output_dialog *parent, reader &m_reader, const box_list &layout);
     ~reader_thread();
 
     void abort();
@@ -27,7 +26,7 @@ private:
     reader &m_reader;
     output_dialog *parent;
 
-    const bill_layout_script &layout;
+    box_vector m_layout;
     bool m_aborted = false;
 };
 

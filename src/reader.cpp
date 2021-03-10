@@ -291,7 +291,7 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
         if (m_flags & READER_RECURSIVE) {
             my_parser.add_flags(PARSER_RECURSIVE_IMPORTS);
         }
-        my_parser.read_layout(filename.parent_path(), bill_layout_script::from_file(filename));
+        my_parser.read_layout(filename.parent_path(), box_vector::from_file(filename));
         new_code = std::move(my_parser).get_bytecode();
         if (m_flags & READER_USE_CACHE) {
             binary_bls::write(new_code, cache_filename);

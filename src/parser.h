@@ -50,7 +50,7 @@ public:
         m_flags |= flags;
     }
 
-    void read_layout(const std::filesystem::path &path, const bill_layout_script &layout);
+    void read_layout(const std::filesystem::path &path, const box_vector &layout);
 
     const auto &get_bytecode() const & {
         return m_code;
@@ -91,7 +91,7 @@ private:
     void add_comment(const std::string &comment);
 
 private:
-    const bill_layout_script *m_layout = nullptr;
+    const box_vector *m_layout = nullptr;
     std::filesystem::path m_path;
 
     lexer m_lexer;

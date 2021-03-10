@@ -111,7 +111,7 @@ void frame_editor::OnPaste(wxCommandEvent &evt) {
     }
     
     int selection = m_list_boxes->GetSelection();
-    bill_layout_script::iterator selected = layout.end();
+    box_list::iterator selected = layout.end();
     if (selection >= 0) {
         selected = std::next(layout.begin(), selection);
     }
