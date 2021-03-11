@@ -134,21 +134,23 @@ const std::map<std::string, function_handler> function_lookup {
             fixed_point num;
             if (parse_num(num, var.str())) {
                 return variable(num);
+            } else {
+                return variable::null_var();
             }
         }
         return var;
     }},
-    {"aggregate", [](const variable &var) {
+    {"aggregate", [](variable &&var) {
         if (!var.empty()) {
-            fixed_point ret(0);
-            content_view view(var);
+            variable ret;
+            content_view view(std::move(var));
             for (view.new_subview(); !view.token_end(); view.next_result()) {
                 fixed_point num;
                 if (parse_num(num, std::string(view.view()))) {
                     ret += num;
                 }
             }
-            return variable(ret);
+            return ret;
         }
         return variable::null_var();
     }},
