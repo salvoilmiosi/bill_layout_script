@@ -5,7 +5,6 @@
 
 #include <optional>
 #include <algorithm>
-#include <map>
 
 template<typename T> struct is_variable : std::bool_constant<! std::is_void_v<convert_rvalue<T>>> {};
 
@@ -112,7 +111,7 @@ static bool parse_num(fixed_point &num, const std::string &str) {
     return dec::fromStream(iss, dec::decimal_format(intl::decimal_point(), intl::thousand_sep()), num);
 };
 
-static const std::map<std::string, function_handler> lookup {
+const std::map<std::string, function_handler> function_lookup {
     {"eq",  [](const variable &a, const variable &b) { return a == b; }},
     {"neq", [](const variable &a, const variable &b) { return a != b; }},
     {"lt",  [](const variable &a, const variable &b) { return a < b; }},
@@ -252,7 +251,3 @@ static const std::map<std::string, function_handler> lookup {
         return table_row_regex(header, names);
     }}
 };
-
-const function_handler &find_function(const std::string &name) {
-    return lookup.at(name);
-}

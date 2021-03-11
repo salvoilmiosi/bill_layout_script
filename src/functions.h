@@ -4,6 +4,7 @@
 #include <functional>
 #include <ranges>
 #include <span>
+#include <map>
 
 #include "variable.h"
 #include "lexer.h"
@@ -85,6 +86,8 @@ struct function_handler : function_base {
     template<typename Function> function_handler(Function fun);
 };
 
-const function_handler &find_function(const std::string &name);
+extern const std::map<std::string, function_handler> function_lookup;
+
+using function_iterator = decltype(function_lookup)::const_iterator;
 
 #endif

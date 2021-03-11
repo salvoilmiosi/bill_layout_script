@@ -102,7 +102,7 @@ int MainApp::OnRun() {
                 break;
             case OP_CALL: {
                 auto args = line.get_args<OP_CALL>();
-                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << args.name << ' ' << int(args.numargs);
+                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << args.fun->first << ' ' << int(args.numargs);
                 break;
             }
             case OP_SELVAR: {

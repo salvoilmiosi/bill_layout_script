@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "fixed_point.h"
 #include "intl.h"
+#include "functions.h"
 
 #define OPCODES \
 O(NOP)                          /* no operation */ \
@@ -66,8 +67,13 @@ static const char *opcode_names[] = { OPCODES };
 typedef int16_t jump_address; // indirizzo relativo
 
 struct command_call {
-    std::string name;
+    function_iterator fun;
     small_int numargs;
+
+    command_call(const std::string &name, int numargs) : fun(function_lookup.find(name)), numargs(numargs) {
+        assert(fun != function_lookup.end());
+    }
+    command_call(const function_iterator &fun, int numargs) : fun(fun), numargs(numargs) {}
 };
 
 #define SPACER_INDICES \
@@ -193,7 +199,7 @@ public:
 
 template<opcode Cmd, typename ... Ts>
 command_args make_command(Ts && ... args) {
-    return command_args(Cmd, opcode_type<Cmd>( std::forward<Ts>(args) ... ));
+    return command_args(Cmd, opcode_type<Cmd>{ std::forward<Ts>(args) ... });
 }
 
 template<opcode Cmd> requires std::is_void_v<opcode_type<Cmd>>

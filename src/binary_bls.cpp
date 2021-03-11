@@ -94,15 +94,14 @@ template<> inline pdf_rect readData<pdf_rect>(std::istream &input) {
 }
 
 template<> inline void writeData<command_call>(std::ostream &output, const command_call &args) {
-    writeData(output, args.name);
+    writeData(output, args.fun->first);
     writeData(output, args.numargs);
 }
 
 template<> inline command_call readData<command_call>(std::istream &input) {
-    command_call args;
-    args.name = readData<std::string>(input);
-    args.numargs = readData<small_int>(input);
-    return args;
+    auto name = readData<std::string>(input);
+    auto numargs = readData<small_int>(input);
+    return command_call(name, numargs);
 }
 
 template<> inline void writeData<variable_selector>(std::ostream &output, const variable_selector &args) {

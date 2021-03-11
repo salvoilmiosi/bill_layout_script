@@ -425,13 +425,13 @@ void parser::read_function() {
         case hash("boxwidth"):  call_op(0, make_command<OP_PUSHNUM>(current_box->w)); break;
         case hash("boxheight"): call_op(0, make_command<OP_PUSHNUM>(current_box->h)); break;
         default:
-            try {
-                const auto &fun = find_function(fun_name);
+            if (function_iterator it = function_lookup.find(fun_name); it != function_lookup.end()) {
+                const auto &fun = it->second;
                 if (num_args < fun.minargs || num_args > fun.maxargs) {
                     throw invalid_numargs(fun_name, fun.minargs, fun.maxargs, tok_fun_name);
                 }
-                add_line<OP_CALL>(fun_name, num_args);
-            } catch (const std::out_of_range &error) {
+                add_line<OP_CALL>(it, num_args);
+            } else {
                 throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
             }
         }

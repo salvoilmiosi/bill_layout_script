@@ -89,7 +89,7 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto call_function = [&](const command_call &cmd) {
-        variable ret = find_function(cmd.name)(arg_list(
+        variable ret = cmd.fun->second(arg_list(
             m_vars.end() - cmd.numargs,
             m_vars.end()));
         m_vars.resize(m_vars.size() - cmd.numargs);
