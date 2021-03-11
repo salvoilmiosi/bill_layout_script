@@ -22,7 +22,7 @@ void reader::start() {
 
     m_selected = {};
     m_spacer = {};
-    m_last_box_page = 0;
+    m_last_box = {};
 
     m_program_counter = 0;
     m_jumped = false;
@@ -75,14 +75,12 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto read_box = [&](pdf_rect box) {
-        box.page += m_spacer.page;
-        box.x += m_spacer.x;
-        box.y += m_spacer.y;
-        box.w += m_spacer.w;
-        box.h += m_spacer.h;
+        m_last_box.page = box.page += m_spacer.page;
+        m_last_box.x = box.x += m_spacer.x;
+        m_last_box.y = box.y += m_spacer.y;
+        m_last_box.w = box.w += m_spacer.w;
+        m_last_box.h = box.h += m_spacer.h;
         m_spacer = {};
-
-        m_last_box_page = box.page;
 
         m_contents.clear();
         m_contents.push(m_doc->get_text(box));
@@ -109,22 +107,17 @@ void reader::exec_command(const command_args &cmd) {
         auto amt = m_stack.pop();
         switch (cmd.get_args<OP_MVBOX>()) {
         case SPACER_PAGE:
-            m_spacer.page += amt.as_int();
-            break;
+            m_spacer.page += amt.as_int(); break;
         case SPACER_X:
-            m_spacer.x += amt.as_double();
-            break;
+            m_spacer.x += amt.as_double(); break;
         case SPACER_Y:
-            m_spacer.y += amt.as_double();
-            break;
-        case SPACER_W:
+            m_spacer.y += amt.as_double(); break;
+        case SPACER_WIDTH:
         case SPACER_RIGHT:
-            m_spacer.w += amt.as_double();
-            break;
-        case SPACER_H:
+            m_spacer.w += amt.as_double(); break;
+        case SPACER_HEIGHT:
         case SPACER_BOTTOM:
-            m_spacer.h += amt.as_double();
-            break;
+            m_spacer.h += amt.as_double(); break;
         case SPACER_TOP:
             m_spacer.y += amt.as_double();
             m_spacer.h -= amt.as_double();
@@ -136,6 +129,28 @@ void reader::exec_command(const command_args &cmd) {
         }
         break;
     }
+    case OP_GETBOX:
+        switch (cmd.get_args<OP_GETBOX>()) {
+        case SPACER_PAGE:
+            m_stack.push(m_last_box.page); break;
+        case SPACER_X:
+        case SPACER_LEFT:
+            m_stack.push(m_last_box.x); break;
+        case SPACER_Y:
+        case SPACER_TOP:
+            m_stack.push(m_last_box.y); break;
+        case SPACER_WIDTH:
+            m_stack.push(m_last_box.w); break;
+        case SPACER_HEIGHT:
+            m_stack.push(m_last_box.h); break;
+        case SPACER_RIGHT:
+            m_stack.push(m_last_box.x + m_last_box.w); break;
+        case SPACER_BOTTOM:
+            m_stack.push(m_last_box.y + m_last_box.h); break;
+        }
+        break;
+    case OP_DOCPAGES:  m_stack.push(m_doc->num_pages()); break;
+    case OP_ATE:       m_stack.push(m_last_box.page > m_doc->num_pages()); break;
     case OP_CLEAR:     m_selected.clear(); break;
     case OP_SETVAR:    m_selected.set_value(m_stack.pop(), cmd.get_args<OP_SETVAR>()); break;
     case OP_PUSHVIEW:  m_stack.push(m_contents.top().view()); break;
@@ -177,7 +192,6 @@ void reader::exec_command(const command_args &cmd) {
     case OP_RESETVIEW: m_contents.top().reset_view(); break;
     case OP_NEXTRESULT: m_contents.top().next_result(); break;
     case OP_NEXTTABLE: ++m_table_index; break;
-    case OP_ATE: m_stack.push(m_last_box_page > m_doc->num_pages()); break;
     case OP_RET: m_program_counter = m_stack.pop().number().getUnbiased(); break;
     case OP_HLT: halt(); break;
     case OP_IMPORT: {

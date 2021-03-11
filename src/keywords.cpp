@@ -11,7 +11,42 @@ void parser::read_keyword() {
     auto tok_name = m_lexer.require(TOK_FUNCTION);
     auto fun_name = tok_name.value.substr(1);
 
-    switch(hash(fun_name)) {
+    enum function_type {
+        FUN_EXPRESSION,
+        FUN_VARIABLE,
+        FUN_VOID
+    };
+    
+    static const std::map<std::string_view, std::tuple<function_type, command_args>> simple_functions = {
+        {"error",       {FUN_EXPRESSION, make_command<OP_THROWERROR>()}},
+        {"warning",     {FUN_EXPRESSION, make_command<OP_WARNING>()}},
+        {"setbegin",    {FUN_EXPRESSION, make_command<OP_SETBEGIN>()}},
+        {"setend",      {FUN_EXPRESSION, make_command<OP_SETEND>()}},
+        {"clear",       {FUN_VARIABLE,   make_command<OP_CLEAR>()}},
+        {"nexttable",   {FUN_VOID,       make_command<OP_NEXTTABLE>()}},
+        {"skip",        {FUN_VOID,       make_command<OP_NOP>()}},
+        {"return",      {FUN_VOID,       make_command<OP_RET>()}},
+    };
+
+    if (auto it = simple_functions.find(fun_name); it != simple_functions.end()) {
+        m_lexer.require(TOK_PAREN_BEGIN);
+        switch (std::get<function_type>(it->second)) {
+        case FUN_EXPRESSION:
+            read_expression();
+            break;
+        case FUN_VARIABLE: {
+            bool isglobal = m_lexer.check_next(TOK_GLOBAL);
+            auto tok_var = m_lexer.require(TOK_IDENTIFIER);
+            m_lexer.require(TOK_PAREN_END);
+            add_line<OP_SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), flags_t(SEL_GLOBAL & (-isglobal)));
+            break;
+        }
+        case FUN_VOID:
+            break;
+        }
+        m_lexer.require(TOK_PAREN_END);
+        m_code.push_back(std::get<command_args>(it->second));
+    } else switch (hash(fun_name)) {
     case hash("if"):
     case hash("ifnot"): {
         std::string endelse_label = make_label("endelse");
@@ -200,56 +235,10 @@ void parser::read_keyword() {
         }
         break;
     }
-    case hash("setbegin"):
-    case hash("setend"):
-        m_lexer.require(TOK_PAREN_BEGIN);
-        read_expression();
-        m_lexer.require(TOK_PAREN_END);
-        if (fun_name == "setbegin") {
-            add_line<OP_SETBEGIN>();
-        } else {
-            add_line<OP_SETEND>();
-        }
-        break;
     case hash("newview"):
         add_line<OP_NEWVIEW>();
         read_statement();
         add_line<OP_RESETVIEW>();
-        break;
-    case hash("clear"): {
-        m_lexer.require(TOK_PAREN_BEGIN);
-        bool isglobal = m_lexer.check_next(TOK_GLOBAL);
-        auto tok_var = m_lexer.require(TOK_IDENTIFIER);
-        m_lexer.require(TOK_PAREN_END);
-        add_line<OP_SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), flags_t(SEL_GLOBAL & (-isglobal)));
-        add_line<OP_CLEAR>();
-        break;
-    }
-    case hash("nexttable"):
-        m_lexer.require(TOK_PAREN_BEGIN);
-        m_lexer.require(TOK_PAREN_END);
-        add_line<OP_NEXTTABLE>();
-        break;
-    case hash("error"):
-        m_lexer.require(TOK_PAREN_BEGIN);
-        read_expression();
-        m_lexer.require(TOK_PAREN_END);
-        add_line<OP_THROWERROR>();
-        break;
-    case hash("warning"):
-        m_lexer.require(TOK_PAREN_BEGIN);
-        read_expression();
-        m_lexer.require(TOK_PAREN_END);
-        add_line<OP_WARNING>();
-        break;
-    case hash("skip"):
-        m_lexer.require(TOK_PAREN_BEGIN);
-        m_lexer.require(TOK_PAREN_END);
-        break;
-    case hash("return"):
-        m_lexer.require(TOK_PAREN_BEGIN);
-        m_lexer.require(TOK_PAREN_END);
-        add_line<OP_RET>();
         break;
     case hash("import"):
     case hash("setlayout"): {

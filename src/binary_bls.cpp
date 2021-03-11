@@ -94,7 +94,7 @@ template<> inline pdf_rect readData<pdf_rect>(std::istream &input) {
 }
 
 template<> inline void writeData<command_call>(std::ostream &output, const command_call &args) {
-    writeData(output, args.fun->first);
+    writeData(output, std::string(args.fun->first));
     writeData(output, args.numargs);
 }
 

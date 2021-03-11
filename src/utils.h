@@ -57,16 +57,16 @@ std::string date_month_add(std::string_view month, int num);
 std::string date_format(std::string_view date, const std::string &format);
 
 // cerca la regex in str e ritorna i valori trovati
-std::string search_regex_all(std::string_view regex, std::string_view value, int index);
+std::string search_regex_all(const std::string &regex, std::string_view value, int index);
 
 // cerca la regex in str e ritorna tutti i capture del primo valore trovato
-std::string search_regex_captures(std::string_view regex, std::string_view value);
+std::string search_regex_captures(const std::string &regex, std::string_view value);
 
 // cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
-std::string search_regex(std::string_view format, std::string_view value, int index);
+std::string search_regex(const std::string &regex, std::string_view value, int index);
 
 // rimpiazza in str le occorrenze di format in value
-std::string string_replace_regex(const std::string &value, std::string_view format, const std::string &str);
+std::string string_replace_regex(const std::string &value, const std::string &regex, const std::string &str);
 
 // converte ogni carattere di spazio in " "
 std::string singleline(std::string input);

@@ -98,6 +98,7 @@ int MainApp::OnRun() {
                 break;
             }
             case OP_MVBOX:
+            case OP_GETBOX:
                 std::cout << '\t' << opcode_names[int(line.command())] << ' ' << spacer_index_names[int(line.get_args<OP_MVBOX>())];
                 break;
             case OP_CALL: {

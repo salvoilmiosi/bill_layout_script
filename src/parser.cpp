@@ -49,6 +49,25 @@ void parser::add_comment(const std::string &line) {
     m_comments.emplace(m_code.size(), line);
 }
 
+static const std::map<std::string_view, spacer_index> spacer_index_map = {
+    {"p",       SPACER_PAGE},
+    {"page",    SPACER_PAGE},
+    {"x",       SPACER_X},
+    {"y",       SPACER_Y},
+    {"w",       SPACER_WIDTH},
+    {"width",   SPACER_WIDTH},
+    {"h",       SPACER_HEIGHT},
+    {"height",  SPACER_HEIGHT},
+    {"t",       SPACER_TOP},
+    {"top",     SPACER_TOP},
+    {"r",       SPACER_RIGHT},
+    {"right",   SPACER_RIGHT},
+    {"b",       SPACER_BOTTOM},
+    {"bottom",  SPACER_BOTTOM},
+    {"l",       SPACER_LEFT},
+    {"left",    SPACER_LEFT}
+};
+
 void parser::read_box(const layout_box &box) {
     if (m_flags & PARSER_ADD_COMMENTS && !box.name.empty()) {
         add_comment("### " + box.name);
@@ -73,63 +92,29 @@ void parser::read_box(const layout_box &box) {
         });
     }
     m_lexer.set_script(box.spacers);
+
     while(true) {
         auto tok = m_lexer.next();
         if (tok.type == TOK_IDENTIFIER) {
-            spacer_index index;
-            switch (hash(tok.value)) {
-            case hash("p"):
-            case hash("page"):
-                index = SPACER_PAGE;
-                break;
-            case hash("x"):
-                index = SPACER_X;
-                break;
-            case hash("y"):
-                index = SPACER_Y;
-                break;
-            case hash("w"):
-            case hash("width"):
-                index = SPACER_W;
-                break;
-            case hash("h"):
-            case hash("height"):
-                index = SPACER_H;
-                break;
-            case hash("t"):
-            case hash("top"):
-                index = SPACER_TOP;
-                break;
-            case hash("r"):
-            case hash("right"):
-                index = SPACER_RIGHT;
-                break;
-            case hash("b"):
-            case hash("bottom"):
-                index = SPACER_BOTTOM;
-                break;
-            case hash("l"):
-            case hash("left"):
-                index = SPACER_LEFT;
-                break;
-            default:
+            try {
+                spacer_index index = spacer_index_map.at(tok.value);
+                bool negative = false;
+                auto tok_sign = m_lexer.next();
+                switch (tok_sign.type) {
+                case TOK_PLUS:
+                    break;
+                case TOK_MINUS:
+                    negative = true;
+                    break;
+                default:
+                    throw unexpected_token(tok_sign, TOK_PLUS);
+                }
+                read_expression();
+                if (negative) add_line<OP_CALL>("neg", 1);
+                add_line<OP_MVBOX>(index);
+            } catch (const std::out_of_range &) {
                 throw unexpected_token(tok);
             }
-
-            bool negative = false;
-            auto tok_sign = m_lexer.next();
-            switch (tok_sign.type) {
-            case TOK_PLUS:
-                break;
-            case TOK_MINUS:
-                negative = true;
-                break;
-            default:
-                throw unexpected_token(tok_sign, TOK_PLUS);
-            }
-            read_expression();
-            if (negative) add_line<OP_CALL>("neg", 1);
-            add_line<OP_MVBOX>(index);
         } else if (tok.type != TOK_END_OF_FILE) {
             throw unexpected_token(tok, TOK_IDENTIFIER);
         } else {
@@ -195,35 +180,33 @@ bool parser::read_statement(bool throw_on_eof) {
 }
 
 void parser::read_expression() {
-    std::tuple<int, command_args, token_type> operators[] = {
-        {6, make_command<OP_CALL>("mul", 2),    TOK_ASTERISK},
-        {6, make_command<OP_CALL>("div", 2),    TOK_SLASH},
-        {5, make_command<OP_CALL>("add", 2),    TOK_PLUS},
-        {5, make_command<OP_CALL>("sub", 2),    TOK_MINUS},
-        {4, make_command<OP_CALL>("lt", 2),     TOK_LESS},
-        {4, make_command<OP_CALL>("leq", 2),    TOK_LESS_EQ},
-        {4, make_command<OP_CALL>("gt", 2),     TOK_GREATER},
-        {4, make_command<OP_CALL>("geq", 2),    TOK_GREATER_EQ},
-        {3, make_command<OP_CALL>("eq", 2),     TOK_EQUALS},
-        {3, make_command<OP_CALL>("neq", 2),    TOK_NOT_EQUALS},
-        {2, make_command<OP_CALL>("and", 2),    TOK_AND},
-        {1, make_command<OP_CALL>("or", 2),     TOK_OR}
+    std::map<token_type, std::tuple<int, command_args>> operators = {
+        {TOK_ASTERISK,      {6, make_command<OP_CALL>("mul", 2)}},
+        {TOK_SLASH,         {6, make_command<OP_CALL>("div", 2)}},
+        {TOK_PLUS,          {5, make_command<OP_CALL>("add", 2)}},
+        {TOK_MINUS,         {5, make_command<OP_CALL>("sub", 2)}},
+        {TOK_LESS,          {4, make_command<OP_CALL>("lt", 2)}},
+        {TOK_LESS_EQ,       {4, make_command<OP_CALL>("leq", 2)}},
+        {TOK_GREATER,       {4, make_command<OP_CALL>("gt", 2)}},
+        {TOK_GREATER_EQ,    {4, make_command<OP_CALL>("geq", 2)}},
+        {TOK_EQUALS,        {3, make_command<OP_CALL>("eq", 2)}},
+        {TOK_NOT_EQUALS,    {3, make_command<OP_CALL>("neq", 2)}},
+        {TOK_AND,           {2, make_command<OP_CALL>("and", 2)}},
+        {TOK_OR,            {1, make_command<OP_CALL>("or", 2)}},
     };
 
     sub_expression();
 
-    std::vector<decltype(+operators)> op_stack;
+    std::vector<decltype(operators)::iterator> op_stack;
     
     while (true) {
         auto tok_op = m_lexer.peek();
-        auto it = std::find_if(std::begin(operators), std::end(operators), [&](const auto &it) {
-            return std::get<token_type>(it) == tok_op.type;
-        });
+        auto it = operators.find(tok_op.type);
         if (it == std::end(operators)) break;
         
         m_lexer.advance(tok_op);
-        if (!op_stack.empty() && std::get<int>(*op_stack.back()) >= std::get<int>(*it)) {
-            m_code.push_back(std::get<command_args>(*op_stack.back()));
+        if (!op_stack.empty() && std::get<int>(op_stack.back()->second) >= std::get<int>(it->second)) {
+            m_code.push_back(std::get<command_args>(op_stack.back()->second));
             op_stack.pop_back();
         }
         op_stack.push_back(it);
@@ -231,7 +214,7 @@ void parser::read_expression() {
     }
 
     while (!op_stack.empty()) {
-        m_code.push_back(std::get<command_args>(*op_stack.back()));
+        m_code.push_back(std::get<command_args>(op_stack.back()->second));
         op_stack.pop_back();
     }
 }
@@ -378,24 +361,52 @@ int parser::read_variable(bool read_only) {
 
 void parser::read_function() {
     auto tok_fun_name = m_lexer.require(TOK_FUNCTION);
-    std::string fun_name(tok_fun_name.value.substr(1));
+    auto fun_name = tok_fun_name.value.substr(1);
 
-    switch (hash(fun_name)) {
-    case hash("isset"):
-    case hash("size"): {
-        m_lexer.require(TOK_PAREN_BEGIN);
-        bool isglobal = m_lexer.check_next(TOK_GLOBAL);
-        auto tok_var = m_lexer.require(TOK_IDENTIFIER);
-        m_lexer.require(TOK_PAREN_END);
-        add_line<OP_SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), flags_t(SEL_GLOBAL & (-isglobal)));
-        if (fun_name == "isset") {
-            add_line<OP_ISSET>();
-        } else {
-            add_line<OP_GETSIZE>();
+    enum function_type {
+        FUN_VARIABLE,
+        FUN_GETBOX,
+        FUN_VOID,
+    };
+    
+    static const std::map<std::string_view, std::tuple<function_type, command_args>> simple_functions = {
+        {"isset",       {FUN_VARIABLE,  make_command<OP_ISSET>()}},
+        {"size",        {FUN_VARIABLE,  make_command<OP_GETSIZE>()}},
+        {"ate",         {FUN_VOID,      make_command<OP_ATE>()}},
+        {"docpages",    {FUN_VOID,      make_command<OP_DOCPAGES>()}},
+        {"box",         {FUN_GETBOX,    {}}},
+    };
+
+    if (auto it = simple_functions.find(fun_name); it != simple_functions.end()) {
+        switch (std::get<function_type>(it->second)) {
+        case FUN_VARIABLE: {
+            m_lexer.require(TOK_PAREN_BEGIN);
+            bool isglobal = m_lexer.check_next(TOK_GLOBAL);
+            auto tok_var = m_lexer.require(TOK_IDENTIFIER);
+            m_lexer.require(TOK_PAREN_END);
+            add_line<OP_SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), flags_t(SEL_GLOBAL & (-isglobal)));
+            m_code.push_back(std::get<command_args>(it->second));
+            break;
         }
-        break;
-    }
-    default: {
+        case FUN_GETBOX: {
+            m_lexer.require(TOK_PAREN_BEGIN);
+            auto tok = m_lexer.require(TOK_IDENTIFIER);
+            try {
+                spacer_index index = spacer_index_map.at(tok.value);
+                m_lexer.require(TOK_PAREN_END);
+                add_line<OP_GETBOX>(index);
+            } catch (const std::out_of_range &) {
+                throw unexpected_token(tok);
+            }
+            break;
+        }
+        case FUN_VOID:
+            m_lexer.require(TOK_PAREN_BEGIN);
+            m_lexer.require(TOK_PAREN_END);
+            m_code.push_back(std::get<command_args>(it->second));
+            break;
+        }
+    } else if (auto it = function_lookup.find(fun_name); it != function_lookup.end()) {
         small_int num_args = 0;
         m_lexer.require(TOK_PAREN_BEGIN);
         while (!m_lexer.check_next(TOK_PAREN_END)) {
@@ -413,28 +424,12 @@ void parser::read_function() {
             }
         }
 
-        auto call_op = [&] (int should_be, command_args &&cmd) {
-            if (num_args != should_be) {
-                throw invalid_numargs(fun_name, should_be, should_be, tok_fun_name);
-            }
-            m_code.push_back(std::move(cmd));
-        };
-
-        switch (hash(fun_name)) {
-        case hash("ate"):       call_op(0, make_command<OP_ATE>()); break;
-        case hash("boxwidth"):  call_op(0, make_command<OP_PUSHNUM>(current_box->w)); break;
-        case hash("boxheight"): call_op(0, make_command<OP_PUSHNUM>(current_box->h)); break;
-        default:
-            if (function_iterator it = function_lookup.find(fun_name); it != function_lookup.end()) {
-                const auto &fun = it->second;
-                if (num_args < fun.minargs || num_args > fun.maxargs) {
-                    throw invalid_numargs(fun_name, fun.minargs, fun.maxargs, tok_fun_name);
-                }
-                add_line<OP_CALL>(it, num_args);
-            } else {
-                throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
-            }
+        const auto &fun = it->second;
+        if (num_args < fun.minargs || num_args > fun.maxargs) {
+            throw invalid_numargs(std::string(fun_name), fun.minargs, fun.maxargs, tok_fun_name);
         }
-    }
+        add_line<OP_CALL>(it, num_args);
+    } else {
+        throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
     }
 }

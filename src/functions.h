@@ -86,7 +86,7 @@ struct function_handler : function_base {
     template<typename Function> function_handler(Function fun);
 };
 
-extern const std::map<std::string, function_handler> function_lookup;
+extern const std::map<std::string_view, function_handler> function_lookup;
 
 using function_iterator = decltype(function_lookup)::const_iterator;
 

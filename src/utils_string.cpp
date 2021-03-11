@@ -160,10 +160,8 @@ std::string string_format(std::string_view str, const varargs<std::string_view> 
     return ret;
 }
 
-static std::regex create_regex(std::string_view fmt_view) {
+static std::regex create_regex(std::string regex) {
     try {
-        std::string format(fmt_view);
-
         auto char_to_regex_str = [](char c) -> std::string {
             switch (c) {
             case '.':
@@ -186,18 +184,18 @@ static std::regex create_regex(std::string_view fmt_view) {
             }
         };
 
-        string_replace(format, "\\N", "-?(?:\\d{1,3}(?:"
+        string_replace(regex, "\\N", "-?(?:\\d{1,3}(?:"
             + char_to_regex_str(intl::thousand_sep()) + "\\d{3})*(?:"
             + char_to_regex_str(intl::decimal_point()) + "\\d+)?|\\d+)(?!\\d)");
-        return std::regex(format, std::regex::icase);
+        return std::regex(regex, std::regex::icase);
     } catch (const std::regex_error &error) {
-        throw std::runtime_error(fmt::format("Espressione regolare non valida: {0}\n{1}", fmt_view, error.what()));
+        throw std::runtime_error(fmt::format("Espressione regolare non valida: {0}\n{1}", regex, error.what()));
     }
 }
 
-std::string search_regex_all(std::string_view format, std::string_view value, int index) {
+std::string search_regex_all(const std::string &regex, std::string_view value, int index) {
     std::string ret;
-    std::regex expression = create_regex(format);
+    std::regex expression = create_regex(regex);
     auto it = std::cregex_iterator(value.begin(), value.end(), expression);
     bool first = true;
     for (; it != std::cregex_iterator(); ++it) {
@@ -210,9 +208,9 @@ std::string search_regex_all(std::string_view format, std::string_view value, in
     return ret;
 }
 
-std::string search_regex_captures(std::string_view format, std::string_view value) {
+std::string search_regex_captures(const std::string &regex, std::string_view value) {
     std::string ret;
-    std::regex expression = create_regex(format);
+    std::regex expression = create_regex(regex);
     std::cmatch match;
     if (std::regex_search(value.begin(), value.end(), match, expression)) {
         for (size_t i=1; i<match.size(); ++i) {
@@ -225,8 +223,8 @@ std::string search_regex_captures(std::string_view format, std::string_view valu
     return ret;
 }
 
-std::string search_regex(std::string_view format, std::string_view value, int index) {
-    std::regex expression = create_regex(format);
+std::string search_regex(const std::string &regex, std::string_view value, int index) {
+    std::regex expression = create_regex(regex);
     std::cmatch match;
     if (std::regex_search(value.begin(), value.end(), match, expression)) {
         return match.str(index);
@@ -235,8 +233,8 @@ std::string search_regex(std::string_view format, std::string_view value, int in
     }
 }
 
-std::string string_replace_regex(const std::string &value, std::string_view format, const std::string &str) {
-    return std::regex_replace(value, create_regex(format), str);
+std::string string_replace_regex(const std::string &value, const std::string &regex, const std::string &str) {
+    return std::regex_replace(value, create_regex(regex), str);
 }
 
 std::string singleline(std::string input) {

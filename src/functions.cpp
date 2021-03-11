@@ -106,12 +106,13 @@ function_handler::function_handler(Function fun) {
 }
 
 
-static bool parse_num(fixed_point &num, const std::string &str) {
-    std::istringstream iss(str);
+static bool parse_num(fixed_point &num, std::string_view str) {
+    std::istringstream iss;
+    iss.rdbuf()->pubsetbuf(const_cast<char *>(str.begin()), str.size());
     return dec::fromStream(iss, dec::decimal_format(intl::decimal_point(), intl::thousand_sep()), num);
 };
 
-const std::map<std::string, function_handler> function_lookup {
+const std::map<std::string_view, function_handler> function_lookup {
     {"eq",  [](const variable &a, const variable &b) { return a == b; }},
     {"neq", [](const variable &a, const variable &b) { return a != b; }},
     {"lt",  [](const variable &a, const variable &b) { return a < b; }},
@@ -132,7 +133,7 @@ const std::map<std::string, function_handler> function_lookup {
     {"num", [](const variable &var) {
         if (var.type() == VAR_STRING) {
             fixed_point num;
-            if (parse_num(num, var.str())) {
+            if (parse_num(num, var.str_view())) {
                 return variable(num);
             } else {
                 return variable::null_var();
@@ -146,7 +147,7 @@ const std::map<std::string, function_handler> function_lookup {
             content_view view(std::move(var));
             for (view.new_subview(); !view.token_end(); view.next_result()) {
                 fixed_point num;
-                if (parse_num(num, std::string(view.view()))) {
+                if (parse_num(num, view.view())) {
                     ret += num;
                 }
             }
@@ -154,25 +155,44 @@ const std::map<std::string, function_handler> function_lookup {
         }
         return variable::null_var();
     }},
-    {"search", [](std::string_view str, std::string_view regex, std::optional<int> index) {
+    {"max", [](varargs<variable> args) {
+        if (args.empty()) {
+            return variable::null_var();
+        }
+        return *std::ranges::max_element(args);
+    }},
+    {"min", [](varargs<variable> args) {
+        if (args.empty()) {
+            return variable::null_var();
+        }
+        return *std::ranges::min_element(args);
+    }},
+    {"percent", [](const std::string &str) {
+        if (!str.empty()) {
+            return variable(str + "%");
+        } else {
+            return variable::null_var();
+        }
+    }},
+    {"table_row_regex", [](std::string_view header, varargs<std::string_view> names) {
+        return table_row_regex(header, names);
+    }},
+    {"search", [](std::string_view str, const std::string &regex, std::optional<int> index) {
         return search_regex(regex, str, index.value_or(1));
     }},
-    {"matches", [](std::string_view str, std::string_view regex, std::optional<int> index) {
+    {"matches", [](std::string_view str, const std::string &regex, std::optional<int> index) {
         return search_regex_all(regex, str, index.value_or(1));
     }},
-    {"captures", [](std::string_view str, std::string_view regex) {
+    {"captures", [](std::string_view str, const std::string &regex) {
         return search_regex_captures(regex, str);
     }},
-    {"split", [](std::string_view str, int nparts) {
-        return string_split_n(str, nparts);
-    }},
-    {"date", [](std::string_view str, const std::string &format, std::optional<std::string_view> regex, std::optional<int> index) {
+    {"date", [](std::string_view str, const std::string &format, std::optional<std::string> regex, std::optional<int> index) {
         return parse_date(format, str, regex.value_or(""), index.value_or(1));
     }},
-    {"month", [](std::string_view str, std::optional<std::string> format, std::optional<std::string_view> regex, std::optional<int> index) {
+    {"month", [](std::string_view str, std::optional<std::string> format, std::optional<std::string> regex, std::optional<int> index) {
         return parse_month(format.value_or(""), str, regex.value_or(""), index.value_or(1));
     }},
-    {"replace", [](std::string &&value, std::string_view regex, const std::string &to) {
+    {"replace", [](const std::string &value, const std::string &regex, const std::string &to) {
         return string_replace_regex(value, regex, to);
     }},
     {"date_format", [](std::string_view date, const std::string &format) {
@@ -199,6 +219,16 @@ const std::map<std::string, function_handler> function_lookup {
         }
         return variable::null_var();
     }},
+    {"split", [](std::string_view str, int nparts) {
+        return string_split_n(str, nparts);
+    }},
+    {"strcat", [](varargs<std::string_view> args) {
+        std::string var;
+        for (const auto &arg : args) {
+            var.append(arg.begin(), arg.end());
+        }
+        return var;
+    }},
     {"strlen", [](std::string_view str) {
         return str.size();
     }},
@@ -214,13 +244,6 @@ const std::map<std::string, function_handler> function_lookup {
     {"isempty", [](const variable &var) {
         return var.empty();
     }},
-    {"percent", [](const std::string &str) {
-        if (!str.empty()) {
-            return variable(str + "%");
-        } else {
-            return variable::null_var();
-        }
-    }},
     {"format", [](std::string_view format, varargs<std::string_view> args) {
         return string_format(format, args);
     }},
@@ -230,26 +253,4 @@ const std::map<std::string, function_handler> function_lookup {
         }
         return variable::null_var();
     }},
-    {"strcat", [](varargs<std::string_view> args) {
-        std::string var;
-        for (const auto &arg : args) {
-            var.append(arg.begin(), arg.end());
-        }
-        return var;
-    }},
-    {"max", [](varargs<variable> args) {
-        if (args.empty()) {
-            return variable::null_var();
-        }
-        return *std::ranges::max_element(args);
-    }},
-    {"min", [](varargs<variable> args) {
-        if (args.empty()) {
-            return variable::null_var();
-        }
-        return *std::ranges::min_element(args);
-    }},
-    {"table_row_regex", [](std::string_view header, varargs<std::string_view> names) {
-        return table_row_regex(header, names);
-    }}
 };

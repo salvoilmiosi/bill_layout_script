@@ -15,6 +15,9 @@
 O(NOP)                          /* no operation */ \
 O(RDBOX, pdf_rect)              /* poppler.get_text -> content_stack */ \
 O(MVBOX, spacer_index)          /* stack -> spacer[index] */ \
+O(GETBOX, spacer_index)         /* spacer[index] -> stack */ \
+O(DOCPAGES)                     /* m_doc.pages -> stack */ \
+O(ATE)                          /* (getbox(page) >= docpages()) -> stack */ \
 O(CALL, command_call)           /* stack * numargs -> fun_name -> stack */ \
 O(THROWERROR)                   /* stack -> throw */ \
 O(WARNING)                      /* stack -> warnings */ \
@@ -45,7 +48,6 @@ O(RESETVIEW)                    /* content_stack.top.resetview() */ \
 O(NEXTRESULT)                   /* content_stack.top.next_result() */ \
 O(POPCONTENT)                   /* content_stack.pop() */ \
 O(NEXTTABLE)                    /* current_table++ */ \
-O(ATE)                          /* m_ate -> stack */ \
 O(IMPORT, import_options)       /* importa il file e lo esegue */ \
 O(SETLANG, intl::language)      /* imposta la lingua del layout */
 
@@ -70,7 +72,7 @@ struct command_call {
     function_iterator fun;
     small_int numargs;
 
-    command_call(const std::string &name, int numargs) : fun(function_lookup.find(name)), numargs(numargs) {
+    command_call(std::string_view name, int numargs) : fun(function_lookup.find(name)), numargs(numargs) {
         assert(fun != function_lookup.end());
     }
     command_call(const function_iterator &fun, int numargs) : fun(fun), numargs(numargs) {}
@@ -80,8 +82,8 @@ struct command_call {
 F(PAGE) \
 F(X) \
 F(Y) \
-F(W) \
-F(H) \
+F(WIDTH) \
+F(HEIGHT) \
 F(TOP) \
 F(RIGHT) \
 F(BOTTOM) \

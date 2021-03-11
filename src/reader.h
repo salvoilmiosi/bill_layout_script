@@ -87,7 +87,7 @@ private:
     std::vector<std::string> m_warnings;
 
     box_spacer m_spacer;
-    int m_last_box_page;
+    box_spacer m_last_box;
 
     size_t m_program_counter;
     bool m_jumped = false;

@@ -56,7 +56,7 @@ p+::offset_dettaglio y-::spacer_dettaglio h+::spacer_dettaglio
 p+::offset_dettaglio
 ### End Spacers
 ### Script
-::spacer_dettaglio=$boxheight()
+::spacer_dettaglio=$box(height)
 $ifnot($ate()) {
   ::offset_dettaglio+=1
   $goto(dettaglio_costi)
