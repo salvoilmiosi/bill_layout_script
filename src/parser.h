@@ -79,6 +79,7 @@ private:
     void read_function();
     void read_keyword();
 
+    void read_variable_name();
     int read_variable(bool read_only = false);
 
 private:

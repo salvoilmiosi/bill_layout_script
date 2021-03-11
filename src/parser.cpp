@@ -277,6 +277,12 @@ void parser::sub_expression() {
     }
 }
 
+void parser::read_variable_name() {
+    bool isglobal = m_lexer.check_next(TOK_GLOBAL);
+    auto tok_var = m_lexer.require(TOK_IDENTIFIER);
+    add_line<OP_SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), flags_t(SEL_GLOBAL & (-isglobal)));
+}
+
 int parser::read_variable(bool read_only) {
     int prefixes = 0;
 
@@ -379,15 +385,12 @@ void parser::read_function() {
 
     if (auto it = simple_functions.find(fun_name); it != simple_functions.end()) {
         switch (std::get<function_type>(it->second)) {
-        case FUN_VARIABLE: {
+        case FUN_VARIABLE:
             m_lexer.require(TOK_PAREN_BEGIN);
-            bool isglobal = m_lexer.check_next(TOK_GLOBAL);
-            auto tok_var = m_lexer.require(TOK_IDENTIFIER);
+            read_variable_name();
             m_lexer.require(TOK_PAREN_END);
-            add_line<OP_SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), flags_t(SEL_GLOBAL & (-isglobal)));
             m_code.push_back(std::get<command_args>(it->second));
             break;
-        }
         case FUN_GETBOX: {
             m_lexer.require(TOK_PAREN_BEGIN);
             auto tok = m_lexer.require(TOK_IDENTIFIER);

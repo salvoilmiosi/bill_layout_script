@@ -34,13 +34,9 @@ void parser::read_keyword() {
         case FUN_EXPRESSION:
             read_expression();
             break;
-        case FUN_VARIABLE: {
-            bool isglobal = m_lexer.check_next(TOK_GLOBAL);
-            auto tok_var = m_lexer.require(TOK_IDENTIFIER);
-            m_lexer.require(TOK_PAREN_END);
-            add_line<OP_SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), flags_t(SEL_GLOBAL & (-isglobal)));
+        case FUN_VARIABLE:
+            read_variable_name();
             break;
-        }
         case FUN_VOID:
             break;
         }
