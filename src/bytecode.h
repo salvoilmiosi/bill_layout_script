@@ -14,38 +14,38 @@
 #define OPCODES \
 O(NOP)                          /* no operation */ \
 O(RDBOX, pdf_rect)              /* poppler.get_text -> content_stack */ \
-O(MVBOX, spacer_index)          /* var_stack -> spacer[index] */ \
-O(CALL, command_call)           /* var_stack * numargs -> fun_name -> var_stack */ \
-O(THROWERROR)                   /* var_stack -> throw */ \
-O(WARNING)                      /* var_stack -> warnings */ \
+O(MVBOX, spacer_index)          /* stack -> spacer[index] */ \
+O(CALL, command_call)           /* stack * numargs -> fun_name -> stack */ \
+O(THROWERROR)                   /* stack -> throw */ \
+O(WARNING)                      /* stack -> warnings */ \
 O(SELVAR, variable_selector)    /* (name, index, size, flags) -> selected */ \
-O(ISSET)                        /* selected -> size() != 0 -> var_stack */ \
-O(GETSIZE)                      /* selected -> size() -> var_stack */ \
+O(ISSET)                        /* selected -> size() != 0 -> stack */ \
+O(GETSIZE)                      /* selected -> size() -> stack */ \
 O(CLEAR)                        /* selected -> clear */ \
-O(SETVAR, flags_t)              /* selected, var_stack -> set(flags) */ \
-O(PUSHVIEW)                     /* content_stack -> var_stack */ \
-O(PUSHNUM, fixed_point)         /* number -> var_stack */ \
-O(PUSHSTR, std::string)         /* str -> var_stack */ \
-O(PUSHVAR)                      /* selected -> var_stack */ \
-O(PUSHREF)                      /* selected.str_view -> var_stack */ \
+O(SETVAR, flags_t)              /* selected, stack -> set(flags) */ \
+O(PUSHVIEW)                     /* content_stack -> stack */ \
+O(PUSHNUM, fixed_point)         /* number -> stack */ \
+O(PUSHSTR, std::string)         /* str -> stack */ \
+O(PUSHVAR)                      /* selected -> stack */ \
+O(PUSHREF)                      /* selected.str_view -> stack */ \
 O(UNEVAL_JUMP, jump_uneval)     /* unevaluated jump, sara' sostituito con opcode */ \
 O(JMP, jump_address)            /* unconditional jump */ \
 O(JSR, jump_address)            /* program_counter -> return_addrs -- jump to subroutine */ \
-O(JZ, jump_address)             /* var_stack -> jump if top == 0 */ \
-O(JNZ, jump_address)            /* var_stack -> jump if top != 0 */ \
+O(JZ, jump_address)             /* stack -> jump if top == 0 */ \
+O(JNZ, jump_address)            /* stack -> jump if top != 0 */ \
 O(JTE, jump_address)            /* jump if content_stack.top at token end */ \
 O(RET)                          /* jump to return_addrs.top, return_addrs.pop, halt if return_addrs.empty */ \
 O(HLT)                          /* ferma l'esecuzione */ \
-O(ADDCONTENT)                   /* var_stack -> content_stack */ \
-O(SETBEGIN)                     /* var_stack -> content_stack.top.setbegin */ \
-O(SETEND)                       /* var_stack -> content_stack.top.setend */ \
+O(ADDCONTENT)                   /* stack -> content_stack */ \
+O(SETBEGIN)                     /* stack -> content_stack.top.setbegin */ \
+O(SETEND)                       /* stack -> content_stack.top.setend */ \
 O(NEWVIEW)                      /* content_stack.top.newview() */ \
 O(SUBVIEW)                      /* content_stack.top.newsubview() */ \
 O(RESETVIEW)                    /* content_stack.top.resetview() */ \
 O(NEXTRESULT)                   /* content_stack.top.next_result() */ \
 O(POPCONTENT)                   /* content_stack.pop() */ \
 O(NEXTTABLE)                    /* current_table++ */ \
-O(ATE)                          /* m_ate -> var_stack */ \
+O(ATE)                          /* m_ate -> stack */ \
 O(IMPORT, import_options)       /* importa il file e lo esegue */ \
 O(SETLANG, intl::language)      /* imposta la lingua del layout */
 

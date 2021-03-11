@@ -17,7 +17,7 @@ void reader::clear() {
 }
 
 void reader::start() {
-    m_vars.clear();
+    m_stack.clear();
     m_contents.clear();
 
     m_selected = {};
@@ -49,11 +49,11 @@ void reader::exec_command(const command_args &cmd) {
             sel.index, sel.length);
 
         if (sel.flags & SEL_DYN_LEN) {
-            m_selected.length = m_vars.pop().as_int();
+            m_selected.length = m_stack.pop().as_int();
         }
 
         if (sel.flags & SEL_DYN_IDX) {
-            m_selected.index = m_vars.pop().as_int();
+            m_selected.index = m_stack.pop().as_int();
         }
 
         if (sel.flags & SEL_EACH) {
@@ -69,7 +69,7 @@ void reader::exec_command(const command_args &cmd) {
     auto jump_subroutine = [&](size_t address) {
         fixed_point return_addr;
         return_addr.setUnbiased(m_program_counter);
-        m_vars.push(return_addr);
+        m_stack.push(return_addr);
         m_program_counter = address;
         m_jumped = true;
     };
@@ -90,23 +90,23 @@ void reader::exec_command(const command_args &cmd) {
 
     auto call_function = [&](const command_call &cmd) {
         variable ret = cmd.fun->second(arg_list(
-            m_vars.end() - cmd.numargs,
-            m_vars.end()));
-        m_vars.resize(m_vars.size() - cmd.numargs);
-        m_vars.push(std::move(ret));
+            m_stack.end() - cmd.numargs,
+            m_stack.end()));
+        m_stack.resize(m_stack.size() - cmd.numargs);
+        m_stack.push(std::move(ret));
     };
 
     switch(cmd.command()) {
     case OP_NOP: break;
     case OP_RDBOX:      read_box(cmd.get_args<OP_RDBOX>()); break;
     case OP_CALL:       call_function(cmd.get_args<OP_CALL>()); break;
-    case OP_THROWERROR: throw layout_error(m_vars.top().str()); break;
-    case OP_WARNING:    m_warnings.push_back(std::move(m_vars.pop().str())); break;
+    case OP_THROWERROR: throw layout_error(m_stack.top().str()); break;
+    case OP_WARNING:    m_warnings.push_back(std::move(m_stack.pop().str())); break;
     case OP_SELVAR: select_var(cmd.get_args<OP_SELVAR>()); break;
-    case OP_ISSET: m_vars.push(m_selected.size() != 0); break;
-    case OP_GETSIZE: m_vars.push(m_selected.size()); break;
+    case OP_ISSET: m_stack.push(m_selected.size() != 0); break;
+    case OP_GETSIZE: m_stack.push(m_selected.size()); break;
     case OP_MVBOX: {
-        auto amt = m_vars.pop();
+        auto amt = m_stack.pop();
         switch (cmd.get_args<OP_MVBOX>()) {
         case SPACER_PAGE:
             m_spacer.page += amt.as_int();
@@ -137,12 +137,12 @@ void reader::exec_command(const command_args &cmd) {
         break;
     }
     case OP_CLEAR:     m_selected.clear(); break;
-    case OP_SETVAR:    m_selected.set_value(m_vars.pop(), cmd.get_args<OP_SETVAR>()); break;
-    case OP_PUSHVIEW:  m_vars.push(m_contents.top().view()); break;
-    case OP_PUSHNUM:   m_vars.push(cmd.get_args<OP_PUSHNUM>()); break;
-    case OP_PUSHSTR:   m_vars.push(cmd.get_args<OP_PUSHSTR>()); break;
-    case OP_PUSHVAR:   m_vars.push(m_selected.get_value()); break;
-    case OP_PUSHREF:   m_vars.push(m_selected.get_value().str_view()); break;
+    case OP_SETVAR:    m_selected.set_value(m_stack.pop(), cmd.get_args<OP_SETVAR>()); break;
+    case OP_PUSHVIEW:  m_stack.push(m_contents.top().view()); break;
+    case OP_PUSHNUM:   m_stack.push(cmd.get_args<OP_PUSHNUM>()); break;
+    case OP_PUSHSTR:   m_stack.push(cmd.get_args<OP_PUSHSTR>()); break;
+    case OP_PUSHVAR:   m_stack.push(m_selected.get_value()); break;
+    case OP_PUSHREF:   m_stack.push(m_selected.get_value().str_view()); break;
     case OP_JMP:
         m_program_counter += cmd.get_args<OP_JMP>();
         m_jumped = true;
@@ -151,13 +151,13 @@ void reader::exec_command(const command_args &cmd) {
         jump_subroutine(m_program_counter + cmd.get_args<OP_JSR>());
         break;
     case OP_JZ:
-        if (!m_vars.pop().as_bool()) {
+        if (!m_stack.pop().as_bool()) {
             m_program_counter += cmd.get_args<OP_JZ>();
             m_jumped = true;
         }
         break;
     case OP_JNZ:
-        if (m_vars.pop().as_bool()) {
+        if (m_stack.pop().as_bool()) {
             m_program_counter += cmd.get_args<OP_JNZ>();
             m_jumped = true;
         }
@@ -168,17 +168,17 @@ void reader::exec_command(const command_args &cmd) {
             m_jumped = true;
         }
         break;
-    case OP_ADDCONTENT: m_contents.push(m_vars.pop()); break;
+    case OP_ADDCONTENT: m_contents.push(m_stack.pop()); break;
     case OP_POPCONTENT: m_contents.pop(); break;
-    case OP_SETBEGIN:  m_contents.top().setbegin(m_vars.pop().as_int()); break;
-    case OP_SETEND:    m_contents.top().setend(m_vars.pop().as_int()); break;
+    case OP_SETBEGIN:  m_contents.top().setbegin(m_stack.pop().as_int()); break;
+    case OP_SETEND:    m_contents.top().setend(m_stack.pop().as_int()); break;
     case OP_NEWVIEW: m_contents.top().new_view(); break;
     case OP_SUBVIEW: m_contents.top().new_subview(); break;
     case OP_RESETVIEW: m_contents.top().reset_view(); break;
     case OP_NEXTRESULT: m_contents.top().next_result(); break;
     case OP_NEXTTABLE: ++m_table_index; break;
-    case OP_ATE: m_vars.push(m_last_box_page > m_doc->num_pages()); break;
-    case OP_RET: m_program_counter = m_vars.pop().number().getUnbiased(); break;
+    case OP_ATE: m_stack.push(m_last_box_page > m_doc->num_pages()); break;
+    case OP_RET: m_program_counter = m_stack.pop().number().getUnbiased(); break;
     case OP_HLT: halt(); break;
     case OP_IMPORT: {
         const auto &args = cmd.get_args<OP_IMPORT>();

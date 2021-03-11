@@ -136,7 +136,7 @@ const std::map<std::string, function_handler> function_lookup {
                 return variable(num);
             }
         }
-        return variable::null_var();
+        return var;
     }},
     {"aggregate", [](const variable &var) {
         if (!var.empty()) {

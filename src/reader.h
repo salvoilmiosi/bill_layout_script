@@ -77,7 +77,7 @@ private:
     variable_map m_values;
     small_int m_table_index = 0;
 
-    simple_stack<variable> m_vars;
+    simple_stack<variable> m_stack;
     simple_stack<content_view> m_contents;
 
     variable_ref m_selected;

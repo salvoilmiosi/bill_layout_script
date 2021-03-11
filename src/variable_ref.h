@@ -104,9 +104,9 @@ public:
 
 public:
     const variable &get_value() const {
-        try {
-            return at(index);
-        } catch (const std::out_of_range &) {
+        if (index < size()) {
+            return std::next(begin(), index)->second;
+        } else {
             return variable::null_var();
         }
     }
