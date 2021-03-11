@@ -15,6 +15,7 @@ $elif($contains(@,"www.energrid.it")) $setlayout("misc/energrid")
 $elif($contains(@,"GREEN NETWORK S.p.A")) $setlayout("misc/greennetwork")
 $elif($contains(@,"MetaEnergia S.p.A")) $setlayout("misc/metaenergia")
 $elif($contains(@,"Edison Energia SpA")) $setlayout("misc/edison")
+$elif($contains(@,"Estra Energie S.r.l")) $setlayout("misc/estra")
 $elif($contains(@,"Enel")) $import("enel/controllo")
 $else $warning("Nessun Layout")
 ### End Script
