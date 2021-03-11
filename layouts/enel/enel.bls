@@ -227,7 +227,7 @@ $with(&::_dettaglio) {
     }
   }
 	
-  imponibile = spesa_materia_energia + trasporto_gestione + oneri + accise
+  imponibile=$sum(spesa_materia_energia, trasporto_gestione, oneri, accise)
 }
 ### End Script
 ### End Box

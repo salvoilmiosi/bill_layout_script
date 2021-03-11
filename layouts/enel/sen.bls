@@ -225,7 +225,7 @@ $with(&::_dettaglio) {
       $format(/al \d\d\/$0.+ (\N)/,_mese_abbr))
   }
   %altre_partite=$search(@,/TOTALE ALTRE PARTITE SOGGETTE IVA (\N)/)
-  imponibile=spesa_materia_energia + trasporto_gestione + oneri + altre_partite + accise
+  imponibile=$sum(spesa_materia_energia, trasporto_gestione, oneri, altre_partite, accise)
 }
 ### End Script
 ### End Box

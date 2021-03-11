@@ -155,6 +155,13 @@ const std::map<std::string_view, function_handler> function_lookup {
         }
         return variable::null_var();
     }},
+    {"sum", [](varargs<fixed_point> args) {
+        fixed_point num;
+        for (const auto &arg : args) {
+            num += arg;
+        }
+        return num;
+    }},
     {"max", [](varargs<variable> args) {
         if (args.empty()) {
             return variable::null_var();

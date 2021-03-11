@@ -150,7 +150,7 @@ $with(&::_dettaglio) {
   $between("TOTALE FORNITURA","TOTALE DA PAGARE") {
     iva=$search(@,/IVA (\d+%)/)
   }
-  imponibile = spesa_materia_energia + trasporto_gestione + oneri + accise + altre_partite
+  imponibile=$sum(spesa_materia_energia, trasporto_gestione, oneri, accise, altre_partite)
 }
 ### End Script
 ### End Box
