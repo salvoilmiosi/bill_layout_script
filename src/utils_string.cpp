@@ -160,7 +160,13 @@ std::string string_format(std::string_view str, const varargs<std::string_view> 
     return ret;
 }
 
-static std::regex create_regex(std::string regex) {
+static const std::regex &create_regex(std::string regex) {
+    static std::unordered_map<std::string, std::regex> compiled_regexes;
+    auto [lower, upper] = compiled_regexes.equal_range(regex);
+    if (lower != upper) {
+        return lower->second;
+    }
+
     try {
         auto char_to_regex_str = [](char c) -> std::string {
             switch (c) {
@@ -187,7 +193,7 @@ static std::regex create_regex(std::string regex) {
         string_replace(regex, "\\N", "-?(?:\\d{1,3}(?:"
             + char_to_regex_str(intl::thousand_sep()) + "\\d{3})*(?:"
             + char_to_regex_str(intl::decimal_point()) + "\\d+)?|\\d+)(?!\\d)");
-        return std::regex(regex, std::regex::icase);
+        return compiled_regexes.emplace_hint(lower, regex, std::regex(regex, std::regex::icase))->second;
     } catch (const std::regex_error &error) {
         throw std::runtime_error(fmt::format("Espressione regolare non valida: {0}\n{1}", regex, error.what()));
     }
