@@ -26,6 +26,7 @@ void parser::read_keyword() {
         {"nexttable",   {FUN_VOID,       make_command<OP_NEXTTABLE>()}},
         {"skip",        {FUN_VOID,       make_command<OP_NOP>()}},
         {"return",      {FUN_VOID,       make_command<OP_RET>()}},
+        {"halt",        {FUN_VOID,       make_command<OP_HLT>()}},
     };
 
     if (auto it = simple_functions.find(fun_name); it != simple_functions.end()) {
