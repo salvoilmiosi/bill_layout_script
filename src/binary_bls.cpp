@@ -84,10 +84,10 @@ template<> inline void writeData<pdf_rect>(std::ostream &output, const pdf_rect 
 template<> inline pdf_rect readData<pdf_rect>(std::istream &input) {
     pdf_rect box;
     box.page = readData<uint8_t>(input);
-    box.x = readData<float>(input);
-    box.y = readData<float>(input);
-    box.w = readData<float>(input);
-    box.h = readData<float>(input);
+    box.x = readData<double>(input);
+    box.y = readData<double>(input);
+    box.w = readData<double>(input);
+    box.h = readData<double>(input);
     box.mode = readData<read_mode>(input);
     box.type = readData<box_type>(input);
     return box;

@@ -116,6 +116,16 @@ std::string date_month_add(std::string_view str, int num) {
     }
 }
 
+std::string date_last_day(std::string_view str) {
+    try {
+        wxDateTime dt = string_to_date(str);
+        dt.SetToLastMonthDay(dt.GetMonth(), dt.GetYear());
+        return dt.Format("%Y-%m-%d").ToStdString();
+    } catch (const std::invalid_argument &) {
+        return "";
+    }
+}
+
 std::string date_format(std::string_view str, const std::string &format) {
     try {
         wxDateTime dt = string_to_date(str);

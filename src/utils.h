@@ -53,6 +53,9 @@ std::string parse_month(const std::string &format, std::string_view value, std::
 // Aggiunge num mesi alla data
 std::string date_month_add(std::string_view month, int num);
 
+// Ritorna la data dell'ultimo giorno del mese
+std::string date_last_day(std::string_view month);
+
 // formatta una data nel formato indicato
 std::string date_format(std::string_view date, const std::string &format);
 

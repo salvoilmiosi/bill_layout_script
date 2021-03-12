@@ -76,10 +76,25 @@ void reader::exec_command(const command_args &cmd) {
 
     auto read_box = [&](pdf_rect box) {
         m_last_box.page = box.page += m_spacer.page;
-        m_last_box.x = box.x += m_spacer.x;
-        m_last_box.y = box.y += m_spacer.y;
-        m_last_box.w = box.w += m_spacer.w;
-        m_last_box.h = box.h += m_spacer.h;
+        box.x += m_spacer.x;
+        box.y += m_spacer.y;
+        box.w += m_spacer.w;
+        box.h += m_spacer.h;
+        m_spacer.rotate %= 4;
+        if (m_spacer.rotate < 0) m_spacer.rotate += 4;
+        m_last_box.rotate = m_spacer.rotate;
+        for (; m_spacer.rotate > 0; --m_spacer.rotate) {
+            double tmp = box.x;
+            box.x = 1.0 - box.y - box.h;
+            box.y = tmp;
+            tmp = box.w;
+            box.w = box.h;
+            box.h = tmp;
+        }
+        m_last_box.x = box.x;
+        m_last_box.y = box.y;
+        m_last_box.w = box.w;
+        m_last_box.h = box.h;
         m_spacer = {};
 
         m_contents.clear();
@@ -108,6 +123,10 @@ void reader::exec_command(const command_args &cmd) {
         switch (cmd.get_args<OP_MVBOX>()) {
         case SPACER_PAGE:
             m_spacer.page += amt.as_int(); break;
+        case SPACER_ROTATE_CW:
+            m_spacer.rotate += amt.as_int(); break;
+        case SPACER_ROTATE_CCW:
+            m_spacer.rotate -= amt.as_int(); break;
         case SPACER_X:
             m_spacer.x += amt.as_double(); break;
         case SPACER_Y:
@@ -133,6 +152,10 @@ void reader::exec_command(const command_args &cmd) {
         switch (cmd.get_args<OP_GETBOX>()) {
         case SPACER_PAGE:
             m_stack.push(m_last_box.page); break;
+        case SPACER_ROTATE_CW:
+            m_stack.push(m_last_box.rotate); break;
+        case SPACER_ROTATE_CCW:
+            m_stack.push(-m_last_box.rotate); break;
         case SPACER_X:
         case SPACER_LEFT:
             m_stack.push(m_last_box.x); break;

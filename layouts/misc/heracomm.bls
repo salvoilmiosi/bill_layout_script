@@ -1,0 +1,178 @@
+### Bill Layout Script
+### Language it_IT
+
+### Box Check Numero Pagina
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 1
+### Rect 0.0048387097 0.005701254 0.9919355 0.13568985
+### Goto Label check_pagina
+### Spacers
+p+::off_allegato
+### End Spacers
+### Script
+$if($ate()) {
+  $error("Heracomm: Stringa di Convalida Errata")
+} $elifnot($search(@,/(1 \/ \d+)/)) {
+  ::off_allegato+=1
+  $goto(check_pagina)
+} $elifnot($contains(@,"www.gruppohera.it")) {
+  ::rotation=3
+}
+### End Script
+### End Box
+
+### Box Lettura Dettaglio Sinistra
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 4
+### Rect 0.021487603 0.14619882 0.47190082 0.8187134
+### Goto Label lettura_dettaglio
+### Spacers
+p+::off_allegato p+::off_dettaglio rotate+::rotation
+### End Spacers
+### Script
+$if($isempty(@) || $ate()) $goto(nome_fornitore)
+$else {
+  ::_dettaglio+=@
+  ::_dettaglio+="\n"
+}
+### End Script
+### End Box
+
+### Box Lettura Dettaglio Destra
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 4
+### Rect 0.4950413 0.14269006 0.47933885 0.8187134
+### Spacers
+p+::off_allegato p+::off_dettaglio rotate+::rotation
+### End Spacers
+### Script
+::_dettaglio+=@
+::_dettaglio+="\n"
+::off_dettaglio+=1
+$goto(lettura_dettaglio)
+### End Script
+### End Box
+
+### Box Nome Fornitore
+### Type NOREAD
+### Mode DEFAULT
+### Page 1
+### Rect 0.0877193 0.033884294 0.30292398 0.061157025
+### Goto Label nome_fornitore
+### Script
+fornitore="Heracomm"
+### End Script
+### End Box
+
+### Box Dati Fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 3
+### Rect 0.02892562 0.2748538 0.29008263 0.6175917825864277
+### Spacers
+p+::off_allegato rotate+::rotation
+### End Spacers
+### Script
+numero_fattura=$search(@,/Fattura elettronica n\. (\d+)/)
+data_fattura=$date(@,"%d.%m.%Y",/Data emissione (\D)/)
+data_scadenza=$date(@,"%d.%m.%Y",/Scadenza (\D)/)
+ragione_sociale=$search(@,/Intestata a (.+)/)
+indirizzo_fornitura=$singleline($search(@,/Servizio fornito in ([^]+?)\.+/))
+%potenza[0:3]=$search(@,/Potenza disponibile: (\N) kW/)
+codice_pod=$search(@,/POD \(Punto di prelievo\): (\w+)/)
+### End Script
+### End Box
+
+### Box Totale Fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 3
+### Rect 0.346281 0.12982456 0.6305785 0.70058477
+### Spacers
+p+::off_allegato rotate+::rotation
+### End Spacers
+### Script
+totale_fattura=$search(@,/Totale bolletta\/contratto (\N)/)
+### End Script
+### End Box
+
+### Box Parsing Dettaglio
+### Type NOREAD
+### Mode DEFAULT
+### Page 4
+### Rect 0.4434389140271493 0.10115236875800257 0.028054298642533948 0.03457106274007682
+### Script
+$with(&::_dettaglio) {
+  $between("Elementi di dettaglio","\n") {
+    mese_inizio=$month(@,"%d.%m.%Y",/dal (\D) al \D/)
+    mese_fine=$month(@,"%d.%m.%Y",/dal \D al (\D)/)
+    mese_fattura=$month_add(mese_inizio,::calc_mese)
+  }
+  _periodo=$format(/dal \d\d\.\d\d\.\d\d\d\d al \d\d\.$0/,$date_format(mese_fattura,"%m.%Y"))
+  _lettura_fine=$date_format($last_day(mese_fattura),"%d\\.%m\\.%Y")
+  _lettura_inizio=$format(/(?:$0|$1)/,
+    $date_format($last_day($month_add(mese_fattura,-1)),"%d\\.%m\\.%Y"),
+    $date_format(mese_fattura,"01\\.%m\\.%Y"))
+  $between("energia attiva (kWh)","consumo rilevato energia") {
+    $step($captures(@,$format(/lettura del $0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_fine))) {
+      %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
+    }
+    $step($captures(@,$format(/lettura del $0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_inizio))) {
+      %energia_attiva_rilevata[0]-=@ %energia_attiva_rilevata[1]-=@ %energia_attiva_rilevata[2]-=@
+    }
+  }
+  $between("energia reattiva (kVARh)","consumo rilevato energia") {
+    $step($captures(@,$format(/lettura del $0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_fine))) {
+      %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
+    }
+    $step($captures(@,$format(/lettura del $0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_inizio))) {
+      %energia_reattiva[0]-=@ %energia_reattiva[1]-=@ %energia_reattiva[2]-=@
+    }
+  }
+  $between("Servizi di Vendita","Servizi di Rete") {
+    $with($search(@,$format(/Importo $0\n((?:\s+fascia.+\n)+)/,_periodo))) {
+      $step($captures(@,/fascia F1 \u20ac\/kWh (\N) (\N) kWh/)) {
+        %prezzo_energia[0] %energia_attiva[0]
+      }
+      $step($captures(@,/fascia F2 \u20ac\/kWh (\N) (\N) kWh/)) {
+        %prezzo_energia[1] %energia_attiva[1]
+      }
+      $step($captures(@,/fascia F3 \u20ac\/kWh (\N) (\N) kWh/)) {
+        %prezzo_energia[2] %energia_attiva[2]
+      }
+    }
+  }
+  $between("Servizi di Rete","Totale fornitura di energia elettrica e imposte") {
+    $between("QUOTA POTENZA","QUOTA VARIABILE") {
+      %potenza[0:3]=$search(@,$format(/Importo $0 \u20ac\/kW di potenza \N (\N) kW/,_periodo))
+    }
+    $newview {
+      $setbegin($indexof(@,"QUOTA VARIABILE"))
+      $with($search(@,$format(/Penale energia reattiva Importo $0\n((?:\s+.+)+)/,_periodo))) {
+        %penale_reattiva_inf75=$search(@,/Corrispettivi energia reattiva entro 75% \u20ac\/kVARh \N \N kVARh (\N)/)
+        %penale_reattiva_sup75=$search(@,/Corrispettivi energia reattiva oltre 75% \u20ac\/kVARh \N \N kVARh (\N)/)
+      }
+      ^accise=$matches(@,$format(/Imposta erariale Importo $0 \u20ac\/kWh \N \N kWh (\N)/,_periodo))
+      iva=$search(@,/IVA (\d+%)/)
+    }
+  }
+}
+### End Script
+### End Box
+
+### Box Prossima Pagina
+### Type NOREAD
+### Mode DEFAULT
+### Page 4
+### Rect 0.4808259587020649 0.10013908205841446 0.021632251720747342 0.03198887343532686
+### Script
+$if(mese_fattura != mese_fine) {
+  ::calc_mese+=1
+  $nexttable()
+  $goto(nome_fornitore)
+}
+### End Script
+### End Box

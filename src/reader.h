@@ -14,11 +14,12 @@
 #include "intl.h"
 
 struct box_spacer {
-    float x = 0;
-    float y = 0;
-    float w = 0;
-    float h = 0;
+    double x = 0;
+    double y = 0;
+    double w = 0;
+    double h = 0;
     int page = 0;
+    int rotate = 0;
 };
 
 #define READER_FLAGS \

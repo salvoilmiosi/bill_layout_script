@@ -87,7 +87,9 @@ F(HEIGHT) \
 F(TOP) \
 F(RIGHT) \
 F(BOTTOM) \
-F(LEFT)
+F(LEFT) \
+F(ROTATE_CW) \
+F(ROTATE_CCW) \
 
 #define F(x) SPACER_##x,
 enum spacer_index : uint8_t { SPACER_INDICES };

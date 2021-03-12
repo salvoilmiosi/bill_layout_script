@@ -65,7 +65,10 @@ static const std::map<std::string_view, spacer_index> spacer_index_map = {
     {"b",       SPACER_BOTTOM},
     {"bottom",  SPACER_BOTTOM},
     {"l",       SPACER_LEFT},
-    {"left",    SPACER_LEFT}
+    {"left",    SPACER_LEFT},
+    {"rotate",  SPACER_ROTATE_CW},
+    {"rot_cw",  SPACER_ROTATE_CW},
+    {"rot_ccw", SPACER_ROTATE_CCW},
 };
 
 void parser::read_box(const layout_box &box) {

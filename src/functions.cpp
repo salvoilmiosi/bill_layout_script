@@ -5,6 +5,7 @@
 
 #include <optional>
 #include <algorithm>
+#include <numeric>
 
 template<typename T> struct is_variable : std::bool_constant<! std::is_void_v<convert_rvalue<T>>> {};
 
@@ -156,11 +157,7 @@ const std::map<std::string_view, function_handler> function_lookup {
         return variable::null_var();
     }},
     {"sum", [](varargs<fixed_point> args) {
-        fixed_point num;
-        for (const auto &arg : args) {
-            num += arg;
-        }
-        return num;
+        return std::accumulate(args.begin(), args.end(), fixed_point());
     }},
     {"max", [](varargs<variable> args) {
         if (args.empty()) {
@@ -207,6 +204,9 @@ const std::map<std::string_view, function_handler> function_lookup {
     }},
     {"month_add", [](std::string_view month, int num) {
         return date_month_add(month, num);
+    }},
+    {"last_day", [](std::string_view month) {
+        return date_last_day(month);
     }},
     {"singleline", [](std::string &&str) {
         return singleline(std::move(str));

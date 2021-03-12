@@ -192,7 +192,8 @@ static const std::regex &create_regex(std::string regex) {
 
         string_replace(regex, "\\N", "-?(?:\\d{1,3}(?:"
             + char_to_regex_str(intl::thousand_sep()) + "\\d{3})*(?:"
-            + char_to_regex_str(intl::decimal_point()) + "\\d+)?|\\d+)(?!\\d)");
+            + char_to_regex_str(intl::decimal_point()) + "\\d+)?|\\d+(?:"
+            + char_to_regex_str(intl::decimal_point()) + "\\d+)?)(?!\\d)");
         return compiled_regexes.emplace_hint(lower, regex, std::regex(regex, std::regex::icase))->second;
     } catch (const std::regex_error &error) {
         throw std::runtime_error(fmt::format("Espressione regolare non valida: {0}\n{1}", regex, error.what()));

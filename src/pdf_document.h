@@ -47,8 +47,8 @@ static poppler::page::text_layout_enum poppler_modes[] = READ_MODES;
 
 struct pdf_rect {
     int page = 0;
-    float x, y;
-    float w, h;
+    double x, y;
+    double w, h;
     read_mode mode = MODE_DEFAULT;
     box_type type = BOX_RECTANGLE;
 };

@@ -328,7 +328,6 @@ void frame_editor::selectBox(layout_box *box) {
         ++i;
     }
     if (box) {
-        setSelectedPage(box->page);
         m_image->setSelectedBox(box);
     } else {
         m_list_boxes->SetSelection(-1);
