@@ -85,6 +85,7 @@ numero_cliente = $search(@,/Codice cliente: (.+)\n/)
 ### Box Lettura Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
+### Flags NOTRIM
 ### Page 2
 ### Rect 0.052041367 0.12135033 0.9031695 0.8370542
 ### Goto Label lettura_dettaglio
@@ -94,7 +95,6 @@ p+::next_page
 ### Script
 $ifnot($ate() || $contains(@,"Comunicazioni finali")) {
   _dettaglio+=@
-  _dettaglio+="\n"
   ::next_page+=1
   $goto(lettura_dettaglio)
 }

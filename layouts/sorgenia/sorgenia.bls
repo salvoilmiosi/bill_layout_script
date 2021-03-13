@@ -15,6 +15,7 @@ $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
 ### Box Lettura Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
+### Flags NOTRIM
 ### Page 3
 ### Rect 0.040290102 0.080957815 0.91055596 0.86431015
 ### Goto Label lettura_dati
@@ -24,7 +25,6 @@ p+::next_page
 ### Script
 $ifnot($ate() || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
   ::_dettaglio+=@
-  ::_dettaglio+="\n"
   ::next_page+=1
   $goto(lettura_dati)
 }

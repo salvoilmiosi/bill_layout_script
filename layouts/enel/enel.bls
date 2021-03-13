@@ -35,6 +35,7 @@ $if($ate()) {
 ### Box Contenuto Dettaglio Costi
 ### Type RECTANGLE
 ### Mode RAW
+### Flags NOTRIM
 ### Page 3
 ### Rect 0.048197635 0.21550742 0.71199036 0.76047003
 ### Goto Label dettaglio_costi
@@ -44,7 +45,6 @@ t-::spacer_dettaglio
 ### End Spacers
 ### Script
 ::_dettaglio+=@
-::_dettaglio+="\n"
 ### End Script
 ### End Box
 

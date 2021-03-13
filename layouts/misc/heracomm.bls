@@ -25,6 +25,7 @@ $if($ate()) {
 ### Box Lettura Dettaglio Sinistra
 ### Type RECTANGLE
 ### Mode LAYOUT
+### Flags NOTRIM
 ### Page 4
 ### Rect 0.019455252918287938 0.14619882 0.47393317008171215 0.8187134
 ### Goto Label lettura_dettaglio
@@ -37,7 +38,6 @@ rotate+::rotation
 $if($isempty(@) || $ate()) $goto(nome_fornitore)
 $else {
   ::_dettaglio+=@
-  ::_dettaglio+="\n"
 }
 ### End Script
 ### End Box
@@ -45,8 +45,9 @@ $else {
 ### Box Lettura Dettaglio Destra
 ### Type RECTANGLE
 ### Mode LAYOUT
+### Flags NOTRIM
 ### Page 4
-### Rect 0.4950413 0.14269006 0.4842064302204928 0.8187134
+### Rect 0.4950413 0.14107715677419358 0.4842064302204928 0.8187134
 ### Spacers
 p+::off_allegato
 p+::off_dettaglio
@@ -54,7 +55,6 @@ rotate+::rotation
 ### End Spacers
 ### Script
 ::_dettaglio+=@
-::_dettaglio+="\n"
 ::off_dettaglio+=1
 $goto(lettura_dettaglio)
 ### End Script
@@ -142,31 +142,70 @@ $with(&::_dettaglio) {
     }
   }
   $between("Servizi di Vendita","Servizi di Rete") {
-    $with($search(@,$format(/Importo $0\n((?:\s+fascia.+\n)+)/,_periodo))) {
-      $step($captures(@,/fascia F1 \u20ac\/kWh (\N) (\N) kWh/)) {
-        %prezzo_energia[0] %energia_attiva[0]
+    $with($matches(@,$format(/Importo $0\n((?:\s+.+\n)+)/,_periodo))) {
+      ^spesa_materia_energia+=$matches(@,/.+ (\N)/)
+    }
+    $between("Prezzo dell'energia","Perdite di rete") {
+      $with($search(@,$format(/Importo $0\n((?:\s+.+\n)+)/,_periodo))) {
+        $step($captures(@,/fascia F1 \u20ac\/kWh (\N) (\N) kWh/)) {
+          %prezzo_energia[0] %energia_attiva[0]
+        }
+        $step($captures(@,/fascia F2 \u20ac\/kWh (\N) (\N) kWh/)) {
+          %prezzo_energia[1] %energia_attiva[1]
+        }
+        $step($captures(@,/fascia F3 \u20ac\/kWh (\N) (\N) kWh/)) {
+          %prezzo_energia[2] %energia_attiva[2]
+        }
       }
-      $step($captures(@,/fascia F2 \u20ac\/kWh (\N) (\N) kWh/)) {
-        %prezzo_energia[1] %energia_attiva[1]
+    }
+    _totale_consumi=$sum(energia_attiva[0],energia_attiva[1],energia_attiva[2])
+  }
+  $between("Servizi di Rete","Totale Imposte") {
+    $between("QUOTA FISSA","QUOTA POTENZA") {
+      $foreach($matches(@,/Importo (dal \d\d\.\d\d\.\d\d\d\d al \d\d\.\d\d\.\d\d\d\d .+)/)) {
+        $if($date_between(mese_fattura,$date(@,"%d.%m.%Y",/dal (\D) al \D/),$date(@,"%d.%m.%Y",/dal \D al (\D)/))) {
+          trasporto_gestione+=$trunc($num($search(@,/\u20ac\/cliente\/mese (\N)/)),2)
+          $break()
+        }
       }
-      $step($captures(@,/fascia F3 \u20ac\/kWh (\N) (\N) kWh/)) {
-        %prezzo_energia[2] %energia_attiva[2]
+    }
+    $between("QUOTA POTENZA","QUOTA VARIABILE") {
+      ^trasporto_gestione+=$matches(@,$format(/Importo $0 \u20ac\/kW di potenza \N \N kW (\N)/,_periodo))
+      %potenza[0:3]=$search(@,$format(/Importo $0 \u20ac\/kW di potenza \N (\N) kW/,_periodo))
+    }
+    $between("QUOTA VARIABILE","Penale energia reattiva") {
+      $foreach($matches(@,/Importo (dal \d\d\.\d\d\.\d\d\d\d al \d\d\.\d\d\.\d\d\d\d\n.+)/)) {
+        $if($date_between(mese_fattura,$date(@,"%d.%m.%Y",/dal (\D) al \D/),$date(@,"%d.%m.%Y",/dal \D al (\D)/))) {
+          trasporto_gestione+=$trunc($num($search(@,/\u20ac\/kWh (\N)/)) * _totale_consumi, 2)
+          $break()
+        }
+      }
+    }
+    $newview {
+      $setbegin($indexof(@,"Penale energia reattiva"))
+      $foreach($matches(@,/Importo (dal \d\d\.\d\d\.\d\d\d\d al \d\d\.\d\d\.\d\d\d\d\n.+)/)) {
+        $if($date_between(mese_fattura,$date(@,"%d.%m.%Y",/dal (\D) al \D/),$date(@,"%d.%m.%Y",/dal \D al (\D)/))) {
+          %_prezzo_inf75=$search(@,/Corrispettivi energia reattiva entro 75% \u20ac\/kVARh (\N)/)
+          $if($isset(_prezzo_inf75)) {
+            penali_reattiva_inf75=$trunc($sum(
+              $max(0, energia_reattiva[0] - energia_attiva[0]*0.33),
+              $max(0, energia_reattiva[1] - energia_attiva[1]*0.33)) * _prezzo_inf75, 2)
+          }
+          %_prezzo_sup75=$search(@,/Corrispettivi energia reattiva oltre 75% \u20ac\/kVARh (\N)/)
+          $if($isset(_prezzo_sup75)) {
+            penali_reattiva_sup75=$trunc($sum(
+              $max(0, energia_reattiva[0] - energia_attiva[0]*0.75),
+              $max(0, energia_reattiva[1] - energia_attiva[1]*0.75)) * _prezzo_sup75, 2)
+          }
+          $break()
+        }
       }
     }
   }
-  $between("Servizi di Rete","Totale fornitura di energia elettrica e imposte") {
-    $between("QUOTA POTENZA","QUOTA VARIABILE") {
-      %potenza[0:3]=$search(@,$format(/Importo $0 \u20ac\/kW di potenza \N (\N) kW/,_periodo))
-    }
-    $newview {
-      $setbegin($indexof(@,"QUOTA VARIABILE"))
-      $with($search(@,$format(/Penale energia reattiva Importo $0\n((?:\s+.+)+)/,_periodo))) {
-        %penale_reattiva_inf75=$search(@,/Corrispettivi energia reattiva entro 75% \u20ac\/kVARh \N \N kVARh (\N)/)
-        %penale_reattiva_sup75=$search(@,/Corrispettivi energia reattiva oltre 75% \u20ac\/kVARh \N \N kVARh (\N)/)
-      }
-      ^accise=$matches(@,$format(/Imposta erariale Importo $0 \u20ac\/kWh \N \N kWh (\N)/,_periodo))
-      iva=$search(@,/IVA (\d+%)/)
-    }
+  $newview {
+    $setbegin($indexof(@,"Totale Imposte"))
+    accise=$trunc(0.0125 * _totale_consumi, 2)
+    iva=$search(@,/IVA (\d+%)/)
   }
 }
 ### End Script

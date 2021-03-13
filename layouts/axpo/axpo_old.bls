@@ -141,6 +141,7 @@ $if(::spacer_multipod) $call(read_sintesi_costi)
 ### Box Lettura Spese Energia
 ### Type RECTANGLE
 ### Mode LAYOUT
+### Flags NOTRIM
 ### Page 3
 ### Rect 0.033843674 0.09464082 0.9073328 0.87001145
 ### Goto Label lettura_spese
@@ -152,7 +153,6 @@ $if($ate() || $contains(@,"Comunicazioni") || $contains(@,"Dati di fornitura")) 
   $goto(parsing_spese)
 }
 _dettaglio+=@
-_dettaglio+="\n"
 ::next_page+=1
 $goto(lettura_spese)
 ### End Script

@@ -23,6 +23,7 @@ $if($ate()) {
 ### Box Lettura Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
+### Flags NOTRIM
 ### Page 3
 ### Rect 0.04032258 0.114025086 0.9370968 0.8540479
 ### Goto Label lettura_dettaglio
@@ -32,7 +33,6 @@ p+::off_dettaglio
 ### Script
 $ifnot($ate()) {
   ::_dettaglio+=$replace(@,"\u2212","-")
-  ::_dettaglio+="\n"
   ::off_dettaglio+=1
   $goto(lettura_dettaglio)
 }
