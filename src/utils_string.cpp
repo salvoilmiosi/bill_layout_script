@@ -64,9 +64,6 @@ std::string string_toupper(std::string str) {
 }
 
 void string_trim(std::string &str) {
-#ifdef _WIN32
-    std::erase(str, '\r');
-#endif
     str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](auto ch) {
         return !std::isspace(ch);
     }));

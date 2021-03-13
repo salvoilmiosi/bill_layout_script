@@ -9,6 +9,8 @@
 #include <poppler-document.h>
 #include <poppler-page.h>
 
+typedef uint8_t flags_t;
+
 #define BOX_TYPES { \
     BOX(RECTANGLE,  "Rettangolo"), \
     BOX(PAGE,       "Pagina"), \
@@ -45,12 +47,30 @@ static const char *read_mode_labels[] = READ_MODES;
 static poppler::page::text_layout_enum poppler_modes[] = READ_MODES;
 #undef MODE
 
+#define PDF_FLAGS { \
+    F(NOTRIM, "Mantieni Spazi"), \
+}
+
+#define F(x, y) POS_PDF_##x
+enum PDF_FLAGS;
+#undef F
+#define F(x, y) PDF_##x = (1 << POS_PDF_##x)
+enum pdf_flags : flags_t PDF_FLAGS;
+#undef F
+#define F(x, y) #x
+static const char *pdf_flags_names[] = PDF_FLAGS;
+#undef F
+#define F(x, y) y
+static const char *pdf_flags_labels[] = PDF_FLAGS;
+#undef F
+
 struct pdf_rect {
     int page = 0;
     double x, y;
     double w, h;
     read_mode mode = MODE_DEFAULT;
     box_type type = BOX_RECTANGLE;
+    flags_t flags = 0;
 };
 
 class pdf_document {

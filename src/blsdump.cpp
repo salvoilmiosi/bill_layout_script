@@ -95,6 +95,11 @@ int MainApp::OnRun() {
                 std::cout << ' ' << read_mode_strings[int(box.mode)];
                 std::cout << ' ' << box_type_strings[int(box.type)];
                 std::cout << ' ' << int(box.page) << ' ' << box.x << ' ' << box.y << ' ' << box.w << ' ' << box.h;
+                for (size_t i=0; i<std::size(pdf_flags_names); ++i) {
+                    if (box.flags & (1 << i)) {
+                        std::cout << ' ' << pdf_flags_names[i];
+                    }
+                }
                 break;
             }
             case OP_MVBOX:
@@ -150,7 +155,7 @@ int MainApp::OnRun() {
             }
             case OP_UNEVAL_JUMP: {
                 auto args = line.get_args<OP_UNEVAL_JUMP>();
-                std::cout << opcode_names[int(args.cmd)] << ' ' << args.label;
+                std::cout << '\t' << opcode_names[int(args.cmd)] << ' ' << args.label;
                 break;
             }
             case OP_JMP:

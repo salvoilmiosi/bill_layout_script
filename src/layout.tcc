@@ -16,6 +16,15 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script<Contai
         output << fmt::format("\n### Box {}\n", box.name);
         output << fmt::format("### Type {}\n", box_type_strings[int(box.type)]);
         output << fmt::format("### Mode {}\n", read_mode_strings[int(box.mode)]);
+        if (box.flags) {
+            output << "### Flags";
+            for (size_t i=0; i<std::size(pdf_flags_names); ++i) {
+                if (box.flags & (1 << i)) {
+                    output << ' ' << pdf_flags_names[i];
+                }
+            }
+            output << '\n';
+        }
         output << fmt::format("### Page {}\n", box.page);
         output << fmt::format("### Rect {} {} {} {}\n", box.x, box.y, box.w, box.h);
         if (!box.goto_label.empty()) {
@@ -90,18 +99,29 @@ std::istream &operator >> (std::istream &input, bill_layout_script<Container> &l
                     fail = false;
                     break;
                 } else if (auto suf = suffix(line, "### Type")) {
-                    auto it = std::find(std::begin(box_type_strings), std::end(box_type_strings), suf.value);
+                    auto it = std::ranges::find(box_type_strings, suf.value);
                     if (it != std::end(box_type_strings)) {
                         current.type = static_cast<box_type>(it - box_type_strings);
                     } else {
                         throw layout_error(fmt::format("Token 'Type' non valido: {}", suf.value));
                     }
                 } else if (auto suf = suffix(line, "### Mode")) {
-                    auto it = std::find(std::begin(read_mode_strings), std::end(read_mode_strings), suf.value);
+                    auto it = std::ranges::find(read_mode_strings, suf.value);
                     if (it != std::end(read_mode_strings)) {
                         current.mode = static_cast<read_mode>(it - read_mode_strings);
                     } else {
                         throw layout_error(fmt::format("Token 'Mode' non valido: {}", suf.value));
+                    }
+                } else if (auto suf = suffix(line, "### Flags")) {
+                    std::istringstream ss(std::string(suf.value));
+                    std::string label;
+                    while (ss >> label) {
+                        auto it = std::ranges::find(pdf_flags_names, label);
+                        if (it != std::end(pdf_flags_names)) {
+                            current.flags |= 1 << (it - pdf_flags_names);
+                        } else {
+                            throw layout_error(fmt::format("Token 'Flags' non valido: {}", label));
+                        }
                     }
                 } else if (auto suf = suffix(line, "### Page")) {
                     current.page = cstoi(suf.value);

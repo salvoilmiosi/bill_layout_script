@@ -30,10 +30,16 @@ std::string pdf_document::get_text(pdf_rect rect, int rotation) const {
 
     auto poppler_mode = poppler_modes[int(rect.mode)];
 
-    auto to_stdstring = [](const poppler::ustring &ustr) {
+    auto to_stdstring = [flags = rect.flags](const poppler::ustring &ustr) {
         auto arr = ustr.to_utf8();
         std::string str(arr.begin(), arr.end());
-        string_trim(str);
+#ifdef _WIN32
+        std::erase(str, '\r');
+#endif
+        std::erase(str, '\f');
+        if (!(flags & PDF_NOTRIM)) {
+            string_trim(str);
+        }
         return str;
     };
 

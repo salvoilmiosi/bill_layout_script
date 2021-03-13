@@ -79,6 +79,7 @@ template<> inline void writeData<pdf_rect>(std::ostream &output, const pdf_rect 
     writeData(output, box.h);
     writeData(output, box.mode);
     writeData(output, box.type);
+    writeData(output, box.flags);
 }
 
 template<> inline pdf_rect readData<pdf_rect>(std::istream &input) {
@@ -90,6 +91,7 @@ template<> inline pdf_rect readData<pdf_rect>(std::istream &input) {
     box.h = readData<double>(input);
     box.mode = readData<read_mode>(input);
     box.type = readData<box_type>(input);
+    box.flags = readData<flags_t>(input);
     return box;
 }
 

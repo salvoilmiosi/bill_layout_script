@@ -44,6 +44,35 @@ public:
     }
 };
 
+class FlagValidator : public wxValidator {
+protected:
+    flags_t m_flag;
+    flags_t *m_value;
+
+public:
+    FlagValidator(int n, flags_t &m) : m_flag(n), m_value(&m) {}
+
+    virtual wxObject *Clone() const override {
+        return new FlagValidator(*this);
+    }
+
+    virtual bool TransferFromWindow() override {
+        if (m_value) {
+            wxCheckBox *check_box = dynamic_cast<wxCheckBox*>(GetWindow());
+            *m_value = (*m_value & ~m_flag) | (m_flag & -check_box->GetValue());
+        }
+        return true;
+    }
+
+    virtual bool TransferToWindow() override {
+        if (m_value) {
+            wxCheckBox *check_box = dynamic_cast<wxCheckBox*>(GetWindow());
+            check_box->SetValue(*m_value & m_flag);
+        }
+        return true;
+    }
+};
+
 template<typename WindowType = wxTextCtrl>
 class StringValidator : public wxValidator {
 protected:
@@ -111,8 +140,18 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &out_box) :
         }(std::make_index_sequence<N>{});
     };
 
+    auto add_check_boxes = [&] <size_t N> (const wxString &label, const char *const (& btn_labels)[N], auto &value) {
+        auto create_btn = [&](size_t i) {
+            return new wxCheckBox(this, wxID_ANY, btn_labels[i], wxDefaultPosition, wxDefaultSize, 0, FlagValidator(1 << i, value));  
+        };
+        [&] <size_t ... Is> (std::index_sequence<Is...>) {
+            addLabelAndCtrl(label, 0, 0, create_btn(Is) ...);
+        }(std::make_index_sequence<N>{});
+    };
+
     add_radio_btns("Tipo:", box_type_labels, m_box.type);
     add_radio_btns(L"Modalità:", read_mode_labels, m_box.mode);
+    add_check_boxes("Flag:", pdf_flags_labels, m_box.flags);
 
     auto make_script_box = [&](std::string &value) {
         wxStyledTextCtrl *text = new wxStyledTextCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
