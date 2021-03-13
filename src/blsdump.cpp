@@ -92,12 +92,12 @@ int MainApp::OnRun() {
                 std::cout << '\t' << opcode_names[int(line.command())];
                 std::cout << ' ' << read_mode_strings[int(box.mode)];
                 std::cout << ' ' << box_type_strings[int(box.type)];
-                std::cout << ' ' << int(box.page) << ' ' << box.x << ' ' << box.y << ' ' << box.w << ' ' << box.h;
                 for (size_t i=0; i<std::size(pdf_flags_names); ++i) {
                     if (box.flags & (1 << i)) {
                         std::cout << ' ' << pdf_flags_names[i];
                     }
                 }
+                std::cout << ' ' << int(box.page) << ' ' << box.x << ' ' << box.y << ' ' << box.w << ' ' << box.h;
                 break;
             }
             case OP_MVBOX:
