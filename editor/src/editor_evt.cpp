@@ -178,6 +178,12 @@ void frame_editor::OnAutoLayout(wxCommandEvent &evt) {
     }
 }
 
+void frame_editor::OnRotate(wxCommandEvent &evt) {
+    ++rotation %= 4;
+
+    setSelectedPage(selected_page, true);
+}
+
 void frame_editor::OnLoadPdf(wxCommandEvent &evt) {
     wxString lastPdfDir = m_config->Read("LastPdfDir");
     wxFileDialog diag(this, "Apri PDF", lastPdfDir, wxEmptyString, "File PDF (*.pdf)|*.pdf|Tutti i file (*.*)|*.*");

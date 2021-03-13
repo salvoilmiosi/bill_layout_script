@@ -14,12 +14,12 @@ struct default_renderer : poppler::page_renderer {
     }
 };
 
-wxImage pdf_to_image(const pdf_document &doc, int page) {
+wxImage pdf_to_image(const pdf_document &doc, int page, int rotation) {
     static default_renderer renderer;
 
     static constexpr double resolution = 150.0;
 
-    poppler::image output = renderer.render_page(&doc.get_page(page), resolution, resolution);
+    poppler::image output = renderer.render_page(&doc.get_page(page), resolution, resolution, -1, -1, -1, -1, static_cast<poppler::rotation_enum>(rotation));
     const char *src_ptr = output.const_data();
 
     unsigned char *data = (unsigned char *) std::malloc(output.width() * output.height() * 3);

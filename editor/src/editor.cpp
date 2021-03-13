@@ -32,6 +32,7 @@ BEGIN_EVENT_TABLE(frame_editor, wxFrame)
     EVT_MENU (MENU_EDITCONTROL, frame_editor::OpenControlScript)
     EVT_MENU (MENU_SETLANGUAGE, frame_editor::OnSetLanguage)
     EVT_BUTTON(CTL_AUTO_LAYOUT, frame_editor::OnAutoLayout)
+    EVT_BUTTON (CTL_ROTATE, frame_editor::OnRotate)
     EVT_BUTTON (CTL_LOAD_PDF, frame_editor::OnLoadPdf)
     EVT_SPINCTRL (CTL_PAGE, frame_editor::OnPageSelect)
     EVT_TEXT_ENTER (CTL_PAGE, frame_editor::OnPageEnter)
@@ -131,6 +132,9 @@ frame_editor::frame_editor() : wxFrame(nullptr, wxID_ANY, "Layout Bolletta", wxD
     toolbar_top->AddTool(MENU_READDATA, "Leggi Layout", wxArtProvider::GetBitmap(wxART_REPORT_VIEW), "Leggi Layout");
 
     toolbar_top->AddStretchableSpace();
+
+    wxButton *btn_rotate = new wxButton(toolbar_top, CTL_ROTATE, "Ruota Immagine", wxDefaultPosition, wxSize(100, -1));
+    toolbar_top->AddControl(btn_rotate, "Ruota in senso orario");
 
     wxButton *btn_load_pdf = new wxButton(toolbar_top, CTL_LOAD_PDF, "Carica PDF", wxDefaultPosition, wxSize(100, -1));
     toolbar_top->AddControl(btn_load_pdf, "Carica un file PDF");
@@ -316,7 +320,7 @@ void frame_editor::setSelectedPage(int page, bool force) {
     selected_page = page;
 
     m_page->SetValue(wxString::Format("%i/%i", page, m_page->GetMax()));
-    m_image->setImage(pdf_to_image(m_doc, page));
+    m_image->setImage(pdf_to_image(m_doc, page, rotation));
 }
 
 void frame_editor::selectBox(layout_box *box) {

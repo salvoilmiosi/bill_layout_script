@@ -32,7 +32,7 @@ enum {
     MENU_OPEN_PDF_RECENT,
     MENU_OPEN_PDF_RECENT_END = MENU_OPEN_PDF_RECENT + MAX_RECENT_PDFS_HISTORY,
 
-    CTL_LOAD_PDF, CTL_AUTO_LAYOUT, CTL_PAGE, CTL_SCALE,
+    CTL_ROTATE, CTL_LOAD_PDF, CTL_AUTO_LAYOUT, CTL_PAGE, CTL_SCALE,
 
     TOOL_SELECT, TOOL_NEWBOX, TOOL_DELETEBOX, TOOL_RESIZE, TOOL_TEST, TOOL_MOVEUP, TOOL_MOVEDOWN,
     
@@ -79,6 +79,7 @@ private:
     void OpenControlScript (wxCommandEvent &evt);
     void OnSetLanguage  (wxCommandEvent &evt);
     void OnAutoLayout   (wxCommandEvent &evt);
+    void OnRotate       (wxCommandEvent &evt);
     void OnLoadPdf      (wxCommandEvent &evt);
     void OnPageSelect   (wxSpinEvent &evt);
     void OnPageEnter    (wxCommandEvent &evt);
@@ -115,6 +116,7 @@ private:
     std::deque<box_list>::iterator currentHistory;
 
     bool modified = false;
+    int rotation = 0;
 
 private:
     pdf_document m_doc;
