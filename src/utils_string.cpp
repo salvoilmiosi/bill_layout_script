@@ -118,11 +118,9 @@ double cstod(std::string_view str) {
 #endif
 
 size_t string_findicase(std::string_view str, std::string_view str2, size_t index) {
-    return std::distance(str.begin(), std::search(
-        str.begin() + index, str.end(),
-        str2.begin(), str2.end(),
-        [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
-    ));
+    return std::distance(str.begin(), std::ranges::search(str.substr(index), str2, [](char a, char b) {
+        return toupper(a) == toupper(b);
+    }).begin());
 }
 
 std::string string_format(std::string_view str, const varargs<std::string_view> &fmt_args) {
