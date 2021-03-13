@@ -68,6 +68,16 @@ std::string string_trim(std::string_view str) {
     return {view.begin(), view.end()};
 }
 
+std::string string_singleline(std::string_view str) {
+    std::string ret;
+    std::ranges::unique_copy(str | std::views::transform([](auto ch) {
+        return isspace(ch) ? ' ' : ch;
+    }), std::back_inserter(ret), [](auto a, auto b) {
+        return a == ' ' && b == ' ';
+    });
+    return ret;
+}
+
 void string_replace(std::string &str, std::string_view from, std::string_view to) {
     size_t index = 0;
     while (true) {
@@ -235,13 +245,6 @@ std::string search_regex(const std::string &regex, std::string_view value, int i
 
 std::string string_replace_regex(const std::string &value, const std::string &regex, const std::string &str) {
     return std::regex_replace(value, create_regex(regex), str);
-}
-
-std::string string_singleline(std::string_view str) {
-    auto view = str | std::views::transform([](auto ch) {
-        return isspace(ch) ? ' ' : ch;
-    });
-    return {view.begin(), view.end()};
 }
 
 std::string table_row_regex(std::string_view header, const varargs<std::string_view> &names) {

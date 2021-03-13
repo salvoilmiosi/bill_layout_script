@@ -31,6 +31,9 @@ std::string string_toupper(std::string_view str);
 // elimina gli spazi in eccesso a inizio e fine stringa
 std::string string_trim(std::string_view str);
 
+// converte ogni carattere di spazio in " "
+std::string string_singleline(std::string_view str);
+
 // legge tutto l'output di uno stream
 std::string read_all(std::istream &stream);
 
@@ -72,9 +75,6 @@ std::string search_regex(const std::string &regex, std::string_view value, int i
 
 // rimpiazza in str le occorrenze di format in value
 std::string string_replace_regex(const std::string &value, const std::string &regex, const std::string &str);
-
-// converte ogni carattere di spazio in " "
-std::string string_singleline(std::string_view str);
 
 // restituisce un'espressione regolare che parsa una riga di una tabella
 std::string table_row_regex(std::string_view header, const varargs<std::string_view> &names);
