@@ -45,7 +45,7 @@ private:
     TextDialog *info_dialog;
 
     wxRealPoint start_pt, end_pt, dragging_offset;
-    layout_box *selected_box;
+    layout_box *selected_box = nullptr;
     char resize_node = 0;
     bool mouseIsDown = false;
 

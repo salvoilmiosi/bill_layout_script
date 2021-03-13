@@ -324,15 +324,11 @@ void frame_editor::setSelectedPage(int page, bool force) {
 }
 
 void frame_editor::selectBox(layout_box *box) {
-    int i = 0;
-    for (auto &b : layout) {
-        if (&b == box) {
-            m_list_boxes->SetSelection(i);
-        }
-        ++i;
-    }
+    m_image->setSelectedBox(box);
     if (box) {
-        m_image->setSelectedBox(box);
+        m_list_boxes->SetSelection(std::distance(layout.begin(),
+            std::ranges::find(layout, box,
+            [](const auto &box) { return &box; })));
     } else {
         m_list_boxes->SetSelection(-1);
     }

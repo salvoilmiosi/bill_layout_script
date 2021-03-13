@@ -139,13 +139,11 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
         case TOOL_SELECT: {
             auto it = getBoxAt(start_pt.x, start_pt.y);
             if (it != app->layout.end()) {
-                selected_box = &*it;
+                app->selectBox(&*it);
                 dragging_offset.x = selected_box->x - start_pt.x;
                 dragging_offset.y = selected_box->y - start_pt.y;
-                app->selectBox(selected_box);
                 mouseIsDown = true;
             } else {
-                selected_box = nullptr;
                 app->selectBox(nullptr);
             }
             break;
@@ -166,12 +164,10 @@ void box_editor_panel::OnMouseDown(wxMouseEvent &evt) {
         case TOOL_RESIZE: {
             auto node = getBoxResizeNode(start_pt.x, start_pt.y);
             if (node.second) {
-                selected_box = &*node.first;
+                app->selectBox(&*node.first);
                 resize_node = node.second;
-                app->selectBox(selected_box);
                 mouseIsDown = true;
             } else {
-                selected_box = nullptr;
                 app->selectBox(nullptr);
             }
             break;
