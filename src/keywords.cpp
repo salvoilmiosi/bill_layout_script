@@ -157,9 +157,9 @@ void parser::read_keyword() {
         break;
     }
     case hash("foreach"): {
-        std::string lines_label = make_label("lines");
-        std::string endlines_label = make_label("endlines");
-        m_loop_labels.push(loop_label_pair{lines_label, endlines_label});
+        std::string begin_label = make_label("foreach");
+        std::string end_label = make_label("endforeach");
+        m_loop_labels.push(loop_label_pair{begin_label, end_label});
         bool pushed_content = false;
         if (m_lexer.check_next(TOK_PAREN_BEGIN)) {
             read_expression();
@@ -168,12 +168,12 @@ void parser::read_keyword() {
             pushed_content = true;
         }
         add_line<OP_SUBVIEW>();
-        add_label(lines_label);
+        add_label(begin_label);
         add_line<OP_NEXTRESULT>();
-        add_line<OP_UNEVAL_JUMP>(OP_JTE, endlines_label);
+        add_line<OP_UNEVAL_JUMP>(OP_JTE, end_label);
         read_statement();
-        add_line<OP_UNEVAL_JUMP>(OP_JMP, lines_label);
-        add_label(endlines_label);
+        add_line<OP_UNEVAL_JUMP>(OP_JMP, begin_label);
+        add_label(end_label);
         if (pushed_content) {
             add_line<OP_POPCONTENT>();
         } else {
