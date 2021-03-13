@@ -159,6 +159,10 @@ const std::map<std::string_view, function_handler> function_lookup {
     {"sum", [](varargs<fixed_point> args) {
         return std::accumulate(args.begin(), args.end(), fixed_point());
     }},
+    {"trunc", [](fixed_point num, int decimal_places) {
+        int pow = dec::dec_utils<dec::def_round_policy>::pow10(decimal_places);
+        return fixed_point((num * pow).getAsInteger()) / pow;
+    }},
     {"max", [](varargs<variable> args) {
         if (args.empty()) {
             return variable::null_var();
@@ -207,6 +211,9 @@ const std::map<std::string_view, function_handler> function_lookup {
     }},
     {"last_day", [](std::string_view month) {
         return date_last_day(month);
+    }},
+    {"date_between", [](std::string_view date, std::string_view date_begin, std::string_view date_end) {
+        return date_is_between(date, date_begin, date_end);
     }},
     {"singleline", [](std::string &&str) {
         return singleline(std::move(str));

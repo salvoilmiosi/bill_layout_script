@@ -126,6 +126,17 @@ std::string date_last_day(std::string_view str) {
     }
 }
 
+bool date_is_between(std::string_view date, std::string_view date_begin, std::string_view date_end) {
+    try {
+        wxDateTime dt = string_to_date(date);
+        wxDateTime dt_begin = string_to_date(date_begin);
+        wxDateTime dt_end = string_to_date(date_end);
+        return dt.IsBetween(dt_begin, dt_end);
+    } catch (const std::invalid_argument &) {
+        return false;
+    }
+}
+
 std::string date_format(std::string_view str, const std::string &format) {
     try {
         wxDateTime dt = string_to_date(str);

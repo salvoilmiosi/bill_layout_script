@@ -9,7 +9,6 @@
 constexpr char RESULT_SEPARATOR = '\x1f';
 
 typedef uint8_t small_int;
-typedef uint8_t flags_t;
 
 // divide una stringa per separatore
 std::vector<std::string_view> string_split(std::string_view str, char separator = ',');
@@ -55,6 +54,9 @@ std::string date_month_add(std::string_view month, int num);
 
 // Ritorna la data dell'ultimo giorno del mese
 std::string date_last_day(std::string_view month);
+
+// Ritorna se la data e' compresa nel range indicato
+bool date_is_between(std::string_view date, std::string_view date_begin, std::string_view end);
 
 // formatta una data nel formato indicato
 std::string date_format(std::string_view date, const std::string &format);
