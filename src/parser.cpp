@@ -175,7 +175,7 @@ bool parser::read_statement(bool throw_on_eof) {
         if (prefixes & VP_OVERWRITE)  flags |= SET_OVERWRITE;
         if (prefixes & VP_FORCE)      flags |= SET_FORCE;
 
-        vector_move_to_end(m_code, selvar_begin, selvar_end);
+        move_to_end(m_code, selvar_begin, selvar_end);
         add_line<OP_SETVAR>(flags);
     }
     }

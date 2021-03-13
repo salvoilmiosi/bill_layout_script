@@ -1,7 +1,6 @@
 #include "functions.h"
 #include "utils.h"
 #include "intl.h"
-#include "content_view.h"
 
 #include <optional>
 #include <algorithm>
@@ -142,19 +141,15 @@ const std::map<std::string_view, function_handler> function_lookup {
         }
         return var;
     }},
-    {"aggregate", [](variable &&var) {
-        if (!var.empty()) {
-            variable ret;
-            content_view view(std::move(var));
-            for (view.new_subview(); !view.token_end(); view.next_result()) {
-                fixed_point num;
-                if (parse_num(num, view.view())) {
-                    ret += num;
-                }
+    {"aggregate", [](std::string_view str) {
+        variable ret;
+        for (const auto &view : string_split(str, {&RESULT_SEPARATOR, 1})) {
+            fixed_point num;
+            if (parse_num(num, view)) {
+                ret += num;
             }
-            return ret;
         }
-        return variable::null_var();
+        return ret;
     }},
     {"sum", [](varargs<fixed_point> args) {
         return std::accumulate(args.begin(), args.end(), fixed_point());
@@ -236,9 +231,6 @@ const std::map<std::string_view, function_handler> function_lookup {
             return variable(std::string(str.substr(pos, count.value_or(std::string_view::npos))));
         }
         return variable::null_var();
-    }},
-    {"split", [](std::string_view str, int nparts) {
-        return string_split_n(str, nparts);
     }},
     {"strcat", [](varargs<std::string_view> args) {
         std::string var;

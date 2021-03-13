@@ -9,46 +9,6 @@
 
 #include "intl.h"
 
-std::vector<std::string_view> string_split(std::string_view str, char separator) {
-    std::vector<std::string_view> ret;
-
-    size_t start = 0;
-    size_t end = str.find(separator);
-    while (end != std::string::npos) {
-        ret.push_back(str.substr(start, end-start));
-        start = end + 1;
-        end = str.find(separator, start);
-    }
-    ret.push_back(str.substr(start, end));
-
-    return ret;
-}
-
-std::string string_split_n(std::string_view str, int nparts) {
-    std::string ret;
-    float len = float(str.size()) / nparts;
-    float loc = 0;
-    for (int i=0; i<nparts; ++i) {
-        if (i != 0) {
-            ret += RESULT_SEPARATOR;
-        }
-        ret += str.substr(std::round(loc), std::round(loc + len) - std::round(loc));
-        loc += len;
-    }
-    return ret;
-}
-
-std::string string_join(const std::vector<std::string> &vec, std::string_view separator) {
-    std::string out;
-    for (auto it = vec.begin(); it<vec.end(); ++it) {
-        if (it != vec.begin()) {
-            out += separator;
-        }
-        out += *it;
-    }
-    return out;
-};
-
 std::string string_tolower(std::string_view str) {
     auto view = str | std::views::transform(tolower);
     return {view.begin(), view.end()};

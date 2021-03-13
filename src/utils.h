@@ -1,7 +1,6 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
-#include <vector>
 #include <string>
 
 #include "functions.h"
@@ -11,13 +10,28 @@ constexpr char RESULT_SEPARATOR = '\x1f';
 typedef uint8_t small_int;
 
 // divide una stringa per separatore
-std::vector<std::string_view> string_split(std::string_view str, char separator = ',');
+inline auto string_split(std::string_view str, std::string_view separator = ",") {
+    return str
+        | std::views::split(separator)
+        | std::views::transform([](auto && range) {
+            return std::string_view(&*range.begin(), std::ranges::distance(range));
+        });
+}
 
-// divide una stringa in n parti di lunghezza equivalente
-std::string string_split_n(std::string_view str, int nparts);
-
-// unisce tutte le stringhe in un vettore di stringhe
-std::string string_join(const std::vector<std::string> &vec, std::string_view separator = " ");
+// unisce tutte le stringhe in un range di stringhe
+template<std::ranges::input_range R>
+std::string string_join(R &&vec, std::string_view separator = " ") {
+    std::string ret;
+    bool first = true;
+    for (const auto &str : vec) {
+        if (!first) {
+            ret.append(separator.begin(), separator.end());
+        }
+        first = false;
+        ret.append(str.begin(), str.end());
+    }
+    return ret;
+};
 
 // sostituisce tutte le occorrenze di una stringa in un'altra
 void string_replace(std::string &str, std::string_view from, std::string_view to);
@@ -81,7 +95,7 @@ std::string table_row_regex(std::string_view header, const varargs<std::string_v
 
 // sposta il range indicato alla fine del vettore
 template<typename T>
-void vector_move_to_end(std::vector<T> &vec, size_t begin, size_t end) {
+void move_to_end(T &vec, size_t begin, size_t end) {
     for (size_t i=begin; i<end; ++i) {
         vec.push_back(vec[i]);
     }

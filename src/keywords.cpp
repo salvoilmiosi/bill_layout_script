@@ -121,7 +121,7 @@ void parser::read_keyword() {
         size_t increase_stmt_end = m_code.size();
         m_lexer.require(TOK_PAREN_END);
         read_statement();
-        vector_move_to_end(m_code, increase_stmt_begin, increase_stmt_end);
+        move_to_end(m_code, increase_stmt_begin, increase_stmt_end);
         add_line<OP_UNEVAL_JUMP>(OP_JMP, for_label);
         add_label(endfor_label);
         m_loop_labels.pop();
