@@ -63,13 +63,13 @@ std::string string_toupper(std::string str) {
     return str;
 }
 
-void string_trim(std::string &str) {
-    str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](auto ch) {
-        return !std::isspace(ch);
-    }));
-    str.erase(std::find_if(str.rbegin(), str.rend(), [](auto ch) {
-        return !std::isspace(ch);
-    }).base(), str.end());
+std::string string_trim(std::string_view in) {
+    auto view = in
+        | std::views::drop_while(isspace)
+        | std::views::reverse
+        | std::views::drop_while(isspace)
+        | std::views::reverse;
+    return {view.begin(), view.end()};
 }
 
 void string_replace(std::string &str, std::string_view from, std::string_view to) {

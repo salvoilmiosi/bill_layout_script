@@ -29,7 +29,7 @@ std::string string_tolower(std::string str);
 std::string string_toupper(std::string str);
 
 // elimina gli spazi in eccesso a inizio e fine stringa
-void string_trim(std::string &str);
+std::string string_trim(std::string_view in);
 
 // legge tutto l'output di uno stream
 std::string read_all(std::istream &stream);

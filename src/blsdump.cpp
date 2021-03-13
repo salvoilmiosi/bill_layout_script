@@ -49,9 +49,7 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
 }
 
 std::string quoted_string(const std::string &str) {
-    std::string ret = Json::Value(str).toStyledString();
-    string_trim(ret);
-    return ret;
+    return string_trim(Json::Value(str).toStyledString());
 }
 
 int MainApp::OnRun() {
