@@ -200,8 +200,9 @@ const std::map<std::string_view, function_handler> function_lookup {
     {"month", [](std::string_view str, std::optional<std::string> format, std::optional<std::string> regex, std::optional<int> index) {
         return parse_month(format.value_or(""), str, regex.value_or(""), index.value_or(1));
     }},
-    {"replace", [](const std::string &value, const std::string &regex, const std::string &to) {
-        return string_replace_regex(value, regex, to);
+    {"replace", [](std::string &&str, std::string_view from, std::string_view to) {
+        string_replace(str, from, to);
+        return str;
     }},
     {"date_format", [](std::string_view date, const std::string &format) {
         return date_format(date, format);
@@ -215,14 +216,17 @@ const std::map<std::string_view, function_handler> function_lookup {
     {"date_between", [](std::string_view date, std::string_view date_begin, std::string_view date_end) {
         return date_is_between(date, date_begin, date_end);
     }},
-    {"singleline", [](std::string &&str) {
-        return singleline(std::move(str));
+    {"singleline", [](std::string_view str) {
+        return string_singleline(str);
     }},
     {"if", [](bool condition, const variable &var_if, std::optional<variable> var_else) {
         return condition ? var_if : var_else.value_or(variable::null_var());
     }},
     {"ifnot", [](bool condition, const variable &var_if, std::optional<variable> var_else) {
         return condition ? var_else.value_or(variable::null_var()) : var_if;
+    }},
+    {"trim", [](std::string_view str) {
+        return string_trim(str);
     }},
     {"contains", [](std::string_view str, std::string_view str2) {
         return string_findicase(str, str2, 0) < str.size();
@@ -249,11 +253,11 @@ const std::map<std::string_view, function_handler> function_lookup {
     {"indexof", [](std::string_view str, std::string_view value, std::optional<int> index) {
         return string_findicase(str, value, index.value_or(0));
     }},
-    {"tolower", [](std::string &&str) {
-        return string_tolower(std::move(str));
+    {"tolower", [](std::string_view str) {
+        return string_tolower(str);
     }},
-    {"toupper", [](std::string &&str) {
-        return string_toupper(std::move(str));
+    {"toupper", [](std::string_view str) {
+        return string_toupper(str);
     }},
     {"isempty", [](const variable &var) {
         return var.empty();

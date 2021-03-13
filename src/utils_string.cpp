@@ -49,22 +49,18 @@ std::string string_join(const std::vector<std::string> &vec, std::string_view se
     return out;
 };
 
-std::string string_tolower(std::string str) {
-    for (char &c : str) {
-        c = std::tolower(c);
-    };
-    return str;
+std::string string_tolower(std::string_view str) {
+    auto view = str | std::views::transform(tolower);
+    return {view.begin(), view.end()};
 }
 
-std::string string_toupper(std::string str) {
-    for (char &c : str) {
-        c = std::toupper(c);
-    };
-    return str;
+std::string string_toupper(std::string_view str) {
+    auto view = str | std::views::transform(toupper);
+    return {view.begin(), view.end()};
 }
 
-std::string string_trim(std::string_view in) {
-    auto view = in
+std::string string_trim(std::string_view str) {
+    auto view = str
         | std::views::drop_while(isspace)
         | std::views::reverse
         | std::views::drop_while(isspace)
@@ -241,16 +237,11 @@ std::string string_replace_regex(const std::string &value, const std::string &re
     return std::regex_replace(value, create_regex(regex), str);
 }
 
-std::string singleline(std::string input) {
-    size_t index = 0;
-    while (true) {
-        index = input.find_first_of("\t\r\n\v\f", index);
-        if (index == std::string::npos) break;
-
-        input.replace(index, 1, " ");
-        ++index;
-    }
-    return input;
+std::string string_singleline(std::string_view str) {
+    auto view = str | std::views::transform([](auto ch) {
+        return isspace(ch) ? ' ' : ch;
+    });
+    return {view.begin(), view.end()};
 }
 
 std::string table_row_regex(std::string_view header, const varargs<std::string_view> &names) {
