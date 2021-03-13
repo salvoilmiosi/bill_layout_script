@@ -19,7 +19,7 @@ struct box_spacer {
     double w = 0;
     double h = 0;
     int page = 0;
-    int rotate = 0;
+    int rotation = 0;
 };
 
 #define READER_FLAGS \

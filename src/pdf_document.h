@@ -66,7 +66,7 @@ public:
         return m_document != nullptr;
     }
 
-    std::string get_text(const pdf_rect &rect) const;
+    std::string get_text(pdf_rect rect, int rotation = 0) const;
 
     const std::filesystem::path &filename() const { return m_filename; }
     int num_pages() const { return m_pages.size(); }

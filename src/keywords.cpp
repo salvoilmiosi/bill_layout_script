@@ -46,18 +46,18 @@ void parser::read_keyword() {
     } else switch (hash(fun_name)) {
     case hash("if"):
     case hash("ifnot"): {
-        std::string endelse_label = make_label("endelse");
-        std::string endif_label;
+        std::string endif_label = make_label("endif");
+        std::string else_label;
         bool condition_positive = fun_name == "if";
         bool in_loop = true;
-        bool has_endelse = false;
+        bool add_endif = false;
         while (in_loop) {
-            bool has_endif = false;
-            endif_label = make_label("endif");
+            bool has_else = false;
+            else_label = make_label("else");
             m_lexer.require(TOK_PAREN_BEGIN);
             read_expression();
             m_lexer.require(TOK_PAREN_END);
-            add_line<OP_UNEVAL_JUMP>(condition_positive ? OP_JZ : OP_JNZ, endif_label);
+            add_line<OP_UNEVAL_JUMP>(condition_positive ? OP_JZ : OP_JNZ, else_label);
             read_statement();
             auto tok_if = m_lexer.peek();
             if (tok_if.type == TOK_FUNCTION) {
@@ -65,10 +65,10 @@ void parser::read_keyword() {
                 switch (hash(fun_name)) {
                 case hash("else"):
                     m_lexer.advance(tok_if);
-                    has_endelse = true;
-                    has_endif = true;
-                    add_line<OP_UNEVAL_JUMP>(OP_JMP, endelse_label);
-                    add_label(endif_label);
+                    add_endif = true;
+                    has_else = true;
+                    add_line<OP_UNEVAL_JUMP>(OP_JMP, endif_label);
+                    add_label(else_label);
                     read_statement();
                     in_loop = false;
                     break;
@@ -76,8 +76,8 @@ void parser::read_keyword() {
                 case hash("elifnot"):
                     m_lexer.advance(tok_if);
                     condition_positive = fun_name == "elif";
-                    has_endelse = true;
-                    add_line<OP_UNEVAL_JUMP>(OP_JMP, endelse_label);
+                    add_endif = true;
+                    add_line<OP_UNEVAL_JUMP>(OP_JMP, endif_label);
                     break;
                 default:
                     in_loop = false;
@@ -85,9 +85,9 @@ void parser::read_keyword() {
             } else {
                 in_loop = false;
             }
-            if (!has_endif) add_label(endif_label);
+            if (!has_else) add_label(else_label);
         }
-        if (has_endelse) add_label(endelse_label);
+        if (add_endif) add_label(endif_label);
         break;
     }
     case hash("while"): {

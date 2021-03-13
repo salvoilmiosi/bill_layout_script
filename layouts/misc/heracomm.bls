@@ -29,7 +29,9 @@ $if($ate()) {
 ### Rect 0.019455252918287938 0.14619882 0.47393317008171215 0.8187134
 ### Goto Label lettura_dettaglio
 ### Spacers
-p+::off_allegato p+::off_dettaglio rotate+::rotation
+p+::off_allegato
+p+::off_dettaglio
+rotate+::rotation
 ### End Spacers
 ### Script
 $if($isempty(@) || $ate()) $goto(nome_fornitore)
@@ -46,7 +48,9 @@ $else {
 ### Page 4
 ### Rect 0.4950413 0.14269006 0.4842064302204928 0.8187134
 ### Spacers
-p+::off_allegato p+::off_dettaglio rotate+::rotation
+p+::off_allegato
+p+::off_dettaglio
+rotate+::rotation
 ### End Spacers
 ### Script
 ::_dettaglio+=@
@@ -73,13 +77,15 @@ fornitore="Heracomm"
 ### Page 3
 ### Rect 0.02892562 0.2748538 0.29008263 0.6175917825864277
 ### Spacers
-p+::off_allegato rotate+::rotation
+p+::off_allegato
+rotate+::rotation
 ### End Spacers
 ### Script
-numero_fattura=$search(@,/Fattura elettronica n\. (\d+)/)
+numero_fattura=$search(@,/(?:Bolletta|Fattura elettronica) n\. (\d+)/)
 data_fattura=$date(@,"%d.%m.%Y",/Data emissione (\D)/)
 data_scadenza=$date(@,"%d.%m.%Y",/Scadenza (\D)/)
 ragione_sociale=$search(@,/Intestata a (.+)/)
+numero_cliente=$search(@,/Codice cliente (\d+)/)
 indirizzo_fornitura=$singleline($search(@,/Servizio fornito in ([^]+?)\.+/))
 %potenza[0:3]=$search(@,/Potenza disponibile: (\N) kW/)
 codice_pod=$search(@,/POD \(Punto di prelievo\): (\w+)/)
@@ -92,7 +98,8 @@ codice_pod=$search(@,/POD \(Punto di prelievo\): (\w+)/)
 ### Page 3
 ### Rect 0.346281 0.12982456 0.6305785 0.70058477
 ### Spacers
-p+::off_allegato rotate+::rotation
+p+::off_allegato
+rotate+::rotation
 ### End Spacers
 ### Script
 %totale_fattura=$search(@,/Totale bolletta\/contratto (\N)/)

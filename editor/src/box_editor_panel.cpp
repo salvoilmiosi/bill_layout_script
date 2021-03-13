@@ -222,7 +222,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                     box.h = std::abs(start_pt.y - end_pt.y);
                     box.page = app->getSelectedPage();
                     box.mode = static_cast<read_mode>(diag.GetSelection());
-                    std::string text = app->getPdfDocument().get_text(box);
+                    std::string text = app->getPdfDocument().get_text(box, app->getBoxRotation());
                     info_dialog->ShowText(wxString(text.c_str(), wxConvUTF8));
                 }
                 break;

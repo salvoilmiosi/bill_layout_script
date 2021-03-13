@@ -60,6 +60,10 @@ public:
         return m_doc;
     }
 
+    int getBoxRotation() {
+        return (4 - rotation) % 4;
+    }
+
     box_list layout;
     std::filesystem::path m_filename;
 

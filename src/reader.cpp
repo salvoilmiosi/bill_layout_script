@@ -76,29 +76,15 @@ void reader::exec_command(const command_args &cmd) {
 
     auto read_box = [&](pdf_rect box) {
         m_last_box.page = box.page += m_spacer.page;
-        box.x += m_spacer.x;
-        box.y += m_spacer.y;
-        box.w += m_spacer.w;
-        box.h += m_spacer.h;
-        m_spacer.rotate %= 4;
-        if (m_spacer.rotate < 0) m_spacer.rotate += 4;
-        m_last_box.rotate = m_spacer.rotate;
-        for (; m_spacer.rotate > 0; --m_spacer.rotate) {
-            double tmp = box.x;
-            box.x = 1.0 - box.y - box.h;
-            box.y = tmp;
-            tmp = box.w;
-            box.w = box.h;
-            box.h = tmp;
-        }
-        m_last_box.x = box.x;
-        m_last_box.y = box.y;
-        m_last_box.w = box.w;
-        m_last_box.h = box.h;
-        m_spacer = {};
+        m_last_box.x = box.x += m_spacer.x;
+        m_last_box.y = box.y += m_spacer.y;
+        m_last_box.w = box.w += m_spacer.w;
+        m_last_box.h = box.h += m_spacer.h;
+        m_last_box.rotation = m_spacer.rotation;
 
         m_contents.clear();
-        m_contents.push(m_doc->get_text(box));
+        m_contents.push(m_doc->get_text(box, m_spacer.rotation));
+        m_spacer = {};
     };
 
     auto call_function = [&](const command_call &cmd) {
@@ -120,13 +106,22 @@ void reader::exec_command(const command_args &cmd) {
     case OP_GETSIZE: m_stack.push(m_selected.size()); break;
     case OP_MVBOX: {
         auto amt = m_stack.pop();
+        auto add_rotation = [&](int amt) {
+            m_spacer.rotation += amt;
+            while (amt > 0 && m_spacer.rotation >= 4) {
+                m_spacer.rotation -= 4;
+            }
+            while (amt < 0 && m_spacer.rotation < 0) {
+                m_spacer.rotation += 4;
+            }
+        };
         switch (cmd.get_args<OP_MVBOX>()) {
         case SPACER_PAGE:
             m_spacer.page += amt.as_int(); break;
         case SPACER_ROTATE_CW:
-            m_spacer.rotate += amt.as_int(); break;
+            add_rotation(amt.as_int()); break;
         case SPACER_ROTATE_CCW:
-            m_spacer.rotate -= amt.as_int(); break;
+            add_rotation(-amt.as_int()); break;
         case SPACER_X:
             m_spacer.x += amt.as_double(); break;
         case SPACER_Y:
@@ -153,9 +148,9 @@ void reader::exec_command(const command_args &cmd) {
         case SPACER_PAGE:
             m_stack.push(m_last_box.page); break;
         case SPACER_ROTATE_CW:
-            m_stack.push(m_last_box.rotate); break;
+            m_stack.push(m_last_box.rotation); break;
         case SPACER_ROTATE_CCW:
-            m_stack.push(-m_last_box.rotate); break;
+            m_stack.push((4 - m_last_box.rotation) % 4); break;
         case SPACER_X:
         case SPACER_LEFT:
             m_stack.push(m_last_box.x); break;
