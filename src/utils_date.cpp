@@ -3,9 +3,9 @@
 #include <regex>
 #include <wx/datetime.h>
 
-static std::string date_fmt_to_regex(std::string_view fmt_string, std::string_view regex = "") {
+static bool search_date(wxDateTime &dt, std::string_view value, const std::string &format, std::string regex, int index) {
     std::string date_regex = "\\b";
-    for (auto it = fmt_string.begin(); it != fmt_string.end(); ++it) {
+    for (auto it = format.begin(); it != format.end(); ++it) {
         if (*it == '.') {
             date_regex += "\\.";
         } else if (*it == '%') {
@@ -17,6 +17,8 @@ static std::string date_fmt_to_regex(std::string_view fmt_string, std::string_vi
                 date_regex += "\\w+";
                 break;
             case 'd':
+                date_regex += "\\d{1,2}";
+                break;
             case 'm':
             case 'y':
                 date_regex += "\\d{2}";
@@ -43,106 +45,49 @@ static std::string date_fmt_to_regex(std::string_view fmt_string, std::string_vi
     date_regex += "\\b";
 
     if (regex.empty()) {
-        return "(" + date_regex +  ")";
+        regex = "(" + date_regex +  ")";
     } else {
-        std::string ret(regex);
-        string_replace(ret, "\\D", date_regex);
-        return ret;
+        string_replace(regex, "\\D", date_regex);
     }
-}
 
-static wxDateTime string_to_date(std::string_view str) {
-    static std::regex expression("(\\d{4})-(\\d{2})(-(\\d{2}))?");
-
-    std::cmatch match;
-    if (std::regex_match(str.begin(), str.end(), match, expression)) {
-        int year = cstoi(match.str(1));
-        int month = cstoi(match.str(2));
-        int day = 1;
-        auto day_str = match.str(4);
-        if (!day_str.empty()) {
-            day = cstoi(day_str);
-        }
-        if (month <= 0 || month > 12) {
-            throw std::invalid_argument("Data non valida");
-        }
-        if (day <= 0 || day > wxDateTime::GetNumberOfDays(static_cast<wxDateTime::Month>(month - 1), year)) {
-            throw std::invalid_argument("Data non valida");
-        }
-        return wxDateTime(day, static_cast<wxDateTime::Month>(month - 1), year);
-    } else {
-        throw std::invalid_argument("Data non valida");
-    }
-}
-
-inline bool search_date(wxDateTime &dt, const std::string &format, std::string_view value, std::string_view regex, int index) {
     wxString::const_iterator end;
-    return dt.ParseFormat(search_regex(date_fmt_to_regex(format, regex), value, index), format, wxDateTime(time_t(0)), &end);
+    return dt.ParseFormat(search_regex(regex, value, index), format, wxDateTime(time_t(0)), &end);
 }
 
-std::string parse_date(const std::string &format, std::string_view value, std::string_view regex, int index) {
+time_t parse_date(std::string_view value, const std::string &format, const std::string &regex, int index) {
     wxDateTime dt;
-    if(!search_date(dt, format, value, regex, index)) {
-        return "";
+    if (search_date(dt, value, format, regex, index)) {
+        return dt.GetTicks();
     }
-
-    return dt.Format("%Y-%m-%d").ToStdString();
+    return 0;
 }
 
-std::string parse_month(const std::string &format, std::string_view value, std::string_view regex, int index) {
+time_t parse_month(std::string_view value, const std::string &format, const std::string &regex, int index) {
     wxDateTime dt;
-    if (format.empty()) {
-        try {
-            dt = string_to_date(value);
-        } catch (const std::invalid_argument &) {
-            return "";
-        }
-    } else {
-        if (!search_date(dt, format, value, regex, index)) {
-            return "";
-        }
+    if (search_date(dt, value, format, regex, index)) {
+        dt.SetDay(1);
+        return dt.GetTicks();
     }
-    return dt.Format("%Y-%m").ToStdString();
+    return 0;
 }
 
-std::string date_month_add(std::string_view str, int num) {
-    try {
-        wxDateTime dt = string_to_date(str);
-        dt += wxDateSpan(0, num);
+time_t date_month_add(time_t date, int num) {
+    wxDateTime dt(date);
+    dt += wxDateSpan(0, num);
 
-        return dt.Format("%Y-%m").ToStdString();
-    } catch (const std::invalid_argument &) {
-        return "";
-    }
+    return dt.GetTicks();
 }
 
-std::string date_last_day(std::string_view str) {
-    try {
-        wxDateTime dt = string_to_date(str);
-        dt.SetToLastMonthDay(dt.GetMonth(), dt.GetYear());
-        return dt.Format("%Y-%m-%d").ToStdString();
-    } catch (const std::invalid_argument &) {
-        return "";
-    }
+time_t date_last_day(time_t date) {
+    wxDateTime dt(date);
+    dt.SetToLastMonthDay(dt.GetMonth(), dt.GetYear());
+    return dt.GetTicks();
 }
 
-bool date_is_between(std::string_view date, std::string_view date_begin, std::string_view date_end) {
-    try {
-        wxDateTime dt = string_to_date(date);
-        wxDateTime dt_begin = string_to_date(date_begin);
-        wxDateTime dt_end = string_to_date(date_end);
-        return dt.IsBetween(dt_begin, dt_end);
-    } catch (const std::invalid_argument &) {
-        return false;
-    }
+bool date_is_between(time_t date, time_t date_begin, time_t date_end) {
+    return wxDateTime(date).IsBetween(wxDateTime(date_begin), wxDateTime(date_end));
 }
 
-std::string date_format(std::string_view str, const std::string &format) {
-    try {
-        wxDateTime dt = string_to_date(str);
-
-        return dt.Format(format).ToStdString();
-    } catch (const std::invalid_argument &) {
-        return "";
-    }
+std::string date_format(time_t date, const std::string &format) {
+    return wxDateTime(date).Format(format).ToStdString();
 }

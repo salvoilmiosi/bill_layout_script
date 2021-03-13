@@ -210,6 +210,7 @@ std::string table_row_regex(std::string_view header, const varargs<std::string_v
     size_t begin = 0;
     size_t len = 0;
     for (const auto &name : names) {
+        if (header.size() < begin + len) break;
         size_t i = string_findicase(header, name, begin + len);
         len = name.size();
         ret += fmt::format("(.{{{}}})", i - begin);

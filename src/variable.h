@@ -9,7 +9,8 @@
 enum variable_type : uint8_t {
     VAR_UNDEFINED,
     VAR_STRING,
-    VAR_NUMBER
+    VAR_NUMBER,
+    VAR_DATE,
 };
 
 class variable {
@@ -42,6 +43,10 @@ public:
     template<typename T> requires(std::is_arithmetic_v<T>)
     variable(T value) noexcept : m_type(VAR_NUMBER), m_num(fixed_point(typename signed_type<T>::type(value))) {}
 
+    variable(time_t value) noexcept : m_type(VAR_DATE) {
+        m_num.setUnbiased(value);
+    }
+
     static const variable &null_var() noexcept {
         static const variable VAR_NULL;
         return VAR_NULL;
@@ -70,6 +75,11 @@ public:
     const fixed_point &number() const noexcept {
         set_number();
         return m_num;
+    }
+
+    time_t date() const noexcept {
+        set_date();
+        return m_num.getUnbiased();
     }
 
     int as_int() const noexcept {
@@ -101,6 +111,7 @@ private:
 
     void set_string() const noexcept;
     void set_number() const noexcept;
+    void set_date() const noexcept;
 };
 
 #endif

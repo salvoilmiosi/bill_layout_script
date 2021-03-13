@@ -19,6 +19,7 @@ template<> inline const std::string &convert_var<const std::string &> (variable 
 
 template<> inline std::string_view  convert_var<std::string_view> (variable &var) { return var.str_view(); }
 template<> inline fixed_point  convert_var<fixed_point> (variable &var) { return var.number(); }
+template<> inline time_t       convert_var<time_t>     (variable &var) { return var.date(); }
 template<> inline int          convert_var<int>        (variable &var) { return var.as_int(); }
 template<> inline float        convert_var<float>      (variable &var) { return var.as_double(); }
 template<> inline double       convert_var<double>     (variable &var) { return var.as_double(); }

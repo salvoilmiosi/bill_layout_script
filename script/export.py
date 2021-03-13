@@ -85,7 +85,7 @@ def export_file(input_file):
                         elif obj.type == 'date':
                             row.append({'value': datetime.strptime(value, '%Y-%m-%d'), 'number_format': 'DD/MM/YY'})
                         elif obj.type == 'month':
-                            row.append({'value': datetime.strptime(value, '%Y-%m'), 'number_format': 'MM/YYYY'})
+                            row.append({'value': datetime.strptime(value, '%Y-%m-%d'), 'number_format': 'MM/YYYY'})
                         elif obj.type == 'euro':
                             row.append({'value': float(value), 'number_format': '#,##0.00 \u20ac'})
                         elif obj.type == 'int':

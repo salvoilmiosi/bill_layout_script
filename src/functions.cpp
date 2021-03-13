@@ -131,15 +131,14 @@ const std::map<std::string_view, function_handler> function_lookup {
     {"or",  [](bool a, bool b) { return a || b; }},
     {"null", []{ return variable::null_var(); }},
     {"num", [](const variable &var) {
-        if (var.type() == VAR_STRING) {
-            fixed_point num;
-            if (parse_num(num, var.str_view())) {
-                return variable(num);
-            } else {
-                return variable::null_var();
-            }
+        if (var.empty() || var.type() == VAR_NUMBER) return var;
+
+        fixed_point num;
+        if (parse_num(num, var.str_view())) {
+            return variable(num);
+        } else {
+            return variable::null_var();
         }
-        return var;
     }},
     {"aggregate", [](std::string_view str) {
         variable ret;
@@ -190,25 +189,25 @@ const std::map<std::string_view, function_handler> function_lookup {
         return search_regex_captures(regex, str);
     }},
     {"date", [](std::string_view str, const std::string &format, std::optional<std::string> regex, std::optional<int> index) {
-        return parse_date(format, str, regex.value_or(""), index.value_or(1));
+        return parse_date(str, format, regex.value_or(""), index.value_or(1));
     }},
-    {"month", [](std::string_view str, std::optional<std::string> format, std::optional<std::string> regex, std::optional<int> index) {
-        return parse_month(format.value_or(""), str, regex.value_or(""), index.value_or(1));
+    {"month", [](std::string_view str, const std::string &format, std::optional<std::string> regex, std::optional<int> index) {
+        return parse_month(str, format, regex.value_or(""), index.value_or(1));
     }},
     {"replace", [](std::string &&str, std::string_view from, std::string_view to) {
         string_replace(str, from, to);
         return str;
     }},
-    {"date_format", [](std::string_view date, const std::string &format) {
+    {"date_format", [](time_t date, const std::string &format) {
         return date_format(date, format);
     }},
-    {"month_add", [](std::string_view month, int num) {
+    {"month_add", [](time_t month, int num) {
         return date_month_add(month, num);
     }},
-    {"last_day", [](std::string_view month) {
+    {"last_day", [](time_t month) {
         return date_last_day(month);
     }},
-    {"date_between", [](std::string_view date, std::string_view date_begin, std::string_view date_end) {
+    {"date_between", [](time_t date, time_t date_begin, time_t date_end) {
         return date_is_between(date, date_begin, date_end);
     }},
     {"singleline", [](std::string_view str) {

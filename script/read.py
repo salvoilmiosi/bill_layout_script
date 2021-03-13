@@ -19,6 +19,9 @@ args = parser.parse_args()
 input_directory = Path(args.input_directory).resolve()
 output_file = Path(args.output_file)
 
+def to_date(str):
+    return datetime.strptime(str, '%Y-%m-%d').date()
+
 def check_conguagli(results):
     sorted_data = []
     error_data = []
@@ -31,16 +34,16 @@ def check_conguagli(results):
         
     sorted_data.sort(key = lambda obj : (
         obj['values'][0]['codice_pod'][0],
-        datetime.strptime(obj['values'][0]['mese_fattura'][0], '%Y-%m').date(),
-        datetime.strptime(obj['values'][0]['data_fattura'][0], '%Y-%m-%d').date()))
+        to_date(obj['values'][0]['mese_fattura'][0]),
+        to_date(obj['values'][0]['data_fattura'][0])))
 
     old_pod = None
     old_mesefatt = None
     old_datafatt = None
     for x in sorted_data:
         new_pod = x['values'][0]['codice_pod'][0]
-        new_mesefatt = datetime.strptime(x['values'][0]['mese_fattura'][0], '%Y-%m').date()
-        new_datafatt = datetime.strptime(x['values'][0]['data_fattura'][0], '%Y-%m-%d').date()
+        new_mesefatt = to_date(x['values'][0]['mese_fattura'][0])
+        new_datafatt = to_date(x['values'][0]['data_fattura'][0])
 
         if old_pod == new_pod and old_mesefatt == new_mesefatt and new_datafatt > old_datafatt:
             x['conguaglio'] = True

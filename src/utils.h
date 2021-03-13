@@ -60,23 +60,23 @@ size_t string_findicase(std::string_view str, std::string_view str2, size_t inde
 // Formatta la stringa data, sostituendo $0 in fmt_args[0], $1 in fmt_args[1] e così via
 std::string string_format(std::string_view str, const varargs<std::string_view> &fmt_args);
 
-// converte i vari formati di data in formato yyyy-mm-dd
-std::string parse_date(const std::string &format, std::string_view value, std::string_view regex, int index);
+// cerca una data
+time_t parse_date(std::string_view value, const std::string &format, const std::string &regex, int index);
 
-// converte i vari formati di data in formato yyyy-mm
-std::string parse_month(const std::string &format, std::string_view value, std::string_view regex, int index);
+// cerca una data e setta il giorno a 1
+time_t parse_month(std::string_view value, const std::string &format, const std::string &regex, int index);
 
 // Aggiunge num mesi alla data
-std::string date_month_add(std::string_view month, int num);
+time_t date_month_add(time_t month, int num);
 
 // Ritorna la data dell'ultimo giorno del mese
-std::string date_last_day(std::string_view month);
+time_t date_last_day(time_t month);
 
 // Ritorna se la data e' compresa nel range indicato
-bool date_is_between(std::string_view date, std::string_view date_begin, std::string_view end);
+bool date_is_between(time_t date, time_t date_begin, time_t end);
 
 // formatta una data nel formato indicato
-std::string date_format(std::string_view date, const std::string &format);
+std::string date_format(time_t date, const std::string &format);
 
 // cerca la regex in str e ritorna i valori trovati
 std::string search_regex_all(const std::string &regex, std::string_view value, int index);
