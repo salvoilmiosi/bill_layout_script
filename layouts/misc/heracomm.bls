@@ -3,9 +3,9 @@
 
 ### Box Check Numero Pagina
 ### Type RECTANGLE
-### Mode LAYOUT
+### Mode RAW
 ### Page 1
-### Rect 0.0048387097 0.005701254 0.9919355 0.13568985
+### Rect 0.0048387097 0.005701254 0.9919355 0.11123422987096773
 ### Goto Label check_pagina
 ### Spacers
 p+::off_allegato
@@ -26,7 +26,7 @@ $if($ate()) {
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 4
-### Rect 0.021487603 0.14619882 0.47190082 0.8187134
+### Rect 0.019455252918287938 0.14619882 0.47393317008171215 0.8187134
 ### Goto Label lettura_dettaglio
 ### Spacers
 p+::off_allegato p+::off_dettaglio rotate+::rotation
@@ -44,7 +44,7 @@ $else {
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 4
-### Rect 0.4950413 0.14269006 0.47933885 0.8187134
+### Rect 0.4950413 0.14269006 0.4842064302204928 0.8187134
 ### Spacers
 p+::off_allegato p+::off_dettaglio rotate+::rotation
 ### End Spacers
@@ -60,7 +60,7 @@ $goto(lettura_dettaglio)
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 1
-### Rect 0.0877193 0.033884294 0.30292398 0.061157025
+### Rect 0.010686489728958637 0.013723003677419354 0.15479139900142652 0.09514796406451613
 ### Goto Label nome_fornitore
 ### Script
 fornitore="Heracomm"
@@ -88,14 +88,14 @@ codice_pod=$search(@,/POD \(Punto di prelievo\): (\w+)/)
 
 ### Box Totale Fattura
 ### Type RECTANGLE
-### Mode DEFAULT
+### Mode LAYOUT
 ### Page 3
 ### Rect 0.346281 0.12982456 0.6305785 0.70058477
 ### Spacers
 p+::off_allegato rotate+::rotation
 ### End Spacers
 ### Script
-totale_fattura=$search(@,/Totale bolletta\/contratto (\N)/)
+%totale_fattura=$search(@,/Totale bolletta\/contratto (\N)/)
 ### End Script
 ### End Box
 
@@ -103,10 +103,12 @@ totale_fattura=$search(@,/Totale bolletta\/contratto (\N)/)
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 4
-### Rect 0.4434389140271493 0.10115236875800257 0.028054298642533948 0.03457106274007682
+### Rect 0.34734598900075014 0.06527792929611916 0.028054298642533948 0.03457106274007682
 ### Script
 $with(&::_dettaglio) {
-  $between("Elementi di dettaglio","\n") {
+  $newview {
+    $setbegin($min($indexof(@,"Quadro di dettaglio"),$indexof(@,"Elementi di dettaglio")))
+    $setend($indexof(@,"\n"))
     mese_inizio=$month(@,"%d.%m.%Y",/dal (\D) al \D/)
     mese_fine=$month(@,"%d.%m.%Y",/dal \D al (\D)/)
     mese_fattura=$month_add(mese_inizio,::calc_mese)
@@ -167,7 +169,7 @@ $with(&::_dettaglio) {
 ### Type NOREAD
 ### Mode DEFAULT
 ### Page 4
-### Rect 0.4808259587020649 0.10013908205841446 0.021632251720747342 0.03198887343532686
+### Rect 0.3773412702120966 0.06426464259653104 0.027093787866044883 0.03737960254547193
 ### Script
 $if(mese_fattura != mese_fine) {
   ::calc_mese+=1

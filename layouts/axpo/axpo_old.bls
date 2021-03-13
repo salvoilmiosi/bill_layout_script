@@ -169,7 +169,7 @@ $with(&_dettaglio) {
   $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")))
   $setend($indexof(@,"TOT. \u20ac", $indexof(@,"\n")))
 
-  $between("Consumi rilevati dal distributore","SPese per l'energia") {
+  $between("Consumi rilevati dal distributore","Spese per l'energia") {
     %energia_attiva_rilevata[0]=$search(@,/F1 .+ (\N)\n/)
     %energia_attiva_rilevata[1]=$search(@,/F2 .+ (\N)\n/)
     %energia_attiva_rilevata[2]=$search(@,/F3 .+ (\N)\n/)
