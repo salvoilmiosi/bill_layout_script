@@ -50,12 +50,12 @@ public:
     
     void next_result() {
         if (m_spans.size() > 1) {
-            m_spans.top().m_begin = m_spans.top().m_end + RESULT_SEPARATOR.size();
+            m_spans.top().m_begin = m_value.str_view().find_first_not_of(RESULT_SEPARATOR, m_spans.top().m_end);
             if (token_end()) {
                 m_spans.top().m_begin = m_spans.top().m_end = m_spans[m_spans.size() - 2].m_end;
             } else {
                 m_spans.top().m_end = std::min(
-                    m_value.str_view().find(RESULT_SEPARATOR, m_spans.top().m_begin),
+                    m_value.str_view().find_first_of(RESULT_SEPARATOR, m_spans.top().m_begin),
                     m_spans[m_spans.size() - 2].m_end);
             }
         }

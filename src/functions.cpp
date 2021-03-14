@@ -140,10 +140,9 @@ static variable search_regex_captures(const std::string &regex, std::string_view
 // cerca la regex in str e ritorna i valori trovati
 static std::string search_regex_matches(const std::string &regex, std::string_view value, int index) {
     return string_join(
-        std::ranges::subrange(std::cregex_iterator(value.begin(), value.end(), create_regex(regex)), std::cregex_iterator())
-        | std::views::transform([&](auto &match) {
-            return match.str(index);
-        }),
+        std::ranges::subrange(
+            std::cregex_token_iterator(value.begin(), value.end(), create_regex(regex), index),
+            std::cregex_token_iterator()),
         RESULT_SEPARATOR);
 }
 

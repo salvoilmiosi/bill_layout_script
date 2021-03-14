@@ -8,7 +8,7 @@
 typedef uint8_t small_int;
 typedef uint8_t flags_t;
 
-constexpr std::string_view RESULT_SEPARATOR = "\x1f";
+constexpr char RESULT_SEPARATOR = '\x1f';
 
 struct hasher {
     constexpr size_t operator() (const char *begin, const char *end) const {
@@ -43,9 +43,13 @@ inline auto string_split(std::string_view str, std::string_view separator = ",")
         });
 }
 
+inline auto string_split(std::string_view str, char separator) {
+    return string_split(str, {&separator, 1});
+}
+
 // unisce tutte le stringhe in un range di stringhe
 template<std::ranges::input_range R>
-std::string string_join(R &&vec, std::string_view separator) {
+std::string string_join(R &&vec, auto separator) {
     if (vec.empty()) return "";
     auto it = vec.begin();
     std::string ret(*it);
