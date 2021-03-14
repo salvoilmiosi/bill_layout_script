@@ -49,7 +49,7 @@ void parser::add_comment(const std::string &line) {
     m_comments.emplace(m_code.size(), line);
 }
 
-static const std::map<std::string_view, spacer_index> spacer_index_map = {
+static const std::map<std::string, spacer_index, std::less<>> spacer_index_map = {
     {"p",       SPACER_PAGE},
     {"page",    SPACER_PAGE},
     {"x",       SPACER_X},
@@ -99,8 +99,7 @@ void parser::read_box(const layout_box &box) {
     while(true) {
         auto tok = m_lexer.next();
         if (tok.type == TOK_IDENTIFIER) {
-            try {
-                spacer_index index = spacer_index_map.at(tok.value);
+            if (auto it = spacer_index_map.find(tok.value); it != spacer_index_map.end()) {
                 bool negative = false;
                 auto tok_sign = m_lexer.next();
                 switch (tok_sign.type) {
@@ -114,8 +113,8 @@ void parser::read_box(const layout_box &box) {
                 }
                 read_expression();
                 if (negative) add_line<OP_CALL>("neg", 1);
-                add_line<OP_MVBOX>(index);
-            } catch (const std::out_of_range &) {
+                add_line<OP_MVBOX>(it->second);
+            } else {
                 throw unexpected_token(tok);
             }
         } else if (tok.type != TOK_END_OF_FILE) {
@@ -378,7 +377,7 @@ void parser::read_function() {
         FUN_VOID,
     };
     
-    static const std::map<std::string_view, std::tuple<function_type, command_args>> simple_functions = {
+    static const std::map<std::string, std::tuple<function_type, command_args>, std::less<>> simple_functions = {
         {"isset",       {FUN_VARIABLE,  make_command<OP_ISSET>()}},
         {"size",        {FUN_VARIABLE,  make_command<OP_GETSIZE>()}},
         {"ate",         {FUN_VOID,      make_command<OP_ATE>()}},
@@ -397,11 +396,10 @@ void parser::read_function() {
         case FUN_GETBOX: {
             m_lexer.require(TOK_PAREN_BEGIN);
             auto tok = m_lexer.require(TOK_IDENTIFIER);
-            try {
-                spacer_index index = spacer_index_map.at(tok.value);
+            if (auto it = spacer_index_map.find(tok.value); it != spacer_index_map.end()) {
                 m_lexer.require(TOK_PAREN_END);
-                add_line<OP_GETBOX>(index);
-            } catch (const std::out_of_range &) {
+                add_line<OP_GETBOX>(it->second);
+            } else {
                 throw unexpected_token(tok);
             }
             break;

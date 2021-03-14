@@ -1,42 +1,8 @@
 #include "utils.h"
 
-#include <algorithm>
-#include <iostream>
-#include <charconv>
 #include <regex>
 
 #include <fmt/format.h>
-
-#include "intl.h"
-
-std::string string_tolower(std::string_view str) {
-    auto view = str | std::views::transform(tolower);
-    return {view.begin(), view.end()};
-}
-
-std::string string_toupper(std::string_view str) {
-    auto view = str | std::views::transform(toupper);
-    return {view.begin(), view.end()};
-}
-
-std::string string_trim(std::string_view str) {
-    auto view = str
-        | std::views::drop_while(isspace)
-        | std::views::reverse
-        | std::views::drop_while(isspace)
-        | std::views::reverse;
-    return {view.begin(), view.end()};
-}
-
-std::string string_singleline(std::string_view str) {
-    std::string ret;
-    std::ranges::unique_copy(str | std::views::transform([](auto ch) {
-        return isspace(ch) ? ' ' : ch;
-    }), std::back_inserter(ret), [](auto a, auto b) {
-        return a == ' ' && b == ' ';
-    });
-    return ret;
-}
 
 void string_replace(std::string &str, std::string_view from, std::string_view to) {
     size_t index = 0;
@@ -47,40 +13,6 @@ void string_replace(std::string &str, std::string_view from, std::string_view to
         str.replace(index, from.size(), to);
         index += to.size();
     }
-}
-
-std::string read_all(std::istream &stream) {
-    return std::string(std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
-}
-
-template<typename T>
-inline T cston(std::string_view str) {
-    T ret;
-    auto result = std::from_chars(str.begin(), str.end(), ret);
-    if (result.ec == std::errc::invalid_argument) {
-        throw std::invalid_argument(std::string(str));
-    }
-    return ret;
-}
-
-int cstoi(std::string_view str) {
-    return cston<int>(str);
-}
-
-#ifdef CHARCONV_FLOAT
-float cstof(std::string_view str) {
-    return cston<float>(str);
-}
-
-double cstod(std::string_view str) {
-    return cston<double>(str);
-}
-#endif
-
-size_t string_findicase(std::string_view str, std::string_view str2, size_t index) {
-    return std::distance(str.begin(), std::ranges::search(str.substr(index), str2, [](char a, char b) {
-        return toupper(a) == toupper(b);
-    }).begin());
 }
 
 std::string string_format(std::string_view str, const varargs<std::string_view> &fmt_args) {
@@ -161,13 +93,10 @@ static const std::regex &create_regex(std::string regex) {
     }
 }
 
-std::string search_regex_all(const std::string &regex, std::string_view value, int index) {
-    return string_join(
-        std::ranges::subrange(std::cregex_iterator(value.begin(), value.end(), create_regex(regex)), std::cregex_iterator())
-        | std::views::transform([&](auto &match) {
-            return match.str(index);
-        }),
-        RESULT_SEPARATOR);
+std::string search_regex(const std::string &regex, std::string_view value, int index) {
+    std::cmatch match;
+    if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return "";
+    return match.str(index);
 }
 
 std::string search_regex_captures(const std::string &regex, std::string_view value) {
@@ -181,14 +110,13 @@ std::string search_regex_captures(const std::string &regex, std::string_view val
         RESULT_SEPARATOR);
 }
 
-std::string search_regex(const std::string &regex, std::string_view value, int index) {
-    std::cmatch match;
-    if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return "";
-    return match.str(index);
-}
-
-std::string string_replace_regex(const std::string &value, const std::string &regex, const std::string &str) {
-    return std::regex_replace(value, create_regex(regex), str);
+std::string search_regex_matches(const std::string &regex, std::string_view value, int index) {
+    return string_join(
+        std::ranges::subrange(std::cregex_iterator(value.begin(), value.end(), create_regex(regex)), std::cregex_iterator())
+        | std::views::transform([&](auto &match) {
+            return match.str(index);
+        }),
+        RESULT_SEPARATOR);
 }
 
 std::string table_row_regex(std::string_view header, const varargs<std::string_view> &names) {
@@ -197,11 +125,79 @@ std::string table_row_regex(std::string_view header, const varargs<std::string_v
     size_t len = 0;
     for (const auto &name : names) {
         if (header.size() < begin + len) break;
-        size_t i = string_findicase(header, name, begin + len);
+        size_t i = string_find_icase(header, name, begin + len);
         len = name.size();
         ret += fmt::format("(.{{{}}})", i - begin);
         begin = i;
     }
     ret += "(.+)";
     return ret;
+}
+
+static bool search_date(wxDateTime &dt, std::string_view value, const std::string &format, std::string regex, int index) {
+    std::string date_regex = "\\b";
+    for (auto it = format.begin(); it != format.end(); ++it) {
+        if (*it == '.') {
+            date_regex += "\\.";
+        } else if (*it == '%') {
+            ++it;
+            switch (*it) {
+            case 'h':
+            case 'b':
+            case 'B':
+                date_regex += "\\w+";
+                break;
+            case 'd':
+                date_regex += "\\d{1,2}";
+                break;
+            case 'm':
+            case 'y':
+                date_regex += "\\d{2}";
+                break;
+            case 'Y':
+                date_regex += "\\d{4}";
+                break;
+            case 'n':
+                date_regex += '\n';
+                break;
+            case 't':
+                date_regex += '\t';
+                break;
+            case '%':
+                date_regex += '%';
+                break;
+            default:
+                throw std::invalid_argument("Stringa formato data non valida");
+            }
+        } else {
+            date_regex += *it;
+        }
+    }
+    date_regex += "\\b";
+
+    if (regex.empty()) {
+        regex = "(" + date_regex +  ")";
+    } else {
+        string_replace(regex, "\\D", date_regex);
+    }
+
+    wxString::const_iterator end;
+    return dt.ParseFormat(search_regex(regex, value, index), format, wxDateTime(time_t(0)), &end);
+}
+
+time_t parse_date(std::string_view value, const std::string &format, const std::string &regex, int index) {
+    wxDateTime dt;
+    if (search_date(dt, value, format, regex, index)) {
+        return dt.GetTicks();
+    }
+    return 0;
+}
+
+time_t parse_month(std::string_view value, const std::string &format, const std::string &regex, int index) {
+    wxDateTime dt;
+    if (search_date(dt, value, format, regex, index)) {
+        dt.SetDay(1);
+        return dt.GetTicks();
+    }
+    return 0;
 }

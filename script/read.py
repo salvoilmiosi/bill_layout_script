@@ -12,6 +12,7 @@ parser.add_argument('output_file')
 parser.add_argument('-s', '--script', default=Path(__file__).resolve().parent.parent / 'layouts/controllo.bls')
 parser.add_argument('-f', '--force-read', action='store_true')
 parser.add_argument('-c', '--cached', action='store_true')
+parser.add_argument('-r', '--recursive', action='store_true')
 parser.add_argument('-y', '--filter-year', type=int, default=0)
 parser.add_argument('-j', '--nthreads', type=int, default=cpu_count())
 args = parser.parse_args()
@@ -61,7 +62,7 @@ def read_pdf(pdf_file):
     ret = {'filename':str(pdf_file)}
 
     try:
-        out_dict = pyreader.readpdf(pdf_file, args.script, cached=args.cached)
+        out_dict = pyreader.readpdf(pdf_file, args.script, cached=args.cached, recursive=args.recursive)
 
         ret['values'] = [v for v in out_dict['values'] if all(i in v for i in required_data)]
         if ret['values'] != out_dict['values']:

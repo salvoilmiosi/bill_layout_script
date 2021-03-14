@@ -9,7 +9,7 @@
 #include <poppler-document.h>
 #include <poppler-page.h>
 
-typedef uint8_t flags_t;
+#include "utils.h"
 
 #define BOX_TYPES { \
     BOX(RECTANGLE,  "Rettangolo"), \

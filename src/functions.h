@@ -2,12 +2,12 @@
 #define __FUNCTIONS_H__
 
 #include <functional>
+#include <optional>
 #include <ranges>
 #include <span>
 #include <map>
 
 #include "variable.h"
-#include "lexer.h"
 
 template<typename T> T convert_var(variable &var) = delete;
 
@@ -57,37 +57,113 @@ template<typename T> using varargs_base = std::ranges::transform_view<arg_list, 
 template<typename T> struct varargs : varargs_base<T> {
     using var_type = T;
     varargs(auto &&obj) : varargs_base<T>(std::forward<decltype(obj)>(obj), vararg_converter<T>{}) {}
-    bool empty() {
-        return varargs_base<T>::size() == 0;
-    }
 };
 
-class invalid_numargs : public parsing_error {
+template<typename T> struct is_variable : std::bool_constant<! std::is_void_v<convert_rvalue<T>>> {};
+
+template<typename T> struct is_optional_impl : std::false_type {};
+template<typename T> struct is_optional_impl<std::optional<T>> : std::bool_constant<is_variable<T>{}> {};
+template<typename T> struct is_optional : is_optional_impl<std::decay_t<T>> {};
+
+template<typename T> struct is_varargs_impl : std::false_type {};
+template<typename T> struct is_varargs_impl<varargs<T>> : std::bool_constant<is_variable<T>{}> {};
+template<typename T> struct is_varargs : is_varargs_impl<std::decay_t<T>> {};
+
+template<typename ... Ts> struct type_list {
+    static constexpr size_t size = sizeof...(Ts);
+};
+
+template<size_t N, typename TypeList> struct get_nth {};
+
+template<size_t N, typename First, typename ... Ts> struct get_nth<N, type_list<First, Ts...>> {
+    using type = typename get_nth<N-1, type_list<Ts ...>>::type;
+};
+
+template<typename First, typename ... Ts> struct get_nth<0, type_list<First, Ts ...>> {
+    using type = First;
+};
+
+template<size_t I, typename TypeList> using get_nth_t = typename get_nth<I, TypeList>::type;
+
+template<bool Req, typename ... Ts> struct check_args_impl {};
+template<bool Req> struct check_args_impl<Req> {
+    static constexpr bool minargs = 0;
+    static constexpr bool maxargs = 0;
+
+    static constexpr bool valid = true;
+};
+
+template<bool Req, typename First, typename ... Ts>
+class check_args_impl<Req, First, Ts ...> {
 private:
-    static std::string get_message(const std::string &fun_name, size_t minargs, size_t maxargs) {
-        if (maxargs == std::numeric_limits<size_t>::max()) {
-            return fmt::format("La funzione {0} richiede almeno {1} argomenti", fun_name, minargs);
-        } else if (minargs == maxargs) {
-            return fmt::format("La funzione {0} richiede {1} argomenti", fun_name, minargs);
-        } else {
-            return fmt::format("La funzione {0} richiede {1}-{2} argomenti", fun_name, minargs, maxargs);
-        }
-    }
+    static constexpr bool var = is_variable<First>{};
+    static constexpr bool opt = is_optional<First>{};
+    static constexpr bool vec = is_varargs<First>{};
+
+    // Req è false se è stato trovato un std::optional<T>
+    using recursive = check_args_impl<Req ? var : !opt, Ts ...>;
 
 public:
-    invalid_numargs(const std::string &fun_name, size_t minargs, size_t maxargs, token &tok)
-        : parsing_error(get_message(fun_name, minargs, maxargs), tok) {}
+    // Conta il numero di tipi che non sono std::optional<T>
+    static constexpr size_t minargs = Req && var ? 1 + recursive::minargs : 0;
+    // Conta il numero totale di tipi o -1 (INT_MAX) se l'ultimo è varargs<T>
+    static constexpr size_t maxargs = (vec || recursive::maxargs == std::numeric_limits<size_t>::max()) ?
+        std::numeric_limits<size_t>::max() : 1 + recursive::maxargs;
+
+    // true solo se i tipi seguono il pattern (var*N, opt*M, [vec])
+    // Se Req==false e var==true, valid=false
+    static constexpr bool valid = vec ? sizeof...(Ts) == 0 : (Req || opt) && recursive::valid;
 };
+
+template<typename Function> struct check_args {};
+template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : check_args_impl<true, Ts ...> {
+    using types = type_list<Ts ...>;
+};
+
+template<typename TypeList, size_t I> inline decltype(auto) get_arg(arg_list &args) {
+    using type = std::decay_t<get_nth_t<I, TypeList>>;
+    if constexpr (is_optional<type>{}) {
+        using opt_type = typename type::value_type;
+        if (I >= args.size()) {
+            return std::optional<opt_type>(std::nullopt);
+        } else {
+            return std::optional<opt_type>(convert_var<convert_rvalue<opt_type>>(args[I]));
+        }
+    } else if constexpr (is_varargs<type>{}) {
+        return varargs<typename type::var_type>(args.subspan(I));
+    } else {
+        return convert_var<convert_rvalue<type>>(args[I]);
+    }
+}
 
 using function_base = std::function<variable(arg_list&&)>;
 struct function_handler : function_base {
     size_t minargs;
     size_t maxargs;
 
-    template<typename Function> function_handler(Function fun);
+    template<typename Function> function_handler(Function fun) {
+        // l'operatore unario + converte una funzione lambda senza capture
+        // in puntatore a funzione. In questo modo il compilatore può
+        // dedurre i tipi dei parametri della funzione tramite i template
+
+        using fun_args = check_args<decltype(+fun)>;
+        static_assert(fun_args::valid);
+
+        // Viene creata una closure che passa automaticamente gli argomenti
+        // da arg_list alla funzione fun, convertendoli nei tipi giusti
+
+        function_base::operator = ([fun](arg_list &&args) -> variable {
+            return [&] <std::size_t ... Is> (std::index_sequence<Is...>) {
+                return fun(get_arg<typename fun_args::types, Is>(args) ...);
+            }(std::make_index_sequence<fun_args::types::size>{});
+        });
+
+        minargs = fun_args::minargs;
+        maxargs = fun_args::maxargs;
+    }
 };
 
-extern const std::map<std::string_view, function_handler> function_lookup;
+extern const std::map<std::string, function_handler, std::less<>> function_lookup;
 
 using function_iterator = decltype(function_lookup)::const_iterator;
 

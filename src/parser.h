@@ -42,6 +42,23 @@ struct loop_label_pair {
     std::string break_label;
 };
 
+class invalid_numargs : public parsing_error {
+private:
+    static std::string get_message(const std::string &fun_name, size_t minargs, size_t maxargs) {
+        if (maxargs == std::numeric_limits<size_t>::max()) {
+            return fmt::format("La funzione {0} richiede almeno {1} argomenti", fun_name, minargs);
+        } else if (minargs == maxargs) {
+            return fmt::format("La funzione {0} richiede {1} argomenti", fun_name, minargs);
+        } else {
+            return fmt::format("La funzione {0} richiede {1}-{2} argomenti", fun_name, minargs, maxargs);
+        }
+    }
+
+public:
+    invalid_numargs(const std::string &fun_name, size_t minargs, size_t maxargs, token &tok)
+        : parsing_error(get_message(fun_name, minargs, maxargs), tok) {}
+};
+
 class parser {
 public:
     parser() = default;

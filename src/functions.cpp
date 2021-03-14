@@ -1,118 +1,7 @@
 #include "functions.h"
 #include "utils.h"
-#include "intl.h"
 
-#include <optional>
-#include <algorithm>
-#include <numeric>
-
-template<typename T> struct is_variable : std::bool_constant<! std::is_void_v<convert_rvalue<T>>> {};
-
-template<typename T> struct is_optional_impl : std::false_type {};
-template<typename T> struct is_optional_impl<std::optional<T>> : std::bool_constant<is_variable<T>{}> {};
-template<typename T> struct is_optional : is_optional_impl<std::decay_t<T>> {};
-
-template<typename T> struct is_varargs_impl : std::false_type {};
-template<typename T> struct is_varargs_impl<varargs<T>> : std::bool_constant<is_variable<T>{}> {};
-template<typename T> struct is_varargs : is_varargs_impl<std::decay_t<T>> {};
-
-template<typename ... Ts> struct type_list {
-    static constexpr size_t size = sizeof...(Ts);
-};
-
-template<size_t N, typename TypeList> struct get_nth {};
-
-template<size_t N, typename First, typename ... Ts> struct get_nth<N, type_list<First, Ts...>> {
-    using type = typename get_nth<N-1, type_list<Ts ...>>::type;
-};
-
-template<typename First, typename ... Ts> struct get_nth<0, type_list<First, Ts ...>> {
-    using type = First;
-};
-
-template<size_t I, typename TypeList> using get_nth_t = typename get_nth<I, TypeList>::type;
-
-template<bool Req, typename ... Ts> struct check_args_impl {};
-template<bool Req> struct check_args_impl<Req> {
-    static constexpr bool minargs = 0;
-    static constexpr bool maxargs = 0;
-
-    static constexpr bool valid = true;
-};
-
-template<bool Req, typename First, typename ... Ts>
-class check_args_impl<Req, First, Ts ...> {
-private:
-    static constexpr bool var = is_variable<First>{};
-    static constexpr bool opt = is_optional<First>{};
-    static constexpr bool vec = is_varargs<First>{};
-
-    // Req è false se è stato trovato un std::optional<T>
-    using recursive = check_args_impl<Req ? var : !opt, Ts ...>;
-
-public:
-    // Conta il numero di tipi che non sono std::optional<T>
-    static constexpr size_t minargs = Req && var ? 1 + recursive::minargs : 0;
-    // Conta il numero totale di tipi o -1 (INT_MAX) se l'ultimo è varargs<T>
-    static constexpr size_t maxargs = (vec || recursive::maxargs == std::numeric_limits<size_t>::max()) ?
-        std::numeric_limits<size_t>::max() : 1 + recursive::maxargs;
-
-    // true solo se i tipi seguono il pattern (var*N, opt*M, [vec])
-    // Se Req==false e var==true, valid=false
-    static constexpr bool valid = vec ? sizeof...(Ts) == 0 : (Req || opt) && recursive::valid;
-};
-
-template<typename Function> struct check_args {};
-template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : check_args_impl<true, Ts ...> {
-    using types = type_list<Ts ...>;
-};
-
-template<typename TypeList, size_t I> inline decltype(auto) get_arg(arg_list &args) {
-    using type = std::decay_t<get_nth_t<I, TypeList>>;
-    if constexpr (is_optional<type>{}) {
-        using opt_type = typename type::value_type;
-        if (I >= args.size()) {
-            return std::optional<opt_type>(std::nullopt);
-        } else {
-            return std::optional<opt_type>(convert_var<convert_rvalue<opt_type>>(args[I]));
-        }
-    } else if constexpr (is_varargs<type>{}) {
-        return varargs<typename type::var_type>(args.subspan(I));
-    } else {
-        return convert_var<convert_rvalue<type>>(args[I]);
-    }
-}
-
-template<typename Function>
-function_handler::function_handler(Function fun) {
-    // l'operatore unario + converte una funzione lambda senza capture
-    // in puntatore a funzione. In questo modo il compilatore può
-    // dedurre i tipi dei parametri della funzione tramite i template
-
-    using fun_args = check_args<decltype(+fun)>;
-    static_assert(fun_args::valid);
-
-    // Viene creata una closure che passa automaticamente gli argomenti
-    // da arg_list alla funzione fun, convertendoli nei tipi giusti
-
-    function_base::operator = ([fun](arg_list &&args) -> variable {
-        return [&] <std::size_t ... Is> (std::index_sequence<Is...>) {
-            return fun(get_arg<typename fun_args::types, Is>(args) ...);
-        }(std::make_index_sequence<fun_args::types::size>{});
-    });
-
-    minargs = fun_args::minargs;
-    maxargs = fun_args::maxargs;
-}
-
-
-static bool parse_num(fixed_point &num, std::string_view str) {
-    std::istringstream iss;
-    iss.rdbuf()->pubsetbuf(const_cast<char *>(str.begin()), str.size());
-    return dec::fromStream(iss, dec::decimal_format(intl::decimal_point(), intl::thousand_sep()), num);
-};
-
-const std::map<std::string_view, function_handler> function_lookup {
+const std::map<std::string, function_handler, std::less<>> function_lookup {
     {"eq",  [](const variable &a, const variable &b) { return a == b; }},
     {"neq", [](const variable &a, const variable &b) { return a != b; }},
     {"lt",  [](const variable &a, const variable &b) { return a < b; }},
@@ -183,7 +72,7 @@ const std::map<std::string_view, function_handler> function_lookup {
         return search_regex(regex, str, index.value_or(1));
     }},
     {"matches", [](std::string_view str, const std::string &regex, std::optional<int> index) {
-        return search_regex_all(regex, str, index.value_or(1));
+        return search_regex_matches(regex, str, index.value_or(1));
     }},
     {"captures", [](std::string_view str, const std::string &regex) {
         return search_regex_captures(regex, str);
@@ -201,8 +90,8 @@ const std::map<std::string_view, function_handler> function_lookup {
     {"date_format", [](time_t date, const std::string &format) {
         return date_format(date, format);
     }},
-    {"month_add", [](time_t month, int num) {
-        return date_month_add(month, num);
+    {"month_add", [](time_t date, int num) {
+        return date_add_month(date, num);
     }},
     {"last_day", [](time_t month) {
         return date_last_day(month);
@@ -223,7 +112,7 @@ const std::map<std::string_view, function_handler> function_lookup {
         return string_trim(str);
     }},
     {"contains", [](std::string_view str, std::string_view str2) {
-        return string_findicase(str, str2, 0) < str.size();
+        return string_find_icase(str, str2, 0) < str.size();
     }},
     {"substr", [](std::string_view str, int pos, std::optional<int> count) {
         if ((size_t) pos < str.size()) {
@@ -232,13 +121,13 @@ const std::map<std::string_view, function_handler> function_lookup {
         return variable::null_var();
     }},
     {"strcat", [](varargs<std::string_view> args) {
-        return string_join(args, "");
+        return string_join(args);
     }},
     {"strlen", [](std::string_view str) {
         return str.size();
     }},
     {"indexof", [](std::string_view str, std::string_view value, std::optional<int> index) {
-        return string_findicase(str, value, index.value_or(0));
+        return string_find_icase(str, value, index.value_or(0));
     }},
     {"tolower", [](std::string_view str) {
         return string_tolower(str);

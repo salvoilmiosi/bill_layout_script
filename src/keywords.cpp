@@ -17,7 +17,7 @@ void parser::read_keyword() {
         FUN_VOID
     };
     
-    static const std::map<std::string_view, std::tuple<function_type, command_args>> simple_functions = {
+    static const std::map<std::string, std::tuple<function_type, command_args>, std::less<>> simple_functions = {
         {"error",       {FUN_EXPRESSION, make_command<OP_THROWERROR>()}},
         {"warning",     {FUN_EXPRESSION, make_command<OP_WARNING>()}},
         {"setbegin",    {FUN_EXPRESSION, make_command<OP_SETBEGIN>()}},
