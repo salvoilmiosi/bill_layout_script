@@ -59,13 +59,7 @@ static std::string string_format(std::string_view str, const varargs<std::string
     return ret;
 }
 
-static const std::regex &create_regex(std::string regex) {
-    static std::unordered_map<std::string, std::regex> compiled_regexes;
-    auto [lower, upper] = compiled_regexes.equal_range(regex);
-    if (lower != upper) {
-        return lower->second;
-    }
-
+static std::regex create_regex(std::string regex) {
     try {
         auto char_to_regex_str = [](char c) -> std::string {
             switch (c) {
@@ -89,12 +83,22 @@ static const std::regex &create_regex(std::string regex) {
             }
         };
 
+        auto number_regex = [&](){
+            std::string tho = char_to_regex_str(intl::thousand_sep());
+            std::string dec = char_to_regex_str(intl::decimal_point());
+            
+            std::string ret = "-?(?:";
+            if (!tho.empty()) {
+                ret += "\\d{1,3}(?:" + tho + "\\d{3})*"
+                "(?:" + dec + "\\d+)?|";
+            }
+            ret += "\\d+(?:" + dec + "\\d+)?)(?!\\d)";
+            return ret;
+        };
+
         string_replace(regex, " ", "\\s+");
-        string_replace(regex, "\\N", "-?(?:\\d{1,3}(?:"
-            + char_to_regex_str(intl::thousand_sep()) + "\\d{3})*(?:"
-            + char_to_regex_str(intl::decimal_point()) + "\\d+)?|\\d+(?:"
-            + char_to_regex_str(intl::decimal_point()) + "\\d+)?)(?!\\d)");
-        return compiled_regexes.emplace_hint(lower, regex, std::regex(regex, std::regex::icase))->second;
+        string_replace(regex, "\\N", number_regex());
+        return std::regex(regex, std::regex::icase);
     } catch (const std::regex_error &error) {
         throw std::runtime_error(fmt::format("Espressione regolare non valida: {0}\n{1}", regex, error.what()));
     }
@@ -139,9 +143,10 @@ static variable search_regex_captures(const std::string &regex, std::string_view
 
 // cerca la regex in str e ritorna i valori trovati
 static std::string search_regex_matches(const std::string &regex, std::string_view value, int index) {
+    auto reg = create_regex(regex);
     return string_join(
         std::ranges::subrange(
-            std::cregex_token_iterator(value.begin(), value.end(), create_regex(regex), index),
+            std::cregex_token_iterator(value.begin(), value.end(), reg, index),
             std::cregex_token_iterator()),
         RESULT_SEPARATOR);
 }
@@ -246,6 +251,7 @@ const std::map<std::string, function_handler, std::less<>> function_lookup {
     {"mul", [](fixed_point a, fixed_point b) { return a * b; }},
     {"div", [](fixed_point a, fixed_point b) { return a / b; }},
     {"neg", [](fixed_point a) { return -a; }},
+    {"abs", [](fixed_point a) { return a > fixed_point(0) ? a : -a; }},
     {"not", [](bool a) { return !a; }},
     {"and", [](bool a, bool b) { return a && b; }},
     {"or",  [](bool a, bool b) { return a || b; }},
