@@ -124,7 +124,7 @@ std::istream &operator >> (std::istream &input, bill_layout_script<Container> &l
                         }
                     }
                 } else if (auto suf = suffix(line, "### Page")) {
-                    current.page = cstoi(suf.value);
+                    current.page = string_toint(suf.value);
                 } else if (auto suf = suffix(line, "### Rect")) {
                     std::istringstream ss(std::string(suf.value));
                     ss.imbue(std::locale::classic());

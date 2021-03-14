@@ -11,7 +11,6 @@
 #include "bytecode.h"
 #include "stack.h"
 #include "content_view.h"
-#include "intl.h"
 
 struct box_spacer {
     double x = 0;

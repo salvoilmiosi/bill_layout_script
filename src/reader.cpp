@@ -4,6 +4,7 @@
 #include "parser.h"
 #include "functions.h"
 #include "binary_bls.h"
+#include "intl.h"
 
 #include <sstream>
 

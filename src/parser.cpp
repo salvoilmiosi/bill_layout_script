@@ -330,7 +330,7 @@ int parser::read_variable(bool read_only) {
             case TOK_INTEGER: // variable[:N] -- append N times
                 m_lexer.advance(tok);
                 var_idx.flags |= SEL_APPEND;
-                var_idx.length = cstoi(tok.value);
+                var_idx.length = string_toint(tok.value);
                 break;
             default:
                 read_expression();
@@ -344,7 +344,7 @@ int parser::read_variable(bool read_only) {
             break;
         default:
             if (tok = m_lexer.check_next(TOK_INTEGER)) { // variable[N]
-                var_idx.index = cstoi(tok.value);
+                var_idx.index = string_toint(tok.value);
             } else {
                 read_expression();
                 var_idx.flags |= SEL_DYN_IDX;
@@ -352,7 +352,7 @@ int parser::read_variable(bool read_only) {
             if (tok = m_lexer.check_next(TOK_COLON)) { // variable[N:M] -- M times after index N
                 if (read_only) throw unexpected_token(tok, TOK_BRACKET_END);
                 if (tok = m_lexer.check_next(TOK_INTEGER)) {
-                    var_idx.length = cstoi(tok.value);
+                    var_idx.length = string_toint(tok.value);
                 } else {
                     read_expression();
                     var_idx.flags |= SEL_DYN_LEN;

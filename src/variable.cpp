@@ -65,12 +65,12 @@ void variable::set_date() const noexcept {
 
         std::cmatch match;
         if (std::regex_match(str_view().begin(), str_view().end(), match, expression)) {
-            int year = cstoi(match.str(1));
-            int month = cstoi(match.str(2));
+            int year = string_toint(match.str(1));
+            int month = string_toint(match.str(2));
             int day = 1;
             auto day_str = match.str(4);
             if (!day_str.empty()) {
-                day = cstoi(day_str);
+                day = string_toint(day_str);
             }
             if (month <= 0 || month > 12) {
                 return;

@@ -3,18 +3,12 @@
 
 #include <string>
 #include <algorithm>
-#include <numeric>
 #include <charconv>
-
-#include <wx/datetime.h>
-
-#include "functions.h"
-#include "intl.h"
-
-constexpr std::string_view RESULT_SEPARATOR = "\x1f";
 
 typedef uint8_t small_int;
 typedef uint8_t flags_t;
+
+constexpr std::string_view RESULT_SEPARATOR = "\x1f";
 
 struct hasher {
     constexpr size_t operator() (const char *begin, const char *end) const {
@@ -71,18 +65,6 @@ std::string string_join(R &&vec) {
     return ret;
 }
 
-// restituisce una copia in minuscolo della stringa di input
-inline std::string string_tolower(std::string_view str) {
-    auto view = str | std::views::transform(tolower);
-    return {view.begin(), view.end()};
-}
-
-// restituisce una copia in maiuscolo della stringa di input
-inline std::string string_toupper(std::string_view str) {
-    auto view = str | std::views::transform(toupper);
-    return {view.begin(), view.end()};
-}
-
 // elimina gli spazi in eccesso a inizio e fine stringa
 inline std::string string_trim(std::string_view str) {
     auto view = str
@@ -93,25 +75,21 @@ inline std::string string_trim(std::string_view str) {
     return {view.begin(), view.end()};
 }
 
-// converte ogni carattere di spazio in " " e elimina gli spazi ripetuti
-inline std::string string_singleline(std::string_view str) {
-    std::string ret;
-    std::ranges::unique_copy(str | std::views::transform([](auto ch) {
-        return isspace(ch) ? ' ' : ch;
-    }), std::back_inserter(ret), [](auto a, auto b) {
-        return a == ' ' && b == ' ';
-    });
-    return ret;
+// sostituisce tutte le occorrenze di una stringa in un'altra
+inline std::string &string_replace(std::string &str, std::string_view from, std::string_view to) {
+    size_t index = 0;
+    while (true) {
+        index = str.find(from, index);
+        if (index == std::string::npos) break;
+
+        str.replace(index, from.size(), to);
+        index += to.size();
+    }
+    return str;
 }
 
-inline bool parse_num(fixed_point &num, std::string_view str) {
-    std::istringstream iss;
-    iss.rdbuf()->pubsetbuf(const_cast<char *>(str.begin()), str.size());
-    return dec::fromStream(iss, dec::decimal_format(intl::decimal_point(), intl::thousand_sep()), num);
-};
-
 template<typename T>
-inline T cston(std::string_view str) {
+inline T string_to(std::string_view str) {
     T ret;
     auto result = std::from_chars(str.begin(), str.end(), ret);
     if (result.ec == std::errc::invalid_argument) {
@@ -121,74 +99,18 @@ inline T cston(std::string_view str) {
 }
 
 // converte una stringa in int
-inline int cstoi(std::string_view str) {
-    return cston<int>(str);
+inline int string_toint(std::string_view str) {
+    return string_to<int>(str);
 }
 
 #ifdef CHARCONV_FLOAT
-float cstof(std::string_view str) {
-    return cston<float>(str);
+inline float cstof(std::string_view str) {
+    return string_to<float>(str);
 }
 
-double cstod(std::string_view str) {
-    return cston<double>(str);
+inline double cstod(std::string_view str) {
+    return string_to<double>(str);
 }
 #endif
-
-// Cerca la posizione di str2 in str senza fare differenza tra maiuscole e minuscole
-inline size_t string_find_icase(std::string_view str, std::string_view str2, size_t index) {
-    return std::distance(str.begin(), std::ranges::search(str.substr(index), str2, [](char a, char b) {
-        return toupper(a) == toupper(b);
-    }).begin());
-}
-
-// sostituisce tutte le occorrenze di una stringa in un'altra
-void string_replace(std::string &str, std::string_view from, std::string_view to);
-
-// Formatta la stringa data, sostituendo $0 in fmt_args[0], $1 in fmt_args[1] e così via
-std::string string_format(std::string_view str, const varargs<std::string_view> &fmt_args);
-
-// cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
-std::string search_regex(const std::string &regex, std::string_view value, int index);
-
-// cerca la regex in str e ritorna tutti i capture del primo valore trovato
-std::string search_regex_captures(const std::string &regex, std::string_view value);
-
-// cerca la regex in str e ritorna i valori trovati
-std::string search_regex_matches(const std::string &regex, std::string_view value, int index);
-
-// restituisce un'espressione regolare che parsa una riga di una tabella
-std::string table_row_regex(std::string_view header, const varargs<std::string_view> &names);
-
-// cerca una data
-time_t parse_date(std::string_view value, const std::string &format, const std::string &regex, int index);
-
-// cerca una data e setta il giorno a 1
-time_t parse_month(std::string_view value, const std::string &format, const std::string &regex, int index);
-
-// Aggiunge num mesi alla data
-inline time_t date_add_month(time_t date, int num) {
-    wxDateTime dt(date);
-    dt += wxDateSpan(0, num);
-
-    return dt.GetTicks();
-}
-
-// Ritorna la data dell'ultimo giorno del mese
-inline time_t date_last_day(time_t date) {
-    wxDateTime dt(date);
-    dt.SetToLastMonthDay(dt.GetMonth(), dt.GetYear());
-    return dt.GetTicks();
-}
-
-// Ritorna se la data e' compresa nel range indicato
-inline bool date_is_between(time_t date, time_t date_begin, time_t date_end) {
-    return wxDateTime(date).IsBetween(wxDateTime(date_begin), wxDateTime(date_end));
-}
-
-// formatta una data nel formato indicato
-inline std::string date_format(time_t date, const std::string &format)  {
-    return wxDateTime(date).Format(format).ToStdString();
-}
 
 #endif
