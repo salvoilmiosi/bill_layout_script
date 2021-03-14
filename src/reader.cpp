@@ -235,33 +235,20 @@ void reader::exec_command(const command_args &cmd) {
 size_t reader::add_layout(const std::filesystem::path &filename) {
     m_layouts.push_back(filename);
 
-    std::filesystem::path cache_filename;
+    std::filesystem::path cache_filename = filename;
+    cache_filename.replace_extension(".cache");
     
     bytecode new_code;
-    bool recompile = true;
-
-    if (m_flags & READER_USE_CACHE) {
-        cache_filename = filename;
-        cache_filename.replace_extension(".cache");
-
-        if (std::filesystem::exists(cache_filename)) {
-            recompile = std::filesystem::last_write_time(filename) > std::filesystem::last_write_time(cache_filename);
-            if (!recompile) {
-                new_code = binary_bls::read(cache_filename);
-                for (auto &line : new_code) {
-                    if (line.command() == OP_IMPORT) {
-                        auto layout_filename = line.get_args<OP_IMPORT>().filename;
-                        if (std::filesystem::last_write_time(layout_filename) > std::filesystem::last_write_time(cache_filename)) {
-                            recompile = true;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (recompile) {
+    // Se settata flag USE_CACHE, leggi il file di cache e
+    // ricompila solo se uno dei file importati è stato modificato.
+    // Altrimenti ricompila sempre
+    if (!(m_flags & READER_USE_CACHE && std::filesystem::exists(cache_filename))
+        || std::filesystem::last_write_time(filename) > std::filesystem::last_write_time(cache_filename)
+        || std::ranges::any_of(new_code = binary_bls::read(cache_filename), [&](const command_args &line) {
+            return line.command() == OP_IMPORT
+                && std::filesystem::last_write_time(line.get_args<OP_IMPORT>().filename)
+                > std::filesystem::last_write_time(cache_filename);
+        })) {
         parser my_parser;
         if (m_flags & READER_RECURSIVE) {
             my_parser.add_flags(PARSER_RECURSIVE_IMPORTS);

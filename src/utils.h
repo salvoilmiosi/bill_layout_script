@@ -2,10 +2,11 @@
 #define __UTILS_H__
 
 #include <string>
+#include <numeric>
 
 #include "functions.h"
 
-constexpr char RESULT_SEPARATOR = '\x1f';
+constexpr std::string_view RESULT_SEPARATOR = "\x1f";
 
 typedef uint8_t small_int;
 
@@ -21,14 +22,12 @@ inline auto string_split(std::string_view str, std::string_view separator = ",")
 // unisce tutte le stringhe in un range di stringhe
 template<std::ranges::input_range R>
 std::string string_join(R &&vec, std::string_view separator = " ") {
-    std::string ret;
-    bool first = true;
-    for (const auto &str : vec) {
-        if (!first) {
-            ret.append(separator.begin(), separator.end());
-        }
-        first = false;
-        ret.append(str.begin(), str.end());
+    if (vec.empty()) return "";
+    auto it = vec.begin();
+    std::string ret(*it);
+    for(++it; it != vec.end(); ++it) {
+        ret += separator;
+        ret += *it;
     }
     return ret;
 };

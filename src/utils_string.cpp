@@ -162,43 +162,29 @@ static const std::regex &create_regex(std::string regex) {
 }
 
 std::string search_regex_all(const std::string &regex, std::string_view value, int index) {
-    std::string ret;
-    std::regex expression = create_regex(regex);
-    auto it = std::cregex_iterator(value.begin(), value.end(), expression);
-    bool first = true;
-    for (; it != std::cregex_iterator(); ++it) {
-        if (!first) {
-            ret += RESULT_SEPARATOR;
-        }
-        first = false;
-        ret += it->str(index);
-    }
-    return ret;
+    return string_join(
+        std::ranges::subrange(std::cregex_iterator(value.begin(), value.end(), create_regex(regex)), std::cregex_iterator())
+        | std::views::transform([&](auto &match) {
+            return match.str(index);
+        }),
+        RESULT_SEPARATOR);
 }
 
 std::string search_regex_captures(const std::string &regex, std::string_view value) {
-    std::string ret;
-    std::regex expression = create_regex(regex);
     std::cmatch match;
-    if (std::regex_search(value.begin(), value.end(), match, expression)) {
-        for (size_t i=1; i<match.size(); ++i) {
-            if (i != 1) {
-                ret += RESULT_SEPARATOR;
-            }
-            ret += match.str(i);
-        }
-    }
-    return ret;
+    if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return "";
+    return string_join(
+        std::views::iota(1, int(match.size()))
+        | std::views::transform([&](int index) {
+            return match.str(index);
+        }),
+        RESULT_SEPARATOR);
 }
 
 std::string search_regex(const std::string &regex, std::string_view value, int index) {
-    std::regex expression = create_regex(regex);
     std::cmatch match;
-    if (std::regex_search(value.begin(), value.end(), match, expression)) {
-        return match.str(index);
-    } else {
-        return "";
-    }
+    if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return "";
+    return match.str(index);
 }
 
 std::string string_replace_regex(const std::string &value, const std::string &regex, const std::string &str) {

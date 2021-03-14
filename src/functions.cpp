@@ -141,14 +141,14 @@ const std::map<std::string_view, function_handler> function_lookup {
         }
     }},
     {"aggregate", [](std::string_view str) {
-        variable ret;
-        for (const auto &view : string_split(str, {&RESULT_SEPARATOR, 1})) {
+        auto view = string_split(str, RESULT_SEPARATOR);
+        return std::accumulate(view.begin(), view.end(), variable(), [](const variable &a, std::string_view b) {
             fixed_point num;
-            if (parse_num(num, view)) {
-                ret += num;
+            if (parse_num(num, b)) {
+                return variable(a.number() + num);
             }
-        }
-        return ret;
+            return a;
+        });
     }},
     {"sum", [](varargs<fixed_point> args) {
         return std::accumulate(args.begin(), args.end(), fixed_point());
@@ -232,11 +232,7 @@ const std::map<std::string_view, function_handler> function_lookup {
         return variable::null_var();
     }},
     {"strcat", [](varargs<std::string_view> args) {
-        std::string var;
-        for (const auto &arg : args) {
-            var.append(arg.begin(), arg.end());
-        }
-        return var;
+        return string_join(args, "");
     }},
     {"strlen", [](std::string_view str) {
         return str.size();

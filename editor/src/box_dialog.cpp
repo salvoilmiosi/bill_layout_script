@@ -210,7 +210,7 @@ bool box_dialog::closeDialog(layout_box &out_box) {
 bool box_dialog::closeAll() {
     bool ret = true;
     auto open_dialogs_copy = open_dialogs;
-    for (auto &[box, dialog] : open_dialogs_copy) {
+    for (auto &dialog : open_dialogs_copy | std::views::values) {
         if (!dialog->Close()) ret = false;
     }
     return ret;
