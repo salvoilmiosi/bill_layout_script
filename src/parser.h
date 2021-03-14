@@ -63,7 +63,7 @@ class parser {
 public:
     parser() = default;
 
-    void add_flags(parser_flags flags) {
+    void add_flags(flags_t flags) {
         m_flags |= flags;
     }
 

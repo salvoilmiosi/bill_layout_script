@@ -57,16 +57,11 @@ int MainApp::OnRun() {
     try {
         pdf_document my_doc(input_pdf);
         reader my_reader(my_doc);
-        if (parse_recursive) {
-            my_reader.add_flags(READER_RECURSIVE);
-        }
-        if (use_cache) {
-            my_reader.add_flags(READER_USE_CACHE);
-        }
+        my_reader.add_flags(
+            READER_RECURSIVE & -parse_recursive
+            | READER_USE_CACHE & -use_cache
+            | READER_HALT_ON_SETLAYOUT & -get_layout);
         my_reader.add_layout(input_bls);
-        if (get_layout) {
-            my_reader.add_flags(READER_HALT_ON_SETLAYOUT);
-        }
         my_reader.start();
 
         Json::Value &json_values = result["values"] = Json::arrayValue;

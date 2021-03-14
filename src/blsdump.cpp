@@ -22,9 +22,7 @@ private:
     std::filesystem::path input_bls;
     std::filesystem::path output_cache;
 
-    bool skip_comments;
-    bool recursive_imports;
-    bool do_eval_jumps;
+    flags_t flags;
 };
 
 wxIMPLEMENT_APP_CONSOLE(MainApp);
@@ -38,32 +36,31 @@ void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
 }
 
 bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
+    auto check_flag = [&](flags_t flag, const char *name, bool invert = false) {
+        flags |= flag & -(invert ^ parser.FoundSwitch(name) == wxCMD_SWITCH_ON);
+    };
+    auto check_option = [&](auto &out, const char *name) {
+        if (wxString str; parser.Found(name, &str)) {
+            out = str.ToStdString();
+        }
+    };
+
     input_bls = parser.GetParam(0).ToStdString();
-    skip_comments = parser.FoundSwitch("s") == wxCMD_SWITCH_ON;
-    recursive_imports = parser.FoundSwitch("r") == wxCMD_SWITCH_ON;
-    do_eval_jumps = parser.FoundSwitch("j") == wxCMD_SWITCH_ON;
-    if (wxString str; parser.Found("o", &str)) {
-        output_cache = str.ToStdString();
-    }
+    check_flag(PARSER_ADD_COMMENTS, "s", true);
+    check_flag(PARSER_RECURSIVE_IMPORTS, "r");
+    check_flag(PARSER_NO_EVAL_JUMPS, "j", true);
+    check_option(output_cache, "o");
     return true;
 }
 
-std::string quoted_string(const std::string &str) {
+static std::string quoted_string(const std::string &str) {
     return string_trim(Json::Value(str).toStyledString());
 }
 
 int MainApp::OnRun() {
     try {
         parser my_parser;
-        if (!skip_comments) {
-            my_parser.add_flags(PARSER_ADD_COMMENTS);
-        }
-        if (recursive_imports) {
-            my_parser.add_flags(PARSER_RECURSIVE_IMPORTS);
-        }
-        if (!do_eval_jumps) {
-            my_parser.add_flags(PARSER_NO_EVAL_JUMPS);
-        }
+        my_parser.add_flags(flags);
         my_parser.read_layout(input_bls.parent_path(), box_vector::from_file(input_bls));
 
         std::multimap<size_t, std::string> inv_labels;
@@ -76,25 +73,27 @@ int MainApp::OnRun() {
             binary_bls::write(code, output_cache);
         }
         const auto &comments = my_parser.get_comments();
-        for (auto it = code.begin(); it != code.end(); ++it) {
-            auto [comment_begin, comment_end] = comments.equal_range(it - code.begin());
+        for (size_t i=0; i < code.size(); ++i) {
+            auto &line = code[i];
+
+            auto [comment_begin, comment_end] = comments.equal_range(i);
             for (;comment_begin != comment_end; ++comment_begin) {
                 std::cout << comment_begin->second << std::endl;
             }
-            auto [label_begin, label_end] = inv_labels.equal_range(it - code.begin());
+            auto [label_begin, label_end] = inv_labels.equal_range(i);
             for (;label_begin != label_end; ++label_begin) {
                 std::cout << label_begin->second << ':' << std::endl;
             }
-            auto &line = *it;
+
             switch (line.command()) {
             case OP_RDBOX: {
                 auto box = line.get_args<OP_RDBOX>();
                 std::cout << '\t' << opcode_names[int(line.command())];
                 std::cout << ' ' << read_mode_strings[int(box.mode)];
                 std::cout << ' ' << box_type_strings[int(box.type)];
-                for (size_t i=0; i<std::size(pdf_flags_names); ++i) {
-                    if (box.flags & (1 << i)) {
-                        std::cout << ' ' << pdf_flags_names[i];
+                for (size_t j=0; i<std::size(pdf_flags_names); ++j) {
+                    if (box.flags & (1 << j)) {
+                        std::cout << ' ' << pdf_flags_names[j];
                     }
                 }
                 std::cout << ' ' << int(box.page) << ' ' << box.x << ' ' << box.y << ' ' << box.w << ' ' << box.h;
@@ -115,9 +114,9 @@ int MainApp::OnRun() {
                 if (args.length != 1) {
                     std::cout << ':' << int(args.length);
                 }
-                for (size_t i=0; i<std::size(selvar_flags_names); ++i) {
-                    if (args.flags & (1 << i)) {
-                        std::cout << ' ' << selvar_flags_names[i];
+                for (size_t j=0; j<std::size(selvar_flags_names); ++j) {
+                    if (args.flags & (1 << j)) {
+                        std::cout << ' ' << selvar_flags_names[j];
                     }
                 }
                 break;
@@ -125,9 +124,9 @@ int MainApp::OnRun() {
             case OP_SETVAR: {
                 auto flags = line.get_args<OP_SETVAR>();
                 std::cout << '\t' << opcode_names[int(line.command())];
-                for (size_t i=0; i<std::size(setvar_flags_names); ++i) {
-                    if (flags & (1 << i)) {
-                        std::cout << ' ' << setvar_flags_names[i];
+                for (size_t j=0; j<std::size(setvar_flags_names); ++j) {
+                    if (flags & (1 << j)) {
+                        std::cout << ' ' << setvar_flags_names[j];
                     }
                 }
                 break;
@@ -144,9 +143,9 @@ int MainApp::OnRun() {
             case OP_IMPORT: {
                 auto args = line.get_args<OP_IMPORT>();
                 std::cout << '\t' << opcode_names[int(line.command())] << ' ' << quoted_string(args.filename.string());
-                for (size_t i=0; i<std::size(import_flags_names); ++i) {
-                    if (args.flags & (1 << i)) {
-                        std::cout << ' ' << import_flags_names[i];
+                for (size_t j=0; j<std::size(import_flags_names); ++j) {
+                    if (args.flags & (1 << j)) {
+                        std::cout << ' ' << import_flags_names[j];
                     }
                 }
                 break;
@@ -162,7 +161,7 @@ int MainApp::OnRun() {
             case OP_JNZ:
             case OP_JTE: {
                 auto addr = line.get_args<OP_JMP>();
-                if (auto jt = inv_labels.find(it - code.begin() + addr); jt != inv_labels.end()) {
+                if (auto jt = inv_labels.find(i + addr); jt != inv_labels.end()) {
                     std::cout << '\t' << opcode_names[int(line.command())] << ' ' << jt->second;
                 } else {
                     std::cout << '\t' << opcode_names[int(line.command())] << ' ' << addr;
