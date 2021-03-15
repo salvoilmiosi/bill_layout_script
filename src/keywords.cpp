@@ -196,13 +196,16 @@ void parser::read_keyword() {
         add_line<OP_NEWVIEW>();
         m_lexer.require(TOK_PAREN_BEGIN);
         add_line<OP_PUSHVIEW>();
-        add_line<OP_PUSHSTR>(m_lexer.require(TOK_STRING).parse_string());
+        auto begin_str = m_lexer.require(TOK_STRING).parse_string();
+        int begin_len = begin_str.size();
+        add_line<OP_PUSHSTR>(std::move(begin_str));
         add_line<OP_CALL>("indexof", 2);
         add_line<OP_SETBEGIN>();
         if (m_lexer.check_next(TOK_COMMA)) {
             add_line<OP_PUSHVIEW>();
             add_line<OP_PUSHSTR>(m_lexer.require(TOK_STRING).parse_string());   
-            add_line<OP_CALL>("indexof", 2);
+            add_line<OP_PUSHNUM>(begin_len);
+            add_line<OP_CALL>("indexof", 3);
             add_line<OP_SETEND>();
         }
         m_lexer.require(TOK_PAREN_END);
