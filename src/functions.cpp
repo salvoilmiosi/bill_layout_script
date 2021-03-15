@@ -96,7 +96,6 @@ static std::regex create_regex(std::string regex) {
             return ret;
         };
 
-        string_replace(regex, " ", "\\s+");
         string_replace(regex, "\\N", number_regex());
         return std::regex(regex, std::regex::icase);
     } catch (const std::regex_error &error) {
@@ -106,9 +105,10 @@ static std::regex create_regex(std::string regex) {
 
 // Cerca la posizione di str2 in str senza fare differenza tra maiuscole e minuscole
 static size_t string_find_icase(std::string_view str, std::string_view str2, size_t index) {
-    return std::distance(str.begin(), std::ranges::search(str.substr(index), str2, [](char a, char b) {
-        return toupper(a) == toupper(b);
-    }).begin());
+    return std::ranges::search(
+        str.substr(std::min(str.size(), index)),
+        str2, {}, toupper, toupper
+    ).begin() - str.begin();
 }
 
 // converte ogni carattere di spazio in " " e elimina gli spazi ripetuti
@@ -138,7 +138,7 @@ static variable search_regex_captures(const std::string &regex, std::string_view
         | std::views::transform([&](int index) {
             return match.str(index);
         }),
-        RESULT_SEPARATOR);
+        UNIT_SEPARATOR);
 }
 
 // cerca la regex in str e ritorna i valori trovati
@@ -148,7 +148,7 @@ static std::string search_regex_matches(const std::string &regex, std::string_vi
         std::ranges::subrange(
             std::cregex_token_iterator(value.begin(), value.end(), reg, index),
             std::cregex_token_iterator()),
-        RESULT_SEPARATOR);
+        UNIT_SEPARATOR);
 }
 
 // restituisce un'espressione regolare che parsa una riga di una tabella
@@ -251,7 +251,7 @@ const std::map<std::string, function_handler, std::less<>> function_lookup {
     {"mul", [](fixed_point a, fixed_point b) { return a * b; }},
     {"div", [](fixed_point a, fixed_point b) { return a / b; }},
     {"neg", [](fixed_point a) { return -a; }},
-    {"abs", [](fixed_point a) { return a > fixed_point(0) ? a : -a; }},
+    {"abs", [](fixed_point a) { return a.abs(); }},
     {"not", [](bool a) { return !a; }},
     {"and", [](bool a, bool b) { return a && b; }},
     {"or",  [](bool a, bool b) { return a || b; }},
@@ -262,7 +262,7 @@ const std::map<std::string, function_handler, std::less<>> function_lookup {
     }},
     {"aggregate", [](std::string_view str) {
         variable ret;
-        for (const auto &s : string_split(str, RESULT_SEPARATOR)) {
+        for (const auto &s : string_split(str, UNIT_SEPARATOR)) {
             ret += parse_num(s);
         }
         return ret;
@@ -347,10 +347,7 @@ const std::map<std::string, function_handler, std::less<>> function_lookup {
         return string_find_icase(str, str2, 0) < str.size();
     }},
     {"substr", [](std::string_view str, int pos, std::optional<int> count) {
-        if ((size_t) pos < str.size()) {
-            return variable(std::string(str.substr(pos, count.value_or(std::string_view::npos))));
-        }
-        return variable::null_var();
+        return variable(std::string(str.substr(std::min(int(str.size()), pos), count.value_or(std::string_view::npos))));
     }},
     {"strcat", [](varargs<std::string_view> args) {
         return string_join(args);

@@ -8,49 +8,49 @@
 #include <fmt/format.h>
 
 #define TOKENS \
-T(INVALID) \
-T(END_OF_FILE) \
-T(IDENTIFIER) \
-T(STRING) \
-T(REGEXP) \
-T(NUMBER) \
-T(INTEGER) \
-T(FUNCTION) \
-T(AMPERSAND) \
-T(PAREN_BEGIN) \
-T(PAREN_END) \
-T(COMMA) \
-T(BRACKET_BEGIN) \
-T(BRACKET_END) \
-T(BRACE_BEGIN) \
-T(BRACE_END) \
-T(ASSIGN) \
-T(ADD_ASSIGN) \
-T(SUB_ASSIGN) \
-T(CONTENT) \
-T(TILDE) \
-T(COLON) \
-T(GLOBAL) \
-T(PERCENT) \
-T(CARET) \
-T(ASTERISK) \
-T(SLASH) \
-T(PLUS) \
-T(MINUS) \
-T(AND) \
-T(OR) \
-T(NOT) \
-T(EQUALS) \
-T(NOT_EQUALS) \
-T(GREATER) \
-T(LESS) \
-T(GREATER_EQ) \
-T(LESS_EQ)
+T(INVALID,      "Token Invalido") \
+T(END_OF_FILE,  "Fine File") \
+T(IDENTIFIER,   "Identificatore") \
+T(STRING,       "Stringa") \
+T(REGEXP,       "Espressione Regolare") \
+T(NUMBER,       "Numero") \
+T(INTEGER,      "Numero Intero") \
+T(FUNCTION,     "Funzione") \
+T(AMPERSAND,    "&") \
+T(PAREN_BEGIN,  "(") \
+T(PAREN_END,    ")") \
+T(COMMA,        ",") \
+T(BRACKET_BEGIN,"[") \
+T(BRACKET_END,  "]") \
+T(BRACE_BEGIN,  "{") \
+T(BRACE_END,    "}") \
+T(ASSIGN,       "=") \
+T(ADD_ASSIGN,   "+=") \
+T(SUB_ASSIGN,   "-=") \
+T(CONTENT,      "@") \
+T(TILDE,        "~") \
+T(COLON,        ":") \
+T(GLOBAL,       "::") \
+T(PERCENT,      "%") \
+T(CARET,        "^") \
+T(ASTERISK,     "*") \
+T(SLASH,        "/") \
+T(PLUS,         "+") \
+T(MINUS,        "-") \
+T(AND,          "&&") \
+T(OR,           "||") \
+T(NOT,          "!") \
+T(EQUALS,       "==") \
+T(NOT_EQUALS,   "!=") \
+T(GREATER,      ">") \
+T(LESS,         "<") \
+T(GREATER_EQ,   ">=") \
+T(LESS_EQ,      "<=")
 
-#define T(x) TOK_##x,
+#define T(x, y) TOK_##x,
 enum token_type { TOKENS };
 #undef T
-#define T(x) #x,
+#define T(x, y) y,
 static const char *token_names[] = { TOKENS };
 #undef T
 

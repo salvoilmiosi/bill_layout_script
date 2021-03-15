@@ -8,7 +8,7 @@
 typedef uint8_t small_int;
 typedef uint8_t flags_t;
 
-constexpr char RESULT_SEPARATOR = '\x1f';
+constexpr char UNIT_SEPARATOR = '\x1f';
 
 struct hasher {
     constexpr size_t operator() (const char *begin, const char *end) const {

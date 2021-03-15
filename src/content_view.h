@@ -26,14 +26,16 @@ public:
         m_spans.push(view_span{0, m_value.str_view().size()});
     }
 
-    void setbegin(size_t n) {
-        m_spans.top().m_begin += n;
+    void setbegin(size_t n) noexcept {
+        m_spans.top().m_begin = std::min(
+            m_spans.top().m_begin + n,
+            m_spans.top().m_end);
     }
 
-    void setend(size_t n) {
-        if (n < m_spans.top().size()) {
-            m_spans.top().m_end = m_spans.top().m_begin + n;
-        }
+    void setend(size_t n) noexcept {
+        m_spans.top().m_end = std::min(
+            m_spans.top().m_begin + n,
+            m_spans.top().m_end);
     }
 
     void newview() {
@@ -44,34 +46,32 @@ public:
         m_spans.push(view_span{
             m_spans.top().m_begin,
             std::min(
-                m_value.str_view().find(RESULT_SEPARATOR, m_spans.top().m_begin),
+                m_value.str_view().find(UNIT_SEPARATOR, m_spans.top().m_begin),
                 m_spans.top().m_end)
         });
     }
 
-    void resetview() {
+    void resetview() noexcept {
         assert(m_spans.size() > 1);
         m_spans.pop();
     }
     
-    void nextresult() {
+    void nextresult() noexcept {
         assert(m_spans.size() > 1);
-        m_spans.top().m_begin = m_spans.top().m_end + 1;
-        if (tokenend()) {
-            m_spans.top().m_begin = m_spans.top().m_end = m_spans[m_spans.size() - 2].m_end;
-        } else {
-            m_spans.top().m_end = std::min(
-                m_value.str_view().find(RESULT_SEPARATOR, m_spans.top().m_begin),
-                m_spans[m_spans.size() - 2].m_end);
-        }
+        m_spans.top().m_begin = std::min(
+            m_spans.top().m_end + 1,
+            m_spans[m_spans.size() - 2].m_end);
+        m_spans.top().m_end = std::min(
+            m_value.str_view().find(UNIT_SEPARATOR, m_spans.top().m_begin),
+            m_spans[m_spans.size() - 2].m_end);
     }
 
-    bool tokenend() {
+    bool tokenend() noexcept {
         assert(m_spans.size() > 1);
         return m_spans.top().m_begin >= m_spans[m_spans.size() - 2].m_end;
     }
 
-    std::string_view view() const {
+    std::string_view view() const noexcept {
         return m_value.str_view().substr(m_spans.top().m_begin, m_spans.top().size());
     }
 };

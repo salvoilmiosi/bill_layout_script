@@ -130,6 +130,8 @@ std::string token::parse_string() {
                     decoded += escape;
                 }
             }
+        } else if (type == TOK_REGEXP && c == ' ') {
+            decoded += "(?:\\s+)";
         } else {
             decoded += c;
         }
