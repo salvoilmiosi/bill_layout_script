@@ -1,6 +1,8 @@
 #ifndef __CONTENT_VIEW_H__
 #define __CONTENT_VIEW_H__
 
+#include <cassert>
+
 #include "variable.h"
 #include "utils.h"
 #include "stack.h"
@@ -48,26 +50,25 @@ public:
     }
 
     void resetview() {
-        if (m_spans.size() > 1) {
-            m_spans.pop();
-        }
+        assert(m_spans.size() > 1);
+        m_spans.pop();
     }
     
     void nextresult() {
-        if (m_spans.size() > 1) {
-            m_spans.top().m_begin = m_spans.top().m_end + 1;
-            if (tokenend()) {
-                m_spans.top().m_begin = m_spans.top().m_end = m_spans[m_spans.size() - 2].m_end;
-            } else {
-                m_spans.top().m_end = std::min(
-                    m_value.str_view().find(RESULT_SEPARATOR, m_spans.top().m_begin),
-                    m_spans[m_spans.size() - 2].m_end);
-            }
+        assert(m_spans.size() > 1);
+        m_spans.top().m_begin = m_spans.top().m_end + 1;
+        if (tokenend()) {
+            m_spans.top().m_begin = m_spans.top().m_end = m_spans[m_spans.size() - 2].m_end;
+        } else {
+            m_spans.top().m_end = std::min(
+                m_value.str_view().find(RESULT_SEPARATOR, m_spans.top().m_begin),
+                m_spans[m_spans.size() - 2].m_end);
         }
     }
 
     bool tokenend() {
-        return m_spans.size() > 1 && m_spans.top().m_begin >= m_spans[m_spans.size() - 2].m_end;
+        assert(m_spans.size() > 1);
+        return m_spans.top().m_begin >= m_spans[m_spans.size() - 2].m_end;
     }
 
     std::string_view view() const {
