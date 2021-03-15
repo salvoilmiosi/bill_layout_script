@@ -91,7 +91,7 @@ int MainApp::OnRun() {
                 std::cout << '\t' << opcode_names[int(line.command())];
                 std::cout << ' ' << read_mode_strings[int(box.mode)];
                 std::cout << ' ' << box_type_strings[int(box.type)];
-                for (size_t j=0; i<std::size(pdf_flags_names); ++j) {
+                for (size_t j=0; j<std::size(pdf_flags_names); ++j) {
                     if (box.flags & (1 << j)) {
                         std::cout << ' ' << pdf_flags_names[j];
                     }
@@ -159,7 +159,7 @@ int MainApp::OnRun() {
             case OP_JSR:
             case OP_JZ:
             case OP_JNZ:
-            case OP_JTE: {
+            case OP_JNTE: {
                 auto addr = line.get_args<OP_JMP>();
                 if (auto jt = inv_labels.find(i + addr); jt != inv_labels.end()) {
                     std::cout << '\t' << opcode_names[int(line.command())] << ' ' << jt->second;

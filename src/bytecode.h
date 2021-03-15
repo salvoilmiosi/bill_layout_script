@@ -13,43 +13,43 @@
 
 #define OPCODES \
 O(NOP)                          /* no operation */ \
-O(RDBOX, pdf_rect)              /* poppler.get_text -> content_stack */ \
 O(MVBOX, spacer_index)          /* stack -> spacer[index] */ \
+O(RDBOX, pdf_rect)              /* poppler.get_text -> content_stack */ \
+O(NEXTTABLE)                    /* current_table++ */ \
+O(SELVAR, variable_selector)    /* (name, index, size, flags) -> selected */ \
+O(SETVAR, flags_t)              /* selected, stack -> set(flags) */ \
+O(CLEAR)                        /* selected -> clear */ \
+O(ISSET)                        /* selected -> size() != 0 -> stack */ \
+O(GETSIZE)                      /* selected -> size() -> stack */ \
+O(PUSHVAR)                      /* selected -> stack */ \
+O(PUSHREF)                      /* selected.str_view -> stack */ \
+O(PUSHVIEW)                     /* content_stack -> stack */ \
+O(PUSHNUM, fixed_point)         /* number -> stack */ \
+O(PUSHSTR, std::string)         /* str -> stack */ \
 O(GETBOX, spacer_index)         /* spacer[index] -> stack */ \
 O(DOCPAGES)                     /* m_doc.pages -> stack */ \
 O(ATE)                          /* (getbox(page) >= docpages()) -> stack */ \
 O(CALL, command_call)           /* stack * numargs -> fun_name -> stack */ \
+O(ADDCONTENT)                   /* stack -> content_stack */ \
+O(POPCONTENT)                   /* content_stack.pop() */ \
+O(SETBEGIN)                     /* stack -> content_stack.top.setbegin */ \
+O(SETEND)                       /* stack -> content_stack.top.setend */ \
+O(NEWVIEW)                      /* content_stack.top.newview() */ \
+O(SPLITVIEW)                    /* content_stack.top.splitview() */ \
+O(NEXTRESULT)                   /* content_stack.top.nextresult() */ \
+O(RESETVIEW)                    /* content_stack.top.resetview() */ \
 O(THROWERROR)                   /* stack -> throw */ \
 O(WARNING)                      /* stack -> warnings */ \
-O(SELVAR, variable_selector)    /* (name, index, size, flags) -> selected */ \
-O(ISSET)                        /* selected -> size() != 0 -> stack */ \
-O(GETSIZE)                      /* selected -> size() -> stack */ \
-O(CLEAR)                        /* selected -> clear */ \
-O(SETVAR, flags_t)              /* selected, stack -> set(flags) */ \
-O(PUSHVIEW)                     /* content_stack -> stack */ \
-O(PUSHNUM, fixed_point)         /* number -> stack */ \
-O(PUSHSTR, std::string)         /* str -> stack */ \
-O(PUSHVAR)                      /* selected -> stack */ \
-O(PUSHREF)                      /* selected.str_view -> stack */ \
-O(UNEVAL_JUMP, jump_uneval)     /* unevaluated jump, sara' sostituito con opcode */ \
+O(IMPORT, import_options)       /* importa il file e lo esegue */ \
+O(SETLANG, intl::language)      /* imposta la lingua del layout */ \
 O(JMP, jump_address)            /* unconditional jump */ \
 O(JSR, jump_address)            /* program_counter -> return_addrs -- jump to subroutine */ \
 O(JZ, jump_address)             /* stack -> jump if top == 0 */ \
 O(JNZ, jump_address)            /* stack -> jump if top != 0 */ \
-O(JTE, jump_address)            /* jump if content_stack.top at token end */ \
+O(JNTE, jump_address)           /* jump if content_stack.top at token end */ \
+O(UNEVAL_JUMP, jump_uneval)     /* unevaluated jump, sara' sostituito con opcode */ \
 O(RET)                          /* jump to return_addrs.top, return_addrs.pop, halt if return_addrs.empty */ \
-O(HLT)                          /* ferma l'esecuzione */ \
-O(ADDCONTENT)                   /* stack -> content_stack */ \
-O(SETBEGIN)                     /* stack -> content_stack.top.setbegin */ \
-O(SETEND)                       /* stack -> content_stack.top.setend */ \
-O(NEWVIEW)                      /* content_stack.top.newview() */ \
-O(SUBVIEW)                      /* content_stack.top.newsubview() */ \
-O(RESETVIEW)                    /* content_stack.top.resetview() */ \
-O(NEXTRESULT)                   /* content_stack.top.next_result() */ \
-O(POPCONTENT)                   /* content_stack.pop() */ \
-O(NEXTTABLE)                    /* current_table++ */ \
-O(IMPORT, import_options)       /* importa il file e lo esegue */ \
-O(SETLANG, intl::language)      /* imposta la lingua del layout */
+O(HLT)                          /* ferma l'esecuzione */
 
 #define O_1_ARGS(x) O_IMPL(x, void)
 #define O_2_ARGS(x, t) O_IMPL(x, t)

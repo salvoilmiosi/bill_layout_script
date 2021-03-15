@@ -158,8 +158,9 @@ void parser::read_keyword() {
     }
     case hash("foreach"): {
         std::string begin_label = make_label("foreach");
+        std::string continue_label = make_label("foreach_continue");
         std::string end_label = make_label("endforeach");
-        m_loop_labels.push(loop_label_pair{begin_label, end_label});
+        m_loop_labels.push(loop_label_pair{continue_label, end_label});
         bool pushed_content = false;
         if (m_lexer.check_next(TOK_PAREN_BEGIN)) {
             read_expression();
@@ -167,12 +168,12 @@ void parser::read_keyword() {
             add_line<OP_ADDCONTENT>();
             pushed_content = true;
         }
-        add_line<OP_SUBVIEW>();
+        add_line<OP_SPLITVIEW>();
         add_label(begin_label);
-        add_line<OP_NEXTRESULT>();
-        add_line<OP_UNEVAL_JUMP>(OP_JTE, end_label);
         read_statement();
-        add_line<OP_UNEVAL_JUMP>(OP_JMP, begin_label);
+        add_label(continue_label);
+        add_line<OP_NEXTRESULT>();
+        add_line<OP_UNEVAL_JUMP>(OP_JNTE, begin_label);
         add_label(end_label);
         if (pushed_content) {
             add_line<OP_POPCONTENT>();
@@ -195,14 +196,15 @@ void parser::read_keyword() {
         add_line<OP_NEWVIEW>();
         m_lexer.require(TOK_PAREN_BEGIN);
         add_line<OP_PUSHVIEW>();
-        read_expression();
+        add_line<OP_PUSHSTR>(m_lexer.require(TOK_STRING).parse_string());
         add_line<OP_CALL>("indexof", 2);
         add_line<OP_SETBEGIN>();
-        m_lexer.require(TOK_COMMA);
-        add_line<OP_PUSHVIEW>();
-        read_expression();
-        add_line<OP_CALL>("indexof", 2);
-        add_line<OP_SETEND>();
+        if (m_lexer.check_next(TOK_COMMA)) {
+            add_line<OP_PUSHVIEW>();
+            add_line<OP_PUSHSTR>(m_lexer.require(TOK_STRING).parse_string());   
+            add_line<OP_CALL>("indexof", 2);
+            add_line<OP_SETEND>();
+        }
         m_lexer.require(TOK_PAREN_END);
         read_statement();
         add_line<OP_RESETVIEW>();
@@ -217,12 +219,16 @@ void parser::read_keyword() {
             pushed_content = true;
         }
 
-        add_line<OP_SUBVIEW>();
+        add_line<OP_SPLITVIEW>();
         
         m_lexer.require(TOK_BRACE_BEGIN);
-        while (!m_lexer.check_next(TOK_BRACE_END)) {
-            add_line<OP_NEXTRESULT>();
+        while (true) {
             read_statement();
+            if (! m_lexer.check_next(TOK_BRACE_END)) {
+                add_line<OP_NEXTRESULT>();
+            } else {
+                break;
+            }
         }
 
         if (pushed_content) {

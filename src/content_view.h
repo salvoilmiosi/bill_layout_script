@@ -34,34 +34,39 @@ public:
         }
     }
 
-    void new_view() {
+    void newview() {
         m_spans.push(m_spans.top());
     }
 
-    void new_subview() {
-        m_spans.push(view_span{m_spans.top().m_begin, m_spans.top().m_begin});
+    void splitview() {
+        m_spans.push(view_span{
+            m_spans.top().m_begin,
+            std::min(
+                m_value.str_view().find(RESULT_SEPARATOR, m_spans.top().m_begin),
+                m_spans.top().m_end)
+        });
     }
 
-    void reset_view() {
+    void resetview() {
         if (m_spans.size() > 1) {
             m_spans.pop();
         }
     }
     
-    void next_result() {
+    void nextresult() {
         if (m_spans.size() > 1) {
-            m_spans.top().m_begin = m_value.str_view().find_first_not_of(RESULT_SEPARATOR, m_spans.top().m_end);
-            if (token_end()) {
+            m_spans.top().m_begin = m_spans.top().m_end + 1;
+            if (tokenend()) {
                 m_spans.top().m_begin = m_spans.top().m_end = m_spans[m_spans.size() - 2].m_end;
             } else {
                 m_spans.top().m_end = std::min(
-                    m_value.str_view().find_first_of(RESULT_SEPARATOR, m_spans.top().m_begin),
+                    m_value.str_view().find(RESULT_SEPARATOR, m_spans.top().m_begin),
                     m_spans[m_spans.size() - 2].m_end);
             }
         }
     }
 
-    bool token_end() {
+    bool tokenend() {
         return m_spans.size() > 1 && m_spans.top().m_begin >= m_spans[m_spans.size() - 2].m_end;
     }
 
