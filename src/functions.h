@@ -56,7 +56,8 @@ using arg_list = std::span<variable>;
 template<typename T> using varargs_base = std::ranges::transform_view<arg_list, vararg_converter<T>>;
 template<typename T> struct varargs : varargs_base<T> {
     using var_type = T;
-    varargs(auto &&obj) : varargs_base<T>(std::forward<decltype(obj)>(obj), vararg_converter<T>{}) {}
+    template<typename U>
+    varargs(U &&obj) : varargs_base<T>(std::forward<U>(obj), vararg_converter<T>{}) {}
 };
 
 template<typename T> struct is_variable : std::bool_constant<! std::is_void_v<convert_rvalue<T>>> {};

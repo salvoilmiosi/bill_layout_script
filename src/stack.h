@@ -20,8 +20,14 @@ template<typename T, typename Container = auto_reserve_vector<T>> struct simple_
     constexpr T &top() { return base::back(); }
     constexpr const T &top() const { return base::back(); }
 
-    constexpr void push(auto &&value) {
-        base::push_back(std::forward<decltype(value)>(value));
+    template<typename U>
+    constexpr void push(U &&value) {
+        base::push_back(std::forward<U>(value));
+    }
+
+    template<typename ... Ts>
+    constexpr T &emplace(Ts && ... values) {
+        return base::emplace_back(std::forward<Ts>(values) ...);
     }
 
     constexpr T pop() {
@@ -37,16 +43,18 @@ private:
     size_t m_size = 0;
 
 public:
-    void push_back(auto &&obj) {
+    template<typename U>
+    void push_back(U &&obj) {
         if (m_size >= N) {
             throw std::out_of_range("Stack overflow");
         }
-        m_data[m_size++] = std::forward<decltype(obj)>(obj);
+        m_data[m_size++] = std::forward<U>(obj);
     }
 
     template<typename ... Ts>
-    void emplace_back(Ts && ... args) {
-        push_back(T(std::forward<Ts>(args) ...));
+    T &emplace_back(Ts && ... args) {
+        push_back(T{std::forward<Ts>(args) ... });
+        return back();
     }
 
     void pop_back() {

@@ -105,7 +105,8 @@ private:
 };
 
 struct pdf_error : std::runtime_error {
-    pdf_error(auto &&message) : std::runtime_error(std::forward<decltype(message)>(message)) {}
+    template<typename T>
+    pdf_error(T &&message) : std::runtime_error(std::forward<T>(message)) {}
 };
 
 #endif // __PDF_DOCUMENT_H__

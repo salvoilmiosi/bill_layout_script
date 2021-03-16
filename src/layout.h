@@ -20,7 +20,8 @@ struct layout_box : public pdf_rect {
 };
 
 struct layout_error : std::runtime_error {
-    layout_error(auto &&message) : std::runtime_error(std::forward<decltype(message)>(message)) {}
+    template<typename T>
+    layout_error(T &&message) : std::runtime_error(std::forward<T>(message)) {}
 };
 
 template<template<typename> typename Container>

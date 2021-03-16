@@ -22,7 +22,8 @@ private:
     static_stack<view_span> m_spans;
 
 public:
-    content_view(auto &&value) : m_value(std::forward<decltype(value)>(value)) {
+    template<typename T>
+    content_view(T &&value) : m_value(std::forward<T>(value)) {
         m_spans.push(view_span{0, m_value.str_view().size()});
     }
 
@@ -43,12 +44,12 @@ public:
     }
 
     void splitview() {
-        m_spans.push(view_span{
+        m_spans.emplace(
             m_spans.top().m_begin,
             std::min(
                 m_value.str_view().find(UNIT_SEPARATOR, m_spans.top().m_begin),
                 m_spans.top().m_end)
-        });
+        );
     }
 
     void resetview() noexcept {

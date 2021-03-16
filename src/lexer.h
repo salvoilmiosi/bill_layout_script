@@ -70,8 +70,9 @@ protected:
     token m_location;
 
 public:
-    parsing_error(auto &&message, token location) :
-        std::runtime_error(std::forward<decltype(message)>(message)), m_location(location) {}
+    template<typename T>
+    parsing_error(T &&message, token location) :
+        std::runtime_error(std::forward<T>(message)), m_location(location) {}
 
     token location() const noexcept {
         return m_location;
@@ -98,8 +99,9 @@ class lexer {
 public:
     void set_script(std::string_view str);
 
-    void set_comment_callback(auto &&fun) {
-        comment_callback = std::forward<decltype(fun)>(fun);
+    template<typename T>
+    void set_comment_callback(T &&fun) {
+        comment_callback = std::forward<T>(fun);
     }
 
     token next(bool do_advance = true);
