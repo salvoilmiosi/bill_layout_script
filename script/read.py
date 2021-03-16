@@ -35,20 +35,21 @@ def check_conguagli(results):
         date.fromisoformat(obj['values'][0]['mese_fattura'][0]),
         date.fromisoformat(obj['values'][0]['data_fattura'][0])))
 
-    old_pod = None
-    old_mesefatt = None
-    old_datafatt = None
-    for x in sorted_data:
-        new_pod = x['values'][0]['codice_pod'][0]
-        new_mesefatt = date.fromisoformat(x['values'][0]['mese_fattura'][0])
-        new_datafatt = date.fromisoformat(x['values'][0]['data_fattura'][0])
+    for i in range(1, len(sorted_data)):
+        old_values = sorted_data[i-1]['values'][0]
+        cur_values = sorted_data[i]['values'][0]
+
+        old_pod = old_values['codice_pod'][0]
+        new_pod = cur_values['codice_pod'][0]
+
+        old_mesefatt = date.fromisoformat(old_values['mese_fattura'][0])
+        new_mesefatt = date.fromisoformat(cur_values['mese_fattura'][0])
+
+        old_datafatt = date.fromisoformat(old_values['data_fattura'][0])
+        new_datafatt = date.fromisoformat(cur_values['data_fattura'][0])
 
         if old_pod == new_pod and old_mesefatt == new_mesefatt and new_datafatt > old_datafatt:
-            x['conguaglio'] = True
-
-        old_pod = new_pod
-        old_mesefatt = new_mesefatt
-        old_datafatt = new_datafatt
+            cur_values['conguaglio'] = True
 
     return sorted_data + error_data
 

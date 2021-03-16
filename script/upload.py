@@ -17,8 +17,7 @@ def filter_and_upload(f, do_upload = True):
     with open(f, 'r') as file:
         data = json.load(file)
     for x in data:
-        if 'conguaglio' in x or (filter_year != 0 and any(date.fromisoformat(t['mese_fattura'][0]).year < filter_year for t in x['values'])):
-            x['values'] = []
+        x['values'] = [t for t in x['values'] if 'conguaglio' not in t and date.fromisoformat(t['mese_fattura'][0]).year >= filter_year]
     if do_upload:
         response = session.put(address + '/zelda/fornitura.ws?f=importDatiFattureJSON', json.dumps(data))
         uploadr = json.loads(response.text)

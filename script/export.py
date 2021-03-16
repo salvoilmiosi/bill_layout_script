@@ -57,8 +57,6 @@ table_values = [
     TableValue('Disp. Var',             'disp_var',                  type='number', number_format='0.00000000', column_width=11)
 ]
 
-old_pod = None
-
 def export_file(input_file):
     out = []
     out_err = []
@@ -71,7 +69,6 @@ def export_file(input_file):
             return
         
         for v in json_data['values']:
-            global old_pod
             row = []
 
             for obj in table_values:
@@ -99,9 +96,9 @@ def export_file(input_file):
                     except (KeyError, IndexError, ValueError):
                         row.append({'value': '', 'number_format': ''})
 
-            new_pod = v['codice_pod'] if 'codice_pod' in v else None
-            out.append({'row':row,'conguaglio':'conguaglio' in json_data,'new_pod':new_pod != old_pod})
-            old_pod = new_pod
+            conguaglio = v['conguaglio'] if 'conguaglio' in v else False
+            pod = v['codice_pod'][0] if 'codice_pod' in v else None
+            out.append({'row':row, 'conguaglio':conguaglio, 'pod':pod})
 
     with open(input_file, 'r') as file:
         for r in json.load(file):
@@ -115,10 +112,12 @@ def export_file(input_file):
         if obj.column_width != None:
             ws.column_dimensions[get_column_letter(i)].width = obj.column_width
 
+    last_pod = None
     for i, row in enumerate(out, 2):
+        cur_pod = row['pod']
         for j, c in enumerate(row['row'], 1):
             cell = ws.cell(row=i, column=j)
-            if row['new_pod']:
+            if last_pod is not None and cur_pod is not None and cur_pod != last_pod:
                 cell.border = Border(top=Side(border_style='thin', color='000000'))
             if row['conguaglio']:
                 cell.fill = PatternFill(patternType='solid', fgColor='ffff00')
@@ -128,6 +127,7 @@ def export_file(input_file):
                 if 'fgColor' in c: cell.fill = PatternFill(patternType='solid', fgColor = c['fgColor'])
             except (KeyError, IndexError, ValueError):
                 pass
+        last_pod = cur_pod
 
     for row in out_err:
         ws.append(row)
