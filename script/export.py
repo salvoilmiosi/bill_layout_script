@@ -1,5 +1,5 @@
 from pathlib import Path
-from datetime import datetime
+from datetime import date
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import PatternFill, Border, Side
@@ -83,9 +83,9 @@ def export_file(input_file):
                         if obj.type == 'str':
                             row.append({'value': value, 'number_format': '@'})
                         elif obj.type == 'date':
-                            row.append({'value': datetime.strptime(value, '%Y-%m-%d'), 'number_format': 'DD/MM/YY'})
+                            row.append({'value': date.fromisoformat(value), 'number_format': 'DD/MM/YY'})
                         elif obj.type == 'month':
-                            row.append({'value': datetime.strptime(value, '%Y-%m-%d'), 'number_format': 'MM/YYYY'})
+                            row.append({'value': date.fromisoformat(value), 'number_format': 'MM/YYYY'})
                         elif obj.type == 'euro':
                             row.append({'value': float(value), 'number_format': '#,##0.00 \u20ac'})
                         elif obj.type == 'int':

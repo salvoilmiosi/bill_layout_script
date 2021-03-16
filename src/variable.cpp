@@ -42,7 +42,7 @@ void variable::set_string() const noexcept {
             } 
             break;
         case VAR_DATE:
-            m_str = wxDateTime(time_t(m_num.getUnbiased())).Format("%Y-%m-%d").ToStdString();
+            m_str = wxDateTime(time_t(m_num.getUnbiased())).FormatISODate().ToStdString();
             break;
         default:
             break;
@@ -61,24 +61,9 @@ void variable::set_number() const noexcept {
 
 void variable::set_date() const noexcept {
     if (m_type == VAR_STRING && m_num == fixed_point(0)) {
-        static std::regex expression("(\\d{4})-(\\d{2})(-(\\d{2}))?");
-
-        std::cmatch match;
-        if (std::regex_match(str_view().begin(), str_view().end(), match, expression)) {
-            int year = string_toint(match.str(1));
-            int month = string_toint(match.str(2));
-            int day = 1;
-            auto day_str = match.str(4);
-            if (!day_str.empty()) {
-                day = string_toint(day_str);
-            }
-            if (month <= 0 || month > 12) {
-                return;
-            }
-            if (day <= 0 || day > wxDateTime::GetNumberOfDays(static_cast<wxDateTime::Month>(month - 1), year)) {
-                return;
-            }
-            m_num.setUnbiased(wxDateTime(day, static_cast<wxDateTime::Month>(month - 1), year).GetTicks());
+        wxDateTime dt;
+        if (dt.ParseISODate(str())) {
+            m_num.setUnbiased(dt.GetTicks());
         }
     }
 }

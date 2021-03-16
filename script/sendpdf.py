@@ -4,7 +4,7 @@ import json
 import sys
 from pathlib import Path
 from getpass import getpass
-from datetime import date, datetime
+from datetime import date
 from termcolor import colored
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -50,7 +50,7 @@ def find_filename(fattura):
         for v in l['values']:
             if v['fornitore'][0] != nome_fornitore: continue
             if v['numero_fattura'][0] == numero_fattura \
-                or (v['codice_pod'][0] == codice_pod and datetime.strptime(v['mese_fattura'][0], '%Y-%m').date() == mese_fattura):
+                or (v['codice_pod'][0] == codice_pod and date.fromisoformat(v['mese_fattura'][0]) == mese_fattura):
                 return l['filename']
     return None
 

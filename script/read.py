@@ -1,7 +1,7 @@
 from multiprocessing import Pool, cpu_count
 from termcolor import colored
 from pathlib import Path
-from datetime import datetime
+from datetime import date, datetime
 from argparse import ArgumentParser
 import json
 import pyreader
@@ -20,9 +20,6 @@ args = parser.parse_args()
 input_directory = Path(args.input_directory).resolve()
 output_file = Path(args.output_file)
 
-def to_date(str):
-    return datetime.strptime(str, '%Y-%m-%d').date()
-
 def check_conguagli(results):
     sorted_data = []
     error_data = []
@@ -35,16 +32,16 @@ def check_conguagli(results):
         
     sorted_data.sort(key = lambda obj : (
         obj['values'][0]['codice_pod'][0],
-        to_date(obj['values'][0]['mese_fattura'][0]),
-        to_date(obj['values'][0]['data_fattura'][0])))
+        date.fromisoformat(obj['values'][0]['mese_fattura'][0]),
+        date.fromisoformat(obj['values'][0]['data_fattura'][0])))
 
     old_pod = None
     old_mesefatt = None
     old_datafatt = None
     for x in sorted_data:
         new_pod = x['values'][0]['codice_pod'][0]
-        new_mesefatt = to_date(x['values'][0]['mese_fattura'][0])
-        new_datafatt = to_date(x['values'][0]['data_fattura'][0])
+        new_mesefatt = date.fromisoformat(x['values'][0]['mese_fattura'][0])
+        new_datafatt = date.fromisoformat(x['values'][0]['data_fattura'][0])
 
         if old_pod == new_pod and old_mesefatt == new_mesefatt and new_datafatt > old_datafatt:
             x['conguaglio'] = True

@@ -4,7 +4,7 @@ import json
 import sys
 from pathlib import Path
 from getpass import getpass
-from datetime import date, datetime
+from datetime import date
 from termcolor import colored
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -17,7 +17,7 @@ def filter_and_upload(f, do_upload = True):
     with open(f, 'r') as file:
         data = json.load(file)
     for x in data:
-        if 'conguaglio' in x or (filter_year != 0 and any(datetime.strptime(t['mese_fattura'][0],'%Y-%m').year < filter_year for t in x['values'])):
+        if 'conguaglio' in x or (filter_year != 0 and any(date.fromisoformat(t['mese_fattura'][0]).year < filter_year for t in x['values'])):
             x['values'] = []
     if do_upload:
         response = session.put(address + '/zelda/fornitura.ws?f=importDatiFattureJSON', json.dumps(data))
