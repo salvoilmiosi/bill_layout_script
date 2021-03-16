@@ -22,7 +22,8 @@ static variable parse_num(std::string_view str) {
 };
 
 // Formatta la stringa data, sostituendo $0 in fmt_args[0], $1 in fmt_args[1] e così via
-static std::string string_format(std::string_view str, const varargs<std::string_view> &fmt_args) {
+template<std::ranges::input_range R>
+static std::string string_format(std::string_view str, R &&fmt_args) {
     static constexpr char FORMAT_CHAR = '$';
     std::string ret;
     auto it = str.begin();
@@ -152,7 +153,8 @@ static std::string search_regex_matches(const std::string &regex, std::string_vi
 }
 
 // restituisce un'espressione regolare che parsa una riga di una tabella
-static std::string table_row_regex(std::string_view header, const varargs<std::string_view> &names) {
+template<std::ranges::input_range R>
+static std::string table_row_regex(std::string_view header, R &&names) {
     std::string ret;
     size_t begin = 0;
     size_t len = 0;
