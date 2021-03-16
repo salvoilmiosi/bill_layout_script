@@ -7,7 +7,7 @@
 ### Page 1
 ### Rect 0.07538146 0.31081033 0.82919604 0.024828043
 ### Script
-$if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
+$ifnot ($contains(@, "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO"))
   $error("Sorgenia: Stringa di Convalida Errata")
 ### End Script
 ### End Box
@@ -15,7 +15,6 @@ $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
 ### Box Lettura Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Flags NOTRIM
 ### Page 3
 ### Rect 0.040290102 0.080957815 0.91055596 0.86431015
 ### Goto Label lettura_dati
@@ -58,7 +57,7 @@ numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 ### Page 1
 ### Rect 0.076612905 0.15037057 0.38810483 0.02850627
 ### Script
-ragione_sociale
+'ragione_sociale
 ### End Script
 ### End Box
 

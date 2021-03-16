@@ -13,7 +13,7 @@ p+::off_dettaglio
 ### Script
 $if($ate()) {
   $error("Estra: Dettaglio Mancante")
-} $elif(@ != "ELEMENTI DI DETTAGLIO") {
+} $elifnot ($contains(@, "ELEMENTI DI DETTAGLIO")) {
   ::off_dettaglio+=1
   $goto(ricerca_dettaglio)
 }
@@ -23,7 +23,6 @@ $if($ate()) {
 ### Box Lettura Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Flags NOTRIM
 ### Page 3
 ### Rect 0.04032258 0.114025086 0.9370968 0.8540479
 ### Goto Label lettura_dettaglio

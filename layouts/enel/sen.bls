@@ -25,7 +25,7 @@ p+::offset_dettaglio
 ### Script
 $if ($ate()) {
   $error("SEN: Dettaglio Mancante")
-} $elif (@ != "DETTAGLIO IMPORTI BOLLETTA") {
+} $elifnot ($contains(@, "DETTAGLIO IMPORTI BOLLETTA")) {
   ::offset_dettaglio+=1
   $goto(calcolo_offset)
 }
@@ -35,7 +35,6 @@ $if ($ate()) {
 ### Box Contenuto Dettaglio Costi
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Flags NOTRIM
 ### Page 3
 ### Rect 0.048197635 0.21550742 0.6294624 0.76047003
 ### Goto Label dettaglio_costi
@@ -155,7 +154,7 @@ data_scadenza=$date(@,"%d.%m.%Y",/Entro il (\D)/)
 ### Page 1
 ### Rect 0.51606274 0.19721653 0.39770216 0.031239748
 ### Script
-ragione_sociale
+'ragione_sociale
 ### End Script
 ### End Box
 

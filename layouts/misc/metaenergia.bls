@@ -17,7 +17,7 @@ fornitore="MetaEnergia"
 ### Page 1
 ### Rect 0.062384654 0.31081033 0.7538146 0.026667157
 ### Script
-$if(@ != "FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA - MERCATO LIBERO") {
+$ifnot ($contains(@, "FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA - MERCATO LIBERO")) {
   $error("MetaEnergia: Stringa di Convalida Errata")
 }
 ### End Script
@@ -85,7 +85,6 @@ numero_cliente = $search(@,/Codice cliente: (.+)\n/)
 ### Box Lettura Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Flags NOTRIM
 ### Page 2
 ### Rect 0.052041367 0.12135033 0.9031695 0.8370542
 ### Goto Label lettura_dettaglio

@@ -7,7 +7,7 @@
 ### Page 1
 ### Rect 0.5398872 0.030786771 0.3545528 0.05587229
 ### Script
-$if(@ != "Bolletta Energia Elettrica\nFornitura del Mercato Libero")
+$ifnot($contains(@, "Bolletta Energia Elettrica\nFornitura del Mercato Libero"))
   $error("Axpo (old): Stringa di Convalida Errata")
 ### End Script
 ### End Box
@@ -141,7 +141,6 @@ $if(::spacer_multipod) $call(read_sintesi_costi)
 ### Box Lettura Spese Energia
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Flags NOTRIM
 ### Page 3
 ### Rect 0.033843674 0.09464082 0.9073328 0.87001145
 ### Goto Label lettura_spese
@@ -205,11 +204,12 @@ $with(&_dettaglio) {
 ### Page 3
 ### Rect 0.040290087 0.09806158 0.20306204 0.029646521
 ### Spacers
-p+ ::spacer_multipod + ::next_page
+p+::spacer_multipod
+p+::next_page
 ### End Spacers
 ### Script
 $if(::spacer_multipod) {
-  $if(@ == "Dati di fornitura") {
+  $if ($contains(@, "Dati di fornitura")) {
     ::next_page+=1
     $nexttable()
     $goto(nome_fornitore)

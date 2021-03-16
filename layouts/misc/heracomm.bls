@@ -39,7 +39,6 @@ rotate+::rotation
 ### Box Lettura Dettaglio Sinistra
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Flags NOTRIM
 ### Page 4
 ### Rect 0.019455252918287938 0.14619882 0.47393317008171215 0.8187134
 ### Goto Label lettura_dettaglio
@@ -59,7 +58,6 @@ $else {
 ### Box Lettura Dettaglio Destra
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Flags NOTRIM
 ### Page 4
 ### Rect 0.4950413 0.14107715677419358 0.4842064302204928 0.8187134
 ### Spacers

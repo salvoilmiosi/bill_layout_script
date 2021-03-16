@@ -11,8 +11,9 @@
 p+::off_allegati
 ### End Spacers
 ### Script
-$if($ate()) $error("Sorgenia (old): Stringa di Convalida Errata")
-$if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO") {
+$if($ate()) {
+  $error("Sorgenia (old): Stringa di Convalida Errata")
+} $elifnot ($contains(@, "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")) {
   ::off_allegati+=1
   $goto(convalida)
 }
@@ -22,7 +23,6 @@ $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO") {
 ### Box Lettura Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Flags NOTRIM
 ### Page 3
 ### Rect 0.040290102 0.080957815 0.91055596 0.8734165
 ### Goto Label lettura_dati
@@ -71,7 +71,7 @@ numero_cliente=$search(@,/(\N)/)
 p+::off_allegati
 ### End Spacers
 ### Script
-ragione_sociale
+'ragione_sociale
 ### End Script
 ### End Box
 

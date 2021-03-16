@@ -25,7 +25,7 @@ p+::offset_dettaglio
 ### Script
 $if($ate()) {
   $error("Enel: Dettaglio Mancante")
-} $elif (@ != "DETTAGLIO IMPORTI IN BOLLETTA") {
+} $elifnot ($contains(@, "DETTAGLIO IMPORTI IN BOLLETTA")) {
   ::offset_dettaglio+=1
   $goto(calcolo_offset)
 }
@@ -35,7 +35,6 @@ $if($ate()) {
 ### Box Contenuto Dettaglio Costi
 ### Type RECTANGLE
 ### Mode RAW
-### Flags NOTRIM
 ### Page 3
 ### Rect 0.048197635 0.21550742 0.71199036 0.76047003
 ### Goto Label dettaglio_costi
@@ -93,7 +92,7 @@ indirizzo_fornitura=$singleline($search(@,/Forniamo energia in ([^]+\d{5}.+\n)/)
 ### Page 1
 ### Rect 0.5015466 0.18353352 0.39770216 0.031239748
 ### Script
-ragione_sociale
+'ragione_sociale
 ### End Script
 ### End Box
 
@@ -104,7 +103,7 @@ ragione_sociale
 ### Rect 0.05251878 0.33476514 0.20437472 0.07914594
 ### Script
 numero_cliente=$search(@,/N\u00b0 CLIENTE (.+)\n/)
-codice_pod=$search(@,/CODICE POD (.+)$/)
+codice_pod=$search(@,/CODICE POD (\w+)/)
 ### End Script
 ### End Box
 

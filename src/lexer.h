@@ -31,6 +31,7 @@ T(CONTENT,      "@") \
 T(TILDE,        "~") \
 T(COLON,        ":") \
 T(GLOBAL,       "::") \
+T(SINGLE_QUOTE, "'") \
 T(PERCENT,      "%") \
 T(CARET,        "^") \
 T(ASTERISK,     "*") \

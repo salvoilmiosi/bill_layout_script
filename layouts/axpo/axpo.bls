@@ -7,7 +7,7 @@
 ### Page 1
 ### Rect 0.78485096 0.023945268 0.20306204 0.07639681
 ### Script
-$if(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero")
+$ifnot ($contains(@, "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero"))
   $error("Axpo: Stringa di Convalida Errata")
 ### End Script
 ### End Box
@@ -29,7 +29,7 @@ fornitore="Axpo"
 ### Page 1
 ### Rect 0.51044726 0.16909401 0.4719575 0.050533842
 ### Script
-ragione_sociale
+'ragione_sociale
 ### End Script
 ### End Box
 
@@ -113,7 +113,6 @@ $if($contains(@,"Energia Reattiva")) {
 ### Box Lettura Quadro Dettaglio
 ### Type RECTANGLE
 ### Mode RAW
-### Flags NOTRIM
 ### Page 3
 ### Rect 0.032258064 0.090079814 0.95483875 0.8289623
 ### Goto Label quadro_dettaglio
@@ -184,7 +183,7 @@ $with(&_dettaglio) {
 p+::next_page
 ### End Spacers
 ### Script
-$if(@ == "DATI FORNITURA") {
+$if ($contains(@, "DATI FORNITURA")) {
   ::next_page+=1
   $nexttable()
   $goto(nome_fornitore)

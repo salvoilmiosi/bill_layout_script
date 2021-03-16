@@ -7,7 +7,7 @@
 ### Page 1
 ### Rect 0.7381144 0.0045636054 0.23529412 0.022818027
 ### Script
-$if(@ != "ENERGIA ELETTRICA") {
+$ifnot ($contains(@, "ENERGIA ELETTRICA")) {
   $error("Edison: Stringa di Convalida Errata")
 }
 ### End Script

@@ -99,6 +99,9 @@ token lexer::next(bool do_advance) {
             tok.type = TOK_NUMBER;
         }
         break;
+    case '\'':
+        tok.type = TOK_SINGLE_QUOTE;
+        break;
     case ',':
         tok.type = TOK_COMMA;
         break;
