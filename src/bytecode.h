@@ -126,8 +126,7 @@ struct variable_selector {
 #define SETVAR_FLAGS \
 F(FORCE) \
 F(OVERWRITE) \
-F(INCREASE) \
-F(DECREASE)
+F(INCREASE)
 
 #define F(x) POS_SET_##x,
 enum { SETVAR_FLAGS };

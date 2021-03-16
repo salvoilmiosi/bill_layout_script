@@ -123,10 +123,6 @@ public:
             std::for_each_n(it, length, [&](auto &var) {
                 var.second += value;
             });
-        } else if (flags & SET_DECREASE) {
-            std::for_each_n(it, length, [&](auto &var) {
-                var.second += -value.number();
-            });
         } else if (length == 1) {
             it->second = std::move(value);
         } else {

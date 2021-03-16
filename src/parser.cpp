@@ -164,11 +164,14 @@ bool parser::read_statement(bool throw_on_eof) {
         
         auto tok = m_lexer.peek();
         flags_t flags = 0;
+        bool negative = false;
         
         switch (tok.type) {
-        case TOK_ADD_ASSIGN:
         case TOK_SUB_ASSIGN:
-            flags |= tok.type == TOK_ADD_ASSIGN ? SET_INCREASE : SET_DECREASE;
+            prefixes |= VP_NEGATE;
+            [[fallthrough]];
+        case TOK_ADD_ASSIGN:
+            flags |= SET_INCREASE;
             [[fallthrough]];
         case TOK_ASSIGN:
             m_lexer.advance(tok);
@@ -185,6 +188,7 @@ bool parser::read_statement(bool throw_on_eof) {
         if (prefixes & VP_TRIM)       add_line<OP_CALL>("trim", 1);
         if (prefixes & VP_AGGREGATE)  add_line<OP_CALL>("aggregate", 1);
         if (prefixes & VP_PARSENUM)   add_line<OP_CALL>("num", 1);
+        if (prefixes & VP_NEGATE)     add_line<OP_CALL>("neg", 1);
         if (prefixes & VP_OVERWRITE)  flags |= SET_OVERWRITE;
         if (prefixes & VP_FORCE)      flags |= SET_FORCE;
 
