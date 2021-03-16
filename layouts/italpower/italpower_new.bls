@@ -135,6 +135,6 @@ $step($captures(@,$format(/Energia - F3 - Periodo $0 Euro\/kWh (\N) (\N)/,_perio
 %oneri=$search(@,/Totale oneri di sistema (\N)/)
 %accise=$search($search(@,/Accisa sull'energia elettrica\n((?:.+\n)+)(?:Totale|$)/),
 	$format(/Consumi fino a 200\.000 kWh - Periodo $0 Euro\/kWh \N \N (\N)/,_periodo))
-imponibile=$num($search(@,/IVA \N% (\N)/))+altre_partite
+imponibile=$num($search(@,/IVA \N% (\N)/))
 ### End Script
 ### End Box
