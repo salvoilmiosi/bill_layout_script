@@ -119,6 +119,7 @@ private:
     std::map<std::string, size_t> m_labels;
 
     simple_stack<loop_label_pair> m_loop_labels;
+    int m_content_level = 0;
 
     flags_t m_flags = 0;
 

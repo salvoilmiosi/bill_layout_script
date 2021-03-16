@@ -94,6 +94,7 @@ void parser::read_box(const layout_box &box) {
     }
 
     add_line<OP_SETBOX>(pdf_rect(box));
+    m_content_level = 0;
 
     if (m_flags & PARSER_ADD_COMMENTS) {
         m_lexer.set_comment_callback([this](const std::string &line){
@@ -131,6 +132,7 @@ void parser::read_box(const layout_box &box) {
     }
 
     if (box.type != BOX_NOREAD) {
+        ++m_content_level;
         add_line<OP_RDBOX>();
     }
 
@@ -173,6 +175,9 @@ bool parser::read_statement(bool throw_on_eof) {
             read_expression();
             break;
         default:
+            if (m_content_level == 0) {
+                throw parsing_error("Stack contenuti vuoto", tok);
+            }
             add_line<OP_PUSHVIEW>();
             break;
         }
@@ -275,6 +280,9 @@ void parser::sub_expression() {
         break;
     case TOK_CONTENT:
         m_lexer.advance(tok_first);
+        if (m_content_level == 0) {
+            throw parsing_error("Stack contenuti vuoto", tok_first);
+        }
         add_line<OP_PUSHVIEW>();
         break;
     default: {

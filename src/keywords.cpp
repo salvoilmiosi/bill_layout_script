@@ -165,6 +165,7 @@ void parser::read_keyword() {
         if (m_lexer.check_next(TOK_PAREN_BEGIN)) {
             read_expression();
             m_lexer.require(TOK_PAREN_END);
+            ++m_content_level;
             add_line<OP_ADDCONTENT>();
             pushed_content = true;
         }
@@ -176,6 +177,7 @@ void parser::read_keyword() {
         add_line<OP_UNEVAL_JUMP>(OP_JNTE, begin_label);
         add_label(end_label);
         if (pushed_content) {
+            --m_content_level;
             add_line<OP_POPCONTENT>();
         } else {
             add_line<OP_RESETVIEW>();
@@ -187,14 +189,19 @@ void parser::read_keyword() {
         m_lexer.require(TOK_PAREN_BEGIN);
         read_expression();
         m_lexer.require(TOK_PAREN_END);
+        ++m_content_level;
         add_line<OP_ADDCONTENT>();
         read_statement();
+        --m_content_level;
         add_line<OP_POPCONTENT>();
         break;
     }
     case hash("between"): {
         add_line<OP_NEWVIEW>();
         m_lexer.require(TOK_PAREN_BEGIN);
+        if (m_content_level == 0) {
+            throw parsing_error("Stack contenuti vuoto", tok_name);
+        }
         add_line<OP_PUSHVIEW>();
         auto begin_str = m_lexer.require(TOK_STRING).parse_string();
         int begin_len = begin_str.size();
@@ -218,6 +225,7 @@ void parser::read_keyword() {
         if (m_lexer.check_next(TOK_PAREN_BEGIN)) {
             read_expression();
             m_lexer.require(TOK_PAREN_END);
+            ++m_content_level;
             add_line<OP_ADDCONTENT>();
             pushed_content = true;
         }
@@ -235,6 +243,7 @@ void parser::read_keyword() {
         }
 
         if (pushed_content) {
+            --m_content_level;
             add_line<OP_POPCONTENT>();
         } else {
             add_line<OP_RESETVIEW>();
