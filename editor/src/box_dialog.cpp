@@ -246,9 +246,10 @@ void box_dialog::OnCancel(wxCommandEvent &evt) {
 void box_dialog::OnTest(wxCommandEvent &evt) {
     auto box_copy = m_box;
     TransferDataFromWindow();
-    std::string text = app->getPdfDocument().get_text(m_box, app->getBoxRotation());
-    m_box = box_copy;
+    m_box.rotate(app->getBoxRotation());
+    std::string text = app->getPdfDocument().get_text(m_box);
     reader_output->ShowText(wxString(text.c_str(), wxConvUTF8));
+    m_box = box_copy;
 }
 
 static bool operator == (const layout_box &a, const layout_box &b) {

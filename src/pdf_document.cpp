@@ -5,6 +5,41 @@
 
 #include "utils.h"
 
+void pdf_rect::rotate(int amt) {
+    while (amt >= 4) {
+        amt -= 4;
+    }
+    while (amt < 0) {
+        amt += 4;
+    }
+    
+    double tmp;
+    switch (amt) {
+    case 0:
+        break;
+    case 1:
+        tmp = x;
+        x = 1.0 - y - h;
+        y = tmp;
+        tmp = w;
+        w = h;
+        h = tmp;
+        break;
+    case 2:
+        x = 1.0 - x - w;
+        y = 1.0 - y - h;
+        break;
+    case 3:
+        tmp = y;
+        y = 1.0 - x - w;
+        x = tmp;
+        tmp = w;
+        w = h;
+        h = tmp;
+        break;
+    }
+}
+
 void pdf_document::open(const std::filesystem::path &filename) {
     std::ifstream ifs(filename, std::ios::in | std::ios::binary);
     if (ifs.fail()) {
@@ -24,7 +59,7 @@ void pdf_document::open(const std::filesystem::path &filename) {
     }
 }
 
-std::string pdf_document::get_text(pdf_rect rect, int rotation) const {
+std::string pdf_document::get_text(const pdf_rect &rect) const {
     if (!isopen()) return "";
     if (rect.page > num_pages() || rect.page <= 0) return "";
 
@@ -51,31 +86,6 @@ std::string pdf_document::get_text(pdf_rect rect, int rotation) const {
         auto &page = get_page(rect.page);
         auto pgrect = page.page_rect();
         
-        double tmp;
-        switch (rotation) {
-        case 0:
-            break;
-        case 1:
-            tmp = rect.x;
-            rect.x = 1.0 - rect.y - rect.h;
-            rect.y = tmp;
-            tmp = rect.w;
-            rect.w = rect.h;
-            rect.h = tmp;
-            break;
-        case 2:
-            rect.x = 1.0 - rect.x - rect.w;
-            rect.y = 1.0 - rect.y - rect.h;
-            break;
-        case 3:
-            tmp = rect.y;
-            rect.y = 1.0 - rect.x - rect.w;
-            rect.x = tmp;
-            tmp = rect.w;
-            rect.w = rect.h;
-            rect.h = tmp;
-            break;
-        }
         poppler::rectf poppler_rect(rect.x * pgrect.width(), rect.y * pgrect.height(), rect.w * pgrect.width(), rect.h * pgrect.height());
         return to_stdstring(page.text(poppler_rect, poppler_mode));
     }

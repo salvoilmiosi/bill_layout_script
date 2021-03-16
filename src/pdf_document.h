@@ -71,6 +71,8 @@ struct pdf_rect {
     read_mode mode = MODE_DEFAULT;
     box_type type = BOX_RECTANGLE;
     flags_t flags = 0;
+
+    void rotate(int amt);
 };
 
 class pdf_document {
@@ -86,7 +88,7 @@ public:
         return m_document != nullptr;
     }
 
-    std::string get_text(pdf_rect rect, int rotation = 0) const;
+    std::string get_text(const pdf_rect &rect) const;
 
     const std::filesystem::path &filename() const { return m_filename; }
     int num_pages() const { return m_pages.size(); }

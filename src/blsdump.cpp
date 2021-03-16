@@ -86,8 +86,8 @@ int MainApp::OnRun() {
             }
 
             switch (line.command()) {
-            case OP_RDBOX: {
-                auto box = line.get_args<OP_RDBOX>();
+            case OP_SETBOX: {
+                auto box = line.get_args<OP_SETBOX>();
                 std::cout << '\t' << opcode_names[int(line.command())];
                 std::cout << ' ' << read_mode_strings[int(box.mode)];
                 std::cout << ' ' << box_type_strings[int(box.type)];

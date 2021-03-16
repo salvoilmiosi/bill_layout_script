@@ -89,6 +89,8 @@ void parser::read_box(const layout_box &box) {
         throw unexpected_token(tok_label, TOK_IDENTIFIER);
     }
 
+    add_line<OP_SETBOX>(pdf_rect(box));
+
     if (m_flags & PARSER_ADD_COMMENTS) {
         m_lexer.set_comment_callback([this](const std::string &line){
             add_comment(line);
@@ -124,7 +126,9 @@ void parser::read_box(const layout_box &box) {
         }
     }
 
-    add_line<OP_RDBOX>(pdf_rect(box));
+    if (box.type != BOX_NOREAD) {
+        add_line<OP_RDBOX>();
+    }
 
     m_lexer.set_script(box.script);
     while (read_statement(false));

@@ -13,8 +13,9 @@
 
 #define OPCODES \
 O(NOP)                          /* no operation */ \
-O(MVBOX, spacer_index)          /* stack -> spacer[index] */ \
-O(RDBOX, pdf_rect)              /* poppler.get_text -> content_stack */ \
+O(SETBOX, pdf_rect)             /* imposta il box da leggere */ \
+O(MVBOX, spacer_index)          /* stack -> current_box[index] */ \
+O(RDBOX)                        /* poppler.get_text(current_box) -> content_stack */ \
 O(NEXTTABLE)                    /* current_table++ */ \
 O(SELVAR, variable_selector)    /* (name, index, size, flags) -> selected */ \
 O(SETVAR, flags_t)              /* selected, stack -> set(flags) */ \
@@ -26,7 +27,7 @@ O(PUSHREF)                      /* selected.str_view -> stack */ \
 O(PUSHVIEW)                     /* content_stack -> stack */ \
 O(PUSHNUM, fixed_point)         /* number -> stack */ \
 O(PUSHSTR, std::string)         /* str -> stack */ \
-O(GETBOX, spacer_index)         /* spacer[index] -> stack */ \
+O(GETBOX, spacer_index)         /* current_box[index] -> stack */ \
 O(DOCPAGES)                     /* m_doc.pages -> stack */ \
 O(ATE)                          /* (getbox(page) >= docpages()) -> stack */ \
 O(CALL, command_call)           /* stack * numargs -> fun_name -> stack */ \

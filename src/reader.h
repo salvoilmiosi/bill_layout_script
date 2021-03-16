@@ -12,15 +12,6 @@
 #include "stack.h"
 #include "content_view.h"
 
-struct box_spacer {
-    double x = 0;
-    double y = 0;
-    double w = 0;
-    double h = 0;
-    int page = 0;
-    int rotation = 0;
-};
-
 #define READER_FLAGS \
 F(HALT_ON_SETLAYOUT) \
 F(USE_CACHE) \
@@ -86,8 +77,7 @@ private:
 
     std::vector<std::string> m_warnings;
 
-    box_spacer m_spacer;
-    box_spacer m_last_box;
+    pdf_rect m_current_box;
 
     size_t m_program_counter;
     bool m_jumped = false;
