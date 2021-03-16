@@ -118,8 +118,15 @@ public:
 
 template<typename Function> struct check_args {};
 template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : check_args_impl<true, Ts ...> {
-    using types = type_list<Ts ...>;
+    static_assert(check_args_impl<true, Ts...>::valid, "Gli argomenti della funzione non sono validi");
 };
+
+template<typename T, typename ... Ts> struct function_types_impl {};
+template<typename T, typename ... Ts> struct function_types_impl<T(*)(Ts ...)> {
+    using type = type_list<Ts ...>;
+};
+
+template<typename T> using function_types = typename function_types_impl<T>::type;
 
 template<typename TypeList, size_t I> inline decltype(auto) get_arg(arg_list &args) {
     using type = std::decay_t<get_nth_t<I, TypeList>>;
@@ -136,32 +143,27 @@ template<typename TypeList, size_t I> inline decltype(auto) get_arg(arg_list &ar
         return convert_var<convert_rvalue<type>>(args[I]);
     }
 }
+struct function_handler : std::function<variable(arg_list&&)> {
+    using base = std::function<variable(arg_list&&)>;
 
-using function_base = std::function<variable(arg_list&&)>;
-struct function_handler : function_base {
-    size_t minargs;
-    size_t maxargs;
+    const size_t minargs;
+    const size_t maxargs;
 
-    template<typename Function> function_handler(Function fun) {
-        // l'operatore unario + converte una funzione lambda senza capture
-        // in puntatore a funzione. In questo modo il compilatore può
-        // dedurre i tipi dei parametri della funzione tramite i template
+    // l'operatore unario + converte una funzione lambda senza capture
+    // in puntatore a funzione. In questo modo il compilatore può
+    // dedurre i tipi dei parametri della funzione tramite i template
 
-        using fun_args = check_args<decltype(+fun)>;
-        static_assert(fun_args::valid);
-
-        // Viene creata una closure che passa automaticamente gli argomenti
-        // da arg_list alla funzione fun, convertendoli nei tipi giusti
-
-        function_base::operator = ([fun](arg_list &&args) -> variable {
+    // Viene creata una closure che passa automaticamente gli argomenti
+    // da arg_list alla funzione fun, convertendoli nei tipi giusti
+    function_handler(auto fun) :
+        base([fun](arg_list &&args) -> variable {
+            using types = function_types<decltype(+fun)>;
             return [&] <std::size_t ... Is> (std::index_sequence<Is...>) {
-                return fun(get_arg<typename fun_args::types, Is>(args) ...);
-            }(std::make_index_sequence<fun_args::types::size>{});
-        });
-
-        minargs = fun_args::minargs;
-        maxargs = fun_args::maxargs;
-    }
+                return fun(get_arg<types, Is>(args) ...);
+            }(std::make_index_sequence<types::size>{});
+        }),
+        minargs(check_args<decltype(+fun)>::minargs),
+        maxargs(check_args<decltype(+fun)>::maxargs) {}
 };
 
 extern const std::map<std::string, function_handler, std::less<>> function_lookup;
