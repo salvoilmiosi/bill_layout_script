@@ -19,7 +19,7 @@ template<> inline const std::string &convert_var<const std::string &> (variable 
 
 template<> inline std::string_view  convert_var<std::string_view> (variable &var) { return var.str_view(); }
 template<> inline fixed_point  convert_var<fixed_point> (variable &var) { return var.number(); }
-template<> inline time_t       convert_var<time_t>     (variable &var) { return var.date(); }
+template<> inline wxDateTime   convert_var<wxDateTime> (variable &var) { return var.date(); }
 template<> inline int          convert_var<int>        (variable &var) { return var.as_int(); }
 template<> inline float        convert_var<float>      (variable &var) { return var.as_double(); }
 template<> inline double       convert_var<double>     (variable &var) { return var.as_double(); }
@@ -155,19 +155,21 @@ struct function_handler : std::function<variable(arg_list&&)> {
 
     // Viene creata una closure che passa automaticamente gli argomenti
     // da arg_list alla funzione fun, convertendoli nei tipi giusti
-    function_handler(auto fun) :
-        base([fun](arg_list &&args) -> variable {
+    template<typename Function>
+    function_handler(Function fun) :
+        base([](arg_list &&args) -> variable {
             using types = function_types<decltype(+fun)>;
             return [&] <std::size_t ... Is> (std::index_sequence<Is...>) {
-                return fun(get_arg<types, Is>(args) ...);
+                return Function{}(get_arg<types, Is>(args) ...);
             }(std::make_index_sequence<types::size>{});
         }),
         minargs(check_args<decltype(+fun)>::minargs),
         maxargs(check_args<decltype(+fun)>::maxargs) {}
 };
 
-extern const std::map<std::string, function_handler, std::less<>> function_lookup;
+using function_map = std::map<std::string, function_handler, std::less<>>;
+using function_iterator = function_map::const_iterator;
 
-using function_iterator = decltype(function_lookup)::const_iterator;
+extern const function_map function_lookup;
 
 #endif

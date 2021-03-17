@@ -76,7 +76,7 @@ struct command_call {
     command_call(std::string_view name, int numargs) : fun(function_lookup.find(name)), numargs(numargs) {
         assert(fun != function_lookup.end());
     }
-    command_call(const function_iterator &fun, int numargs) : fun(fun), numargs(numargs) {}
+    command_call(function_iterator fun, int numargs) : fun(fun), numargs(numargs) {}
 };
 
 #define SPACER_INDICES \

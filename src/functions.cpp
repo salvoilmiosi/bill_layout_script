@@ -5,7 +5,6 @@
 #include <numeric>
 
 #include <fmt/format.h>
-#include <wx/datetime.h>
 
 #include "intl.h"
 
@@ -169,7 +168,9 @@ static std::string table_row_regex(std::string_view header, R &&names) {
     return ret;
 }
 
-static bool search_date(wxDateTime &dt, std::string_view value, const std::string &format, std::string regex, int index) {
+// Viene creata un'espressione regolare che corrisponde alla stringa di formato valido per strptime,
+// poi cerca la data in value e la parsa. Ritorna time_t=0 se c'e' errore.
+static wxDateTime search_date(std::string_view value, const std::string &format, std::string regex, int index) {
     std::string date_regex = "\\b";
     for (auto it = format.begin(); it != format.end(); ++it) {
         if (*it == '.') {
@@ -216,30 +217,13 @@ static bool search_date(wxDateTime &dt, std::string_view value, const std::strin
         string_replace(regex, "\\D", date_regex);
     }
 
+    wxDateTime date(time_t(0));
     wxString::const_iterator end;
-    return dt.ParseFormat(search_regex(regex, value, index).str(), format, wxDateTime(time_t(0)), &end);
+    date.ParseFormat(search_regex(regex, value, index).str(), format, wxDateTime(time_t(0)), &end);
+    return date;
 }
 
-// cerca una data
-static time_t parse_date(std::string_view value, const std::string &format, const std::string &regex, int index) {
-    wxDateTime dt;
-    if (search_date(dt, value, format, regex, index)) {
-        return dt.GetTicks();
-    }
-    return 0;
-}
-
-// cerca una data e setta il giorno a 1
-static time_t parse_month(std::string_view value, const std::string &format, const std::string &regex, int index) {
-    wxDateTime dt;
-    if (search_date(dt, value, format, regex, index)) {
-        dt.SetDay(1);
-        return dt.GetTicks();
-    }
-    return 0;
-}
-
-const std::map<std::string, function_handler, std::less<>> function_lookup {
+const function_map function_lookup = {
     {"eq",  [](const variable &a, const variable &b) { return a == b; }},
     {"neq", [](const variable &a, const variable &b) { return a != b; }},
     {"lt",  [](const variable &a, const variable &b) { return a < b; }},
@@ -308,30 +292,25 @@ const std::map<std::string, function_handler, std::less<>> function_lookup {
         return search_regex_captures(regex, str);
     }},
     {"date", [](std::string_view str, const std::string &format, std::optional<std::string> regex, std::optional<int> index) {
-        return parse_date(str, format, regex.value_or(""), index.value_or(1));
+        return search_date(str, format, regex.value_or(""), index.value_or(1));
     }},
     {"month", [](std::string_view str, const std::string &format, std::optional<std::string> regex, std::optional<int> index) {
-        return parse_month(str, format, regex.value_or(""), index.value_or(1));
+        return search_date(str, format, regex.value_or(""), index.value_or(1)).SetDay(1);
     }},
     {"replace", [](std::string &&str, std::string_view from, std::string_view to) {
         return string_replace(str, from, to);
     }},
-    {"date_format", [](time_t date, const std::string &format) {
-        return wxDateTime(date).Format(format).ToStdString();
+    {"date_format", [](wxDateTime date, const std::string &format) {
+        return date.Format(format).ToStdString();
     }},
-    {"month_add", [](time_t date, int num) {
-        wxDateTime dt(date);
-        dt += wxDateSpan(0, num);
-
-        return dt.GetTicks();
+    {"month_add", [](wxDateTime date, int num) {
+        return date.Add(wxDateSpan(0, num));
     }},
-    {"last_day", [](time_t date) {
-        wxDateTime dt(date);
-        dt.SetToLastMonthDay(dt.GetMonth(), dt.GetYear());
-        return dt.GetTicks();
+    {"last_day", [](wxDateTime date) {
+        return date.SetToLastMonthDay(date.GetMonth(), date.GetYear());
     }},
-    {"date_between", [](time_t date, time_t date_begin, time_t date_end) {
-        return wxDateTime(date).IsBetween(wxDateTime(date_begin), wxDateTime(date_end));
+    {"date_between", [](wxDateTime date, wxDateTime date_begin, wxDateTime date_end) {
+        return date.IsBetween(date_begin, date_end);
     }},
     {"singleline", [](std::string_view str) {
         return string_singleline(str);

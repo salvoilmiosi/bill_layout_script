@@ -1,10 +1,4 @@
 #include "variable.h"
-#include "reader.h"
-
-#include "utils.h"
-
-#include <regex>
-#include <wx/datetime.h>
 
 variable &variable::operator = (const variable &other) noexcept {
     m_type = other.m_type;

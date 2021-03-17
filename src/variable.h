@@ -3,7 +3,7 @@
 
 #include <string>
 #include <string_view>
-
+#include <wx/datetime.h>
 #include "fixed_point.h"
 
 enum variable_type : uint8_t {
@@ -43,8 +43,8 @@ public:
     template<typename T> requires(std::is_arithmetic_v<T>)
     variable(T value) noexcept : m_type(VAR_NUMBER), m_num(fixed_point(typename signed_type<T>::type(value))) {}
 
-    variable(time_t value) noexcept : m_type(VAR_DATE) {
-        m_num.setUnbiased(value);
+    variable(const wxDateTime &value) noexcept : m_type(VAR_DATE) {
+        m_num.setUnbiased(value.GetTicks());
     }
 
     static const variable &null_var() noexcept {
@@ -77,9 +77,9 @@ public:
         return m_num;
     }
 
-    time_t date() const noexcept {
+    wxDateTime date() const noexcept {
         set_date();
-        return m_num.getUnbiased();
+        return wxDateTime(time_t(m_num.getUnbiased()));
     }
 
     int as_int() const noexcept {
