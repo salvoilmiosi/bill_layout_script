@@ -7,14 +7,11 @@ OUT_DIR=../work/letture
 
 start=$(date +%s)
 
-GREEN='\033[32m'
-NC='\033[0m'
-
 mkdir -p $OUT_DIR
 for d in $IN_DIR/*; do
-    echo -e "${GREEN}Lettura $(basename "$d")...${NC}"
+    echo -e "\033[32mLettura $(basename "$d")...\033[0m"
     python read.py "$d" "$OUT_DIR/$(basename "$d").json" ${@:1}
 done
 
 runtime=$(($(date +%s)-start))
-echo -e "${GREEN}Finito in $((runtime/60))m $((runtime%60))s${NC}"
+echo -e "\033[32mFinito in $((runtime/60))m $((runtime%60))s\033[0m"

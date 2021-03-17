@@ -1,10 +1,13 @@
 from multiprocessing import Pool, cpu_count
-from termcolor import colored
 from pathlib import Path
 from datetime import date, datetime
 from argparse import ArgumentParser
 import json
+import os
+
 import pyreader
+
+os.system('color')
 
 parser = ArgumentParser()
 parser.add_argument('input_directory')
@@ -69,15 +72,15 @@ def read_pdf(pdf_file):
         ret['layouts'] = [str(Path(x).resolve()) for x in out_dict['layouts']]
         if 'warnings' in out_dict:
             ret['warnings'] = out_dict['warnings']
-            print(colored('{0} ### {1}'.format(rel_path, ', '.join(out_dict['warnings'])), 'yellow'))
+            print('\033[33m{0} ### {1}\033[0m'.format(rel_path, ', '.join(out_dict['warnings'])))
         else:
             print(rel_path)
     except pyreader.Error as err:
         ret['error'] = str(err)
-        print(colored('{0} ### {1}'.format(rel_path, ret['error']), 'red'))
+        print('\033[31m{0} ### {1}\033[0m'.format(rel_path, ret['error']))
     except pyreader.Timeout as err:
         ret['error'] = str(err)
-        print(colored('{0} ### {1}'.format(rel_path, ret['error']), 'magenta'))
+        print('\033[35m{0} ### {1}\033[0m'.format(rel_path, ret['error']))
 
     return ret
 

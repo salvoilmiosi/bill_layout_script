@@ -2,10 +2,12 @@ import requests
 import urllib3
 import json
 import sys
+import os
 from pathlib import Path
 from getpass import getpass
 from datetime import date
-from termcolor import colored
+
+os.system('color')
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 session = requests.Session()
@@ -24,7 +26,7 @@ def filter_and_upload(f, do_upload = True):
         if (uploadr['head']['status']['code'] == 0):
             print(f)
         else:
-            print(f, colored(uploadr['head']['status']['message'],'red'))
+            print('{0} \033[31m{1}\033[0m'.format(f, uploadr['head']['status']['message']))
 
 try:
     filter_year = int(input("Filtrare fatture prima dell'anno: "))

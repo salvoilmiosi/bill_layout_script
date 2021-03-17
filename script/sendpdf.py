@@ -1,11 +1,12 @@
 import requests
 import urllib3
 import json
-import sys
+import os
 from pathlib import Path
 from getpass import getpass
 from datetime import date
-from termcolor import colored
+
+os.system('color')
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 session = requests.Session()
@@ -65,4 +66,4 @@ for id_fattura, fattura in getFatture['fatture'].items():
         id_file = saveres['body']['save']['file']['id']
 
         json.loads(session.post(address + '/zelda/fornitura.ws', verify=False, data={'f':'associaFileFattura','id_fattura':id_fattura,'id_file':id_file}).text)
-        print(colored(filename, 'green'))
+        print('\033[32m{0}\033[0m'.format(filename))

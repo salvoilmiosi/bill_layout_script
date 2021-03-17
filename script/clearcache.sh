@@ -2,4 +2,6 @@
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-rm $(find "../layouts" -name "*.cache")
+IN_DIR=../layouts
+
+rm $(find "$IN_DIR" -name "*.cache")
