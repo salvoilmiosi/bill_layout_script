@@ -168,59 +168,68 @@ static std::string table_row_regex(std::string_view header, R &&names) {
     return ret;
 }
 
-// Viene creata un'espressione regolare che corrisponde alla stringa di formato valido per strptime,
-// poi cerca la data in value e la parsa. Ritorna time_t=0 se c'e' errore.
-static wxDateTime search_date(std::string_view value, const std::string &format, std::string regex, int index) {
-    std::string date_regex = "\\b";
+// Prende un formato per strptime e lo converte in una regex corrispondente
+static std::string date_regex(std::string_view format) {
+    std::string ret = "\\b";
     for (auto it = format.begin(); it != format.end(); ++it) {
         if (*it == '.') {
-            date_regex += "\\.";
+            ret += "\\.";
         } else if (*it == '%') {
             ++it;
             switch (*it) {
             case 'h':
             case 'b':
             case 'B':
-                date_regex += "\\w+";
+                ret += "\\w+";
                 break;
             case 'd':
-                date_regex += "\\d{1,2}";
+                ret += "\\d{1,2}";
                 break;
             case 'm':
             case 'y':
-                date_regex += "\\d{2}";
+                ret += "\\d{2}";
                 break;
             case 'Y':
-                date_regex += "\\d{4}";
+                ret += "\\d{4}";
                 break;
             case 'n':
-                date_regex += '\n';
+                ret += '\n';
                 break;
             case 't':
-                date_regex += '\t';
+                ret += '\t';
                 break;
             case '%':
-                date_regex += '%';
+                ret += '%';
                 break;
             default:
                 throw std::invalid_argument("Stringa formato data non valida");
             }
         } else {
-            date_regex += *it;
+            ret += *it;
         }
     }
-    date_regex += "\\b";
+    ret += "\\b";
+    return ret;
+}
 
+// Viene creata un'espressione regolare che corrisponde alla stringa di formato valido per strptime,
+// poi cerca la data in value e la parsa. Ritorna time_t=0 se c'e' errore.
+static variable search_date(std::string_view value, const std::string &format, std::string regex, int index) {
     if (regex.empty()) {
-        regex = "(" + date_regex +  ")";
+        regex = date_regex(format);
+        index = 0;
     } else {
-        string_replace(regex, "\\D", date_regex);
+        string_replace(regex, "\\D", date_regex(format));
     }
 
-    wxDateTime date(time_t(0));
-    wxString::const_iterator end;
-    date.ParseFormat(search_regex(regex, value, index).str(), format, wxDateTime(time_t(0)), &end);
-    return date;
+    if (auto search_res = search_regex(regex, value, index); !search_res.empty()) {
+        wxDateTime date;
+        wxString::const_iterator end;
+        if (date.ParseFormat(search_res.str(), format, wxDateTime(time_t(0)), &end)) {
+            return date;
+        }
+    }
+    return variable::null_var();
 }
 
 const function_map function_lookup = {
@@ -291,14 +300,20 @@ const function_map function_lookup = {
     {"captures", [](std::string_view str, const std::string &regex) {
         return search_regex_captures(regex, str);
     }},
+    {"replace", [](std::string &&str, std::string_view from, std::string_view to) {
+        return string_replace(str, from, to);
+    }},
+    {"date_regex", [](std::string_view format) {
+        return date_regex(format);
+    }},
     {"date", [](std::string_view str, const std::string &format, std::optional<std::string> regex, std::optional<int> index) {
         return search_date(str, format, regex.value_or(""), index.value_or(1));
     }},
     {"month", [](std::string_view str, const std::string &format, std::optional<std::string> regex, std::optional<int> index) {
-        return search_date(str, format, regex.value_or(""), index.value_or(1)).SetDay(1);
-    }},
-    {"replace", [](std::string &&str, std::string_view from, std::string_view to) {
-        return string_replace(str, from, to);
+        if (auto date = search_date(str, format, regex.value_or(""), index.value_or(1)); !date.empty()) {
+            return variable(date.date().SetDay(1));
+        }
+        return variable::null_var();
     }},
     {"date_format", [](wxDateTime date, const std::string &format) {
         return date.Format(format).ToStdString();
