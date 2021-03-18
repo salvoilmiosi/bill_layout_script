@@ -54,6 +54,7 @@ table_values = [
     TableValue('PEF2',                  'prezzo_energia',   index=1, type='number', number_format='0.00000000', column_width=11),
     TableValue('PEF3',                  'prezzo_energia',   index=2, type='number', number_format='0.00000000', column_width=11),
     TableValue('Sbilanciamento',        'sbilanciamento',            type='number', number_format='0.00000000', column_width=11),
+    TableValue('Dispacciamento',        'dispacciamento',            type='number', number_format='0.00000000', column_width=11),
     TableValue('Disp. Var',             'disp_var',                  type='number', number_format='0.00000000', column_width=11)
 ]
 

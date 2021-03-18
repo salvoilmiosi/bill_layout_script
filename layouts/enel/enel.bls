@@ -141,7 +141,6 @@ $if($isset(mese_fine)) {
   mese_fattura=$month_add(mese_fattura,::calc_mese)
   ::calc_mese+=1
 }
-_mese=$date_format(mese_fattura,"%m/%y")
 ### End Script
 ### End Box
 
@@ -188,42 +187,51 @@ $if($contains(@,"Energia reattiva")) {
 ### Page 3
 ### Rect 0.0903738 0.0063137496 0.053058922 0.03473528
 ### Script
+_fine_periodo = $date_format($last_day(mese_fattura),"%d/%m/%y")
+_regex_periodo = $format(/(.+ dal \d\d\/\d\d\/\d\d al $0[^]+?)(?=.+ dal \d\d|Totale|$)/, _fine_periodo)
 $with(&::_dettaglio) {
-  $step($captures(@,$format(/Energia (?:fascia F1|(?:ore di )?picco|mese) dal \d\d\/$0.+kWh (\N) (\N)/,_mese))) {
-    %prezzo_energia[0] %energia_attiva[0]
-  }
-  $step($captures(@,$format(/Energia (?:fascia F2|(?:ore di )?fuori picco) dal \d\d\/$0.+kWh (\N) (\N)/,_mese))) {
-    %prezzo_energia[1] %energia_attiva[1]
-  }
-  $step($captures(@,$format(/Energia fascia F3 dal \d\d\/$0.+kWh (\N) (\N)/,_mese))) {
-    %prezzo_energia[2] %energia_attiva[2]
-  }
-  $with($search(@,$format(/Energia attiva dal \d\d\/$0.+\n((.*Energia Reattiva.*\n)+)/,_mese))) {
-    %penale_reattiva_inf75=$search(@,/entro il 75%.+ (\N)\n/)
-    %penale_reattiva_sup75=$search(@,/oltre il 75%.+ (\N)\n/)
-  }
-  %pcv=$search(@,$format(/Commercializzazione vendita dal \d\d\/$0.+mesi 1 (\N)/,_mese))
-  %sbilanciamento=$search(@,$format(/Corrispettivo di Sbilanciamento dal \d\d\/$0.+kWh (\N)/,_mese))
-  %accise=$search(@,$format(/Accisa sull'energia elettrica \(entro 200000\) dal \d\d\/$0.+kWh \N \N (\N)/,_mese))
-
   $between("SPESA PER L'ENERGIA", "Totale spesa per l'energia") {
-    $with($matches(@,$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
+    $with($matches(@,$format(/al $0([^]+?)(dal|Totale|$)/,_fine_periodo))) {
       ^spesa_materia_energia=$matches(@,/(\N)(?:\n|$)/)
     }
+    $step($captures($search($search(@, /Energia (?:fascia F1|ore picco|mese)\n([^]+?)Totale energia/),
+      _regex_periodo),/\u20ac\/kWh (\N) (\N)/)) { %prezzo_energia[0] %energia_attiva[0] }
+    $step($captures($search($search(@, /Energia (?:fascia F2|ore fuori picco)\n([^]+?)Totale energia/),
+      _regex_periodo),/\u20ac\/kWh (\N) (\N)/)) { %prezzo_energia[1] %energia_attiva[1] }
+    $step($captures($search($search(@, /Energia fascia F3\n([^]+?)Totale energia/),
+      _regex_periodo),/\u20ac\/kWh (\N) (\N)/)) { %prezzo_energia[2] %energia_attiva[2] }
+    $between("Altri importi materia energia", "Totale altri importi materia energia") {
+      $with($matches(@,_regex_periodo)) {
+        %pcv=$search(@,/Commercializzazione vendita .*\u20ac\/cliente\/ mese (\N)/)
+        %dispacciamento=$search(@,/Dispacciamento .*\u20ac\/kWh (\N)/)
+        %sbilanciamento=$search(@,/Corrispettivo di Sbilanciamento .+\u20ac\/kWh (\N)/)
+      }
+    }
   }
-  $between("SPESA PER IL TRASPORTO", "Totale spesa per il trasporto") {
-    $with($matches(@,$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
+  $newview {
+    $setbegin($min($indexof(@,"SPESA PER IL TRASPORTO"),$indexof(@,"SPESA TRASPORTO")))
+    $setend($indexof(@,"Totale spesa"))
+    $foreach($matches(@,_regex_periodo)) {
       ^trasporto_gestione+=$matches(@,/mesi.?1 (\N)/)
       ^trasporto_gestione+=$matches(@,/\/kWh \N \N (\N)/)
       ^trasporto_gestione+=$matches(@,/\/kVarh \N \N (\N)/)
       %potenza[0:3]=$search(@,/kW (\N)/)
     }
+    $between("Quota energia") {
+      $with($matches(@,_regex_periodo)) {
+        %penale_reattiva_inf75=$search(@,/entro il 75% .*\u20ac\/kVarh (\N)/)
+        %penale_reattiva_sup75=$search(@,/oltre il 75% .*\u20ac\/kVarh (\N)/)
+      }
+    }
   }
   $between("SPESA ONERI DI SISTEMA", "Totale spesa oneri di sistema") {
-    $foreach($matches(@,$format(/al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese))) {
+    $foreach($matches(@,$format(/al $0([^]+?)(dal|Totale|$)/,_fine_periodo))) {
       %oneri+=$search(@,/mesi.?1 (\N)/)
       %oneri+=$search(@,/\/kWh \N \N (\N)/)
     }
+  }
+  $between("IMPOSTE E IVA", "Totale imposte e IVA") {
+    %accise=$search(@,$format(/Accisa sull'energia elettrica \(entro 200000\) dal \d\d\/\d\d\/\d\d al $0 \u20ac\/kWh \N \N (\N)/,_fine_periodo))
   }
 	
   imponibile=$sum(spesa_materia_energia, trasporto_gestione, oneri, accise)
