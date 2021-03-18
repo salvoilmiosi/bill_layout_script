@@ -35,7 +35,8 @@ void move_to_end(T &vec, size_t begin, size_t end) {
 }
 
 // divide una stringa per separatore
-inline auto string_split(std::string_view str, std::string_view separator = ",") {
+template<std::ranges::input_range R>
+inline auto string_split(std::string_view str, R &&separator) {
     return str
         | std::views::split(separator)
         | std::views::transform([](auto && range) {
@@ -43,8 +44,8 @@ inline auto string_split(std::string_view str, std::string_view separator = ",")
         });
 }
 
-inline auto string_split(std::string_view str, char separator) {
-    return string_split(str, {&separator, 1});
+inline auto string_split(std::string_view str, char separator = ',') {
+    return string_split(str, std::views::single(separator));
 }
 
 // unisce tutte le stringhe in un range di stringhe

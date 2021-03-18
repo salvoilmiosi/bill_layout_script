@@ -188,12 +188,10 @@ $if($contains(@,"Energia reattiva")) {
 ### Rect 0.0903738 0.0063137496 0.053058922 0.03473528
 ### Script
 _fine_periodo = $date_format($last_day(mese_fattura),"%d/%m/%y")
-_regex_periodo = $format(/(.+ dal \d\d\/\d\d\/\d\d al $0[^]+?)(?=.+ dal \d\d|Totale|$)/, _fine_periodo)
+_regex_periodo = $format(/(.+ dal \d\d\/\d\d\/\d\d al $0[^]+?)(?=\n.+ dal \d\d|Totale|$)/, _fine_periodo)
 $with(&::_dettaglio) {
   $between("SPESA PER L'ENERGIA", "Totale spesa per l'energia") {
-    $with($matches(@,$format(/al $0([^]+?)(dal|Totale|$)/,_fine_periodo))) {
-      ^spesa_materia_energia=$matches(@,/(\N)(?:\n|$)/)
-    }
+    ^spesa_materia_energia=$matches($matches(@,_regex_periodo),/\N \N (\N)/)
     $step($captures($search($search(@, /Energia (?:fascia F1|ore picco|mese)\n([^]+?)Totale energia/),
       _regex_periodo),/\u20ac\/kWh (\N) (\N)/)) { %prezzo_energia[0] %energia_attiva[0] }
     $step($captures($search($search(@, /Energia (?:fascia F2|ore fuori picco)\n([^]+?)Totale energia/),
