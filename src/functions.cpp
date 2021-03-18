@@ -262,6 +262,9 @@ const function_map function_lookup = {
         }
         return ret;
     }},
+    {"list", [](varargs<std::string_view> args) {
+        return string_join(args, UNIT_SEPARATOR);
+    }},
     {"sum", [](varargs<fixed_point> args) {
         return std::accumulate(args.begin(), args.end(), fixed_point());
     }},

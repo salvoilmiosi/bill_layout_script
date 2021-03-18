@@ -201,18 +201,13 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
 
     std::filesystem::path cache_filename = filename;
     cache_filename.replace_extension(".cache");
+
+    auto is_modified = [&](const std::filesystem::path &file) {
+        return std::filesystem::last_write_time(file) > std::filesystem::last_write_time(cache_filename);
+    };
     
     bytecode new_code;
-    // Se settata flag USE_CACHE, leggi il file di cache e
-    // ricompila solo se uno dei file importati è stato modificato.
-    // Altrimenti ricompila sempre
-    if (!(m_flags & READER_USE_CACHE && std::filesystem::exists(cache_filename))
-        || std::filesystem::last_write_time(filename) > std::filesystem::last_write_time(cache_filename)
-        || std::ranges::any_of(new_code = binary_bls::read(cache_filename), [&](const command_args &line) {
-            return line.command() == OP_IMPORT
-                && std::filesystem::last_write_time(line.get_args<OP_IMPORT>().filename)
-                > std::filesystem::last_write_time(cache_filename);
-        })) {
+    auto recompile = [&] {
         parser my_parser;
         if (m_flags & READER_RECURSIVE) {
             my_parser.add_flags(PARSER_RECURSIVE_IMPORTS);
@@ -222,6 +217,20 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
         if (m_flags & READER_USE_CACHE) {
             binary_bls::write(new_code, cache_filename);
         }
+    };
+
+    // Se settata flag USE_CACHE, leggi il file di cache e
+    // ricompila solo se uno dei file importati è stato modificato.
+    // Altrimenti ricompila sempre
+    if (m_flags & READER_USE_CACHE && std::filesystem::exists(cache_filename) && !is_modified(filename)) {
+        new_code = binary_bls::read(cache_filename);
+        if (m_flags & READER_RECURSIVE && std::ranges::any_of(new_code, [&](const command_args &line) {
+            return line.command() == OP_IMPORT && is_modified(line.get_args<OP_IMPORT>().filename);
+        })) {
+            recompile();
+        }
+    } else {
+        recompile();
     }
 
     return add_code(std::move(new_code));

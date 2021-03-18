@@ -230,9 +230,9 @@ void parser::read_keyword() {
             pushed_content = true;
         }
 
+        m_lexer.require(TOK_BRACE_BEGIN);
         add_line<OP_SPLITVIEW>();
         
-        m_lexer.require(TOK_BRACE_BEGIN);
         while (true) {
             read_statement();
             if (! m_lexer.check_next(TOK_BRACE_END)) {
