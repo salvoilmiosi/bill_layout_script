@@ -123,12 +123,11 @@ public:
             std::for_each_n(it, length, [&](auto &var) {
                 var.second += value;
             });
-        } else if (length == 1) {
-            it->second = std::move(value);
         } else {
-            std::for_each_n(it, length, [&](auto &var) {
-                var.second = value;
-            });
+            for (int n = length; n > 1; ++it, --n) {
+                it->second = value;
+            }
+            it->second = std::move(value);
         }
     }
 };
