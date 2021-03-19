@@ -54,7 +54,7 @@ struct vararg_converter {
 using arg_list = std::span<variable>;
 
 template<typename T> using varargs_base = std::ranges::transform_view<arg_list, vararg_converter<T>>;
-template<typename T> struct varargs : varargs_base<T> {
+template<typename T, size_t Minargs = 0> struct varargs : varargs_base<T> {
     using var_type = T;
     template<typename U>
     varargs(U &&obj) : varargs_base<T>(std::forward<U>(obj), vararg_converter<T>{}) {}
@@ -67,7 +67,7 @@ template<typename T> struct is_optional_impl<std::optional<T>> : std::bool_const
 template<typename T> struct is_optional : is_optional_impl<std::decay_t<T>> {};
 
 template<typename T> struct is_varargs_impl : std::false_type {};
-template<typename T> struct is_varargs_impl<varargs<T>> : std::bool_constant<is_variable<T>{}> {};
+template<typename T, size_t Minargs> struct is_varargs_impl<varargs<T, Minargs>> : std::bool_constant<is_variable<T>{}> {};
 template<typename T> struct is_varargs : is_varargs_impl<std::decay_t<T>> {};
 
 template<typename ... Ts> struct type_list {
@@ -94,6 +94,16 @@ template<bool Req> struct check_args_impl<Req> {
     static constexpr bool valid = true;
 };
 
+template<typename T> struct vararg_minargs {
+    static constexpr size_t value = 0;
+};
+
+template<typename T, size_t Minargs> struct vararg_minargs<varargs<T, Minargs>> {
+    static constexpr size_t value = Minargs;
+};
+
+template<typename T> constexpr size_t vararg_minargs_v = vararg_minargs<T>::value;
+
 template<bool Req, typename First, typename ... Ts>
 class check_args_impl<Req, First, Ts ...> {
 private:
@@ -106,14 +116,14 @@ private:
 
 public:
     // Conta il numero di tipi che non sono std::optional<T>
-    static constexpr size_t minargs = Req && var ? 1 + recursive::minargs : 0;
+    static constexpr size_t minargs = Req && var ? 1 + recursive::minargs : vec ? vararg_minargs_v<First> : recursive::minargs;
     // Conta il numero totale di tipi o -1 (INT_MAX) se l'ultimo è varargs<T>
     static constexpr size_t maxargs = (vec || recursive::maxargs == std::numeric_limits<size_t>::max()) ?
         std::numeric_limits<size_t>::max() : 1 + recursive::maxargs;
 
     // true solo se i tipi seguono il pattern (var*N, opt*M, [vec])
     // Se Req==false e var==true, valid=false
-    static constexpr bool valid = vec ? sizeof...(Ts) == 0 : (Req || opt) && recursive::valid;
+    static constexpr bool valid = vec ? sizeof...(Ts) == 0 && (Req || vararg_minargs_v<First> == 0) : (Req || opt) && recursive::valid;
 };
 
 template<typename Function> struct check_args {};
@@ -133,12 +143,12 @@ template<typename TypeList, size_t I> inline decltype(auto) get_arg(arg_list &ar
     if constexpr (is_optional<type>{}) {
         using opt_type = typename type::value_type;
         if (I >= args.size()) {
-            return std::optional<opt_type>(std::nullopt);
+            return type(std::nullopt);
         } else {
-            return std::optional<opt_type>(convert_var<convert_rvalue<opt_type>>(args[I]));
+            return type(convert_var<convert_rvalue<opt_type>>(args[I]));
         }
     } else if constexpr (is_varargs<type>{}) {
-        return varargs<typename type::var_type>(args.subspan(I));
+        return type(args.subspan(I));
     } else {
         return convert_var<convert_rvalue<type>>(args[I]);
     }

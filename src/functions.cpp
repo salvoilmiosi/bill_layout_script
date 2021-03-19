@@ -274,16 +274,10 @@ const function_map function_lookup = {
         int pow = dec::dec_utils<dec::def_round_policy>::pow10(decimal_places);
         return fixed_point((num * pow).getAsInteger()) / pow;
     }},
-    {"max", [](varargs<variable> args) {
-        if (args.empty()) {
-            return variable::null_var();
-        }
+    {"max", [](varargs<variable, 1> args) {
         return *std::ranges::max_element(args);
     }},
-    {"min", [](varargs<variable> args) {
-        if (args.empty()) {
-            return variable::null_var();
-        }
+    {"min", [](varargs<variable, 1> args) {
         return *std::ranges::min_element(args);
     }},
     {"percent", [](const std::string &str) {
