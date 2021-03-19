@@ -6,8 +6,9 @@
 ### Mode DEFAULT
 ### Page 1
 ### Rect 0.7381144 0.0045636054 0.23529412 0.022818027
+### Flags TRIM
 ### Script
-$ifnot ($contains(@, "ENERGIA ELETTRICA")) {
+$if(@ != "ENERGIA ELETTRICA") {
   $error("Edison: Stringa di Convalida Errata")
 }
 ### End Script

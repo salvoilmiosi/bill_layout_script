@@ -16,8 +16,9 @@ fornitore="MetaEnergia"
 ### Mode DEFAULT
 ### Page 1
 ### Rect 0.062384654 0.31081033 0.7538146 0.026667157
+### Flags TRIM
 ### Script
-$ifnot ($contains(@, "FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA - MERCATO LIBERO")) {
+$if(@ != "FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA - MERCATO LIBERO") {
   $error("MetaEnergia: Stringa di Convalida Errata")
 }
 ### End Script

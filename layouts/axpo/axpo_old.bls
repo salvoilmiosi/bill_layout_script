@@ -6,8 +6,9 @@
 ### Mode DEFAULT
 ### Page 1
 ### Rect 0.5398872 0.030786771 0.3545528 0.05587229
+### Flags TRIM
 ### Script
-$ifnot($contains(@, "Bolletta Energia Elettrica\nFornitura del Mercato Libero"))
+$if(@ != "Bolletta Energia Elettrica\nFornitura del Mercato Libero")
   $error("Axpo (old): Stringa di Convalida Errata")
 ### End Script
 ### End Box
@@ -203,13 +204,14 @@ $with(&_dettaglio) {
 ### Mode DEFAULT
 ### Page 3
 ### Rect 0.040290087 0.09806158 0.20306204 0.029646521
+### Flags TRIM
 ### Spacers
 p+::spacer_multipod
 p+::next_page
 ### End Spacers
 ### Script
 $if(::spacer_multipod) {
-  $if ($contains(@, "Dati di fornitura")) {
+  $if(@ == "Dati di fornitura") {
     ::next_page+=1
     $nexttable()
     $goto(nome_fornitore)

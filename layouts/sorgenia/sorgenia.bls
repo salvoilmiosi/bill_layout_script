@@ -6,8 +6,9 @@
 ### Mode DEFAULT
 ### Page 1
 ### Rect 0.07538146 0.31081033 0.82919604 0.024828043
+### Flags TRIM
 ### Script
-$ifnot ($contains(@, "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO"))
+$if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
   $error("Sorgenia: Stringa di Convalida Errata")
 ### End Script
 ### End Box
@@ -56,8 +57,9 @@ numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 ### Mode DEFAULT
 ### Page 1
 ### Rect 0.076612905 0.15037057 0.38810483 0.02850627
+### Flags TRIM
 ### Script
-'ragione_sociale
+ragione_sociale
 ### End Script
 ### End Box
 

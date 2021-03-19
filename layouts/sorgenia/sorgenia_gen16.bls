@@ -6,8 +6,9 @@
 ### Mode DEFAULT
 ### Page 1
 ### Rect 0.037950665 0.5240123 0.4743833 0.03269837
+### Flags TRIM
 ### Script
-$ifnot ($contains(@, "Servizio di fornitura energia elettrica")) {
+$if(@ != "Servizio di fornitura energia elettrica") {
   $error("Sorgenia (gen16): Stringa di Convalida Errata")
 }
 ### End Script

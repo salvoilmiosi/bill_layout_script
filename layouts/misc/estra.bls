@@ -7,13 +7,14 @@
 ### Page 3
 ### Rect 0.05483871 0.08095781 0.2629032 0.028506272
 ### Goto Label ricerca_dettaglio
+### Flags TRIM
 ### Spacers
 p+::off_dettaglio
 ### End Spacers
 ### Script
 $if($ate()) {
   $error("Estra: Dettaglio Mancante")
-} $elifnot ($contains(@, "ELEMENTI DI DETTAGLIO")) {
+} $elif(@ != "ELEMENTI DI DETTAGLIO") {
   ::off_dettaglio+=1
   $goto(ricerca_dettaglio)
 }

@@ -7,13 +7,14 @@
 ### Page 1
 ### Rect 0.07399102 0.30294654 0.82919604 0.024828043
 ### Goto Label convalida
+### Flags TRIM
 ### Spacers
 p+::off_allegati
 ### End Spacers
 ### Script
 $if($ate()) {
   $error("Sorgenia (old): Stringa di Convalida Errata")
-} $elifnot ($contains(@, "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")) {
+} $elif(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO") {
   ::off_allegati+=1
   $goto(convalida)
 }
@@ -67,11 +68,12 @@ numero_cliente=$search(@,/(\N)/)
 ### Mode DEFAULT
 ### Page 1
 ### Rect 0.076612905 0.15037057 0.38810483 0.02850627
+### Flags TRIM
 ### Spacers
 p+::off_allegati
 ### End Spacers
 ### Script
-'ragione_sociale
+ragione_sociale
 ### End Script
 ### End Box
 
