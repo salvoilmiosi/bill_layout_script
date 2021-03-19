@@ -4,12 +4,20 @@
 ### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
+### Flags TRIM
 ### Page 1
 ### Rect 0.78485096 0.023945268 0.20306204 0.07639681
-### Flags TRIM
+### Goto Label check_convalida
+### Spacers
+p+::off_allegato
+### End Spacers
 ### Script
-$if(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero")
+$if($ate()) {
   $error("Axpo: Stringa di Convalida Errata")
+} $elif(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero") {
+  ::off_allegato+=1
+  $goto(check_convalida)
+}
 ### End Script
 ### End Box
 
@@ -27,9 +35,9 @@ fornitore="Axpo"
 ### Box Ragione sociale
 ### Type RECTANGLE
 ### Mode DEFAULT
+### Flags TRIM
 ### Page 1
 ### Rect 0.51044726 0.16909401 0.4719575 0.050533842
-### Flags TRIM
 ### Script
 ragione_sociale
 ### End Script
@@ -40,6 +48,9 @@ ragione_sociale
 ### Mode DEFAULT
 ### Page 1
 ### Rect 0.6150193 0.3080678 0.35555232 0.10002199
+### Spacers
+p+::off_allegato
+### End Spacers
 ### Script
 %totale_fattura=$search(@,/TOTALE DA PAGARE (\N)/)
 data_scadenza=$date(@,"%d.%m.%Y",/entro il (\D)/)
@@ -51,6 +62,9 @@ data_scadenza=$date(@,"%d.%m.%Y",/entro il (\D)/)
 ### Mode DEFAULT
 ### Page 1
 ### Rect 0.0315568 0.09791284 0.22615707 0.31941897
+### Spacers
+p+::off_allegato
+### End Spacers
 ### Script
 numero_fattura=$search(@,/N\. fattura (\N)/)
 data_fattura=$date(@,"%d.%m.%Y",/N\. fattura \N del (\D)/)
@@ -67,6 +81,9 @@ _mese=$date_format(mese_fattura,"%m\\.%Y")
 ### Mode RAW
 ### Page 1
 ### Rect 0.047653962 0.65514416 0.4389663 0.23846543
+### Spacers
+p+::off_allegato
+### End Spacers
 ### Script
 iva=$search(@,/Importo IVA (\N%)/)
 $if($isset(codice_pod)) {
@@ -85,6 +102,7 @@ $if($isset(codice_pod)) {
 ### Page 2
 ### Rect 0.04193548 0.13418806 0.22741936 0.11324638
 ### Spacers
+p+::off_allegato
 p+::next_page
 ### End Spacers
 ### Script
@@ -101,6 +119,7 @@ $ifnot($isset(codice_pod)) {
 ### Page 2
 ### Rect 0.03181463 0.2576967 0.94399184 0.25427598
 ### Spacers
+p+::off_allegato
 p+::next_page
 ### End Spacers
 ### Script
@@ -119,6 +138,7 @@ $if($contains(@,"Energia Reattiva")) {
 ### Rect 0.032258064 0.090079814 0.95483875 0.8289623
 ### Goto Label quadro_dettaglio
 ### Spacers
+p+::off_allegato
 p+::next_page
 ### End Spacers
 ### Script
@@ -179,10 +199,11 @@ $with(&_dettaglio) {
 ### Box Prossima Pagina
 ### Type RECTANGLE
 ### Mode DEFAULT
+### Flags TRIM
 ### Page 3
 ### Rect 0.03840065 0.0989254 0.22611547 0.032341655
-### Flags TRIM
 ### Spacers
+p+::off_allegato
 p+::next_page
 ### End Spacers
 ### Script
