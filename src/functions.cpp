@@ -87,9 +87,9 @@ static std::string number_regex() {
     auto tho = intl::thousand_sep();
     auto dec = intl::decimal_point();
     if (tho) {
-        return fmt::format("-?(?:\\d{{1,3}}(?:{0}\\d{{3}})*(?:{1}\\d+)?|\\d+(?:{1}\\d+)?)(?!\\d)", escape_regex_char(tho), escape_regex_char(dec));
+        return fmt::format("(?:-?(?:\\d{{1,3}}(?:{0}\\d{{3}})*|\\d+)(?:{1}\\d+)?(?!\\d))", escape_regex_char(tho), escape_regex_char(dec));
     } else {
-        return fmt::format("-?(?:\\d+(?:{0}\\d+)?(?!\\d)", escape_regex_char(dec));
+        return fmt::format("(?:-?\\d+(?:{0}\\d+)?(?!\\d))", escape_regex_char(dec));
     }
 };
 
