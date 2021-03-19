@@ -74,7 +74,11 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
 #endif
             ;
         });
-        return {arr.begin(), arr.end()};
+        if (flags & PDF_TRIM) {
+            return string_trim({arr.begin(), arr.end()});
+        } else {
+            return {arr.begin(), arr.end()};
+        }
     };
 
     switch (rect.type) {

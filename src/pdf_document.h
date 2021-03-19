@@ -48,7 +48,8 @@ static poppler::page::text_layout_enum poppler_modes[] = READ_MODES;
 #undef MODE
 
 #define PDF_FLAGS { \
-    F(DISABLED, "Disabilita") \
+    F(DISABLED, "Disabilita"), \
+    F(TRIM,     "Taglia Spazi") \
 }
 
 #define F(x, y) POS_PDF_##x
