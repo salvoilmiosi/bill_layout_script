@@ -123,7 +123,7 @@ static std::string string_singleline(std::string_view str) {
 }
 
 // cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
-static variable search_regex(const std::string &regex, std::string_view value, int index) {
+static variable search_regex(const std::string &regex, std::string_view value, size_t index) {
     std::cmatch match;
     if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return variable::null_var();
     return match.str(index);
@@ -134,15 +134,15 @@ static variable search_regex_captures(const std::string &regex, std::string_view
     std::cmatch match;
     if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return variable::null_var();
     return string_join(
-        std::views::iota(1, int(match.size()))
-        | std::views::transform([&](int index) {
+        std::views::iota(size_t(1), match.size())
+        | std::views::transform([&](size_t index) {
             return match.str(index);
         }),
         UNIT_SEPARATOR);
 }
 
 // cerca la regex in str e ritorna i valori trovati
-static std::string search_regex_matches(const std::string &regex, std::string_view value, int index) {
+static std::string search_regex_matches(const std::string &regex, std::string_view value, size_t index) {
     auto reg = create_regex(regex);
     return string_join(
         std::ranges::subrange(
@@ -212,7 +212,7 @@ static std::string date_regex(std::string_view format) {
 
 // Viene creata un'espressione regolare che corrisponde alla stringa di formato valido per strptime,
 // poi cerca la data in value e la parsa. Ritorna time_t=0 se c'e' errore.
-static variable search_date(std::string_view value, const std::string &format, std::string regex, int index) {
+static variable search_date(std::string_view value, const std::string &format, std::string regex, size_t index) {
     if (regex.empty()) {
         regex = date_regex(format);
         index = 0;
@@ -230,7 +230,7 @@ static variable search_date(std::string_view value, const std::string &format, s
     return variable::null_var();
 }
 
-const function_map function_lookup = {
+const function_map function_lookup {
     {"eq",  [](const variable &a, const variable &b) { return a == b; }},
     {"neq", [](const variable &a, const variable &b) { return a != b; }},
     {"lt",  [](const variable &a, const variable &b) { return a < b; }},
@@ -290,11 +290,11 @@ const function_map function_lookup = {
     {"table_row_regex", [](std::string_view header, varargs<std::string_view> names) {
         return table_row_regex(header, names);
     }},
-    {"search", [](std::string_view str, const std::string &regex, std::optional<int> index) {
-        return search_regex(regex, str, index.value_or(1));
+    {"search", [](std::string_view str, const std::string &regex, optional_size<1> index) {
+        return search_regex(regex, str, index);
     }},
-    {"matches", [](std::string_view str, const std::string &regex, std::optional<int> index) {
-        return search_regex_matches(regex, str, index.value_or(1));
+    {"matches", [](std::string_view str, const std::string &regex, optional_size<1> index) {
+        return search_regex_matches(regex, str, index);
     }},
     {"captures", [](std::string_view str, const std::string &regex) {
         return search_regex_captures(regex, str);
@@ -305,11 +305,11 @@ const function_map function_lookup = {
     {"date_regex", [](std::string_view format) {
         return date_regex(format);
     }},
-    {"date", [](std::string_view str, const std::string &format, std::optional<std::string> regex, std::optional<int> index) {
-        return search_date(str, format, regex.value_or(""), index.value_or(1));
+    {"date", [](std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
+        return search_date(str, format, regex, index);
     }},
-    {"month", [](std::string_view str, const std::string &format, std::optional<std::string> regex, std::optional<int> index) {
-        if (auto date = search_date(str, format, regex.value_or(""), index.value_or(1)); !date.empty()) {
+    {"month", [](std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
+        if (auto date = search_date(str, format, regex, index); !date.empty()) {
             return variable(date.date().SetDay(1));
         }
         return variable::null_var();
@@ -329,11 +329,11 @@ const function_map function_lookup = {
     {"singleline", [](std::string_view str) {
         return string_singleline(str);
     }},
-    {"if", [](bool condition, const variable &var_if, std::optional<variable> var_else) {
-        return condition ? var_if : var_else.value_or(variable::null_var());
+    {"if", [](bool condition, const variable &var_if, optional<variable> var_else) {
+        return condition ? var_if : var_else;
     }},
-    {"ifnot", [](bool condition, const variable &var_if, std::optional<variable> var_else) {
-        return condition ? var_else.value_or(variable::null_var()) : var_if;
+    {"ifnot", [](bool condition, const variable &var_if, optional<variable> var_else) {
+        return condition ? var_else : var_if;
     }},
     {"trim", [](std::string_view str) {
         return string_trim(str);
@@ -341,8 +341,8 @@ const function_map function_lookup = {
     {"contains", [](std::string_view str, std::string_view str2) {
         return string_find_icase(str, str2, 0) < str.size();
     }},
-    {"substr", [](std::string_view str, int pos, std::optional<int> count) {
-        return variable(std::string(str.substr(std::min(int(str.size()), pos), count.value_or(std::string_view::npos))));
+    {"substr", [](std::string_view str, size_t pos, optional_size<std::string_view::npos> count) {
+        return variable(std::string(str.substr(std::min(str.size(), pos), count)));
     }},
     {"strcat", [](varargs<std::string_view> args) {
         return string_join(args);
@@ -350,8 +350,8 @@ const function_map function_lookup = {
     {"strlen", [](std::string_view str) {
         return str.size();
     }},
-    {"indexof", [](std::string_view str, std::string_view value, std::optional<int> index) {
-        return string_find_icase(str, value, index.value_or(0));
+    {"indexof", [](std::string_view str, std::string_view value, optional<size_t> index) {
+        return string_find_icase(str, value, index);
     }},
     {"tolower", [](std::string_view str) {
         auto view = str | std::views::transform(tolower);

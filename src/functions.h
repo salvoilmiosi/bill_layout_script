@@ -2,7 +2,6 @@
 #define __FUNCTIONS_H__
 
 #include <functional>
-#include <optional>
 #include <ranges>
 #include <span>
 #include <map>
@@ -20,6 +19,7 @@ template<> inline const std::string &convert_var<const std::string &> (variable 
 template<> inline std::string_view  convert_var<std::string_view> (variable &var) { return var.str_view(); }
 template<> inline fixed_point  convert_var<fixed_point> (variable &var) { return var.number(); }
 template<> inline wxDateTime   convert_var<wxDateTime> (variable &var) { return var.date(); }
+template<> inline size_t       convert_var<size_t>     (variable &var) { return var.as_int(); }
 template<> inline int          convert_var<int>        (variable &var) { return var.as_int(); }
 template<> inline float        convert_var<float>      (variable &var) { return var.as_double(); }
 template<> inline double       convert_var<double>     (variable &var) { return var.as_double(); }
@@ -53,6 +53,48 @@ struct vararg_converter {
 
 using arg_list = std::span<variable>;
 
+// using decltype([]{ return T{}; }) faceva crashare gcc
+template<typename T> struct getter {
+    T operator ()() {
+        return T{};
+    }
+};
+
+template<std::integral T, T Value> struct int_getter {
+    T operator ()() {
+        return Value;
+    }
+};
+
+template<typename T, typename DefaultGetter = getter<T>>
+struct optional : T {
+    using value_type = T;
+
+    optional() : T(DefaultGetter{}()) {}
+
+    template<typename U>
+    optional(U &&value) : T(std::forward<U>(value)) {}
+};
+
+template<std::integral T, typename DefaultGetter>
+struct optional<T, DefaultGetter> {
+    using value_type = T;
+    
+    T m_value;
+
+    optional() : m_value(DefaultGetter{}()) {}
+
+    template<typename U>
+    optional(U &&value) : m_value(std::forward<U>(value)) {}
+
+    operator T() const {
+        return m_value;
+    }
+};
+
+template<int Value>     using optional_int =    optional<int,    int_getter<int, Value>>;
+template<size_t Value>  using optional_size =   optional<size_t, int_getter<size_t, Value>>;
+
 template<typename T> using varargs_base = std::ranges::transform_view<arg_list, vararg_converter<T>>;
 template<typename T, size_t Minargs = 0> struct varargs : varargs_base<T> {
     using var_type = T;
@@ -63,7 +105,7 @@ template<typename T, size_t Minargs = 0> struct varargs : varargs_base<T> {
 template<typename T> struct is_variable : std::bool_constant<! std::is_void_v<convert_rvalue<T>>> {};
 
 template<typename T> struct is_optional_impl : std::false_type {};
-template<typename T> struct is_optional_impl<std::optional<T>> : std::bool_constant<is_variable<T>{}> {};
+template<typename T, typename Getter> struct is_optional_impl<optional<T, Getter>> : std::bool_constant<is_variable<T>{}> {};
 template<typename T> struct is_optional : is_optional_impl<std::decay_t<T>> {};
 
 template<typename T> struct is_varargs_impl : std::false_type {};
@@ -111,18 +153,18 @@ private:
     static constexpr bool opt = is_optional<First>{};
     static constexpr bool vec = is_varargs<First>{};
 
-    // Req è false se è stato trovato un std::optional<T>
+    // Req indica se il parametro precedente non era opt
     using recursive = check_args_impl<Req ? var : !opt, Ts ...>;
 
 public:
-    // Conta il numero di tipi che non sono std::optional<T>
+    // Conta il numero di tipi che non sono opzionali
     static constexpr size_t minargs = Req && var ? 1 + recursive::minargs : vec ? vararg_minargs_v<First> : recursive::minargs;
-    // Conta il numero totale di tipi o -1 (INT_MAX) se l'ultimo è varargs<T>
+    // Conta il numero totale di tipi o INT_MAX se l'ultimo è varargs<T>
     static constexpr size_t maxargs = (vec || recursive::maxargs == std::numeric_limits<size_t>::max()) ?
         std::numeric_limits<size_t>::max() : 1 + recursive::maxargs;
 
-    // true solo se i tipi seguono il pattern (var*N, opt*M, [vec])
-    // Se Req==false e var==true, valid=false
+    // true solo se i tipi degli argomenti seguono il pattern (var*N, opt*M, [vec])
+    // Tutti gli argomenti opzionali devono essere dopo quelli richiesti
     static constexpr bool valid = vec ? sizeof...(Ts) == 0 && (Req || vararg_minargs_v<First> == 0) : (Req || opt) && recursive::valid;
 };
 
@@ -143,7 +185,7 @@ template<typename TypeList, size_t I> inline decltype(auto) get_arg(arg_list &ar
     if constexpr (is_optional<type>{}) {
         using opt_type = typename type::value_type;
         if (I >= args.size()) {
-            return type(std::nullopt);
+            return type();
         } else {
             return type(convert_var<convert_rvalue<opt_type>>(args[I]));
         }
