@@ -59,43 +59,43 @@ static std::string string_format(std::string_view str, R &&fmt_args) {
     return ret;
 }
 
+// Aggiunge slash nei caratteri da escapare per regex
+static std::string escape_regex_char(char c) {
+    switch (c) {
+    case '.':
+    case '+':
+    case '*':
+    case '?':
+    case '^':
+    case '$':
+    case '(':
+    case ')':
+    case '[':
+    case ']':
+    case '{':
+    case '}':
+    case '|':
+    case '\\':
+        return std::string("\\") + c;
+    case '\0':  return "";
+    default:    return std::string(&c, 1);
+    }
+};
+
+// Genera la regex per parsare numeri secondo il locale selezionato
+static std::string number_regex() {
+    auto tho = intl::thousand_sep();
+    auto dec = intl::decimal_point();
+    if (tho) {
+        return fmt::format("-?(?:\\d{{1,3}}(?:{0}\\d{{3}})*(?:{1}\\d+)?|\\d+(?:{1}\\d+)?)(?!\\d)", escape_regex_char(tho), escape_regex_char(dec));
+    } else {
+        return fmt::format("-?(?:\\d+(?:{0}\\d+)?(?!\\d)", escape_regex_char(dec));
+    }
+};
+
+// Costruisce un oggetto std::regex
 static std::regex create_regex(std::string regex) {
     try {
-        auto char_to_regex_str = [](char c) -> std::string {
-            switch (c) {
-            case '.':
-            case '+':
-            case '*':
-            case '?':
-            case '^':
-            case '$':
-            case '(':
-            case ')':
-            case '[':
-            case ']':
-            case '{':
-            case '}':
-            case '|':
-            case '\\':
-                return std::string("\\") + c;
-            case '\0':  return "";
-            default:    return std::string(&c, 1);
-            }
-        };
-
-        auto number_regex = [&](){
-            std::string tho = char_to_regex_str(intl::thousand_sep());
-            std::string dec = char_to_regex_str(intl::decimal_point());
-            
-            std::string ret = "-?(?:";
-            if (!tho.empty()) {
-                ret += "\\d{1,3}(?:" + tho + "\\d{3})*"
-                "(?:" + dec + "\\d+)?|";
-            }
-            ret += "\\d+(?:" + dec + "\\d+)?)(?!\\d)";
-            return ret;
-        };
-
         string_replace(regex, "\\N", number_regex());
         return std::regex(regex, std::regex::icase);
     } catch (const std::regex_error &error) {
@@ -172,9 +172,7 @@ static std::string table_row_regex(std::string_view header, R &&names) {
 static std::string date_regex(std::string_view format) {
     std::string ret = "\\b";
     for (auto it = format.begin(); it != format.end(); ++it) {
-        if (*it == '.') {
-            ret += "\\.";
-        } else if (*it == '%') {
+        if (*it == '%') {
             ++it;
             switch (*it) {
             case 'h':
@@ -205,7 +203,7 @@ static std::string date_regex(std::string_view format) {
                 throw std::invalid_argument("Stringa formato data non valida");
             }
         } else {
-            ret += *it;
+            ret += escape_regex_char(*it);
         }
     }
     ret += "\\b";
@@ -261,6 +259,10 @@ const function_map function_lookup = {
             ret += parse_num(s);
         }
         return ret;
+    }},
+    {"lines", [](std::string &&str) {
+        std::ranges::replace(str, '\n', UNIT_SEPARATOR);
+        return str;
     }},
     {"list", [](varargs<std::string_view> args) {
         return string_join(args, UNIT_SEPARATOR);
