@@ -4,9 +4,9 @@
 ### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
+### Flags TRIM
 ### Page 1
 ### Rect 0.5398872 0.030786771 0.3545528 0.05587229
-### Flags TRIM
 ### Script
 $if(@ != "Bolletta Energia Elettrica\nFornitura del Mercato Libero")
   $error("Axpo (old): Stringa di Convalida Errata")
@@ -97,13 +97,12 @@ $if($contains(@,"Dati di fornitura")) {
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### Rect 0.066170394 0.32745665 0.42907363 0.2335468
+### Rect 0.06617039400000002 0.3263163991448119 0.42907363 0.2335468
 ### Script
 iva=$search(@,/IVA (\N%)/)
-$ifnot(::spacer_multipod) $call(read_sintesi_costi)
-$function(read_sintesi_costi) {
-  %spesa_materia_energia=$search(@,/(?:Corrispettivi energia|Spese per l'energia) (\N)/)
-  %trasporto_gestione=$search(@,/(?:Trasporto|Spesa per trasporto, gestione contatore e oneri di sistema) (\N)/)
+$ifnot(::spacer_multipod) {
+  %spesa_materia_energia=$search(@,/(?:Corrispettivi energia|Spese per l'energia) (\N) \u20ac/)
+  %trasporto_gestione=$search(@,/(?:Trasporto|Spesa per trasporto, gestione contatore e oneri di sistema) (\N) \u20ac/)
 }
 ### End Script
 ### End Box
@@ -135,7 +134,10 @@ $if(::spacer_multipod) {
 p+::next_page
 ### End Spacers
 ### Script
-$if(::spacer_multipod) $call(read_sintesi_costi)
+$if(::spacer_multipod) {
+  %spesa_materia_energia=$search(@,/(?:Corrispettivi energia|Spese per l'energia) \u20ac (\N)/)
+  %trasporto_gestione=$search(@,/(?:Trasporto|Spesa per trasporto, gestione contatore e oneri di sistema) \u20ac (\N)/)
+}
 ### End Script
 ### End Box
 
@@ -202,9 +204,9 @@ $with(&_dettaglio) {
 ### Box Controllo Prossima pagina
 ### Type RECTANGLE
 ### Mode DEFAULT
+### Flags TRIM
 ### Page 3
 ### Rect 0.040290087 0.09806158 0.20306204 0.029646521
-### Flags TRIM
 ### Spacers
 p+::spacer_multipod
 p+::next_page
