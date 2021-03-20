@@ -127,7 +127,7 @@ void reader::exec_command(const command_args &cmd) {
         case SPACER_BOTTOM:
             return m_current_box.y + m_current_box.h;
         default:
-            return variable::null_var();
+            return variable();
         }
     };
 

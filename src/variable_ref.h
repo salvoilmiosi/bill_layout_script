@@ -104,10 +104,11 @@ public:
 
 public:
     const variable &get_value() const {
+        static const variable null_var;
         if (index < size()) {
             return std::next(begin(), index)->second;
         } else {
-            return variable::null_var();
+            return null_var;
         }
     }
 
@@ -121,13 +122,13 @@ public:
 
         if (flags & SET_INCREASE) {
             std::for_each_n(it, length, [&](auto &var) {
-                var.second += value;
+                var.second.append(value);
             });
         } else {
             for (int n = length; n > 1; ++it, --n) {
-                it->second = value;
+                it->second.assign(value);
             }
-            it->second = std::move(value);
+            it->second.assign(std::move(value));
         }
     }
 };

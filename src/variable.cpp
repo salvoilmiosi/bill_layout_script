@@ -3,47 +3,21 @@
 template<typename ... Ts> struct overloaded : Ts ... { using Ts::operator() ...; };
 template<typename ... Ts> overloaded(Ts ...) -> overloaded<Ts ...>;
 
-variable &variable::operator = (const variable &other) {
-    std::visit(overloaded{
-        [&](const auto &value) {
-            m_str = other.m_str;
-            m_data = value;
-        },
-        [&](std::string_view value) {
-            m_str = value;
-            m_data = std::monostate{};
-        }
-    }, other.m_data);
-    return *this;
-}
-
-variable &variable::operator = (variable &&other) noexcept {
-    std::visit(overloaded{
-        [&](auto &&value) {
-            m_str = std::move(other.m_str);
-            m_data = std::move(value);
-        },
-        [&](std::string_view value) {
-            m_str = value;
-            m_data = std::monostate{};
-        }
-    }, other.m_data);
-    return *this;
-}
-
 std::string &variable::get_string() const {
-    std::visit(overloaded{
-        [](std::monostate) {},
-        [&](std::string_view str) {
-            m_str = str;
-        },
-        [&](fixed_point num) {
-            m_str = fixed_point_to_string(num);
-        },
-        [&](wxDateTime date) {
-            m_str = date.FormatISODate().ToStdString();
-        }
-    }, m_data);
+    if (m_str.empty()) {
+        std::visit(overloaded{
+            [](std::monostate) {},
+            [&](std::string_view str) {
+                m_str = str;
+            },
+            [&](fixed_point num) {
+                m_str = fixed_point_to_string(num);
+            },
+            [&](wxDateTime date) {
+                m_str = date.FormatISODate().ToStdString();
+            }
+        }, m_data);
+    }
     return m_str;
 }
 
@@ -131,27 +105,56 @@ std::partial_ordering variable::operator <=> (const variable &other) const {
             return std::visit(overloaded{
                 [&](std::string_view str2)  -> ord { return str <=> str2; },
                 [&](std::monostate)         -> ord { return str <=> other.m_str; },
-                [](auto)                    -> ord { return ord::unordered; },
+                [&](fixed_point num)        -> ord { return number().getUnbiased() <=> num.getUnbiased(); },
+                [&](wxDateTime dt)          -> ord { return date().GetTicks() <=> dt.GetTicks(); },
             }, other.m_data);
         },
         [&](fixed_point num) {
             return std::visit(overloaded{
                 [&](fixed_point num2)       -> ord { return num.getUnbiased() <=> num2.getUnbiased(); },
                 [&](std::monostate)         -> ord { return num.getUnbiased() <=> other.number().getUnbiased(); },
-                [](auto)                    -> ord { return ord::unordered; }
+                [&](std::string_view)       -> ord { return num.getUnbiased() <=> other.number().getUnbiased(); },
+                [](wxDateTime)              -> ord { return ord::unordered; }
             }, other.m_data);
         },
         [&](wxDateTime date) {
             return std::visit(overloaded{
                 [&](wxDateTime date2)       -> ord { return date.GetTicks() <=> date2.GetTicks(); },
                 [&](std::monostate)         -> ord { return date.GetTicks() <=> other.date().GetTicks(); },
-                [](auto)                    -> ord { return ord::unordered; },
+                [&](std::string_view)       -> ord { return date.GetTicks() <=> other.date().GetTicks(); },
+                [](fixed_point)             -> ord { return ord::unordered; },
             }, other.m_data);
         },
     }, m_data);
 }
 
-variable &variable::operator += (const variable &other) {
+void variable::assign(const variable &other) {
+    std::visit(overloaded{
+        [&](const auto &value) {
+            m_str = other.m_str;
+            m_data = value;
+        },
+        [&](std::string_view value) {
+            m_str = value;
+            m_data = std::monostate{};
+        }
+    }, other.m_data);
+}
+
+void variable::assign(variable &&other) {
+    std::visit(overloaded{
+        [&](auto &&value) {
+            m_str = std::move(other.m_str);
+            m_data = std::move(value);
+        },
+        [&](std::string_view value) {
+            m_str = value;
+            m_data = std::monostate{};
+        }
+    }, other.m_data);
+}
+
+void variable::append(const variable &other) {
     std::visit(overloaded{
         [&](auto) {
             get_string().append(other.str());
@@ -166,5 +169,4 @@ variable &variable::operator += (const variable &other) {
             m_str.clear();
         }
     }, other.m_data);
-    return *this;
 }

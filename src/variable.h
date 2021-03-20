@@ -9,13 +9,6 @@
 class variable {
 public:
     variable() = default;
-    ~variable() = default;
-
-    variable(const variable &) = default;
-    variable(variable &&) = default;
-
-    variable &operator = (const variable &other);
-    variable &operator = (variable &&other) noexcept;
 
     variable(const std::string &value) : m_str(value) {}
     variable(std::string &&value) : m_str(std::move(value)) {}
@@ -29,11 +22,6 @@ public:
     variable(size_t value) : m_data(fixed_point(std::make_signed_t<size_t>(value))) {}
 
     variable(wxDateTime value) : m_data(value) {}
-
-    static const variable &null_var() {
-        static const variable VAR_NULL;
-        return VAR_NULL;
-    }
 
     bool is_number() const {
         return std::holds_alternative<fixed_point>(m_data);
@@ -68,7 +56,10 @@ public:
         return std::partial_ordering::equivalent == *this <=> other;
     }
 
-    variable &operator += (const variable &other);
+    void assign(const variable &other);
+    void assign(variable &&other);
+
+    void append(const variable &other);
 
 private:
     mutable std::string m_str;

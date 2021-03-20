@@ -16,7 +16,7 @@ static variable parse_num(std::string_view str) {
     if (dec::fromStream(iss, dec::decimal_format(intl::decimal_point(), intl::thousand_sep()), num)) {
         return num;
     } else {
-        return variable::null_var();
+        return variable();
     }
 };
 
@@ -125,14 +125,14 @@ static std::string string_singleline(std::string_view str) {
 // cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
 static variable search_regex(const std::string &regex, std::string_view value, size_t index) {
     std::cmatch match;
-    if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return variable::null_var();
+    if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return variable();
     return match.str(index);
 }
 
 // cerca la regex in str e ritorna tutti i capture del primo valore trovato
 static variable search_regex_captures(const std::string &regex, std::string_view value) {
     std::cmatch match;
-    if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return variable::null_var();
+    if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return variable();
     return string_join(
         std::views::iota(size_t(1), match.size())
         | std::views::transform([&](size_t index) {
@@ -227,7 +227,7 @@ static variable search_date(std::string_view value, const std::string &format, s
             return date;
         }
     }
-    return variable::null_var();
+    return variable();
 }
 
 const function_map function_lookup {
@@ -248,7 +248,7 @@ const function_map function_lookup {
     {"not", [](bool a) { return !a; }},
     {"and", [](bool a, bool b) { return a && b; }},
     {"or",  [](bool a, bool b) { return a || b; }},
-    {"null", []{ return variable::null_var(); }},
+    {"null", []{ return variable(); }},
     {"num", [](const variable &var) {
         if (var.is_number()) return var;
         return parse_num(var.str_view());
@@ -256,7 +256,7 @@ const function_map function_lookup {
     {"aggregate", [](std::string_view str) {
         variable ret;
         for (const auto &s : string_split(str, UNIT_SEPARATOR)) {
-            ret += parse_num(s);
+            ret.append(parse_num(s));
         }
         return ret;
     }},
@@ -284,7 +284,7 @@ const function_map function_lookup {
         if (!str.empty()) {
             return variable(str + "%");
         } else {
-            return variable::null_var();
+            return variable();
         }
     }},
     {"table_row_regex", [](std::string_view header, varargs<std::string_view> names) {
@@ -312,7 +312,7 @@ const function_map function_lookup {
         if (auto date = search_date(str, format, regex, index); !date.empty()) {
             return variable(date.date().SetDay(1));
         }
-        return variable::null_var();
+        return variable();
     }},
     {"date_format", [](wxDateTime date, const std::string &format) {
         return date.Format(format).ToStdString();
@@ -342,7 +342,7 @@ const function_map function_lookup {
         return string_find_icase(str, str2, 0) < str.size();
     }},
     {"substr", [](std::string_view str, size_t pos, optional_size<std::string_view::npos> count) {
-        return variable(std::string(str.substr(std::min(str.size(), pos), count)));
+        return std::string(str.substr(std::min(str.size(), pos), count));
     }},
     {"strcat", [](varargs<std::string_view> args) {
         return string_join(args);
@@ -371,6 +371,6 @@ const function_map function_lookup {
         for (const auto &arg : args) {
             if (!arg.empty()) return arg;
         }
-        return variable::null_var();
+        return variable();
     }},
 };
