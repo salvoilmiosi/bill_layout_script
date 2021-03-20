@@ -6,36 +6,23 @@
 #include "utils.h"
 
 void pdf_rect::rotate(int amt) {
-    while (amt >= 4) {
-        amt -= 4;
-    }
-    while (amt < 0) {
-        amt += 4;
-    }
-    
-    double tmp;
-    switch (amt) {
+    switch (amt % 4) {
     case 0:
         break;
     case 1:
-        tmp = x;
-        x = 1.0 - y - h;
-        y = tmp;
-        tmp = w;
-        w = h;
-        h = tmp;
+    case -3:
+        y = std::exchange(x, 1.0 - y - h);
+        std::swap(w, h);
         break;
     case 2:
+    case -2:
         x = 1.0 - x - w;
         y = 1.0 - y - h;
         break;
     case 3:
-        tmp = y;
-        y = 1.0 - x - w;
-        x = tmp;
-        tmp = w;
-        w = h;
-        h = tmp;
+    case -1:
+        x = std::exchange(y, 1.0 - x - w);
+        std::swap(w, h);
         break;
     }
 }

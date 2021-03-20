@@ -5,16 +5,18 @@ template<typename ... Ts> overloaded(Ts ...) -> overloaded<Ts ...>;
 
 std::string &variable::get_string() const {
     if (m_str.empty()) {
-        std::visit(overloaded{
-            [](std::monostate) {},
+        m_str = std::visit(overloaded{
+            [](std::monostate) {
+                return std::string();
+            },
             [&](std::string_view str) {
-                m_str = str;
+                return std::string(str);
             },
             [&](fixed_point num) {
-                m_str = fixed_point_to_string(num);
+                return fixed_point_to_string(num);
             },
             [&](wxDateTime date) {
-                m_str = date.FormatISODate().ToStdString();
+                return date.FormatISODate().ToStdString();
             }
         }, m_data);
     }
@@ -90,49 +92,27 @@ bool variable::empty() const {
     }, m_data);
 }
 
+template<typename T>
+concept is_string = std::is_same_v<T, std::string_view> || std::is_same_v<T, std::monostate>;
+
 std::partial_ordering variable::operator <=> (const variable &other) const {
-    using ord = std::partial_ordering;
-    return std::visit(overloaded{
-        [&](std::monostate) {
-            return std::visit(overloaded{
-                [&](std::monostate)         -> ord { return m_str <=> other.m_str; },
-                [&](std::string_view str)   -> ord { return m_str <=> str; },
-                [&](fixed_point num)        -> ord { return number().getUnbiased() <=> num.getUnbiased(); },
-                [&](wxDateTime dt)          -> ord { return date().GetTicks() <=> dt.GetTicks(); }
-            }, other.m_data);
-        },
-        [&](std::string_view str) {
-            return std::visit(overloaded{
-                [&](std::string_view str2)  -> ord { return str <=> str2; },
-                [&](std::monostate)         -> ord { return str <=> other.m_str; },
-                [&](fixed_point num)        -> ord { return number().getUnbiased() <=> num.getUnbiased(); },
-                [&](wxDateTime dt)          -> ord { return date().GetTicks() <=> dt.GetTicks(); },
-            }, other.m_data);
-        },
-        [&](fixed_point num) {
-            return std::visit(overloaded{
-                [&](fixed_point num2)       -> ord { return num.getUnbiased() <=> num2.getUnbiased(); },
-                [&](std::monostate)         -> ord { return num.getUnbiased() <=> other.number().getUnbiased(); },
-                [&](std::string_view)       -> ord { return num.getUnbiased() <=> other.number().getUnbiased(); },
-                [](wxDateTime)              -> ord { return ord::unordered; }
-            }, other.m_data);
-        },
-        [&](wxDateTime date) {
-            return std::visit(overloaded{
-                [&](wxDateTime date2)       -> ord { return date.GetTicks() <=> date2.GetTicks(); },
-                [&](std::monostate)         -> ord { return date.GetTicks() <=> other.date().GetTicks(); },
-                [&](std::string_view)       -> ord { return date.GetTicks() <=> other.date().GetTicks(); },
-                [](fixed_point)             -> ord { return ord::unordered; },
-            }, other.m_data);
-        },
-    }, m_data);
+    return std::visit<std::partial_ordering>(overloaded{
+        [&](is_string auto, is_string auto)     { return str_view() <=> other.str_view(); },
+        [&](is_string auto, fixed_point num)    { return number().getUnbiased() <=> num.getUnbiased(); },
+        [&](fixed_point num, is_string auto)    { return num.getUnbiased() <=> other.number().getUnbiased(); },
+        [](fixed_point num1, fixed_point num2)  { return num1.getUnbiased() <=> num2.getUnbiased(); },
+        [&](is_string auto, wxDateTime dt)      { return date().GetTicks() <=> dt.GetTicks(); },
+        [&](wxDateTime dt, is_string auto)      { return dt.GetTicks() <=> date().GetTicks(); },
+        [](wxDateTime dt1, wxDateTime dt2)      { return dt1.GetTicks() <=> dt2.GetTicks(); },
+        [](auto, auto) { return std::partial_ordering::unordered; }
+    }, m_data, other.m_data);
 }
 
 void variable::assign(const variable &other) {
     std::visit(overloaded{
-        [&](const auto &value) {
+        [&](auto) {
             m_str = other.m_str;
-            m_data = value;
+            m_data = other.m_data;
         },
         [&](std::string_view value) {
             m_str = value;
@@ -143,9 +123,9 @@ void variable::assign(const variable &other) {
 
 void variable::assign(variable &&other) {
     std::visit(overloaded{
-        [&](auto &&value) {
+        [&](auto) {
             m_str = std::move(other.m_str);
-            m_data = std::move(value);
+            m_data = std::move(other.m_data);
         },
         [&](std::string_view value) {
             m_str = value;
