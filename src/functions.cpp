@@ -250,7 +250,7 @@ const function_map function_lookup {
     {"or",  [](bool a, bool b) { return a || b; }},
     {"null", []{ return variable::null_var(); }},
     {"num", [](const variable &var) {
-        if (var.empty() || var.type() == VAR_NUMBER) return var;
+        if (var.is_number()) return var;
         return parse_num(var.str_view());
     }},
     {"aggregate", [](std::string_view str) {

@@ -1,117 +1,80 @@
 #ifndef __VARIABLE_H__
 #define __VARIABLE_H__
 
+#include <variant>
 #include <string>
-#include <string_view>
 #include <wx/datetime.h>
 #include "fixed_point.h"
 
-enum variable_type : uint8_t {
-    VAR_UNDEFINED,
-    VAR_STRING,
-    VAR_NUMBER,
-    VAR_DATE,
-};
-
 class variable {
-private:
-    template<typename T> struct signed_type {
-        using type = T;
-    };
-    template<typename T> requires (std::is_unsigned_v<T> && !std::is_same_v<bool, T>)
-    struct signed_type<T> {
-        using type = std::make_signed_t<T>;
-    };
-
 public:
-    variable() noexcept = default;
-    ~variable() noexcept = default;
+    variable() = default;
+    ~variable() = default;
 
-    variable(const variable &) noexcept = default;
-    variable(variable &&) noexcept = default;
+    variable(const variable &) = default;
+    variable(variable &&) = default;
 
-    variable &operator = (const variable &other) noexcept;
+    variable &operator = (const variable &other);
     variable &operator = (variable &&other) noexcept;
 
-    variable(const std::string &value) noexcept : m_type(VAR_STRING), m_str(value) {}
-    variable(std::string &&value) noexcept : m_type(VAR_STRING), m_str(std::move(value)) {}
+    variable(const std::string &value) : m_str(value) {}
+    variable(std::string &&value) : m_str(std::move(value)) {}
 
-    variable(std::string_view value) noexcept : m_type(VAR_STRING), m_view(value) {}
+    variable(std::string_view value) : m_data(value) {}
 
-    variable(fixed_point value) noexcept : m_type(VAR_NUMBER), m_num(value) {}
+    variable(fixed_point value) : m_data(value) {}
 
     template<typename T> requires(std::is_arithmetic_v<T>)
-    variable(T value) noexcept : m_type(VAR_NUMBER), m_num(fixed_point(typename signed_type<T>::type(value))) {}
+    variable(T value) : m_data(fixed_point(value)) {}
+    variable(size_t value) : m_data(fixed_point(std::make_signed_t<size_t>(value))) {}
 
-    variable(const wxDateTime &value) noexcept : m_type(VAR_DATE) {
-        m_num.setUnbiased(value.GetTicks());
-    }
+    variable(wxDateTime value) : m_data(value) {}
 
-    static const variable &null_var() noexcept {
+    static const variable &null_var() {
         static const variable VAR_NULL;
         return VAR_NULL;
     }
-    
-    variable_type type() const noexcept { return m_type; }
 
-    const std::string &str() const & noexcept {
-        set_string();
-        return m_str;
+    bool is_number() const {
+        return std::holds_alternative<fixed_point>(m_data);
     }
 
-    std::string &&str() && noexcept {
-        set_string();
-        return std::move(m_str);
+    const std::string &str() const & {
+        return get_string();
     }
 
-    std::string_view str_view() const noexcept {
-        if (m_view.empty()) {
-            set_string();
-            return m_str;
-        }
-        return m_view;
+    std::string &&str() && {
+        return std::move(get_string());
     }
 
-    const fixed_point &number() const noexcept {
-        set_number();
-        return m_num;
-    }
+    std::string_view str_view() const;
+    fixed_point number() const;
+    wxDateTime date() const;
 
-    wxDateTime date() const noexcept {
-        set_date();
-        return wxDateTime(time_t(m_num.getUnbiased()));
-    }
-
-    int as_int() const noexcept {
+    int as_int() const {
         return number().getAsInteger();
     }
 
-    double as_double() const noexcept {
+    double as_double() const {
         return number().getAsDouble();
     }
 
-    bool as_bool() const noexcept;
+    bool as_bool() const;
+    bool empty() const;
 
-    bool empty() const noexcept;
-
-    std::partial_ordering operator <=> (const variable &other) const noexcept;
+    std::partial_ordering operator <=> (const variable &other) const;
     
-    bool operator == (const variable &other) const noexcept {
+    bool operator == (const variable &other) const {
         return std::partial_ordering::equivalent == *this <=> other;
     }
 
-    variable &operator += (const variable &other) noexcept;
+    variable &operator += (const variable &other);
 
 private:
-    variable_type m_type = VAR_UNDEFINED;
-
     mutable std::string m_str;
-    mutable std::string_view m_view;
-    mutable fixed_point m_num;
+    std::variant<std::monostate, std::string_view, fixed_point, wxDateTime> m_data;
 
-    void set_string() const noexcept;
-    void set_number() const noexcept;
-    void set_date() const noexcept;
+    std::string &get_string() const;
 };
 
 #endif
