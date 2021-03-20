@@ -95,15 +95,19 @@ bool variable::empty() const {
 template<typename T>
 concept is_string = std::is_same_v<T, std::string_view> || std::is_same_v<T, std::monostate>;
 
+inline auto operator <=> (const wxDateTime &lhs, const wxDateTime &rhs) {
+    return lhs.GetTicks() <=> rhs.GetTicks();
+}
+
 std::partial_ordering variable::operator <=> (const variable &other) const {
     return std::visit<std::partial_ordering>(overloaded{
         [&](is_string auto, is_string auto)     { return str_view() <=> other.str_view(); },
-        [&](is_string auto, fixed_point num)    { return number().getUnbiased() <=> num.getUnbiased(); },
-        [&](fixed_point num, is_string auto)    { return num.getUnbiased() <=> other.number().getUnbiased(); },
-        [](fixed_point num1, fixed_point num2)  { return num1.getUnbiased() <=> num2.getUnbiased(); },
-        [&](is_string auto, wxDateTime dt)      { return date().GetTicks() <=> dt.GetTicks(); },
-        [&](wxDateTime dt, is_string auto)      { return dt.GetTicks() <=> date().GetTicks(); },
-        [](wxDateTime dt1, wxDateTime dt2)      { return dt1.GetTicks() <=> dt2.GetTicks(); },
+        [&](is_string auto, fixed_point num)    { return number() <=> num; },
+        [&](fixed_point num, is_string auto)    { return num <=> other.number(); },
+        [](fixed_point num1, fixed_point num2)  { return num1 <=> num2; },
+        [&](is_string auto, wxDateTime dt)      { return date() <=> dt; },
+        [&](wxDateTime dt, is_string auto)      { return dt <=> date(); },
+        [](wxDateTime dt1, wxDateTime dt2)      { return dt1 <=> dt2; },
         [](auto, auto) { return std::partial_ordering::unordered; }
     }, m_data, other.m_data);
 }
