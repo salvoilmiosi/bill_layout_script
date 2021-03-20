@@ -16,16 +16,14 @@ public:
     variable(std::string_view value) : m_data(value) {}
 
     variable(fixed_point value) : m_data(value) {}
+    variable(std::floating_point auto value) : m_data(fixed_point(value)) {}
 
-    template<typename T> requires(std::is_arithmetic_v<T>)
-    variable(T value) : m_data(fixed_point(value)) {}
-    variable(size_t value) : m_data(fixed_point(std::make_signed_t<size_t>(value))) {}
+    variable(std::integral auto value) : m_data(int64_t(value)) {}
 
     variable(wxDateTime value) : m_data(value) {}
 
-    bool is_number() const {
-        return std::holds_alternative<fixed_point>(m_data);
-    }
+    bool is_string() const;
+    bool is_number() const;
 
     const std::string &str() const & {
         return get_string();
@@ -37,15 +35,9 @@ public:
 
     std::string_view str_view() const;
     fixed_point number() const;
+    int64_t as_int() const;
+    double as_double() const;
     wxDateTime date() const;
-
-    int as_int() const {
-        return number().getAsInteger();
-    }
-
-    double as_double() const {
-        return number().getAsDouble();
-    }
 
     bool as_bool() const;
     bool empty() const;
@@ -63,7 +55,7 @@ public:
 
 private:
     mutable std::string m_str;
-    std::variant<std::monostate, std::string_view, fixed_point, wxDateTime> m_data;
+    std::variant<std::monostate, std::string_view, fixed_point, int64_t, wxDateTime> m_data;
 
     std::string &get_string() const;
 };

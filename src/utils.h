@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <charconv>
 
+#include <fmt/format.h>
+
 typedef uint8_t small_int;
 typedef uint8_t flags_t;
 
@@ -97,25 +99,23 @@ template<typename T>
 inline T string_to(std::string_view str) {
     T ret;
     auto result = std::from_chars(str.begin(), str.end(), ret);
-    if (result.ec == std::errc::invalid_argument) {
+    if (result.ec != std::errc()) {
         throw std::invalid_argument(std::string(str));
     }
     return ret;
 }
 
-// converte una stringa in int
 inline int string_toint(std::string_view str) {
     return string_to<int>(str);
 }
 
-#ifdef CHARCONV_FLOAT
-inline float cstof(std::string_view str) {
-    return string_to<float>(str);
+inline std::string num_tostring(auto num) {
+    std::array<char, 16> buf;
+    auto [ptr, ec] = std::to_chars(buf.begin(), buf.end(), num);
+    if (ec == std::errc()) {
+        return {buf.begin(), ptr};
+    }
+    return {};
 }
-
-inline double cstod(std::string_view str) {
-    return string_to<double>(str);
-}
-#endif
 
 #endif

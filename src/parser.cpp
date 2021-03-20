@@ -260,6 +260,9 @@ void parser::sub_expression() {
         auto tok_num = m_lexer.peek();
         switch (tok_num.type) {
         case TOK_INTEGER:
+            m_lexer.advance(tok_num);
+            add_line<OP_PUSHINT>(-string_to<int64_t>(tok_num.value));
+            break;
         case TOK_NUMBER:
             m_lexer.advance(tok_num);
             add_line<OP_PUSHNUM>(-fixed_point(std::string(tok_num.value)));
@@ -271,6 +274,9 @@ void parser::sub_expression() {
         break;
     }
     case TOK_INTEGER:
+        m_lexer.advance(tok_first);
+        add_line<OP_PUSHINT>(string_to<int64_t>(tok_first.value));
+        break;
     case TOK_NUMBER:
         m_lexer.advance(tok_first);
         add_line<OP_PUSHNUM>(fixed_point(std::string(tok_first.value)));

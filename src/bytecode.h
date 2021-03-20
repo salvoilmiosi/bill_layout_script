@@ -26,6 +26,7 @@ O(PUSHVAR)                      /* selected -> stack */ \
 O(PUSHREF)                      /* selected.str_view -> stack */ \
 O(PUSHVIEW)                     /* content_stack -> stack */ \
 O(PUSHNUM, fixed_point)         /* number -> stack */ \
+O(PUSHINT, int64_t)             /* int -> stack */ \
 O(PUSHSTR, std::string)         /* str -> stack */ \
 O(GETBOX, spacer_index)         /* current_box[index] -> stack */ \
 O(DOCPAGES)                     /* m_doc.pages -> stack */ \

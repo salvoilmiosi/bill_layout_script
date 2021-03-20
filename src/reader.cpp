@@ -72,9 +72,7 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto jump_subroutine = [&](jump_address address) {
-        fixed_point return_addr;
-        return_addr.setUnbiased(m_program_counter);
-        m_stack.push(return_addr);
+        m_stack.push(m_program_counter);
         jump_relative(address);
     };
 
@@ -169,6 +167,7 @@ void reader::exec_command(const command_args &cmd) {
     case OP_PUSHREF:    m_stack.push(m_selected.get_value().str_view()); break;
     case OP_PUSHVIEW:   m_stack.push(m_contents.top().view()); break;
     case OP_PUSHNUM:    m_stack.push(cmd.get_args<OP_PUSHNUM>()); break;
+    case OP_PUSHINT:    m_stack.push(cmd.get_args<OP_PUSHINT>()); break;
     case OP_PUSHSTR:    m_stack.push(cmd.get_args<OP_PUSHSTR>()); break;
     case OP_GETBOX:     m_stack.push(get_box_info(cmd.get_args<OP_GETBOX>())); break;
     case OP_DOCPAGES:   m_stack.push(m_doc->num_pages()); break;
@@ -189,9 +188,9 @@ void reader::exec_command(const command_args &cmd) {
     case OP_JZ:         jump_conditional(cmd.get_args<OP_JZ>(), !m_stack.pop().as_bool()); break;
     case OP_JNZ:        jump_conditional(cmd.get_args<OP_JNZ>(), m_stack.pop().as_bool()); break;
     case OP_JNTE:       jump_conditional(cmd.get_args<OP_JNTE>(), !m_contents.top().tokenend()); break;
-    case OP_THROWERROR: throw layout_error(m_stack.top().str()); break;
-    case OP_WARNING:    m_warnings.push_back(std::move(m_stack.pop()).str()); break;
-    case OP_RET:        m_program_counter = m_stack.pop().number().getUnbiased(); break;
+    case OP_THROWERROR: throw layout_error(m_stack.pop().str()); break;
+    case OP_WARNING:    m_warnings.push_back(m_stack.pop().str()); break;
+    case OP_RET:        m_program_counter = m_stack.pop().as_int(); break;
     case OP_HLT:        halt(); break;
     }
 }
