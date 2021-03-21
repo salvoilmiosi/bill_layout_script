@@ -32,7 +32,7 @@ fornitore="EnerGrid"
 ### Rect 0.6539589 0.023841608 0.32111436 0.114025086
 ### Script
 numero_cliente=$search(@,/CODICE CLIENTE: (.+)/)
-ragione_sociale=$singleline($search(@,/Intestatario contratto: ([^]+)\nCod\. Fiscale/))
+'ragione_sociale=$singleline($search(@,/Intestatario contratto: ([^]+?)\nCod\. Fiscale/))
 ### End Script
 ### End Box
 
@@ -70,8 +70,8 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 ### Rect 0.2672123 0.350057 0.69011915 0.45153934
 ### Script
 %totale_fattura=$search(@,/TOTALE DELLA FATTURA (\N)/)
-codice_pod=$search(@,/POD: (.+)/)
-indirizzo_fornitura=$search(@,/Indirizzo di fornitura: (.+)/)
+codice_pod=$search(@,/POD: (\w+)/)
+'indirizzo_fornitura=$search(@,/Indirizzo di fornitura: ([^]+?\d{5}.+)/)
 ### End Script
 ### End Box
 
@@ -84,8 +84,8 @@ indirizzo_fornitura=$search(@,/Indirizzo di fornitura: (.+)/)
 p+::off_pod
 ### End Spacers
 ### Script
-indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura: ([^]+?\d{5}.+)\n/))
-codice_pod=$search(@,/POD(?: \(punto di prelievo\)|:) (.+)/)
+'indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura: ([^]+?\d{5}.+)\n/))
+codice_pod=$search(@,/POD(?: \(punto di prelievo\)|:) (\w+)/)
 %potenza[0:3]=$search(@,/Potenza contrattuale: (\N) kW/)
 ### End Script
 ### End Box

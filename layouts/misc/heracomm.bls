@@ -96,9 +96,9 @@ rotate+::rotation
 numero_fattura=$search(@,/(?:Bolletta|Fattura elettronica) n\. (\d+)/)
 data_fattura=$date(@,"%d.%m.%Y",/Data emissione (\D)/)
 data_scadenza=$date(@,"%d.%m.%Y",/Scadenza (\D)/)
-ragione_sociale=$search(@,/Intestata a (.+)/)
+'ragione_sociale=$search(@,/Intestata a (.+)/)
 numero_cliente=$search(@,/Codice cliente (\d+)/)
-indirizzo_fornitura=$singleline($search(@,/Servizio fornito in ([^]+?)\.+/))
+'indirizzo_fornitura=$singleline($search(@,/Servizio fornito in ([^]+?)\.+/))
 %potenza[0:3]=$search(@,/Potenza disponibile: (\N) kW/)
 codice_pod=$search(@,/POD \(Punto di prelievo\): (\w+)/)
 ### End Script

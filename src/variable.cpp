@@ -89,7 +89,12 @@ bool variable::as_bool() const {
 }
 
 bool variable::is_null() const {
-    return std::holds_alternative<null_state>(m_value);
+    return std::visit(overloaded{
+        [](null_state)              { return true; },
+        [](auto)                    { return false; },
+        [&](string_state)           { return m_str.empty(); },
+        [](std::string_view str)    { return str.empty(); }
+    }, m_value);
 }
 
 bool variable::is_string() const {

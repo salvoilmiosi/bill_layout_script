@@ -51,8 +51,8 @@ data_scadenza=$date(@,"%d/%m/%Y")
 ### Page 1
 ### Rect 0.105359 0.220694 0.348595 0.0551734
 ### Script
-ragione_sociale=$search(@,/^(.+)\n/)
-indirizzo_fornitura=$singleline($search(@,/^.+\n([^]+?\d{5}.+)\n/))
+'ragione_sociale=$search(@,/^(.+)\n/)
+'indirizzo_fornitura=$singleline($search(@,/^.+\n([^]+?\d{5}.+)\n/))
 ### End Script
 ### End Box
 

@@ -122,6 +122,22 @@ static std::string string_singleline(std::string_view str) {
     return ret;
 }
 
+// converte solo i primi caratteri di una stringa in maiuscolo e il resto in minuscolo
+static std::string &string_capitalize(std::string &str) {
+    bool cap = true;
+    for (auto &ch : str) {
+        if (isspace(ch) || ch == '.') {
+            cap = true;
+        } else if (isalpha(ch) && cap) {
+            cap = false;
+            ch = toupper(ch);
+        } else {
+            ch = tolower(ch);
+        }
+    }
+    return str;
+}
+
 // cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
 static variable search_regex(const std::string &regex, std::string_view value, size_t index) {
     std::cmatch match;
@@ -328,6 +344,9 @@ const function_map function_lookup {
     }},
     {"singleline", [](std::string_view str) {
         return string_singleline(str);
+    }},
+    {"capitalize", [](std::string &&str) {
+        return string_capitalize(str);
     }},
     {"if", [](bool condition, const variable &var_if, optional<variable> var_else) {
         return condition ? var_if : var_else;

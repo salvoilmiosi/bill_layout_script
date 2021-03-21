@@ -81,7 +81,7 @@ p+::off_allegati
 p+::off_allegati
 ### End Spacers
 ### Script
-ragione_sociale=$search(@,/Ragione sociale: (.+)\n/)
+'ragione_sociale=$search(@,/Ragione sociale: (.+)\n/)
 ### End Script
 ### End Box
 
@@ -94,7 +94,7 @@ ragione_sociale=$search(@,/Ragione sociale: (.+)\n/)
 p+::off_allegati
 ### End Spacers
 ### Script
-indirizzo_fornitura=$search(@,/Le stiamo fornendo energia elettrica in (.+)\n/)
+'indirizzo_fornitura=$search(@,/Le stiamo fornendo energia elettrica in (.+)\n/)
 numero_cliente=$search(@,/Codice cliente: (\N)/)
 codice_pod=$search(@,/POD: (.+?)\b/)
 %potenza_disponibile=$search(@,/Pot\. Disponibile kW: (\N)/)

@@ -185,9 +185,15 @@ bool parser::read_statement(bool throw_on_eof) {
             break;
         }
 
-        if (prefixes & VP_TRIM)       add_line<OP_CALL>("trim", 1);
-        if (prefixes & VP_AGGREGATE)  add_line<OP_CALL>("aggregate", 1);
-        if (prefixes & VP_PARSENUM)   add_line<OP_CALL>("num", 1);
+        if (prefixes & VP_CAPITALIZE) {
+            add_line<OP_CALL>("trim", 1);
+            add_line<OP_CALL>("capitalize", 1);
+        }
+        if (prefixes & VP_AGGREGATE) {
+            add_line<OP_CALL>("aggregate", 1);
+        } else if (prefixes & VP_PARSENUM) {
+            add_line<OP_CALL>("num", 1);
+        }
         if (prefixes & VP_NEGATE)     add_line<OP_CALL>("neg", 1);
         if (prefixes & VP_OVERWRITE)  flags |= SET_OVERWRITE;
         if (prefixes & VP_FORCE)      flags |= SET_FORCE;
@@ -331,7 +337,7 @@ int parser::read_variable(bool read_only) {
         case TOK_GLOBAL:    add_flags_to(var_idx.flags, SEL_GLOBAL); break;
         case TOK_PERCENT:   add_flags_to(prefixes, VP_PARSENUM, !read_only); break;
         case TOK_CARET:     add_flags_to(prefixes, VP_AGGREGATE, !read_only); break;
-        case TOK_SINGLE_QUOTE: add_flags_to(prefixes, VP_TRIM, !read_only); break;
+        case TOK_SINGLE_QUOTE: add_flags_to(prefixes, VP_CAPITALIZE, !read_only); break;
         case TOK_TILDE:     add_flags_to(prefixes, VP_OVERWRITE, !read_only); break;
         case TOK_NOT:       add_flags_to(prefixes, VP_FORCE, !read_only); break;
         case TOK_AMPERSAND: add_flags_to(prefixes, VP_REF, read_only); break;

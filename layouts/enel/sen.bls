@@ -16,10 +16,10 @@ $ifnot($contains(@,"Servizio di Maggior Tutela")) {
 ### Box Calcolo Offset Dettaglio
 ### Type RECTANGLE
 ### Mode DEFAULT
+### Flags TRIM
 ### Page 3
 ### Rect 0.054607615 0.21641847 0.33431017 0.028183728
 ### Goto Label calcolo_offset
-### Flags TRIM
 ### Spacers
 p+::offset_dettaglio
 ### End Spacers
@@ -81,7 +81,7 @@ fornitore=$coalesce(::fornitore,"SEN")
 ### Page 1
 ### Rect 0.052688174 0.1687363 0.45327735 0.17021497
 ### Script
-indirizzo_fornitura=$singleline($search(@,/Forniamo energia in ([^]+\d{5}.+\n)/))
+'indirizzo_fornitura=$singleline($search(@,/Forniamo energia in ([^]+?\d{5}.+\n)/))
 %potenza[0:3]=$search(@,/(?:Potenza contrattualmente impegnata|Livello massimo di potenza) (\N)/)
 ### End Script
 ### End Box
@@ -153,10 +153,10 @@ data_scadenza=$date(@,"%d.%m.%Y",/Entro il (\D)/)
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### Rect 0.51606274 0.19721653 0.39770216 0.031239748
-### Flags TRIM
+### Rect 0.5096111270967741 0.19265552657924745 0.4194211309677419 0.0889864346522235
 ### Script
-ragione_sociale
+$setend($indexof(@,"\n"))
+'ragione_sociale
 ### End Script
 ### End Box
 
@@ -195,7 +195,7 @@ $with(&::_dettaglio) {
     ^spesa_materia_energia+=$matches(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))
     ^spesa_materia_energia+=$matches($matches(@,
       $format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr)),/(\N)(?:\n|$)/)
-    $with($search(@,$format(/(In F1 dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0 [^]+)(dal|Totale|$)/,_mese_abbr))) {   
+    $with($search(@,$format(/(In F1 dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0 [^]+?)(dal|Totale|$)/,_mese_abbr))) {   
       $step($captures(@,/F1.+\/kWh (\N) kWh (\N)/)) {
         %prezzo_energia[0] %energia_attiva[0]
       }

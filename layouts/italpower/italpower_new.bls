@@ -20,7 +20,7 @@ fornitore="Italpower"
 ### Script
 $step($captures(@,/CODICE CLIENTE: (\w+) Intestatario del contratto: (.+)\n/)) {
   numero_cliente
-  ragione_sociale
+  'ragione_sociale
 }
 ### End Script
 ### End Box
@@ -64,7 +64,7 @@ iva=$search(@,/IVA (\N%)/)
 ### Page 3
 ### Rect 0.044354837 0.1378327 0.43145162 0.23479088
 ### Script
-indirizzo_fornitura=$singleline($search(@,/Le stiamo fornendo energia elettrica in \u2022 ([^]+?\d{5}.+)\n/))
+'indirizzo_fornitura=$singleline($search(@,/Le stiamo fornendo energia elettrica in \u2022 ([^]+?\d{5}.+)\n/))
 ### End Script
 ### End Box
 

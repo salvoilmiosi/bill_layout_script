@@ -4,9 +4,9 @@
 ### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
+### Flags TRIM
 ### Page 1
 ### Rect 0.7381144 0.0045636054 0.23529412 0.022818027
-### Flags TRIM
 ### Script
 $if(@ != "ENERGIA ELETTRICA") {
   $error("Edison: Stringa di Convalida Errata")
@@ -42,7 +42,7 @@ data_fattura=$date(@,"%d %B %Y")
 ### Page 1
 ### Rect 0.008058018 0.11409014 0.21112007 0.092413
 ### Script
-ragione_sociale=$search(@,/Spettabile\n(.+)/)
+'ragione_sociale=$search(@,/Spettabile\n(.+)/)
 ### End Script
 ### End Box
 
@@ -52,7 +52,7 @@ ragione_sociale=$search(@,/Spettabile\n(.+)/)
 ### Page 1
 ### Rect 0.33843675 0.10610382 0.29814664 0.10952653
 ### Script
-indirizzo_fornitura=$singleline($search(@,/Punto di fornitura\n(.+\n.+)/))
+'indirizzo_fornitura=$singleline($search(@,/Punto di fornitura\n(.+\n.+)/))
 potenza[0:3]=$search(@,/Potenza impegnata: (\N) kW/)
 ### End Script
 ### End Box

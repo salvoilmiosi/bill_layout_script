@@ -72,7 +72,7 @@ _periodo = $format(/\d\d\.\d\d.\d\d\d\d - \d\d\.$0/,$date_format(mese_fattura,"%
 ### Rect 0.05 0.12656784 0.46129033 0.19156215
 ### Script
 numero_cliente=$search(@,/CODICE CLIENTE (\d+)/)
-ragione_sociale=$singleline($search(@,/INTESTATARIO FORNITURA ([^]+) C\.F\./))
+'ragione_sociale=$singleline($search(@,/INTESTATARIO FORNITURA ([^]+?) C\.F\./))
 ### End Script
 ### End Box
 
@@ -95,7 +95,7 @@ data_scadenza=$date(@,"%d.%m.%Y",/entro il (\D)/)
 ### Script
 codice_pod=$search(@,/POD \(Punto di prelievo\) (\w+)/)
 %potenza[0:3]=$search(@,/Potenza impegnata (\N) kW/)
-indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura ([^]+)/))
+'indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura ([^]+?\d{5}.+)/))
 ### End Script
 ### End Box
 

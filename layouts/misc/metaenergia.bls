@@ -30,8 +30,8 @@ $if(@ != "FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA - MERCATO LIBERO") {
 ### Page 1
 ### Rect 0.058485612 0.14988782 0.33401784 0.1416118
 ### Script
-ragione_sociale = $search(@,/INTESTATARIO\n(.+)\n/)
-indirizzo_fornitura = $search(@,/Le stiamo fornendo energia elettrica in:\n(.+)\n/)
+ragione_sociale = $capitalize($search(@,/INTESTATARIO\n(.+)\n/))
+indirizzo_fornitura = $capitalize($search(@,/Le stiamo fornendo energia elettrica in:\n(.+)\n/))
 codice_pod = $search(@,/Codice POD: (.+)\n/)
 ### End Script
 ### End Box

@@ -16,10 +16,10 @@ $ifnot($contains(@,"Enel Energia - Mercato libero dell'energia")) {
 ### Box Calcolo Offset Dettaglio
 ### Type RECTANGLE
 ### Mode DEFAULT
+### Flags TRIM
 ### Page 3
 ### Rect 0.053306885 0.20998158 0.3093039 0.027190598
 ### Goto Label calcolo_offset
-### Flags TRIM
 ### Spacers
 p+::offset_dettaglio
 ### End Spacers
@@ -82,7 +82,7 @@ fornitore="Enel Energia"
 ### Page 1
 ### Rect 0.04623656 0.1717978 0.41827956 0.16039528
 ### Script
-indirizzo_fornitura=$singleline($search(@,/Forniamo energia in ([^]+\d{5}.+\n)/))
+'indirizzo_fornitura=$singleline($search(@,/Forniamo energia in ([^]+?\d{5}.+\n)/))
 %potenza[0:3]=$search(@,/(?:Potenza contrattualmente impegnata|Livello massimo di potenza) (\N)/)
 ### End Script
 ### End Box
@@ -91,10 +91,10 @@ indirizzo_fornitura=$singleline($search(@,/Forniamo energia in ([^]+\d{5}.+\n)/)
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### Rect 0.5015466 0.18353352 0.39770216 0.031239748
-### Flags TRIM
+### Rect 0.4918691806451613 0.17783226572405927 0.4113566258064517 0.09012668524515394
 ### Script
-ragione_sociale
+$setend($indexof(@,"\n"))
+'ragione_sociale
 ### End Script
 ### End Box
 

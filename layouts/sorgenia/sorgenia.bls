@@ -59,7 +59,7 @@ numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 ### Rect 0.076612905 0.15037057 0.38810483 0.02850627
 ### Flags TRIM
 ### Script
-ragione_sociale
+'ragione_sociale
 ### End Script
 ### End Box
 
@@ -81,7 +81,7 @@ data_fattura=$date(@,"%d/%m/%Y",/Emessa il (\D)/)
 ### Rect 0.47096774 0.33537194 0.46042183 0.05117309
 ### Script
 codice_pod=$search(@,/per il punto di fornitura \(POD\) ([0-9A-Z]+)/)
-indirizzo_fornitura=$singleline($search(@,/\ndi ([^]+\(..\))/))
+'indirizzo_fornitura=$singleline($search(@,/\ndi ([^]+?\d{5}.+)/))
 ### End Script
 ### End Box
 

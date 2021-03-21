@@ -69,7 +69,7 @@ p+::off_allegato
 ### End Spacers
 ### Script
 numero_cliente=$search(@,/Codice cliente (.+)\n/)
-ragione_sociale=$search(@,/Ragione sociale (.+)\n/)
+'ragione_sociale=$search(@,/Ragione sociale (.+)\n/)
 ### End Script
 ### End Box
 
@@ -96,7 +96,7 @@ p+::off_allegato p+::page_offset
 ### End Spacers
 ### Script
 codice_pod=$search(@,/Codice POD (.+)\n/)
-indirizzo_fornitura=$singleline($search(@,/Indirizzo fornitura ([^]+\d{5}.+)\n/))
+'indirizzo_fornitura=$singleline($search(@,/Indirizzo fornitura ([^]+?\d{5}.+)\n/))
 ### End Script
 ### End Box
 

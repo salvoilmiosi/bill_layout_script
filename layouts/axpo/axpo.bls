@@ -35,11 +35,11 @@ fornitore="Axpo"
 ### Box Ragione sociale
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags TRIM
 ### Page 1
-### Rect 0.51044726 0.16909401 0.4719575 0.050533842
+### Rect 0.51044726 0.16909401 0.4719575 0.11482845294184721
 ### Script
-ragione_sociale
+$setend($indexof(@,"\n"))
+'ragione_sociale
 ### End Script
 ### End Box
 
@@ -71,7 +71,7 @@ data_fattura=$date(@,"%d.%m.%Y",/N\. fattura \N del (\D)/)
 mese_fattura=$month(@,"%d.%m.%Y",/PERIODO \D - (\D)/)
 numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
-indirizzo_fornitura=$singleline($search(@,/FORNIAMO ENERGIA IN\n([^]+?\d{5}.+)\n/))
+'indirizzo_fornitura=$singleline($search(@,/FORNIAMO ENERGIA IN\n([^]+?\d{5}.+)\n/))
 _mese=$date_format(mese_fattura,"%m\\.%Y")
 ### End Script
 ### End Box
@@ -108,7 +108,7 @@ p+::next_page
 ### Script
 $ifnot($isset(codice_pod)) {
   codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
-  indirizzo_fornitura=$singleline($search(@,/FORNIAMO ENERGIA IN\n([^]+)/))
+  'indirizzo_fornitura=$singleline($search(@,/FORNIAMO ENERGIA IN\n([^]+?\d{5}.+)/))
 }
 ### End Script
 ### End Box
@@ -125,7 +125,7 @@ p+::next_page
 ### Script
 %imponibile=$search(@,/TOTALE IMPONIBILE (\N)/)
 $if($contains(@,"Energia Reattiva")) {
-  %energia_reattiva=$search($search(@,/CONSUMI E LETTURE([^]+)Consumi fatturati/),
+  %energia_reattiva=$search($search(@,/CONSUMI E LETTURE([^]+?)Consumi fatturati/),
     $format(/\d\d\.$0.+ (\N)\n/,_mese))
 }
 ### End Script

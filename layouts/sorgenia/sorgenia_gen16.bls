@@ -4,9 +4,9 @@
 ### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
+### Flags TRIM
 ### Page 1
 ### Rect 0.037950665 0.5240123 0.4743833 0.03269837
-### Flags TRIM
 ### Script
 $if(@ != "Servizio di fornitura energia elettrica") {
   $error("Sorgenia (gen16): Stringa di Convalida Errata")
@@ -42,7 +42,7 @@ numero_cliente=$search(@,/Codice Cliente (.+)/)
 ### Rect 0.49973556 0.19253415 0.408514 0.08879002
 ### Script
 $setend($indexof(@,"\n"))
-ragione_sociale
+'ragione_sociale=@
 ### End Script
 ### End Box
 
@@ -53,7 +53,7 @@ ragione_sociale
 ### Rect 0.03701745 0.30936313 0.42570066 0.20374973
 ### Script
 codice_pod=$search(@,/POD \(Punto di prelievo\): (.+)/)
-indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura:\n([^]+)/))
+'indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura:\n([^]+?\d{5}.+)/))
 %potenza[0:3]=$search(@,/(\N) kW di potenza impegnata/)
 ### End Script
 ### End Box

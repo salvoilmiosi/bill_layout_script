@@ -72,7 +72,7 @@ mese_fattura=$month(@,"%B %Y")
 ### Rect 0.021505376 0.10642341 0.49462366 0.06176359
 ### Script
 numero_cliente=$search(@,/Codice Cliente: (\N)/)
-ragione_sociale=$search(@,/.+\n(.+)\n/)
+'ragione_sociale=$search(@,/.+\n(.+)\n/)
 partita_iva=$search(@,/Part\.IVA (.+)\n/)
 ### End Script
 ### End Box
@@ -84,7 +84,7 @@ partita_iva=$search(@,/Part\.IVA (.+)\n/)
 ### Rect 0.067204304 0.61503536 0.42183626 0.30491322
 ### Script
 $if($contains(@,"Dati di fornitura")) {
-  indirizzo_fornitura=$singleline($search(@,/Indirizzo ([^]+\(..\))/))
+  'indirizzo_fornitura=$singleline($search(@,/Indirizzo ([^]+?\(..\))/))
   codice_pod=$search(@,/POD (.+)\n/)
   %potenza[0:3]=$search(@,/Potenza Impegnata (\N)/)
 } $else {
@@ -118,7 +118,7 @@ p+::next_page
 ### End Spacers
 ### Script
 $if(::spacer_multipod) {
-  indirizzo_fornitura=$singleline($search(@,/Indirizzo ([^]+\(..\))/))
+  'indirizzo_fornitura=$singleline($search(@,/Indirizzo ([^]+?\(..\))/))
   codice_pod=$search(@,/POD (.+)\n/)
   %potenza[0:3]=$search(@,/Potenza Impegnata (\N)/)
 }
