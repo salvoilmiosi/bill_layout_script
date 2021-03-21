@@ -150,9 +150,9 @@ static variable search_regex_captures(const std::string &regex, std::string_view
     std::cmatch match;
     if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return variable();
     return string_join(
-        std::views::iota(size_t(1), match.size())
-        | std::views::transform([&](size_t index) {
-            return match.str(index);
+        std::ranges::subrange(match.begin() + 1, match.end())
+        | std::views::transform([](const auto &m) {
+            return std::string_view(m.first, m.second);
         }),
         UNIT_SEPARATOR);
 }
@@ -167,21 +167,33 @@ static std::string search_regex_matches(const std::string &regex, std::string_vi
         UNIT_SEPARATOR);
 }
 
-// restituisce un'espressione regolare che parsa una riga di una tabella
 template<std::ranges::input_range R>
-static std::string table_row_regex(std::string_view header, R &&names) {
-    std::string ret;
-    size_t begin = 0;
-    size_t len = 0;
-    for (const auto &name : names) {
-        if (header.size() < begin + len) break;
-        size_t i = string_find_icase(header, name, begin + len);
-        len = name.size();
-        ret += fmt::format("(.{{{}}})", i - begin);
-        begin = i;
-    }
-    ret += "(.+)";
-    return ret;
+static std::string table_header(std::string_view header, R &&names) {
+    return string_join(names
+        | std::views::transform([&, pos = header.begin()](std::string_view name) mutable {
+            std::cmatch match;
+            if (std::regex_search(pos, header.end(), match, std::regex(name.begin(), name.end(), std::regex::icase))) {
+                auto match_begin = match[0].first;
+                auto match_end = match[0].second;
+                pos = std::find_if_not(match_end, header.end(), isspace);
+                return fmt::format("{}:{}", match_begin - header.begin(), pos - match_begin);
+            } else {
+                return std::string();
+            }
+        }),
+    UNIT_SEPARATOR);
+}
+
+static std::string table_row(std::string_view row, std::string_view indices) {
+    return string_join(string_split(indices, UNIT_SEPARATOR)
+        | std::views::transform([&](std::string_view str) {
+            std::cmatch match;
+            if (std::regex_match(str.begin(), str.end(), match, std::regex("(\\d+):(\\d+)"))) {
+                return row.substr(string_toint(match.str(1)), string_toint(match.str(2)));
+            }
+            return std::string_view();
+        }),
+    UNIT_SEPARATOR);
 }
 
 // Prende un formato per strptime e lo converte in una regex corrispondente
@@ -303,8 +315,11 @@ const function_map function_lookup {
             return variable();
         }
     }},
-    {"table_row_regex", [](std::string_view header, varargs<std::string_view> names) {
-        return table_row_regex(header, names);
+    {"table_header", [](std::string_view header, varargs<std::string_view> names) {
+        return table_header(header, names);
+    }},
+    {"table_row", [](std::string_view row, std::string_view indices) {
+        return table_row(row, indices);
     }},
     {"search", [](std::string_view str, const std::string &regex, optional_size<1> index) {
         return search_regex(regex, str, index);

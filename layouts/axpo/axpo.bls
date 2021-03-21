@@ -113,21 +113,40 @@ $ifnot($isset(codice_pod)) {
 ### End Script
 ### End Box
 
-### Box Energia Reattiva
+### Box Tabella Consumi
 ### Type PAGE
-### Mode RAW
+### Mode LAYOUT
 ### Page 2
-### Rect 0.03181463 0.2576967 0.94399184 0.25427598
+### Rect 0.03504043645161288 0.41277081630558726 0.9407660151612903 0.09578106510832379
+### Spacers
+p+::off_allegato
+p+::next_page
+### End Spacers
+### Script
+$between("CONSUMI E LETTURE") {
+  $step($table_row($search(@,$format(/(.+ - \d\d\.$0.+)/,_mese)),
+    $table_header($search(@,/(.*Periodo.+)/),
+      /Consumi fatturati kWh/,/Energia Reattiva/))) {
+	 $step($captures(@,/(\N) (\N) (\N)/)) {
+      %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
+    }
+    %energia_reattiva
+  }
+}
+### End Script
+### End Box
+
+### Box Imponibile
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 2
+### Rect 0.5112903225806452 0.3204104903078677 0.09999999999999998 0.04789053591790193
 ### Spacers
 p+::off_allegato
 p+::next_page
 ### End Spacers
 ### Script
 %imponibile=$search(@,/TOTALE IMPONIBILE (\N)/)
-$if($contains(@,"Energia Reattiva")) {
-  %energia_reattiva=$search($search(@,/CONSUMI E LETTURE([^]+?)Consumi fatturati/),
-    $format(/\d\d\.$0.+ (\N)\n/,_mese))
-}
 ### End Script
 ### End Box
 

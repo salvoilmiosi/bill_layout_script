@@ -96,20 +96,20 @@ inline std::string &string_replace(std::string &str, std::string_view from, std:
 }
 
 template<typename T>
-inline T string_to(std::string_view str) {
+constexpr T string_to(std::string_view str) {
     T ret;
     auto result = std::from_chars(str.begin(), str.end(), ret);
     if (result.ec != std::errc()) {
-        throw std::invalid_argument(std::string(str));
+        throw std::invalid_argument(fmt::format("Impossibile convertire {} in numero", str));
     }
     return ret;
 }
 
-inline int string_toint(std::string_view str) {
+constexpr int string_toint(std::string_view str) {
     return string_to<int>(str);
 }
 
-inline std::string num_tostring(auto num) {
+constexpr std::string num_tostring(auto num) {
     std::array<char, 16> buf;
     auto [ptr, ec] = std::to_chars(buf.begin(), buf.end(), num);
     if (ec == std::errc()) {

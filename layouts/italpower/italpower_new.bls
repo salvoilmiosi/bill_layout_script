@@ -96,12 +96,10 @@ mese_fattura=$month(@,"%b. %Y")
 ### Rect 0.048387095 0.6624857 0.89870286 0.055942718
 ### Script
 $between("RIEPILOGO LETTURE E CONSUMI","CONSUMI FATTURATI") {
-  _fmt_table=$table_row_regex($search(@,/(.+Dal Al.+)/),"Consum","Lett","Consum","Valore")
+  _header=$table_header($search(@,/(.+Dal Al.+)/),/Consumi/,/Consumi/)
   $foreach($captures(@,$format(/(.+\d\d\/$0 F1.+)\n(.+F2.+)\n(.+F3.+)/,$date_format(mese_fattura,"%m/%Y")))) {
-    $step($captures(@,_fmt_table)) {
-      $skip()
+    $step($table_row(@,_header)) {
       %energia_attiva_rilevata[]
-      $skip()
       %energia_reattiva[]
     }
   }
