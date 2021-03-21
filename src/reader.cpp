@@ -164,7 +164,7 @@ void reader::exec_command(const command_args &cmd) {
     case OP_ISSET:      m_stack.push(m_selected.size() != 0); break;
     case OP_GETSIZE:    m_stack.push(m_selected.size()); break;
     case OP_PUSHVAR:    m_stack.push(m_selected.get_value()); break;
-    case OP_PUSHREF:    m_stack.push(m_selected.get_value().str_view()); break;
+    case OP_PUSHREF:    m_stack.push(m_selected.get_value().as_view()); break;
     case OP_PUSHVIEW:   m_stack.push(m_contents.top().view()); break;
     case OP_PUSHNUM:    m_stack.push(cmd.get_args<OP_PUSHNUM>()); break;
     case OP_PUSHINT:    m_stack.push(cmd.get_args<OP_PUSHINT>()); break;
@@ -188,8 +188,8 @@ void reader::exec_command(const command_args &cmd) {
     case OP_JZ:         jump_conditional(cmd.get_args<OP_JZ>(), !m_stack.pop().as_bool()); break;
     case OP_JNZ:        jump_conditional(cmd.get_args<OP_JNZ>(), m_stack.pop().as_bool()); break;
     case OP_JNTE:       jump_conditional(cmd.get_args<OP_JNTE>(), !m_contents.top().tokenend()); break;
-    case OP_THROWERROR: throw layout_error(m_stack.pop().str()); break;
-    case OP_WARNING:    m_warnings.push_back(m_stack.pop().str()); break;
+    case OP_THROWERROR: throw layout_error(m_stack.pop().as_string()); break;
+    case OP_WARNING:    m_warnings.push_back(m_stack.pop().as_string()); break;
     case OP_RET:        m_program_counter = m_stack.pop().as_int(); break;
     case OP_HLT:        halt(); break;
     }

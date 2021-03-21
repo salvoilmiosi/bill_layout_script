@@ -113,7 +113,7 @@ public:
     }
 
     void set_value(variable &&value, flags_t flags) {
-        if (!(flags & SET_FORCE) && value.empty()) return;
+        if (!(flags & SET_FORCE) && value.is_null()) return;
         if (flags & SET_OVERWRITE) clear();
 
         resize(index + length);

@@ -190,7 +190,7 @@ void output_dialog::updateItems() {
             if (old_name != key.name) {
                 m_list_ctrl->SetItem(n, col_name, key.name);
             }
-            m_list_ctrl->SetItem(n, col_value, wxString(var.str().c_str(), wxConvUTF8));
+            m_list_ctrl->SetItem(n, col_value, wxString(var.as_string().c_str(), wxConvUTF8));
             old_name = key.name;
             ++n;
         }

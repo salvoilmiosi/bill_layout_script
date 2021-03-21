@@ -76,10 +76,10 @@ static PyObject *to_pyoutput(const reader_output &my_output) {
             auto py_key = PyUnicode_FromString(key.c_str());
             if (PyDict_Contains(obj, py_key)) {
                 PyObject *var_list = PyDict_GetItem(obj, py_key);
-                PyList_Append(var_list, PyUnicode_FromString(var.str().c_str()));
+                PyList_Append(var_list, PyUnicode_FromString(var.as_string().c_str()));
             } else {
                 PyObject *var_list = PyList_New(1);
-                PyList_SetItem(var_list, 0, PyUnicode_FromString(var.str().c_str()));
+                PyList_SetItem(var_list, 0, PyUnicode_FromString(var.as_string().c_str()));
                 PyDict_SetItem(obj, py_key, var_list);
             }
         }

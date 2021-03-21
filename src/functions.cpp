@@ -220,10 +220,10 @@ static variable search_date(std::string_view value, const std::string &format, s
         string_replace(regex, "\\D", date_regex(format));
     }
 
-    if (auto search_res = search_regex(regex, value, index); !search_res.empty()) {
+    if (auto search_res = search_regex(regex, value, index); !search_res.is_null()) {
         wxDateTime date;
         wxString::const_iterator end;
-        if (date.ParseFormat(search_res.str(), format, wxDateTime(time_t(0)), &end)) {
+        if (date.ParseFormat(search_res.as_string(), format, wxDateTime(time_t(0)), &end)) {
             return date;
         }
     }
@@ -251,7 +251,7 @@ const function_map function_lookup {
     {"null", []{ return variable(); }},
     {"num", [](const variable &var) {
         if (var.is_number()) return var;
-        return parse_num(var.str_view());
+        return parse_num(var.as_view());
     }},
     {"aggregate", [](std::string_view str) {
         variable ret;
@@ -309,8 +309,8 @@ const function_map function_lookup {
         return search_date(str, format, regex, index);
     }},
     {"month", [](std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
-        if (auto date = search_date(str, format, regex, index); !date.empty()) {
-            return variable(date.date().SetDay(1));
+        if (auto date = search_date(str, format, regex, index); !date.is_null()) {
+            return variable(date.as_date().SetDay(1));
         }
         return variable();
     }},
@@ -361,15 +361,15 @@ const function_map function_lookup {
         auto view = str | std::views::transform(toupper);
         return std::string{view.begin(), view.end()};
     }},
-    {"isempty", [](const variable &var) {
-        return var.empty();
+    {"isempty", [](std::string_view str) {
+        return str.empty();
     }},
     {"format", [](std::string_view format, varargs<std::string_view> args) {
         return string_format(format, args);
     }},
     {"coalesce", [](varargs<variable> args) {
         for (const auto &arg : args) {
-            if (!arg.empty()) return arg;
+            if (!arg.is_null()) return arg;
         }
         return variable();
     }},

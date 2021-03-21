@@ -70,7 +70,7 @@ int MainApp::OnRun() {
             if (table.isNull()) table = Json::objectValue;
             auto &json_arr = table[name];
             if (json_arr.isNull()) json_arr = Json::arrayValue;
-            json_arr.append(var.str());
+            json_arr.append(var.as_string());
         };
 
         for (auto &[key, var] : my_reader.get_values()) {

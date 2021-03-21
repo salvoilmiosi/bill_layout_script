@@ -6,41 +6,44 @@
 #include <wx/datetime.h>
 #include "fixed_point.h"
 
+struct null_state {};
+struct string_state {};
+
 class variable {
 public:
     variable() = default;
 
-    variable(const std::string &value) : m_str(value) {}
-    variable(std::string &&value) : m_str(std::move(value)) {}
+    variable(const std::string &value) : m_str(value), m_value(string_state{}) {}
+    variable(std::string &&value) : m_str(std::move(value)), m_value(string_state{}) {}
 
-    variable(std::string_view value) : m_data(value) {}
+    variable(std::string_view value) : m_value(value) {}
 
-    variable(fixed_point value) : m_data(value) {}
-    variable(std::floating_point auto value) : m_data(fixed_point(value)) {}
+    variable(fixed_point value) : m_value(value) {}
+    variable(std::floating_point auto value) : m_value(fixed_point(value)) {}
 
-    variable(std::integral auto value) : m_data(int64_t(value)) {}
+    variable(std::integral auto value) : m_value(int64_t(value)) {}
 
-    variable(wxDateTime value) : m_data(value) {}
+    variable(wxDateTime value) : m_value(value) {}
 
+    bool is_null() const;
     bool is_string() const;
     bool is_number() const;
 
-    const std::string &str() const & {
+    const std::string &as_string() const & {
         return get_string();
     }
 
-    std::string &&str() && {
+    std::string &&as_string() && {
         return std::move(get_string());
     }
 
-    std::string_view str_view() const;
-    fixed_point number() const;
+    std::string_view as_view() const;
+    fixed_point as_number() const;
     int64_t as_int() const;
     double as_double() const;
-    wxDateTime date() const;
+    wxDateTime as_date() const;
 
     bool as_bool() const;
-    bool empty() const;
 
     std::partial_ordering operator <=> (const variable &other) const;
     
@@ -55,7 +58,8 @@ public:
 
 private:
     mutable std::string m_str;
-    std::variant<std::monostate, std::string_view, fixed_point, int64_t, wxDateTime> m_data;
+
+    std::variant<null_state, string_state, std::string_view, fixed_point, int64_t, wxDateTime> m_value;
 
     std::string &get_string() const;
 };
