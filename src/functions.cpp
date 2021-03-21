@@ -176,7 +176,11 @@ static std::string table_header(std::string_view header, R &&names) {
                 auto match_begin = match[0].first;
                 auto match_end = match[0].second;
                 pos = std::find_if_not(match_end, header.end(), isspace);
-                return fmt::format("{}:{}", match_begin - header.begin(), pos - match_begin);
+                if (pos == header.end()) {
+                    return fmt::format("{}:-1", match_begin - header.begin());
+                } else {
+                    return fmt::format("{}:{}", match_begin - header.begin(), pos - match_begin);
+                }
             } else {
                 return std::string();
             }
@@ -188,7 +192,7 @@ static std::string table_row(std::string_view row, std::string_view indices) {
     return string_join(string_split(indices, UNIT_SEPARATOR)
         | std::views::transform([&](std::string_view str) {
             std::cmatch match;
-            if (std::regex_match(str.begin(), str.end(), match, std::regex("(\\d+):(\\d+)"))) {
+            if (std::regex_match(str.begin(), str.end(), match, std::regex("(\\d+):(-?\\d+)"))) {
                 return row.substr(string_toint(match.str(1)), string_toint(match.str(2)));
             }
             return std::string_view();
@@ -371,6 +375,12 @@ const function_map function_lookup {
     }},
     {"trim", [](std::string_view str) {
         return string_trim(str);
+    }},
+    {"lpad", [](std::string_view str, int amount) {
+        return fmt::format("{0: >{1}}", str, str.size() + amount);
+    }},
+    {"rpad", [](std::string_view str, int amount) {
+        return fmt::format("{0: <{1}}", str, str.size() + amount);
     }},
     {"contains", [](std::string_view str, std::string_view str2) {
         return string_find_icase(str, str2, 0) < str.size();

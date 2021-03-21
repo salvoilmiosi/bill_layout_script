@@ -167,7 +167,7 @@ $setend($indexof(@,"\n"))
 ### Rect 0.03711486845965273 0.038112792295081965 0.68683654 0.9167617
 ### Script
 $newview {
-  $setbegin($indexof(@,"Dettaglio dei consumi"))
+  $setbegin($min($indexof(@,"Consumi rilevati\n"),$indexof(@,"Dettaglio dei consumi")))
   $setend($indexof(@,"INFORMAZIONI PER I CLIENTI"))
   _table_fmt=$table_header($search(@,/(.+F1.+)/),/F1/,/F2/,/F3/,/F1/,/F2/,/F3/,/F1 F2 F3/,/F1/,/F2/,/F3/)
   $step($table_row(
