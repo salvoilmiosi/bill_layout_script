@@ -60,6 +60,7 @@ int64_t variable::as_int() const {
 double variable::as_double() const {
     return std::visit(overloaded{
         [&](string_t auto)  { return as_number().getAsDouble(); },
+        [](fixed_point num) { return num.getAsDouble(); },
         [](int64_t num)     { return double(num); },
         [](auto)            { return 0.0; }
     }, m_value);
@@ -116,21 +117,18 @@ std::partial_ordering variable::operator <=> (const variable &other) const {
         [&](string_t auto, null_state)              { return as_view() <=> ""; },
         [&](null_state, string_t auto)              { return "" <=> other.as_view(); },
         
+        [](number_t auto num1, number_t auto num2)  { return num1 <=> num2; },
+
         [&](string_t auto, number_t auto num)       { return as_number() <=> num; },
         [&](number_t auto num, string_t auto)       { return num <=> other.as_number(); },
-
-        [&](string_t auto, wxDateTime dt)           { return as_date() <=> dt; },
-        [&](wxDateTime dt, string_t auto)           { return dt <=> other.as_date(); },
-
-        [](number_t auto num1, number_t auto num2)  { return num1 <=> num2; },
 
         [](number_t auto num, null_state)           { return num <=> 0; },
         [](null_state, number_t auto num)           { return 0 <=> num; },
         
         [](wxDateTime dt1, wxDateTime dt2)          { return dt1 <=> dt2; },
-
-        [](wxDateTime dt, null_state)               { return dt <=> wxDateTime(time_t(0)); },
-        [](null_state, wxDateTime dt)               { return wxDateTime(time_t(0)) <=> dt; },
+        
+        [&](wxDateTime dt, string_t auto)           { return dt <=> other.as_date(); },
+        [&](string_t auto, wxDateTime dt)           { return as_date() <=> dt; },
 
         [](null_state, null_state)                  { return std::partial_ordering::equivalent; },
         [](auto, auto)                              { return std::partial_ordering::unordered; }
@@ -171,16 +169,13 @@ void variable::append(const variable &other) {
             m_value = string_state{};
         },
         [&](auto, fixed_point num) {
-            m_value = as_number() + num;
-            m_str.clear();
+            *this = as_number() + num;
         },
         [&](auto, int64_t num) {
-            m_value = as_int() + num;
-            m_str.clear();
+            *this = as_int() + num;
         },
         [&](number_t auto num1, number_t auto num2) {
-            m_value = num1 + num2;
-            m_str.clear();
+            *this = num1 + num2;
         }
     }, m_value, other.m_value);
 }
