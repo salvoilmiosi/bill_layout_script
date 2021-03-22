@@ -75,10 +75,10 @@ def read_pdf(pdf_file):
             print('\033[33m{0} ### {1}\033[0m'.format(rel_path, ', '.join(out_dict['warnings'])))
         else:
             print(rel_path)
-    except pyreader.Error as err:
+    except pyreader.LayoutError as err:
         ret['error'] = str(err)
         print('\033[31m{0} ### {1}\033[0m'.format(rel_path, ret['error']))
-    except pyreader.Timeout as err:
+    except pyreader.FatalError as err:
         ret['error'] = str(err)
         print('\033[35m{0} ### {1}\033[0m'.format(rel_path, ret['error']))
 
