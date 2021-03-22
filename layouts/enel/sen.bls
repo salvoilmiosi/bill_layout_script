@@ -25,7 +25,7 @@ p+::offset_dettaglio
 ### End Spacers
 ### Script
 $if($ate()) {
-  $error("SEN: Dettaglio Mancante")
+  $warning("SEN: Dettaglio Mancante")
 } $elif(@ != "DETTAGLIO IMPORTI BOLLETTA") {
   ::offset_dettaglio+=1
   $goto(calcolo_offset)

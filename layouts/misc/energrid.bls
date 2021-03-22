@@ -122,7 +122,7 @@ $between("DETTAGLIO IMPOSTE","TOTALE (Salvo conguagli, errori e omissioni)") {
 p+_off_dettaglio
 ### End Spacers
 ### Script
-$if($ate()) $error("EnerGrid: Dettaglio Mancante")
+$if($ate()) $warning("EnerGrid: Dettaglio Mancante")
 _pod_dettaglio=$search(@,/POD: (.+)/)
 $if(_pod_dettaglio!=codice_pod) {
   _off_dettaglio+=1

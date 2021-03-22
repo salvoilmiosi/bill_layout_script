@@ -13,7 +13,7 @@ p+::off_dettaglio
 ### End Spacers
 ### Script
 $if($ate()) {
-  $error("Estra: Dettaglio Mancante")
+  $warning("Estra: Dettaglio Mancante")
 } $elif(@ != "ELEMENTI DI DETTAGLIO") {
   ::off_dettaglio+=1
   $goto(ricerca_dettaglio)
