@@ -44,18 +44,6 @@ add_executable(blsdump src/blsdump.cpp)
 target_include_directories(blsdump PRIVATE ${JSONCPP_INCLUDE_DIRS})
 target_link_libraries(blsdump layout ${JSONCPP_LIBRARIES})
 
-set(ENABLE_PYREADER OFF CACHE BOOL "Enable Pyreader")
-
-if(ENABLE_PYREADER)
-    find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-    find_package(PythonLibs REQUIRED)
-
-    Python3_add_library(pyreader src/pyreader.cpp ${liblayout_SRCS})
-    target_include_directories(pyreader PRIVATE ${PYTHON_INCLUDE_DIRS})
-    target_link_libraries(pyreader PRIVATE ${wxWidgets_LIBRARIES} ${FMT_LIBRARIES} ${POPPLER_LIBRARIES})
-    install(TARGETS pyreader DESTINATION "${CMAKE_SOURCE_DIR}/script" COMPONENT "EXT")
-endif()
-
 if(WIN32 AND MSYS)
     add_custom_target(fix_compile_commands ALL
         COMMAND sed -i 's/\\/\\\(.\\\)\\//\\1:\\//g' ${CMAKE_BINARY_DIR}/compile_commands.json
