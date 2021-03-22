@@ -82,7 +82,7 @@ fornitore="Enel Energia"
 ### Page 1
 ### Rect 0.04623656 0.1717978 0.41827956 0.16039528
 ### Script
-'indirizzo_fornitura=$singleline($search(@,/Forniamo energia in ([^]+?\d{5}.+\n)/))
+'indirizzo_fornitura=$singleline($search(@,/Forniamo energia in ([^]+?\d{5}.+)\n/))
 %potenza[0:3]=$search(@,/(?:Potenza contrattualmente impegnata|Livello massimo di potenza) (\N)/)
 ### End Script
 ### End Box

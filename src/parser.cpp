@@ -186,7 +186,6 @@ bool parser::read_statement(bool throw_on_eof) {
         }
 
         if (prefixes & VP_CAPITALIZE) {
-            add_line<OP_CALL>("trim", 1);
             add_line<OP_CALL>("capitalize", 1);
         }
         if (prefixes & VP_AGGREGATE) {
@@ -194,7 +193,9 @@ bool parser::read_statement(bool throw_on_eof) {
         } else if (prefixes & VP_PARSENUM) {
             add_line<OP_CALL>("num", 1);
         }
-        if (prefixes & VP_NEGATE)     add_line<OP_CALL>("neg", 1);
+        if (prefixes & VP_NEGATE) {
+            add_line<OP_CALL>("neg", 1);
+        }
         if (prefixes & VP_OVERWRITE)  flags |= SET_OVERWRITE;
         if (prefixes & VP_FORCE)      flags |= SET_FORCE;
 
