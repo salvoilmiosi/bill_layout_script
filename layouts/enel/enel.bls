@@ -163,20 +163,21 @@ iva=$search(@,/IVA.* (\N%)/)
 ### Page 2
 ### Rect 0.057569835 0.42134714 0.6868947 0.095169425
 ### Script
-_prev_month=$month_add(mese_fattura,-1)
+_inizio_dettaglio=$date_format($last_day($month_add(mese_fattura,-1)),"%d/%m/%Y")
+_fine_dettaglio=$date_format(mese_fattura,"\\d\\d/%m/%Y")
 $if($contains(@,"Energia attiva")) {
-  $step($captures(@,$format(/\d\d\/$0 (\N) (\N) (\N)/,$date_format(mese_fattura,"%m/%Y")))) {
+  $step($captures(@,$format(/$0 (\N) (\N) (\N)/,_fine_dettaglio))) {
     %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
   }
-  $step($captures(@,$format(/\d\d\/$0 (\N) (\N) (\N)/,$date_format(_prev_month,"%m/%Y")))) {
+  $step($captures(@,$format(/$0 (\N) (\N) (\N)/,_inizio_dettaglio))) {
     %energia_attiva_rilevata[0]-=@ %energia_attiva_rilevata[1]-=@ %energia_attiva_rilevata[2]-=@
   }
 }
 $if($contains(@,"Energia reattiva")) {
-  $step($captures(@,$format(/\d\d\/$0 \N \N \N (\N) (\N) (\N)/,$date_format(mese_fattura,"%m/%Y")))) {
+  $step($captures(@,$format(/$0 \N \N \N (\N) (\N) (\N)/,_fine_dettaglio))) {
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
   }
-  $step($captures(@,$format(/\d\d\/$0 \N \N \N (\N) (\N) (\N)/,$date_format(_prev_month,"%m/%Y")))) {
+  $step($captures(@,$format(/$0 \N \N \N (\N) (\N) (\N)/,_inizio_dettaglio))) {
     %energia_reattiva[0]-=@ %energia_reattiva[1]-=@ %energia_reattiva[2]-=@
   }
 }
