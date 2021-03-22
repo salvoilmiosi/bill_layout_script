@@ -123,11 +123,11 @@ p+::off_allegato
 p+::next_page
 ### End Spacers
 ### Script
-$between("CONSUMI E LETTURE") {
+$between("CONSUMI E LETTURE","Consumi fatturati negli ultimi 12 mesi") {
   $step($table_row($search(@,$format(/(.+ - \d\d\.$0.+)/,_mese)),
     $table_header($search(@,/(.*Periodo.+)/),
       /Consumi fatturati kWh/,/Energia Reattiva/))) {
-	 $step($captures(@,/(\N) (\N) (\N)/)) {
+	 $step($captures(@,/(\N)(?: (\N) (\N))?/)) {
       %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
     }
     %energia_reattiva

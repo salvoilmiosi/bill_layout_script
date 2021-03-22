@@ -21,6 +21,6 @@ def readpdf(pdf_file, controllo, cached=False, recursive=False):
         else:
             return json_out
     except json.JSONDecodeError:
-        raise Timeout('Output non valido')
+        raise Timeout(f'Output non valido: {proc.stdout}')
     except TimeoutExpired:
         raise Timeout('Timeout')

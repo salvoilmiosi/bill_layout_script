@@ -286,7 +286,7 @@ std::string lexer::token_location_info(const token &tok) {
             break;
         }
     }
-    return fmt::format("{0}: Ln {1}, Col {2}:\n{3:->{2}}", line, numline, loc, '^');
+    return fmt::format("{0}\n{3:->{2}}\nLn {1}, Col {2}", line, numline, loc, '^');
 }
 
 bool lexer::readIdentifier() {
