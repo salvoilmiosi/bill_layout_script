@@ -171,7 +171,7 @@ $newview {
   $setend($indexof(@,"INFORMAZIONI PER I CLIENTI"))
   _table_fmt=$table_header($search(@,/(.+F1.+)/),/F1/,/F2/,/F3/,/F1/,/F2/,/F3/,/F1 F2 F3/,/F1/,/F2/,/F3/)
   $step($table_row(
-    $search(@,$format(/dal \d\d\.\d\d\.\d\d\d\d\n(.+)reale al \d\d\.$0/,
+    $search(@,$format(/dal \d\d\.\d\d\.\d\d\d\d\n(.+) al \d\d\.$0/,
       $date_format(mese_fattura,"%m\\.%Y"))),_table_fmt)) {
     %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
     %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
@@ -216,8 +216,8 @@ $with(&::_dettaglio) {
   }
   $between("SPESA PER ONERI DI SISTEMA","TOTALE SPESA PER ONERI") {
     ^oneri=$matches(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))
-    $foreach($matches(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
-      %oneri+=$search(@,/(\N)$/)
+    $with($matches(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(?:dal|Totale|$)/,_mese_abbr))) {
+      ^oneri+=$matches(@,/.+ (\N)/)
     }
   }
   $between("IMPOSTE ED IVA","TOTALE IMPOSTE ED IVA") {
