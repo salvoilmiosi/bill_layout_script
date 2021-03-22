@@ -28,6 +28,7 @@ O(PUSHVIEW)                     /* content_stack -> stack */ \
 O(PUSHNUM, fixed_point)         /* number -> stack */ \
 O(PUSHINT, int64_t)             /* int -> stack */ \
 O(PUSHSTR, std::string)         /* str -> stack */ \
+O(PUSHARG, small_int)           /* stack -> stack */ \
 O(GETBOX, spacer_index)         /* current_box[index] -> stack */ \
 O(DOCPAGES)                     /* m_doc.pages -> stack */ \
 O(ATE)                          /* (getbox(page) >= docpages()) -> stack */ \
@@ -45,12 +46,12 @@ O(WARNING)                      /* stack -> warnings */ \
 O(IMPORT, import_options)       /* importa il file e lo esegue */ \
 O(SETLANG, intl::language)      /* imposta la lingua del layout */ \
 O(JMP, jump_address)            /* unconditional jump */ \
-O(JSR, jump_address)            /* program_counter -> return_addrs -- jump to subroutine */ \
+O(JSR, jsr_address)             /* program_counter -> call_stack -- jump to subroutine */ \
 O(JZ, jump_address)             /* stack -> jump if top == 0 */ \
 O(JNZ, jump_address)            /* stack -> jump if top != 0 */ \
 O(JNTE, jump_address)           /* jump if content_stack.top at token end */ \
 O(UNEVAL_JUMP, jump_uneval)     /* unevaluated jump, sara' sostituito con opcode */ \
-O(RET)                          /* jump to return_addrs.top, return_addrs.pop, halt if return_addrs.empty */ \
+O(RET)                          /* jump to call_stack.top */ \
 O(HLT)                          /* ferma l'esecuzione */
 
 #define O_1_ARGS(x) O_IMPL(x, void)
@@ -140,8 +141,14 @@ static const char *setvar_flags_names[] = { SETVAR_FLAGS };
 #undef F
 
 struct jump_uneval {
-    opcode cmd;
     std::string label;
+    opcode cmd;
+    std::any args;
+};
+
+struct jsr_address {
+    jump_address addr;
+    small_int numargs;
 };
 
 #define IMPORT_FLAGS \

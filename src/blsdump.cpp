@@ -31,7 +31,6 @@ void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
     parser.AddParam("input-bls");
     parser.AddSwitch("s", "skip-comments", "Skip Comments");
     parser.AddSwitch("r", "recursive-imports", "Recursive Imports");
-    parser.AddSwitch("j", "eval-jumps", "Evaluate Jumps");
     parser.AddOption("o", "output-cache", "Output Cache");
 }
 
@@ -48,7 +47,6 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     input_bls = parser.GetParam(0).ToStdString();
     check_flag(PARSER_ADD_COMMENTS, "s", true);
     check_flag(PARSER_RECURSIVE_IMPORTS, "r");
-    check_flag(PARSER_NO_EVAL_JUMPS, "j", true);
     check_option(output_cache, "o");
     return true;
 }
@@ -76,13 +74,13 @@ int MainApp::OnRun() {
         for (size_t i=0; i < code.size(); ++i) {
             auto &line = code[i];
 
-            auto [comment_begin, comment_end] = comments.equal_range(i);
-            for (;comment_begin != comment_end; ++comment_begin) {
-                std::cout << comment_begin->second << std::endl;
-            }
             auto [label_begin, label_end] = inv_labels.equal_range(i);
             for (;label_begin != label_end; ++label_begin) {
                 std::cout << label_begin->second << ':' << std::endl;
+            }
+            auto [comment_begin, comment_end] = comments.equal_range(i);
+            for (;comment_begin != comment_end; ++comment_begin) {
+                std::cout << comment_begin->second << std::endl;
             }
 
             switch (line.command()) {
@@ -139,6 +137,9 @@ int MainApp::OnRun() {
                 break;
             case OP_PUSHSTR:
                 std::cout << '\t' << opcode_names[int(line.command())] << ' ' << quoted_string(line.get_args<OP_PUSHSTR>());
+                break;
+            case OP_PUSHARG:
+                std::cout << '\t' << opcode_names[int(line.command())] << ' ' << num_tostring(line.get_args<OP_PUSHARG>());
                 break;
             case OP_SETLANG:
                 std::cout << '\t' << opcode_names[int(line.command())] << ' ' << intl::language_string(line.get_args<OP_SETLANG>());

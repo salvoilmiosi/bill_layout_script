@@ -71,9 +71,24 @@ void reader::exec_command(const command_args &cmd) {
         m_jumped = condition;
     };
 
-    auto jump_subroutine = [&](jump_address address) {
-        m_stack.push(m_program_counter);
-        jump_relative(address);
+    auto jump_subroutine = [&](jsr_address address) {
+        m_calls.push(function_call{m_program_counter, m_stack.size() - address.numargs, address.numargs});
+        jump_relative(address.addr);
+    };
+
+    auto get_function_arg = [&](small_int idx) {
+        auto ret_value = m_calls.top();
+        if (idx < ret_value.numargs) {
+            return m_stack[m_calls.top().first_arg + idx];
+        } else {
+            return variable();
+        }
+    };
+
+    auto jump_return = [&]() {
+        auto ret_value = m_calls.pop();
+        m_program_counter = ret_value.return_addr;
+        m_stack.resize(m_stack.size() - ret_value.numargs);
     };
 
     auto move_box = [&](spacer_index idx) {
@@ -134,7 +149,7 @@ void reader::exec_command(const command_args &cmd) {
             m_stack.end() - cmd.numargs,
             m_stack.end()));
         m_stack.resize(m_stack.size() - cmd.numargs);
-        m_stack.push(std::move(ret));
+        return ret;
     };
 
     auto import_layout = [&](const import_options &args) {
@@ -148,7 +163,7 @@ void reader::exec_command(const command_args &cmd) {
         } else {
             jump_address addr = add_layout(args.filename) - m_program_counter;
             m_code[m_program_counter] = make_command<OP_JSR>(addr);
-            jump_subroutine(addr);
+            jump_subroutine(jsr_address{addr, 0});
         }
     };
 
@@ -169,10 +184,11 @@ void reader::exec_command(const command_args &cmd) {
     case OP_PUSHNUM:    m_stack.push(cmd.get_args<OP_PUSHNUM>()); break;
     case OP_PUSHINT:    m_stack.push(cmd.get_args<OP_PUSHINT>()); break;
     case OP_PUSHSTR:    m_stack.push(cmd.get_args<OP_PUSHSTR>()); break;
+    case OP_PUSHARG:    m_stack.push(get_function_arg(cmd.get_args<OP_PUSHARG>())); break;
     case OP_GETBOX:     m_stack.push(get_box_info(cmd.get_args<OP_GETBOX>())); break;
     case OP_DOCPAGES:   m_stack.push(m_doc->num_pages()); break;
     case OP_ATE:        m_stack.push(m_current_box.page > m_doc->num_pages()); break;
-    case OP_CALL:       call_function(cmd.get_args<OP_CALL>()); break;
+    case OP_CALL:       m_stack.push(call_function(cmd.get_args<OP_CALL>())); break;
     case OP_ADDCONTENT: m_contents.push(m_stack.pop()); break;
     case OP_POPCONTENT: m_contents.pop(); break;
     case OP_SETBEGIN:   m_contents.top().setbegin(m_stack.pop().as_int()); break;
@@ -190,7 +206,7 @@ void reader::exec_command(const command_args &cmd) {
     case OP_JNTE:       jump_conditional(cmd.get_args<OP_JNTE>(), !m_contents.top().tokenend()); break;
     case OP_THROWERROR: throw layout_error(m_stack.pop().as_string()); break;
     case OP_WARNING:    m_warnings.push_back(m_stack.pop().as_string()); break;
-    case OP_RET:        m_program_counter = m_stack.pop().as_int(); break;
+    case OP_RET:        jump_return(); break;
     case OP_HLT:        halt(); break;
     }
 }

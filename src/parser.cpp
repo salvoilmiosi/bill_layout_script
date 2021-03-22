@@ -25,15 +25,17 @@ void parser::read_layout(const std::filesystem::path &path, const box_vector &la
             m_lexer.token_location_info(error.location())));
     }
 
-    if (!(m_flags & PARSER_NO_EVAL_JUMPS)) {
-        for (auto line = m_code.begin(); line != m_code.end(); ++line) {
-            if (line->command() == OP_UNEVAL_JUMP) {
-                auto &addr = line->get_args<OP_UNEVAL_JUMP>();
-                if (auto it = m_labels.find(addr.label); it != m_labels.end()) {
-                    *line = command_args(addr.cmd, jump_address(it->second - (line - m_code.begin())));
-                } else {
-                    throw layout_error(fmt::format("Etichetta sconosciuta: {}", addr.label));
+    for (auto line = m_code.begin(); line != m_code.end(); ++line) {
+        if (line->command() == OP_UNEVAL_JUMP) {
+            auto &args = line->get_args<OP_UNEVAL_JUMP>();
+            if (auto it = m_labels.find(args.label); it != m_labels.end()) {
+                jump_address addr = it->second - (line - m_code.begin());
+                switch (args.cmd) {
+                    case OP_JSR: *line = make_command<OP_JSR>(addr, std::any_cast<opcode_type<OP_JSR>>(args.args).numargs); break;
+                    default: *line = command_args(args.cmd, addr); break;
                 }
+            } else {
+                throw layout_error(fmt::format("Etichetta sconosciuta: {}", args.label));
             }
         }
     }
@@ -409,6 +411,7 @@ void parser::read_function() {
     enum function_type {
         FUN_VARIABLE,
         FUN_GETBOX,
+        FUN_GETARG,
         FUN_VOID,
     };
     
@@ -418,6 +421,7 @@ void parser::read_function() {
         {"ate",         {FUN_VOID,      make_command<OP_ATE>()}},
         {"docpages",    {FUN_VOID,      make_command<OP_DOCPAGES>()}},
         {"box",         {FUN_GETBOX,    {}}},
+        {"arg",         {FUN_GETARG,    {}}}
     };
 
     if (auto it = simple_functions.find(fun_name); it != simple_functions.end()) {
@@ -437,6 +441,13 @@ void parser::read_function() {
             } else {
                 throw unexpected_token(tok);
             }
+            break;
+        }
+        case FUN_GETARG: {
+            m_lexer.require(TOK_PAREN_BEGIN);
+            auto tok = m_lexer.require(TOK_INTEGER);
+            m_lexer.require(TOK_PAREN_END);
+            add_line<OP_PUSHARG>(small_int(string_toint(tok.value)));
             break;
         }
         case FUN_VOID:

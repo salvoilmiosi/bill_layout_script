@@ -24,6 +24,12 @@ enum { READER_FLAGS };
 enum reader_flags : flags_t { READER_FLAGS };
 #undef F
 
+struct function_call {
+    size_t return_addr;
+    size_t first_arg;
+    small_int numargs;
+};
+
 class reader {
 public:
     reader() = default;
@@ -69,6 +75,7 @@ private:
     small_int m_table_index = 0;
 
     simple_stack<variable> m_stack;
+    simple_stack<function_call> m_calls;
     simple_stack<content_view> m_contents;
 
     variable_ref m_selected;
