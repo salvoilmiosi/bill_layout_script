@@ -20,8 +20,8 @@ F(RECURSIVE)
 #define F(x) POS_READER_##x,
 enum { READER_FLAGS };
 #undef F
-#define F(x) READER_##x = (1 << POS_READER_##x),
-enum reader_flags : flags_t { READER_FLAGS };
+#define F(x) x = (1 << POS_READER_##x),
+enum class reader_flags : flags_t { READER_FLAGS };
 #undef F
 
 struct function_call {
@@ -49,8 +49,8 @@ public:
     size_t add_layout(const std::filesystem::path &filename);
     size_t add_code(bytecode &&new_code);
 
-    void add_flags(flags_t flags) {
-        m_flags |= flags;
+    void add_flags(auto flag) {
+        m_flags |= flag;
     }
 
     void clear();
@@ -91,7 +91,7 @@ private:
     bool m_jumped = false;
     
     std::atomic<bool> m_running = false;
-    flags_t m_flags = 0;
+    bitset<reader_flags> m_flags;
 
     const pdf_document *m_doc = nullptr;
 };

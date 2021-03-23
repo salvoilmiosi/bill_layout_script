@@ -7,8 +7,9 @@
 
 #include <fmt/format.h>
 
+#include "bitset.h"
+
 typedef uint8_t small_int;
-typedef uint8_t flags_t;
 
 constexpr char UNIT_SEPARATOR = '\x1f';
 

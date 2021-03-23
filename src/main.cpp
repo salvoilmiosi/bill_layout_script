@@ -57,10 +57,9 @@ int MainApp::OnRun() {
     try {
         pdf_document my_doc(input_pdf);
         reader my_reader(my_doc);
-        my_reader.add_flags(
-            READER_RECURSIVE & -parse_recursive
-            | READER_USE_CACHE & -use_cache
-            | READER_HALT_ON_SETLAYOUT & -get_layout);
+        if (parse_recursive) my_reader.add_flags(reader_flags::RECURSIVE);
+        if (use_cache) my_reader.add_flags(reader_flags::USE_CACHE);
+        if (get_layout) my_reader.add_flags(reader_flags::HALT_ON_SETLAYOUT);
         my_reader.add_layout(input_bls);
         my_reader.start();
 

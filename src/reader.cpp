@@ -43,20 +43,20 @@ void reader::start() {
 void reader::exec_command(const command_args &cmd) {
     auto select_var = [&](const variable_selector &sel) {
         m_selected = variable_ref(m_values,
-            variable_key{sel.name, (sel.flags & SEL_GLOBAL) ? variable_key::global_index : m_table_index},
+            variable_key{sel.name, (sel.flags & selvar_flags::GLOBAL) ? variable_key::global_index : m_table_index},
             sel.index, sel.length);
 
-        if (sel.flags & SEL_DYN_LEN) {
+        if (sel.flags & selvar_flags::DYN_LEN) {
             m_selected.length = m_stack.pop().as_int();
         }
-        if (sel.flags & SEL_DYN_IDX) {
+        if (sel.flags & selvar_flags::DYN_IDX) {
             m_selected.index = m_stack.pop().as_int();
         }
-        if (sel.flags & SEL_EACH) {
+        if (sel.flags & selvar_flags::EACH) {
             m_selected.index = 0;
             m_selected.length = m_selected.size();
         }
-        if (sel.flags & SEL_APPEND) {
+        if (sel.flags & selvar_flags::APPEND) {
             m_selected.index = m_selected.size();
         }
     };
@@ -107,27 +107,27 @@ void reader::exec_command(const command_args &cmd) {
     auto move_box = [&](spacer_index idx) {
         auto amt = m_stack.pop();
         switch (idx) {
-        case SPACER_PAGE:
+        case spacer_index::PAGE:
             m_current_box.page += amt.as_int(); break;
-        case SPACER_ROTATE_CW:
+        case spacer_index::ROTATE_CW:
             m_current_box.rotate(amt.as_int()); break;
-        case SPACER_ROTATE_CCW:
+        case spacer_index::ROTATE_CCW:
             m_current_box.rotate(-amt.as_int()); break;
-        case SPACER_X:
+        case spacer_index::X:
             m_current_box.x += amt.as_double(); break;
-        case SPACER_Y:
+        case spacer_index::Y:
             m_current_box.y += amt.as_double(); break;
-        case SPACER_WIDTH:
-        case SPACER_RIGHT:
+        case spacer_index::WIDTH:
+        case spacer_index::RIGHT:
             m_current_box.w += amt.as_double(); break;
-        case SPACER_HEIGHT:
-        case SPACER_BOTTOM:
+        case spacer_index::HEIGHT:
+        case spacer_index::BOTTOM:
             m_current_box.h += amt.as_double(); break;
-        case SPACER_TOP:
+        case spacer_index::TOP:
             m_current_box.y += amt.as_double();
             m_current_box.h -= amt.as_double();
             break;
-        case SPACER_LEFT:
+        case spacer_index::LEFT:
             m_current_box.x += amt.as_double();
             m_current_box.w -= amt.as_double();
             break;
@@ -136,21 +136,21 @@ void reader::exec_command(const command_args &cmd) {
 
     auto get_box_info = [&](spacer_index idx) -> variable {
         switch (idx) {
-        case SPACER_PAGE:
+        case spacer_index::PAGE:
             return m_current_box.page;
-        case SPACER_X:
-        case SPACER_LEFT:
+        case spacer_index::X:
+        case spacer_index::LEFT:
             return m_current_box.x;
-        case SPACER_Y:
-        case SPACER_TOP:
+        case spacer_index::Y:
+        case spacer_index::TOP:
             return m_current_box.y;
-        case SPACER_WIDTH:
+        case spacer_index::WIDTH:
             return m_current_box.w;
-        case SPACER_HEIGHT:
+        case spacer_index::HEIGHT:
             return m_current_box.h;
-        case SPACER_RIGHT:
+        case spacer_index::RIGHT:
             return m_current_box.x + m_current_box.w;
-        case SPACER_BOTTOM:
+        case spacer_index::BOTTOM:
             return m_current_box.y + m_current_box.h;
         default:
             return variable();
@@ -166,62 +166,62 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto import_layout = [&](const import_options &args) {
-        if (args.flags & IMPORT_SETLAYOUT && m_flags & READER_HALT_ON_SETLAYOUT) {
+        if (args.flags & import_flags::SETLAYOUT && m_flags & reader_flags::HALT_ON_SETLAYOUT) {
             m_layouts.push_back(args.filename);
             halt();
-        } else if (args.flags & IMPORT_IGNORE) {
+        } else if (args.flags & import_flags::NOIMPORT) {
             if (std::ranges::find(m_layouts, args.filename) == m_layouts.end()) {
                 m_layouts.push_back(args.filename);
             }
         } else {
             jump_address addr = add_layout(args.filename) - m_program_counter;
-            m_code[m_program_counter] = make_command<OP_JSR>(addr);
+            m_code[m_program_counter] = make_command<opcode::JSR>(addr);
             jump_subroutine(jsr_address{addr, 0});
         }
     };
 
     switch (cmd.command()) {
-    case OP_NOP:        break;
-    case OP_SETBOX:     m_contents.clear(); m_current_box = cmd.get_args<OP_SETBOX>(); break;
-    case OP_MVBOX:      move_box(cmd.get_args<OP_MVBOX>()); break;
-    case OP_RDBOX:      m_contents.push(m_doc->get_text(m_current_box)); break;
-    case OP_NEXTTABLE:  ++m_table_index; break;
-    case OP_SELVAR:     select_var(cmd.get_args<OP_SELVAR>()); break;
-    case OP_SETVAR:     m_selected.set_value(m_stack.pop(), cmd.get_args<OP_SETVAR>()); break;
-    case OP_CLEAR:      m_selected.clear(); break;
-    case OP_ISSET:      m_stack.push(m_selected.size() != 0); break;
-    case OP_GETSIZE:    m_stack.push(m_selected.size()); break;
-    case OP_PUSHVAR:    m_stack.push(m_selected.get_value()); break;
-    case OP_PUSHREF:    m_stack.push(m_selected.get_value().as_view()); break;
-    case OP_PUSHVIEW:   m_stack.push(m_contents.top().view()); break;
-    case OP_PUSHNUM:    m_stack.push(cmd.get_args<OP_PUSHNUM>()); break;
-    case OP_PUSHINT:    m_stack.push(cmd.get_args<OP_PUSHINT>()); break;
-    case OP_PUSHSTR:    m_stack.push(cmd.get_args<OP_PUSHSTR>()); break;
-    case OP_PUSHARG:    m_stack.push(get_function_arg(cmd.get_args<OP_PUSHARG>())); break;
-    case OP_GETBOX:     m_stack.push(get_box_info(cmd.get_args<OP_GETBOX>())); break;
-    case OP_DOCPAGES:   m_stack.push(m_doc->num_pages()); break;
-    case OP_ATE:        m_stack.push(m_current_box.page > m_doc->num_pages()); break;
-    case OP_CALL:       m_stack.push(call_function(cmd.get_args<OP_CALL>())); break;
-    case OP_ADDCONTENT: m_contents.push(m_stack.pop()); break;
-    case OP_POPCONTENT: m_contents.pop(); break;
-    case OP_SETBEGIN:   m_contents.top().setbegin(m_stack.pop().as_int()); break;
-    case OP_SETEND:     m_contents.top().setend(m_stack.pop().as_int()); break;
-    case OP_NEWVIEW:    m_contents.top().newview(); break;
-    case OP_SPLITVIEW:  m_contents.top().splitview(); break;
-    case OP_NEXTRESULT: m_contents.top().nextresult(); break;
-    case OP_RESETVIEW:  m_contents.top().resetview(); break;
-    case OP_IMPORT:     import_layout(cmd.get_args<OP_IMPORT>()); break;
-    case OP_SETLANG:    intl::set_language(cmd.get_args<OP_SETLANG>()); break;
-    case OP_JMP:        jump_relative(cmd.get_args<OP_JMP>()); break;
-    case OP_JSR:        jump_subroutine(cmd.get_args<OP_JSR>()); break;
-    case OP_JZ:         jump_conditional(cmd.get_args<OP_JZ>(), !m_stack.pop().as_bool()); break;
-    case OP_JNZ:        jump_conditional(cmd.get_args<OP_JNZ>(), m_stack.pop().as_bool()); break;
-    case OP_JNTE:       jump_conditional(cmd.get_args<OP_JNTE>(), !m_contents.top().tokenend()); break;
-    case OP_THROWERROR: throw layout_error(m_stack.pop().as_string()); break;
-    case OP_WARNING:    m_warnings.push_back(m_stack.pop().as_string()); break;
-    case OP_RET:        jump_return(); break;
-    case OP_RETVAL:     jump_return_val(); break;
-    case OP_HLT:        halt(); break;
+    case opcode::NOP:        break;
+    case opcode::SETBOX:     m_contents.clear(); m_current_box = cmd.get_args<opcode::SETBOX>(); break;
+    case opcode::MVBOX:      move_box(cmd.get_args<opcode::MVBOX>()); break;
+    case opcode::RDBOX:      m_contents.push(m_doc->get_text(m_current_box)); break;
+    case opcode::NEXTTABLE:  ++m_table_index; break;
+    case opcode::SELVAR:     select_var(cmd.get_args<opcode::SELVAR>()); break;
+    case opcode::SETVAR:     m_selected.set_value(m_stack.pop(), cmd.get_args<opcode::SETVAR>()); break;
+    case opcode::CLEAR:      m_selected.clear(); break;
+    case opcode::ISSET:      m_stack.push(m_selected.size() != 0); break;
+    case opcode::GETSIZE:    m_stack.push(m_selected.size()); break;
+    case opcode::PUSHVAR:    m_stack.push(m_selected.get_value()); break;
+    case opcode::PUSHREF:    m_stack.push(m_selected.get_value().as_view()); break;
+    case opcode::PUSHVIEW:   m_stack.push(m_contents.top().view()); break;
+    case opcode::PUSHNUM:    m_stack.push(cmd.get_args<opcode::PUSHNUM>()); break;
+    case opcode::PUSHINT:    m_stack.push(cmd.get_args<opcode::PUSHINT>()); break;
+    case opcode::PUSHSTR:    m_stack.push(cmd.get_args<opcode::PUSHSTR>()); break;
+    case opcode::PUSHARG:    m_stack.push(get_function_arg(cmd.get_args<opcode::PUSHARG>())); break;
+    case opcode::GETBOX:     m_stack.push(get_box_info(cmd.get_args<opcode::GETBOX>())); break;
+    case opcode::DOCPAGES:   m_stack.push(m_doc->num_pages()); break;
+    case opcode::ATE:        m_stack.push(m_current_box.page > m_doc->num_pages()); break;
+    case opcode::CALL:       m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
+    case opcode::ADDCONTENT: m_contents.push(m_stack.pop()); break;
+    case opcode::POPCONTENT: m_contents.pop(); break;
+    case opcode::SETBEGIN:   m_contents.top().setbegin(m_stack.pop().as_int()); break;
+    case opcode::SETEND:     m_contents.top().setend(m_stack.pop().as_int()); break;
+    case opcode::NEWVIEW:    m_contents.top().newview(); break;
+    case opcode::SPLITVIEW:  m_contents.top().splitview(); break;
+    case opcode::NEXTRESULT: m_contents.top().nextresult(); break;
+    case opcode::RESETVIEW:  m_contents.top().resetview(); break;
+    case opcode::IMPORT:     import_layout(cmd.get_args<opcode::IMPORT>()); break;
+    case opcode::SETLANG:    intl::set_language(cmd.get_args<opcode::SETLANG>()); break;
+    case opcode::JMP:        jump_relative(cmd.get_args<opcode::JMP>()); break;
+    case opcode::JSR:        jump_subroutine(cmd.get_args<opcode::JSR>()); break;
+    case opcode::JZ:         jump_conditional(cmd.get_args<opcode::JZ>(), !m_stack.pop().as_bool()); break;
+    case opcode::JNZ:        jump_conditional(cmd.get_args<opcode::JNZ>(), m_stack.pop().as_bool()); break;
+    case opcode::JNTE:       jump_conditional(cmd.get_args<opcode::JNTE>(), !m_contents.top().tokenend()); break;
+    case opcode::THROWERROR: throw layout_error(m_stack.pop().as_string()); break;
+    case opcode::WARNING:    m_warnings.push_back(m_stack.pop().as_string()); break;
+    case opcode::RET:        jump_return(); break;
+    case opcode::RETVAL:     jump_return_val(); break;
+    case opcode::HLT:        halt(); break;
     }
 }
 
@@ -238,12 +238,12 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
     bytecode new_code;
     auto recompile = [&] {
         parser my_parser;
-        if (m_flags & READER_RECURSIVE) {
-            my_parser.add_flags(PARSER_RECURSIVE_IMPORTS);
+        if (m_flags & reader_flags::RECURSIVE) {
+            my_parser.add_flags(parser_flags::RECURSIVE_IMPORTS);
         }
         my_parser.read_layout(filename.parent_path(), box_vector::from_file(filename));
         new_code = std::move(my_parser).get_bytecode();
-        if (m_flags & READER_USE_CACHE) {
+        if (m_flags & reader_flags::USE_CACHE) {
             binary_bls::write(new_code, cache_filename);
         }
     };
@@ -251,10 +251,10 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
     // Se settata flag USE_CACHE, leggi il file di cache e
     // ricompila solo se uno dei file importati è stato modificato.
     // Altrimenti ricompila sempre
-    if (m_flags & READER_USE_CACHE && std::filesystem::exists(cache_filename) && !is_modified(filename)) {
+    if (m_flags & reader_flags::USE_CACHE && std::filesystem::exists(cache_filename) && !is_modified(filename)) {
         new_code = binary_bls::read(cache_filename);
-        if (m_flags & READER_RECURSIVE && std::ranges::any_of(new_code, [&](const command_args &line) {
-            return line.command() == OP_IMPORT && is_modified(line.get_args<OP_IMPORT>().filename);
+        if (m_flags & reader_flags::RECURSIVE && std::ranges::any_of(new_code, [&](const command_args &line) {
+            return line.command() == opcode::IMPORT && is_modified(line.get_args<opcode::IMPORT>().filename);
         })) {
             recompile();
         }
@@ -270,9 +270,9 @@ size_t reader::add_code(bytecode &&new_code) {
 
     std::ranges::move(new_code, std::back_inserter(m_code));
     if (addr == 0) {
-        m_code.push_back(make_command<OP_HLT>());
+        m_code.push_back(make_command<opcode::HLT>());
     } else {
-        m_code.push_back(make_command<OP_RET>());
+        m_code.push_back(make_command<opcode::RET>());
     }
     
     return addr;

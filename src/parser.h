@@ -23,8 +23,8 @@ F(FORCE)
 #define F(x) POS_VP_##x,
 enum { VARIABLE_PREFIXES };
 #undef F
-#define F(x) VP_##x = (1 << POS_VP_##x),
-enum variable_prefixes : flags_t { VARIABLE_PREFIXES };
+#define F(x) x = (1 << POS_VP_##x),
+enum class variable_prefixes : flags_t { VARIABLE_PREFIXES };
 #undef F
 
 #define PARSER_FLAGS \
@@ -34,8 +34,8 @@ F(RECURSIVE_IMPORTS)
 #define F(x) POS_PARSER_##x,
 enum { PARSER_FLAGS };
 #undef F
-#define F(x) PARSER_##x = (1 << POS_PARSER_##x),
-enum parser_flags : flags_t { PARSER_FLAGS };
+#define F(x) x = (1 << POS_PARSER_##x),
+enum class parser_flags : flags_t { PARSER_FLAGS };
 #undef F
 
 struct loop_label_pair {
@@ -64,7 +64,7 @@ class parser {
 public:
     parser() = default;
 
-    void add_flags(flags_t flags) {
+    void add_flags(auto flags) {
         m_flags |= flags;
     }
 
@@ -98,7 +98,7 @@ private:
     void read_keyword();
 
     void read_variable_name();
-    int read_variable(bool read_only = false);
+    bitset<variable_prefixes> read_variable(bool read_only = false);
 
 private:
     template<opcode Cmd, typename ... Ts>
@@ -108,12 +108,12 @@ private:
 
     template<opcode Cmd, typename ... Ts>
     void add_jump(const std::string &label, Ts && ... args) {
-        m_code.push_back(make_command<OP_UNEVAL_JUMP>(label, Cmd, opcode_type<Cmd>{ jump_address(0), std::forward<Ts>(args) ... }));
+        m_code.push_back(make_command<opcode::UNEVAL_JUMP>(label, Cmd, opcode_type<Cmd>{ jump_address(0), std::forward<Ts>(args) ... }));
     }
 
     template<opcode Cmd> requires std::is_same_v<opcode_type<Cmd>, void>
     void add_jump(const std::string &label) {
-        m_code.push_back(make_command<OP_UNEVAL_JUMP>(label, Cmd));
+        m_code.push_back(make_command<opcode::UNEVAL_JUMP>(label, Cmd));
     }
 
     void add_label(const std::string &label);
@@ -131,7 +131,7 @@ private:
     simple_stack<loop_label_pair> m_loop_labels;
     int m_content_level = 0;
 
-    flags_t m_flags = 0;
+    bitset<parser_flags> m_flags;
 
     friend class lexer;
 };

@@ -48,19 +48,22 @@ T(LESS,         "<") \
 T(GREATER_EQ,   ">=") \
 T(LESS_EQ,      "<=")
 
-#define T(x, y) TOK_##x,
-enum token_type { TOKENS };
+#define T(x, y) x,
+enum class token_type { TOKENS };
 #undef T
-#define T(x, y) y,
-static const char *token_names[] = { TOKENS };
+inline constexpr const char *token_name(token_type tok) {
+#define T(x, y) case token_type::x: return y;
+    switch (tok) { TOKENS }
 #undef T
+    return "";
+}
 
 struct token {
     token_type type;
     std::string_view value;
 
     operator bool () {
-        return type != TOK_INVALID;
+        return type != token_type::INVALID;
     }
 
     std::string parse_string();
@@ -85,10 +88,10 @@ protected:
     token_type m_expected;
 
 public:
-    unexpected_token(token tok, token_type expected = TOK_INVALID)
-        : parsing_error(expected == TOK_INVALID
-            ? fmt::format("Imprevisto '{}'", token_names[tok.type])
-            : fmt::format("Imprevisto '{}', richiesto '{}'", token_names[tok.type], token_names[expected]), tok),
+    unexpected_token(token tok, token_type expected = token_type::INVALID)
+        : parsing_error(expected == token_type::INVALID
+            ? fmt::format("Imprevisto '{}'", token_name(tok.type))
+            : fmt::format("Imprevisto '{}', richiesto '{}'", token_name(tok.type), token_name(expected)), tok),
         m_expected(expected) {}
 
     token_type expected() {

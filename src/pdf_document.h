@@ -18,8 +18,8 @@
     BOX(NOREAD,     "Nessuna Lettura") \
 }
 
-#define BOX(x, y) BOX_##x
-enum box_type : uint8_t BOX_TYPES;
+#define BOX(x, y) x
+enum class box_type : uint8_t BOX_TYPES;
 #undef BOX
 #define BOX(x, y) #x
 constexpr const char *box_type_strings[] = BOX_TYPES;
@@ -34,8 +34,8 @@ constexpr const char *box_type_labels[] = BOX_TYPES;
     MODE(RAW,      "Grezza",   raw_order_layout), \
 }
 
-#define MODE(x, y, z) MODE_##x
-enum read_mode : uint8_t READ_MODES;
+#define MODE(x, y, z) x
+enum class read_mode : uint8_t READ_MODES;
 #undef MODE
 #define MODE(x, y, z) #x
 static const char *read_mode_strings[] = READ_MODES;
@@ -47,31 +47,31 @@ static const char *read_mode_labels[] = READ_MODES;
 static poppler::page::text_layout_enum poppler_modes[] = READ_MODES;
 #undef MODE
 
-#define PDF_FLAGS { \
+#define BOX_FLAGS { \
     F(DISABLED, "Disabilita"), \
     F(TRIM,     "Taglia Spazi") \
 }
 
-#define F(x, y) POS_PDF_##x
-enum PDF_FLAGS;
+#define F(x, y) POS_BF_##x
+enum BOX_FLAGS;
 #undef F
-#define F(x, y) PDF_##x = (1 << POS_PDF_##x)
-enum pdf_flags : flags_t PDF_FLAGS;
+#define F(x, y) x = (1 << POS_BF_##x)
+enum class box_flags : flags_t BOX_FLAGS;
 #undef F
 #define F(x, y) #x
-static const char *pdf_flags_names[] = PDF_FLAGS;
+static const char *box_flags_names[] = BOX_FLAGS;
 #undef F
 #define F(x, y) y
-static const char *pdf_flags_labels[] = PDF_FLAGS;
+static const char *box_flags_labels[] = BOX_FLAGS;
 #undef F
 
 struct pdf_rect {
     int page = 0;
     double x, y;
     double w, h;
-    read_mode mode = MODE_DEFAULT;
-    box_type type = BOX_RECTANGLE;
-    flags_t flags = 0;
+    read_mode mode = read_mode::DEFAULT;
+    box_type type = box_type::RECTANGLE;
+    bitset<box_flags> flags;
 
     void rotate(int amt);
 };

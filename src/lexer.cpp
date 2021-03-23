@@ -78,80 +78,80 @@ token lexer::next(bool do_advance) {
 
     switch (c) {
     case '\0':
-        tok.type = TOK_END_OF_FILE;
+        tok.type = token_type::END_OF_FILE;
         break;
     case '$':
-        tok.type = TOK_FUNCTION;
+        tok.type = token_type::FUNCTION;
         ok = readIdentifier();
         break;
     case '"':
-        tok.type = TOK_STRING;
+        tok.type = token_type::STRING;
         ok = readString();
         break;
     case '/':
-        tok.type = TOK_SLASH;
+        tok.type = token_type::SLASH;
         break;
     case '0' ... '9':
         ok = readNumber();
         if (std::find(start, m_current, '.') == m_current) {
-            tok.type = TOK_INTEGER;
+            tok.type = token_type::INTEGER;
         } else {
-            tok.type = TOK_NUMBER;
+            tok.type = token_type::NUMBER;
         }
         break;
     case '\'':
-        tok.type = TOK_SINGLE_QUOTE;
+        tok.type = token_type::SINGLE_QUOTE;
         break;
     case ',':
-        tok.type = TOK_COMMA;
+        tok.type = token_type::COMMA;
         break;
     case '(':
-        tok.type = TOK_PAREN_BEGIN;
+        tok.type = token_type::PAREN_BEGIN;
         break;
     case ')':
-        tok.type = TOK_PAREN_END;
+        tok.type = token_type::PAREN_END;
         break;
     case '[':
-        tok.type = TOK_BRACKET_BEGIN;
+        tok.type = token_type::BRACKET_BEGIN;
         break;
     case ']':
-        tok.type = TOK_BRACKET_END;
+        tok.type = token_type::BRACKET_END;
         break;
     case '{':
-        tok.type = TOK_BRACE_BEGIN;
+        tok.type = token_type::BRACE_BEGIN;
         break;
     case '}':
-        tok.type = TOK_BRACE_END;
+        tok.type = token_type::BRACE_END;
         break;
     case '=':
         if (*m_current == '=') {
             nextChar();
-            tok.type = TOK_EQUALS;
+            tok.type = token_type::EQUALS;
         } else {
-            tok.type = TOK_ASSIGN;
+            tok.type = token_type::ASSIGN;
         }
         break;
     case '%':
-        tok.type = TOK_PERCENT;
+        tok.type = token_type::PERCENT;
         break;
     case '^':
-        tok.type = TOK_CARET;
+        tok.type = token_type::CARET;
         break;
     case '*':
-        tok.type = TOK_ASTERISK;
+        tok.type = token_type::ASTERISK;
         break;
     case '&':
         if (*m_current == '&') {
             nextChar();
-            tok.type = TOK_AND;
+            tok.type = token_type::AND;
         } else {
-            tok.type = TOK_AMPERSAND;
+            tok.type = token_type::AMPERSAND;
         }
         break;
     case '|':
         if (*m_current == '|') {
             nextChar();
-            tok.type = TOK_OR;
+            tok.type = token_type::OR;
         } else {
             ok = false;
         }
@@ -159,61 +159,61 @@ token lexer::next(bool do_advance) {
     case '!':
         if (*m_current == '=') {
             nextChar();
-            tok.type = TOK_NOT_EQUALS;
+            tok.type = token_type::NOT_EQUALS;
         } else {
-            tok.type = TOK_NOT;
+            tok.type = token_type::NOT;
         }
         break;
     case '@':
-        tok.type = TOK_CONTENT;
+        tok.type = token_type::CONTENT;
         break;
     case '~':
-        tok.type = TOK_TILDE;
+        tok.type = token_type::TILDE;
         break;
     case ':':
         if (*m_current == ':') {
             nextChar();
-            tok.type = TOK_GLOBAL;
+            tok.type = token_type::GLOBAL;
         } else {
-            tok.type = TOK_COLON;
+            tok.type = token_type::COLON;
         }
         break;
     case '+':
         if (*m_current == '=') {
             nextChar();
-            tok.type = TOK_ADD_ASSIGN;
+            tok.type = token_type::ADD_ASSIGN;
         } else {
-            tok.type = TOK_PLUS;
+            tok.type = token_type::PLUS;
         }
         break;
     case '-':
         if (*m_current == '=') {
             nextChar();
-            tok.type = TOK_SUB_ASSIGN;
+            tok.type = token_type::SUB_ASSIGN;
         } else {
-            tok.type = TOK_MINUS;
+            tok.type = token_type::MINUS;
         }
         break;
     case '>':
         if (*m_current == '=') {
             nextChar();
-            tok.type = TOK_GREATER_EQ;
+            tok.type = token_type::GREATER_EQ;
         } else {
-            tok.type = TOK_GREATER;
+            tok.type = token_type::GREATER;
         }
         break;
     case '<':
         if (*m_current == '=') {
             nextChar();
-            tok.type = TOK_LESS_EQ;
+            tok.type = token_type::LESS_EQ;
         } else {
-            tok.type = TOK_LESS;
+            tok.type = token_type::LESS;
         }
         break;
     case 'a' ... 'z':
     case 'A' ... 'Z':
     case '_':
-        tok.type = TOK_IDENTIFIER;
+        tok.type = token_type::IDENTIFIER;
         ok = readIdentifier();
         break;
     default:
@@ -221,7 +221,7 @@ token lexer::next(bool do_advance) {
         break;
     }
 
-    if (!ok) tok.type = TOK_INVALID;
+    if (!ok) tok.type = token_type::INVALID;
     tok.value = std::string_view(start, m_current - start);
 
     if (!do_advance) {
@@ -232,14 +232,14 @@ token lexer::next(bool do_advance) {
 
 token lexer::require(token_type type) {
     token tok;
-    if (type == TOK_REGEXP) {
+    if (type == token_type::REGEXP) {
         auto begin = m_current;
-        require(TOK_SLASH);
+        require(token_type::SLASH);
         if (readRegexp()) {
             tok.value = std::string_view(begin, m_current - begin);
-            tok.type = TOK_REGEXP;
+            tok.type = token_type::REGEXP;
         } else {
-            tok.type = TOK_INVALID;
+            tok.type = token_type::INVALID;
         }
     } else {
         tok = next();
@@ -253,7 +253,7 @@ token lexer::require(token_type type) {
 token lexer::check_next(token_type type) {
     token tok = peek();
     if (tok.type != type) {
-        tok.type = TOK_INVALID;
+        tok.type = token_type::INVALID;
     } else {
         advance(tok);
     }

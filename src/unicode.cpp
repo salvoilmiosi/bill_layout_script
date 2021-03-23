@@ -77,14 +77,14 @@ static inline std::string codePointToUTF8(unsigned int cp) {
 }
 
 std::string token::parse_string() {
-    assert (type == TOK_STRING || type == TOK_REGEXP);
+    assert (type == token_type::STRING || type == token_type::REGEXP);
     
     std::string decoded;
     location current = value.begin() + 1;
     location end = value.end() - 1;
     while (current != end) {
         char c = *current++;
-        if ((type == TOK_STRING && c == '"') || (type == TOK_REGEXP && c == '/')) {
+        if ((type == token_type::STRING && c == '"') || (type == token_type::REGEXP && c == '/')) {
             break;
         }
         if (c == '\\') {
@@ -123,14 +123,14 @@ std::string token::parse_string() {
                 break;
             }
             default:
-                if (type == TOK_STRING) {
+                if (type == token_type::STRING) {
                     throw parsing_error("Costante stringa non valida", *this);
                 } else {
                     decoded += '\\';
                     decoded += escape;
                 }
             }
-        } else if (type == TOK_REGEXP && c == ' ') {
+        } else if (type == token_type::REGEXP && c == ' ') {
             decoded += "(?:\\s+)";
         } else {
             decoded += c;

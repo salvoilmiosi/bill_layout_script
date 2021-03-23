@@ -112,15 +112,15 @@ public:
         }
     }
 
-    void set_value(variable &&value, flags_t flags) {
-        if (!(flags & SET_FORCE) && value.is_null()) return;
-        if (flags & SET_OVERWRITE) clear();
+    void set_value(variable &&value, bitset<setvar_flags> flags) {
+        if (!(flags & setvar_flags::FORCE) && value.is_null()) return;
+        if (flags & setvar_flags::OVERWRITE) clear();
 
         resize(index + length);
 
         auto it = std::next(begin(), index);
 
-        if (flags & SET_INCREASE) {
+        if (flags & setvar_flags::INCREASE) {
             std::for_each_n(it, length, [&](auto &var) {
                 var.second.append(value);
             });

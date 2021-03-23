@@ -44,13 +44,14 @@ public:
     }
 };
 
+template<flag_enum T>
 class FlagValidator : public wxValidator {
 protected:
     flags_t m_flag;
-    flags_t *m_value;
+    bitset<T> *m_value;
 
 public:
-    FlagValidator(int n, flags_t &m) : m_flag(n), m_value(&m) {}
+    FlagValidator(int n, bitset<T> &m) : m_flag(n), m_value(&m) {}
 
     virtual wxObject *Clone() const override {
         return new FlagValidator(*this);
@@ -151,7 +152,7 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &out_box) :
 
     add_radio_btns("Tipo:", box_type_labels, m_box.type);
     add_radio_btns(L"Modalità:", read_mode_labels, m_box.mode);
-    add_check_boxes("Flag:", pdf_flags_labels, m_box.flags);
+    add_check_boxes("Flag:", box_flags_labels, m_box.flags);
 
     auto make_script_box = [&](std::string &value) {
         wxStyledTextCtrl *text = new wxStyledTextCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);

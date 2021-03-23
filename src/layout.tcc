@@ -17,13 +17,7 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script<Contai
         output << fmt::format("### Type {}\n", box_type_strings[int(box.type)]);
         output << fmt::format("### Mode {}\n", read_mode_strings[int(box.mode)]);
         if (box.flags) {
-            output << "### Flags";
-            for (size_t i=0; i<std::size(pdf_flags_names); ++i) {
-                if (box.flags & (1 << i)) {
-                    output << ' ' << pdf_flags_names[i];
-                }
-            }
-            output << '\n';
+            output << "### Flags" << print_flags(box.flags, box_flags_names) << '\n';
         }
         output << fmt::format("### Page {}\n", box.page);
         output << fmt::format("### Rect {} {} {} {}\n", box.x, box.y, box.w, box.h);
@@ -116,9 +110,9 @@ std::istream &operator >> (std::istream &input, bill_layout_script<Container> &l
                     std::istringstream ss(std::string(suf.value));
                     std::string label;
                     while (ss >> label) {
-                        auto it = std::ranges::find(pdf_flags_names, label);
-                        if (it != std::end(pdf_flags_names)) {
-                            current.flags |= 1 << (it - pdf_flags_names);
+                        auto it = std::ranges::find(box_flags_names, label);
+                        if (it != std::end(box_flags_names)) {
+                            current.flags |= 1 << (it - box_flags_names);
                         } else {
                             throw layout_error(fmt::format("Token 'Flags' non valido: {}", label));
                         }
