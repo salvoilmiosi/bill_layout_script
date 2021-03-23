@@ -26,8 +26,9 @@ enum reader_flags : flags_t { READER_FLAGS };
 
 struct function_call {
     size_t return_addr;
-    size_t first_arg;
+    small_int first_arg;
     small_int numargs;
+    bool nodiscard;
 };
 
 class reader {
@@ -75,8 +76,8 @@ private:
     small_int m_table_index = 0;
 
     simple_stack<variable> m_stack;
-    simple_stack<function_call> m_calls;
     simple_stack<content_view> m_contents;
+    static_stack<function_call> m_calls;
 
     variable_ref m_selected;
 

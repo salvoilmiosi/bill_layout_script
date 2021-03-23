@@ -52,6 +52,7 @@ O(JNZ, jump_address)            /* stack -> jump if top != 0 */ \
 O(JNTE, jump_address)           /* jump if content_stack.top at token end */ \
 O(UNEVAL_JUMP, jump_uneval)     /* unevaluated jump, sara' sostituito con opcode */ \
 O(RET)                          /* jump to call_stack.top */ \
+O(RETVAL)                       /* return to caller and push value to stack */ \
 O(HLT)                          /* ferma l'esecuzione */
 
 #define O_1_ARGS(x) O_IMPL(x, void)
@@ -149,6 +150,7 @@ struct jump_uneval {
 struct jsr_address {
     jump_address addr;
     small_int numargs;
+    bool nodiscard;
 };
 
 #define IMPORT_FLAGS \

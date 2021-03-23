@@ -31,7 +31,12 @@ void parser::read_layout(const std::filesystem::path &path, const box_vector &la
             if (auto it = m_labels.find(args.label); it != m_labels.end()) {
                 jump_address addr = it->second - (line - m_code.begin());
                 switch (args.cmd) {
-                    case OP_JSR: *line = make_command<OP_JSR>(addr, std::any_cast<opcode_type<OP_JSR>>(args.args).numargs); break;
+                    case OP_JSR: {
+                        auto jsr_args = std::any_cast<opcode_type<OP_JSR>>(args.args);
+                        jsr_args.addr = addr;
+                        *line = make_command<OP_JSR>(jsr_args);
+                        break;
+                    }
                     default: *line = command_args(args.cmd, addr); break;
                 }
             } else {
@@ -413,6 +418,7 @@ void parser::read_function() {
         FUN_GETBOX,
         FUN_GETARG,
         FUN_VOID,
+        FUN_CALL,
     };
     
     static const std::map<std::string, std::tuple<function_type, command_args>, std::less<>> simple_functions = {
@@ -421,7 +427,8 @@ void parser::read_function() {
         {"ate",         {FUN_VOID,      make_command<OP_ATE>()}},
         {"docpages",    {FUN_VOID,      make_command<OP_DOCPAGES>()}},
         {"box",         {FUN_GETBOX,    {}}},
-        {"arg",         {FUN_GETARG,    {}}}
+        {"arg",         {FUN_GETARG,    {}}},
+        {"call",        {FUN_CALL,      {}}}
     };
 
     if (auto it = simple_functions.find(fun_name); it != simple_functions.end()) {
@@ -448,6 +455,18 @@ void parser::read_function() {
             auto tok = m_lexer.require(TOK_INTEGER);
             m_lexer.require(TOK_PAREN_END);
             add_line<OP_PUSHARG>(small_int(string_toint(tok.value)));
+            break;
+        }
+        case FUN_CALL: {
+            m_lexer.require(TOK_PAREN_BEGIN);
+            auto tok = m_lexer.require(TOK_IDENTIFIER);
+            small_int numargs = 0;
+            while (!m_lexer.check_next(TOK_PAREN_END)) {
+                m_lexer.require(TOK_COMMA);
+                read_expression();
+                ++numargs;
+            }
+            add_jump<OP_JSR>(fmt::format("__function_{}", tok.value), numargs, true);
             break;
         }
         case FUN_VOID:

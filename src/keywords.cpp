@@ -14,7 +14,7 @@ void parser::read_keyword() {
     enum function_type {
         FUN_EXPRESSION,
         FUN_VARIABLE,
-        FUN_VOID
+        FUN_VOID,
     };
     
     static const std::map<std::string, std::tuple<function_type, command_args>, std::less<>> simple_functions = {
@@ -25,8 +25,7 @@ void parser::read_keyword() {
         {"clear",       {FUN_VARIABLE,   make_command<OP_CLEAR>()}},
         {"nexttable",   {FUN_VOID,       make_command<OP_NEXTTABLE>()}},
         {"skip",        {FUN_VOID,       make_command<OP_NOP>()}},
-        {"return",      {FUN_VOID,       make_command<OP_RET>()}},
-        {"halt",        {FUN_VOID,       make_command<OP_HLT>()}},
+        {"halt",        {FUN_VOID,       make_command<OP_HLT>()}}
     };
 
     if (auto it = simple_functions.find(fun_name); it != simple_functions.end()) {
@@ -306,6 +305,16 @@ void parser::read_keyword() {
             throw parsing_error("Non in un loop", tok_name);
         }
         add_jump<OP_JMP>(fun_name == "break" ? m_loop_labels.top().break_label : m_loop_labels.top().continue_label);
+        break;
+    case hash("return"):
+        m_lexer.require(TOK_PAREN_BEGIN);
+        if (m_lexer.check_next(TOK_PAREN_END)) {
+            add_line<OP_RET>();
+        } else {
+            read_expression();
+            m_lexer.require(TOK_PAREN_END);
+            add_line<OP_RETVAL>();
+        }
         break;
     default:
         throw parsing_error("Parola chiave sconosciuta", tok_name);

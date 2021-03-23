@@ -72,7 +72,7 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto jump_subroutine = [&](jsr_address address) {
-        m_calls.push(function_call{m_program_counter, m_stack.size() - address.numargs, address.numargs});
+        m_calls.push(function_call{m_program_counter, small_int(m_stack.size() - address.numargs), address.numargs, address.nodiscard});
         jump_relative(address.addr);
     };
 
@@ -85,10 +85,23 @@ void reader::exec_command(const command_args &cmd) {
         }
     };
 
-    auto jump_return = [&]() {
-        auto ret_value = m_calls.pop();
-        m_program_counter = ret_value.return_addr;
-        m_stack.resize(m_stack.size() - ret_value.numargs);
+    auto jump_return = [&] {
+        auto fun_call = m_calls.pop();
+        m_program_counter = fun_call.return_addr;
+        m_stack.resize(m_stack.size() - fun_call.numargs);
+        if (fun_call.nodiscard) {
+            m_stack.push(variable());
+        }
+    };
+
+    auto jump_return_val = [&] {
+        auto ret_value = m_stack.pop();
+        auto fun_call = m_calls.pop();
+        m_program_counter = fun_call.return_addr;
+        m_stack.resize(m_stack.size() - fun_call.numargs);
+        if (fun_call.nodiscard) {
+            m_stack.push(std::move(ret_value));
+        }
     };
 
     auto move_box = [&](spacer_index idx) {
@@ -207,6 +220,7 @@ void reader::exec_command(const command_args &cmd) {
     case OP_THROWERROR: throw layout_error(m_stack.pop().as_string()); break;
     case OP_WARNING:    m_warnings.push_back(m_stack.pop().as_string()); break;
     case OP_RET:        jump_return(); break;
+    case OP_RETVAL:     jump_return_val(); break;
     case OP_HLT:        halt(); break;
     }
 }
