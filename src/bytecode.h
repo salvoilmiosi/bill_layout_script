@@ -66,9 +66,14 @@ O(HLT)                          /* ferma l'esecuzione */
 #define O_IMPL(x, t) x,
 enum class opcode : uint8_t { OPCODES };
 #undef O_IMPL
-#define O_IMPL(x, t) #x,
-static const char *opcode_names[] = { OPCODES };
+constexpr const char *ToString(opcode op) {
+#define O_IMPL(x, t) case opcode::x : return #x;
+    switch (op) {
+        OPCODES
+        default: throw std::invalid_argument("[Unknown opcode]");
+    }
 #undef O_IMPL
+}
 
 typedef int16_t jump_address; // indirizzo relativo
 
@@ -82,42 +87,27 @@ struct command_call {
     command_call(function_iterator fun, int numargs) : fun(fun), numargs(numargs) {}
 };
 
-#define SPACER_INDICES \
-F(PAGE) \
-F(X) \
-F(Y) \
-F(WIDTH) \
-F(HEIGHT) \
-F(TOP) \
-F(RIGHT) \
-F(BOTTOM) \
-F(LEFT) \
-F(ROTATE_CW) \
-F(ROTATE_CCW)
+DEFINE_ENUM_WITH_STRINGS(spacer_index,
+    (PAGE)
+    (X)
+    (Y)
+    (WIDTH)
+    (HEIGHT)
+    (TOP)
+    (RIGHT)
+    (BOTTOM)
+    (LEFT)
+    (ROTATE_CW)
+    (ROTATE_CCW)
+)
 
-#define F(x) x,
-enum class spacer_index : uint8_t { SPACER_INDICES };
-#undef F
-#define F(x) #x,
-static const char *spacer_index_names[] = { SPACER_INDICES };
-#undef F
-
-#define SELVAR_FLAGS \
-F(GLOBAL) \
-F(DYN_IDX) \
-F(DYN_LEN) \
-F(EACH) \
-F(APPEND)
-
-#define F(x) POS_SEL_##x,
-enum { SELVAR_FLAGS };
-#undef F
-#define F(x) x = (1 << POS_SEL_##x),
-enum class selvar_flags : flags_t { SELVAR_FLAGS };
-#undef F
-#define F(x) #x,
-static const char *selvar_flags_names[] = { SELVAR_FLAGS };
-#undef F
+DEFINE_FLAGS_WITH_STRINGS(selvar_flags,
+    (GLOBAL)
+    (DYN_IDX)
+    (DYN_LEN)
+    (EACH)
+    (APPEND)
+)
 
 struct variable_selector {
     std::string name;
@@ -126,20 +116,11 @@ struct variable_selector {
     bitset<selvar_flags> flags;
 };
 
-#define SETVAR_FLAGS \
-F(FORCE) \
-F(OVERWRITE) \
-F(INCREASE)
-
-#define F(x) POS_SET_##x,
-enum { SETVAR_FLAGS };
-#undef F
-#define F(x) x = (1 << POS_SET_##x),
-enum class setvar_flags : flags_t { SETVAR_FLAGS };
-#undef F
-#define F(x) #x,
-static const char *setvar_flags_names[] = { SETVAR_FLAGS };
-#undef F
+DEFINE_FLAGS_WITH_STRINGS(setvar_flags,
+    (FORCE)
+    (OVERWRITE)
+    (INCREASE)
+)
 
 struct jump_uneval {
     std::string label;
@@ -152,19 +133,10 @@ struct jsr_address {
     small_int numargs;
 };
 
-#define IMPORT_FLAGS \
-F(NOIMPORT) \
-F(SETLAYOUT)
-
-#define F(x) POS_IMPORT_##x,
-enum { IMPORT_FLAGS };
-#undef F
-#define F(x) x = (1 << POS_IMPORT_##x),
-enum class import_flags : flags_t { IMPORT_FLAGS };
-#undef F
-#define F(x) #x,
-static const char *import_flags_names[] = { IMPORT_FLAGS };
-#undef F
+DEFINE_FLAGS_WITH_STRINGS(import_flags,
+    (NOIMPORT)
+    (SETLAYOUT)
+)
 
 struct import_options {
     std::filesystem::path filename;

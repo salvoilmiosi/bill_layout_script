@@ -11,32 +11,20 @@
 #include "bytecode.h"
 #include "stack.h"
 
-#define VARIABLE_PREFIXES \
-F(OVERWRITE) \
-F(PARSENUM) \
-F(AGGREGATE) \
-F(NEGATE) \
-F(CAPITALIZE) \
-F(REF) \
-F(FORCE)
+DEFINE_FLAGS_WITH_STRINGS(variable_prefixes,
+    (OVERWRITE)
+    (PARSENUM)
+    (AGGREGATE)
+    (NEGATE)
+    (CAPITALIZE)
+    (REF)
+    (FORCE)
+)
 
-#define F(x) POS_VP_##x,
-enum { VARIABLE_PREFIXES };
-#undef F
-#define F(x) x = (1 << POS_VP_##x),
-enum class variable_prefixes : flags_t { VARIABLE_PREFIXES };
-#undef F
-
-#define PARSER_FLAGS \
-F(ADD_COMMENTS) \
-F(RECURSIVE_IMPORTS)
-
-#define F(x) POS_PARSER_##x,
-enum { PARSER_FLAGS };
-#undef F
-#define F(x) x = (1 << POS_PARSER_##x),
-enum class parser_flags : flags_t { PARSER_FLAGS };
-#undef F
+DEFINE_FLAGS_WITH_STRINGS(parser_flags,
+    (ADD_COMMENTS)
+    (RECURSIVE_IMPORTS)
+)
 
 struct loop_label_pair {
     std::string continue_label;

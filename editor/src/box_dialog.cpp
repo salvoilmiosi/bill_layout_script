@@ -44,7 +44,7 @@ public:
     }
 };
 
-template<flag_enum T>
+template<string_enum T>
 class FlagValidator : public wxValidator {
 protected:
     flags_t m_flag;
@@ -107,6 +107,14 @@ enum {
     BUTTON_TEST = 1001
 };
 
+template<string_enum T> static const char *EnumLabel(T n) {
+    return GetData(n);
+}
+
+template<> const char *EnumLabel(read_mode n) {
+    return std::get<const char *>(GetData(n));
+}
+
 box_dialog::box_dialog(frame_editor *parent, layout_box &out_box) :
     wxDialog(parent, wxID_ANY, "Modifica Rettangolo", wxDefaultPosition, wxSize(700, 500), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), m_box(out_box), app(parent)
 {
@@ -127,10 +135,11 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &out_box) :
     
     addLabelAndCtrl("Nome:", 0, 1, new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, StringValidator(&m_box.name)));
 
-    auto add_radio_btns = [&] <size_t N> (const wxString &label, const char *const (& btn_labels)[N], auto &value) {
+    auto add_radio_btns = [&](const wxString &label, auto &value) {
+        using enum_type = std::decay_t<decltype(value)>;
         bool first = true;
         auto create_btn = [&](size_t i) {
-            auto ret = new wxRadioButton(this, wxID_ANY, btn_labels[i],
+            auto ret = new wxRadioButton(this, wxID_ANY, EnumLabel(static_cast<enum_type>(i)),
                 wxDefaultPosition, wxDefaultSize, first ? wxRB_GROUP : 0,
                 RadioGroupValidator(i, value));
             first = false;
@@ -138,21 +147,21 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &out_box) :
         };
         [&] <size_t ... Is> (std::index_sequence<Is...>) {
             addLabelAndCtrl(label, 0, 0, create_btn(Is) ...);
-        }(std::make_index_sequence<N>{});
+        }(std::make_index_sequence<EnumSize<enum_type>>{});
     };
 
-    auto add_check_boxes = [&] <size_t N> (const wxString &label, const char *const (& btn_labels)[N], auto &value) {
+    auto add_check_boxes = [&] <string_enum enum_type>(const wxString &label, bitset<enum_type> &value) {
         auto create_btn = [&](size_t i) {
-            return new wxCheckBox(this, wxID_ANY, btn_labels[i], wxDefaultPosition, wxDefaultSize, 0, FlagValidator(1 << i, value));  
+            return new wxCheckBox(this, wxID_ANY, EnumLabel(static_cast<enum_type>(1 << i)), wxDefaultPosition, wxDefaultSize, 0, FlagValidator(1 << i, value));  
         };
         [&] <size_t ... Is> (std::index_sequence<Is...>) {
             addLabelAndCtrl(label, 0, 0, create_btn(Is) ...);
-        }(std::make_index_sequence<N>{});
+        }(std::make_index_sequence<EnumSize<enum_type>>{});
     };
 
-    add_radio_btns("Tipo:", box_type_labels, m_box.type);
-    add_radio_btns(L"Modalità:", read_mode_labels, m_box.mode);
-    add_check_boxes("Flag:", box_flags_labels, m_box.flags);
+    add_radio_btns("Tipo:", m_box.type);
+    add_radio_btns(L"Modalità:", m_box.mode);
+    add_check_boxes("Flag:", m_box.flags);
 
     auto make_script_box = [&](std::string &value) {
         wxStyledTextCtrl *text = new wxStyledTextCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);

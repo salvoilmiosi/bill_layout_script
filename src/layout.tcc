@@ -14,10 +14,10 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script<Contai
 
     for (auto &box : layout) {
         output << fmt::format("\n### Box {}\n", box.name);
-        output << fmt::format("### Type {}\n", box_type_strings[int(box.type)]);
-        output << fmt::format("### Mode {}\n", read_mode_strings[int(box.mode)]);
+        output << fmt::format("### Type {}\n", ToString(box.type));
+        output << fmt::format("### Mode {}\n", ToString(box.mode));
         if (box.flags) {
-            output << "### Flags" << print_flags(box.flags, box_flags_names) << '\n';
+            output << "### Flags" << box.flags << '\n';
         }
         output << fmt::format("### Page {}\n", box.page);
         output << fmt::format("### Rect {} {} {} {}\n", box.x, box.y, box.w, box.h);
@@ -93,27 +93,24 @@ std::istream &operator >> (std::istream &input, bill_layout_script<Container> &l
                     fail = false;
                     break;
                 } else if (auto suf = suffix(line, "### Type")) {
-                    auto it = std::ranges::find(box_type_strings, suf.value);
-                    if (it != std::end(box_type_strings)) {
-                        current.type = static_cast<box_type>(it - box_type_strings);
-                    } else {
+                    try {
+                        current.type = FindEnum<box_type>(suf.value);
+                    } catch (std::invalid_argument) {
                         throw layout_error(fmt::format("Token 'Type' non valido: {}", suf.value));
                     }
                 } else if (auto suf = suffix(line, "### Mode")) {
-                    auto it = std::ranges::find(read_mode_strings, suf.value);
-                    if (it != std::end(read_mode_strings)) {
-                        current.mode = static_cast<read_mode>(it - read_mode_strings);
-                    } else {
+                    try {
+                        current.mode = FindEnum<read_mode>(suf.value);
+                    } catch (std::invalid_argument) {
                         throw layout_error(fmt::format("Token 'Mode' non valido: {}", suf.value));
                     }
                 } else if (auto suf = suffix(line, "### Flags")) {
                     std::istringstream ss(std::string(suf.value));
                     std::string label;
                     while (ss >> label) {
-                        auto it = std::ranges::find(box_flags_names, label);
-                        if (it != std::end(box_flags_names)) {
-                            current.flags |= 1 << (it - box_flags_names);
-                        } else {
+                        try {
+                            current.flags |= FindEnum<box_flags>(label);
+                        } catch (std::invalid_argument) {
                             throw layout_error(fmt::format("Token 'Flags' non valido: {}", label));
                         }
                     }

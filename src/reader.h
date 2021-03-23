@@ -12,17 +12,11 @@
 #include "stack.h"
 #include "content_view.h"
 
-#define READER_FLAGS \
-F(HALT_ON_SETLAYOUT) \
-F(USE_CACHE) \
-F(RECURSIVE)
-
-#define F(x) POS_READER_##x,
-enum { READER_FLAGS };
-#undef F
-#define F(x) x = (1 << POS_READER_##x),
-enum class reader_flags : flags_t { READER_FLAGS };
-#undef F
+DEFINE_FLAGS_WITH_STRINGS(reader_flags,
+    (HALT_ON_SETLAYOUT)
+    (USE_CACHE)
+    (RECURSIVE)
+)
 
 struct function_call {
     size_t return_addr;

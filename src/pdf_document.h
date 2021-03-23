@@ -4,66 +4,32 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <tuple>
 #include <filesystem>
 
 #include <poppler-document.h>
 #include <poppler-page.h>
 
 #include "utils.h"
+#include "bitset.h"
 
-#define BOX_TYPES { \
-    BOX(RECTANGLE,  "Rettangolo"), \
-    BOX(PAGE,       "Pagina"), \
-    BOX(WHOLEFILE,  "File"), \
-    BOX(NOREAD,     "Nessuna Lettura") \
-}
+DEFINE_ENUM_WITH_DATA(box_type,
+    (RECTANGLE,  "Rettangolo")
+    (PAGE,       "Pagina")
+    (WHOLEFILE,  "File")
+    (NOREAD,     "Nessuna Lettura")
+)
 
-#define BOX(x, y) x
-enum class box_type : uint8_t BOX_TYPES;
-#undef BOX
-#define BOX(x, y) #x
-constexpr const char *box_type_strings[] = BOX_TYPES;
-#undef BOX
-#define BOX(x, y) y
-constexpr const char *box_type_labels[] = BOX_TYPES;
-#undef BOX
+DEFINE_ENUM_WITH_DATA(read_mode,
+    (DEFAULT,  std::make_tuple("Default", poppler::page::non_raw_non_physical_layout))
+    (LAYOUT,   std::make_tuple("Layout",  poppler::page::physical_layout))
+    (RAW,      std::make_tuple("Grezza",  poppler::page::raw_order_layout))
+)
 
-#define READ_MODES { \
-    MODE(DEFAULT,  "Default",  non_raw_non_physical_layout), \
-    MODE(LAYOUT,   "Layout",   physical_layout), \
-    MODE(RAW,      "Grezza",   raw_order_layout), \
-}
-
-#define MODE(x, y, z) x
-enum class read_mode : uint8_t READ_MODES;
-#undef MODE
-#define MODE(x, y, z) #x
-static const char *read_mode_strings[] = READ_MODES;
-#undef MODE
-#define MODE(x, y, z) y
-static const char *read_mode_labels[] = READ_MODES;
-#undef MODE
-#define MODE(x, y, z) poppler::page::text_layout_enum::z
-static poppler::page::text_layout_enum poppler_modes[] = READ_MODES;
-#undef MODE
-
-#define BOX_FLAGS { \
-    F(DISABLED, "Disabilita"), \
-    F(TRIM,     "Taglia Spazi") \
-}
-
-#define F(x, y) POS_BF_##x
-enum BOX_FLAGS;
-#undef F
-#define F(x, y) x = (1 << POS_BF_##x)
-enum class box_flags : flags_t BOX_FLAGS;
-#undef F
-#define F(x, y) #x
-static const char *box_flags_names[] = BOX_FLAGS;
-#undef F
-#define F(x, y) y
-static const char *box_flags_labels[] = BOX_FLAGS;
-#undef F
+DEFINE_FLAGS_WITH_DATA(box_flags,
+    (DISABLED,  "Disabilita")
+    (TRIM,      "Taglia Spazi")
+)
 
 struct pdf_rect {
     int page = 0;

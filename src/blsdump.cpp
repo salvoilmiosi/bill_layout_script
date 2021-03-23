@@ -63,14 +63,13 @@ template<typename T> std::ostream &print_args(std::ostream &out, const T &args) 
 }
 
 template<> std::ostream &print_args(std::ostream &out, const pdf_rect &box) {
-    return out << ' ' << read_mode_strings[static_cast<int>(box.mode)]
-        << ' ' << box_type_strings[static_cast<int>(box.type)]
-        << print_flags(box.flags, box_flags_names)
+    return out << ' ' << ToString(box.mode)
+        << ' ' << ToString(box.type) << box.flags
         << fmt::format(" {} {} {} {} {}", box.page, box.x, box.y, box.w, box.h);
 }
 
 template<> std::ostream &print_args(std::ostream &out, const spacer_index &idx) {
-    return out << ' ' << spacer_index_names[static_cast<int>(idx)];
+    return out << ' ' << ToString(idx);
 }
 
 template<> std::ostream &print_args(std::ostream &out, const command_call &args) {
@@ -82,11 +81,7 @@ template<> std::ostream &print_args(std::ostream &out, const variable_selector &
     if (args.length != 1) {
         out << ':' << int(args.length);
     }
-    return out << print_flags(args.flags, selvar_flags_names);
-}
-
-template<> std::ostream &print_args(std::ostream &out, const bitset<setvar_flags> &args) {
-    return out << print_flags(args, setvar_flags_names);
+    return out << args.flags;
 }
 
 template<> std::ostream &print_args(std::ostream &out, const fixed_point &num) {
@@ -106,8 +101,7 @@ template<> std::ostream &print_args(std::ostream &out, const intl::language &lan
 }
 
 template<> std::ostream &print_args(std::ostream &out, const import_options &args) {
-    return out << ' ' << quoted_string(args.filename.string())
-        << print_flags(args.flags, import_flags_names);
+    return out << ' ' << quoted_string(args.filename.string()) << args.flags;
 }
 
 template<> std::ostream &print_args(std::ostream &out, const jump_address &addr) {
@@ -129,7 +123,7 @@ template<> std::ostream &print_args(std::ostream &out, const jump_uneval &) {
 
 template<opcode Cmd>
 std::ostream &print_line(std::ostream &out, const command_args &line) {
-    out << '\t' << opcode_names[static_cast<int>(Cmd)];
+    out << '\t' << ToString(Cmd);
     if constexpr (!std::is_void_v<opcode_type<Cmd>>) {
         print_args(out, line.get_args<Cmd>());
     }

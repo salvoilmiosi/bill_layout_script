@@ -2,16 +2,102 @@
 #define __BITSET_H__
 
 #include <cstdint>
+#include <boost/preprocessor.hpp>
 #include <concepts>
+
+struct hasher {
+    constexpr size_t operator() (const char *begin, const char *end) const {
+        return begin != end ? static_cast<unsigned int>(*begin) + 33 * (*this)(begin + 1, end) : 5381;
+    }
+    
+    constexpr size_t operator() (std::string_view str) const {
+        return (*this)(str.begin(), str.end());
+    }
+};
+
+// restituisce l'hash di una stringa
+template<typename T> size_t constexpr hash(T&& t) {
+    return hasher{}(std::forward<T>(t));
+}
+
+template<typename T> struct EnumSizeImpl {};
+template<typename T> T FindEnum(std::string_view name) = delete;
+template<typename T> constexpr size_t EnumSize = EnumSizeImpl<T>::value;
 
 typedef uint8_t flags_t;
 
 template<typename T>
-concept flag_enum = requires (T x) {
-    flags_t(x);
+concept string_enum = requires (T x) {
+    { ToString(x) } -> std::convertible_to<const char *>;
+    { EnumSize<T> } -> std::convertible_to<size_t>;
 };
 
-template<flag_enum T>
+#define HELPER1(...) ((__VA_ARGS__)) HELPER2
+#define HELPER2(...) ((__VA_ARGS__)) HELPER1
+#define HELPER1_END
+#define HELPER2_END
+#define ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(sequence) BOOST_PP_CAT(HELPER1 sequence,_END)
+
+#define CREATE_ENUM_ELEMENT(r, data, elementTuple) BOOST_PP_TUPLE_ELEM(0, elementTuple),
+#define CREATE_FLAG_ELEMENT(r, data, i, elementTuple) BOOST_PP_TUPLE_ELEM(0, elementTuple) = (1 << i),
+
+#define GENERATE_CASE_TO_STRING_IMPL(enumName, element) \
+    case enumName::element : return BOOST_PP_STRINGIZE(element);
+
+#define GENERATE_CASE_TO_STRING(r, enumName, elementTuple) \
+    GENERATE_CASE_TO_STRING_IMPL(enumName, BOOST_PP_TUPLE_ELEM(0, elementTuple))
+
+#define GENERATE_CASE_FIND_ENUM_IMPL(enumName, element) \
+    case hash(BOOST_PP_STRINGIZE(element)): return enumName::element;
+
+#define GENERATE_CASE_FIND_ENUM(r, enumName, elementTuple) \
+    GENERATE_CASE_FIND_ENUM_IMPL(enumName, BOOST_PP_TUPLE_ELEM(0, elementTuple))
+
+#define GENERATE_CASE_GET_DATA(r, enumName, elementTuple) \
+    case enumName::BOOST_PP_TUPLE_ELEM(0, elementTuple) : return BOOST_PP_TUPLE_ELEM(1, elementTuple);
+
+#define DEFINE_ENUM_FUNCTIONS(enumName, enumElementsParen)  \
+template<> struct EnumSizeImpl<enumName> : std::integral_constant<size_t, BOOST_PP_SEQ_SIZE(enumElementsParen)> {}; \
+constexpr const char *ToString(const enumName element) {                           \
+    switch (element) {                                                      \
+        BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_TO_STRING, enumName, enumElementsParen)  \
+        default: throw std::invalid_argument("[Unknown " BOOST_PP_STRINGIZE(enumName) "]"); \
+    }                                                                       \
+}               \
+template<> constexpr enumName FindEnum(std::string_view name) {     \
+    switch (hash(name)) {       \
+        BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_FIND_ENUM, enumName, enumElementsParen) \
+        default: throw std::invalid_argument("[Unknown " BOOST_PP_STRINGIZE(enumName) "]"); \
+    }   \
+}
+
+#define DEFINE_GET_DATA_FUNCTION(enumName, enumElements) \
+constexpr auto GetData(const enumName element) {    \
+    switch (element) {  \
+        BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_GET_DATA, enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements))    \
+        default: throw std::invalid_argument("[Unknown " BOOST_PP_STRINGIZE(enumName) "]"); \
+    }   \
+}
+
+#define DEFINE_ENUM_WITH_STRINGS(enumName, enumElements)          \
+enum class enumName : uint8_t { \
+    BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements)) \
+}; DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements))
+
+#define DEFINE_FLAGS_WITH_STRINGS(enumName, enumElements) \
+enum class enumName : flags_t { \
+    BOOST_PP_SEQ_FOR_EACH_I(CREATE_FLAG_ELEMENT, enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements))    \
+}; DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements))
+
+#define DEFINE_ENUM_WITH_DATA(enumName, enumElements) \
+DEFINE_ENUM_WITH_STRINGS(enumName, enumElements) \
+DEFINE_GET_DATA_FUNCTION(enumName, enumElements)
+
+#define DEFINE_FLAGS_WITH_DATA(enumName, enumElements) \
+DEFINE_FLAGS_WITH_STRINGS(enumName, enumElements) \
+DEFINE_GET_DATA_FUNCTION(enumName, enumElements)
+
+template<typename T>
 class bitset {
 private:
     flags_t m_value = 0;
@@ -68,26 +154,14 @@ public:
     }
 };
 
-template<flag_enum T>
-class print_flags {
-private:
-    bitset<T> m_flags;
-    const char **m_names;
-    size_t m_num;
-
-public:
-    template<size_t N>
-    print_flags(bitset<T> flags, const char * (&names)[N])
-        : m_flags(flags), m_names(names), m_num(N) {}
-
-    friend std::ostream &operator << (std::ostream &out, const print_flags &printer) {
-        for (size_t i=0; i<printer.m_num; ++i) {
-            if (printer.m_flags & (1 << i)) {
-                out << ' ' << printer.m_names[i];
-            }
+template<string_enum T>
+std::ostream &operator << (std::ostream &out, const bitset<T> &flags) {
+    for (size_t i=0; i < EnumSize<T>; ++i) {
+        if (flags & (1 << i)) {
+            out << ' ' << ToString(static_cast<T>(1 << i));
         }
-        return out;
     }
-};
+    return out;
+}
 
 #endif

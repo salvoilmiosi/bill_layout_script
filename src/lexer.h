@@ -7,56 +7,49 @@
 #include <functional>
 #include <fmt/format.h>
 
-#define TOKENS \
-T(INVALID,      "Token Invalido") \
-T(END_OF_FILE,  "Fine File") \
-T(IDENTIFIER,   "Identificatore") \
-T(STRING,       "Stringa") \
-T(REGEXP,       "Espressione Regolare") \
-T(NUMBER,       "Numero") \
-T(INTEGER,      "Numero Intero") \
-T(FUNCTION,     "Funzione") \
-T(AMPERSAND,    "&") \
-T(PAREN_BEGIN,  "(") \
-T(PAREN_END,    ")") \
-T(COMMA,        ",") \
-T(BRACKET_BEGIN,"[") \
-T(BRACKET_END,  "]") \
-T(BRACE_BEGIN,  "{") \
-T(BRACE_END,    "}") \
-T(ASSIGN,       "=") \
-T(ADD_ASSIGN,   "+=") \
-T(SUB_ASSIGN,   "-=") \
-T(CONTENT,      "@") \
-T(TILDE,        "~") \
-T(COLON,        ":") \
-T(GLOBAL,       "::") \
-T(SINGLE_QUOTE, "'") \
-T(PERCENT,      "%") \
-T(CARET,        "^") \
-T(ASTERISK,     "*") \
-T(SLASH,        "/") \
-T(PLUS,         "+") \
-T(MINUS,        "-") \
-T(AND,          "&&") \
-T(OR,           "||") \
-T(NOT,          "!") \
-T(EQUALS,       "==") \
-T(NOT_EQUALS,   "!=") \
-T(GREATER,      ">") \
-T(LESS,         "<") \
-T(GREATER_EQ,   ">=") \
-T(LESS_EQ,      "<=")
+#include "bitset.h"
 
-#define T(x, y) x,
-enum class token_type { TOKENS };
-#undef T
-inline constexpr const char *token_name(token_type tok) {
-#define T(x, y) case token_type::x: return y;
-    switch (tok) { TOKENS }
-#undef T
-    return "";
-}
+DEFINE_ENUM_WITH_DATA(token_type,
+    (INVALID,      "Token Invalido")
+    (END_OF_FILE,  "Fine File")
+    (IDENTIFIER,   "Identificatore")
+    (STRING,       "Stringa")
+    (REGEXP,       "Espressione Regolare")
+    (NUMBER,       "Numero")
+    (INTEGER,      "Numero Intero")
+    (FUNCTION,     "Funzione")
+    (AMPERSAND,    "&")
+    (PAREN_BEGIN,  "(")
+    (PAREN_END,    ")")
+    (COMMA,        ",")
+    (BRACKET_BEGIN,"[")
+    (BRACKET_END,  "]")
+    (BRACE_BEGIN,  "{")
+    (BRACE_END,    "}")
+    (ASSIGN,       "=")
+    (ADD_ASSIGN,   "+=")
+    (SUB_ASSIGN,   "-=")
+    (CONTENT,      "@")
+    (TILDE,        "~")
+    (COLON,        ":")
+    (GLOBAL,       "::")
+    (SINGLE_QUOTE, "'")
+    (PERCENT,      "%")
+    (CARET,        "^")
+    (ASTERISK,     "*")
+    (SLASH,        "/")
+    (PLUS,         "+")
+    (MINUS,        "-")
+    (AND,          "&&")
+    (OR,           "||")
+    (NOT,          "!")
+    (EQUALS,       "==")
+    (NOT_EQUALS,   "!=")
+    (GREATER,      ">")
+    (LESS,         "<")
+    (GREATER_EQ,   ">=")
+    (LESS_EQ,      "<=")
+)
 
 struct token {
     token_type type;
@@ -90,8 +83,8 @@ protected:
 public:
     unexpected_token(token tok, token_type expected = token_type::INVALID)
         : parsing_error(expected == token_type::INVALID
-            ? fmt::format("Imprevisto '{}'", token_name(tok.type))
-            : fmt::format("Imprevisto '{}', richiesto '{}'", token_name(tok.type), token_name(expected)), tok),
+            ? fmt::format("Imprevisto '{}'", GetData(tok.type))
+            : fmt::format("Imprevisto '{}', richiesto '{}'", GetData(tok.type), GetData(expected)), tok),
         m_expected(expected) {}
 
     token_type expected() {
