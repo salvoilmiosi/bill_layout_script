@@ -31,10 +31,11 @@ void parser::read_layout(const std::filesystem::path &path, const box_vector &la
             if (auto it = m_labels.find(args.label); it != m_labels.end()) {
                 jump_address addr = it->second - (line - m_code.begin());
                 switch (args.cmd) {
-                    case opcode::JSR: {
+                    case opcode::JSR:
+                    case opcode::JSRVAL: {
                         auto jsr_args = std::any_cast<opcode_type<opcode::JSR>>(args.args);
                         jsr_args.addr = addr;
-                        *line = make_command<opcode::JSR>(jsr_args);
+                        *line = command_args(args.cmd, jsr_args);
                         break;
                     }
                     default: *line = command_args(args.cmd, addr); break;
@@ -467,7 +468,7 @@ void parser::read_function() {
                 read_expression();
                 ++numargs;
             }
-            add_jump<opcode::JSR>(fmt::format("__function_{}", tok.value), numargs, true);
+            add_jump<opcode::JSRVAL>(fmt::format("__function_{}", tok.value), numargs);
             break;
         }
         case FUN_VOID:

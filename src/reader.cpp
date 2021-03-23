@@ -71,8 +71,8 @@ void reader::exec_command(const command_args &cmd) {
         m_jumped = condition;
     };
 
-    auto jump_subroutine = [&](jsr_address address) {
-        m_calls.push(function_call{m_program_counter, small_int(m_stack.size() - address.numargs), address.numargs, address.nodiscard});
+    auto jump_subroutine = [&](jsr_address address, bool nodiscard = false) {
+        m_calls.push(function_call{m_program_counter, small_int(m_stack.size() - address.numargs), address.numargs, nodiscard});
         jump_relative(address.addr);
     };
 
@@ -85,22 +85,16 @@ void reader::exec_command(const command_args &cmd) {
         }
     };
 
-    auto jump_return = [&] {
-        auto fun_call = m_calls.pop();
-        m_program_counter = fun_call.return_addr;
-        m_stack.resize(m_stack.size() - fun_call.numargs);
-        if (fun_call.nodiscard) {
-            m_stack.push(variable());
+    auto jump_return = [&](bool get_value) {
+        variable ret_value;
+        if (get_value) {
+            ret_value = m_stack.pop();
         }
-    };
-
-    auto jump_return_val = [&] {
-        auto ret_value = m_stack.pop();
         auto fun_call = m_calls.pop();
         m_program_counter = fun_call.return_addr;
         m_stack.resize(m_stack.size() - fun_call.numargs);
         if (fun_call.nodiscard) {
-            m_stack.push(std::move(ret_value));
+            m_stack.push(ret_value);
         }
     };
 
@@ -213,14 +207,15 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::IMPORT:     import_layout(cmd.get_args<opcode::IMPORT>()); break;
     case opcode::SETLANG:    intl::set_language(cmd.get_args<opcode::SETLANG>()); break;
     case opcode::JMP:        jump_relative(cmd.get_args<opcode::JMP>()); break;
-    case opcode::JSR:        jump_subroutine(cmd.get_args<opcode::JSR>()); break;
     case opcode::JZ:         jump_conditional(cmd.get_args<opcode::JZ>(), !m_stack.pop().as_bool()); break;
     case opcode::JNZ:        jump_conditional(cmd.get_args<opcode::JNZ>(), m_stack.pop().as_bool()); break;
     case opcode::JNTE:       jump_conditional(cmd.get_args<opcode::JNTE>(), !m_contents.top().tokenend()); break;
+    case opcode::JSRVAL:     jump_subroutine(cmd.get_args<opcode::JSRVAL>(), true); break;
+    case opcode::JSR:        jump_subroutine(cmd.get_args<opcode::JSR>()); break;
     case opcode::THROWERROR: throw layout_error(m_stack.pop().as_string()); break;
     case opcode::WARNING:    m_warnings.push_back(m_stack.pop().as_string()); break;
-    case opcode::RET:        jump_return(); break;
-    case opcode::RETVAL:     jump_return_val(); break;
+    case opcode::RET:        jump_return(false); break;
+    case opcode::RETVAL:     jump_return(true); break;
     case opcode::HLT:        halt(); break;
     }
 }

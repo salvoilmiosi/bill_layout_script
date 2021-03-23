@@ -120,11 +120,7 @@ template<> std::ostream &print_args(std::ostream &out, const jump_address &addr)
 }
 
 template<> std::ostream &print_args(std::ostream &out, const jsr_address &addr) {
-    print_args(out, addr.addr) << ' ' << num_tostring(addr.numargs);
-    if (addr.nodiscard) {
-        out << " NODISCARD";
-    }
-    return out;
+    return print_args(out, addr.addr) << ' ' << num_tostring(addr.numargs);
 }
 
 template<> std::ostream &print_args(std::ostream &out, const jump_uneval &) {

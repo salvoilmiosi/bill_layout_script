@@ -46,10 +46,11 @@ O(WARNING)                      /* stack -> warnings */ \
 O(IMPORT, import_options)       /* importa il file e lo esegue */ \
 O(SETLANG, intl::language)      /* imposta la lingua del layout */ \
 O(JMP, jump_address)            /* unconditional jump */ \
-O(JSR, jsr_address)             /* program_counter -> call_stack -- jump to subroutine */ \
 O(JZ, jump_address)             /* stack -> jump if top == 0 */ \
 O(JNZ, jump_address)            /* stack -> jump if top != 0 */ \
 O(JNTE, jump_address)           /* jump if content_stack.top at token end */ \
+O(JSR, jsr_address)             /* program_counter -> call_stack -- jump to subroutine and discard return value */ \
+O(JSRVAL, jsr_address)          /* program_counter -> call_stack -- jump to subroutine */ \
 O(UNEVAL_JUMP, jump_uneval)     /* unevaluated jump, sara' sostituito con opcode */ \
 O(RET)                          /* jump to call_stack.top */ \
 O(RETVAL)                       /* return to caller and push value to stack */ \
@@ -149,7 +150,6 @@ struct jump_uneval {
 struct jsr_address {
     jump_address addr;
     small_int numargs;
-    bool nodiscard;
 };
 
 #define IMPORT_FLAGS \
