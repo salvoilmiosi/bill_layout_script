@@ -63,13 +63,8 @@ template<typename T> std::ostream &print_args(std::ostream &out, const T &args) 
 }
 
 template<> std::ostream &print_args(std::ostream &out, const pdf_rect &box) {
-    return out << ' ' << ToString(box.mode)
-        << ' ' << ToString(box.type) << box.flags
+    return out << ' ' << box.mode << ' ' << box.type << box.flags
         << fmt::format(" {} {} {} {} {}", box.page, box.x, box.y, box.w, box.h);
-}
-
-template<> std::ostream &print_args(std::ostream &out, const spacer_index &idx) {
-    return out << ' ' << ToString(idx);
 }
 
 template<> std::ostream &print_args(std::ostream &out, const command_call &args) {

@@ -13,9 +13,10 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script<Contai
     }
 
     for (auto &box : layout) {
-        output << fmt::format("\n### Box {}\n", box.name);
-        output << fmt::format("### Type {}\n", ToString(box.type));
-        output << fmt::format("### Mode {}\n", ToString(box.mode));
+        output << '\n'
+            << "### Box " << box.name << '\n'
+            << "### Type " << box.type << '\n'
+            << "### Mode " << box.mode << '\n';
         if (box.flags) {
             output << "### Flags" << box.flags << '\n';
         }

@@ -7,7 +7,7 @@
 #include <functional>
 #include <fmt/format.h>
 
-#include "bitset.h"
+#include "enums.h"
 
 DEFINE_ENUM(token_type,
     (INVALID,      "Token Invalido")

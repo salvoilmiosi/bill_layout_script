@@ -44,7 +44,7 @@ public:
     }
 };
 
-template<string_enum T>
+template<flags_enum T>
 class FlagValidator : public wxValidator {
 protected:
     flags_t m_flag;
@@ -142,7 +142,7 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &out_box) :
         }(std::make_index_sequence<EnumSize<enum_type>>{});
     };
 
-    auto add_check_boxes = [&] <string_enum enum_type>(const wxString &label, bitset<enum_type> &value) {
+    auto add_check_boxes = [&] <flags_enum enum_type>(const wxString &label, bitset<enum_type> &value) {
         auto create_btn = [&](size_t i) {
             const auto flag = static_cast<enum_type>(1 << i);
             return new wxCheckBox(this, wxID_ANY, EnumData<const char *>(flag), wxDefaultPosition, wxDefaultSize, 0, FlagValidator(flag, value));  

@@ -1,24 +1,11 @@
-#ifndef __BITSET_H__
-#define __BITSET_H__
+#ifndef __ENUMS_H__
+#define __ENUMS_H__
 
 #include <cstdint>
 #include <boost/preprocessor.hpp>
 #include <concepts>
 
-struct hasher {
-    constexpr size_t operator() (const char *begin, const char *end) const {
-        return begin != end ? static_cast<unsigned int>(*begin) + 33 * (*this)(begin + 1, end) : 5381;
-    }
-    
-    constexpr size_t operator() (std::string_view str) const {
-        return (*this)(str.begin(), str.end());
-    }
-};
-
-// restituisce l'hash di una stringa
-template<typename T> size_t constexpr hash(T&& t) {
-    return hasher{}(std::forward<T>(t));
-}
+#include "utils.h"
 
 template<typename T> struct EnumSizeImpl {};
 template<typename T> constexpr T FindEnum(std::string_view name) = delete;
@@ -27,11 +14,16 @@ template<typename T> constexpr size_t EnumSize = EnumSizeImpl<T>::value;
 typedef uint8_t flags_t;
 
 template<typename T>
-concept string_enum = requires (T x) {
+concept string_enum = std::is_enum_v<T> && requires (T x) {
     { ToString(x) } -> std::convertible_to<const char *>;
     { EnumSize<T> } -> std::convertible_to<size_t>;
     GetTuple(x);
 };
+
+template<string_enum T> struct IsFlagEnum : std::false_type {};
+
+template<typename T>
+concept flags_enum = IsFlagEnum<T>::value;
 
 template<typename T, string_enum E> constexpr T EnumData(E x) { return std::get<T>(GetTuple(x)); }
 template<size_t I, string_enum E> constexpr auto EnumData(E x) { return std::get<I>(GetTuple(x)); }
@@ -100,9 +92,10 @@ enum class enumName : uint8_t { \
 #define DEFINE_ENUM_FLAGS(enumName, enumElements) \
 enum class enumName : flags_t { \
     BOOST_PP_SEQ_FOR_EACH_I(CREATE_FLAG_ELEMENT, enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements))    \
-}; DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements))
+}; DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements)); \
+template<> struct IsFlagEnum<enumName> : std::true_type {};
 
-template<typename T>
+template<flags_enum T>
 class bitset {
 private:
     flags_t m_value = 0;
@@ -160,10 +153,15 @@ public:
 };
 
 template<string_enum T>
+std::ostream &operator << (std::ostream &out, T value) {
+    return out << ToString(value);
+}
+
+template<flags_enum T>
 std::ostream &operator << (std::ostream &out, const bitset<T> &flags) {
     for (size_t i=0; i < EnumSize<T>; ++i) {
         if (flags & (1 << i)) {
-            out << ' ' << ToString(static_cast<T>(1 << i));
+            out << ' ' << static_cast<T>(1 << i);
         }
     }
     return out;

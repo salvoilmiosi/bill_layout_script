@@ -11,7 +11,7 @@
 #include <poppler-page.h>
 
 #include "utils.h"
-#include "bitset.h"
+#include "enums.h"
 
 DEFINE_ENUM(box_type,
     (RECTANGLE,  "Rettangolo")
