@@ -12,7 +12,7 @@
 #include "stack.h"
 #include "content_view.h"
 
-DEFINE_FLAGS_WITH_STRINGS(reader_flags,
+DEFINE_ENUM_FLAGS(reader_flags,
     (HALT_ON_SETLAYOUT)
     (USE_CACHE)
     (RECURSIVE)

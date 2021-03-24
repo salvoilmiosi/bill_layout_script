@@ -87,7 +87,7 @@ struct command_call {
     command_call(function_iterator fun, int numargs) : fun(fun), numargs(numargs) {}
 };
 
-DEFINE_ENUM_WITH_STRINGS(spacer_index,
+DEFINE_ENUM(spacer_index,
     (PAGE)
     (X)
     (Y)
@@ -101,7 +101,7 @@ DEFINE_ENUM_WITH_STRINGS(spacer_index,
     (ROTATE_CCW)
 )
 
-DEFINE_FLAGS_WITH_STRINGS(selvar_flags,
+DEFINE_ENUM_FLAGS(selvar_flags,
     (GLOBAL)
     (DYN_IDX)
     (DYN_LEN)
@@ -116,7 +116,7 @@ struct variable_selector {
     bitset<selvar_flags> flags;
 };
 
-DEFINE_FLAGS_WITH_STRINGS(setvar_flags,
+DEFINE_ENUM_FLAGS(setvar_flags,
     (FORCE)
     (OVERWRITE)
     (INCREASE)
@@ -133,7 +133,7 @@ struct jsr_address {
     small_int numargs;
 };
 
-DEFINE_FLAGS_WITH_STRINGS(import_flags,
+DEFINE_ENUM_FLAGS(import_flags,
     (NOIMPORT)
     (SETLAYOUT)
 )

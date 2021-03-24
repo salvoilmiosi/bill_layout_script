@@ -50,7 +50,7 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
     if (!isopen()) return "";
     if (rect.page > num_pages() || rect.page <= 0) return "";
 
-    auto poppler_mode = std::get<poppler::page::text_layout_enum>(GetData(rect.mode));
+    auto poppler_mode = EnumData<poppler::page::text_layout_enum>(rect.mode);
 
     auto to_stdstring = [flags = rect.flags](const poppler::ustring &ustr) -> std::string {
         auto arr = ustr.to_utf8();

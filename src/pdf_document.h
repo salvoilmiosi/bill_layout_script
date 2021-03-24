@@ -13,20 +13,20 @@
 #include "utils.h"
 #include "bitset.h"
 
-DEFINE_ENUM_WITH_DATA(box_type,
+DEFINE_ENUM(box_type,
     (RECTANGLE,  "Rettangolo")
     (PAGE,       "Pagina")
     (WHOLEFILE,  "File")
     (NOREAD,     "Nessuna Lettura")
 )
 
-DEFINE_ENUM_WITH_DATA(read_mode,
-    (DEFAULT,  std::make_tuple("Default", poppler::page::non_raw_non_physical_layout))
-    (LAYOUT,   std::make_tuple("Layout",  poppler::page::physical_layout))
-    (RAW,      std::make_tuple("Grezza",  poppler::page::raw_order_layout))
+DEFINE_ENUM(read_mode,
+    (DEFAULT,  "Default", poppler::page::non_raw_non_physical_layout)
+    (LAYOUT,   "Layout",  poppler::page::physical_layout)
+    (RAW,      "Grezza",  poppler::page::raw_order_layout)
 )
 
-DEFINE_FLAGS_WITH_DATA(box_flags,
+DEFINE_ENUM_FLAGS(box_flags,
     (DISABLED,  "Disabilita")
     (TRIM,      "Taglia Spazi")
 )

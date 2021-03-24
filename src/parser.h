@@ -11,7 +11,7 @@
 #include "bytecode.h"
 #include "stack.h"
 
-DEFINE_FLAGS_WITH_STRINGS(variable_prefixes,
+DEFINE_ENUM_FLAGS(variable_prefixes,
     (OVERWRITE)
     (PARSENUM)
     (AGGREGATE)
@@ -21,7 +21,7 @@ DEFINE_FLAGS_WITH_STRINGS(variable_prefixes,
     (FORCE)
 )
 
-DEFINE_FLAGS_WITH_STRINGS(parser_flags,
+DEFINE_ENUM_FLAGS(parser_flags,
     (ADD_COMMENTS)
     (RECURSIVE_IMPORTS)
 )

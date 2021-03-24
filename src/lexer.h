@@ -9,7 +9,7 @@
 
 #include "bitset.h"
 
-DEFINE_ENUM_WITH_DATA(token_type,
+DEFINE_ENUM(token_type,
     (INVALID,      "Token Invalido")
     (END_OF_FILE,  "Fine File")
     (IDENTIFIER,   "Identificatore")
@@ -83,8 +83,8 @@ protected:
 public:
     unexpected_token(token tok, token_type expected = token_type::INVALID)
         : parsing_error(expected == token_type::INVALID
-            ? fmt::format("Imprevisto '{}'", GetData(tok.type))
-            : fmt::format("Imprevisto '{}', richiesto '{}'", GetData(tok.type), GetData(expected)), tok),
+            ? fmt::format("Imprevisto '{}'", EnumData<const char *>(tok.type))
+            : fmt::format("Imprevisto '{}', richiesto '{}'", EnumData<const char *>(tok.type), EnumData<const char *>(expected)), tok),
         m_expected(expected) {}
 
     token_type expected() {

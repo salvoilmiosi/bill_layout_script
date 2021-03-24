@@ -30,7 +30,13 @@ template<typename T>
 concept string_enum = requires (T x) {
     { ToString(x) } -> std::convertible_to<const char *>;
     { EnumSize<T> } -> std::convertible_to<size_t>;
+    GetTuple(x);
 };
+
+template<typename T, string_enum E>
+T EnumData(E x) {
+    return std::get<T>(GetTuple(x));
+}
 
 #define HELPER1(...) ((__VA_ARGS__)) HELPER2
 #define HELPER2(...) ((__VA_ARGS__)) HELPER1
@@ -53,8 +59,19 @@ concept string_enum = requires (T x) {
 #define GENERATE_CASE_FIND_ENUM(r, enumName, elementTuple) \
     GENERATE_CASE_FIND_ENUM_IMPL(enumName, BOOST_PP_TUPLE_ELEM(0, elementTuple))
 
+#define GENERATE_CASE_GET_DATA_RETURN_VALUE(enumName, element, valueTuple) \
+    case enumName::element : return std::make_tuple valueTuple;
+
+#define GENERATE_CASE_GET_DATA_NO_RETURN(enumName, element) \
+    case enumName::element : return;
+
+#define GENERATE_CASE_GET_DATA_IMPL(enumName, elementTuple) \
+    BOOST_PP_IF(BOOST_PP_EQUAL(BOOST_PP_TUPLE_SIZE(elementTuple), 1),   \
+        GENERATE_CASE_GET_DATA_NO_RETURN(enumName, BOOST_PP_TUPLE_ELEM(0, elementTuple)), \
+        GENERATE_CASE_GET_DATA_RETURN_VALUE(enumName, BOOST_PP_TUPLE_ELEM(0, elementTuple), BOOST_PP_TUPLE_POP_FRONT(elementTuple)))
+
 #define GENERATE_CASE_GET_DATA(r, enumName, elementTuple) \
-    case enumName::BOOST_PP_TUPLE_ELEM(0, elementTuple) : return BOOST_PP_TUPLE_ELEM(1, elementTuple);
+    GENERATE_CASE_GET_DATA_IMPL(enumName, elementTuple)
 
 #define DEFINE_ENUM_FUNCTIONS(enumName, enumElementsParen)  \
 template<> struct EnumSizeImpl<enumName> : std::integral_constant<size_t, BOOST_PP_SEQ_SIZE(enumElementsParen)> {}; \
@@ -69,33 +86,23 @@ template<> constexpr enumName FindEnum(std::string_view name) {     \
         BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_FIND_ENUM, enumName, enumElementsParen) \
         default: throw std::invalid_argument("[Unknown " BOOST_PP_STRINGIZE(enumName) "]"); \
     }   \
-}
-
-#define DEFINE_GET_DATA_FUNCTION(enumName, enumElements) \
-constexpr auto GetData(const enumName element) {    \
+} \
+constexpr auto GetTuple(const enumName element) {    \
     switch (element) {  \
-        BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_GET_DATA, enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements))    \
+        BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_GET_DATA, enumName, enumElementsParen)    \
         default: throw std::invalid_argument("[Unknown " BOOST_PP_STRINGIZE(enumName) "]"); \
     }   \
 }
 
-#define DEFINE_ENUM_WITH_STRINGS(enumName, enumElements)          \
+#define DEFINE_ENUM(enumName, enumElements)          \
 enum class enumName : uint8_t { \
     BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements)) \
 }; DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements))
 
-#define DEFINE_FLAGS_WITH_STRINGS(enumName, enumElements) \
+#define DEFINE_ENUM_FLAGS(enumName, enumElements) \
 enum class enumName : flags_t { \
     BOOST_PP_SEQ_FOR_EACH_I(CREATE_FLAG_ELEMENT, enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements))    \
 }; DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements))
-
-#define DEFINE_ENUM_WITH_DATA(enumName, enumElements) \
-DEFINE_ENUM_WITH_STRINGS(enumName, enumElements) \
-DEFINE_GET_DATA_FUNCTION(enumName, enumElements)
-
-#define DEFINE_FLAGS_WITH_DATA(enumName, enumElements) \
-DEFINE_FLAGS_WITH_STRINGS(enumName, enumElements) \
-DEFINE_GET_DATA_FUNCTION(enumName, enumElements)
 
 template<typename T>
 class bitset {
