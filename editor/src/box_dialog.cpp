@@ -51,7 +51,7 @@ protected:
     bitset<T> *m_value;
 
 public:
-    FlagValidator(int n, bitset<T> &m) : m_flag(n), m_value(&m) {}
+    FlagValidator(T n, bitset<T> &m) : m_flag(flags_t(n)), m_value(&m) {}
 
     virtual wxObject *Clone() const override {
         return new FlagValidator(*this);
@@ -144,7 +144,8 @@ box_dialog::box_dialog(frame_editor *parent, layout_box &out_box) :
 
     auto add_check_boxes = [&] <string_enum enum_type>(const wxString &label, bitset<enum_type> &value) {
         auto create_btn = [&](size_t i) {
-            return new wxCheckBox(this, wxID_ANY, EnumData<const char *>(static_cast<enum_type>(1 << i)), wxDefaultPosition, wxDefaultSize, 0, FlagValidator(1 << i, value));  
+            const auto flag = static_cast<enum_type>(1 << i);
+            return new wxCheckBox(this, wxID_ANY, EnumData<const char *>(flag), wxDefaultPosition, wxDefaultSize, 0, FlagValidator(flag, value));  
         };
         [&] <size_t ... Is> (std::index_sequence<Is...>) {
             addLabelAndCtrl(label, 0, 0, create_btn(Is) ...);

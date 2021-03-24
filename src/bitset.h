@@ -21,7 +21,7 @@ template<typename T> size_t constexpr hash(T&& t) {
 }
 
 template<typename T> struct EnumSizeImpl {};
-template<typename T> T FindEnum(std::string_view name) = delete;
+template<typename T> constexpr T FindEnum(std::string_view name) = delete;
 template<typename T> constexpr size_t EnumSize = EnumSizeImpl<T>::value;
 
 typedef uint8_t flags_t;
@@ -33,10 +33,8 @@ concept string_enum = requires (T x) {
     GetTuple(x);
 };
 
-template<typename T, string_enum E>
-T EnumData(E x) {
-    return std::get<T>(GetTuple(x));
-}
+template<typename T, string_enum E> constexpr T EnumData(E x) { return std::get<T>(GetTuple(x)); }
+template<size_t I, string_enum E> constexpr auto EnumData(E x) { return std::get<I>(GetTuple(x)); }
 
 #define HELPER1(...) ((__VA_ARGS__)) HELPER2
 #define HELPER2(...) ((__VA_ARGS__)) HELPER1
