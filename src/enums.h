@@ -1,9 +1,7 @@
 #ifndef __ENUMS_H__
 #define __ENUMS_H__
 
-#include <cstdint>
 #include <boost/preprocessor.hpp>
-#include <concepts>
 
 #include "utils.h"
 
@@ -32,67 +30,56 @@ template<size_t I, string_enum E> constexpr auto EnumData(E x) { return std::get
 #define HELPER2(...) ((__VA_ARGS__)) HELPER1
 #define HELPER1_END
 #define HELPER2_END
-#define ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(sequence) BOOST_PP_CAT(HELPER1 sequence,_END)
+#define ADD_PARENTHESES(sequence) BOOST_PP_CAT(HELPER1 sequence,_END)
 
-#define CREATE_ENUM_ELEMENT(r, data, elementTuple) BOOST_PP_TUPLE_ELEM(0, elementTuple),
-#define CREATE_FLAG_ELEMENT(r, data, i, elementTuple) BOOST_PP_TUPLE_ELEM(0, elementTuple) = (1 << i),
+#define GET_FIRST_OF(element, ...) element
+#define GET_TAIL_OF(element, ...) __VA_ARGS__
 
-#define GENERATE_CASE_TO_STRING_IMPL(enumName, element) \
-    case enumName::element : return BOOST_PP_STRINGIZE(element);
+#define CREATE_ENUM_ELEMENT(r, data, elementTuple) GET_FIRST_OF elementTuple,
+#define CREATE_FLAG_ELEMENT(r, data, i, elementTuple) GET_FIRST_OF elementTuple = (1 << i),
 
 #define GENERATE_CASE_TO_STRING(r, enumName, elementTuple) \
-    GENERATE_CASE_TO_STRING_IMPL(enumName, BOOST_PP_TUPLE_ELEM(0, elementTuple))
-
-#define GENERATE_CASE_FIND_ENUM_IMPL(enumName, element) \
-    case hash(BOOST_PP_STRINGIZE(element)): return enumName::element;
+    case enumName::GET_FIRST_OF elementTuple : return BOOST_PP_STRINGIZE(GET_FIRST_OF elementTuple);
 
 #define GENERATE_CASE_FIND_ENUM(r, enumName, elementTuple) \
-    GENERATE_CASE_FIND_ENUM_IMPL(enumName, BOOST_PP_TUPLE_ELEM(0, elementTuple))
-
-#define GENERATE_CASE_GET_DATA_RETURN_VALUE(enumName, element, valueTuple) \
-    case enumName::element : return std::make_tuple valueTuple;
-
-#define GENERATE_CASE_GET_DATA_NO_RETURN(enumName, element) \
-    case enumName::element : return;
-
-#define GENERATE_CASE_GET_DATA_IMPL(enumName, elementTuple) \
-    BOOST_PP_IF(BOOST_PP_EQUAL(BOOST_PP_TUPLE_SIZE(elementTuple), 1),   \
-        GENERATE_CASE_GET_DATA_NO_RETURN(enumName, BOOST_PP_TUPLE_ELEM(0, elementTuple)), \
-        GENERATE_CASE_GET_DATA_RETURN_VALUE(enumName, BOOST_PP_TUPLE_ELEM(0, elementTuple), BOOST_PP_TUPLE_POP_FRONT(elementTuple)))
+    case hash(BOOST_PP_STRINGIZE(GET_FIRST_OF elementTuple)): return enumName::GET_FIRST_OF elementTuple;
 
 #define GENERATE_CASE_GET_DATA(r, enumName, elementTuple) \
-    GENERATE_CASE_GET_DATA_IMPL(enumName, elementTuple)
+    case enumName::GET_FIRST_OF elementTuple : return std::make_tuple(GET_TAIL_OF elementTuple);
 
-#define DEFINE_ENUM_FUNCTIONS(enumName, enumElementsParen)  \
+#define GENERATE_DEFAULT_CASE(enumName) \
+    default: throw std::invalid_argument("[Unknown " BOOST_PP_STRINGIZE(enumName) "]");
+
+#define DEFINE_ENUM_FUNCTIONS(enumName, enumElementsParen) \
 template<> struct EnumSizeImpl<enumName> : std::integral_constant<size_t, BOOST_PP_SEQ_SIZE(enumElementsParen)> {}; \
-constexpr const char *ToString(const enumName element) {                           \
-    switch (element) {                                                      \
-        BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_TO_STRING, enumName, enumElementsParen)  \
-        default: throw std::invalid_argument("[Unknown " BOOST_PP_STRINGIZE(enumName) "]"); \
-    }                                                                       \
-}               \
-template<> constexpr enumName FindEnum(std::string_view name) {     \
-    switch (hash(name)) {       \
-        BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_FIND_ENUM, enumName, enumElementsParen) \
-        default: throw std::invalid_argument("[Unknown " BOOST_PP_STRINGIZE(enumName) "]"); \
-    }   \
+constexpr const char *ToString(const enumName element) { \
+    switch (element) { \
+        BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_TO_STRING, enumName, enumElementsParen) \
+        GENERATE_DEFAULT_CASE(enumName) \
+    } \
 } \
-constexpr auto GetTuple(const enumName element) {    \
-    switch (element) {  \
-        BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_GET_DATA, enumName, enumElementsParen)    \
-        default: throw std::invalid_argument("[Unknown " BOOST_PP_STRINGIZE(enumName) "]"); \
-    }   \
+template<> constexpr enumName FindEnum(std::string_view name) { \
+    switch (hash(name)) { \
+        BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_FIND_ENUM, enumName, enumElementsParen) \
+        GENERATE_DEFAULT_CASE(enumName) \
+    } \
+} \
+constexpr auto GetTuple(const enumName element) { \
+    switch (element) { \
+        BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_GET_DATA, enumName, enumElementsParen) \
+        GENERATE_DEFAULT_CASE(enumName) \
+    } \
 }
 
-#define DEFINE_ENUM(enumName, enumElements)          \
+#define DEFINE_ENUM(enumName, enumElements) \
 enum class enumName : uint8_t { \
-    BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements)) \
-}; DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements))
+    BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, ADD_PARENTHESES(enumElements)) \
+}; DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES(enumElements))
 
 #define DEFINE_ENUM_FLAGS(enumName, enumElements) \
 enum class enumName : flags_t { \
-    BOOST_PP_SEQ_FOR_EACH_I(CREATE_FLAG_ELEMENT, enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements))    \
-}; DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES_FOR_EACH_TUPLE_IN_SEQ(enumElements)); \
+    BOOST_PP_SEQ_FOR_EACH_I(CREATE_FLAG_ELEMENT, enumName, ADD_PARENTHESES(enumElements)) \
+}; DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES(enumElements)); \
 template<> struct IsFlagEnum<enumName> : std::true_type {};
 
 template<flags_enum T>
@@ -101,55 +88,27 @@ private:
     flags_t m_value = 0;
 
 public:
-    bitset() = default;
-    bitset(flags_t value) : m_value(value) {}
+    constexpr bitset() = default;
+    constexpr bitset(flags_t value) : m_value(value) {}
 
-    friend bitset operator & (bitset lhs, T rhs) {
-        return lhs.m_value & flags_t(rhs);
-    }
-    friend bitset operator & (T lhs, bitset rhs) {
-        return flags_t(lhs) & rhs.m_value;
-    }
-    friend bitset operator | (bitset lhs, T rhs) {
-        return lhs.m_value | flags_t(rhs);
-    }
-    friend bitset operator | (T lhs, bitset rhs) {
-        return flags_t(lhs) | rhs.m_value;
-    }
-    friend bitset operator ^ (bitset lhs, T rhs) {
-        return lhs.m_value ^ flags_t(rhs);
-    }
-    friend bitset operator ^ (T lhs, bitset rhs) {
-        return flags_t(lhs) ^ rhs.m_value;
-    }
-    bitset operator ~() const {
-        return ~m_value;
-    }
-    bitset operator << (auto n) const {
-        return m_value << n;
-    }
-    bitset operator >> (auto n) const {
-        return m_value >> n;
-    }
-    bitset &operator &= (auto n) {
-        m_value &= flags_t(n);
-        return *this;
-    }
-    bitset &operator |= (auto n) {
-        m_value |= flags_t(n);
-        return *this;
-    }
-    bitset &operator <<= (auto n) {
-        m_value <<= flags_t(n);
-        return *this;
-    }
-    bitset &operator >>= (auto n) {
-        m_value >>= flags_t(n);
-        return *this;
-    }
-    operator flags_t() const {
-        return m_value;
-    }
+    constexpr friend bitset operator & (bitset lhs, T rhs) { return lhs.m_value & flags_t(rhs); }
+    constexpr friend bitset operator & (T lhs, bitset rhs) { return flags_t(lhs) & rhs.m_value; }
+    constexpr friend bitset operator | (bitset lhs, T rhs) { return lhs.m_value | flags_t(rhs); }
+    constexpr friend bitset operator | (T lhs, bitset rhs) { return flags_t(lhs) | rhs.m_value; }
+    constexpr friend bitset operator ^ (bitset lhs, T rhs) { return lhs.m_value ^ flags_t(rhs); }
+    constexpr friend bitset operator ^ (T lhs, bitset rhs) { return flags_t(lhs) ^ rhs.m_value; }
+    
+    constexpr bitset operator ~() const { return ~m_value; }
+ 
+    constexpr bitset operator << (auto n) const { return m_value << n; }
+    constexpr bitset operator >> (auto n) const { return m_value >> n; }
+ 
+    constexpr bitset &operator &= (auto n) { m_value &= flags_t(n); return *this; }
+    constexpr bitset &operator |= (auto n) { m_value |= flags_t(n); return *this; }
+    constexpr bitset &operator <<= (auto n) { m_value <<= flags_t(n); return *this; }
+    constexpr bitset &operator >>= (auto n) { m_value >>= flags_t(n); return *this; }
+ 
+    constexpr operator flags_t() const { return m_value; }
 };
 
 template<string_enum T>
