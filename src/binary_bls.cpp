@@ -196,9 +196,9 @@ template<typename T> struct binary_io<bitset<T>> {
 template<opcode Cmd> static void addCommand(bytecode &ret, opcode check, std::istream &input) {
     if (Cmd == check) {
         if constexpr (std::is_void_v<EnumType<Cmd>>) {
-            ret.emplace_back(Cmd);
+            ret.push_back(make_command<Cmd>());
         } else {
-            ret.emplace_back(Cmd, readData<EnumType<Cmd>>(input));
+            ret.push_back(make_command<Cmd>(readData<EnumType<Cmd>>(input)));
         }
     }
 }

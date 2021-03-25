@@ -124,18 +124,18 @@ int MainApp::OnRun() {
             binary_bls::write(code, output_cache);
         }
         const auto &comments = my_parser.get_comments();
-        for (size_t line_num=0; line_num < code.size(); ++line_num) {
-            auto [label_begin, label_end] = inv_labels.equal_range(line_num);
+        for (auto line = code.begin(); line != code.end(); ++line) {
+            auto [label_begin, label_end] = inv_labels.equal_range(line - code.begin());
             for (;label_begin != label_end; ++label_begin) {
                 std::cout << label_begin->second << ':' << std::endl;
             }
-            auto [comment_begin, comment_end] = comments.equal_range(line_num);
+            auto [comment_begin, comment_end] = comments.equal_range(line - code.begin());
             for (;comment_begin != comment_end; ++comment_begin) {
                 std::cout << comment_begin->second << std::endl;
             }
 
-            std::cout << '\t' << ToString(code[line_num].command());
-            code[line_num].visit([&](auto && args) {
+            std::cout << '\t' << ToString(line->command());
+            line->visit([&](auto && args) {
                 print_args(std::cout, args);
             });
             std::cout << std::endl;

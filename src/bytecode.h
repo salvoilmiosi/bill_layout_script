@@ -126,74 +126,59 @@ DEFINE_ENUM_TYPES(opcode,
     (HLT)                          /* ferma l'esecuzione */
 )
 
-template<typename T, typename TList> struct type_in_list{};
-
-template<typename T> struct type_in_list<T, TypeList<>> : std::false_type {};
-
-template<typename T, typename First, typename ... Ts>
-struct type_in_list<T, TypeList<First, Ts...>> :
-    std::conditional_t<std::is_same_v<T, First>,
-        std::true_type,
-        type_in_list<T, TypeList<Ts...>>> {};
-
-template<typename T, typename TList> struct add_if_unique{};
-template<typename T, typename ... Ts> struct add_if_unique<T, TypeList<Ts...>> {
-    using type = std::conditional_t<type_in_list<T, TypeList<Ts...>>::value || std::is_void_v<T>, TypeList<Ts...>, TypeList<Ts..., T>>;
+template<typename T, typename TList> struct add_to_list{};
+template<typename T, typename TList> using add_to_list_t = typename add_to_list<T, TList>::type;
+template<typename T, typename ... Ts> struct add_to_list<T, TypeList<Ts...>> {
+    using type = TypeList<T, Ts...>;
 };
 
-template<typename TList> struct unique_types{};
-template<typename T> using unique_types_t = typename unique_types<T>::type;
-template<> struct unique_types<TypeList<>> {
+template<typename TList> struct variant_types{};
+template<typename TList> using variant_types_t = typename variant_types<TList>::type;
+template<> struct variant_types<TypeList<>> {
     using type = TypeList<>;
 };
-template<typename First, typename ... Ts>
-struct unique_types<TypeList<First, Ts...>> {
-    using type = typename add_if_unique<First, unique_types_t<TypeList<Ts...>>>::type;
+template<typename First, typename ... Ts> struct variant_types<TypeList<First, Ts...>> {
+    using type = add_to_list_t<
+        std::conditional_t<std::is_void_v<First>,
+            std::monostate, First>,
+        variant_types_t<TypeList<Ts...>>>;
 };
 
 template<typename TList> struct type_list_variant{};
 template<typename ... Ts> struct type_list_variant<TypeList<Ts...>> {
-    using type = std::variant<std::monostate, Ts...>;
+    using type = std::variant<Ts...>;
 };
 
-using opcode_variant = typename type_list_variant<unique_types_t<EnumTypeList<opcode>>>::type;
+using opcode_variant = typename type_list_variant<variant_types_t<EnumTypeList<opcode>>>::type;
 
 class command_args {
 private:
-    opcode m_command;
-    opcode_variant m_data;
+    opcode_variant m_value;
 
 public:
-    command_args(opcode command = opcode::NOP) : m_command(command) {}
-
-    template<typename T>
-    command_args(opcode command, T &&data) : m_command(command), m_data(std::forward<T>(data)) {}
+    command_args() = default;
+    command_args(auto && arg) : m_value(std::forward<decltype(arg)>(arg)) {}
 
     opcode command() const noexcept {
-        return m_command;
+        return static_cast<opcode>(m_value.index());
     }
     
     template<opcode Cmd> const auto &get_args() const {
-        return std::get<EnumType<Cmd>>(m_data);
+        return std::get<static_cast<size_t>(Cmd)>(m_value);
     }
 
     template<typename Visitor> auto visit(Visitor func) const {
-        return std::visit(func, m_data);
+        return std::visit(func, m_value);
     }
 
     template<typename Visitor> auto visit(Visitor func) {
-        return std::visit(func, m_data);
+        return std::visit(func, m_value);
     }
 };
 
 template<opcode Cmd, typename ... Ts>
-command_args make_command(Ts && ... args) {
-    return command_args(Cmd, EnumType<Cmd>{ std::forward<Ts>(args) ... });
-}
-
-template<opcode Cmd> requires std::is_void_v<EnumType<Cmd>>
-command_args make_command() {
-    return command_args(Cmd);
+command_args make_command(Ts && ... data) {
+    return opcode_variant(std::in_place_index<static_cast<size_t>(Cmd)>, std::forward<Ts>(data) ...);
 }
 
 using bytecode = std::vector<command_args>;
