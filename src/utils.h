@@ -11,19 +11,13 @@ typedef uint8_t small_int;
 
 constexpr char UNIT_SEPARATOR = '\x1f';
 
-struct hasher {
-    constexpr size_t operator() (const char *begin, const char *end) const {
-        return begin != end ? static_cast<unsigned int>(*begin) + 33 * (*this)(begin + 1, end) : 5381;
-    }
-    
-    constexpr size_t operator() (std::string_view str) const {
-        return (*this)(str.begin(), str.end());
-    }
-};
-
 // restituisce l'hash di una stringa
-template<typename T> size_t constexpr hash(T&& t) {
-    return hasher{}(std::forward<T>(t));
+constexpr size_t hash(std::string_view str) {
+    size_t ret = 5381;
+    for (size_t ch : str) {
+        ret = ret * 33 + ch;
+    }
+    return ret;
 }
 
 // sposta il range indicato alla fine
