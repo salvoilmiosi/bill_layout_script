@@ -82,74 +82,59 @@ struct import_options {
 };
 
 DEFINE_ENUM_TYPES(opcode,
-    (NOP)                          /* no operation */
-    (SETBOX, pdf_rect)             /* imposta il box da leggere */
-    (MVBOX, spacer_index)          /* stack -> current_box[index] */
-    (RDBOX)                        /* poppler.get_text(current_box) -> content_stack */
-    (NEXTTABLE)                    /* current_table++ */
-    (SELVAR, variable_selector)    /* (name, index, size, flags) -> selected */
-    (SETVAR, bitset<setvar_flags>) /* selected, stack -> set */
-    (CLEAR)                        /* selected -> clear */
-    (ISSET)                        /* selected -> size() != 0 -> stack */
-    (GETSIZE)                      /* selected -> size() -> stack */
-    (PUSHVAR)                      /* selected -> stack */
-    (PUSHREF)                      /* selected.str_view -> stack */
-    (PUSHVIEW)                     /* content_stack -> stack */
-    (PUSHNUM, fixed_point)         /* number -> stack */
-    (PUSHINT, int64_t)             /* int -> stack */
-    (PUSHSTR, std::string)         /* str -> stack */
-    (PUSHARG, small_int)           /* stack -> stack */
-    (GETBOX, spacer_index)         /* current_box[index] -> stack */
-    (DOCPAGES)                     /* m_doc.pages -> stack */
-    (ATE)                          /* (getbox(page) >= docpages()) -> stack */
-    (CALL, command_call)           /* stack * numargs -> fun_name -> stack */
-    (ADDCONTENT)                   /* stack -> content_stack */
-    (POPCONTENT)                   /* content_stack.pop() */
-    (SETBEGIN)                     /* stack -> content_stack.top.setbegin */
-    (SETEND)                       /* stack -> content_stack.top.setend */
-    (NEWVIEW)                      /* content_stack.top.newview() */
-    (SPLITVIEW)                    /* content_stack.top.splitview() */
-    (NEXTRESULT)                   /* content_stack.top.nextresult() */
-    (RESETVIEW)                    /* content_stack.top.resetview() */
-    (THROWERROR)                   /* stack -> throw */
-    (WARNING)                      /* stack -> warnings */
-    (IMPORT, import_options)       /* importa il file e lo esegue */
-    (SETLANG, intl::language)      /* imposta la lingua del layout */
-    (JMP, jump_address)            /* unconditional jump */
-    (JZ, jump_address)             /* stack -> jump if top == 0 */
-    (JNZ, jump_address)            /* stack -> jump if top != 0 */
-    (JNTE, jump_address)           /* jump if content_stack.top at token end */
-    (JSR, jsr_address)             /* program_counter -> call_stack -- jump to subroutine and discard return value */
-    (JSRVAL, jsr_address)          /* program_counter -> call_stack -- jump to subroutine */
-    (RET)                          /* jump to call_stack.top */
-    (RETVAL)                       /* return to caller and push value to stack */
-    (HLT)                          /* ferma l'esecuzione */
+    (NOP)                           // no operation
+    (SETBOX, pdf_rect)              // imposta il box da leggere
+    (MVBOX, spacer_index)           // stack -> current_box[index]
+    (RDBOX)                         // poppler.get_text(current_box) -> content_stack
+    (NEXTTABLE)                     // current_table++
+    (SELVAR, variable_selector)     // (name, index, size, flags) -> selected
+    (SETVAR, bitset<setvar_flags>)  // selected, stack -> set
+    (CLEAR)                         // selected -> clear
+    (ISSET)                         // selected -> size() != 0 -> stack
+    (GETSIZE)                       // selected -> size() -> stack
+    (PUSHVAR)                       // selected -> stack
+    (PUSHREF)                       // selected.str_view -> stack
+    (PUSHVIEW)                      // content_stack -> stack
+    (PUSHNUM, fixed_point)          // number -> stack
+    (PUSHINT, int64_t)              // int -> stack
+    (PUSHSTR, std::string)          // str -> stack
+    (PUSHARG, small_int)            // stack -> stack
+    (GETBOX, spacer_index)          // current_box[index] -> stack
+    (DOCPAGES)                      // m_doc.pages -> stack
+    (ATE)                           // (getbox(page) >= docpages()) -> stack
+    (CALL, command_call)            // stack * numargs -> fun_name -> stack
+    (ADDCONTENT)                    // stack -> content_stack
+    (POPCONTENT)                    // content_stack.pop()
+    (SETBEGIN)                      // stack -> content_stack.top.setbegin
+    (SETEND)                        // stack -> content_stack.top.setend
+    (NEWVIEW)                       // content_stack.top.newview()
+    (SPLITVIEW)                     // content_stack.top.splitview()
+    (NEXTRESULT)                    // content_stack.top.nextresult()
+    (RESETVIEW)                     // content_stack.top.resetview()
+    (THROWERROR)                    // stack -> throw
+    (WARNING)                       // stack -> warnings
+    (IMPORT, import_options)        // importa il file e lo esegue
+    (SETLANG, intl::language)       // imposta la lingua del layout
+    (JMP, jump_address)             // unconditional jump
+    (JZ, jump_address)              // stack -> jump if top == 0
+    (JNZ, jump_address)             // stack -> jump if top != 0
+    (JNTE, jump_address)            // jump if content_stack.top at token end
+    (JSR, jsr_address)              // program_counter -> call_stack -- jump to subroutine and discard return value
+    (JSRVAL, jsr_address)           // program_counter -> call_stack -- jump to subroutine
+    (RET)                           // jump to call_stack.top
+    (RETVAL)                        // return to caller and push value to stack
+    (HLT)                           // ferma l'esecuzione
 )
 
-template<typename T, typename TList> struct add_to_list{};
-template<typename T, typename TList> using add_to_list_t = typename add_to_list<T, TList>::type;
-template<typename T, typename ... Ts> struct add_to_list<T, TypeList<Ts...>> {
-    using type = TypeList<T, Ts...>;
-};
-
-template<typename TList> struct variant_types{};
-template<typename TList> using variant_types_t = typename variant_types<TList>::type;
-template<> struct variant_types<TypeList<>> {
-    using type = TypeList<>;
-};
-template<typename First, typename ... Ts> struct variant_types<TypeList<First, Ts...>> {
-    using type = add_to_list_t<
-        std::conditional_t<std::is_void_v<First>,
-            std::monostate, First>,
-        variant_types_t<TypeList<Ts...>>>;
-};
+template<typename T> struct variant_type{ using type = T; };
+template<> struct variant_type<void> { using type = std::monostate; };
 
 template<typename TList> struct type_list_variant{};
 template<typename ... Ts> struct type_list_variant<TypeList<Ts...>> {
-    using type = std::variant<Ts...>;
+    using type = std::variant<typename variant_type<Ts>::type ...>;
 };
 
-using opcode_variant = typename type_list_variant<variant_types_t<EnumTypeList<opcode>>>::type;
+using opcode_variant = typename type_list_variant<EnumTypeList<opcode>>::type;
 
 class command_args {
 private:
