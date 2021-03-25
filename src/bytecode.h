@@ -1,81 +1,11 @@
 #ifndef __BYTECODE_H__
 #define __BYTECODE_H__
 
-#include <any>
-#include <typeinfo>
-#include <cassert>
-
 #include "pdf_document.h"
 #include "utils.h"
 #include "fixed_point.h"
 #include "intl.h"
 #include "functions.h"
-
-#define OPCODES \
-O(NOP)                          /* no operation */ \
-O(SETBOX, pdf_rect)             /* imposta il box da leggere */ \
-O(MVBOX, spacer_index)          /* stack -> current_box[index] */ \
-O(RDBOX)                        /* poppler.get_text(current_box) -> content_stack */ \
-O(NEXTTABLE)                    /* current_table++ */ \
-O(SELVAR, variable_selector)    /* (name, index, size, flags) -> selected */ \
-O(SETVAR, bitset<setvar_flags>) /* selected, stack -> set */ \
-O(CLEAR)                        /* selected -> clear */ \
-O(ISSET)                        /* selected -> size() != 0 -> stack */ \
-O(GETSIZE)                      /* selected -> size() -> stack */ \
-O(PUSHVAR)                      /* selected -> stack */ \
-O(PUSHREF)                      /* selected.str_view -> stack */ \
-O(PUSHVIEW)                     /* content_stack -> stack */ \
-O(PUSHNUM, fixed_point)         /* number -> stack */ \
-O(PUSHINT, int64_t)             /* int -> stack */ \
-O(PUSHSTR, std::string)         /* str -> stack */ \
-O(PUSHARG, small_int)           /* stack -> stack */ \
-O(GETBOX, spacer_index)         /* current_box[index] -> stack */ \
-O(DOCPAGES)                     /* m_doc.pages -> stack */ \
-O(ATE)                          /* (getbox(page) >= docpages()) -> stack */ \
-O(CALL, command_call)           /* stack * numargs -> fun_name -> stack */ \
-O(ADDCONTENT)                   /* stack -> content_stack */ \
-O(POPCONTENT)                   /* content_stack.pop() */ \
-O(SETBEGIN)                     /* stack -> content_stack.top.setbegin */ \
-O(SETEND)                       /* stack -> content_stack.top.setend */ \
-O(NEWVIEW)                      /* content_stack.top.newview() */ \
-O(SPLITVIEW)                    /* content_stack.top.splitview() */ \
-O(NEXTRESULT)                   /* content_stack.top.nextresult() */ \
-O(RESETVIEW)                    /* content_stack.top.resetview() */ \
-O(THROWERROR)                   /* stack -> throw */ \
-O(WARNING)                      /* stack -> warnings */ \
-O(IMPORT, import_options)       /* importa il file e lo esegue */ \
-O(SETLANG, intl::language)      /* imposta la lingua del layout */ \
-O(JMP, jump_address)            /* unconditional jump */ \
-O(JZ, jump_address)             /* stack -> jump if top == 0 */ \
-O(JNZ, jump_address)            /* stack -> jump if top != 0 */ \
-O(JNTE, jump_address)           /* jump if content_stack.top at token end */ \
-O(JSR, jsr_address)             /* program_counter -> call_stack -- jump to subroutine and discard return value */ \
-O(JSRVAL, jsr_address)          /* program_counter -> call_stack -- jump to subroutine */ \
-O(UNEVAL_JUMP, jump_uneval)     /* unevaluated jump, sara' sostituito con opcode */ \
-O(RET)                          /* jump to call_stack.top */ \
-O(RETVAL)                       /* return to caller and push value to stack */ \
-O(HLT)                          /* ferma l'esecuzione */
-
-#define O_1_ARGS(x) O_IMPL(x, void)
-#define O_2_ARGS(x, t) O_IMPL(x, t)
-
-#define GET_3RD(arg1, arg2, arg3, ...) arg3
-#define O_CHOOSER(...) GET_3RD(__VA_ARGS__, O_2_ARGS, O_1_ARGS)
-#define O(...) O_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
-
-#define O_IMPL(x, t) x,
-enum class opcode : uint8_t { OPCODES };
-#undef O_IMPL
-constexpr const char *ToString(opcode op) {
-#define O_IMPL(x, t) case opcode::x : return #x;
-    switch (op) {
-        OPCODES
-        default: throw std::invalid_argument("[Unknown opcode]");
-    }
-#undef O_IMPL
-}
-
-typedef int16_t jump_address; // indirizzo relativo
 
 struct command_call {
     function_iterator fun;
@@ -122,15 +52,23 @@ DEFINE_ENUM_FLAGS(setvar_flags,
     (INCREASE)
 )
 
-struct jump_uneval {
+struct jump_address {
+    int16_t relative_addr;
     std::string label;
-    opcode cmd;
-    std::any args;
+
+    jump_address() = default;
+    jump_address(std::string_view label)
+        : relative_addr(0), label(label) {}
+    jump_address(int16_t relative_addr)
+        : relative_addr(relative_addr) {}
 };
 
-struct jsr_address {
-    jump_address addr;
+struct jsr_address : jump_address {
     small_int numargs;
+
+    jsr_address() = default;
+    jsr_address(auto &&args, small_int numargs)
+        : jump_address(std::forward<decltype(args)>(args)), numargs(numargs) {}
 };
 
 DEFINE_ENUM_FLAGS(import_flags,
@@ -143,51 +81,117 @@ struct import_options {
     bitset<import_flags> flags;
 };
 
-#define O_IMPL(x, t) template<> struct opcode_type_impl<opcode::x> { using type = t; };
-template<opcode Cmd> struct opcode_type_impl {};
-template<opcode Cmd> using opcode_type = typename opcode_type_impl<Cmd>::type;
-OPCODES
-#undef O_IMPL
+DEFINE_ENUM_TYPES(opcode,
+    (NOP)                          /* no operation */
+    (SETBOX, pdf_rect)             /* imposta il box da leggere */
+    (MVBOX, spacer_index)          /* stack -> current_box[index] */
+    (RDBOX)                        /* poppler.get_text(current_box) -> content_stack */
+    (NEXTTABLE)                    /* current_table++ */
+    (SELVAR, variable_selector)    /* (name, index, size, flags) -> selected */
+    (SETVAR, bitset<setvar_flags>) /* selected, stack -> set */
+    (CLEAR)                        /* selected -> clear */
+    (ISSET)                        /* selected -> size() != 0 -> stack */
+    (GETSIZE)                      /* selected -> size() -> stack */
+    (PUSHVAR)                      /* selected -> stack */
+    (PUSHREF)                      /* selected.str_view -> stack */
+    (PUSHVIEW)                     /* content_stack -> stack */
+    (PUSHNUM, fixed_point)         /* number -> stack */
+    (PUSHINT, int64_t)             /* int -> stack */
+    (PUSHSTR, std::string)         /* str -> stack */
+    (PUSHARG, small_int)           /* stack -> stack */
+    (GETBOX, spacer_index)         /* current_box[index] -> stack */
+    (DOCPAGES)                     /* m_doc.pages -> stack */
+    (ATE)                          /* (getbox(page) >= docpages()) -> stack */
+    (CALL, command_call)           /* stack * numargs -> fun_name -> stack */
+    (ADDCONTENT)                   /* stack -> content_stack */
+    (POPCONTENT)                   /* content_stack.pop() */
+    (SETBEGIN)                     /* stack -> content_stack.top.setbegin */
+    (SETEND)                       /* stack -> content_stack.top.setend */
+    (NEWVIEW)                      /* content_stack.top.newview() */
+    (SPLITVIEW)                    /* content_stack.top.splitview() */
+    (NEXTRESULT)                   /* content_stack.top.nextresult() */
+    (RESETVIEW)                    /* content_stack.top.resetview() */
+    (THROWERROR)                   /* stack -> throw */
+    (WARNING)                      /* stack -> warnings */
+    (IMPORT, import_options)       /* importa il file e lo esegue */
+    (SETLANG, intl::language)      /* imposta la lingua del layout */
+    (JMP, jump_address)            /* unconditional jump */
+    (JZ, jump_address)             /* stack -> jump if top == 0 */
+    (JNZ, jump_address)            /* stack -> jump if top != 0 */
+    (JNTE, jump_address)           /* jump if content_stack.top at token end */
+    (JSR, jsr_address)             /* program_counter -> call_stack -- jump to subroutine and discard return value */
+    (JSRVAL, jsr_address)          /* program_counter -> call_stack -- jump to subroutine */
+    (RET)                          /* jump to call_stack.top */
+    (RETVAL)                       /* return to caller and push value to stack */
+    (HLT)                          /* ferma l'esecuzione */
+)
+
+template<typename T, typename TList> struct type_in_list{};
+
+template<typename T> struct type_in_list<T, TypeList<>> : std::false_type {};
+
+template<typename T, typename First, typename ... Ts>
+struct type_in_list<T, TypeList<First, Ts...>> :
+    std::conditional_t<std::is_same_v<T, First>,
+        std::true_type,
+        type_in_list<T, TypeList<Ts...>>> {};
+
+template<typename T, typename TList> struct add_if_unique{};
+template<typename T, typename ... Ts> struct add_if_unique<T, TypeList<Ts...>> {
+    using type = std::conditional_t<type_in_list<T, TypeList<Ts...>>::value || std::is_void_v<T>, TypeList<Ts...>, TypeList<Ts..., T>>;
+};
+
+template<typename TList> struct unique_types{};
+template<typename T> using unique_types_t = typename unique_types<T>::type;
+template<> struct unique_types<TypeList<>> {
+    using type = TypeList<>;
+};
+template<typename First, typename ... Ts>
+struct unique_types<TypeList<First, Ts...>> {
+    using type = typename add_if_unique<First, unique_types_t<TypeList<Ts...>>>::type;
+};
+
+template<typename TList> struct type_list_variant{};
+template<typename ... Ts> struct type_list_variant<TypeList<Ts...>> {
+    using type = std::variant<std::monostate, Ts...>;
+};
+
+using opcode_variant = typename type_list_variant<unique_types_t<EnumTypeList<opcode>>>::type;
 
 class command_args {
 private:
     opcode m_command;
-    std::any m_data;
-
-    bool check_type() const {
-#define O_IMPL(x, t) case opcode::x: return m_data.type() == typeid(opcode_type<opcode::x>);
-        switch (m_command) {
-            OPCODES
-        }
-        return false;
-#undef O_IMPL
-    }
+    opcode_variant m_data;
 
 public:
-    command_args(opcode command = opcode::NOP) : m_command(command) {
-        assert(check_type());
-    }
+    command_args(opcode command = opcode::NOP) : m_command(command) {}
 
     template<typename T>
-    command_args(opcode command, T &&data) : m_command(command), m_data(std::forward<T>(data)) {
-        assert(check_type());
-    }
+    command_args(opcode command, T &&data) : m_command(command), m_data(std::forward<T>(data)) {}
 
     opcode command() const noexcept {
         return m_command;
     }
     
     template<opcode Cmd> const auto &get_args() const {
-        return *std::any_cast<opcode_type<Cmd>>(&m_data);
+        return std::get<EnumType<Cmd>>(m_data);
+    }
+
+    template<typename Visitor> auto visit(Visitor func) const {
+        return std::visit(func, m_data);
+    }
+
+    template<typename Visitor> auto visit(Visitor func) {
+        return std::visit(func, m_data);
     }
 };
 
 template<opcode Cmd, typename ... Ts>
 command_args make_command(Ts && ... args) {
-    return command_args(Cmd, opcode_type<Cmd>{ std::forward<Ts>(args) ... });
+    return command_args(Cmd, EnumType<Cmd>{ std::forward<Ts>(args) ... });
 }
 
-template<opcode Cmd> requires std::is_void_v<opcode_type<Cmd>>
+template<opcode Cmd> requires std::is_void_v<EnumType<Cmd>>
 command_args make_command() {
     return command_args(Cmd);
 }

@@ -55,11 +55,12 @@ static std::string quoted_string(const std::string &str) {
     return string_trim(Json::Value(str).toStyledString());
 }
 
-std::multimap<size_t, std::string> inv_labels;
-size_t line_num;
-
 template<typename T> std::ostream &print_args(std::ostream &out, const T &args) {
     return out << ' ' << args;
+}
+
+template<> std::ostream &print_args(std::ostream &out, const std::monostate &) {
+    return out;
 }
 
 template<> std::ostream &print_args(std::ostream &out, const pdf_rect &box) {
@@ -100,29 +101,11 @@ template<> std::ostream &print_args(std::ostream &out, const import_options &arg
 }
 
 template<> std::ostream &print_args(std::ostream &out, const jump_address &addr) {
-    out << ' ';
-    if (auto jt = inv_labels.find(line_num + addr); jt != inv_labels.end()) {
-        return out << jt->second;
-    } else {
-        return out << addr;
-    }
+    return out << ' ' << addr.label;
 }
 
 template<> std::ostream &print_args(std::ostream &out, const jsr_address &addr) {
-    return print_args(out, addr.addr) << ' ' << num_tostring(addr.numargs);
-}
-
-template<> std::ostream &print_args(std::ostream &out, const jump_uneval &) {
-    return out;
-}
-
-template<opcode Cmd>
-std::ostream &print_line(std::ostream &out, const command_args &line) {
-    out << '\t' << ToString(Cmd);
-    if constexpr (!std::is_void_v<opcode_type<Cmd>>) {
-        print_args(out, line.get_args<Cmd>());
-    }
-    return out << std::endl;
+    return out << ' ' << addr.label << ' ' << num_tostring(addr.numargs);
 }
 
 int MainApp::OnRun() {
@@ -131,6 +114,7 @@ int MainApp::OnRun() {
         my_parser.add_flags(flags);
         my_parser.read_layout(input_bls.parent_path(), box_vector::from_file(input_bls));
 
+        std::multimap<size_t, std::string> inv_labels;
         for (auto &[label, addr] : my_parser.get_labels()) {
             inv_labels.emplace(addr, label);
         }
@@ -140,7 +124,7 @@ int MainApp::OnRun() {
             binary_bls::write(code, output_cache);
         }
         const auto &comments = my_parser.get_comments();
-        for (line_num=0; line_num < code.size(); ++line_num) {
+        for (size_t line_num=0; line_num < code.size(); ++line_num) {
             auto [label_begin, label_end] = inv_labels.equal_range(line_num);
             for (;label_begin != label_end; ++label_begin) {
                 std::cout << label_begin->second << ':' << std::endl;
@@ -150,10 +134,11 @@ int MainApp::OnRun() {
                 std::cout << comment_begin->second << std::endl;
             }
 
-            auto &line = code[line_num];
-#define O_IMPL(x, t) case opcode::x: print_line<opcode::x>(std::cout, line); break;
-            switch (line.command()) { OPCODES }
-#undef O_IMPL
+            std::cout << '\t' << ToString(code[line_num].command());
+            code[line_num].visit([&](auto && args) {
+                print_args(std::cout, args);
+            });
+            std::cout << std::endl;
         }
     } catch (const std::exception &error) {
         std::cerr << error.what() << std::endl;

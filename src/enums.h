@@ -9,16 +9,20 @@ template<typename T> struct EnumSizeImpl {};
 template<typename T> constexpr T FindEnum(std::string_view name) = delete;
 template<typename T> constexpr size_t EnumSize = EnumSizeImpl<T>::value;
 
+template<typename ... Ts> struct TypeList {};
+
 typedef uint8_t flags_t;
 
 template<typename T>
 concept string_enum = std::is_enum_v<T> && requires (T x) {
     { ToString(x) } -> std::convertible_to<const char *>;
     { EnumSize<T> } -> std::convertible_to<size_t>;
-    GetTuple(x);
 };
 
 template<string_enum T> struct IsFlagEnum : std::false_type {};
+
+template<typename T> struct EnumTypeListImpl{};
+template<typename T> using EnumTypeList = typename EnumTypeListImpl<T>::type;
 
 template<typename T>
 concept flags_enum = IsFlagEnum<T>::value;
@@ -63,7 +67,9 @@ template<> constexpr enumName FindEnum(std::string_view name) { \
         BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_FIND_ENUM, enumName, enumElementsParen) \
         GENERATE_DEFAULT_CASE(enumName) \
     } \
-} \
+}
+
+#define DEFINE_ENUM_GET_TUPLE(enumName, enumElementsParen) \
 constexpr auto GetTuple(const enumName element) { \
     switch (element) { \
         BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_GET_DATA, enumName, enumElementsParen) \
@@ -71,16 +77,44 @@ constexpr auto GetTuple(const enumName element) { \
     } \
 }
 
+#define GET_TYPE(tuple) \
+    BOOST_PP_IF(BOOST_PP_EQUAL(BOOST_PP_TUPLE_SIZE(tuple), 2), \
+        BOOST_PP_TUPLE_ELEM(1, tuple), void)
+
+#define GENERATE_TYPE_STRUCT(r, enumName, elementTuple) \
+    template<> struct EnumTypeImpl<enumName::GET_FIRST_OF elementTuple> { using type = GET_TYPE(elementTuple); };
+
+#define GET_TYPE_FROM_SEQ(r, enumName, elementTuple) (GET_TYPE(elementTuple))
+
+#define DEFINE_ENUM_GET_TYPE(enumName, enumElementsParen) \
+    template<enumName Enum> struct EnumTypeImpl{}; \
+    BOOST_PP_SEQ_FOR_EACH(GENERATE_TYPE_STRUCT, enumName, enumElementsParen) \
+    template<enumName Enum> using EnumType = typename EnumTypeImpl<Enum>::type; \
+    template<> struct EnumTypeListImpl<enumName> { using type = TypeList< \
+        BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(GET_TYPE_FROM_SEQ, enumName, enumElementsParen)) \
+    >; };
+
 #define DEFINE_ENUM(enumName, enumElements) \
 enum class enumName : uint8_t { \
     BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, ADD_PARENTHESES(enumElements)) \
-}; DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES(enumElements))
+}; \
+DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES(enumElements)) \
+DEFINE_ENUM_GET_TUPLE(enumName, ADD_PARENTHESES(enumElements))
 
 #define DEFINE_ENUM_FLAGS(enumName, enumElements) \
 enum class enumName : flags_t { \
     BOOST_PP_SEQ_FOR_EACH_I(CREATE_FLAG_ELEMENT, enumName, ADD_PARENTHESES(enumElements)) \
-}; DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES(enumElements)); \
+}; \
+DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES(enumElements)) \
+DEFINE_ENUM_GET_TUPLE(enumName, ADD_PARENTHESES(enumElements)) \
 template<> struct IsFlagEnum<enumName> : std::true_type {};
+
+#define DEFINE_ENUM_TYPES(enumName, enumElements) \
+enum class enumName : uint8_t { \
+    BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, ADD_PARENTHESES(enumElements)) \
+}; \
+DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES(enumElements)) \
+DEFINE_ENUM_GET_TYPE(enumName, ADD_PARENTHESES(enumElements))
 
 template<flags_enum T>
 class bitset {

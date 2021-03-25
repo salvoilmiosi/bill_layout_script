@@ -54,6 +54,8 @@ template<typename T> void writeData(std::ostream &output, const T &data) {
     binary_io<T>::write(output, data);
 }
 
+template<> void writeData<std::monostate>(std::ostream &, const std::monostate &) {}
+
 template<typename T> T readData(std::istream &input) {
     return binary_io<T>::read(input);
 }
@@ -141,17 +143,6 @@ template<> struct binary_io<variable_selector> {
     }
 };
 
-template<> struct binary_io<jump_uneval> {
-    static void write(std::ostream &output, const jump_uneval &args) {
-        assert("Unevaluated jump" == 0);
-    }
-
-    static jump_uneval read(std::istream &input) {
-        assert("Unevaluated jump" == 0);
-        return jump_uneval{};
-    }
-};
-
 template<> struct binary_io<import_options> {
     static void write(std::ostream &output, const import_options &opts) {
         writeData(output, opts.filename.string());
@@ -166,6 +157,32 @@ template<> struct binary_io<import_options> {
     }
 };
 
+template<> struct binary_io<jump_address> {
+    static void write(std::ostream &output, const jump_address &addr) {
+        writeData(output, addr.relative_addr);
+    }
+
+    static jump_address read(std::istream &input) {
+        jump_address addr;
+        addr.relative_addr = readData<int16_t>(input);
+        return addr;
+    }
+};
+
+template<> struct binary_io<jsr_address> {
+    static void write(std::ostream &output, const jsr_address &addr) {
+        writeData<jump_address>(output, addr);
+        writeData(output, addr.numargs);
+    }
+
+    static jsr_address read(std::istream &input) {
+        jsr_address addr;
+        addr.relative_addr = readData<int16_t>(input);
+        addr.numargs = readData<small_int>(input);
+        return addr;
+    }
+};
+
 template<typename T> struct binary_io<bitset<T>> {
     static void write(std::ostream &output, const bitset<T> &data) {
         writeData<flags_t>(output, data);
@@ -176,20 +193,13 @@ template<typename T> struct binary_io<bitset<T>> {
     }
 };
 
-template<opcode Cmd> inline void writeCommandData(std::ostream &output, const command_args &line) {
-    using type = opcode_type<Cmd>;
-    writeData(output, Cmd);
-    if constexpr (! std::is_void_v<type>) {
-        writeData<type>(output, line.get_args<Cmd>());
-    }
-}
-
-template<opcode Cmd> inline command_args createCommandArgs(std::istream &input) {
-    using type = opcode_type<Cmd>;
-    if constexpr (std::is_void_v<type>) {
-        return command_args(Cmd);
-    } else {
-        return command_args(Cmd, readData<type>(input));
+template<opcode Cmd> static void addCommand(bytecode &ret, opcode check, std::istream &input) {
+    if (Cmd == check) {
+        if constexpr (std::is_void_v<EnumType<Cmd>>) {
+            ret.emplace_back(Cmd);
+        } else {
+            ret.emplace_back(Cmd, readData<EnumType<Cmd>>(input));
+        }
     }
 }
 
@@ -200,11 +210,10 @@ namespace binary_bls {
         bytecode ret;
 
         while (ifs.peek() != EOF) {
-#define O_IMPL(x, t) case opcode::x: ret.push_back(createCommandArgs<opcode::x>(ifs)); break;
-            switch (readData<opcode>(ifs)) {
-                OPCODES
-            }
-#undef O_IMPL
+            auto cmd = readData<opcode>(ifs);
+            [&] <size_t ... Is> (std::index_sequence<Is...>) {
+                (addCommand<static_cast<opcode>(Is)>(ret, cmd, ifs), ...);
+            } (std::make_index_sequence<EnumSize<opcode>>{});
         }
 
         return ret;
@@ -214,11 +223,10 @@ namespace binary_bls {
         std::ofstream ofs(filename, std::ios::binary | std::ios::out);
 
         for (const auto &line : code) {
-#define O_IMPL(x, t) case opcode::x: writeCommandData<opcode::x>(ofs, line); break;
-            switch (line.command()) {
-                OPCODES
-            }
-#undef O_IMPL
+            writeData(ofs, line.command());
+            line.visit([&](auto && args) {
+                writeData(ofs, args);
+            });
         }
     }
 }

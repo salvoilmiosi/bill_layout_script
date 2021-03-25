@@ -25,25 +25,22 @@ void parser::read_layout(const std::filesystem::path &path, const box_vector &la
             m_lexer.token_location_info(error.location())));
     }
 
-    for (auto line = m_code.begin(); line != m_code.end(); ++line) {
-        if (line->command() == opcode::UNEVAL_JUMP) {
-            auto &args = line->get_args<opcode::UNEVAL_JUMP>();
-            if (auto it = m_labels.find(args.label); it != m_labels.end()) {
-                jump_address addr = it->second - (line - m_code.begin());
-                switch (args.cmd) {
-                    case opcode::JSR:
-                    case opcode::JSRVAL: {
-                        auto jsr_args = std::any_cast<opcode_type<opcode::JSR>>(args.args);
-                        jsr_args.addr = addr;
-                        *line = command_args(args.cmd, jsr_args);
-                        break;
-                    }
-                    default: *line = command_args(args.cmd, addr); break;
-                }
-            } else {
-                throw layout_error(fmt::format("Etichetta sconosciuta: {}", args.label));
-            }
+    auto eval_jump_addr = [&](const std::string &label) {
+        if (auto it = m_labels.find(label); it != m_labels.end()) {
+            return it->second;
         }
+        throw layout_error(fmt::format("Etichetta sconosciuta: {}", label));
+    };
+
+    for (auto line = m_code.begin(); line != m_code.end(); ++line) {
+        line->visit(overloaded{
+            [](auto) {},
+            [&](jump_address &addr) {
+                if (!addr.label.empty()) {
+                    addr.relative_addr = eval_jump_addr(addr.label) - (line - m_code.begin());
+                }
+            }
+        });
     }
 }
 
@@ -468,7 +465,7 @@ void parser::read_function() {
                 read_expression();
                 ++numargs;
             }
-            add_jump<opcode::JSRVAL>(fmt::format("__function_{}", tok.value), numargs);
+            add_line<opcode::JSRVAL>(fmt::format("__function_{}", tok.value), numargs);
             break;
         }
         case FUN_VOID:

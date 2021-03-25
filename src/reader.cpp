@@ -62,18 +62,18 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto jump_relative = [&](jump_address address) {
-        m_program_counter += address;
+        m_program_counter += address.relative_addr;
         m_jumped = true;
     };
 
     auto jump_conditional = [&](jump_address address, bool condition) {
-        m_program_counter += address & -condition;
+        m_program_counter += address.relative_addr & -condition;
         m_jumped = condition;
     };
 
     auto jump_subroutine = [&](jsr_address address, bool nodiscard = false) {
         m_calls.push(function_call{m_program_counter, small_int(m_stack.size() - address.numargs), address.numargs, nodiscard});
-        jump_relative(address.addr);
+        jump_relative(address);
     };
 
     auto get_function_arg = [&](small_int idx) {
@@ -168,9 +168,9 @@ void reader::exec_command(const command_args &cmd) {
                 m_layouts.push_back(args.filename);
             }
         } else {
-            jump_address addr = add_layout(args.filename) - m_program_counter;
+            jsr_address addr{add_layout(args.filename) - m_program_counter, 0};
             m_code[m_program_counter] = make_command<opcode::JSR>(addr);
-            jump_subroutine(jsr_address{addr, 0});
+            jump_subroutine(addr);
         }
     };
 

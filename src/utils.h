@@ -11,6 +11,9 @@ typedef uint8_t small_int;
 
 constexpr char UNIT_SEPARATOR = '\x1f';
 
+template<typename ... Ts> struct overloaded : Ts ... { using Ts::operator() ...; };
+template<typename ... Ts> overloaded(Ts ...) -> overloaded<Ts...>;
+
 // restituisce l'hash di una stringa
 constexpr size_t hash(std::string_view str) {
     size_t ret = 5381;

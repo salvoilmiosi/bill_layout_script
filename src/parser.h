@@ -94,16 +94,6 @@ private:
         m_code.push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
     }
 
-    template<opcode Cmd, typename ... Ts>
-    void add_jump(const std::string &label, Ts && ... args) {
-        m_code.push_back(make_command<opcode::UNEVAL_JUMP>(label, Cmd, opcode_type<Cmd>{ jump_address(0), std::forward<Ts>(args) ... }));
-    }
-
-    template<opcode Cmd> requires std::is_same_v<opcode_type<Cmd>, void>
-    void add_jump(const std::string &label) {
-        m_code.push_back(make_command<opcode::UNEVAL_JUMP>(label, Cmd));
-    }
-
     void add_label(const std::string &label);
     void add_comment(const std::string &comment);
 

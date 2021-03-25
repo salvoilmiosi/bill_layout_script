@@ -2,9 +2,6 @@
 
 #include "utils.h"
 
-template<typename ... Ts> struct overloaded : Ts ... { using Ts::operator() ...; };
-template<typename ... Ts> overloaded(Ts ...) -> overloaded<Ts ...>;
-
 template<typename T, typename ... Ts> struct is_one_of : std::false_type {};
 template<typename T, typename First, typename ... Ts>
 struct is_one_of<T, First, Ts...> : std::bool_constant<is_one_of<T, Ts...>::value> {};
