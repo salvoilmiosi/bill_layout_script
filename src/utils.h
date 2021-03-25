@@ -27,7 +27,7 @@ constexpr size_t hash(std::string_view str) {
 template<typename T>
 void move_to_end(T &vec, size_t begin, size_t end) {
     for (size_t i=begin; i<end; ++i) {
-        vec.push_back(vec[i]);
+        vec.push_back(std::move(vec[i]));
     }
     vec.erase(vec.begin() + begin, vec.begin() + end);
 }
