@@ -171,7 +171,7 @@ template<> struct binary_io<jump_address> {
 
 template<> struct binary_io<jsr_address> {
     static void write(std::ostream &output, const jsr_address &addr) {
-        writeData<jump_address>(output, addr);
+        writeData(output, addr.relative_addr);
         writeData(output, addr.numargs);
     }
 
@@ -193,27 +193,27 @@ template<typename T> struct binary_io<bitset<T>> {
     }
 };
 
-template<opcode Cmd> static void addCommand(bytecode &ret, opcode check, std::istream &input) {
-    if (Cmd == check) {
-        if constexpr (std::is_void_v<EnumType<Cmd>>) {
-            ret.push_back(make_command<Cmd>());
-        } else {
-            ret.push_back(make_command<Cmd>(readData<EnumType<Cmd>>(input)));
-        }
-    }
-}
-
 namespace binary_bls {
+    static const auto make_command_lookup = []<size_t ... Is> (std::index_sequence<Is...>) {
+        return std::array<std::function<command_args(std::istream &)>, EnumSize<opcode>> {
+            [](std::istream &input) {
+                constexpr auto Cmd = static_cast<opcode>(Is);
+                if constexpr (std::is_void_v<EnumType<Cmd>>) {
+                    return make_command<Cmd>();
+                } else {
+                    return make_command<Cmd>(readData<EnumType<Cmd>>(input));
+                }
+            } ...
+        };
+    } (std::make_index_sequence<EnumSize<opcode>>{});
+
     bytecode read(const std::filesystem::path &filename) {
         std::ifstream ifs(filename, std::ios::binary | std::ios::in);
 
         bytecode ret;
 
         while (ifs.peek() != EOF) {
-            auto cmd = readData<opcode>(ifs);
-            [&] <size_t ... Is> (std::index_sequence<Is...>) {
-                (addCommand<static_cast<opcode>(Is)>(ret, cmd, ifs), ...);
-            } (std::make_index_sequence<EnumSize<opcode>>{});
+            ret.push_back(make_command_lookup[static_cast<size_t>(readData<opcode>(ifs))](ifs));
         }
 
         return ret;
