@@ -54,27 +54,14 @@ void parser::add_comment(const std::string &line) {
     m_comments.emplace(m_code.size(), line);
 }
 
-static const std::map<std::string, spacer_index, std::less<>> spacer_index_map = {
-    {"p",       spacer_index::PAGE},
-    {"page",    spacer_index::PAGE},
-    {"x",       spacer_index::X},
-    {"y",       spacer_index::Y},
-    {"w",       spacer_index::WIDTH},
-    {"width",   spacer_index::WIDTH},
-    {"h",       spacer_index::HEIGHT},
-    {"height",  spacer_index::HEIGHT},
-    {"t",       spacer_index::TOP},
-    {"top",     spacer_index::TOP},
-    {"r",       spacer_index::RIGHT},
-    {"right",   spacer_index::RIGHT},
-    {"b",       spacer_index::BOTTOM},
-    {"bottom",  spacer_index::BOTTOM},
-    {"l",       spacer_index::LEFT},
-    {"left",    spacer_index::LEFT},
-    {"rotate",  spacer_index::ROTATE_CW},
-    {"rot_cw",  spacer_index::ROTATE_CW},
-    {"rot_ccw", spacer_index::ROTATE_CCW},
-};
+spacer_index find_spacer_index(std::string_view name) {
+    for (size_t i=0; i<EnumSize<spacer_index>; ++i) {
+        if (EnumData<const char *>(static_cast<spacer_index>(i)) == name) {
+            return static_cast<spacer_index>(i);
+        }
+    }
+    return static_cast<spacer_index>(-1);
+}
 
 void parser::read_box(const layout_box &box) {
     if (box.flags & box_flags::DISABLED) {
@@ -111,7 +98,7 @@ void parser::read_box(const layout_box &box) {
     while(true) {
         auto tok = m_lexer.next();
         if (tok.type == token_type::IDENTIFIER) {
-            if (auto it = spacer_index_map.find(tok.value); it != spacer_index_map.end()) {
+            if (auto it = find_spacer_index(tok.value); it != static_cast<spacer_index>(-1)) {
                 bool negative = false;
                 auto tok_sign = m_lexer.next();
                 switch (tok_sign.type) {
@@ -125,7 +112,7 @@ void parser::read_box(const layout_box &box) {
                 }
                 read_expression();
                 if (negative) add_line<opcode::CALL>("neg", 1);
-                add_line<opcode::MVBOX>(it->second);
+                add_line<opcode::MVBOX>(it);
             } else {
                 throw unexpected_token(tok);
             }
@@ -441,9 +428,9 @@ void parser::read_function() {
         case FUN_GETBOX: {
             m_lexer.require(token_type::PAREN_BEGIN);
             auto tok = m_lexer.require(token_type::IDENTIFIER);
-            if (auto it = spacer_index_map.find(tok.value); it != spacer_index_map.end()) {
+            if (auto it = find_spacer_index(tok.value); it != static_cast<spacer_index>(-1)) {
                 m_lexer.require(token_type::PAREN_END);
-                add_line<opcode::GETBOX>(it->second);
+                add_line<opcode::GETBOX>(it);
             } else {
                 throw unexpected_token(tok);
             }

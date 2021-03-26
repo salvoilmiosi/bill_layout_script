@@ -18,17 +18,16 @@ struct command_call {
 };
 
 DEFINE_ENUM(spacer_index,
-    (PAGE)
-    (X)
-    (Y)
-    (WIDTH)
-    (HEIGHT)
-    (TOP)
-    (RIGHT)
-    (BOTTOM)
-    (LEFT)
-    (ROTATE_CW)
-    (ROTATE_CCW)
+    (PAGE,      "p")
+    (X,         "x")
+    (Y,         "y")
+    (WIDTH,     "width")
+    (HEIGHT,    "height")
+    (TOP,       "top")
+    (RIGHT,     "right")
+    (BOTTOM,    "bottom")
+    (LEFT,      "left")
+    (ROTATE,    "rotate")
 )
 
 DEFINE_ENUM_FLAGS(selvar_flags,

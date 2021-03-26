@@ -163,9 +163,7 @@ template<> struct binary_io<jump_address> {
     }
 
     static jump_address read(std::istream &input) {
-        jump_address addr;
-        addr.relative_addr = readData<int16_t>(input);
-        return addr;
+        return readData<int16_t>(input);
     }
 };
 
@@ -193,29 +191,40 @@ template<typename T> struct binary_io<bitset<T>> {
     }
 };
 
-namespace binary_bls {
-    static const auto make_command_lookup = []<size_t ... Is> (std::index_sequence<Is...>) {
-        return std::array<std::function<command_args(std::istream &)>, EnumSize<opcode>> {
-            [](std::istream &input) {
-                constexpr auto Cmd = static_cast<opcode>(Is);
-                if constexpr (std::is_void_v<EnumType<Cmd>>) {
-                    return make_command<Cmd>();
-                } else {
-                    return make_command<Cmd>(readData<EnumType<Cmd>>(input));
-                }
-            } ...
-        };
-    } (std::make_index_sequence<EnumSize<opcode>>{});
+template<> struct binary_io<command_args> {
+    static void write(std::ostream &output, const command_args &cmd) {
+        writeData(output, cmd.command());
+        cmd.visit([&](auto && data) {
+            writeData(output, data);
+        });
+    }
 
+    static command_args read(std::istream &input) {
+        static const auto make_command_lookup = []<size_t ... Is> (std::index_sequence<Is...>) {
+            return std::array<std::function<command_args(std::istream &)>, EnumSize<opcode>> {
+                [](std::istream &input) {
+                    constexpr auto Cmd = static_cast<opcode>(Is);
+                    if constexpr (std::is_void_v<EnumType<Cmd>>) {
+                        return make_command<Cmd>();
+                    } else {
+                        return make_command<Cmd>(readData<EnumType<Cmd>>(input));
+                    }
+                } ...
+            };
+        } (std::make_index_sequence<EnumSize<opcode>>{});
+
+        return make_command_lookup[static_cast<size_t>(readData<opcode>(input))](input);
+    }
+};
+
+namespace binary_bls {
     bytecode read(const std::filesystem::path &filename) {
         std::ifstream ifs(filename, std::ios::binary | std::ios::in);
 
         bytecode ret;
-
         while (ifs.peek() != EOF) {
-            ret.push_back(make_command_lookup[static_cast<size_t>(readData<opcode>(ifs))](ifs));
+            ret.push_back(readData<command_args>(ifs));
         }
-
         return ret;
     }
 
@@ -223,10 +232,7 @@ namespace binary_bls {
         std::ofstream ofs(filename, std::ios::binary | std::ios::out);
 
         for (const auto &line : code) {
-            writeData(ofs, line.command());
-            line.visit([&](auto && args) {
-                writeData(ofs, args);
-            });
+            writeData(ofs, line);
         }
     }
 }

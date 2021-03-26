@@ -103,10 +103,8 @@ void reader::exec_command(const command_args &cmd) {
         switch (idx) {
         case spacer_index::PAGE:
             m_current_box.page += amt.as_int(); break;
-        case spacer_index::ROTATE_CW:
+        case spacer_index::ROTATE:
             m_current_box.rotate(amt.as_int()); break;
-        case spacer_index::ROTATE_CCW:
-            m_current_box.rotate(-amt.as_int()); break;
         case spacer_index::X:
             m_current_box.x += amt.as_double(); break;
         case spacer_index::Y:

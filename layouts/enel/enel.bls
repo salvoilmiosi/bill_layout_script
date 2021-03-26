@@ -41,7 +41,7 @@ $if($ate()) {
 ### Goto Label dettaglio_costi
 ### Spacers
 p+::offset_dettaglio
-t-::spacer_dettaglio
+top-::spacer_dettaglio
 ### End Spacers
 ### Script
 ::_dettaglio+=@
