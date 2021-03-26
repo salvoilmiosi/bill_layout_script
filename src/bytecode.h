@@ -89,7 +89,6 @@ DEFINE_ENUM_TYPES(opcode,
     (SELVAR, variable_selector)     // (name, index, size, flags) -> selected
     (SETVAR, bitset<setvar_flags>)  // selected, stack -> set
     (CLEAR)                         // selected -> clear
-    (ISSET)                         // selected -> size() != 0 -> stack
     (GETSIZE)                       // selected -> size() -> stack
     (PUSHVAR)                       // selected -> stack
     (PUSHREF)                       // selected.str_view -> stack
@@ -100,7 +99,6 @@ DEFINE_ENUM_TYPES(opcode,
     (PUSHARG, small_int)            // stack -> stack
     (GETBOX, spacer_index)          // current_box[index] -> stack
     (DOCPAGES)                      // m_doc.pages -> stack
-    (ATE)                           // (getbox(page) >= docpages()) -> stack
     (CALL, command_call)            // stack * numargs -> fun_name -> stack
     (ADDCONTENT)                    // stack -> content_stack
     (POPCONTENT)                    // content_stack.pop()

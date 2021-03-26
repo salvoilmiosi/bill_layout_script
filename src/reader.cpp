@@ -181,7 +181,6 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SELVAR:     select_var(cmd.get_args<opcode::SELVAR>()); break;
     case opcode::SETVAR:     m_selected.set_value(m_stack.pop(), cmd.get_args<opcode::SETVAR>()); break;
     case opcode::CLEAR:      m_selected.clear(); break;
-    case opcode::ISSET:      m_stack.push(m_selected.size() != 0); break;
     case opcode::GETSIZE:    m_stack.push(m_selected.size()); break;
     case opcode::PUSHVAR:    m_stack.push(m_selected.get_value()); break;
     case opcode::PUSHREF:    m_stack.push(m_selected.get_value().as_view()); break;
@@ -192,7 +191,6 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHARG:    m_stack.push(get_function_arg(cmd.get_args<opcode::PUSHARG>())); break;
     case opcode::GETBOX:     m_stack.push(get_box_info(cmd.get_args<opcode::GETBOX>())); break;
     case opcode::DOCPAGES:   m_stack.push(m_doc->num_pages()); break;
-    case opcode::ATE:        m_stack.push(m_current_box.page > m_doc->num_pages()); break;
     case opcode::CALL:       m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
     case opcode::ADDCONTENT: m_contents.push(m_stack.pop()); break;
     case opcode::POPCONTENT: m_contents.pop(); break;

@@ -398,70 +398,67 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
 void parser::read_function() {
     auto tok_fun_name = m_lexer.require(token_type::FUNCTION);
     auto fun_name = tok_fun_name.value.substr(1);
-
-    enum function_type {
-        FUN_VARIABLE,
-        FUN_GETBOX,
-        FUN_GETARG,
-        FUN_VOID,
-        FUN_CALL,
-    };
     
-    static const std::map<std::string, std::tuple<function_type, command_args>, std::less<>> simple_functions = {
-        {"isset",       {FUN_VARIABLE,  make_command<opcode::ISSET>()}},
-        {"size",        {FUN_VARIABLE,  make_command<opcode::GETSIZE>()}},
-        {"ate",         {FUN_VOID,      make_command<opcode::ATE>()}},
-        {"docpages",    {FUN_VOID,      make_command<opcode::DOCPAGES>()}},
-        {"box",         {FUN_GETBOX,    {}}},
-        {"arg",         {FUN_GETARG,    {}}},
-        {"call",        {FUN_CALL,      {}}}
-    };
+    switch (hash(fun_name)) {
+    case hash("isset"):
+    case hash("size"):
+        m_lexer.require(token_type::PAREN_BEGIN);
+        read_variable_name();
+        m_lexer.require(token_type::PAREN_END);
+        add_line<opcode::GETSIZE>();
+        if (fun_name == "isset") {
+            add_line<opcode::PUSHINT>(0);
+            add_line<opcode::CALL>("neq", 2);
+        }
+        break;
+    case hash("box"): {
+        m_lexer.require(token_type::PAREN_BEGIN);
+        auto tok = m_lexer.require(token_type::IDENTIFIER);
+        if (auto spacer = find_spacer_index(tok.value); spacer != static_cast<spacer_index>(-1)) {
+            m_lexer.require(token_type::PAREN_END);
+            add_line<opcode::GETBOX>(spacer);
+        } else {
+            throw unexpected_token(tok);
+        }
+        break;
+    }
+    case hash("arg"): {
+        m_lexer.require(token_type::PAREN_BEGIN);
+        auto num = string_toint(m_lexer.require(token_type::INTEGER).value);
+        m_lexer.require(token_type::PAREN_END);
+        add_line<opcode::PUSHARG>(small_int(num));
+        break;
+    }
+    case hash("call"): {
+        m_lexer.require(token_type::PAREN_BEGIN);
+        auto tok = m_lexer.require(token_type::IDENTIFIER);
+        small_int numargs = 0;
+        while (!m_lexer.check_next(token_type::PAREN_END)) {
+            m_lexer.require(token_type::COMMA);
+            read_expression();
+            ++numargs;
+        }
+        add_line<opcode::JSRVAL>(fmt::format("__function_{}", tok.value), numargs);
+        break;
+    }
+    case hash("ate"):
+    case hash("docpages"):
+        m_lexer.require(token_type::PAREN_BEGIN);
+        m_lexer.require(token_type::PAREN_END);
+        if (fun_name == "docpages") {
+            add_line<opcode::DOCPAGES>();
+        } else {
+            add_line<opcode::GETBOX>(spacer_index::PAGE);
+            add_line<opcode::DOCPAGES>();
+            add_line<opcode::CALL>("gt", 2);
+        }
+        break;
+    default: {
+        auto it = function_lookup.find(fun_name);
+        if (it == function_lookup.end()) {
+            throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
+        }
 
-    if (auto it = simple_functions.find(fun_name); it != simple_functions.end()) {
-        switch (std::get<function_type>(it->second)) {
-        case FUN_VARIABLE:
-            m_lexer.require(token_type::PAREN_BEGIN);
-            read_variable_name();
-            m_lexer.require(token_type::PAREN_END);
-            m_code.push_back(std::get<command_args>(it->second));
-            break;
-        case FUN_GETBOX: {
-            m_lexer.require(token_type::PAREN_BEGIN);
-            auto tok = m_lexer.require(token_type::IDENTIFIER);
-            if (auto it = find_spacer_index(tok.value); it != static_cast<spacer_index>(-1)) {
-                m_lexer.require(token_type::PAREN_END);
-                add_line<opcode::GETBOX>(it);
-            } else {
-                throw unexpected_token(tok);
-            }
-            break;
-        }
-        case FUN_GETARG: {
-            m_lexer.require(token_type::PAREN_BEGIN);
-            auto tok = m_lexer.require(token_type::INTEGER);
-            m_lexer.require(token_type::PAREN_END);
-            add_line<opcode::PUSHARG>(small_int(string_toint(tok.value)));
-            break;
-        }
-        case FUN_CALL: {
-            m_lexer.require(token_type::PAREN_BEGIN);
-            auto tok = m_lexer.require(token_type::IDENTIFIER);
-            small_int numargs = 0;
-            while (!m_lexer.check_next(token_type::PAREN_END)) {
-                m_lexer.require(token_type::COMMA);
-                read_expression();
-                ++numargs;
-            }
-            add_line<opcode::JSRVAL>(fmt::format("__function_{}", tok.value), numargs);
-            break;
-        }
-        case FUN_VOID:
-            m_lexer.require(token_type::PAREN_BEGIN);
-            m_lexer.require(token_type::PAREN_END);
-            m_code.push_back(std::get<command_args>(it->second));
-            break;
-        }
-    } else if (auto it = function_lookup.find(fun_name); it != function_lookup.end()) {
         small_int num_args = 0;
         m_lexer.require(token_type::PAREN_BEGIN);
         while (!m_lexer.check_next(token_type::PAREN_END)) {
@@ -484,7 +481,6 @@ void parser::read_function() {
             throw invalid_numargs(std::string(fun_name), fun.minargs, fun.maxargs, tok_fun_name);
         }
         add_line<opcode::CALL>(it, num_args);
-    } else {
-        throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
+    }
     }
 }
