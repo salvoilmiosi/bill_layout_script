@@ -146,7 +146,8 @@ public:
         return static_cast<opcode>(m_value.index());
     }
     
-    template<opcode Cmd> const auto &get_args() const {
+    template<opcode Cmd> requires (! std::is_void_v<EnumType<Cmd>>)
+    const auto &get_args() const {
         return std::get<static_cast<size_t>(Cmd)>(m_value);
     }
 

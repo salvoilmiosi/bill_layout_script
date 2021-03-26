@@ -32,8 +32,8 @@ template<size_t I, string_enum E> constexpr auto EnumData(E x) { return std::get
 #define GET_FIRST_OF(element, ...) element
 #define GET_TAIL_OF(element, ...) __VA_ARGS__
 
-#define CREATE_ENUM_ELEMENT(r, data, elementTuple) GET_FIRST_OF elementTuple,
-#define CREATE_FLAG_ELEMENT(r, data, i, elementTuple) GET_FIRST_OF elementTuple = (1 << i),
+#define CREATE_ENUM_ELEMENT(r, data, elementTuple) (GET_FIRST_OF elementTuple)
+#define CREATE_FLAG_ELEMENT(r, data, i, elementTuple) (GET_FIRST_OF elementTuple = 1 << i)
 
 #define GENERATE_CASE_TO_STRING(r, enumName, elementTuple) \
     case enumName::GET_FIRST_OF elementTuple : return BOOST_PP_STRINGIZE(GET_FIRST_OF elementTuple);
@@ -83,14 +83,14 @@ constexpr auto GetTuple(const enumName element) { \
 
 #define DEFINE_ENUM(enumName, enumElements) \
 enum class enumName : uint8_t { \
-    BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, ADD_PARENTHESES(enumElements)) \
+    BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, ADD_PARENTHESES(enumElements))) \
 }; \
 DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES(enumElements)) \
 DEFINE_ENUM_GET_TUPLE(enumName, ADD_PARENTHESES(enumElements))
 
 #define DEFINE_ENUM_FLAGS(enumName, enumElements) \
 enum class enumName : flags_t { \
-    BOOST_PP_SEQ_FOR_EACH_I(CREATE_FLAG_ELEMENT, enumName, ADD_PARENTHESES(enumElements)) \
+    BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH_I(CREATE_FLAG_ELEMENT, enumName, ADD_PARENTHESES(enumElements))) \
 }; \
 DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES(enumElements)) \
 DEFINE_ENUM_GET_TUPLE(enumName, ADD_PARENTHESES(enumElements)) \
@@ -98,7 +98,7 @@ template<> struct IsFlagEnum<enumName> : std::true_type {};
 
 #define DEFINE_ENUM_TYPES(enumName, enumElements) \
 enum class enumName : uint8_t { \
-    BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, ADD_PARENTHESES(enumElements)) \
+    BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, ADD_PARENTHESES(enumElements))) \
 }; \
 DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES(enumElements)) \
 DEFINE_ENUM_GET_TYPE(enumName, ADD_PARENTHESES(enumElements))
@@ -141,7 +141,7 @@ template<flags_enum T>
 std::ostream &operator << (std::ostream &out, const bitset<T> &flags) {
     for (size_t i=0; i < EnumSize<T>; ++i) {
         if (flags & (1 << i)) {
-            out << ' ' << static_cast<T>(1 << i);
+            out << static_cast<T>(1 << i) << ' ';
         }
     }
     return out;

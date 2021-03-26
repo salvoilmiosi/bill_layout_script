@@ -56,56 +56,52 @@ static std::string quoted_string(const std::string &str) {
 }
 
 template<typename T> std::ostream &print_args(std::ostream &out, const T &args) {
-    return out << ' ' << args;
-}
-
-template<> std::ostream &print_args(std::ostream &out, const std::monostate &) {
-    return out;
+    return out << args;
 }
 
 template<> std::ostream &print_args(std::ostream &out, const pdf_rect &box) {
-    return out << ' ' << box.mode << ' ' << box.type << box.flags
-        << fmt::format(" {} {} {} {} {}", box.page, box.x, box.y, box.w, box.h);
+    return out << box.mode << ' ' << box.type << ' ' << box.flags
+        << fmt::format("{} {} {} {} {}", box.page, box.x, box.y, box.w, box.h);
 }
 
 template<> std::ostream &print_args(std::ostream &out, const command_call &args) {
-    return out << ' ' << args.fun->first << ' ' << int(args.numargs);
+    return out << args.fun->first << ' ' << num_tostring(args.numargs);
 }
 
 template<> std::ostream &print_args(std::ostream &out, const variable_selector &args) {
-    out << ' ' << args.name << ' ' << int(args.index);
+    out << args.name << ' ' << int(args.index);
     if (args.length != 1) {
         out << ':' << int(args.length);
     }
-    return out << args.flags;
+    return out << ' ' << args.flags;
 }
 
 template<> std::ostream &print_args(std::ostream &out, const fixed_point &num) {
-    return out << ' ' << fixed_point_to_string(num);
+    return out << fixed_point_to_string(num);
 }
 
 template<> std::ostream &print_args(std::ostream &out, const std::string &str) {
-    return out << ' ' << quoted_string(str);
+    return out << quoted_string(str);
 }
 
 template<> std::ostream &print_args(std::ostream &out, const small_int &num) {
-    return out << ' ' << num_tostring(num);
+    return out << num_tostring(num);
 }
 
 template<> std::ostream &print_args(std::ostream &out, const intl::language &lang) {
-    return out << ' ' << intl::language_string(lang);
+    return out << intl::language_string(lang);
 }
 
 template<> std::ostream &print_args(std::ostream &out, const import_options &args) {
-    return out << ' ' << quoted_string(args.filename.string()) << args.flags;
+    return out << quoted_string(args.filename.string()) << args.flags;
 }
 
 template<> std::ostream &print_args(std::ostream &out, const jump_address &addr) {
-    return out << ' ' << addr.label;
+    return out << addr.label;
 }
 
 template<> std::ostream &print_args(std::ostream &out, const jsr_address &addr) {
-    return out << ' ' << addr.label << ' ' << num_tostring(addr.numargs);
+    return out << addr.label << ' ' << num_tostring(addr.numargs);
 }
 
 int MainApp::OnRun() {
@@ -134,9 +130,12 @@ int MainApp::OnRun() {
                 std::cout << comment_begin->second << std::endl;
             }
 
-            std::cout << '\t' << ToString(line->command());
-            line->visit([&](auto && args) {
-                print_args(std::cout, args);
+            std::cout << '\t' << line->command();
+            line->visit(overloaded{
+                [](std::monostate){},
+                [&](auto && args) {
+                    print_args(std::cout << ' ', args);
+                }
             });
             std::cout << std::endl;
         }

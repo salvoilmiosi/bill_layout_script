@@ -18,7 +18,7 @@ std::ostream &operator << (std::ostream &output, const bill_layout_script<Contai
             << "### Type " << box.type << '\n'
             << "### Mode " << box.mode << '\n';
         if (box.flags) {
-            output << "### Flags" << box.flags << '\n';
+            output << "### Flags " << box.flags << '\n';
         }
         output << fmt::format("### Page {}\n", box.page);
         output << fmt::format("### Rect {} {} {} {}\n", box.x, box.y, box.w, box.h);
