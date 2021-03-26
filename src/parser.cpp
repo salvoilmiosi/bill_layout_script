@@ -36,7 +36,7 @@ void parser::read_layout(const std::filesystem::path &path, const box_vector &la
         line->visit(overloaded{
             [](auto) {},
             [&](jump_address &addr) {
-                if (!addr.label.empty()) {
+                if (addr.relative_addr == 0 && !addr.label.empty()) {
                     addr.relative_addr = eval_jump_addr(addr.label) - (line - m_code.begin());
                 }
             }
