@@ -9,8 +9,6 @@ template<typename T> struct EnumSizeImpl {};
 template<typename T> constexpr T FindEnum(std::string_view name) = delete;
 template<typename T> constexpr size_t EnumSize = EnumSizeImpl<T>::value;
 
-template<typename ... Ts> struct TypeList {};
-
 typedef uint8_t flags_t;
 
 template<typename T>
@@ -20,12 +18,7 @@ concept string_enum = std::is_enum_v<T> && requires (T x) {
 };
 
 template<string_enum T> struct IsFlagEnum : std::false_type {};
-
-template<typename T> struct EnumTypeListImpl{};
-template<typename T> using EnumTypeList = typename EnumTypeListImpl<T>::type;
-
-template<typename T>
-concept flags_enum = IsFlagEnum<T>::value;
+template<typename T> concept flags_enum = IsFlagEnum<T>::value;
 
 template<typename T, string_enum E> constexpr T EnumData(E x) { return std::get<T>(GetTuple(x)); }
 template<size_t I, string_enum E> constexpr auto EnumData(E x) { return std::get<I>(GetTuple(x)); }
@@ -84,15 +77,10 @@ constexpr auto GetTuple(const enumName element) { \
 #define GENERATE_TYPE_STRUCT(r, enumName, elementTuple) \
     template<> struct EnumTypeImpl<enumName::GET_FIRST_OF elementTuple> { using type = GET_TYPE(elementTuple); };
 
-#define GET_TYPE_FROM_SEQ(r, enumName, elementTuple) (GET_TYPE(elementTuple))
-
 #define DEFINE_ENUM_GET_TYPE(enumName, enumElementsParen) \
     template<enumName Enum> struct EnumTypeImpl{}; \
     BOOST_PP_SEQ_FOR_EACH(GENERATE_TYPE_STRUCT, enumName, enumElementsParen) \
-    template<enumName Enum> using EnumType = typename EnumTypeImpl<Enum>::type; \
-    template<> struct EnumTypeListImpl<enumName> { using type = TypeList< \
-        BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(GET_TYPE_FROM_SEQ, enumName, enumElementsParen)) \
-    >; };
+    template<enumName Enum> using EnumType = typename EnumTypeImpl<Enum>::type;
 
 #define DEFINE_ENUM(enumName, enumElements) \
 enum class enumName : uint8_t { \

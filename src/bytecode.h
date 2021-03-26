@@ -126,19 +126,18 @@ DEFINE_ENUM_TYPES(opcode,
     (HLT)                           // ferma l'esecuzione
 )
 
-template<typename T> struct variant_type{ using type = T; };
-template<> struct variant_type<void> { using type = std::monostate; };
+template<typename T> using variant_type = std::conditional_t<std::is_void_v<T>, std::monostate, T>;
 
-template<typename TList> struct type_list_variant{};
-template<typename ... Ts> struct type_list_variant<TypeList<Ts...>> {
-    using type = std::variant<typename variant_type<Ts>::type ...>;
+template<string_enum Enum, typename ISeq> struct enum_variant_impl{};
+template<string_enum Enum, size_t ... Is> struct enum_variant_impl<Enum, std::index_sequence<Is...>> {
+    using type = std::variant<variant_type<EnumType<static_cast<Enum>(Is)>> ...>;
 };
 
-using opcode_variant = typename type_list_variant<EnumTypeList<opcode>>::type;
+template<string_enum Enum> using enum_variant = typename enum_variant_impl<Enum, std::make_index_sequence<EnumSize<Enum>>>::type;
 
 class command_args {
 private:
-    opcode_variant m_value;
+    enum_variant<opcode> m_value;
 
 public:
     command_args() = default;
@@ -163,7 +162,7 @@ public:
 
 template<opcode Cmd, typename ... Ts>
 command_args make_command(Ts && ... data) {
-    return opcode_variant(std::in_place_index<static_cast<size_t>(Cmd)>, std::forward<Ts>(data) ...);
+    return enum_variant<opcode>(std::in_place_index<static_cast<size_t>(Cmd)>, std::forward<Ts>(data) ...);
 }
 
 using bytecode = std::vector<command_args>;
