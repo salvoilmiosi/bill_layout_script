@@ -70,15 +70,14 @@ constexpr auto GetTuple(const enumName element) { \
     } \
 }
 
-#define GET_TYPE(tuple) \
-    BOOST_PP_IF(BOOST_PP_EQUAL(BOOST_PP_TUPLE_SIZE(tuple), 2), \
-        BOOST_PP_TUPLE_ELEM(1, tuple), void)
-
+#define GENERATE_CASE_GET_TYPE(enumName, element, elementType) \
+    template<> struct EnumTypeImpl<enumName::element> { using type = elementType; };
 #define GENERATE_TYPE_STRUCT(r, enumName, elementTuple) \
-    template<> struct EnumTypeImpl<enumName::GET_FIRST_OF elementTuple> { using type = GET_TYPE(elementTuple); };
+    BOOST_PP_IF(BOOST_PP_EQUAL(BOOST_PP_TUPLE_SIZE(elementTuple), 2), \
+        GENERATE_CASE_GET_TYPE(enumName, GET_FIRST_OF elementTuple, GET_TAIL_OF elementTuple), BOOST_PP_EMPTY())
 
 #define DEFINE_ENUM_GET_TYPE(enumName, enumElementsParen) \
-    template<enumName Enum> struct EnumTypeImpl{}; \
+    template<enumName Enum> struct EnumTypeImpl{ using type = void; }; \
     BOOST_PP_SEQ_FOR_EACH(GENERATE_TYPE_STRUCT, enumName, enumElementsParen) \
     template<enumName Enum> using EnumType = typename EnumTypeImpl<Enum>::type;
 
