@@ -158,15 +158,16 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto import_layout = [&](const import_options &args) {
+        std::filesystem::path filename = args.filename.string();
         if (args.flags & import_flags::SETLAYOUT && m_flags & reader_flags::HALT_ON_SETLAYOUT) {
-            m_layouts.push_back(args.filename);
+            m_layouts.push_back(filename);
             halt();
         } else if (args.flags & import_flags::NOIMPORT) {
-            if (std::ranges::find(m_layouts, args.filename) == m_layouts.end()) {
-                m_layouts.push_back(args.filename);
+            if (std::ranges::find(m_layouts, filename) == m_layouts.end()) {
+                m_layouts.push_back(filename);
             }
         } else {
-            jsr_address addr{add_layout(args.filename) - m_program_counter, 0};
+            jsr_address addr{add_layout(filename) - m_program_counter, 0};
             m_code[m_program_counter] = make_command<opcode::JSR>(addr);
             jump_subroutine(addr);
         }
@@ -187,7 +188,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHVIEW:   m_stack.push(m_contents.top().view()); break;
     case opcode::PUSHNUM:    m_stack.push(cmd.get_args<opcode::PUSHNUM>()); break;
     case opcode::PUSHINT:    m_stack.push(cmd.get_args<opcode::PUSHINT>()); break;
-    case opcode::PUSHSTR:    m_stack.push(cmd.get_args<opcode::PUSHSTR>()); break;
+    case opcode::PUSHSTR:    m_stack.push(cmd.get_args<opcode::PUSHSTR>().string()); break;
     case opcode::PUSHARG:    m_stack.push(get_function_arg(cmd.get_args<opcode::PUSHARG>())); break;
     case opcode::GETBOX:     m_stack.push(get_box_info(cmd.get_args<opcode::GETBOX>())); break;
     case opcode::DOCPAGES:   m_stack.push(m_doc->num_pages()); break;
@@ -245,7 +246,7 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
     if (m_flags & reader_flags::USE_CACHE && std::filesystem::exists(cache_filename) && !is_modified(filename)) {
         new_code = binary_bls::read(cache_filename);
         if (m_flags & reader_flags::RECURSIVE && std::ranges::any_of(new_code, [&](const command_args &line) {
-            return line.command() == opcode::IMPORT && is_modified(line.get_args<opcode::IMPORT>().filename);
+            return line.command() == opcode::IMPORT && is_modified(line.get_args<opcode::IMPORT>().filename.string());
         })) {
             recompile();
         }

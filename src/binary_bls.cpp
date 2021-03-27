@@ -74,6 +74,16 @@ template<> struct binary_io<std::string> {
     }
 };
 
+template<> struct binary_io<string_ptr> {
+    static void write(std::ostream &output, const string_ptr &str) {
+        writeData(output, str.string());
+    }
+
+    static string_ptr read(std::istream &input) {
+        return readData<std::string>(input);
+    }
+};
+
 template<> struct binary_io<fixed_point> {
     static void write(std::ostream &output, const fixed_point &num) {
         writeData<dec::int64>(output, num.getUnbiased());

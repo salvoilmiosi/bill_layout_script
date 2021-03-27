@@ -7,6 +7,27 @@
 #include "intl.h"
 #include "functions.h"
 
+struct string_ptr : std::shared_ptr<std::string> {
+    using base = std::shared_ptr<std::string>;
+    string_ptr() = default;
+
+    template<typename U>
+    string_ptr(U && str) : base(std::make_shared<std::string>(std::forward<U>(str))) {}
+
+    const std::string &string() const {
+        static const std::string empty_string;
+        if (base::operator bool()) {
+            return *static_cast<base>(*this);
+        } else {
+            return empty_string;
+        }
+    }
+
+    operator const std::string &() const {
+        return string();
+    }
+};
+
 struct command_call {
     function_iterator fun;
     small_int numargs;
@@ -39,7 +60,7 @@ DEFINE_ENUM_FLAGS(selvar_flags,
 )
 
 struct variable_selector {
-    std::string name;
+    string_ptr name;
     small_int index = 0;
     small_int length = 1;
     bitset<selvar_flags> flags;
@@ -52,7 +73,7 @@ DEFINE_ENUM_FLAGS(setvar_flags,
 )
 
 struct jump_address {
-    std::string label;
+    string_ptr label;
     int16_t relative_addr;
 
     jump_address() = default;
@@ -76,7 +97,7 @@ DEFINE_ENUM_FLAGS(import_flags,
 )
 
 struct import_options {
-    std::string filename;
+    string_ptr filename;
     bitset<import_flags> flags;
 };
 
@@ -95,7 +116,7 @@ DEFINE_ENUM_TYPES(opcode,
     (PUSHVIEW)                      // content_stack -> stack
     (PUSHNUM, fixed_point)          // number -> stack
     (PUSHINT, int64_t)              // int -> stack
-    (PUSHSTR, std::string)          // str -> stack
+    (PUSHSTR, string_ptr)          // str -> stack
     (PUSHARG, small_int)            // stack -> stack
     (GETBOX, spacer_index)          // current_box[index] -> stack
     (DOCPAGES)                      // m_doc.pages -> stack
