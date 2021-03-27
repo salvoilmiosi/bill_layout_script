@@ -52,8 +52,8 @@ DEFINE_ENUM_FLAGS(setvar_flags,
 )
 
 struct jump_address {
-    int16_t relative_addr;
     std::string label;
+    int16_t relative_addr;
 
     jump_address() = default;
     jump_address(std::string_view label)
@@ -76,7 +76,7 @@ DEFINE_ENUM_FLAGS(import_flags,
 )
 
 struct import_options {
-    std::filesystem::path filename;
+    std::string filename;
     bitset<import_flags> flags;
 };
 

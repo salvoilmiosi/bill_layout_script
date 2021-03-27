@@ -32,9 +32,9 @@ DEFINE_ENUM_FLAGS(box_flags,
 )
 
 struct pdf_rect {
-    int page = 0;
-    double x, y;
-    double w, h;
+    float x, y;
+    float w, h;
+    uint8_t page = 0;
     read_mode mode = read_mode::DEFAULT;
     box_type type = box_type::RECTANGLE;
     bitset<box_flags> flags;

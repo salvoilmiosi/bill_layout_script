@@ -276,7 +276,7 @@ void parser::read_keyword() {
         if (fun_name == "setlayout") {
             flags |= import_flags::SETLAYOUT;
         }
-        add_line<opcode::IMPORT>(imported_file, flags);
+        add_line<opcode::IMPORT>(imported_file.string(), flags);
         if (m_flags & parser_flags::RECURSIVE_IMPORTS) {
             parser imported;
             imported.m_flags = m_flags;

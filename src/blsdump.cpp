@@ -93,7 +93,7 @@ template<> std::ostream &print_args(std::ostream &out, const intl::language &lan
 }
 
 template<> std::ostream &print_args(std::ostream &out, const import_options &args) {
-    return out << quoted_string(args.filename.string()) << args.flags;
+    return out << quoted_string(args.filename) << args.flags;
 }
 
 template<> std::ostream &print_args(std::ostream &out, const jump_address &addr) {

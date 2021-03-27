@@ -101,10 +101,10 @@ template<> struct binary_io<pdf_rect> {
     static pdf_rect read(std::istream &input) {
         pdf_rect box;
         box.page = readData<uint8_t>(input);
-        box.x = readData<double>(input);
-        box.y = readData<double>(input);
-        box.w = readData<double>(input);
-        box.h = readData<double>(input);
+        box.x = readData<float>(input);
+        box.y = readData<float>(input);
+        box.w = readData<float>(input);
+        box.h = readData<float>(input);
         box.mode = readData<read_mode>(input);
         box.type = readData<box_type>(input);
         box.flags = readData<flags_t>(input);
@@ -145,7 +145,7 @@ template<> struct binary_io<variable_selector> {
 
 template<> struct binary_io<import_options> {
     static void write(std::ostream &output, const import_options &opts) {
-        writeData(output, opts.filename.string());
+        writeData(output, opts.filename);
         writeData(output, opts.flags);
     }
 
