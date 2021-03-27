@@ -61,17 +61,17 @@ void reader::exec_command(const command_args &cmd) {
         }
     };
 
-    auto jump_relative = [&](jump_address address) {
+    auto jump_relative = [&](const jump_address &address) {
         m_program_counter += address.relative_addr;
         m_jumped = true;
     };
 
-    auto jump_conditional = [&](jump_address address, bool condition) {
+    auto jump_conditional = [&](const jump_address &address, bool condition) {
         m_program_counter += address.relative_addr & -condition;
         m_jumped = condition;
     };
 
-    auto jump_subroutine = [&](jsr_address address, bool nodiscard = false) {
+    auto jump_subroutine = [&](const jsr_address &address, bool nodiscard = false) {
         m_calls.push(function_call{m_program_counter, small_int(m_stack.size() - address.numargs), address.numargs, nodiscard});
         jump_relative(address);
     };
