@@ -80,7 +80,6 @@ std::istream &operator >> (std::istream &input, bill_layout_script<Container> &l
     std::string line;
 
     layout.clear();
-    std::shared_ptr<layout_box> current;
 
     while (getline_clearcr(input, line)) {
         if (line.empty()) continue;
