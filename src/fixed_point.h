@@ -1,6 +1,9 @@
 #ifndef __FIXED_POINT_H__
 #define __FIXED_POINT_H__
 
+#define DEC_TYPE_LEVEL 0
+#define DEC_ALLOW_SPACESHIP_OPER 1
+
 #include "decimal.h"
 #include <string>
 
