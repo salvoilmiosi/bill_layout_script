@@ -105,7 +105,8 @@ std::istream &operator >> (std::istream &input, bill_layout_script<Container> &l
                         throw layout_error(fmt::format("Token 'Mode' non valido: {}", suf.value));
                     }
                 } else if (auto suf = suffix(line, "### Flags")) {
-                    std::istringstream ss(std::string(suf.value));
+                    std::istringstream ss;
+                    ss.rdbuf()->pubsetbuf(const_cast<char *>(suf.value.begin()), suf.value.size());
                     std::string label;
                     while (ss >> label) {
                         try {
@@ -117,7 +118,8 @@ std::istream &operator >> (std::istream &input, bill_layout_script<Container> &l
                 } else if (auto suf = suffix(line, "### Page")) {
                     current.page = string_toint(suf.value);
                 } else if (auto suf = suffix(line, "### Rect")) {
-                    std::istringstream ss(std::string(suf.value));
+                    std::istringstream ss;
+                    ss.rdbuf()->pubsetbuf(const_cast<char *>(suf.value.begin()), suf.value.size());
                     ss.imbue(std::locale::classic());
                     ss >> current.x >> current.y >> current.w >> current.h;
                     if (ss.fail()) {
