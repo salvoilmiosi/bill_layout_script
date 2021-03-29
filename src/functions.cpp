@@ -149,8 +149,8 @@ static variable search_regex(const std::string &regex, std::string_view value, s
 static variable search_regex_captures(const std::string &regex, std::string_view value) {
     std::cmatch match;
     if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return variable();
-    return string_join(
-        std::ranges::subrange(match.begin() + 1, match.end())
+    return string_join(match
+        | std::views::drop(1)
         | std::views::transform([](const auto &m) {
             return std::string_view(m.first, m.second);
         }),
