@@ -50,5 +50,14 @@ int main() {
     []<size_t ... Is>(std::index_sequence<Is...>) {
         (print_size<get_nth_t<Is, type_list>>() , ...);
     } (std::make_index_sequence<type_list::size>{});
+
+    using variable_variant = std::variant<null_state, string_state, std::string_view, fixed_point, int64_t, wxDateTime>;
+    print_size<variable>();
+    print_size<variable_variant>();
+
+    []<size_t ... Is>(std::index_sequence<Is...>) {
+        (print_size<std::variant_alternative_t<Is, variable_variant>>(), ...);
+    } (std::make_index_sequence<std::variant_size_v<variable_variant>>{});
+    
     return 0;
 }

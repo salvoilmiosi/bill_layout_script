@@ -55,53 +55,60 @@ static std::string quoted_string(const std::string &str) {
     return string_trim(Json::Value(str).toStyledString());
 }
 
-template<typename T> std::ostream &print_args(std::ostream &out, const T &args) {
-    return out << args;
+template<typename T> struct print_args {
+    const T &data;
+    print_args(const T &data) : data(data) {}
+};
+
+template<typename T> print_args(T) -> print_args<T>;
+
+template<typename T> std::ostream &operator << (std::ostream &out, const print_args<T> &args) {
+    return out << args.data;
 }
 
-template<> std::ostream &print_args(std::ostream &out, const pdf_rect &box) {
-    return out << box.mode << ' ' << box.type << ' ' << box.flags
-        << fmt::format("{} {} {} {} {}", box.page, box.x, box.y, box.w, box.h);
+template<> std::ostream &operator << (std::ostream &out, const print_args<pdf_rect> &args) {
+    return out << args.data.mode << ' ' << args.data.type << ' ' << args.data.flags
+        << fmt::format("{} {} {} {} {}", args.data.page, args.data.x, args.data.y, args.data.w, args.data.h);
 }
 
-template<> std::ostream &print_args(std::ostream &out, const command_call &args) {
-    return out << args.fun->first << ' ' << num_tostring(args.numargs);
+template<> std::ostream &operator << (std::ostream &out, const print_args<command_call> &args) {
+    return out << args.data.fun->first << ' ' << num_tostring(args.data.numargs);
 }
 
-template<> std::ostream &print_args(std::ostream &out, const variable_selector &args) {
-    out << args.name << ' ' << int(args.index);
-    if (args.length != 1) {
-        out << ':' << int(args.length);
+template<> std::ostream &operator << (std::ostream &out, const print_args<variable_selector> &args) {
+    out << args.data.name << ' ' << int(args.data.index);
+    if (args.data.length != 1) {
+        out << ':' << int(args.data.length);
     }
-    return out << ' ' << args.flags;
+    return out << ' ' << args.data.flags;
 }
 
-template<> std::ostream &print_args(std::ostream &out, const fixed_point &num) {
-    return out << fixed_point_to_string(num);
+template<> std::ostream &operator << (std::ostream &out, const print_args<fixed_point> &args) {
+    return out << fixed_point_to_string(args.data);
 }
 
-template<> std::ostream &print_args(std::ostream &out, const std::string &str) {
-    return out << quoted_string(str);
+template<> std::ostream &operator << (std::ostream &out, const print_args<std::string> &args) {
+    return out << quoted_string(args.data);
 }
 
-template<> std::ostream &print_args(std::ostream &out, const small_int &num) {
-    return out << num_tostring(num);
+template<> std::ostream &operator << (std::ostream &out, const print_args<small_int> &args) {
+    return out << num_tostring(args.data);
 }
 
-template<> std::ostream &print_args(std::ostream &out, const intl::language &lang) {
-    return out << intl::language_string(lang);
+template<> std::ostream &operator << (std::ostream &out, const print_args<intl::language> &args) {
+    return out << intl::language_string(args.data);
 }
 
-template<> std::ostream &print_args(std::ostream &out, const import_options &args) {
-    return out << quoted_string(args.filename) << args.flags;
+template<> std::ostream &operator << (std::ostream &out, const print_args<import_options> &args) {
+    return out << quoted_string(args.data.filename) << args.data.flags;
 }
 
-template<> std::ostream &print_args(std::ostream &out, const jump_address &addr) {
-    return out << addr.label;
+template<> std::ostream &operator << (std::ostream &out, const print_args<jump_address> &args) {
+    return out << args.data.label;
 }
 
-template<> std::ostream &print_args(std::ostream &out, const jsr_address &addr) {
-    return out << addr.label << ' ' << num_tostring(addr.numargs);
+template<> std::ostream &operator << (std::ostream &out, const print_args<jsr_address> &args) {
+    return out << args.data.label << ' ' << num_tostring(args.data.numargs);
 }
 
 int MainApp::OnRun() {
@@ -134,7 +141,7 @@ int MainApp::OnRun() {
             line->visit(overloaded{
                 [](std::monostate){},
                 [&](auto && args) {
-                    print_args(std::cout << ' ', args);
+                    std::cout << ' ' << print_args(args);
                 }
             });
             std::cout << std::endl;
