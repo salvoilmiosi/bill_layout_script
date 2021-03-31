@@ -26,7 +26,7 @@
             "filename": "Oleificio Evola/Fatture/%year%/%month%%year%.pdf"
         },
         "janselmo": {
-            "filename": "Consorzio Acquedotto Janselmo (avv. Bisconti)/fatture/%year%/%month%%year%.pdf"
+            "filename": "Consorzio Acquedotto Janselmo (avv. Bisconti)/fatture/%year%/%pod%/%month%%year%.pdf"
         },
         "la pineta": {
             "filename": "La Pineta San Vito Mare (EXSan Vito Mare snc)/Fatture/%year%/%month%%year%.pdf"
