@@ -12,7 +12,7 @@
 class string_ptr {
 private:
     inline static std::set<std::string, std::less<>> m_data;
-    decltype(m_data)::const_iterator m_value;
+    const std::string *m_value;
 
     template<typename U>
     auto find_string(U && str) {
@@ -20,7 +20,7 @@ private:
         if (*it != str) {
             it = m_data.emplace_hint(it, std::forward<U>(str));
         }
-        return it;
+        return &*it;
     }
 
 public:
@@ -34,7 +34,7 @@ public:
     }
 
     const std::string *operator ->() const {
-        return &*m_value;
+        return m_value;
     }
 };
 
