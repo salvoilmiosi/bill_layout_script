@@ -9,7 +9,7 @@ template<typename T, typename ... Ts> struct is_one_of<T, T, Ts...> : std::true_
 template<typename T, typename ... Ts> constexpr bool is_one_of_v = is_one_of<T, Ts...>::value;
 
 template<typename T> concept string_t = is_one_of_v<T, string_state, std::string_view>;
-template<typename T> concept number_t = is_one_of_v<T, fixed_point, int64_t>;
+template<typename T> concept number_t = is_one_of_v<T, fixed_point, int64_t, double>;
 
 std::string &variable::get_string() const {
     if (m_str.empty()) {
@@ -18,6 +18,7 @@ std::string &variable::get_string() const {
             [](std::string_view str)    { return std::string(str); },
             [](fixed_point num)         { return fixed_point_to_string(num); },
             [](int64_t num)             { return num_tostring(num); },
+            [](double num)              { return num_tostring(num); },
             [](wxDateTime date)         { return date.FormatISODate().ToStdString(); }
         }, m_value);
     }
@@ -50,6 +51,7 @@ int64_t variable::as_int() const {
         },
         [](fixed_point num) { return num.getAsInteger(); },
         [](int64_t num)     { return num; },
+        [](double num)      { return int64_t(num); },
         [](auto)            { return int64_t(0); }
     }, m_value);
 }
@@ -59,6 +61,7 @@ double variable::as_double() const {
         [&](string_t auto)  { return as_number().getAsDouble(); },
         [](fixed_point num) { return num.getAsDouble(); },
         [](int64_t num)     { return double(num); },
+        [](double num)      { return num; },
         [](auto)            { return 0.0; }
     }, m_value);
 }
@@ -175,6 +178,9 @@ void variable::append(const variable &other) {
         },
         [&](auto, int64_t num) {
             *this = as_int() + num;
+        },
+        [&](auto, double num) {
+            *this = as_double() + num;
         },
         [&](number_t auto num1, number_t auto num2) {
             *this = num1 + num2;

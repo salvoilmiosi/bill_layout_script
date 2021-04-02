@@ -219,7 +219,7 @@ void parser::read_keyword() {
         if (m_lexer.check_next(token_type::COMMA)) {
             add_line<opcode::PUSHVIEW>();
             add_line<opcode::PUSHSTR>(m_lexer.require(token_type::STRING).parse_string());   
-            add_line<opcode::PUSHNUM>(begin_len);
+            add_line<opcode::PUSHINT>(begin_len);
             add_line<opcode::CALL>("indexof", 3);
             add_line<opcode::SETEND>();
         }

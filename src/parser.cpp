@@ -87,13 +87,13 @@ void parser::read_box(const layout_box &box) {
 
     add_line<opcode::RESETBOX>();
     if (box.type == box_type::RECTANGLE) {
-        add_line<opcode::PUSHNUM>(box.x);
+        add_line<opcode::PUSHDOUBLE>(box.x);
         add_line<opcode::MVBOX>(spacer_index::X);
-        add_line<opcode::PUSHNUM>(box.y);
+        add_line<opcode::PUSHDOUBLE>(box.y);
         add_line<opcode::MVBOX>(spacer_index::Y);
-        add_line<opcode::PUSHNUM>(box.w);
+        add_line<opcode::PUSHDOUBLE>(box.w);
         add_line<opcode::MVBOX>(spacer_index::WIDTH);
-        add_line<opcode::PUSHNUM>(box.h);
+        add_line<opcode::PUSHDOUBLE>(box.h);
         add_line<opcode::MVBOX>(spacer_index::HEIGHT);
     }
     if (box.type != box_type::WHOLEFILE) {

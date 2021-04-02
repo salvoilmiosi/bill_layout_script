@@ -132,6 +132,7 @@ DEFINE_ENUM_TYPES(opcode,
     (PUSHVIEW)                      // content_stack -> stack
     (PUSHNUM, fixed_point)          // number -> stack
     (PUSHINT, int64_t)              // int -> stack
+    (PUSHDOUBLE, double)            // double -> stack
     (PUSHSTR, string_ptr)           // str -> stack
     (PUSHARG, small_int)            // stack -> stack
     (GETBOX, spacer_index)          // current_box[index] -> stack

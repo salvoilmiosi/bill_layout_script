@@ -105,13 +105,9 @@ constexpr int string_toint(std::string_view str) {
     return string_to<int>(str);
 }
 
-constexpr std::string num_tostring(auto num) {
-    std::array<char, 16> buf;
-    auto [ptr, ec] = std::to_chars(buf.begin(), buf.end(), num);
-    if (ec == std::errc()) {
-        return {buf.begin(), ptr};
-    }
-    return {};
+template<typename T> requires std::is_arithmetic_v<T>
+std::string num_tostring(T num) {
+    return fmt::format("{}", num);
 }
 
 #endif

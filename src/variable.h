@@ -19,9 +19,8 @@ public:
     variable(std::string_view value) : m_value(value) {}
 
     variable(fixed_point value) : m_value(value) {}
-    variable(std::floating_point auto value) : m_value(fixed_point(value)) {}
-
     variable(std::integral auto value) : m_value(int64_t(value)) {}
+    variable(std::floating_point auto value) : m_value(double(value)) {}
 
     variable(wxDateTime value) : m_value(value) {}
 
@@ -59,7 +58,7 @@ public:
 private:
     mutable std::string m_str;
 
-    std::variant<null_state, string_state, std::string_view, fixed_point, int64_t, wxDateTime> m_value;
+    std::variant<null_state, string_state, std::string_view, fixed_point, int64_t, double, wxDateTime> m_value;
 
     std::string &get_string() const;
 };

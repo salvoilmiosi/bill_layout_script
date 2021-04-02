@@ -196,6 +196,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHVIEW:   m_stack.push(m_contents.top().view()); break;
     case opcode::PUSHNUM:    m_stack.push(cmd.get_args<opcode::PUSHNUM>()); break;
     case opcode::PUSHINT:    m_stack.push(cmd.get_args<opcode::PUSHINT>()); break;
+    case opcode::PUSHDOUBLE: m_stack.push(cmd.get_args<opcode::PUSHDOUBLE>()); break;
     case opcode::PUSHSTR:    m_stack.push(*cmd.get_args<opcode::PUSHSTR>()); break;
     case opcode::PUSHARG:    m_stack.push(get_function_arg(cmd.get_args<opcode::PUSHARG>())); break;
     case opcode::GETBOX:     m_stack.push(get_box_info(cmd.get_args<opcode::GETBOX>())); break;
