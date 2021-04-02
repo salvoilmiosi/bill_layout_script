@@ -211,9 +211,9 @@ struct function_handler : std::function<variable(arg_list&&)> {
     function_handler(Function fun) :
         base([](arg_list &&args) -> variable {
             using types = function_types<decltype(+fun)>;
-            return [&] <std::size_t ... Is> (std::index_sequence<Is...>) {
+            return [] <size_t ... Is> (arg_list &args, std::index_sequence<Is...>) {
                 return Function{}(get_arg<types, Is>(args) ...);
-            }(std::make_index_sequence<types::size>{});
+            }(args, std::make_index_sequence<types::size>{});
         }),
         minargs(check_args<decltype(+fun)>::minargs),
         maxargs(check_args<decltype(+fun)>::maxargs) {}
