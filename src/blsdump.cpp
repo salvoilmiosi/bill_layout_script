@@ -66,9 +66,8 @@ template<typename T> std::ostream &operator << (std::ostream &out, const print_a
     return out << args.data;
 }
 
-template<> std::ostream &operator << (std::ostream &out, const print_args<pdf_rect> &args) {
-    return out << args.data.mode << ' ' << args.data.type << ' ' << args.data.flags
-        << fmt::format("{} {} {} {} {}", args.data.page, args.data.x, args.data.y, args.data.w, args.data.h);
+template<> std::ostream &operator << (std::ostream &out, const print_args<readbox_options> &args) {
+    return out << args.data.mode << ' ' << args.data.type << ' ' << args.data.flags;
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<command_call> &args) {

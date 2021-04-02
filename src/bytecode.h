@@ -61,6 +61,12 @@ DEFINE_ENUM(spacer_index,
     (ROTATE,    "rotate")
 )
 
+struct readbox_options {
+    read_mode mode;
+    box_type type;
+    bitset<box_flags> flags;
+};
+
 DEFINE_ENUM_FLAGS(selvar_flags,
     (GLOBAL)
     (DYN_IDX)
@@ -113,9 +119,9 @@ struct import_options {
 
 DEFINE_ENUM_TYPES(opcode,
     (NOP)                           // no operation
-    (SETBOX, pdf_rect)              // imposta il box da leggere
+    (RESETBOX)                      // resetta current_box
     (MVBOX, spacer_index)           // stack -> current_box[index]
-    (RDBOX)                         // poppler.get_text(current_box) -> content_stack
+    (RDBOX, readbox_options)        // poppler.get_text(current_box) -> content_stack
     (NEXTTABLE)                     // current_table++
     (SELVAR, variable_selector)     // (name, index, size, flags) -> selected
     (SETVAR, bitset<setvar_flags>)  // selected, stack -> set
@@ -126,7 +132,7 @@ DEFINE_ENUM_TYPES(opcode,
     (PUSHVIEW)                      // content_stack -> stack
     (PUSHNUM, fixed_point)          // number -> stack
     (PUSHINT, int64_t)              // int -> stack
-    (PUSHSTR, string_ptr)          // str -> stack
+    (PUSHSTR, string_ptr)           // str -> stack
     (PUSHARG, small_int)            // stack -> stack
     (GETBOX, spacer_index)          // current_box[index] -> stack
     (DOCPAGES)                      // m_doc.pages -> stack

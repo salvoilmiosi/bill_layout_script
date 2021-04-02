@@ -149,6 +149,14 @@ void reader::exec_command(const command_args &cmd) {
         }
     };
 
+    auto read_box = [&](readbox_options opts) {
+        m_current_box.mode = opts.mode;
+        m_current_box.type = opts.type;
+        m_current_box.flags = opts.flags;
+
+        m_contents.push(m_doc->get_text(m_current_box));
+    };
+
     auto call_function = [&](const command_call &cmd) {
         variable ret = cmd.fun->second(arg_list(
             m_stack.end() - cmd.numargs,
@@ -175,9 +183,9 @@ void reader::exec_command(const command_args &cmd) {
 
     switch (cmd.command()) {
     case opcode::NOP:        break;
-    case opcode::SETBOX:     m_contents.clear(); m_current_box = cmd.get_args<opcode::SETBOX>(); break;
+    case opcode::RESETBOX:   m_contents.clear(); m_current_box = {}; break;
     case opcode::MVBOX:      move_box(cmd.get_args<opcode::MVBOX>()); break;
-    case opcode::RDBOX:      m_contents.push(m_doc->get_text(m_current_box)); break;
+    case opcode::RDBOX:      read_box(cmd.get_args<opcode::RDBOX>()); break;
     case opcode::NEXTTABLE:  ++m_table_index; break;
     case opcode::SELVAR:     select_var(cmd.get_args<opcode::SELVAR>()); break;
     case opcode::SETVAR:     m_selected.set_value(m_stack.pop(), cmd.get_args<opcode::SETVAR>()); break;

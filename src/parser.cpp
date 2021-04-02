@@ -85,7 +85,21 @@ void parser::read_box(const layout_box &box) {
         throw unexpected_token(tok_label, token_type::IDENTIFIER);
     }
 
-    add_line<opcode::SETBOX>(pdf_rect(box));
+    add_line<opcode::RESETBOX>();
+    if (box.type == box_type::RECTANGLE) {
+        add_line<opcode::PUSHNUM>(box.x);
+        add_line<opcode::MVBOX>(spacer_index::X);
+        add_line<opcode::PUSHNUM>(box.y);
+        add_line<opcode::MVBOX>(spacer_index::Y);
+        add_line<opcode::PUSHNUM>(box.w);
+        add_line<opcode::MVBOX>(spacer_index::WIDTH);
+        add_line<opcode::PUSHNUM>(box.h);
+        add_line<opcode::MVBOX>(spacer_index::HEIGHT);
+    }
+    if (box.type != box_type::WHOLEFILE) {
+        add_line<opcode::PUSHINT>(box.page);
+        add_line<opcode::MVBOX>(spacer_index::PAGE);
+    }
     m_content_level = 0;
 
     if (m_flags & parser_flags::ADD_COMMENTS) {
@@ -125,7 +139,7 @@ void parser::read_box(const layout_box &box) {
 
     if (box.type != box_type::NOREAD) {
         ++m_content_level;
-        add_line<opcode::RDBOX>();
+        add_line<opcode::RDBOX>(box.mode, box.type, box.flags);
     }
 
     m_lexer.set_script(box.script);
