@@ -76,7 +76,7 @@ template<> struct binary_io<std::string> {
 
 template<> struct binary_io<string_ptr> {
     static void write(std::ostream &output, const string_ptr &str) {
-        writeData(output, str.string());
+        writeData(output, *str);
     }
 
     static string_ptr read(std::istream &input) {

@@ -43,7 +43,7 @@ void reader::start() {
 void reader::exec_command(const command_args &cmd) {
     auto select_var = [&](const variable_selector &sel) {
         m_selected = variable_ref(m_values,
-            variable_key{sel.name, (sel.flags & selvar_flags::GLOBAL) ? variable_key::global_index : m_table_index},
+            variable_key{*sel.name, (sel.flags & selvar_flags::GLOBAL) ? variable_key::global_index : m_table_index},
             sel.index, sel.length);
 
         if (sel.flags & selvar_flags::DYN_LEN) {
@@ -158,7 +158,7 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto import_layout = [&](const import_options &args) {
-        std::filesystem::path filename = args.filename.string();
+        std::filesystem::path filename = *args.filename;
         if (args.flags & import_flags::SETLAYOUT && m_flags & reader_flags::HALT_ON_SETLAYOUT) {
             m_layouts.push_back(filename);
             halt();
@@ -188,7 +188,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHVIEW:   m_stack.push(m_contents.top().view()); break;
     case opcode::PUSHNUM:    m_stack.push(cmd.get_args<opcode::PUSHNUM>()); break;
     case opcode::PUSHINT:    m_stack.push(cmd.get_args<opcode::PUSHINT>()); break;
-    case opcode::PUSHSTR:    m_stack.push(cmd.get_args<opcode::PUSHSTR>().string()); break;
+    case opcode::PUSHSTR:    m_stack.push(*cmd.get_args<opcode::PUSHSTR>()); break;
     case opcode::PUSHARG:    m_stack.push(get_function_arg(cmd.get_args<opcode::PUSHARG>())); break;
     case opcode::GETBOX:     m_stack.push(get_box_info(cmd.get_args<opcode::GETBOX>())); break;
     case opcode::DOCPAGES:   m_stack.push(m_doc->num_pages()); break;
@@ -246,7 +246,7 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
     if (m_flags & reader_flags::USE_CACHE && std::filesystem::exists(cache_filename) && !is_modified(filename)) {
         new_code = binary_bls::read(cache_filename);
         if (m_flags & reader_flags::RECURSIVE && std::ranges::any_of(new_code, [&](const command_args &line) {
-            return line.command() == opcode::IMPORT && is_modified(line.get_args<opcode::IMPORT>().filename.string());
+            return line.command() == opcode::IMPORT && is_modified(*line.get_args<opcode::IMPORT>().filename);
         })) {
             recompile();
         }

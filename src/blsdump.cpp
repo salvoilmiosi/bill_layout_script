@@ -76,7 +76,7 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<comman
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<variable_selector> &args) {
-    out << args.data.name << ' ' << int(args.data.index);
+    out << *args.data.name << ' ' << int(args.data.index);
     if (args.data.length != 1) {
         out << ':' << int(args.data.length);
     }
@@ -87,8 +87,8 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<fixed_
     return out << fixed_point_to_string(args.data);
 }
 
-template<> std::ostream &operator << (std::ostream &out, const print_args<std::string> &args) {
-    return out << quoted_string(args.data);
+template<> std::ostream &operator << (std::ostream &out, const print_args<string_ptr> &args) {
+    return out << quoted_string(*args.data);
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<small_int> &args) {
@@ -100,15 +100,15 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<intl::
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<import_options> &args) {
-    return out << quoted_string(args.data.filename) << args.data.flags;
+    return out << quoted_string(*args.data.filename) << args.data.flags;
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<jump_address> &args) {
-    return out << args.data.label;
+    return out << *args.data.label;
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<jsr_address> &args) {
-    return out << args.data.label << ' ' << num_tostring(args.data.numargs);
+    return out << *args.data.label << ' ' << num_tostring(args.data.numargs);
 }
 
 int MainApp::OnRun() {

@@ -7,24 +7,34 @@
 #include "intl.h"
 #include "functions.h"
 
-struct string_ptr : std::shared_ptr<std::string> {
-    using base = std::shared_ptr<std::string>;
-    string_ptr() = default;
+#include <set>
+
+class string_ptr {
+private:
+    inline static std::set<std::string, std::less<>> m_data;
+    decltype(m_data)::const_iterator m_value;
 
     template<typename U>
-    string_ptr(U && str) : base(std::make_shared<std::string>(std::forward<U>(str))) {}
-
-    const std::string &string() const {
-        static const std::string empty_string;
-        if (base::operator bool()) {
-            return *static_cast<base>(*this);
-        } else {
-            return empty_string;
+    auto find_string(U && str) {
+        auto it = m_data.lower_bound(str);
+        if (*it != str) {
+            it = m_data.emplace_hint(it, std::forward<U>(str));
         }
+        return it;
     }
 
-    operator const std::string &() const {
-        return string();
+public:
+    string_ptr() : m_value(find_string("")) {}
+    string_ptr(std::string_view str) : m_value(find_string(str)) {}
+    string_ptr(const std::string &str) : m_value(find_string(str)) {}
+    string_ptr(std::string &&str) : m_value(find_string(std::move(str))) {}
+
+    const std::string &operator *() const {
+        return *m_value;
+    }
+
+    const std::string *operator ->() const {
+        return &*m_value;
     }
 };
 
