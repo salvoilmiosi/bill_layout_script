@@ -167,9 +167,13 @@ class command_args {
 private:
     enum_variant<opcode> m_value;
 
+    template<size_t I, typename ... Ts>
+    command_args(std::in_place_index_t<I> idx, Ts && ... args) : m_value(idx, std::forward<Ts>(args) ...) {}
+
 public:
     command_args() = default;
-    command_args(auto && arg) : m_value(std::forward<decltype(arg)>(arg)) {}
+    template<opcode Cmd, typename ... Ts>
+    friend command_args make_command(Ts && ... args);
 
     opcode command() const noexcept {
         return static_cast<opcode>(m_value.index());
@@ -190,8 +194,8 @@ public:
 };
 
 template<opcode Cmd, typename ... Ts>
-command_args make_command(Ts && ... data) {
-    return enum_variant<opcode>(std::in_place_index<static_cast<size_t>(Cmd)>, std::forward<Ts>(data) ...);
+command_args make_command(Ts && ... args) {
+    return command_args(std::in_place_index<static_cast<size_t>(Cmd)>, std::forward<Ts>(args) ...);
 }
 
 using bytecode = std::vector<command_args>;
