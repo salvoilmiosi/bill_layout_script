@@ -51,7 +51,6 @@ int main() {
         (print_size<get_nth_t<Is, type_list>>() , ...);
     } (std::make_index_sequence<type_list::size>{});
 
-    using variable_variant = std::variant<null_state, string_state, std::string_view, fixed_point, int64_t, wxDateTime>;
     print_size<variable>();
     print_size<variable_variant>();
 

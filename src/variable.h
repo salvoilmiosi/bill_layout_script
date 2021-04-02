@@ -9,6 +9,8 @@
 struct null_state {};
 struct string_state {};
 
+using variable_variant = std::variant<null_state, string_state, std::string_view, fixed_point, int64_t, double, wxDateTime>;
+
 class variable {
 public:
     variable() = default;
@@ -58,7 +60,7 @@ public:
 private:
     mutable std::string m_str;
 
-    std::variant<null_state, string_state, std::string_view, fixed_point, int64_t, double, wxDateTime> m_value;
+    variable_variant m_value;
 
     std::string &get_string() const;
 };
