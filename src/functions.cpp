@@ -145,16 +145,15 @@ static variable search_regex(const std::string &regex, std::string_view value, s
     return match.str(index);
 }
 
+static auto match_to_view = std::views::transform([](const std::csub_match &m) {
+    return std::string_view(m.first, m.second);
+});
+
 // cerca la regex in str e ritorna tutti i capture del primo valore trovato
 static variable search_regex_captures(const std::string &regex, std::string_view value) {
     std::cmatch match;
     if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return variable();
-    return string_join(match
-        | std::views::drop(1)
-        | std::views::transform([](const auto &m) {
-            return std::string_view(m.first, m.second);
-        }),
-        UNIT_SEPARATOR);
+    return string_join(match | std::views::drop(1) | match_to_view, UNIT_SEPARATOR);
 }
 
 // cerca la regex in str e ritorna i valori trovati
@@ -163,8 +162,8 @@ static std::string search_regex_matches(const std::string &regex, std::string_vi
     return string_join(
         std::ranges::subrange(
             std::cregex_token_iterator(value.begin(), value.end(), reg, index),
-            std::cregex_token_iterator()),
-        UNIT_SEPARATOR);
+            std::cregex_token_iterator())
+        | match_to_view, UNIT_SEPARATOR);
 }
 
 template<std::ranges::input_range R>
