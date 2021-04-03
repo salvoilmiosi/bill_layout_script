@@ -14,8 +14,9 @@ $if(@ != "Bolletta Energia Elettrica\nFornitura del Mercato Libero")
 ### End Box
 
 ### Box Nome Fornitore
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 1
 ### Rect 0.024193548 0.014823261 0.19271415 0.061848786
 ### Goto Label nome_fornitore
@@ -161,8 +162,9 @@ $goto(lettura_spese)
 ### End Box
 
 ### Box Parsing Spese Energia
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 3
 ### Rect 0.19357695 0.047890533 0.046551988 0.030786768
 ### Goto Label parsing_spese

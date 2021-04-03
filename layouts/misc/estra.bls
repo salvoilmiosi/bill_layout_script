@@ -40,8 +40,9 @@ $ifnot($ate()) {
 ### End Box
 
 ### Box Nome Fornitore
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 1
 ### Rect 0.051612902 0.018244013 0.2516129 0.06841505
 ### Goto Label nome_fornitore
@@ -114,8 +115,9 @@ $between("CONSUMI FATTURATI","RIEPILOGO IMPOSTE E IVA") {
 ### End Box
 
 ### Box Parsing Dettaglio
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 3
 ### Rect 0.32258067 0.079041496 0.048387095 0.028506272
 ### Script
@@ -156,8 +158,9 @@ $with(&::_dettaglio) {
 ### End Box
 
 ### Box Prossima pagina
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 3
 ### Rect 0.3844086 0.07889734 0.043010753 0.02756654
 ### Script

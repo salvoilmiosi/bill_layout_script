@@ -20,8 +20,9 @@ $elifnot($contains(@,"FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA")) {
 ### End Box
 
 ### Box Nome Fornitore
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 1
 ### Rect 0.019354839 0.014823261 0.3548387 0.08437856
 ### Goto Label nome_fornitore

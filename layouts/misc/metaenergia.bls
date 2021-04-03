@@ -2,8 +2,9 @@
 ### Language it_IT
 
 ### Box Nome fornitore
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 1
 ### Rect 0.04808817 0.0386214 0.26773414 0.08643837
 ### Script
@@ -102,8 +103,9 @@ $ifnot($ate() || $contains(@,"Comunicazioni finali")) {
 ### End Box
 
 ### Box Parsing Dettaglio
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 2
 ### Rect 0.3080384 0.08228446 0.04617861 0.029602662
 ### Script

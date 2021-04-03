@@ -15,8 +15,9 @@ $ifnot($contains(@,"www.energrid.it")) {
 ### End Box
 
 ### Box Nome Fornitore
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 1
 ### Rect 0.05283649 0.015727598 0.12235818 0.09436559
 ### Goto Label nome_fornitore

@@ -22,8 +22,9 @@ $if($ate()) {
 ### End Box
 
 ### Box Nome Fornitore
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 1
 ### Rect 0.020967742 0.021664767 0.23548387 0.069555305
 ### Goto Label nome_fornitore
@@ -170,8 +171,9 @@ $ifnot($ate() || $contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) 
 ### End Box
 
 ### Box Parsing Quadro Dettaglio
-### Type NOREAD
-### Mode RAW
+### Type RECTANGLE
+### Mode DEFAULT
+### Flags NOREAD
 ### Page 3
 ### Rect 0.21504012 0.053452756 0.04193318 0.029393759
 ### Script

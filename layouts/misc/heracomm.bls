@@ -73,8 +73,9 @@ $goto(lettura_dettaglio)
 ### End Box
 
 ### Box Nome Fornitore
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 1
 ### Rect 0.010686489728958637 0.013723003677419354 0.15479139900142652 0.09514796406451613
 ### Goto Label nome_fornitore
@@ -119,8 +120,9 @@ rotate+::rotation
 ### End Box
 
 ### Box Parsing Dettaglio
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 4
 ### Rect 0.34734598900075014 0.06527792929611916 0.028054298642533948 0.03457106274007682
 ### Script
@@ -245,8 +247,9 @@ $with(&::_dettaglio) {
 ### End Box
 
 ### Box Prossima Pagina
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 4
 ### Rect 0.3773412702120966 0.06426464259653104 0.027093787866044883 0.03737960254547193
 ### Script

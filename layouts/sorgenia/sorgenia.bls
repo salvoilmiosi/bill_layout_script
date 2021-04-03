@@ -32,8 +32,9 @@ $ifnot($ate() || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
 ### End Box
 
 ### Box Nome Fornitore
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 1
 ### Rect 0.061290324 0.04104903 0.36129034 0.08323831
 ### Goto Label nome_fornitore
@@ -163,8 +164,9 @@ $step($captures($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/),
 ### End Box
 
 ### Box Parsing Dettaglio
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 3
 ### Rect 0.26032954 0.030786771 0.057603687 0.04479557
 ### Script

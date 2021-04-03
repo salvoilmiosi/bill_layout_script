@@ -48,8 +48,9 @@ p+::offset_dettaglio top-::spacer_dettaglio
 ### End Box
 
 ### Box Spacer prima pagina dettaglio
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags SPACER
 ### Page 3
 ### Rect 0.048348106 0.005701254 0.032232072 0.20980616
 ### Spacers
@@ -65,8 +66,9 @@ $ifnot($ate()) {
 ### End Box
 
 ### Box Nome Fornitore
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 1
 ### Rect 0.06612903 0.035347775 0.22096774 0.061573543
 ### Goto Label nome_fornitore
@@ -183,8 +185,9 @@ $newview {
 ### End Box
 
 ### Box Parse Dettaglio Costi
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 3
 ### Rect 0.0903738 0.0063137496 0.053058922 0.03473528
 ### Script
@@ -232,8 +235,9 @@ $with(&::_dettaglio) {
 ### End Box
 
 ### Box Prossima pagina
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 3
 ### Rect 0.15071335 0.00890943 0.041901693 0.028506272
 ### Script

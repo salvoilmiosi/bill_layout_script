@@ -15,8 +15,9 @@ $if(@ != "Servizio di fornitura energia elettrica") {
 ### End Box
 
 ### Box Nome Fornitore
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 1
 ### Rect 0.043548387 0.034207527 0.3548387 0.08437856
 ### Goto Label nome_fornitore

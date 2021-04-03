@@ -2,8 +2,9 @@
 ### Language it_IT
 
 ### Box Nome Fornitore
-### Type NOREAD
+### Type RECTANGLE
 ### Mode DEFAULT
+### Flags NOREAD
 ### Page 1
 ### Rect 0.038709678 0.050171036 0.33225808 0.07639681
 ### Goto Label nome_fornitore
