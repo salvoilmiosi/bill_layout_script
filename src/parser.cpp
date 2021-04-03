@@ -85,20 +85,22 @@ void parser::read_box(const layout_box &box) {
         throw unexpected_token(tok_label, token_type::IDENTIFIER);
     }
 
-    add_line<opcode::RESETBOX>();
-    if (box.type == box_type::RECTANGLE) {
-        add_line<opcode::PUSHDOUBLE>(box.x);
-        add_line<opcode::MVBOX>(spacer_index::X);
-        add_line<opcode::PUSHDOUBLE>(box.y);
-        add_line<opcode::MVBOX>(spacer_index::Y);
-        add_line<opcode::PUSHDOUBLE>(box.w);
-        add_line<opcode::MVBOX>(spacer_index::WIDTH);
-        add_line<opcode::PUSHDOUBLE>(box.h);
-        add_line<opcode::MVBOX>(spacer_index::HEIGHT);
-    }
-    if (box.type != box_type::WHOLEFILE) {
-        add_line<opcode::PUSHINT>(box.page);
-        add_line<opcode::MVBOX>(spacer_index::PAGE);
+    if (!(box.flags & box_flags::NOREAD) || box.flags & box_flags::SPACER) {
+        add_line<opcode::RESETBOX>();
+        if (box.type == box_type::RECTANGLE) {
+            add_line<opcode::PUSHDOUBLE>(box.x);
+            add_line<opcode::MVBOX>(spacer_index::X);
+            add_line<opcode::PUSHDOUBLE>(box.y);
+            add_line<opcode::MVBOX>(spacer_index::Y);
+            add_line<opcode::PUSHDOUBLE>(box.w);
+            add_line<opcode::MVBOX>(spacer_index::WIDTH);
+            add_line<opcode::PUSHDOUBLE>(box.h);
+            add_line<opcode::MVBOX>(spacer_index::HEIGHT);
+        }
+        if (box.type != box_type::WHOLEFILE) {
+            add_line<opcode::PUSHINT>(box.page);
+            add_line<opcode::MVBOX>(spacer_index::PAGE);
+        }
     }
     m_content_level = 0;
 
@@ -137,7 +139,7 @@ void parser::read_box(const layout_box &box) {
         }
     }
 
-    if (box.type != box_type::NOREAD) {
+    if (!(box.flags & box_flags::NOREAD || box.flags & box_flags::SPACER)) {
         ++m_content_level;
         add_line<opcode::RDBOX>(box.mode, box.type, box.flags);
     }

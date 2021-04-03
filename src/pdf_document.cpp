@@ -89,5 +89,4 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
     default:
         return "";
     }
-
 }

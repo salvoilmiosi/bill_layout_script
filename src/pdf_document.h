@@ -17,7 +17,6 @@ DEFINE_ENUM(box_type,
     (RECTANGLE,  "Rettangolo")
     (PAGE,       "Pagina")
     (WHOLEFILE,  "File")
-    (NOREAD,     "Nessuna Lettura")
 )
 
 DEFINE_ENUM(read_mode,
@@ -28,6 +27,8 @@ DEFINE_ENUM(read_mode,
 
 DEFINE_ENUM_FLAGS(box_flags,
     (DISABLED,  "Disabilita")
+    (NOREAD,    "Nessuna Lettura")
+    (SPACER,    "Spaziatore")
     (TRIM,      "Taglia Spazi")
 )
 
