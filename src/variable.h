@@ -55,7 +55,13 @@ public:
     void assign(const variable &other);
     void assign(variable &&other);
 
-    void append(const variable &other);
+    variable &operator += (const variable &other);
+
+    variable operator + (const variable &rhs) const;
+    variable operator - () const;
+    variable operator - (const variable &rhs) const;
+    variable operator * (const variable &rhs) const;
+    variable operator / (const variable &rhs) const;
 
 private:
     mutable std::string m_str;

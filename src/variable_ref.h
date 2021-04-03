@@ -122,7 +122,7 @@ public:
 
         if (flags & setvar_flags::INCREASE) {
             std::for_each_n(it, length, [&](auto &var) {
-                var.second.append(value);
+                var.second += value;
             });
         } else {
             for (int n = length; n > 1; ++it, --n) {

@@ -274,12 +274,12 @@ const function_map function_lookup {
     {"geq", [](const variable &a, const variable &b) { return a >= b; }},
     {"int", [](int a) { return a; }},
     {"mod", [](int a, int b) { return a % b; }},
-    {"add", [](fixed_point a, fixed_point b) { return a + b; }},
-    {"sub", [](fixed_point a, fixed_point b) { return a - b; }},
-    {"mul", [](fixed_point a, fixed_point b) { return a * b; }},
-    {"div", [](fixed_point a, fixed_point b) { return a / b; }},
-    {"neg", [](fixed_point a) { return -a; }},
-    {"abs", [](fixed_point a) { return a.abs(); }},
+    {"add", [](const variable &a, const variable &b) { return a + b; }},
+    {"sub", [](const variable &a, const variable &b) { return a - b; }},
+    {"mul", [](const variable &a, const variable &b) { return a * b; }},
+    {"div", [](const variable &a, const variable &b) { return a / b; }},
+    {"abs", [](const variable &a) { return a > 0 ? a : -a; }},
+    {"neg", [](const variable &a) { return -a; }},
     {"not", [](bool a) { return !a; }},
     {"and", [](bool a, bool b) { return a && b; }},
     {"or",  [](bool a, bool b) { return a || b; }},
@@ -291,7 +291,7 @@ const function_map function_lookup {
     {"aggregate", [](std::string_view str) {
         variable ret;
         for (const auto &s : string_split(str, UNIT_SEPARATOR)) {
-            ret.append(parse_num(s));
+            ret += parse_num(s);
         }
         return ret;
     }},

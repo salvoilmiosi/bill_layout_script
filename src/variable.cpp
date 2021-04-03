@@ -166,7 +166,7 @@ void variable::assign(variable &&other) {
     }, other.m_value);
 }
 
-void variable::append(const variable &other) {
+variable &variable::operator += (const variable &other) {
     std::visit(overloaded{
         [](auto, null_state) {},
         [&](auto, auto) {
@@ -186,4 +186,65 @@ void variable::append(const variable &other) {
             *this = num1 + num2;
         }
     }, m_value, other.m_value);
+    return *this;
+}
+
+variable variable::operator +(const variable &rhs) const {
+    variable copy = *this;
+    return copy += rhs;
+}
+
+variable variable::operator -() const {
+    return std::visit<variable>(overloaded{
+        [](number_t auto n) {
+            return -n;
+        },
+        [](auto) {
+            return variable();
+        }
+    }, m_value);
+}
+
+variable variable::operator -(const variable &rhs) const {
+    return *this + (-rhs);
+}
+
+variable variable::operator * (const variable &rhs) const {
+    return std::visit<variable>(overloaded{
+        [](auto, auto) {
+            return variable();
+        },
+        [&](auto, fixed_point num) {
+            return as_number() * num;
+        },
+        [&](auto, int64_t num) {
+            return as_int() * num;
+        },
+        [&](auto, double num) {
+            return as_double() * num;
+        },
+        [](number_t auto num1, number_t auto num2) {
+            return num1 * num2;
+        }
+    }, m_value, rhs.m_value);
+}
+
+variable variable::operator / (const variable &rhs) const {
+    return std::visit<variable>(overloaded{
+        [](auto, auto) {
+            return variable();
+        },
+        [&](auto, fixed_point num) {
+            return as_number() / num;
+        },
+        [&](auto, int64_t num) {
+            return as_int() / num;
+        },
+        [&](auto, double num) {
+            return as_double() / num;
+        },
+        [](number_t auto num1, number_t auto num2) {
+            return num1 / num2;
+        }
+    }, m_value, rhs.m_value);
 }
