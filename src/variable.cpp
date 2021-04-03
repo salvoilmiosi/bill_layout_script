@@ -10,6 +10,7 @@ template<typename T, typename ... Ts> constexpr bool is_one_of_v = is_one_of<T, 
 
 template<typename T> concept string_t = is_one_of_v<T, string_state, std::string_view>;
 template<typename T> concept number_t = is_one_of_v<T, fixed_point, int64_t, double>;
+template<typename T> concept not_number_t = ! number_t<T>;
 
 std::string &variable::get_string() const {
     if (m_str.empty()) {
@@ -173,14 +174,17 @@ variable &variable::operator += (const variable &other) {
             get_string().append(other.as_view());
             m_value = string_state{};
         },
-        [&](auto, fixed_point num) {
+        [&](not_number_t auto, fixed_point num) {
             *this = as_number() + num;
         },
-        [&](auto, int64_t num) {
+        [&](not_number_t auto, int64_t num) {
             *this = as_int() + num;
         },
-        [&](auto, double num) {
+        [&](not_number_t auto, double num) {
             *this = as_double() + num;
+        },
+        [&](number_t auto num1, fixed_point num2) {
+            *this = fixed_point(num1) + num2;
         },
         [&](number_t auto num1, number_t auto num2) {
             *this = num1 + num2;
@@ -214,14 +218,17 @@ variable variable::operator * (const variable &rhs) const {
         [](auto, auto) {
             return variable();
         },
-        [&](auto, fixed_point num) {
+        [&](not_number_t auto, fixed_point num) {
             return as_number() * num;
         },
-        [&](auto, int64_t num) {
+        [&](not_number_t auto, int64_t num) {
             return as_int() * num;
         },
-        [&](auto, double num) {
+        [&](not_number_t auto, double num) {
             return as_double() * num;
+        },
+        [](number_t auto num1, fixed_point num2) {
+            return fixed_point(num1) * num2;
         },
         [](number_t auto num1, number_t auto num2) {
             return num1 * num2;
@@ -234,14 +241,17 @@ variable variable::operator / (const variable &rhs) const {
         [](auto, auto) {
             return variable();
         },
-        [&](auto, fixed_point num) {
+        [&](not_number_t auto, fixed_point num) {
             return as_number() / num;
         },
-        [&](auto, int64_t num) {
+        [&](not_number_t auto, int64_t num) {
             return as_int() / num;
         },
-        [&](auto, double num) {
+        [&](not_number_t auto, double num) {
             return as_double() / num;
+        },
+        [](number_t auto num1, fixed_point num2) {
+            return fixed_point(num1) / num2;
         },
         [](number_t auto num1, number_t auto num2) {
             return num1 / num2;
