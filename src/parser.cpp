@@ -86,7 +86,7 @@ void parser::read_box(const layout_box &box) {
     }
 
     if (!(box.flags & box_flags::NOREAD) || box.flags & box_flags::SPACER) {
-        add_line<opcode::RESETBOX>();
+        add_line<opcode::NEWBOX>();
         if (box.type == box_type::RECTANGLE) {
             add_line<opcode::PUSHDOUBLE>(box.x);
             add_line<opcode::MVBOX>(spacer_index::X);
@@ -146,6 +146,10 @@ void parser::read_box(const layout_box &box) {
 
     m_lexer.set_script(box.script);
     while (read_statement(false));
+
+    if (!(box.flags & box_flags::NOREAD || box.flags & box_flags::SPACER)) {
+        add_line<opcode::POPCONTENT>();
+    }
 }
 
 bool parser::read_statement(bool throw_on_eof) {

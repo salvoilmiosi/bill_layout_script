@@ -133,6 +133,9 @@ void parser::read_keyword() {
     case hash("goto"): {
         m_lexer.require(token_type::PAREN_BEGIN);
         auto tok = m_lexer.require(token_type::IDENTIFIER);
+        for (size_t i=0; i<m_content_level; ++i) {
+            add_line<opcode::POPCONTENT>();
+        }
         add_line<opcode::JMP>(fmt::format("__label_{}", tok.value));
         m_lexer.require(token_type::PAREN_END);
         break;

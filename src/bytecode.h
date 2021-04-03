@@ -119,7 +119,7 @@ struct import_options {
 
 DEFINE_ENUM_TYPES(opcode,
     (NOP)                           // no operation
-    (RESETBOX)                      // resetta current_box
+    (NEWBOX)                        // resetta current_box
     (MVBOX, spacer_index)           // stack -> current_box[index]
     (RDBOX, readbox_options)        // poppler.get_text(current_box) -> content_stack
     (NEXTTABLE)                     // current_table++

@@ -183,7 +183,7 @@ void reader::exec_command(const command_args &cmd) {
 
     switch (cmd.command()) {
     case opcode::NOP:        break;
-    case opcode::RESETBOX:   m_contents.clear(); m_current_box = {}; break;
+    case opcode::NEWBOX:     m_current_box = {}; break;
     case opcode::MVBOX:      move_box(cmd.get_args<opcode::MVBOX>()); break;
     case opcode::RDBOX:      read_box(cmd.get_args<opcode::RDBOX>()); break;
     case opcode::NEXTTABLE:  ++m_table_index; break;
