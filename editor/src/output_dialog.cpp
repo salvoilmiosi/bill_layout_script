@@ -102,7 +102,6 @@ wxThread::ExitCode reader_thread::Entry() {
         parser my_parser;
         std::filesystem::path path = parent->parent->m_filename;
         if (path.empty()) path = std::filesystem::path(parent->parent->getControlScript().ToStdString());
-        path = path.parent_path();
         my_parser.read_layout(path, m_layout);
         m_reader.add_code(std::move(my_parser).get_bytecode());
         m_reader.start();

@@ -8,6 +8,7 @@
 
 void reader::clear() {
     m_code.clear();
+    m_labels.clear();
     m_values.clear();
     m_warnings.clear();
     m_layouts.clear();
@@ -23,17 +24,12 @@ void reader::start() {
     m_current_box = {};
 
     m_program_counter = 0;
-    m_jumped = false;
 
     m_running = true;
 
     while (m_running && m_program_counter < m_code.size()) {
         exec_command(m_code[m_program_counter]);
-        if (!m_jumped) {
-            ++m_program_counter;
-        } else {
-            m_jumped = false;
-        }
+        ++m_program_counter;
     }
     
     intl::reset_language();
@@ -61,19 +57,17 @@ void reader::exec_command(const command_args &cmd) {
         }
     };
 
-    auto jump_relative = [&](const jump_address &address) {
-        m_program_counter += address.relative_addr;
-        m_jumped = true;
-    };
-
-    auto jump_conditional = [&](const jump_address &address, bool condition) {
-        m_program_counter += address.relative_addr & -condition;
-        m_jumped = condition;
+    auto jump_to = [&](jump_label label) {
+        try {
+            m_program_counter = m_labels.at(label);
+        } catch (std::out_of_range) {
+            throw layout_error(fmt::format("Etichetta sconosciuta: {}", *label));
+        }
     };
 
     auto jump_subroutine = [&](const jsr_address &address, bool nodiscard = false) {
         m_calls.push(function_call{m_program_counter, small_int(m_stack.size() - address.numargs), address.numargs, nodiscard});
-        jump_relative(address);
+        jump_to(address.label);
     };
 
     auto get_function_arg = [&](small_int idx) {
@@ -175,7 +169,7 @@ void reader::exec_command(const command_args &cmd) {
                 m_layouts.push_back(filename);
             }
         } else {
-            jsr_address addr{add_layout(filename) - m_program_counter, 0};
+            jsr_address addr{add_layout(filename), 0};
             m_code[m_program_counter] = make_command<opcode::JSR>(addr);
             jump_subroutine(addr);
         }
@@ -214,10 +208,10 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::RESETVIEW:  m_contents.top().resetview(); break;
     case opcode::IMPORT:     import_layout(cmd.get_args<opcode::IMPORT>()); break;
     case opcode::SETLANG:    intl::set_language(cmd.get_args<opcode::SETLANG>()); break;
-    case opcode::JMP:        jump_relative(cmd.get_args<opcode::JMP>()); break;
-    case opcode::JZ:         jump_conditional(cmd.get_args<opcode::JZ>(), !m_stack.pop().as_bool()); break;
-    case opcode::JNZ:        jump_conditional(cmd.get_args<opcode::JNZ>(), m_stack.pop().as_bool()); break;
-    case opcode::JNTE:       jump_conditional(cmd.get_args<opcode::JNTE>(), !m_contents.top().tokenend()); break;
+    case opcode::JMP:        jump_to(cmd.get_args<opcode::JMP>()); break;
+    case opcode::JZ:         if(!m_stack.pop().as_bool()) jump_to(cmd.get_args<opcode::JZ>()); break;
+    case opcode::JNZ:        if(m_stack.pop().as_bool()) jump_to(cmd.get_args<opcode::JNZ>()); break;
+    case opcode::JNTE:       if(!m_contents.top().tokenend()) jump_to(cmd.get_args<opcode::JNTE>()); break;
     case opcode::JSRVAL:     jump_subroutine(cmd.get_args<opcode::JSRVAL>(), true); break;
     case opcode::JSR:        jump_subroutine(cmd.get_args<opcode::JSR>()); break;
     case opcode::THROWERROR: throw layout_error(m_stack.pop().as_string()); break;
@@ -228,7 +222,7 @@ void reader::exec_command(const command_args &cmd) {
     }
 }
 
-size_t reader::add_layout(const std::filesystem::path &filename) {
+jump_label reader::add_layout(const std::filesystem::path &filename) {
     m_layouts.push_back(filename);
 
     std::filesystem::path cache_filename = filename;
@@ -244,7 +238,7 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
         if (m_flags & reader_flags::RECURSIVE) {
             my_parser.add_flags(parser_flags::RECURSIVE_IMPORTS);
         }
-        my_parser.read_layout(filename.parent_path(), box_vector::from_file(filename));
+        my_parser.read_layout(filename, box_vector::from_file(filename));
         new_code = std::move(my_parser).get_bytecode();
         if (m_flags & reader_flags::USE_CACHE) {
             binary_bls::write(new_code, cache_filename);
@@ -268,15 +262,24 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
     return add_code(std::move(new_code));
 }
 
-size_t reader::add_code(bytecode &&new_code) {
+jump_label reader::add_code(bytecode &&new_code) {
     size_t addr = m_code.size();
+    jump_label layout_label = fmt::format("__layout_{}", addr);
 
-    std::ranges::move(new_code, std::back_inserter(m_code));
+    m_code.push_back(make_command<opcode::LABEL>(layout_label));
+    m_labels.emplace(layout_label, addr);
+    
+    for (command_args &line : new_code) {
+        if (line.command() == opcode::LABEL) {
+            m_labels.emplace(line.get_args<opcode::LABEL>(), m_code.size());
+        }
+        m_code.emplace_back(std::move(line));
+    }
     if (addr == 0) {
         m_code.push_back(make_command<opcode::HLT>());
     } else {
         m_code.push_back(make_command<opcode::RET>());
     }
     
-    return addr;
+    return layout_label;
 }

@@ -40,8 +40,8 @@ public:
     void set_document(pdf_document &&doc) = delete;
 
     // ritorna l'indirizzo del codice aggiunto
-    size_t add_layout(const std::filesystem::path &filename);
-    size_t add_code(bytecode &&new_code);
+    jump_label add_layout(const std::filesystem::path &filename);
+    jump_label add_code(bytecode &&new_code);
 
     void add_flags(auto flag) {
         m_flags |= flag;
@@ -65,6 +65,7 @@ public:
 private:
     void exec_command(const command_args &cmd);
     bytecode m_code;
+    std::map<jump_label, size_t> m_labels;
 
     variable_map m_values;
     small_int m_table_index = 0;
@@ -82,7 +83,6 @@ private:
     pdf_rect m_current_box;
 
     size_t m_program_counter;
-    bool m_jumped = false;
     
     std::atomic<bool> m_running = false;
     bitset<reader_flags> m_flags;

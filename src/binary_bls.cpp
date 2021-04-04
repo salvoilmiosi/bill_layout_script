@@ -135,7 +135,7 @@ template<> struct binary_io<variable_selector> {
 
     static variable_selector read(std::istream &input) {
         variable_selector sel;
-        sel.name = readData<std::string>(input);
+        sel.name = readData<string_ptr>(input);
         sel.index = readData<small_int>(input);
         sel.length = readData<small_int>(input);
         sel.flags = readData<uint8_t>(input);
@@ -151,31 +151,21 @@ template<> struct binary_io<import_options> {
 
     static import_options read(std::istream &input) {
         import_options opts;
-        opts.filename = readData<std::string>(input);
+        opts.filename = readData<string_ptr>(input);
         opts.flags = readData<uint8_t>(input);
         return opts;
     }
 };
 
-template<> struct binary_io<jump_address> {
-    static void write(std::ostream &output, const jump_address &addr) {
-        writeData(output, addr.relative_addr);
-    }
-
-    static jump_address read(std::istream &input) {
-        return readData<int16_t>(input);
-    }
-};
-
 template<> struct binary_io<jsr_address> {
     static void write(std::ostream &output, const jsr_address &addr) {
-        writeData(output, addr.relative_addr);
+        writeData(output, addr.label);
         writeData(output, addr.numargs);
     }
 
     static jsr_address read(std::istream &input) {
         jsr_address addr;
-        addr.relative_addr = readData<int16_t>(input);
+        addr.label = readData<jump_label>(input);
         addr.numargs = readData<small_int>(input);
         return addr;
     }

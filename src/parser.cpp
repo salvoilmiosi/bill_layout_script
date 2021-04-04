@@ -24,25 +24,6 @@ void parser::read_layout(const std::filesystem::path &path, const box_vector &la
             current_box->name, error.what(),
             m_lexer.token_location_info(error.location())));
     }
-
-    auto eval_jump_addr = [&](std::string_view label) {
-        size_t idx = find_label(label);
-        if (idx == m_code.size()) {
-            throw layout_error(fmt::format("Etichetta sconosciuta: {}", label));
-        }
-        return idx;
-    };
-
-    for (auto line = m_code.begin(); line != m_code.end(); ++line) {
-        line->visit(overloaded{
-            [](auto) {},
-            [&](jump_address &addr) {
-                if (addr.relative_addr == 0 && !addr.label->empty()) {
-                    addr.relative_addr = eval_jump_addr(*addr.label) - (line - m_code.begin());
-                }
-            }
-        });
-    }
 }
 
 size_t parser::find_label(std::string_view label) {
@@ -85,7 +66,7 @@ void parser::read_box(const layout_box &box) {
     m_lexer.set_script(box.goto_label);
     auto tok_label = m_lexer.next();
     if (tok_label.type == token_type::IDENTIFIER) {
-        add_label(fmt::format("__label_{}", tok_label.value));
+        add_label(fmt::format("__box_{}_{}", tok_label.value, hash(m_path.string())));
         m_lexer.require(token_type::END_OF_FILE);
     } else if (tok_label.type != token_type::END_OF_FILE) {
         throw unexpected_token(tok_label, token_type::IDENTIFIER);

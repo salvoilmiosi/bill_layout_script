@@ -6,37 +6,7 @@
 #include "fixed_point.h"
 #include "intl.h"
 #include "functions.h"
-
-#include <set>
-
-class string_ptr {
-private:
-    inline static std::set<std::string, std::less<>> m_data;
-    const std::string *m_value;
-
-    template<typename U>
-    auto find_string(U && str) {
-        auto it = m_data.lower_bound(str);
-        if (*it != str) {
-            it = m_data.emplace_hint(it, std::forward<U>(str));
-        }
-        return &*it;
-    }
-
-public:
-    string_ptr() : m_value(find_string("")) {}
-    string_ptr(std::string_view str) : m_value(find_string(str)) {}
-    string_ptr(const std::string &str) : m_value(find_string(str)) {}
-    string_ptr(std::string &&str) : m_value(find_string(std::move(str))) {}
-
-    const std::string &operator *() const {
-        return *m_value;
-    }
-
-    const std::string *operator ->() const {
-        return m_value;
-    }
-};
+#include "string_ptr.h"
 
 struct command_call {
     function_iterator fun;
@@ -88,23 +58,11 @@ DEFINE_ENUM_FLAGS(setvar_flags,
     (INCREASE)
 )
 
-struct jump_address {
-    string_ptr label;
-    int16_t relative_addr;
+typedef string_ptr jump_label;
 
-    jump_address() = default;
-    jump_address(std::string_view label)
-        : relative_addr(0), label(label) {}
-    jump_address(int16_t relative_addr)
-        : relative_addr(relative_addr) {}
-};
-
-struct jsr_address : jump_address {
+struct jsr_address {
+    jump_label label;
     small_int numargs;
-
-    jsr_address() = default;
-    jsr_address(auto &&args, small_int numargs)
-        : jump_address(std::forward<decltype(args)>(args)), numargs(numargs) {}
 };
 
 DEFINE_ENUM_FLAGS(import_flags,
@@ -120,7 +78,7 @@ struct import_options {
 DEFINE_ENUM_TYPES(opcode,
     (NOP)                           // no operation
     (COMMENT, string_ptr)           // comment
-    (LABEL, string_ptr)             // jump label
+    (LABEL, jump_label)             // jump label
     (NEWBOX)                        // resetta current_box
     (MVBOX, spacer_index)           // stack -> current_box[index]
     (RDBOX, readbox_options)        // poppler.get_text(current_box) -> content_stack
@@ -152,10 +110,10 @@ DEFINE_ENUM_TYPES(opcode,
     (WARNING)                       // stack -> warnings
     (IMPORT, import_options)        // importa il file e lo esegue
     (SETLANG, intl::language)       // imposta la lingua del layout
-    (JMP, jump_address)             // unconditional jump
-    (JZ, jump_address)              // stack -> jump if top == 0
-    (JNZ, jump_address)             // stack -> jump if top != 0
-    (JNTE, jump_address)            // jump if content_stack.top at token end
+    (JMP, jump_label)               // unconditional jump
+    (JZ, jump_label)                // stack -> jump if top == 0
+    (JNZ, jump_label)               // stack -> jump if top != 0
+    (JNTE, jump_label)              // jump if content_stack.top at token end
     (JSR, jsr_address)              // program_counter -> call_stack -- jump to subroutine and discard return value
     (JSRVAL, jsr_address)           // program_counter -> call_stack -- jump to subroutine
     (RET)                           // jump to call_stack.top

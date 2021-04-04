@@ -105,16 +105,8 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<import
     return out << print_args(args.data.filename) << ' ' << args.data.flags;
 }
 
-template<> std::ostream &operator << (std::ostream &out, const print_args<jump_address> &args) {
-    if (args.data.label->empty()) {
-        return out << args.data.relative_addr;
-    } else {
-        return out << *args.data.label;
-    }
-}
-
 template<> std::ostream &operator << (std::ostream &out, const print_args<jsr_address> &args) {
-    return out << print_args(static_cast<jump_address>(args.data)) << ' ' << num_tostring(args.data.numargs);
+    return out << print_args(args.data.label) << ' ' << num_tostring(args.data.numargs);
 }
 
 int MainApp::OnRun() {
@@ -124,7 +116,7 @@ int MainApp::OnRun() {
         if (!do_read_cache) {
             parser my_parser;
             my_parser.add_flags(flags);
-            my_parser.read_layout(input_file.parent_path(), box_vector::from_file(input_file));
+            my_parser.read_layout(input_file, box_vector::from_file(input_file));
             code = std::move(my_parser).get_bytecode();
         } else {
             code = binary_bls::read(input_file);
@@ -134,14 +126,9 @@ int MainApp::OnRun() {
             binary_bls::write(code, output_cache);
         }
         for (auto line = code.begin(); line != code.end(); ++line) {
-            switch (line->command()) {
-            case opcode::COMMENT:
+            if (line->command() == opcode::COMMENT) {
                 std::cout << *line->get_args<opcode::COMMENT>();
-                break;
-            case opcode::LABEL:
-                std::cout << *line->get_args<opcode::LABEL>();
-                break;
-            default:
+            } else {
                 std::cout << '\t' << line->command();
                 line->visit(overloaded{
                     [](std::monostate){},

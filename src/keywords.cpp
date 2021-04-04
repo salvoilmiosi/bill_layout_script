@@ -136,7 +136,7 @@ void parser::read_keyword() {
         for (size_t i=0; i<m_content_level; ++i) {
             add_line<opcode::POPCONTENT>();
         }
-        add_line<opcode::JMP>(fmt::format("__label_{}", tok.value));
+        add_line<opcode::JMP>(fmt::format("__box_{}_{}", tok.value, hash(m_path.string())));
         m_lexer.require(token_type::PAREN_END);
         break;
     }
@@ -271,7 +271,7 @@ void parser::read_keyword() {
         m_lexer.require(token_type::PAREN_BEGIN);
         auto tok_layout_name = m_lexer.require(token_type::STRING);
         m_lexer.require(token_type::PAREN_END);
-        auto imported_file = m_path / (tok_layout_name.parse_string() + ".bls");
+        auto imported_file = m_path.parent_path() / (tok_layout_name.parse_string() + ".bls");
         bitset<import_flags> flags;
         if (m_flags & parser_flags::RECURSIVE_IMPORTS) {
             flags |= import_flags::NOIMPORT;
@@ -283,7 +283,7 @@ void parser::read_keyword() {
         if (m_flags & parser_flags::RECURSIVE_IMPORTS) {
             parser imported;
             imported.m_flags = m_flags;
-            imported.read_layout(imported_file.parent_path(), box_vector::from_file(imported_file));
+            imported.read_layout(imported_file, box_vector::from_file(imported_file));
             auto code_len = m_code.size();
             std::ranges::move(imported.m_code, std::back_inserter(m_code));
         }
