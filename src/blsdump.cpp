@@ -19,18 +19,20 @@ public:
     virtual bool OnCmdLineParsed(wxCmdLineParser &parser) override;
 
 private:
-    std::filesystem::path input_bls;
+    std::filesystem::path input_file;
     std::filesystem::path output_cache;
 
     bitset<parser_flags> flags;
+    bool do_read_cache = false;
 };
 
 wxIMPLEMENT_APP_CONSOLE(MainApp);
 
 void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
-    parser.AddParam("input-bls");
+    parser.AddParam("input-file");
     parser.AddSwitch("s", "skip-comments", "Skip Comments");
     parser.AddSwitch("r", "recursive-imports", "Recursive Imports");
+    parser.AddSwitch("c", "read-cache", "Read Cache");
     parser.AddOption("o", "output-cache", "Output Cache");
 }
 
@@ -44,9 +46,10 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
         }
     };
 
-    input_bls = parser.GetParam(0).ToStdString();
+    input_file = parser.GetParam(0).ToStdString();
     check_flag(parser_flags::ADD_COMMENTS, "s", true);
     check_flag(parser_flags::RECURSIVE_IMPORTS, "r");
+    do_read_cache = parser.FoundSwitch("c") == wxCMD_SWITCH_ON;
     check_option(output_cache, "o");
     return true;
 }
@@ -99,50 +102,54 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<intl::
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<import_options> &args) {
-    return out << quoted_string(*args.data.filename) << args.data.flags;
+    return out << print_args(args.data.filename) << ' ' << args.data.flags;
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<jump_address> &args) {
-    return out << *args.data.label;
+    if (args.data.label->empty()) {
+        return out << args.data.relative_addr;
+    } else {
+        return out << *args.data.label;
+    }
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<jsr_address> &args) {
-    return out << *args.data.label << ' ' << num_tostring(args.data.numargs);
+    return out << print_args(static_cast<jump_address>(args.data)) << ' ' << num_tostring(args.data.numargs);
 }
 
 int MainApp::OnRun() {
     try {
-        parser my_parser;
-        my_parser.add_flags(flags);
-        my_parser.read_layout(input_bls.parent_path(), box_vector::from_file(input_bls));
+        bytecode code;
 
-        std::multimap<size_t, std::string> inv_labels;
-        for (auto &[label, addr] : my_parser.get_labels()) {
-            inv_labels.emplace(addr, label);
+        if (!do_read_cache) {
+            parser my_parser;
+            my_parser.add_flags(flags);
+            my_parser.read_layout(input_file.parent_path(), box_vector::from_file(input_file));
+            code = std::move(my_parser).get_bytecode();
+        } else {
+            code = binary_bls::read(input_file);
         }
 
-        const auto &code = my_parser.get_bytecode();
         if (!output_cache.empty()) {
             binary_bls::write(code, output_cache);
         }
-        const auto &comments = my_parser.get_comments();
         for (auto line = code.begin(); line != code.end(); ++line) {
-            auto [label_begin, label_end] = inv_labels.equal_range(line - code.begin());
-            for (;label_begin != label_end; ++label_begin) {
-                std::cout << label_begin->second << ':' << std::endl;
+            switch (line->command()) {
+            case opcode::COMMENT:
+                std::cout << *line->get_args<opcode::COMMENT>();
+                break;
+            case opcode::LABEL:
+                std::cout << *line->get_args<opcode::LABEL>();
+                break;
+            default:
+                std::cout << '\t' << line->command();
+                line->visit(overloaded{
+                    [](std::monostate){},
+                    [&](auto && args) {
+                        std::cout << ' ' << print_args(args);
+                    }
+                });
             }
-            auto [comment_begin, comment_end] = comments.equal_range(line - code.begin());
-            for (;comment_begin != comment_end; ++comment_begin) {
-                std::cout << comment_begin->second << std::endl;
-            }
-
-            std::cout << '\t' << line->command();
-            line->visit(overloaded{
-                [](std::monostate){},
-                [&](auto && args) {
-                    std::cout << ' ' << print_args(args);
-                }
-            });
             std::cout << std::endl;
         }
     } catch (const std::exception &error) {

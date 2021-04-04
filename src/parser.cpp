@@ -25,11 +25,12 @@ void parser::read_layout(const std::filesystem::path &path, const box_vector &la
             m_lexer.token_location_info(error.location())));
     }
 
-    auto eval_jump_addr = [&](const std::string &label) {
-        if (auto it = m_labels.find(label); it != m_labels.end()) {
-            return it->second;
+    auto eval_jump_addr = [&](std::string_view label) {
+        size_t idx = find_label(label);
+        if (idx == m_code.size()) {
+            throw layout_error(fmt::format("Etichetta sconosciuta: {}", label));
         }
-        throw layout_error(fmt::format("Etichetta sconosciuta: {}", label));
+        return idx;
     };
 
     for (auto line = m_code.begin(); line != m_code.end(); ++line) {
@@ -44,14 +45,19 @@ void parser::read_layout(const std::filesystem::path &path, const box_vector &la
     }
 }
 
-void parser::add_label(const std::string &label) {
-    if (!m_labels.try_emplace(label, m_code.size()).second) {
-        throw layout_error(fmt::format("Etichetta goto duplicata: {}", label));
-    }
-}
+size_t parser::find_label(std::string_view label) {
+    return std::ranges::find_if(m_code, [&](const command_args &line) {
+        return line.command() == opcode::LABEL
+            && label == *line.get_args<opcode::LABEL>();
+    }) - m_code.begin();
+};
 
-void parser::add_comment(const std::string &line) {
-    m_comments.emplace(m_code.size(), line);
+void parser::add_label(std::string label) {
+    if (find_label(label) != m_code.size()) {
+        throw layout_error(fmt::format("Etichetta goto duplicata: {}", label));
+    } else {
+        add_line<opcode::LABEL>(std::move(label));
+    }
 }
 
 spacer_index find_spacer_index(std::string_view name) {
@@ -69,7 +75,7 @@ void parser::read_box(const layout_box &box) {
     }
     
     if (m_flags & parser_flags::ADD_COMMENTS && !box.name.empty()) {
-        add_comment("### " + box.name);
+        add_line<opcode::COMMENT>("### " + box.name);
     }
     current_box = &box;
 
@@ -106,7 +112,7 @@ void parser::read_box(const layout_box &box) {
 
     if (m_flags & parser_flags::ADD_COMMENTS) {
         m_lexer.set_comment_callback([this](const std::string &line){
-            add_comment(line);
+            add_line<opcode::COMMENT>(line);
         });
     }
     m_lexer.set_script(box.spacers);

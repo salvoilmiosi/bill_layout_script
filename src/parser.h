@@ -65,14 +65,6 @@ public:
     auto &&get_bytecode() && {
         return std::move(m_code);
     }
-    
-    const auto &get_labels() const {
-        return m_labels;
-    }
-
-    const auto &get_comments() const {
-        return m_comments;
-    }
 
 private:
     void read_box(const layout_box &box);
@@ -94,8 +86,8 @@ private:
         m_code.push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
     }
 
-    void add_label(const std::string &label);
-    void add_comment(const std::string &comment);
+    size_t find_label(std::string_view label);
+    void add_label(std::string label);
 
 private:
     const box_vector *m_layout = nullptr;
@@ -103,8 +95,6 @@ private:
 
     lexer m_lexer;
     bytecode m_code;
-    std::multimap<size_t, std::string> m_comments;
-    std::map<std::string, size_t> m_labels;
 
     simple_stack<loop_label_pair> m_loop_labels;
     int m_content_level = 0;

@@ -182,7 +182,9 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     switch (cmd.command()) {
-    case opcode::NOP:        break;
+    case opcode::NOP:
+    case opcode::COMMENT:
+    case opcode::LABEL:      break;
     case opcode::NEWBOX:     m_current_box = {}; break;
     case opcode::MVBOX:      move_box(cmd.get_args<opcode::MVBOX>()); break;
     case opcode::RDBOX:      read_box(cmd.get_args<opcode::RDBOX>()); break;

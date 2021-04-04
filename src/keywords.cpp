@@ -286,12 +286,6 @@ void parser::read_keyword() {
             imported.read_layout(imported_file.parent_path(), box_vector::from_file(imported_file));
             auto code_len = m_code.size();
             std::ranges::move(imported.m_code, std::back_inserter(m_code));
-            for (auto &[line, comment] : imported.m_comments) {
-                m_comments.emplace(code_len + line, std::move(comment));
-            }
-            for (auto &[label, line] : imported.m_labels) {
-                m_labels.emplace(label, code_len + line);
-            }
         }
         if (flags & import_flags::SETLAYOUT) {
             add_line<opcode::HLT>();
