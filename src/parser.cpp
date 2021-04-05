@@ -261,6 +261,24 @@ void parser::sub_expression() {
         sub_expression();
         add_line<opcode::CALL>("not", 1);
         break;
+    case token_type::PLUS: {
+        m_lexer.advance(tok_first);
+        auto tok_num = m_lexer.peek();
+        switch (tok_num.type) {
+        case token_type::INTEGER:
+            m_lexer.advance(tok_num);
+            add_line<opcode::PUSHINT>(string_to<int64_t>(tok_num.value));
+            break;
+        case token_type::NUMBER:
+            m_lexer.advance(tok_num);
+            add_line<opcode::PUSHNUM>(fixed_point(std::string(tok_num.value)));
+            break;
+        default:
+            sub_expression();
+            add_line<opcode::CALL>("num", 1);
+        }
+        break;
+    }
     case token_type::MINUS: {
         m_lexer.advance(tok_first);
         auto tok_num = m_lexer.peek();

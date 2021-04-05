@@ -167,29 +167,28 @@ void variable::assign(variable &&other) {
     }, other.m_value);
 }
 
-variable &variable::operator += (const variable &other) {
+variable &variable::operator += (const variable &rhs) {
     std::visit(overloaded{
+        [](null_state, null_state) {},
         [](auto, null_state) {},
+        [&](null_state, auto) {
+            *this = rhs;
+        },
         [&](auto, auto) {
-            get_string().append(other.as_view());
+            get_string().append(rhs.as_view());
             m_value = string_state{};
         },
-        [&](not_number_t auto, fixed_point num) {
-            *this = as_number() + num;
-        },
-        [&](not_number_t auto, int64_t num) {
-            *this = as_int() + num;
-        },
-        [&](not_number_t auto, double num) {
-            *this = as_double() + num;
-        },
-        [&](number_t auto num1, fixed_point num2) {
-            *this = fixed_point(num1) + num2;
+        [&](null_state, string_t auto) {
+            m_str = rhs.as_view();
+            m_value = string_state{};
         },
         [&](number_t auto num1, number_t auto num2) {
             *this = num1 + num2;
+        },
+        [&](number_t auto num1, fixed_point num2) {
+            *this = fixed_point(num1) + num2;
         }
-    }, m_value, other.m_value);
+    }, m_value, rhs.m_value);
     return *this;
 }
 
@@ -200,11 +199,14 @@ variable variable::operator +(const variable &rhs) const {
 
 variable variable::operator -() const {
     return std::visit<variable>(overloaded{
+        [](null_state) {
+            return variable();
+        },
         [](number_t auto n) {
             return -n;
         },
-        [](auto) {
-            return variable();
+        [&](auto) {
+            return -as_number();
         }
     }, m_value);
 }
