@@ -7,6 +7,7 @@
 #include <map>
 
 #include "variable.h"
+#include "stack.h"
 
 template<typename T> T convert_var(variable &var) = delete;
 
@@ -51,7 +52,7 @@ struct vararg_converter {
     }
 };
 
-using arg_list = std::span<variable>;
+using arg_list = std::ranges::subrange<typename simple_stack<variable>::iterator>;
 
 // using decltype([]{ return T{}; }) faceva crashare gcc
 template<typename T> struct getter {
@@ -190,7 +191,7 @@ template<typename TypeList, size_t I> inline decltype(auto) get_arg(arg_list &ar
             return type(convert_var<convert_rvalue<opt_type>>(args[I]));
         }
     } else if constexpr (is_varargs<type>{}) {
-        return type(args.subspan(I));
+        return type(arg_list(args.begin() + I, args.end()));
     } else {
         return convert_var<convert_rvalue<type>>(args[I]);
     }

@@ -238,7 +238,7 @@ jump_label reader::add_layout(const std::filesystem::path &filename) {
         if (m_flags & reader_flags::RECURSIVE) {
             my_parser.add_flags(parser_flags::RECURSIVE_IMPORTS);
         }
-        my_parser.read_layout(filename, box_vector::from_file(filename));
+        my_parser.read_layout(filename, layout_box_list::from_file(filename));
         new_code = std::move(my_parser).get_bytecode();
         if (m_flags & reader_flags::USE_CACHE) {
             binary_bls::write(new_code, cache_filename);
@@ -266,6 +266,7 @@ jump_label reader::add_code(bytecode &&new_code) {
     size_t addr = m_code.size();
     jump_label layout_label = fmt::format("__layout_{}", addr);
 
+    m_code.reserve(m_code.size() + 1 + new_code.size());
     m_code.push_back(make_command<opcode::LABEL>(layout_label));
     m_labels.emplace(layout_label, addr);
     

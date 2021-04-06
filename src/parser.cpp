@@ -8,11 +8,12 @@
 #include "fixed_point.h"
 #include "functions.h"
 
-void parser::read_layout(const std::filesystem::path &path, const box_vector &layout) {
+void parser::read_layout(const std::filesystem::path &path, const layout_box_list &layout) {
     m_path = path;
     m_layout = &layout;
     
     try {
+        m_code.reserve(4096);
         if (intl::valid_language(layout.language_code)) {
             add_line<opcode::SETLANG>(layout.language_code);
         }
@@ -223,7 +224,7 @@ void parser::read_expression() {
 
     sub_expression();
 
-    std::vector<decltype(operators)::iterator> op_stack;
+    simple_stack<decltype(operators)::iterator> op_stack;
     
     while (true) {
         auto tok_op = m_lexer.peek();

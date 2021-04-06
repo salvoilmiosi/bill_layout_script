@@ -1,20 +1,11 @@
 #ifndef __STACK_H__
 #define __STACK_H__
 
-#include <vector>
+#include <deque>
 
 constexpr size_t MAX_SIZE = 8;
-constexpr size_t DEFAULT_SIZE = 32;
 
-template<typename T, size_t N = DEFAULT_SIZE>
-struct auto_reserve_vector : std::vector<T> {
-    using base = std::vector<T>;
-    auto_reserve_vector() {
-        base::reserve(N);
-    }
-};
-
-template<typename T, typename Container = auto_reserve_vector<T>> struct simple_stack : public Container {
+template<typename T, typename Container = std::deque<T>> struct simple_stack : public Container {
     using base = Container;
     
     constexpr T &top() { return base::back(); }

@@ -56,7 +56,7 @@ public:
         m_flags |= flags;
     }
 
-    void read_layout(const std::filesystem::path &path, const box_vector &layout);
+    void read_layout(const std::filesystem::path &path, const layout_box_list &layout);
 
     const auto &get_bytecode() const & {
         return m_code;
@@ -90,7 +90,7 @@ private:
     void add_label(std::string label);
 
 private:
-    const box_vector *m_layout = nullptr;
+    const layout_box_list *m_layout = nullptr;
     std::filesystem::path m_path;
 
     lexer m_lexer;

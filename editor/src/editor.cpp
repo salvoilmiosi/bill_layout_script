@@ -200,7 +200,7 @@ void frame_editor::openFile(const wxString &filename) {
     try {
         if (box_dialog::closeAll()) {
             m_filename = filename.ToStdString();
-            layout = box_list::from_file(m_filename);
+            layout = layout_box_list::from_file(m_filename);
 
             modified = false;
             history.clear();

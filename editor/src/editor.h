@@ -64,7 +64,7 @@ public:
         return (4 - rotation) % 4;
     }
 
-    box_list layout;
+    layout_box_list layout;
     std::filesystem::path m_filename;
 
 private:
@@ -116,8 +116,8 @@ private:
 
     wxListBox *m_list_boxes;
 
-    std::deque<box_list> history;
-    std::deque<box_list>::iterator currentHistory;
+    std::deque<layout_box_list> history;
+    std::deque<layout_box_list>::iterator currentHistory;
 
     bool modified = false;
     int rotation = 0;

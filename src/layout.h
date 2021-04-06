@@ -24,14 +24,13 @@ struct layout_error : std::runtime_error {
     layout_error(T &&message) : std::runtime_error(std::forward<T>(message)) {}
 };
 
-template<template<typename> typename Container>
-class bill_layout_script : public Container<layout_box> {
+class layout_box_list : public std::list<layout_box> {
 public:
-    using base = Container<layout_box>;
+    using base = std::list<layout_box>;
     intl::language language_code{};
 
 public:
-    bill_layout_script() = default;
+    layout_box_list() = default;
 
     void clear() {
         base::clear();
@@ -50,8 +49,11 @@ public:
         return base::emplace(pos, std::forward<Ts>(args) ...);
     }
 
-    static bill_layout_script from_file(const std::filesystem::path &filename) {
-        bill_layout_script ret;
+    friend std::ostream &operator << (std::ostream &output, const layout_box_list &layout);
+    friend std::istream &operator >> (std::istream &input, layout_box_list &layout);
+
+    static layout_box_list from_file(const std::filesystem::path &filename) {
+        layout_box_list ret;
         std::ifstream ifs(filename);
         if (!ifs) {
             throw layout_error(fmt::format("Impossibile aprire il file {}", filename.string()));
@@ -68,10 +70,5 @@ public:
         ofs << *this;
     }
 };
-
-using box_list = bill_layout_script<std::list>;
-using box_vector = bill_layout_script<std::vector>;
-
-#include "layout.tcc"
 
 #endif

@@ -116,7 +116,7 @@ int MainApp::OnRun() {
         if (!do_read_cache) {
             parser my_parser;
             my_parser.add_flags(flags);
-            my_parser.read_layout(input_file, box_vector::from_file(input_file));
+            my_parser.read_layout(input_file, layout_box_list::from_file(input_file));
             code = std::move(my_parser).get_bytecode();
         } else {
             code = binary_bls::read(input_file);

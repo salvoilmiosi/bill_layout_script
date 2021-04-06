@@ -2,12 +2,12 @@
 #define __LEXER_H__
 
 #include <string>
-#include <vector>
 #include <stdexcept>
 #include <functional>
 #include <fmt/format.h>
 
 #include "enums.h"
+#include "stack.h"
 
 DEFINE_ENUM(token_type,
     (INVALID,      "Token Invalido")
@@ -118,7 +118,7 @@ private:
     std::function<void(const std::string &)> comment_callback;
 
     size_t last_debug_line;
-    std::vector<std::string> debug_lines;
+    simple_stack<std::string> debug_lines;
 
     std::string_view script;
 
