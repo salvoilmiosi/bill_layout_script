@@ -26,28 +26,32 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
             m_lexer.token_location_info(error.location())));
     }
 
-    if (!(m_flags & parser_flags::NO_EVAL_JUMPS)) {
-        for (auto it = m_code.begin(); it != m_code.end(); ++it) {
-            it->visit(overloaded{
-                [](auto) {},
-                [&](jump_address &label) {
-                    if (std::holds_alternative<string_ptr>(label)) {
-                        string_ptr str = std::get<string_ptr>(label);
-                        try {
-                            label = ptrdiff_t(m_labels.at(str) - (it - m_code.begin()));
-                        } catch (std::out_of_range) {
-                            throw layout_error(fmt::format("Etichetta sconosciuta: {}", *str));
-                        }
+    for (auto it = m_code.begin(); it != m_code.end(); ++it) {
+        it->visit(overloaded{
+            [](auto) {},
+            [&](jump_address &label) {
+                if (std::holds_alternative<string_ptr>(label)) {
+                    string_ptr str = std::get<string_ptr>(label);
+                    if (auto label_it = find_label(*str); label_it != m_code.end()) {
+                        label = ptrdiff_t(label_it - it);
+                    } else {
+                        throw layout_error(fmt::format("Etichetta sconosciuta: {}", *str));
                     }
                 }
-            });
-        }
+            }
+        });
     }
 }
 
+bytecode::const_iterator parser::find_label(std::string_view label) {
+    return std::ranges::find_if(m_code, [&](const command_args &line) {
+        return line.command() == opcode::LABEL && *line.get_args<opcode::LABEL>() == label;
+    });
+}
+
 void parser::add_label(std::string label) {
-    if (auto it = m_labels.try_emplace(label, m_code.size()); it.second) {
-        add_line<opcode::LABEL>(*it.first->first);
+    if (find_label(label) == m_code.end()) {
+        add_line<opcode::LABEL>(label);
     } else {
         throw layout_error(fmt::format("Etichetta goto duplicata: {}", label));
     }
@@ -78,7 +82,7 @@ void parser::read_box(const layout_box &box) {
     m_lexer.set_script(box.goto_label);
     auto tok_label = m_lexer.next();
     if (tok_label.type == token_type::IDENTIFIER) {
-        add_label(fmt::format("__box_{}_{}", tok_label.value, hash(m_path.string())));
+        add_label(fmt::format("__{}_box_{}", m_parser_id, tok_label.value));
         m_lexer.require(token_type::END_OF_FILE);
     } else if (tok_label.type != token_type::END_OF_FILE) {
         throw unexpected_token(tok_label, token_type::IDENTIFIER);

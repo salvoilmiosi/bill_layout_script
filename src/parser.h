@@ -24,7 +24,6 @@ DEFINE_ENUM_FLAGS(variable_prefixes,
 DEFINE_ENUM_FLAGS(parser_flags,
     (ADD_COMMENTS)
     (RECURSIVE_IMPORTS)
-    (NO_EVAL_JUMPS)
 )
 
 struct loop_label_pair {
@@ -51,7 +50,7 @@ public:
 
 class parser {
 public:
-    parser() = default;
+    parser() : m_parser_id(parser_counter++) {}
 
     void add_flags(auto flags) {
         m_flags |= flags;
@@ -87,10 +86,13 @@ private:
         m_code.push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
     }
 
+    bytecode::const_iterator find_label(std::string_view label);
     void add_label(std::string label);
-    std::map<string_ptr, size_t> m_labels;
 
 private:
+    static inline int parser_counter = 0;
+    int m_parser_id;
+
     const layout_box_list *m_layout = nullptr;
     std::filesystem::path m_path;
 

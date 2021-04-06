@@ -2,12 +2,11 @@
 
 #include "utils.h"
 
-static inline std::string make_label(std::string_view name) {
-    static int n = 0;
-    return fmt::format("__{0}_{1}", name, n++);
-}
-
 void parser::read_keyword() {
+    auto make_label = [&](std::string_view label) {
+        return fmt::format("__{}_{}_{}", m_parser_id, m_code.size(), label);
+    };
+
     auto tok_name = m_lexer.require(token_type::FUNCTION);
     auto fun_name = tok_name.value.substr(1);
 
@@ -136,7 +135,7 @@ void parser::read_keyword() {
         for (size_t i=0; i<m_content_level; ++i) {
             add_line<opcode::POPCONTENT>();
         }
-        add_line<opcode::JMP>(fmt::format("__box_{}_{}", tok.value, hash(m_path.string())));
+        add_line<opcode::JMP>(fmt::format("__{}_box_{}", m_parser_id, tok.value));
         m_lexer.require(token_type::PAREN_END);
         break;
     }
