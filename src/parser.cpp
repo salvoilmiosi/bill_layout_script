@@ -30,12 +30,11 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
         it->visit(overloaded{
             [](auto) {},
             [&](jump_address &label) {
-                if (std::holds_alternative<string_ptr>(label)) {
-                    string_ptr str = std::get<string_ptr>(label);
+                if (auto *str = std::get_if<string_ptr>(&label)) {
                     if (auto label_it = find_label(*str); label_it != m_code.end()) {
                         label = ptrdiff_t(label_it - it);
                     } else {
-                        throw layout_error(fmt::format("Etichetta sconosciuta: {}", *str));
+                        throw layout_error(fmt::format("Etichetta sconosciuta: {}", **str));
                     }
                 }
             }
@@ -43,9 +42,9 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
     }
 }
 
-bytecode::const_iterator parser::find_label(std::string_view label) {
+bytecode::const_iterator parser::find_label(string_ptr label) {
     return std::ranges::find_if(m_code, [&](const command_args &line) {
-        return line.command() == opcode::LABEL && *line.get_args<opcode::LABEL>() == label;
+        return line.command() == opcode::LABEL && line.get_args<opcode::LABEL>() == label;
     });
 }
 

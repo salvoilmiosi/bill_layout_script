@@ -86,7 +86,7 @@ private:
         m_code.push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
     }
 
-    bytecode::const_iterator find_label(std::string_view label);
+    bytecode::const_iterator find_label(string_ptr label);
     void add_label(std::string label);
 
 private:
