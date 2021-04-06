@@ -1,5 +1,4 @@
 #include "functions.h"
-#include "utils.h"
 
 #include <regex>
 #include <numeric>
@@ -7,6 +6,7 @@
 #include <fmt/format.h>
 
 #include "intl.h"
+#include "utils.h"
 
 // Converte una stringa in numero usando il formato del locale
 static variable parse_num(std::string_view str) {

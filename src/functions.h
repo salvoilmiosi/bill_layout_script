@@ -3,7 +3,6 @@
 
 #include <functional>
 #include <ranges>
-#include <span>
 #include <map>
 
 #include "variable.h"

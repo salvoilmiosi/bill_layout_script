@@ -24,6 +24,7 @@ DEFINE_ENUM_FLAGS(variable_prefixes,
 DEFINE_ENUM_FLAGS(parser_flags,
     (ADD_COMMENTS)
     (RECURSIVE_IMPORTS)
+    (NO_EVAL_JUMPS)
 )
 
 struct loop_label_pair {
@@ -86,8 +87,8 @@ private:
         m_code.push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
     }
 
-    size_t find_label(std::string_view label);
     void add_label(std::string label);
+    std::map<string_ptr, size_t> m_labels;
 
 private:
     const layout_box_list *m_layout = nullptr;

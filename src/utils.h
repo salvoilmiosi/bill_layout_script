@@ -7,8 +7,6 @@
 
 #include <fmt/format.h>
 
-typedef uint8_t small_int;
-
 constexpr char UNIT_SEPARATOR = '\x1f';
 
 template<typename ... Ts> struct overloaded : Ts ... { using Ts::operator() ...; };

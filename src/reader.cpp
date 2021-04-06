@@ -8,7 +8,6 @@
 
 void reader::clear() {
     m_code.clear();
-    m_labels.clear();
     m_values.clear();
     m_warnings.clear();
     m_layouts.clear();
@@ -57,17 +56,13 @@ void reader::exec_command(const command_args &cmd) {
         }
     };
 
-    auto jump_to = [&](jump_label label) {
-        try {
-            m_program_counter = m_labels.at(label);
-        } catch (std::out_of_range) {
-            throw layout_error(fmt::format("Etichetta sconosciuta: {}", *label));
-        }
+    auto jump_to = [&](const jump_address &label) {
+        m_program_counter += std::get<ptrdiff_t>(label);
     };
 
     auto jump_subroutine = [&](const jsr_address &address, bool nodiscard = false) {
         m_calls.push(function_call{m_program_counter, small_int(m_stack.size() - address.numargs), address.numargs, nodiscard});
-        jump_to(address.label);
+        jump_to(address);
     };
 
     auto get_function_arg = [&](small_int idx) {
@@ -169,7 +164,7 @@ void reader::exec_command(const command_args &cmd) {
                 m_layouts.push_back(filename);
             }
         } else {
-            jsr_address addr{add_layout(filename), 0};
+            jsr_address addr{ptrdiff_t(add_layout(filename) - m_program_counter), 0};
             m_code[m_program_counter] = make_command<opcode::JSR>(addr);
             jump_subroutine(addr);
         }
@@ -222,7 +217,7 @@ void reader::exec_command(const command_args &cmd) {
     }
 }
 
-jump_label reader::add_layout(const std::filesystem::path &filename) {
+size_t reader::add_layout(const std::filesystem::path &filename) {
     m_layouts.push_back(filename);
 
     std::filesystem::path cache_filename = filename;
@@ -262,25 +257,18 @@ jump_label reader::add_layout(const std::filesystem::path &filename) {
     return add_code(std::move(new_code));
 }
 
-jump_label reader::add_code(bytecode &&new_code) {
+size_t reader::add_code(bytecode &&new_code) {
     size_t addr = m_code.size();
-    jump_label layout_label = fmt::format("__layout_{}", addr);
 
     m_code.reserve(m_code.size() + 1 + new_code.size());
-    m_code.push_back(make_command<opcode::LABEL>(layout_label));
-    m_labels.emplace(layout_label, addr);
-    
-    for (command_args &line : new_code) {
-        if (line.command() == opcode::LABEL) {
-            m_labels.emplace(line.get_args<opcode::LABEL>(), m_code.size());
-        }
-        m_code.emplace_back(std::move(line));
-    }
+    m_code.push_back(make_command<opcode::NOP>());
+
+    std::ranges::move(new_code, std::back_inserter(m_code));
     if (addr == 0) {
         m_code.push_back(make_command<opcode::HLT>());
     } else {
         m_code.push_back(make_command<opcode::RET>());
     }
     
-    return layout_label;
+    return addr;
 }

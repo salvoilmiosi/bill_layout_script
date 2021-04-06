@@ -33,6 +33,7 @@ void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
     parser.AddSwitch("s", "skip-comments", "Skip Comments");
     parser.AddSwitch("r", "recursive-imports", "Recursive Imports");
     parser.AddSwitch("c", "read-cache", "Read Cache");
+    parser.AddSwitch("j", "eval-jumps", "Evaluate Jumps");
     parser.AddOption("o", "output-cache", "Output Cache");
 }
 
@@ -49,6 +50,7 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     input_file = parser.GetParam(0).ToStdString();
     check_flag(parser_flags::ADD_COMMENTS, "s", true);
     check_flag(parser_flags::RECURSIVE_IMPORTS, "r");
+    check_flag(parser_flags::NO_EVAL_JUMPS, "j", true);
     do_read_cache = parser.FoundSwitch("c") == wxCMD_SWITCH_ON;
     check_option(output_cache, "o");
     return true;
@@ -105,8 +107,20 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<import
     return out << print_args(args.data.filename) << ' ' << args.data.flags;
 }
 
+template<> std::ostream &operator << (std::ostream &out, const print_args<jump_address> &label) {
+    std::visit(overloaded{
+        [&](string_ptr str) {
+            out << print_args(str);
+        },
+        [&](size_t addr) {
+            out << addr;
+        }
+    }, label.data);
+    return out;
+}
+
 template<> std::ostream &operator << (std::ostream &out, const print_args<jsr_address> &args) {
-    return out << print_args(args.data.label) << ' ' << num_tostring(args.data.numargs);
+    return out << print_args(static_cast<jump_address>(args.data)) << ' ' << num_tostring(args.data.numargs);
 }
 
 int MainApp::OnRun() {

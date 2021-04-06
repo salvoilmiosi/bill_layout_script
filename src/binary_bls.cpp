@@ -157,15 +157,25 @@ template<> struct binary_io<import_options> {
     }
 };
 
+template<> struct binary_io<jump_address> {
+    static void write(std::ostream &output, const jump_address &label) {
+        writeData(output, std::get<ptrdiff_t>(label));
+    }
+
+    static jump_address read(std::istream &input) {
+        return readData<ptrdiff_t>(input);
+    }
+};
+
 template<> struct binary_io<jsr_address> {
     static void write(std::ostream &output, const jsr_address &addr) {
-        writeData(output, addr.label);
+        writeData<jump_address>(output, addr);
         writeData(output, addr.numargs);
     }
 
     static jsr_address read(std::istream &input) {
         jsr_address addr;
-        addr.label = readData<jump_label>(input);
+        static_cast<jump_address>(addr) = readData<jump_address>(input);
         addr.numargs = readData<small_int>(input);
         return addr;
     }

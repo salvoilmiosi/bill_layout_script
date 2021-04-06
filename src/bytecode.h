@@ -8,6 +8,8 @@
 #include "functions.h"
 #include "string_ptr.h"
 
+typedef uint8_t small_int;
+
 struct command_call {
     function_iterator fun;
     small_int numargs;
@@ -58,10 +60,9 @@ DEFINE_ENUM_FLAGS(setvar_flags,
     (INCREASE)
 )
 
-typedef string_ptr jump_label;
+typedef std::variant<ptrdiff_t, string_ptr> jump_address;
 
-struct jsr_address {
-    jump_label label;
+struct jsr_address : jump_address {
     small_int numargs;
 };
 
@@ -78,7 +79,7 @@ struct import_options {
 DEFINE_ENUM_TYPES(opcode,
     (NOP)                           // no operation
     (COMMENT, string_ptr)           // comment
-    (LABEL, jump_label)             // jump label
+    (LABEL, string_ptr)             // jump label
     (NEWBOX)                        // resetta current_box
     (MVBOX, spacer_index)           // stack -> current_box[index]
     (RDBOX, readbox_options)        // poppler.get_text(current_box) -> content_stack
@@ -110,10 +111,10 @@ DEFINE_ENUM_TYPES(opcode,
     (WARNING)                       // stack -> warnings
     (IMPORT, import_options)        // importa il file e lo esegue
     (SETLANG, intl::language)       // imposta la lingua del layout
-    (JMP, jump_label)               // unconditional jump
-    (JZ, jump_label)                // stack -> jump if top == 0
-    (JNZ, jump_label)               // stack -> jump if top != 0
-    (JNTE, jump_label)              // jump if content_stack.top at token end
+    (JMP, jump_address)             // unconditional jump
+    (JZ, jump_address)              // stack -> jump if top == 0
+    (JNZ, jump_address)             // stack -> jump if top != 0
+    (JNTE, jump_address)            // jump if content_stack.top at token end
     (JSR, jsr_address)              // program_counter -> call_stack -- jump to subroutine and discard return value
     (JSRVAL, jsr_address)           // program_counter -> call_stack -- jump to subroutine
     (RET)                           // jump to call_stack.top

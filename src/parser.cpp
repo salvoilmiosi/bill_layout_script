@@ -25,20 +25,31 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
             current_box->name, error.what(),
             m_lexer.token_location_info(error.location())));
     }
+
+    if (!(m_flags & parser_flags::NO_EVAL_JUMPS)) {
+        for (auto it = m_code.begin(); it != m_code.end(); ++it) {
+            it->visit(overloaded{
+                [](auto) {},
+                [&](jump_address &label) {
+                    if (std::holds_alternative<string_ptr>(label)) {
+                        string_ptr str = std::get<string_ptr>(label);
+                        try {
+                            label = ptrdiff_t(m_labels.at(str) - (it - m_code.begin()));
+                        } catch (std::out_of_range) {
+                            throw layout_error(fmt::format("Etichetta sconosciuta: {}", *str));
+                        }
+                    }
+                }
+            });
+        }
+    }
 }
 
-size_t parser::find_label(std::string_view label) {
-    return std::ranges::find_if(m_code, [&](const command_args &line) {
-        return line.command() == opcode::LABEL
-            && label == *line.get_args<opcode::LABEL>();
-    }) - m_code.begin();
-};
-
 void parser::add_label(std::string label) {
-    if (find_label(label) != m_code.size()) {
-        throw layout_error(fmt::format("Etichetta goto duplicata: {}", label));
+    if (auto it = m_labels.try_emplace(label, m_code.size()); it.second) {
+        add_line<opcode::LABEL>(*it.first->first);
     } else {
-        add_line<opcode::LABEL>(std::move(label));
+        throw layout_error(fmt::format("Etichetta goto duplicata: {}", label));
     }
 }
 
