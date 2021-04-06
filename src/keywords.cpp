@@ -124,7 +124,7 @@ void parser::read_keyword() {
         size_t increase_stmt_end = m_code.size();
         m_lexer.require(token_type::PAREN_END);
         read_statement();
-        move_to_end(m_code, increase_stmt_begin, increase_stmt_end);
+        std::rotate(m_code.begin() + increase_stmt_begin, m_code.begin() + increase_stmt_end, m_code.end());
         add_line<opcode::JMP>(for_label);
         add_label(endfor_label);
         m_loop_labels.pop();

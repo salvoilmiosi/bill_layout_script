@@ -198,7 +198,7 @@ bool parser::read_statement(bool throw_on_eof) {
         if (prefixes & variable_prefixes::OVERWRITE)  flags |= setvar_flags::OVERWRITE;
         if (prefixes & variable_prefixes::FORCE)      flags |= setvar_flags::FORCE;
 
-        move_to_end(m_code, selvar_begin, selvar_end);
+        std::rotate(m_code.begin() + selvar_begin, m_code.begin() + selvar_end, m_code.end());
         add_line<opcode::SETVAR>(flags);
     }
     }

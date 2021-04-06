@@ -23,15 +23,6 @@ constexpr size_t hash(std::string_view str) {
     return ret;
 }
 
-// sposta il range indicato alla fine
-template<typename T>
-void move_to_end(T &vec, size_t begin, size_t end) {
-    for (size_t i=begin; i<end; ++i) {
-        vec.push_back(std::move(vec[i]));
-    }
-    vec.erase(vec.begin() + begin, vec.begin() + end);
-}
-
 // divide una stringa per separatore
 template<std::ranges::input_range R>
 inline auto string_split(std::string_view str, R &&separator) {
