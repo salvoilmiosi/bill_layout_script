@@ -44,8 +44,8 @@ void parser::read_keyword() {
     } else switch (hash(fun_name)) {
     case hash("if"):
     case hash("ifnot"): {
-        std::string endif_label = make_label("endif");
-        std::string else_label;
+        string_ptr endif_label = make_label("endif");
+        string_ptr else_label;
         bool condition_positive = fun_name == "if";
         bool in_loop = true;
         bool add_endif = false;
@@ -56,9 +56,9 @@ void parser::read_keyword() {
             read_expression();
             m_lexer.require(token_type::PAREN_END);
             if (condition_positive) {
-                add_line<opcode::JZ>(else_label);
+                m_code.add_line<opcode::JZ>(else_label);
             } else {
-                add_line<opcode::JNZ>(else_label);
+                m_code.add_line<opcode::JNZ>(else_label);
             }
             read_statement();
             auto tok_if = m_lexer.peek();
@@ -69,8 +69,8 @@ void parser::read_keyword() {
                     m_lexer.advance(tok_if);
                     add_endif = true;
                     has_else = true;
-                    add_line<opcode::JMP>(endif_label);
-                    add_label(else_label);
+                    m_code.add_line<opcode::JMP>(endif_label);
+                    m_code.add_label(else_label);
                     read_statement();
                     in_loop = false;
                     break;
@@ -79,7 +79,7 @@ void parser::read_keyword() {
                     m_lexer.advance(tok_if);
                     condition_positive = fun_name == "elif";
                     add_endif = true;
-                    add_line<opcode::JMP>(endif_label);
+                    m_code.add_line<opcode::JMP>(endif_label);
                     break;
                 default:
                     in_loop = false;
@@ -87,36 +87,36 @@ void parser::read_keyword() {
             } else {
                 in_loop = false;
             }
-            if (!has_else) add_label(else_label);
+            if (!has_else) m_code.add_label(else_label);
         }
-        if (add_endif) add_label(endif_label);
+        if (add_endif) m_code.add_label(endif_label);
         break;
     }
     case hash("while"): {
-        std::string while_label = make_label("while");
-        std::string endwhile_label = make_label("endwhile");
+        string_ptr while_label = make_label("while");
+        string_ptr endwhile_label = make_label("endwhile");
         m_loop_labels.push(loop_label_pair{while_label, endwhile_label});
         m_lexer.require(token_type::PAREN_BEGIN);
-        add_label(while_label);
+        m_code.add_label(while_label);
         read_expression();
-        add_line<opcode::JZ>(endwhile_label);
+        m_code.add_line<opcode::JZ>(endwhile_label);
         m_lexer.require(token_type::PAREN_END);
         read_statement();
-        add_line<opcode::JMP>(while_label);
-        add_label(endwhile_label);
+        m_code.add_line<opcode::JMP>(while_label);
+        m_code.add_label(endwhile_label);
         m_loop_labels.pop();
         break;
     }
     case hash("for"): {
-        std::string for_label = make_label("for");
-        std::string endfor_label = make_label("endfor");
+        string_ptr for_label = make_label("for");
+        string_ptr endfor_label = make_label("endfor");
         m_loop_labels.push(loop_label_pair{for_label, endfor_label});
         m_lexer.require(token_type::PAREN_BEGIN);
         read_statement();
         m_lexer.require(token_type::COMMA);
-        add_label(for_label);
+        m_code.add_label(for_label);
         read_expression();
-        add_line<opcode::JZ>(endfor_label);
+        m_code.add_line<opcode::JZ>(endfor_label);
         m_lexer.require(token_type::COMMA);
         size_t increase_stmt_begin = m_code.size();
         read_statement();
@@ -124,8 +124,8 @@ void parser::read_keyword() {
         m_lexer.require(token_type::PAREN_END);
         read_statement();
         std::rotate(m_code.begin() + increase_stmt_begin, m_code.begin() + increase_stmt_end, m_code.end());
-        add_line<opcode::JMP>(for_label);
-        add_label(endfor_label);
+        m_code.add_line<opcode::JMP>(for_label);
+        m_code.add_label(endfor_label);
         m_loop_labels.pop();
         break;
     }
@@ -133,9 +133,9 @@ void parser::read_keyword() {
         m_lexer.require(token_type::PAREN_BEGIN);
         auto tok = m_lexer.require(token_type::IDENTIFIER);
         for (size_t i=0; i<m_content_level; ++i) {
-            add_line<opcode::POPCONTENT>();
+            m_code.add_line<opcode::POPCONTENT>();
         }
-        add_line<opcode::JMP>(fmt::format("__{}_box_{}", m_parser_id, tok.value));
+        m_code.add_line<opcode::JMP>(fmt::format("__{}_box_{}", m_parser_id, tok.value));
         m_lexer.require(token_type::PAREN_END);
         break;
     }
@@ -147,11 +147,11 @@ void parser::read_keyword() {
         std::string fun_label = fmt::format("__function_{}", name.value);
         std::string endfun_label = fmt::format("__endfunction_{}", name.value);
 
-        add_line<opcode::JMP>(endfun_label);
-        add_label(fun_label);
+        m_code.add_line<opcode::JMP>(endfun_label);
+        m_code.add_label(fun_label);
         read_statement();
-        add_line<opcode::RET>();
-        add_label(endfun_label);
+        m_code.add_line<opcode::RET>();
+        m_code.add_label(endfun_label);
         break;
     }
     case hash("call"): {
@@ -163,34 +163,34 @@ void parser::read_keyword() {
             read_expression();
             ++numargs;
         }
-        add_line<opcode::JSR>(fmt::format("__function_{}", tok.value), numargs);
+        m_code.add_line<opcode::JSR>(fmt::format("__function_{}", tok.value), numargs);
         break;
     }
     case hash("foreach"): {
-        std::string begin_label = make_label("foreach");
-        std::string continue_label = make_label("foreach_continue");
-        std::string end_label = make_label("endforeach");
+        string_ptr begin_label = make_label("foreach");
+        string_ptr continue_label = make_label("foreach_continue");
+        string_ptr end_label = make_label("endforeach");
         m_loop_labels.push(loop_label_pair{continue_label, end_label});
         bool pushed_content = false;
         if (m_lexer.check_next(token_type::PAREN_BEGIN)) {
             read_expression();
             m_lexer.require(token_type::PAREN_END);
             ++m_content_level;
-            add_line<opcode::ADDCONTENT>();
+            m_code.add_line<opcode::ADDCONTENT>();
             pushed_content = true;
         }
-        add_line<opcode::SPLITVIEW>();
-        add_label(begin_label);
+        m_code.add_line<opcode::SPLITVIEW>();
+        m_code.add_label(begin_label);
         read_statement();
-        add_label(continue_label);
-        add_line<opcode::NEXTRESULT>();
-        add_line<opcode::JNTE>(begin_label);
-        add_label(end_label);
+        m_code.add_label(continue_label);
+        m_code.add_line<opcode::NEXTRESULT>();
+        m_code.add_line<opcode::JNTE>(begin_label);
+        m_code.add_label(end_label);
         if (pushed_content) {
             --m_content_level;
-            add_line<opcode::POPCONTENT>();
+            m_code.add_line<opcode::POPCONTENT>();
         } else {
-            add_line<opcode::RESETVIEW>();
+            m_code.add_line<opcode::RESETVIEW>();
         }
         m_loop_labels.pop();
         break;
@@ -200,34 +200,34 @@ void parser::read_keyword() {
         read_expression();
         m_lexer.require(token_type::PAREN_END);
         ++m_content_level;
-        add_line<opcode::ADDCONTENT>();
+        m_code.add_line<opcode::ADDCONTENT>();
         read_statement();
         --m_content_level;
-        add_line<opcode::POPCONTENT>();
+        m_code.add_line<opcode::POPCONTENT>();
         break;
     }
     case hash("between"): {
-        add_line<opcode::NEWVIEW>();
+        m_code.add_line<opcode::NEWVIEW>();
         m_lexer.require(token_type::PAREN_BEGIN);
         if (m_content_level == 0) {
             throw parsing_error("Stack contenuti vuoto", tok_name);
         }
-        add_line<opcode::PUSHVIEW>();
+        m_code.add_line<opcode::PUSHVIEW>();
         auto begin_str = m_lexer.require(token_type::STRING).parse_string();
         int begin_len = begin_str.size();
-        add_line<opcode::PUSHSTR>(std::move(begin_str));
-        add_line<opcode::CALL>("indexof", 2);
-        add_line<opcode::SETBEGIN>();
+        m_code.add_line<opcode::PUSHSTR>(std::move(begin_str));
+        m_code.add_line<opcode::CALL>("indexof", 2);
+        m_code.add_line<opcode::SETBEGIN>();
         if (m_lexer.check_next(token_type::COMMA)) {
-            add_line<opcode::PUSHVIEW>();
-            add_line<opcode::PUSHSTR>(m_lexer.require(token_type::STRING).parse_string());   
-            add_line<opcode::PUSHINT>(begin_len);
-            add_line<opcode::CALL>("indexof", 3);
-            add_line<opcode::SETEND>();
+            m_code.add_line<opcode::PUSHVIEW>();
+            m_code.add_line<opcode::PUSHSTR>(m_lexer.require(token_type::STRING).parse_string());   
+            m_code.add_line<opcode::PUSHINT>(begin_len);
+            m_code.add_line<opcode::CALL>("indexof", 3);
+            m_code.add_line<opcode::SETEND>();
         }
         m_lexer.require(token_type::PAREN_END);
         read_statement();
-        add_line<opcode::RESETVIEW>();
+        m_code.add_line<opcode::RESETVIEW>();
         break;
     }
     case hash("step"): {
@@ -236,17 +236,17 @@ void parser::read_keyword() {
             read_expression();
             m_lexer.require(token_type::PAREN_END);
             ++m_content_level;
-            add_line<opcode::ADDCONTENT>();
+            m_code.add_line<opcode::ADDCONTENT>();
             pushed_content = true;
         }
 
         m_lexer.require(token_type::BRACE_BEGIN);
-        add_line<opcode::SPLITVIEW>();
+        m_code.add_line<opcode::SPLITVIEW>();
         
         while (true) {
             read_statement();
             if (! m_lexer.check_next(token_type::BRACE_END)) {
-                add_line<opcode::NEXTRESULT>();
+                m_code.add_line<opcode::NEXTRESULT>();
             } else {
                 break;
             }
@@ -254,16 +254,16 @@ void parser::read_keyword() {
 
         if (pushed_content) {
             --m_content_level;
-            add_line<opcode::POPCONTENT>();
+            m_code.add_line<opcode::POPCONTENT>();
         } else {
-            add_line<opcode::RESETVIEW>();
+            m_code.add_line<opcode::RESETVIEW>();
         }
         break;
     }
     case hash("newview"):
-        add_line<opcode::NEWVIEW>();
+        m_code.add_line<opcode::NEWVIEW>();
         read_statement();
-        add_line<opcode::RESETVIEW>();
+        m_code.add_line<opcode::RESETVIEW>();
         break;
     case hash("import"):
     case hash("setlayout"): {
@@ -278,7 +278,7 @@ void parser::read_keyword() {
         if (fun_name == "setlayout") {
             flags |= import_flags::SETLAYOUT;
         }
-        add_line<opcode::IMPORT>(imported_file.string(), flags);
+        m_code.add_line<opcode::IMPORT>(imported_file.string(), flags);
         if (m_flags & parser_flags::RECURSIVE_IMPORTS) {
             parser imported;
             imported.m_flags = m_flags;
@@ -287,9 +287,9 @@ void parser::read_keyword() {
             std::ranges::move(imported.m_code, std::back_inserter(m_code));
         }
         if (flags & import_flags::SETLAYOUT) {
-            add_line<opcode::HLT>();
+            m_code.add_line<opcode::HLT>();
         } else if (intl::valid_language(m_layout->language_code)) {
-            add_line<opcode::SETLANG>(m_layout->language_code);
+            m_code.add_line<opcode::SETLANG>(m_layout->language_code);
         }
         break;
     }
@@ -300,16 +300,16 @@ void parser::read_keyword() {
         if (m_loop_labels.empty()) {
             throw parsing_error("Non in un loop", tok_name);
         }
-        add_line<opcode::JMP>(fun_name == "break" ? m_loop_labels.top().break_label : m_loop_labels.top().continue_label);
+        m_code.add_line<opcode::JMP>(fun_name == "break" ? m_loop_labels.top().break_label : m_loop_labels.top().continue_label);
         break;
     case hash("return"):
         m_lexer.require(token_type::PAREN_BEGIN);
         if (m_lexer.check_next(token_type::PAREN_END)) {
-            add_line<opcode::RET>();
+            m_code.add_line<opcode::RET>();
         } else {
             read_expression();
             m_lexer.require(token_type::PAREN_END);
-            add_line<opcode::RETVAL>();
+            m_code.add_line<opcode::RETVAL>();
         }
         break;
     default:

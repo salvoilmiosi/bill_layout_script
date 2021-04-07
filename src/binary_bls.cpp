@@ -222,7 +222,6 @@ namespace binary_bls {
         std::ifstream ifs(filename, std::ios::binary | std::ios::in);
 
         bytecode ret;
-        ret.reserve(4096);
         while (ifs.peek() != EOF) {
             ret.push_back(readData<command_args>(ifs));
         }

@@ -166,6 +166,29 @@ command_args make_command(Ts && ... args) {
     return command_args(std::in_place_index<static_cast<size_t>(Cmd)>, std::forward<Ts>(args) ...);
 }
 
-using bytecode = std::vector<command_args>;
+struct bytecode : std::vector<command_args> {
+    bytecode() {
+        reserve(4096);
+    }
+    
+    template<opcode Cmd, typename ... Ts>
+    void add_line(Ts && ... args) {
+        push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
+    }
+
+    bytecode::const_iterator find_label(string_ptr label) {
+        return std::ranges::find_if(*this, [&](const command_args &line) {
+            return line.command() == opcode::LABEL && line.get_args<opcode::LABEL>() == label;
+        });
+    }
+
+    void add_label(string_ptr label) {
+        if (find_label(label) == end()) {
+            add_line<opcode::LABEL>(label);
+        } else {
+            throw std::runtime_error(fmt::format("Etichetta goto duplicata: {}", *label));
+        }
+    }
+};
 
 #endif

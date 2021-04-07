@@ -10,7 +10,7 @@ private:
     const std::string *m_value;
 
     template<typename U>
-    auto find_string(U && str) {
+    static auto find_string(U && str) {
         auto it = m_data.lower_bound(str);
         if (*it != str) {
             it = m_data.emplace_hint(it, std::forward<U>(str));
@@ -34,6 +34,10 @@ public:
 
     auto operator <=> (const string_ptr &rhs) const {
         return m_value <=> rhs.m_value;
+    }
+
+    bool operator == (const string_ptr &rhs) const {
+        return m_value == rhs.m_value;
     }
 };
 

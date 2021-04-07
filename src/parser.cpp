@@ -13,9 +13,8 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
     m_layout = &layout;
     
     try {
-        m_code.reserve(4096);
         if (intl::valid_language(layout.language_code)) {
-            add_line<opcode::SETLANG>(layout.language_code);
+            m_code.add_line<opcode::SETLANG>(layout.language_code);
         }
         for (auto &box : layout) {
             read_box(box);
@@ -31,7 +30,7 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
             [](auto) {},
             [&](jump_address &label) {
                 if (auto *str = std::get_if<string_ptr>(&label)) {
-                    if (auto label_it = find_label(*str); label_it != m_code.end()) {
+                    if (auto label_it = m_code.find_label(*str); label_it != m_code.end()) {
                         label = ptrdiff_t(label_it - it);
                     } else {
                         throw layout_error(fmt::format("Etichetta sconosciuta: {}", **str));
@@ -39,20 +38,6 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
                 }
             }
         });
-    }
-}
-
-bytecode::const_iterator parser::find_label(string_ptr label) {
-    return std::ranges::find_if(m_code, [&](const command_args &line) {
-        return line.command() == opcode::LABEL && line.get_args<opcode::LABEL>() == label;
-    });
-}
-
-void parser::add_label(std::string label) {
-    if (find_label(label) == m_code.end()) {
-        add_line<opcode::LABEL>(label);
-    } else {
-        throw layout_error(fmt::format("Etichetta goto duplicata: {}", label));
     }
 }
 
@@ -71,7 +56,7 @@ void parser::read_box(const layout_box &box) {
     }
     
     if (m_flags & parser_flags::ADD_COMMENTS && !box.name.empty()) {
-        add_line<opcode::COMMENT>("### " + box.name);
+        m_code.add_line<opcode::COMMENT>("### " + box.name);
     }
     current_box = &box;
 
@@ -81,34 +66,34 @@ void parser::read_box(const layout_box &box) {
     m_lexer.set_script(box.goto_label);
     auto tok_label = m_lexer.next();
     if (tok_label.type == token_type::IDENTIFIER) {
-        add_label(fmt::format("__{}_box_{}", m_parser_id, tok_label.value));
+        m_code.add_label(fmt::format("__{}_box_{}", m_parser_id, tok_label.value));
         m_lexer.require(token_type::END_OF_FILE);
     } else if (tok_label.type != token_type::END_OF_FILE) {
         throw unexpected_token(tok_label, token_type::IDENTIFIER);
     }
 
     if (!(box.flags & box_flags::NOREAD) || box.flags & box_flags::SPACER) {
-        add_line<opcode::NEWBOX>();
+        m_code.add_line<opcode::NEWBOX>();
         if (box.type == box_type::RECTANGLE) {
-            add_line<opcode::PUSHDOUBLE>(box.x);
-            add_line<opcode::MVBOX>(spacer_index::X);
-            add_line<opcode::PUSHDOUBLE>(box.y);
-            add_line<opcode::MVBOX>(spacer_index::Y);
-            add_line<opcode::PUSHDOUBLE>(box.w);
-            add_line<opcode::MVBOX>(spacer_index::WIDTH);
-            add_line<opcode::PUSHDOUBLE>(box.h);
-            add_line<opcode::MVBOX>(spacer_index::HEIGHT);
+            m_code.add_line<opcode::PUSHDOUBLE>(box.x);
+            m_code.add_line<opcode::MVBOX>(spacer_index::X);
+            m_code.add_line<opcode::PUSHDOUBLE>(box.y);
+            m_code.add_line<opcode::MVBOX>(spacer_index::Y);
+            m_code.add_line<opcode::PUSHDOUBLE>(box.w);
+            m_code.add_line<opcode::MVBOX>(spacer_index::WIDTH);
+            m_code.add_line<opcode::PUSHDOUBLE>(box.h);
+            m_code.add_line<opcode::MVBOX>(spacer_index::HEIGHT);
         }
         if (box.type != box_type::WHOLEFILE) {
-            add_line<opcode::PUSHINT>(box.page);
-            add_line<opcode::MVBOX>(spacer_index::PAGE);
+            m_code.add_line<opcode::PUSHINT>(box.page);
+            m_code.add_line<opcode::MVBOX>(spacer_index::PAGE);
         }
     }
     m_content_level = 0;
 
     if (m_flags & parser_flags::ADD_COMMENTS) {
         m_lexer.set_comment_callback([this](const std::string &line){
-            add_line<opcode::COMMENT>(line);
+            m_code.add_line<opcode::COMMENT>(line);
         });
     }
     m_lexer.set_script(box.spacers);
@@ -129,8 +114,8 @@ void parser::read_box(const layout_box &box) {
                     throw unexpected_token(tok_sign, token_type::PLUS);
                 }
                 read_expression();
-                if (negative) add_line<opcode::CALL>("neg", 1);
-                add_line<opcode::MVBOX>(it);
+                if (negative) m_code.add_line<opcode::CALL>("neg", 1);
+                m_code.add_line<opcode::MVBOX>(it);
             } else {
                 throw unexpected_token(tok);
             }
@@ -143,14 +128,14 @@ void parser::read_box(const layout_box &box) {
 
     if (!(box.flags & box_flags::NOREAD || box.flags & box_flags::SPACER)) {
         ++m_content_level;
-        add_line<opcode::RDBOX>(box.mode, box.type, box.flags);
+        m_code.add_line<opcode::RDBOX>(box.mode, box.type, box.flags);
     }
 
     m_lexer.set_script(box.script);
     while (read_statement(false));
 
     if (!(box.flags & box_flags::NOREAD || box.flags & box_flags::SPACER)) {
-        add_line<opcode::POPCONTENT>();
+        m_code.add_line<opcode::POPCONTENT>();
     }
 }
 
@@ -195,26 +180,26 @@ bool parser::read_statement(bool throw_on_eof) {
             if (m_content_level == 0) {
                 throw parsing_error("Stack contenuti vuoto", tok);
             }
-            add_line<opcode::PUSHVIEW>();
+            m_code.add_line<opcode::PUSHVIEW>();
             break;
         }
 
         if (prefixes & variable_prefixes::CAPITALIZE) {
-            add_line<opcode::CALL>("capitalize", 1);
+            m_code.add_line<opcode::CALL>("capitalize", 1);
         }
         if (prefixes & variable_prefixes::AGGREGATE) {
-            add_line<opcode::CALL>("aggregate", 1);
+            m_code.add_line<opcode::CALL>("aggregate", 1);
         } else if (prefixes & variable_prefixes::PARSENUM) {
-            add_line<opcode::CALL>("num", 1);
+            m_code.add_line<opcode::CALL>("num", 1);
         }
         if (prefixes & variable_prefixes::NEGATE) {
-            add_line<opcode::CALL>("neg", 1);
+            m_code.add_line<opcode::CALL>("neg", 1);
         }
         if (prefixes & variable_prefixes::OVERWRITE)  flags |= setvar_flags::OVERWRITE;
         if (prefixes & variable_prefixes::FORCE)      flags |= setvar_flags::FORCE;
 
         std::rotate(m_code.begin() + selvar_begin, m_code.begin() + selvar_end, m_code.end());
-        add_line<opcode::SETVAR>(flags);
+        m_code.add_line<opcode::SETVAR>(flags);
     }
     }
     return true;
@@ -274,7 +259,7 @@ void parser::sub_expression() {
     case token_type::NOT:
         m_lexer.advance(tok_first);
         sub_expression();
-        add_line<opcode::CALL>("not", 1);
+        m_code.add_line<opcode::CALL>("not", 1);
         break;
     case token_type::PLUS: {
         m_lexer.advance(tok_first);
@@ -282,15 +267,15 @@ void parser::sub_expression() {
         switch (tok_num.type) {
         case token_type::INTEGER:
             m_lexer.advance(tok_num);
-            add_line<opcode::PUSHINT>(string_to<int64_t>(tok_num.value));
+            m_code.add_line<opcode::PUSHINT>(string_to<int64_t>(tok_num.value));
             break;
         case token_type::NUMBER:
             m_lexer.advance(tok_num);
-            add_line<opcode::PUSHNUM>(fixed_point(std::string(tok_num.value)));
+            m_code.add_line<opcode::PUSHNUM>(fixed_point(std::string(tok_num.value)));
             break;
         default:
             sub_expression();
-            add_line<opcode::CALL>("num", 1);
+            m_code.add_line<opcode::CALL>("num", 1);
         }
         break;
     }
@@ -300,46 +285,46 @@ void parser::sub_expression() {
         switch (tok_num.type) {
         case token_type::INTEGER:
             m_lexer.advance(tok_num);
-            add_line<opcode::PUSHINT>(-string_to<int64_t>(tok_num.value));
+            m_code.add_line<opcode::PUSHINT>(-string_to<int64_t>(tok_num.value));
             break;
         case token_type::NUMBER:
             m_lexer.advance(tok_num);
-            add_line<opcode::PUSHNUM>(-fixed_point(std::string(tok_num.value)));
+            m_code.add_line<opcode::PUSHNUM>(-fixed_point(std::string(tok_num.value)));
             break;
         default:
             sub_expression();
-            add_line<opcode::CALL>("neg", 1);
+            m_code.add_line<opcode::CALL>("neg", 1);
         }
         break;
     }
     case token_type::INTEGER:
         m_lexer.advance(tok_first);
-        add_line<opcode::PUSHINT>(string_to<int64_t>(tok_first.value));
+        m_code.add_line<opcode::PUSHINT>(string_to<int64_t>(tok_first.value));
         break;
     case token_type::NUMBER:
         m_lexer.advance(tok_first);
-        add_line<opcode::PUSHNUM>(fixed_point(std::string(tok_first.value)));
+        m_code.add_line<opcode::PUSHNUM>(fixed_point(std::string(tok_first.value)));
         break;
     case token_type::SLASH: 
-        add_line<opcode::PUSHSTR>(m_lexer.require(token_type::REGEXP).parse_string());
+        m_code.add_line<opcode::PUSHSTR>(m_lexer.require(token_type::REGEXP).parse_string());
         break;
     case token_type::STRING:
         m_lexer.advance(tok_first);
-        add_line<opcode::PUSHSTR>(tok_first.parse_string());
+        m_code.add_line<opcode::PUSHSTR>(tok_first.parse_string());
         break;
     case token_type::CONTENT:
         m_lexer.advance(tok_first);
         if (m_content_level == 0) {
             throw parsing_error("Stack contenuti vuoto", tok_first);
         }
-        add_line<opcode::PUSHVIEW>();
+        m_code.add_line<opcode::PUSHVIEW>();
         break;
     default: {
         auto prefixes = read_variable(true);
         if (prefixes & variable_prefixes::REF) {
-            add_line<opcode::PUSHREF>();
+            m_code.add_line<opcode::PUSHREF>();
         } else {
-            add_line<opcode::PUSHVAR>();
+            m_code.add_line<opcode::PUSHVAR>();
         }
     }
     }
@@ -348,7 +333,7 @@ void parser::sub_expression() {
 void parser::read_variable_name() {
     bool isglobal = m_lexer.check_next(token_type::GLOBAL);
     auto tok_var = m_lexer.require(token_type::IDENTIFIER);
-    add_line<opcode::SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), isglobal ? flags_t(selvar_flags::GLOBAL) : flags_t(0));
+    m_code.add_line<opcode::SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), isglobal ? flags_t(selvar_flags::GLOBAL) : flags_t(0));
 }
 
 bitset<variable_prefixes> parser::read_variable(bool read_only) {
@@ -430,7 +415,7 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
         m_lexer.require(token_type::BRACKET_END);
     }
 
-    add_line<opcode::SELVAR>(var_idx);
+    m_code.add_line<opcode::SELVAR>(var_idx);
 
     return prefixes;
 }
@@ -445,10 +430,10 @@ void parser::read_function() {
         m_lexer.require(token_type::PAREN_BEGIN);
         read_variable_name();
         m_lexer.require(token_type::PAREN_END);
-        add_line<opcode::GETSIZE>();
+        m_code.add_line<opcode::GETSIZE>();
         if (fun_name == "isset") {
-            add_line<opcode::PUSHINT>(0);
-            add_line<opcode::CALL>("neq", 2);
+            m_code.add_line<opcode::PUSHINT>(0);
+            m_code.add_line<opcode::CALL>("neq", 2);
         }
         break;
     case hash("box"): {
@@ -456,7 +441,7 @@ void parser::read_function() {
         auto tok = m_lexer.require(token_type::IDENTIFIER);
         if (auto spacer = find_spacer_index(tok.value); spacer != static_cast<spacer_index>(-1)) {
             m_lexer.require(token_type::PAREN_END);
-            add_line<opcode::GETBOX>(spacer);
+            m_code.add_line<opcode::GETBOX>(spacer);
         } else {
             throw unexpected_token(tok);
         }
@@ -466,7 +451,7 @@ void parser::read_function() {
         m_lexer.require(token_type::PAREN_BEGIN);
         auto num = string_toint(m_lexer.require(token_type::INTEGER).value);
         m_lexer.require(token_type::PAREN_END);
-        add_line<opcode::PUSHARG>(small_int(num));
+        m_code.add_line<opcode::PUSHARG>(small_int(num));
         break;
     }
     case hash("call"): {
@@ -478,7 +463,7 @@ void parser::read_function() {
             read_expression();
             ++numargs;
         }
-        add_line<opcode::JSRVAL>(fmt::format("__function_{}", tok.value), numargs);
+        m_code.add_line<opcode::JSRVAL>(fmt::format("__function_{}", tok.value), numargs);
         break;
     }
     case hash("ate"):
@@ -486,11 +471,11 @@ void parser::read_function() {
         m_lexer.require(token_type::PAREN_BEGIN);
         m_lexer.require(token_type::PAREN_END);
         if (fun_name == "docpages") {
-            add_line<opcode::DOCPAGES>();
+            m_code.add_line<opcode::DOCPAGES>();
         } else {
-            add_line<opcode::GETBOX>(spacer_index::PAGE);
-            add_line<opcode::DOCPAGES>();
-            add_line<opcode::CALL>("gt", 2);
+            m_code.add_line<opcode::GETBOX>(spacer_index::PAGE);
+            m_code.add_line<opcode::DOCPAGES>();
+            m_code.add_line<opcode::CALL>("gt", 2);
         }
         break;
     default: {
@@ -520,7 +505,7 @@ void parser::read_function() {
         if (num_args < fun.minargs || num_args > fun.maxargs) {
             throw invalid_numargs(std::string(fun_name), fun.minargs, fun.maxargs, tok_fun_name);
         }
-        add_line<opcode::CALL>(it, num_args);
+        m_code.add_line<opcode::CALL>(it, num_args);
     }
     }
 }

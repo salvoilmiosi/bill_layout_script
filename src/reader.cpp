@@ -261,13 +261,13 @@ size_t reader::add_code(bytecode &&new_code) {
     size_t addr = m_code.size();
 
     m_code.reserve(m_code.size() + 1 + new_code.size());
-    m_code.push_back(make_command<opcode::NOP>());
+    m_code.add_line<opcode::NOP>();
 
     std::ranges::move(new_code, std::back_inserter(m_code));
     if (addr == 0) {
-        m_code.push_back(make_command<opcode::HLT>());
+        m_code.add_line<opcode::HLT>();
     } else {
-        m_code.push_back(make_command<opcode::RET>());
+        m_code.add_line<opcode::RET>();
     }
     
     return addr;

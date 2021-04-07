@@ -27,8 +27,8 @@ DEFINE_ENUM_FLAGS(parser_flags,
 )
 
 struct loop_label_pair {
-    std::string continue_label;
-    std::string break_label;
+    string_ptr continue_label;
+    string_ptr break_label;
 };
 
 class invalid_numargs : public parsing_error {
@@ -79,15 +79,6 @@ private:
 
     void read_variable_name();
     bitset<variable_prefixes> read_variable(bool read_only = false);
-
-private:
-    template<opcode Cmd, typename ... Ts>
-    void add_line(Ts && ... args) {
-        m_code.push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
-    }
-
-    bytecode::const_iterator find_label(string_ptr label);
-    void add_label(std::string label);
 
 private:
     static inline int parser_counter = 0;
