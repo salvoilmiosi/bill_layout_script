@@ -154,20 +154,15 @@ void reader::exec_command(const command_args &cmd) {
         return ret;
     };
 
-    auto import_layout = [&](const import_options &args) {
-        std::filesystem::path filename = *args.filename;
-        if (args.flags & import_flags::SETLAYOUT && m_flags & reader_flags::HALT_ON_SETLAYOUT) {
-            m_layouts.push_back(filename);
-            halt();
-        } else if (args.flags & import_flags::NOIMPORT) {
-            if (std::ranges::find(m_layouts, filename) == m_layouts.end()) {
-                m_layouts.push_back(filename);
-            }
-        } else {
-            jsr_address addr{ptrdiff_t(add_layout(filename) - m_program_counter), 0};
-            m_code[m_program_counter] = make_command<opcode::JSR>(addr);
-            jump_subroutine(addr);
-        }
+    auto import_layout = [&](const std::filesystem::path &filename) {
+        jsr_address addr{ptrdiff_t(add_layout(filename) - m_program_counter), 0};
+        m_code[m_program_counter] = make_command<opcode::JSR>(addr);
+        jump_subroutine(addr);
+    };
+
+    auto push_layout = [&](const std::filesystem::path &filename) {
+        m_layouts.push_back(filename);
+        m_code[m_program_counter] = make_command<opcode::NOP>();
     };
 
     switch (cmd.command()) {
@@ -201,7 +196,6 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SPLITVIEW:  m_contents.top().splitview(); break;
     case opcode::NEXTRESULT: m_contents.top().nextresult(); break;
     case opcode::RESETVIEW:  m_contents.top().resetview(); break;
-    case opcode::IMPORT:     import_layout(cmd.get_args<opcode::IMPORT>()); break;
     case opcode::SETLANG:    intl::set_language(cmd.get_args<opcode::SETLANG>()); break;
     case opcode::JMP:        jump_to(cmd.get_args<opcode::JMP>()); break;
     case opcode::JZ:         if(!m_stack.pop().as_bool()) jump_to(cmd.get_args<opcode::JZ>()); break;
@@ -213,13 +207,14 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::WARNING:    m_warnings.push_back(m_stack.pop().as_string()); break;
     case opcode::RET:        jump_return(false); break;
     case opcode::RETVAL:     jump_return(true); break;
+    case opcode::IMPORT:     import_layout(*cmd.get_args<opcode::IMPORT>()); break;
+    case opcode::LAYOUTNAME: push_layout(*cmd.get_args<opcode::LAYOUTNAME>()); break;
+    case opcode::SETLAYOUT:  if (m_flags & reader_flags::HALT_ON_SETLAYOUT) halt(); break;
     case opcode::HLT:        halt(); break;
     }
 }
 
 size_t reader::add_layout(const std::filesystem::path &filename) {
-    m_layouts.push_back(filename);
-
     std::filesystem::path cache_filename = filename;
     cache_filename.replace_extension(".cache");
 
@@ -246,7 +241,7 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
     if (m_flags & reader_flags::USE_CACHE && std::filesystem::exists(cache_filename) && !is_modified(filename)) {
         new_code = binary_bls::read(cache_filename);
         if (m_flags & reader_flags::RECURSIVE && std::ranges::any_of(new_code, [&](const command_args &line) {
-            return line.command() == opcode::IMPORT && is_modified(*line.get_args<opcode::IMPORT>().filename);
+            return line.command() == opcode::LAYOUTNAME && is_modified(*line.get_args<opcode::LAYOUTNAME>());
         })) {
             recompile();
         }

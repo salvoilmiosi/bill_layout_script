@@ -265,31 +265,22 @@ void parser::read_keyword() {
         read_statement();
         m_code.add_line<opcode::RESETVIEW>();
         break;
-    case hash("import"):
-    case hash("setlayout"): {
+    case hash("import"): {
         m_lexer.require(token_type::PAREN_BEGIN);
         auto tok_layout_name = m_lexer.require(token_type::STRING);
         m_lexer.require(token_type::PAREN_END);
         auto imported_file = m_path.parent_path() / (tok_layout_name.parse_string() + ".bls");
-        bitset<import_flags> flags;
-        if (m_flags & parser_flags::RECURSIVE_IMPORTS) {
-            flags |= import_flags::NOIMPORT;
-        }
-        if (fun_name == "setlayout") {
-            flags |= import_flags::SETLAYOUT;
-        }
-        m_code.add_line<opcode::IMPORT>(imported_file.string(), flags);
         if (m_flags & parser_flags::RECURSIVE_IMPORTS) {
             parser imported;
             imported.m_flags = m_flags;
             imported.read_layout(imported_file, layout_box_list::from_file(imported_file));
             auto code_len = m_code.size();
             std::ranges::move(imported.m_code, std::back_inserter(m_code));
-        }
-        if (flags & import_flags::SETLAYOUT) {
-            m_code.add_line<opcode::HLT>();
-        } else if (intl::valid_language(m_layout->language_code)) {
-            m_code.add_line<opcode::SETLANG>(m_layout->language_code);
+        } else {
+            m_code.add_line<opcode::IMPORT>(imported_file.string());
+            if (intl::valid_language(m_layout->language_code)) {
+                m_code.add_line<opcode::SETLANG>(m_layout->language_code);
+            }
         }
         break;
     }

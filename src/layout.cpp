@@ -12,6 +12,9 @@ std::ostream &operator << (std::ostream &output, const layout_box_list &layout) 
     if (intl::valid_language(layout.language_code)) {
         output << fmt::format("### Language {}\n", intl::language_string(layout.language_code));
     }
+    if (layout.setlayout) {
+        output << "### Set Layout\n";
+    }
 
     for (auto &box : layout) {
         output << '\n'
@@ -168,6 +171,8 @@ std::istream &operator >> (std::istream &input, layout_box_list &layout) {
             }
         } else if (auto suf = suffix(line, "### Language")) {
             layout.language_code = intl::language_code(std::string(suf.value));
+        } else if (line == "### Set Layout") {
+            layout.setlayout = true;
         } else if (line.front() != '#') {
             throw layout_error("Token non valido");
         }

@@ -143,20 +143,6 @@ template<> struct binary_io<variable_selector> {
     }
 };
 
-template<> struct binary_io<import_options> {
-    static void write(std::ostream &output, const import_options &opts) {
-        writeData(output, opts.filename);
-        writeData(output, opts.flags);
-    }
-
-    static import_options read(std::istream &input) {
-        import_options opts;
-        opts.filename = readData<string_ptr>(input);
-        opts.flags = readData<uint8_t>(input);
-        return opts;
-    }
-};
-
 template<> struct binary_io<jump_address> {
     static void write(std::ostream &output, const jump_address &label) {
         writeData(output, std::get<ptrdiff_t>(label));

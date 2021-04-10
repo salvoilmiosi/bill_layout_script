@@ -101,10 +101,6 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<intl::
     return out << intl::language_string(args.data);
 }
 
-template<> std::ostream &operator << (std::ostream &out, const print_args<import_options> &args) {
-    return out << print_args(args.data.filename) << ' ' << args.data.flags;
-}
-
 template<> std::ostream &operator << (std::ostream &out, const print_args<jump_address> &label) {
     std::visit(overloaded{
         [&](string_ptr str) {

@@ -67,16 +67,6 @@ struct jsr_address : jump_address {
     small_int numargs;
 };
 
-DEFINE_ENUM_FLAGS(import_flags,
-    (NOIMPORT)
-    (SETLAYOUT)
-)
-
-struct import_options {
-    string_ptr filename;
-    bitset<import_flags> flags;
-};
-
 DEFINE_ENUM_TYPES(opcode,
     (NOP)                           // no operation
     (COMMENT, string_ptr)           // comment
@@ -110,7 +100,6 @@ DEFINE_ENUM_TYPES(opcode,
     (RESETVIEW)                     // content_stack.top.resetview()
     (THROWERROR)                    // stack -> throw
     (WARNING)                       // stack -> warnings
-    (IMPORT, import_options)        // importa il file e lo esegue
     (SETLANG, intl::language)       // imposta la lingua del layout
     (JMP, jump_address)             // unconditional jump
     (JZ, jump_address)              // stack -> jump if top == 0
@@ -120,6 +109,9 @@ DEFINE_ENUM_TYPES(opcode,
     (JSRVAL, jsr_address)           // program_counter -> call_stack -- jump to subroutine
     (RET)                           // jump to call_stack.top
     (RETVAL)                        // return to caller and push value to stack
+    (IMPORT, string_ptr)            // importa il file e lo esegue
+    (LAYOUTNAME, string_ptr)        // aggiunge il nome del layout nella lista di output
+    (SETLAYOUT)                     // ferma l'esecuzione se settata la flag setlayout in reader
     (HLT)                           // ferma l'esecuzione
 )
 

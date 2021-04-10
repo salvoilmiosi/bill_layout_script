@@ -28,6 +28,7 @@ class layout_box_list : public std::list<layout_box> {
 public:
     using base = std::list<layout_box>;
     intl::language language_code{};
+    bool setlayout = false;
 
 public:
     layout_box_list() = default;
@@ -35,6 +36,7 @@ public:
     void clear() {
         base::clear();
         language_code = {};
+        setlayout = false;
     }
 
     auto get_box_iterator(const layout_box *ptr) {

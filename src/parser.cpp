@@ -13,11 +13,18 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
     m_layout = &layout;
     
     try {
+        m_code.add_line<opcode::LAYOUTNAME>(std::filesystem::canonical(path).string());
+        if (layout.setlayout) {
+            m_code.add_line<opcode::SETLAYOUT>();
+        }
         if (intl::valid_language(layout.language_code)) {
             m_code.add_line<opcode::SETLANG>(layout.language_code);
         }
         for (auto &box : layout) {
             read_box(box);
+        }
+        if (layout.setlayout) {
+            m_code.add_line<opcode::HLT>();
         }
     } catch (const parsing_error &error) {
         throw layout_error(fmt::format("{}: {}\n{}",
