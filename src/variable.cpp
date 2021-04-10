@@ -212,7 +212,30 @@ variable variable::operator -() const {
 }
 
 variable variable::operator -(const variable &rhs) const {
-    return *this + (-rhs);
+    return std::visit<variable>(overloaded{
+        [](auto, auto) {
+            return variable();
+        },
+        [&](not_number_t auto, fixed_point num) {
+            return as_number() - num;
+        },
+        [&](not_number_t auto, int64_t num) {
+            return as_int() - num;
+        },
+        [&](not_number_t auto, double num) {
+            return as_double() - num;
+        },
+        [](number_t auto num1, fixed_point num2) {
+            return fixed_point(num1) - num2;
+        },
+        [](number_t auto num1, number_t auto num2) {
+            return num1 - num2;
+        }
+    }, m_value, rhs.m_value);
+}
+
+variable &variable::operator -= (const variable &rhs) {
+    return *this = *this - rhs;
 }
 
 variable variable::operator * (const variable &rhs) const {

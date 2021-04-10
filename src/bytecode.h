@@ -58,6 +58,7 @@ DEFINE_ENUM_FLAGS(setvar_flags,
     (FORCE)
     (OVERWRITE)
     (INCREASE)
+    (DECREASE)
 )
 
 typedef std::variant<ptrdiff_t, string_ptr> jump_address;

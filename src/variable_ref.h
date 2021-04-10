@@ -124,6 +124,10 @@ public:
             std::for_each_n(it, length, [&](auto &var) {
                 var.second += value;
             });
+        } else if (flags & setvar_flags::DECREASE) {
+            std::for_each_n(it, length, [&](auto &var) {
+                var.second -= value;
+            });
         } else {
             for (int n = length; n > 1; ++it, --n) {
                 it->second.assign(value);

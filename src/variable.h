@@ -56,6 +56,7 @@ public:
     void assign(variable &&other);
 
     variable &operator += (const variable &rhs);
+    variable &operator -= (const variable &rhs);
 
     variable operator + (const variable &rhs) const;
     variable operator - () const;

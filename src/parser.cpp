@@ -167,7 +167,7 @@ bool parser::read_statement(bool throw_on_eof) {
         
         switch (tok.type) {
         case token_type::SUB_ASSIGN:
-            prefixes |= variable_prefixes::NEGATE;
+            flags |= setvar_flags::DECREASE;
             [[fallthrough]];
         case token_type::ADD_ASSIGN:
             flags |= setvar_flags::INCREASE;
@@ -191,9 +191,6 @@ bool parser::read_statement(bool throw_on_eof) {
             m_code.add_line<opcode::CALL>("aggregate", 1);
         } else if (prefixes & variable_prefixes::PARSENUM) {
             m_code.add_line<opcode::CALL>("num", 1);
-        }
-        if (prefixes & variable_prefixes::NEGATE) {
-            m_code.add_line<opcode::CALL>("neg", 1);
         }
         if (prefixes & variable_prefixes::OVERWRITE)  flags |= setvar_flags::OVERWRITE;
         if (prefixes & variable_prefixes::FORCE)      flags |= setvar_flags::FORCE;

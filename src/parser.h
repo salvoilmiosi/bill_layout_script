@@ -15,7 +15,6 @@ DEFINE_ENUM_FLAGS(variable_prefixes,
     (OVERWRITE)
     (PARSENUM)
     (AGGREGATE)
-    (NEGATE)
     (CAPITALIZE)
     (REF)
     (FORCE)
