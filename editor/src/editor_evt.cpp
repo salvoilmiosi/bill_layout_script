@@ -13,6 +13,7 @@
 #include "output_dialog.h"
 #include "intl.h"
 #include "reader.h"
+#include "layout_options_dialog.h"
 
 void frame_editor::OnNewFile(wxCommandEvent &evt) {
     if (box_dialog::closeAll() && saveIfModified()) {
@@ -124,35 +125,8 @@ void frame_editor::OpenControlScript(wxCommandEvent &evt) {
     getControlScript(true);
 }
 
-void frame_editor::OnSetLanguage(wxCommandEvent &evt) {
-    static wxArrayString choices;
-    static std::vector<intl::language> lang_codes;
-
-    if (choices.empty()) {
-        choices.push_back("(Seleziona una lingua)");
-        lang_codes.push_back(0);
-        for (int lang = wxLANGUAGE_UNKNOWN + 1; lang != wxLANGUAGE_USER_DEFINED; ++lang) {
-            if (wxLocale::IsAvailable(lang)) {
-                choices.push_back(wxLocale::GetLanguageName(lang));
-                lang_codes.push_back(intl::language(lang));
-            }
-        }
-    }
-
-    wxSingleChoiceDialog diag(this, "Cambia la lingua del layout", "Lingua Layout", choices);
-
-    intl::language lang = layout.language_code;
-    if (!intl::valid_language(lang)) {
-        lang = intl::system_language();
-    }
-    auto selected = std::ranges::find(lang_codes, lang);
-    if (selected != lang_codes.end()) {    
-        diag.SetSelection(selected - lang_codes.begin());
-    }
-
-    if (diag.ShowModal() == wxID_OK) {
-        layout.language_code = lang_codes[diag.GetSelection()];
-    }
+void frame_editor::OnOpenLayoutOptions(wxCommandEvent &evt) {
+    LayoutOptionsDialog(this, &layout).ShowModal();
 }
 
 void frame_editor::OnAutoLayout(wxCommandEvent &evt) {

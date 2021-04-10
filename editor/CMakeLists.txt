@@ -5,6 +5,7 @@ src/clipboard.cpp
 src/editor.cpp
 src/editor_evt.cpp
 src/image_panel.cpp
+src/layout_options_dialog.cpp
 src/main.cpp
 src/output_dialog.cpp
 src/pdf_to_image.cpp
