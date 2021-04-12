@@ -219,7 +219,7 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
     cache_filename.replace_extension(".cache");
 
     auto is_modified = [&](const std::filesystem::path &file) {
-        return std::filesystem::last_write_time(file) > std::filesystem::last_write_time(cache_filename);
+        return std::filesystem::exists(file) && std::filesystem::last_write_time(file) > std::filesystem::last_write_time(cache_filename);
     };
     
     bytecode new_code;

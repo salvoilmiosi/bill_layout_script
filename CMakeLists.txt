@@ -34,18 +34,19 @@ add_library(layout SHARED ${liblayout_SRCS})
 target_link_libraries(layout ${wxWidgets_LIBRARIES} ${FMT_LIBRARIES} ${POPPLER_LIBRARIES})
 
 add_subdirectory(editor)
+add_subdirectory(readergui)
 
 pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 
-add_executable(reader src/main.cpp)
+add_executable(reader main/reader.cpp)
 target_include_directories(reader PRIVATE ${JSONCPP_INCLUDE_DIRS})
 target_link_libraries(reader layout ${JSONCPP_LIBRARIES})
 
-add_executable(blsdump src/blsdump.cpp)
+add_executable(blsdump main/blsdump.cpp)
 target_include_directories(blsdump PRIVATE ${JSONCPP_INCLUDE_DIRS})
 target_link_libraries(blsdump layout ${JSONCPP_LIBRARIES})
 
-add_executable(sizes src/sizes.cpp)
+add_executable(sizes main/sizes.cpp)
 target_link_libraries(sizes layout)
 
 if(WIN32 AND MSYS)
