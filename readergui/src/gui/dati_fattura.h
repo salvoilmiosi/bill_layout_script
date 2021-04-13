@@ -20,61 +20,41 @@ template<> inline wxString to_string(const std::string &value) { return value; }
 template<> inline wxString to_string(const fixed_point &value) { return fixed_point_to_string(value); }
 template<> inline wxString to_string(const wxDateTime &value) { return value.Format("%d/%m/%Y"); }
 
-template<typename T>
+template<typename T, typename Formatter = decltype([](const T&obj) { return to_string(obj); })>
 struct table_value {
     const char *header;
     const char *value;
     int index;
     int column_width = 80;
-    
-    std::function<wxString(const T&)> formatter = to_string<T>;
 };
 
 using string_table_value = table_value<std::string>;
 using number_table_value = table_value<fixed_point>;
 using date_table_value = table_value<wxDateTime>;
 
-struct month_table_value : date_table_value {
-    template<typename ... Ts>
-    month_table_value(Ts && ... args) : date_table_value{std::forward<Ts>(args) ...} {
-        formatter = [](const wxDateTime &value) {
-            return value.Format("%b %Y");
-        };
-    }
-};
+using month_table_value = table_value<wxDateTime, decltype([](const wxDateTime &value) {
+    return value.Format("%b %Y");
+})>;
 
-struct number_unit_table_value : number_table_value {
-    template<typename ... Ts>
-    number_unit_table_value(const wxString &unit, Ts && ... args) : number_table_value{std::forward<Ts>(args) ...} {
-        formatter = [=](const fixed_point &value) {
-            return wxString::Format(L"%s %s", fixed_point_to_string(value), unit);
-        };
-    }
-};
+using percent_table_value = table_value<fixed_point, decltype([](const fixed_point &value) {
+    return fixed_point_to_string(value) + "%";
+})>;
 
-struct percent_table_value : number_table_value {
-    template<typename ... Ts> percent_table_value(Ts && ... args) : number_table_value(std::forward<Ts>(args) ...) {
-        formatter = [](const fixed_point &value) {
-            return fixed_point_to_string(value) + "%";
-        };
-    }
-};
-
-struct euro_table_value : number_unit_table_value {
-    template<typename ... Ts> euro_table_value(Ts && ... args) : number_unit_table_value(L"\u20ac", std::forward<Ts>(args) ...) {}
-};
-struct euro_kwh_table_value : number_unit_table_value {
-    template<typename ... Ts> euro_kwh_table_value(Ts && ... args) : number_unit_table_value(L"\u20ac/kWh", std::forward<Ts>(args) ...) {}
-};
-struct kwh_table_value : number_unit_table_value {
-    template<typename ... Ts> kwh_table_value(Ts && ... args) : number_unit_table_value("kWh", std::forward<Ts>(args) ...) {}
-};
-struct kvar_table_value : number_unit_table_value {
-    template<typename ... Ts> kvar_table_value(Ts && ... args) : number_unit_table_value("kVar", std::forward<Ts>(args) ...) {}
-};
-struct kw_table_value : number_unit_table_value {
-    template<typename ... Ts> kw_table_value(Ts && ... args) : number_unit_table_value("kW", std::forward<Ts>(args) ...) {}
-};
+using euro_table_value = table_value<fixed_point, decltype([](const fixed_point &value) {
+    return wxString::Format(L"%s \u20ac", fixed_point_to_string(value));
+})>;
+using euro_kwh_table_value = table_value<fixed_point, decltype([](const fixed_point &value) {
+    return wxString::Format(L"%s \u20ac/kWh", fixed_point_to_string(value));
+})>;
+using kwh_table_value = table_value<fixed_point, decltype([](const fixed_point &value) {
+    return wxString::Format(L"%s kWh", fixed_point_to_string(value));
+})>;
+using kvar_table_value = table_value<fixed_point, decltype([](const fixed_point &value) {
+    return wxString::Format(L"%s kVar", fixed_point_to_string(value));
+})>;
+using kw_table_value = table_value<fixed_point, decltype([](const fixed_point &value) {
+    return wxString::Format(L"%s kW", fixed_point_to_string(value));
+})>;
 
 struct variable_table_record : std::multimap<std::string, variable> {
     wxString filename;
@@ -140,8 +120,8 @@ public:
         const wxValidator &validator = wxDefaultValidator) :
             DataTableView<variable_table_record>(parent, id, position, size, validator) {
         auto addVariableColumn = overloaded{
-            [&]<typename T>(const table_value<T> &value) {
-                AddColumn<OptionalValueColumn<T, decltype(value.formatter)>>(value.header, value.column_width,
+            [&]<typename T, typename Formatter>(const table_value<T, Formatter> &value) {
+                AddColumn<OptionalValueColumn<T, Formatter>>(value.header, value.column_width,
                 [=](const variable_table_record &map) -> std::optional<T> {
                     auto [lower, upper] = map.equal_range(value.value);
                     if (value.index < std::distance(lower, upper)) {
@@ -151,7 +131,7 @@ public:
                         }
                     }
                     return std::nullopt;
-                }, value.formatter);
+                });
             },
             [&]<typename T, typename TVal>(const member_ptr_value<T, TVal> &value) {
                 AddColumn<T>(value.header, value.column_width, value.value);

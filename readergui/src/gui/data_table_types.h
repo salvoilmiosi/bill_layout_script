@@ -17,12 +17,11 @@ public:
     virtual int CompareTo (const ColumnValueVariantData &other) const = 0;
 };
 
-template<typename T, typename Function> class OptionalValueColumn : public ColumnValueVariantData {
+template<typename T, typename Formatter> class OptionalValueColumn : public ColumnValueVariantData {
 public:
     std::optional<T> m_value;
-    Function formatter;
 
-    OptionalValueColumn(std::optional<T> value, Function formatter) : m_value(std::move(value)), formatter(formatter) {}
+    OptionalValueColumn(std::optional<T> value) : m_value(std::move(value)) {}
 
     virtual bool Eq(wxVariantData &other) const override {
         const auto &obj = dynamic_cast<const OptionalValueColumn &>(other);
@@ -49,7 +48,7 @@ public:
 
     virtual bool Write(wxString &out) const override {
         if (m_value) {
-            out = std::invoke(formatter, m_value.value());
+            out = Formatter{}(m_value.value());
         } else {
             out.Clear();
         }
