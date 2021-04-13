@@ -1,5 +1,6 @@
 set(readergui_SRCS
 src/main.cpp
+src/gui/readergui.cpp
 )
 
 find_package(wxWidgets REQUIRED COMPONENTS core)
