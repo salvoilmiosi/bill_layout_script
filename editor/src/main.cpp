@@ -11,7 +11,8 @@ public:
 private:
     frame_editor *editor;
 
-    std::string filename{};
+    wxString bls_filename;
+    wxString pdf_filename;
 };
 wxIMPLEMENT_APP(MainApp);
 
@@ -24,8 +25,11 @@ bool MainApp::OnInit() {
 
     editor = new frame_editor();
 
-    if (!filename.empty()) {
-        editor->openFile(filename);
+    if (!bls_filename.empty()) {
+        editor->openFile(bls_filename);
+    }
+    if (!pdf_filename.empty()) {
+        editor->loadPdf(pdf_filename);
     }
 
     SetTopWindow(editor);
@@ -34,11 +38,14 @@ bool MainApp::OnInit() {
 
 void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
     parser.AddParam("input-bls", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL);
+    parser.AddOption("p", "input-pdf", "Open PDF File");
 }
 
 bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     if (parser.GetParamCount() >= 1) {
-        filename = parser.GetParam(0).ToStdString();
+        bls_filename = parser.GetParam(0);
     }
+    parser.Found("p", &pdf_filename);
+
     return true;
 }
