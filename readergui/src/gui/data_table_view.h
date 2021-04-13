@@ -2,13 +2,55 @@
 #define __DATA_TABLE_VIEW_H__
 
 #include <wx/dataview.h>
+#include <wx/variant.h>
 
 #include <concepts>
 #include <functional>
 #include <tuple>
 #include <list>
 
-#include "data_table_types.h"
+class ColumnValueVariantData : public wxVariantData {
+public:
+    static constexpr const char *CLASS_NAME = "ColumnValueVariantData";
+
+    virtual wxString GetType() const override { return CLASS_NAME; }
+
+    virtual int CompareTo (const ColumnValueVariantData &other) const = 0;
+};
+
+template<typename T, typename Formatter> class OptionalValueColumn : public ColumnValueVariantData {
+public:
+    std::optional<T> m_value;
+
+    OptionalValueColumn(std::optional<T> value) : m_value(std::move(value)) {}
+
+    virtual bool Eq(wxVariantData &other) const override {
+        const auto &obj = dynamic_cast<const OptionalValueColumn &>(other);
+        return m_value == obj.m_value;
+    }
+
+    virtual int CompareTo(const ColumnValueVariantData &other) const override {
+        auto cmp = [](const std::optional<T> &lhs, const std::optional<T> &rhs) {
+            if (bool(lhs) && bool(rhs)) {
+                return *lhs <=> *rhs;
+            } else {
+                return bool(lhs) <=> bool(rhs);
+            }
+        }(m_value, dynamic_cast<const OptionalValueColumn &>(other).m_value);
+        if (std::is_lt(cmp)) return -1;
+        if (std::is_gt(cmp)) return 1;
+        return 0;
+    }
+
+    virtual bool Write(wxString &out) const override {
+        if (m_value) {
+            out = Formatter{}(m_value.value());
+        } else {
+            out.Clear();
+        }
+        return true;
+    }
+};
 
 class DataTableModel : public wxDataViewListStore {
 protected:
@@ -56,7 +98,13 @@ public:
         DataTableColumnBase<T>(title, VariantType<Value>::value, col, width), member_ptrs(member_ptrs ...) {}
     
     virtual wxVariant constructVariant(const T &obj) {
-        return constructVariantImpl(obj, std::make_index_sequence<sizeof...(Ts)>{});
+        return [&]<size_t ... Is>(std::index_sequence<Is...>) {
+            if constexpr(std::is_base_of_v<wxVariantData, Value>) {
+                return new Value(getParameter(obj, std::get<Is>(member_ptrs)) ...);
+            } else {
+                return Value(getParameter(obj, std::get<Is>(member_ptrs)) ...);
+            }
+        }(std::make_index_sequence<sizeof...(Ts)>{});
     }
 
 private:
@@ -68,15 +116,6 @@ private:
             return std::invoke(param, obj);
         } else {
             return param;
-        }
-    }
-
-    template<size_t ... I>
-    wxVariant constructVariantImpl(const T &obj, std::index_sequence<I ...>) {
-        if constexpr(std::is_base_of_v<wxVariantData, Value>) {
-            return new Value(getParameter(obj, std::get<I>(member_ptrs)) ...);
-        } else {
-            return Value(getParameter(obj, std::get<I>(member_ptrs)) ...);
         }
     }
 };

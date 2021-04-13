@@ -112,10 +112,6 @@ bool variable::is_number() const {
     }, m_value);
 }
 
-inline auto operator <=> (const wxDateTime &lhs, const wxDateTime &rhs) {
-    return lhs.GetTicks() <=> rhs.GetTicks();
-}
-
 std::partial_ordering variable::operator <=> (const variable &other) const {
     return std::visit<std::partial_ordering>(overloaded{
         [&](string_t auto, string_t auto)           { return as_view() <=> other.as_view(); },

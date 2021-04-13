@@ -1,6 +1,8 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
+#include <wx/datetime.h>
+
 #include <string>
 #include <algorithm>
 #include <charconv>
@@ -97,6 +99,14 @@ constexpr int string_toint(std::string_view str) {
 template<typename T> requires std::is_arithmetic_v<T>
 std::string num_tostring(T num) {
     return fmt::format("{}", num);
+}
+
+inline auto operator <=> (const wxLongLong &lhs, const wxLongLong &rhs) {
+    return lhs.GetValue() <=> rhs.GetValue();
+}
+
+inline auto operator <=> (const wxDateTime &lhs, const wxDateTime &rhs) {
+    return lhs.GetValue() <=> rhs.GetValue();
 }
 
 #endif

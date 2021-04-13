@@ -47,7 +47,7 @@ ReaderGui::ReaderGui() : wxFrame(nullptr, wxID_ANY, "Reader GUI", wxDefaultPosit
         thread->Run();
     }
 
-    std::filesystem::recursive_directory_iterator it("C:/dev/layoutbolletta/work/fatture");
+    std::filesystem::recursive_directory_iterator it("C:/dev/layoutbolletta/work/fatture/massaro");
     for (const auto &path : it) {
         const auto &filename = path.path();
         if (std::filesystem::is_regular_file(filename) && filename.extension() == ".pdf") {
