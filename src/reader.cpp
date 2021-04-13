@@ -8,14 +8,13 @@
 
 void reader::clear() {
     m_code.clear();
-    m_values.clear();
-    m_warnings.clear();
-    m_layouts.clear();
-    m_table_index = 0;
     m_flags = 0;
 }
 
 void reader::start() {
+    m_values.clear();
+    m_warnings.clear();
+    m_layouts.clear();
     m_stack.clear();
     m_contents.clear();
 
@@ -23,6 +22,7 @@ void reader::start() {
     m_current_box = {};
 
     m_program_counter = 0;
+    m_table_index = 0;
 
     m_running = true;
 
@@ -31,7 +31,6 @@ void reader::start() {
         ++m_program_counter;
     }
     
-    intl::reset_language();
     m_running = false;
 }
 

@@ -1,4 +1,5 @@
 #include <wx/app.h>
+#include <wx/intl.h>
 
 #include "gui/readergui.h"
 
@@ -8,6 +9,8 @@ public:
 
 private:
     ReaderGui *main_gui;
+
+    wxLocale locale{wxLANGUAGE_ITALIAN};
 };
 wxIMPLEMENT_APP(MainApp);
 

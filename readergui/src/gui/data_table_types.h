@@ -17,21 +17,12 @@ public:
     virtual int CompareTo (const ColumnValueVariantData &other) const = 0;
 };
 
-template<typename T> wxString to_string(const T &value) {
-    std::ostringstream ss;
-    ss << value;
-    return ss.str();
-}
-
-template<> wxString to_string(const std::string &value) { return value; }
-template<> wxString to_string(const fixed_point &value) { return fixed_point_to_string(value); }
-template<> wxString to_string(const wxDateTime &value) { return value.Format("%d/%M/%Y"); }
-
-template<typename T> class OptionalValueColumn : public ColumnValueVariantData {
+template<typename T, typename Function> class OptionalValueColumn : public ColumnValueVariantData {
 public:
     std::optional<T> m_value;
+    Function formatter;
 
-    OptionalValueColumn(std::optional<T> value) : m_value(std::move(value)) {}
+    OptionalValueColumn(std::optional<T> value, Function formatter) : m_value(std::move(value)), formatter(formatter) {}
 
     virtual bool Eq(wxVariantData &other) const override {
         const auto &obj = dynamic_cast<const OptionalValueColumn &>(other);
@@ -58,7 +49,7 @@ public:
 
     virtual bool Write(wxString &out) const override {
         if (m_value) {
-            out = to_string(m_value.value());
+            out = std::invoke(formatter, m_value.value());
         } else {
             out.Clear();
         }

@@ -6,6 +6,7 @@
 #include <concepts>
 #include <functional>
 #include <tuple>
+#include <list>
 
 #include "data_table_types.h"
 
@@ -97,25 +98,19 @@ public:
         AppendColumn(new DataTableColumn<T, ColumnValue, Ts...>(label, GetColumnCount(), width, objs...));
     }
 
-    size_t ResetItems(const wxVector<T> &items) {
-        DeleteAllItems();
+    void AddItem(T item) {
+        auto &obj = m_data.emplace_back(std::move(item));
 
-        m_data = items;
-
-        for (const T &obj : m_data) {
-            wxVector<wxVariant> row;
-            for (size_t i=0; i<GetColumnCount(); ++i) {
-                auto *col = dynamic_cast<DataTableColumnBase<T>*>(GetColumn(i));
-                if (col) {
-                    row.push_back(col->constructVariant(obj));
-                } else {
-                    row.push_back(wxVariant());
-                }
+        wxVector<wxVariant> row;
+        for (size_t i=0; i<GetColumnCount(); ++i) {
+            auto *col = dynamic_cast<DataTableColumnBase<T>*>(GetColumn(i));
+            if (col) {
+                row.push_back(col->constructVariant(obj));
+            } else {
+                row.push_back(wxVariant());
             }
-            AppendItem(row, reinterpret_cast<wxUIntPtr>(&obj));
         }
-
-        return m_data.size();
+        AppendItem(row, reinterpret_cast<wxUIntPtr>(&obj));
     }
 
     virtual T *GetDataAt(unsigned int n) const {
@@ -138,12 +133,8 @@ public:
         return wxDataViewListCtrl::SelectRow(n);
     }
 
-    const wxVector<T> &GetDataVector() {
-        return m_data;
-    }
-
 private:
-    wxVector<T> m_data;
+    std::list<T> m_data;
 };
 
 #endif
