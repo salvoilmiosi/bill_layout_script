@@ -70,6 +70,7 @@ struct member_ptr_value {
 
 static inline std::tuple dati_fattura {
     member_ptr_value    {"Nome File",               &variable_table_record::filename},
+    member_ptr_value    {"Status",                  &variable_table_record::status},
     string_table_value  {"Ragione Sociale",         "ragione_sociale"},
     string_table_value  {"Indirizzo Fornitura",     "indirizzo_fornitura"},
     string_table_value  {"POD",                     "codice_pod"},
@@ -114,6 +115,12 @@ template<> inline std::string variable_to(const variable &var) { return var.as_s
 template<> inline fixed_point variable_to(const variable &var) { return var.as_number(); }
 template<> inline wxDateTime variable_to(const variable &var) { return var.as_date(); }
 
+struct reader_output {
+    variable_map values;
+    std::filesystem::path filename;
+    std::vector<std::string> warnings;
+};
+
 class VariableMapTable : public DataTableView<variable_table_record> {
 public:
     VariableMapTable(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &position = wxDefaultPosition, const wxSize &size = wxDefaultSize,
@@ -142,21 +149,22 @@ public:
         }(std::make_index_sequence<std::tuple_size_v<decltype(dati_fattura)>>{});
     }
 
-    void AddReaderValues(const wxString &path, const variable_map &values) {
+    void AddReaderValues(const reader_output &data) {
         variable_table_record current;
-        current.filename = path;
+        current.filename = data.filename.string();
+        current.status = string_join(data.warnings, "; ");
         size_t table_idx = 0;
-        for (const auto &[key, value] : values) {
+        for (const auto &[key, value] : data.values) {
             if (key.table_index == variable_key::global_index) continue;
 
             current.emplace(key.name, value);
             if (key.table_index != table_idx) {
-                AddItem(std::move(current));
+                AddItem(current);
                 current.clear();
                 table_idx = key.table_index;
             }
         }
-        AddItem(std::move(current));
+        AddItem(current);
     }
 };
 

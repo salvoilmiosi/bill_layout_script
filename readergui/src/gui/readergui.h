@@ -7,21 +7,14 @@
     #include <wx/wx.h>
 #endif
 
+#include <wx/config.h>
+
 #include "dati_fattura.h"
 #include "safe_queue.h"
 
-typedef SafeQueue<std::filesystem::path> file_queue;
-
-class ReaderThread : public wxThread {
-public:
-    ReaderThread(wxEvtHandler *parent, file_queue *queue) : parent(parent), m_queue(queue) {}
-
-protected:
-    file_queue *m_queue;
-    wxEvtHandler *parent;
-    
-    virtual ExitCode Entry() override;
-};
+#include <memory>
+#include <array>
+#include <atomic>
 
 class ReaderGui : public wxFrame {
 public:
@@ -32,12 +25,22 @@ private:
     DECLARE_EVENT_TABLE()
 
     VariableMapTable *m_table;
+    wxConfig *m_config;
     
-    file_queue m_queue;
+    safe_queue<std::filesystem::path> m_queue;
 
-    ReaderThread *m_threads[4];
+    std::array<wxThread*, 4> m_threads{nullptr};
+    std::atomic<bool> m_running;
 
     void OnReadCompleted(wxThreadEvent &evt);
+
+    void OnOpenFolder(wxCommandEvent &evt);
+    void OnSetScript(wxCommandEvent &evt);
+
+    void startReaderThreads();
+    std::filesystem::path getControlScript(bool open_dialog = false);
+
+    friend class ReaderThread;
 };
 
 #endif
