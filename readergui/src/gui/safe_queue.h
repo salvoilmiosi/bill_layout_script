@@ -6,6 +6,7 @@
 #include <queue>
 
 // A threadsafe-queue.
+struct queue_timeout {};
 template <typename T>
 class safe_queue {
 public:
@@ -25,7 +26,7 @@ public:
         while (q.empty()) {
             // release lock as long as the wait and reaquire it afterwards.
             c.wait_for(lock, 4s);
-            throw std::runtime_error("Timeout");
+            throw queue_timeout{};
         }
         T val = q.front();
         q.pop();

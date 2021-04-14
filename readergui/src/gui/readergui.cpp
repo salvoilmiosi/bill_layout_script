@@ -24,18 +24,30 @@ class ReaderThread : public wxThread {
 public:
     ReaderThread(ReaderGui *parent) : wxThread(wxTHREAD_JOINABLE), parent(parent) {}
 
+    void skip_once() {
+        m_halted = m_reader.is_running();
+        m_reader.halt();
+    }
+
     void recompile() {
-        my_reader.halt();
-        my_reader.clear();
-        my_reader.add_flags(reader_flags::RECURSIVE);
-        my_reader.add_layout(parent->getControlScript());
+        skip_once();
+        m_reader.clear();
+        m_reader.add_flags(reader_flags::RECURSIVE);
+        m_reader.add_layout(parent->getControlScript());
+    }
+private:
+    ReaderGui *parent;
+
+    reader m_reader;
+    std::atomic<bool> m_halted = false;
+
+    void queue_reader_output(const reader_output &obj) {
+        auto evt = new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE);
+        evt->SetPayload(obj);
+        wxQueueEvent(parent, evt);
     }
 
 protected:
-    ReaderGui *parent;
-
-    reader my_reader;
-    
     virtual ExitCode Entry() override {
         recompile();
 
@@ -43,25 +55,21 @@ protected:
             pdf_document doc;
             try {
                 doc.open(parent->m_queue.dequeue());
-                my_reader.set_document(doc);
-                my_reader.start();
+                m_reader.set_document(doc);
+                m_reader.start();
 
-                auto evt = new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE);
-                evt->SetPayload(reader_output{
-                    my_reader.get_values(),
-                    doc.filename(),
-                    my_reader.get_warnings()
-                });
-                wxQueueEvent(parent, evt);
+                if (m_halted) {
+                    m_halted = false;
+                } else {
+                    queue_reader_output({m_reader.get_values(), doc.filename(), m_reader.get_warnings()});
+                }
+            } catch (queue_timeout) {
+                // ignore
             } catch (const layout_error &error) {
-                auto evt = new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE);
-                evt->SetPayload(reader_output{
-                    {},
-                    doc.filename(),
-                    {error.what()}
-                });
-                wxQueueEvent(parent, evt);
-            } catch (...) {}
+                queue_reader_output({{}, doc.filename(), {error.what()}});
+            } catch (...) {
+                queue_reader_output({{}, doc.filename(), {"Errore sconosciuto"}});
+            }
         }
 
         return 0;
@@ -80,12 +88,7 @@ ReaderGui::ReaderGui() : wxFrame(nullptr, wxID_ANY, "Reader GUI", wxDefaultPosit
     menu_bar->Append(menu_reader, "Reader");
     SetMenuBar(menu_bar);
 
-    wxBoxSizer *top_level = new wxBoxSizer(wxVERTICAL);
-
     m_table = new VariableMapTable(this);
-    top_level->Add(m_table, 1, wxEXPAND | wxALL, 5);
-
-    SetSizer(top_level);
     Show();
 
     Connect(wxEVT_COMMAND_READ_COMPLETE, wxThreadEventHandler(ReaderGui::OnReadCompleted));
@@ -110,6 +113,9 @@ void ReaderGui::OnOpenFolder(wxCommandEvent &evt) {
     if (diag.ShowModal() == wxID_OK) {
         m_table->DeleteAllItems();
         m_queue.clear();
+        for (auto &thread : m_threads) {
+            dynamic_cast<ReaderThread *>(thread)->skip_once();
+        }
         std::filesystem::recursive_directory_iterator it(diag.GetPath().ToStdString());
         for (const auto &path : it) {
             const auto &filename = path.path();
