@@ -28,6 +28,7 @@ private:
     wxConfig *m_config;
     
     safe_queue<std::filesystem::path> m_queue;
+    std::filesystem::path m_selected_dir;
 
     std::array<wxThread*, 4> m_threads{nullptr};
     std::atomic<bool> m_running;
@@ -36,9 +37,10 @@ private:
 
     void OnOpenFolder(wxCommandEvent &evt);
     void OnSetScript(wxCommandEvent &evt);
+    void OnRestart(wxCommandEvent &evt);
 
-    void startReaderThreads();
-    std::filesystem::path getControlScript(bool open_dialog = false);
+    void setDirectory(const std::filesystem::path &path);
+    std::pair<std::filesystem::path, bool> getControlScript(bool open_dialog = false);
 
     friend class ReaderThread;
 };

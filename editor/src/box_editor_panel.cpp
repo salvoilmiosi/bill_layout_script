@@ -220,7 +220,7 @@ void box_editor_panel::OnMouseUp(wxMouseEvent &evt) {
                     box.mode = static_cast<read_mode>(diag.GetSelection());
                     box.rotate(app->getBoxRotation());
                     std::string text = app->getPdfDocument().get_text(box);
-                    info_dialog->ShowText(wxString(text.c_str(), wxConvUTF8));
+                    info_dialog->ShowText(wxString::FromUTF8(text.c_str()));
                 }
                 break;
             }

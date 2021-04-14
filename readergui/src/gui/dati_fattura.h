@@ -16,7 +16,7 @@ template<typename T> inline wxString to_string(const T &value) {
     return ss.str();
 }
 
-template<> inline wxString to_string(const std::string &value) { return value; }
+template<> inline wxString to_string(const wxString &value) { return value; }
 template<> inline wxString to_string(const fixed_point &value) { return fixed_point_to_string(value); }
 template<> inline wxString to_string(const wxDateTime &value) { return value.Format("%d/%m/%Y"); }
 
@@ -28,7 +28,7 @@ struct table_value {
     int column_width = 80;
 };
 
-using string_table_value = table_value<std::string>;
+using string_table_value = table_value<wxString>;
 using number_table_value = table_value<fixed_point>;
 using date_table_value = table_value<wxDateTime>;
 
@@ -111,7 +111,7 @@ static inline std::tuple dati_fattura {
 };
 
 template<typename T> inline T variable_to(const variable &var) = delete;
-template<> inline std::string variable_to(const variable &var) { return var.as_string(); }
+template<> inline wxString variable_to(const variable &var) { return wxString::FromUTF8(var.as_string().c_str()); }
 template<> inline fixed_point variable_to(const variable &var) { return var.as_number(); }
 template<> inline wxDateTime variable_to(const variable &var) { return var.as_date(); }
 
@@ -151,8 +151,9 @@ public:
 
     void AddReaderValues(const reader_output &data) {
         variable_table_record current;
-        current.filename = data.filename.string();
-        current.status = string_join(data.warnings, "; ");
+        current.filename = wxString::FromUTF8(data.filename.string().c_str());
+        std::string str = string_join(data.warnings, "; ");
+        current.status = wxString::FromUTF8(str.c_str());
         size_t table_idx = 0;
         for (const auto &[key, value] : data.values) {
             if (key.table_index == variable_key::global_index) continue;

@@ -18,6 +18,12 @@ public:
     virtual int CompareTo (const ColumnValueVariantData &other) const = 0;
 };
 
+inline auto operator <=> (const wxString &lhs, const wxString &rhs) {
+    if (lhs < rhs) return std::strong_ordering::less;
+    if (lhs > rhs) return std::strong_ordering::greater;
+    return std::strong_ordering::equal;
+}
+
 template<typename T, typename Formatter> class OptionalValueColumn : public ColumnValueVariantData {
 public:
     std::optional<T> m_value;

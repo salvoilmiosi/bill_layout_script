@@ -111,14 +111,14 @@ wxThread::ExitCode reader_thread::Entry() {
             if (!m_reader.get_warnings().empty()) {
                 auto *evt = new wxThreadEvent(wxEVT_COMMAND_LAYOUT_ERROR);
                 std::string warnings = string_join(m_reader.get_warnings(), "\n\n");
-                evt->SetString(wxString(warnings.c_str(), wxConvUTF8));
+                evt->SetString(wxString::FromUTF8(warnings.c_str()));
                 wxQueueEvent(parent, evt);
             }
             return (wxThread::ExitCode) 0;
         }
     } catch (const std::exception &error) {
         auto *evt = new wxThreadEvent(wxEVT_COMMAND_LAYOUT_ERROR);
-        evt->SetString(wxString(error.what(), wxConvUTF8));
+        evt->SetString(wxString::FromUTF8(error.what()));
         wxQueueEvent(parent, evt);
     }
     return (wxThread::ExitCode) 1;
@@ -189,7 +189,7 @@ void output_dialog::updateItems() {
             if (old_name != key.name) {
                 m_list_ctrl->SetItem(n, col_name, key.name);
             }
-            m_list_ctrl->SetItem(n, col_value, wxString(var.as_string().c_str(), wxConvUTF8));
+            m_list_ctrl->SetItem(n, col_value, wxString::FromUTF8(var.as_string().c_str()));
             old_name = key.name;
             ++n;
         }
