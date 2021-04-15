@@ -157,6 +157,7 @@ public:
         size_t table_idx = 0;
         for (const auto &[key, value] : data.values) {
             if (key.table_index == variable_key::global_index) continue;
+            if (key.name.front() == '_') continue;
 
             current.emplace(key.name, value);
             if (key.table_index != table_idx) {

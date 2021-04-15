@@ -139,7 +139,7 @@ static std::string &string_capitalize(std::string &str) {
 }
 
 // cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
-static variable search_regex(const std::string &regex, std::string_view value, size_t index) {
+static variable search_regex(std::string_view value, const std::string &regex, size_t index) {
     std::cmatch match;
     if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return variable();
     return match.str(index);
@@ -150,14 +150,14 @@ static auto match_to_view = std::views::transform([](const std::csub_match &m) {
 });
 
 // cerca la regex in str e ritorna tutti i capture del primo valore trovato
-static variable search_regex_captures(const std::string &regex, std::string_view value) {
+static variable search_regex_captures(std::string_view value, const std::string &regex) {
     std::cmatch match;
     if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return variable();
     return string_join(match | std::views::drop(1) | match_to_view, UNIT_SEPARATOR);
 }
 
 // cerca la regex in str e ritorna i valori trovati
-static std::string search_regex_matches(const std::string &regex, std::string_view value, size_t index) {
+static std::string search_regex_all(std::string_view value, const std::string &regex, size_t index) {
     auto reg = create_regex(regex);
     return string_join(
         std::ranges::subrange(
@@ -262,7 +262,7 @@ static variable search_date(std::string_view value, const std::string &format, s
         string_replace(regex, "\\D", date_regex(format));
     }
 
-    if (auto search_res = search_regex(regex, value, index); !search_res.is_null()) {
+    if (auto search_res = search_regex(value, regex, index); !search_res.is_null()) {
         wxDateTime date;
         wxString::const_iterator end;
         if (date.ParseFormat(search_res.as_string(), format, wxDateTime(time_t(0)), &end)) {
@@ -336,13 +336,16 @@ const function_map function_lookup {
         return table_row(row, indices);
     }},
     {"search", [](std::string_view str, const std::string &regex, optional_size<1> index) {
-        return search_regex(regex, str, index);
+        return search_regex(str, regex, index);
     }},
-    {"matches", [](std::string_view str, const std::string &regex, optional_size<1> index) {
-        return search_regex_matches(regex, str, index);
+    {"search_all", [](std::string_view str, const std::string &regex, optional_size<1> index) {
+        return search_regex_all(str, regex, index);
     }},
     {"captures", [](std::string_view str, const std::string &regex) {
-        return search_regex_captures(regex, str);
+        return search_regex_captures(str, regex);
+    }},
+    {"matches", [](std::string_view str, const std::string &regex) {
+        return std::regex_match(str.begin(), str.end(), create_regex(regex));
     }},
     {"replace", [](std::string &&str, std::string_view from, std::string_view to) {
         return string_replace(str, from, to);
