@@ -172,7 +172,7 @@ $setend($indexof(@,"\n"))
 $newview {
   $setbegin($min($indexof(@,"Consumi rilevati\n"),$indexof(@,"Dettaglio dei consumi")))
   $setend($indexof(@,"INFORMAZIONI PER I CLIENTI"))
-  _table_fmt=$table_header($search(@,/(.+F1.+)/),/F1/,/F2/,/F3/,/F1/,/F2/,/F3/,/F1 F2 F3/,/F1/,/F2/,/F3/)
+  _table_fmt=$table_header(@,/F1/,/F2/,/F3/,/F1/,/F2/,/F3/,/F1 F2 F3/,/F1/,/F2/,/F3/)
   $step($table_row(
     $search(@,$format(/dal \d\d\.\d\d\.\d\d\d\d\n(.+) al \d\d\.$0/,
       $date_format(mese_fattura,"%m\\.%Y"))),_table_fmt)) {

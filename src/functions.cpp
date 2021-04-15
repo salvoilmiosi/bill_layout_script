@@ -167,18 +167,25 @@ static std::string search_regex_matches(const std::string &regex, std::string_vi
 }
 
 template<std::ranges::input_range R>
-static std::string table_header(std::string_view header, R &&names) {
-    return string_join(names
-        | std::views::transform([&, pos = header.begin()](std::string_view name) mutable {
+static std::string table_header(std::string_view value, R &&labels) {
+    std::cmatch header_match;
+    std::regex header_regex(fmt::format(".*{}.*", string_join(labels, ".*"), std::regex::icase));
+    if (!std::regex_search(value.begin(), value.end(), header_match, header_regex)) {
+        return std::string();
+    }
+    auto header_begin = header_match[0].first;
+    auto header_end = header_match[0].second;
+    return string_join(labels
+        | std::views::transform([&, pos = header_begin](std::string_view label) mutable {
             std::cmatch match;
-            if (std::regex_search(pos, header.end(), match, std::regex(name.begin(), name.end(), std::regex::icase))) {
+            if (std::regex_search(pos, header_end, match, std::regex(label.begin(), label.end(), std::regex::icase))) {
                 auto match_begin = match[0].first;
                 auto match_end = match[0].second;
-                pos = std::find_if_not(match_end, header.end(), isspace);
-                if (pos == header.end()) {
-                    return fmt::format("{}:-1", match_begin - header.begin());
+                pos = std::find_if_not(match_end, header_end, isspace);
+                if (pos == header_end) {
+                    return fmt::format("{}:-1", match_begin - header_begin);
                 } else {
-                    return fmt::format("{}:{}", match_begin - header.begin(), pos - match_begin);
+                    return fmt::format("{}:{}", match_begin - header_begin, pos - match_begin);
                 }
             } else {
                 return std::string();
@@ -322,8 +329,8 @@ const function_map function_lookup {
             return variable();
         }
     }},
-    {"table_header", [](std::string_view header, varargs<std::string_view> names) {
-        return table_header(header, names);
+    {"table_header", [](std::string_view header, varargs<std::string_view> labels) {
+        return table_header(header, labels);
     }},
     {"table_row", [](std::string_view row, std::string_view indices) {
         return table_row(row, indices);
