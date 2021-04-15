@@ -29,7 +29,7 @@ for k,v in clienti['clients'].items():
                 pattern = v['pods'][pod]['filename']
             else:
                 pattern = v['filename']
-            filename /= pattern.replace('%pod%', pod).replace('%year%', '{:04}'.format(mese_fattura.year)).replace('%month%', '{:02}'.format(mese_fattura.month))
+            filename /= pattern.replace('%filename%',Path(file_from).stem).replace('%pod%', pod).replace('%year%', '{:04}'.format(mese_fattura.year)).replace('%month%', '{:02}'.format(mese_fattura.month))
             if not filename.exists():
                 print(file_from, filename)
                 os.makedirs(os.path.dirname(filename), exist_ok=True)

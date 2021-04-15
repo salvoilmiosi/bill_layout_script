@@ -5,7 +5,7 @@
 ### Box Nome Fornitore
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags NOREAD
+### Flags NOREAD 
 ### Page 1
 ### Rect 0.038709678 0.050171036 0.33225808 0.07639681
 ### Goto Label nome_fornitore
@@ -60,7 +60,7 @@ iva=$search(@,/IVA (\N%)/)
 ### End Script
 ### End Box
 
-### Box Dati Fornitura
+### Box Indirizzo Fornitura
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 3
@@ -70,13 +70,13 @@ iva=$search(@,/IVA (\N%)/)
 ### End Script
 ### End Box
 
-### Box Caratteristiche Tecniche
+### Box POD / Potenza
 ### Type RECTANGLE
 ### Mode LAYOUT
 ### Page 3
-### Rect 0.50537634 0.13593157 0.4408602 0.24239543
+### Rect 0.5039354178097982 0.08221476510067115 0.4408602 0.2961122348993288
 ### Script
-codice_pod=$search(@,/Cod\. POD punto prelievo: (\w+)/)
+codice_pod=$search(@,/NUMERO POD: (\w+)/)
 %potenza[0:3]=$search(@,/Potenza impegnata: (\N) kW/)
 ### End Script
 ### End Box
