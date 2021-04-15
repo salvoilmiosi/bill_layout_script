@@ -18,8 +18,6 @@
 #include "reader.h"
 #include "layout.h"
 
-static constexpr size_t THREAD_COUNT = 4;
-
 class ReaderThread : public wxThread {
 public:
     ReaderThread(class ReaderGui *parent);
@@ -53,7 +51,7 @@ private:
     std::filesystem::path m_selected_dir;
 
     safe_queue<std::filesystem::path> m_queue;
-    std::array<ReaderThread *, THREAD_COUNT> m_threads{nullptr};
+    std::array<ReaderThread *, 16> m_threads{nullptr};
 
     void OnReadCompleted(wxThreadEvent &evt);
 

@@ -42,10 +42,9 @@ wxThread::ExitCode ReaderThread::Entry() {
     };
 
     while (m_running && ! parent->m_queue.empty()) {
-        pdf_document doc;
         std::filesystem::path relative_path;
         try {
-            doc.open(parent->m_queue.dequeue());
+            pdf_document doc(parent->m_queue.dequeue());
             relative_path = std::filesystem::relative(doc.filename(), parent->m_selected_dir);
             m_reader.set_document(doc);
             m_reader.start();
@@ -113,15 +112,14 @@ void ReaderGui::setDirectory(const std::filesystem::path &path) {
 
     m_table->DeleteAllItems();
     m_queue.clear();
-    std::filesystem::recursive_directory_iterator it(path);
-    for (const auto &path : it) {
+    for (const auto &path : std::filesystem::recursive_directory_iterator(path)) {
         const auto &filename = path.path();
         if (std::filesystem::is_regular_file(filename) && filename.extension() == ".pdf") {
             m_queue.enqueue(filename);
         }
     }
 
-    for (size_t i=0; i < std::min(m_threads.size(), m_queue.size()); ++i) {
+    for (size_t i=0; i < std::min({m_threads.size(), m_queue.size(), size_t(wxThread::GetCPUCount())}); ++i) {
         auto &t = m_threads[i];
         t = new ReaderThread(this);
         t->start();
