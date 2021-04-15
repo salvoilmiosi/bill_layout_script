@@ -5,7 +5,7 @@
 ### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags TRIM
+### Flags TRIM 
 ### Page 1
 ### Rect 0.78485096 0.023945268 0.20306204 0.07639681
 ### Goto Label check_convalida
@@ -25,7 +25,7 @@ $if($ate()) {
 ### Box Nome Fornitore
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags NOREAD
+### Flags NOREAD 
 ### Page 1
 ### Rect 0.020967742 0.021664767 0.23548387 0.069555305
 ### Goto Label nome_fornitore
@@ -127,9 +127,9 @@ p+::next_page
 ### Script
 $between("CONSUMI E LETTURE","Consumi fatturati negli ultimi 12 mesi") {
   $step($table_row($search(@,$format(/(.+ - \d\d\.$0.+)/,_mese)),
-    $table_header(@,/Periodo/,/Consumi fatturati kWh/,/Energia Reattiva/))) {
+    $table_header(@,/Periodo \(dal - al\)/,/(?:Consumi fatturati kWh)?/,/(?:Energia Reattiva)?/))) {
     $skip()
-	  $step($captures(@,/(\N)(?: (\N) (\N))?/)) {
+    $step($captures(@,/(\N)(?: (\N) (\N))?/)) {
       %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
     }
     %energia_reattiva
@@ -174,7 +174,7 @@ $ifnot($ate() || $contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) 
 ### Box Parsing Quadro Dettaglio
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags NOREAD
+### Flags NOREAD 
 ### Page 3
 ### Rect 0.21504012 0.053452756 0.04193318 0.029393759
 ### Script
@@ -202,9 +202,9 @@ $with(&_dettaglio) {
     }
   }
 
-  ^penale_reattiva_inf75=$matches($search(@,/Energia Reattiva entro 75%\n((dal.+\n)+)/),
+  ^penale_reattiva_inf75=$search_all($search(@,/Energia Reattiva entro 75%\n((dal.+\n)+)/),
     $format(/al \d\d\.$0 F[1-3] Euro\/kVarh \N \N (\N)/,_mese))
-  ^penale_reattiva_sup75=$matches($search(@,/Energia Reattiva oltre 75%\n((dal.+\n)+)/),
+  ^penale_reattiva_sup75=$search_all($search(@,/Energia Reattiva oltre 75%\n((dal.+\n)+)/),
     $format(/al \d\d\.$0 F[1-3] Euro\/kVarh \N \N (\N)/,_mese))
   
   %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA IMPORTO \u20ac (\N)/)
@@ -221,7 +221,7 @@ $with(&_dettaglio) {
 ### Box Prossima Pagina
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags TRIM
+### Flags TRIM 
 ### Page 3
 ### Rect 0.03840065 0.0989254 0.22611547 0.032341655
 ### Spacers

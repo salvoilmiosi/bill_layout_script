@@ -196,8 +196,8 @@ $with(&_dettaglio) {
   %sbilanciamento=$search(@,/Gestione sbilanciamento \N kWh (\N)/)
   %potenza[0:3]=$search(@,/Quota Potenza (\N) kW/)
 
-  ^penale_reattiva_inf75=$matches(@,/Energia Reattiva tra il 33 e il 75%(?: F[1-3])?.+ (\N)\n/)
-  ^penale_reattiva_sup75=$matches(@,/Energia Reattiva oltre il 75%(?: F[1-3])?.+ (\N)\n/)
+  ^penale_reattiva_inf75=$search_all(@,/Energia Reattiva tra il 33 e il 75%(?: F[1-3])?.+ (\N)\n/)
+  ^penale_reattiva_sup75=$search_all(@,/Energia Reattiva oltre il 75%(?: F[1-3])?.+ (\N)\n/)
 
   %accise=$search(@,/Imposta Erariale .+ \u20ac\/kWh.+ (\N)\n/)
 }

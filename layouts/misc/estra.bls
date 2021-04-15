@@ -124,7 +124,7 @@ $between("CONSUMI FATTURATI","RIEPILOGO IMPOSTE E IVA") {
 ### Script
 $with(&::_dettaglio) {
   $between("TOTALE MATERIA ENERGIA","TOTALE TRASPORTO E GESTIONE CONTATORE") {
-    ^spesa_materia_energia=$matches(@,$format(/$0 .+ (\N) \N/,_periodo))
+    ^spesa_materia_energia=$search_all(@,$format(/$0 .+ (\N) \N/,_periodo))
     %pcv=$search(@,$format(/Commercializzazione vendita $0 \u20ac\/POD\/mese \N \N (\N)/,_periodo))
     $step($captures(@,$format(/Energia F1 $0 \u20ac\/kWh (\N) (\N)/,_periodo))) {
       %prezzo_energia[0] %energia_attiva[0]
@@ -138,17 +138,17 @@ $with(&::_dettaglio) {
     %sbilanciamento=$search(@,$format(/Sbilanciamento $0 \u20ac\/kWh (\N)/,_periodo))
   }
   $between("TOTALE TRASPORTO E GESTIONE CONTATORE","TOTALE ONERI DI SISTEMA") {
-    ^trasporto_gestione=$matches(@,$format(/$0 .+ (\N) \N/,_periodo))
+    ^trasporto_gestione=$search_all(@,$format(/$0 .+ (\N) \N/,_periodo))
     %potenza[0:3]=$search(@,$format(/Quota potenza $0 \u20ac\/kW \N (\N)/,_periodo))
   }
   $between("TOTALE ONERI DI SISTEMA","TOTALE ALTRE IMPOSTE") {
-    ^oneri=$matches(@,$format(/$0 .+ (\N) \N/,_periodo))
+    ^oneri=$search_all(@,$format(/$0 .+ (\N) \N/,_periodo))
   }
   $between("TOTALE ALTRE IMPOSTE","TOTALE FORNITURA") {
     %accise=$search(@,$format(/Imposta erariale di consumo $0 \d+\u00b0 \u20ac\/kWh \N \N (\N)/,_periodo))
   }
   $between("TOTALE ALTRE PARTITE","TOTALE FORNITURA") {
-    ^altre_partite=$matches(@,$format(/$0 .+ (\N) \N/,_periodo))
+    ^altre_partite=$search_all(@,$format(/$0 .+ (\N) \N/,_periodo))
   }
   $between("TOTALE FORNITURA","TOTALE DA PAGARE") {
     iva=$search(@,/IVA (\d+%)/)

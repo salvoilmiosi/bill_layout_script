@@ -196,8 +196,8 @@ _mese_full=$date_format(mese_fattura,"%B %Y")
 _mese_abbr=$date_format(mese_fattura,"%m/%Y")
 $with(&::_dettaglio) {
   $between("SPESA PER LA MATERIA ENERGIA","TOTALE SPESA PER LA MATERIA ENERGIA") {
-    ^spesa_materia_energia+=$matches(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))
-    ^spesa_materia_energia+=$matches($matches(@,
+    ^spesa_materia_energia+=$search_all(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))
+    ^spesa_materia_energia+=$search_all($search_all(@,
       $format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr)),/(\N)(?:\n|$)/)
     $with($search(@,$format(/(In F1 dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0 [^]+?)(dal|Totale|$)/,_mese_abbr))) {   
       $step($captures(@,/F1.+\/kWh (\N) kWh (\N)/)) {
@@ -212,16 +212,16 @@ $with(&::_dettaglio) {
     }
   }
   $between("SPESA PER IL TRASPORTO","TOTALE SPESA PER IL TRASPORTO") {
-    ^trasporto_gestione=$matches(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))
-    $with($matches(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
-      ^trasporto_gestione+=$matches(@,/(\N)(?:\n|$)/)
+    ^trasporto_gestione=$search_all(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))
+    $with($search_all(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr))) {
+      ^trasporto_gestione+=$search_all(@,/(\N)(?:\n|$)/)
     }
     %potenza[0:3]=$search(@,$format(/QUOTA POTENZA\n$0.+ kW (\N) mesi \N/,_mese_full))
   }
   $between("SPESA PER ONERI DI SISTEMA","TOTALE SPESA PER ONERI") {
-    ^oneri=$matches(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))
-    $with($matches(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(?:dal|Totale|$)/,_mese_abbr))) {
-      ^oneri+=$matches(@,/.+ (\N)/)
+    ^oneri=$search_all(@,$format(/$0[^]+?mesi \N (\N)/,_mese_full))
+    $with($search_all(@,$format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(?:dal|Totale|$)/,_mese_abbr))) {
+      ^oneri+=$search_all(@,/.+ (\N)/)
     }
   }
   $between("IMPOSTE ED IVA","TOTALE IMPOSTE ED IVA") {

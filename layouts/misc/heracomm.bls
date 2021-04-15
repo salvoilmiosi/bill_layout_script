@@ -187,17 +187,17 @@ $with(&::_dettaglio) {
       }
     }
     $between("Sbilanciamento") {
-      $foreach($matches(@,/Sbilanciamento ((?:Importo.+\n)+)/)) {
+      $foreach($search_all(@,/Sbilanciamento ((?:Importo.+\n)+)/)) {
         $if($date_between(mese_fattura,$date(@,"%d.%m.%Y",/dal (\D) al \D/),$date(@,"%d.%m.%Y",/dal \D al (\D)/))) {
           %sbilanciamento=$search(@,/\u20ac\/kWh (\N)/)
           $break()
         }
       }
     }
-    $with($matches(@,$format(/Importo $0\n((?:\s+.+\n)+)/,_periodo))) {
-      ^spesa_materia_energia+=$matches(@,/.+ (\N)/)
+    $with($search_all(@,$format(/Importo $0\n((?:\s+.+\n)+)/,_periodo))) {
+      ^spesa_materia_energia+=$search_all(@,/.+ (\N)/)
     }
-    $foreach($matches(@,/Importo (dal \d\d\.\d\d\.\d\d\d\d al \d\d\.\d\d\.\d\d\d\d \u20ac.+)/)) {
+    $foreach($search_all(@,/Importo (dal \d\d\.\d\d\.\d\d\d\d al \d\d\.\d\d\.\d\d\d\d \u20ac.+)/)) {
       $if($date_between(mese_fattura,$date(@,"%d.%m.%Y",/dal (\D) al \D/),$date(@,"%d.%m.%Y",/dal \D al (\D)/))) {
         spesa_materia_energia+=$trunc($num($search(@,/\u20ac\/kWh (\N)/))*_totale_consumi,2)
         spesa_materia_energia+=$trunc($num($search(@,/\u20ac\/cliente\/mese (\N)/)),2)
@@ -206,7 +206,7 @@ $with(&::_dettaglio) {
   }
   $between("Totale servizi di Rete","...........") {
     $between("QUOTA FISSA", "QUOTA POTENZA") {
-      $foreach($matches(@,/Importo (dal \d\d\.\d\d\.\d\d\d\d al \d\d\.\d\d\.\d\d\d\d .+)/)) {
+      $foreach($search_all(@,/Importo (dal \d\d\.\d\d\.\d\d\d\d al \d\d\.\d\d\.\d\d\d\d .+)/)) {
         $if($date_between(mese_fattura,$date(@,"%d.%m.%Y",/dal (\D) al \D/),$date(@,"%d.%m.%Y",/dal \D al (\D)/))) {
           trasporto_gestione+=$trunc($abs($num($search(@,/\u20ac\/cliente\/mese (\N)/)))*::mul_nota_credito, 2)
           $break()
@@ -217,7 +217,7 @@ $with(&::_dettaglio) {
       %trasporto_gestione+=$search(@,$format(/Importo $0 \u20ac\/kW di potenza \N \N kW (\N)/,_periodo))
     }
     $between("QUOTA VARIABILE") {
-      $foreach($matches(@,/Importo (dal \d\d\.\d\d\.\d\d\d\d al \d\d\.\d\d\.\d\d\d\d\n.+)/)) {
+      $foreach($search_all(@,/Importo (dal \d\d\.\d\d\.\d\d\d\d al \d\d\.\d\d\.\d\d\d\d\n.+)/)) {
         $if($date_between(mese_fattura,$date(@,"%d.%m.%Y",/dal (\D) al \D/),$date(@,"%d.%m.%Y",/dal \D al (\D)/))) {
           trasporto_gestione+=$trunc($num($search(@,/\u20ac\/kWh (\N)/)) * _totale_consumi, 2)
           %prezzo_inf75=$search(@,/Corrispettivi energia reattiva entro 75% \u20ac\/kVARh (\N)/)

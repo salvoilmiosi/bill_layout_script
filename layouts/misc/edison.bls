@@ -129,20 +129,20 @@ $with($replace(@,"\u2212","-")) {
   %potenza[0:3]=$search(@,$format(/Quota potenza .+ al \d\d\/$0 \u20ac\/kW\/mese \N (\N) kW/,_mese))
   iva=$search(@,/IVA (\N%)/)
   $between("Spesa per l'energia","Spesa per il trasporto") {
-    ^spesa_materia_energia=$matches(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
+    ^spesa_materia_energia=$search_all(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
   }
   $between("Spesa per il trasporto","Spesa per gli oneri") {
-    ^trasporto_gestione=$matches(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
+    ^trasporto_gestione=$search_all(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
   }
   $between("Spesa per gli oneri","Totale Imposte") {
-    ^oneri=$matches(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
+    ^oneri=$search_all(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
   }
   $between("Totale Imposte") {
     %accise=$search(@,$format(/Imposta erariale di consumo \(accisa\) .+ al \d\d\/$0 \u20ac\/kWh \N \N kWh (\N) \u20ac/,_mese))
   }
   imponibile=$sum(spesa_materia_energia, trasporto_gestione, oneri, accise)
   $between("Imposte e IVA","TOTALE") {
-    ^imponibile+=$matches(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
+    ^imponibile+=$search_all(@,$format(/Dal .+ al \d\d\/$0.+ (\N) \u20ac/,_mese))
   }
 }
 ### End Script

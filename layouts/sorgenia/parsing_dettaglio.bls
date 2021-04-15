@@ -9,7 +9,7 @@
 ### Rect 0 0 0 0
 ### Script
 $with(&::_dettaglio) {
-  ^cts=$matches(@,/Corrispettivo Tariffario Specifico dal \d\d\/\d\d\/\d\d\d\d al \d\d\/\d\d\/\d\d\d\d (\N)/)
+  ^cts=$search_all(@,/Corrispettivo Tariffario Specifico dal \d\d\/\d\d\/\d\d\d\d al \d\d\/\d\d\/\d\d\d\d (\N)/)
   iva=$search(@,/Iva (\N%)/)
 
   $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")))

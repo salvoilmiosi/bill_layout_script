@@ -202,7 +202,7 @@ _fine_periodo = $date_format($last_day(mese_fattura),"%d/%m/%y")
 _regex_periodo = $format(/(.+ dal \d\d\/\d\d\/\d\d al $0[^]+?)(?=\n.+ dal \d\d|Totale|$)/, _fine_periodo)
 $with(&::_dettaglio) {
   $between("SPESA PER L'ENERGIA", "Totale spesa per l'energia") {
-    ^spesa_materia_energia=$matches($matches(@,_regex_periodo),/.+ (\N)/)
+    ^spesa_materia_energia=$search_all($search_all(@,_regex_periodo),/.+ (\N)/)
     $step($captures($search($search(@, /Energia (?:fascia F1|ore picco|mese)\n([^]+?)Totale energia/),
       _regex_periodo),/\u20ac\/kWh (\N) (\N)/)) { %prezzo_energia[0] %energia_attiva[0] }
     $step($captures($search($search(@, /Energia (?:fascia F2|ore fuori picco)\n([^]+?)Totale energia/),
@@ -210,7 +210,7 @@ $with(&::_dettaglio) {
     $step($captures($search($search(@, /Energia fascia F3\n([^]+?)Totale energia/),
       _regex_periodo),/\u20ac\/kWh (\N) (\N)/)) { %prezzo_energia[2] %energia_attiva[2] }
     $between("Altri importi materia energia", "Totale altri importi materia energia") {
-      $with($matches(@,_regex_periodo)) {
+      $with($search_all(@,_regex_periodo)) {
         %pcv=$search(@,/Commercializzazione vendita .*\u20ac\/cliente\/ mese (\N)/)
         %dispacciamento=$search(@,/Dispacciamento .*\u20ac\/kWh (\N)/)
         %sbilanciamento=$search(@,/Corrispettivo di Sbilanciamento .+\u20ac\/kWh (\N)/)
@@ -220,21 +220,21 @@ $with(&::_dettaglio) {
   $newview {
     $setbegin($min($indexof(@,"SPESA PER IL TRASPORTO"),$indexof(@,"SPESA TRASPORTO")))
     $setend($indexof(@,"Totale spesa"))
-    $foreach($matches(@,_regex_periodo)) {
-      ^trasporto_gestione+=$matches(@,/mesi.?1 (\N)/)
-      ^trasporto_gestione+=$matches(@,/\/kWh \N \N (\N)/)
-      ^trasporto_gestione+=$matches(@,/\/kVarh \N \N (\N)/)
+    $foreach($search_all(@,_regex_periodo)) {
+      ^trasporto_gestione+=$search_all(@,/mesi.?1 (\N)/)
+      ^trasporto_gestione+=$search_all(@,/\/kWh \N \N (\N)/)
+      ^trasporto_gestione+=$search_all(@,/\/kVarh \N \N (\N)/)
       %potenza[0:3]=$search(@,/kW (\N)/)
     }
     $between("Quota energia") {
-      $with($matches(@,_regex_periodo)) {
+      $with($search_all(@,_regex_periodo)) {
         %penale_reattiva_inf75=$search(@,/entro il 75% .*\u20ac\/kVarh (\N)/)
         %penale_reattiva_sup75=$search(@,/oltre il 75% .*\u20ac\/kVarh (\N)/)
       }
     }
   }
   $between("SPESA ONERI DI SISTEMA", "Totale spesa oneri di sistema") {
-    $foreach($matches(@,$format(/al $0([^]+?)(dal|Totale|$)/,_fine_periodo))) {
+    $foreach($search_all(@,$format(/al $0([^]+?)(dal|Totale|$)/,_fine_periodo))) {
       %oneri+=$search(@,/mesi.?1 (\N)/)
       %oneri+=$search(@,/\/kWh \N \N (\N)/)
     }
