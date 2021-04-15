@@ -25,10 +25,14 @@ void reader::start() {
     m_table_index = 0;
 
     m_running = true;
+    m_aborted = false;
 
     while (m_running && m_program_counter < m_code.size()) {
         exec_command(m_code[m_program_counter]);
         ++m_program_counter;
+    }
+    if (m_aborted) {
+        throw reader_aborted{};
     }
     
     m_running = false;
@@ -202,14 +206,14 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::JNTE:       if(!m_contents.top().tokenend()) jump_to(cmd.get_args<opcode::JNTE>()); break;
     case opcode::JSRVAL:     jump_subroutine(cmd.get_args<opcode::JSRVAL>(), true); break;
     case opcode::JSR:        jump_subroutine(cmd.get_args<opcode::JSR>()); break;
-    case opcode::THROWERROR: throw layout_error(m_stack.pop().as_string()); break;
+    case opcode::THROWERROR: m_running = false; throw layout_error(m_stack.pop().as_string()); break;
     case opcode::WARNING:    m_warnings.push_back(m_stack.pop().as_string()); break;
     case opcode::RET:        jump_return(false); break;
     case opcode::RETVAL:     jump_return(true); break;
     case opcode::IMPORT:     import_layout(*cmd.get_args<opcode::IMPORT>()); break;
     case opcode::LAYOUTNAME: push_layout(*cmd.get_args<opcode::LAYOUTNAME>()); break;
-    case opcode::SETLAYOUT:  if (m_flags & reader_flags::HALT_ON_SETLAYOUT) halt(); break;
-    case opcode::HLT:        halt(); break;
+    case opcode::SETLAYOUT:  if (m_flags & reader_flags::HALT_ON_SETLAYOUT) m_running = false; break;
+    case opcode::HLT:        m_running = false; break;
     }
 }
 

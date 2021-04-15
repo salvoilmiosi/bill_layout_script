@@ -12,9 +12,32 @@
 #include "dati_fattura.h"
 #include "safe_queue.h"
 
-#include <memory>
 #include <array>
 #include <atomic>
+
+#include "reader.h"
+#include "layout.h"
+
+static constexpr size_t THREAD_COUNT = 4;
+
+class ReaderThread : public wxThread {
+public:
+    ReaderThread(class ReaderGui *parent);
+    ~ReaderThread() {
+        abort();
+    }
+
+    void start();
+    void abort();
+
+private:
+    class ReaderGui *parent;
+    reader m_reader;
+    std::atomic<bool> m_running;
+
+protected:
+    virtual ExitCode Entry() override;
+};
 
 class ReaderGui : public wxFrame {
 public:
@@ -27,11 +50,10 @@ private:
     VariableMapTable *m_table;
     wxConfig *m_config;
     
-    safe_queue<std::filesystem::path> m_queue;
     std::filesystem::path m_selected_dir;
 
-    std::array<wxThread*, 4> m_threads{nullptr};
-    std::atomic<bool> m_running;
+    safe_queue<std::filesystem::path> m_queue;
+    std::array<ReaderThread *, THREAD_COUNT> m_threads{nullptr};
 
     void OnReadCompleted(wxThreadEvent &evt);
 

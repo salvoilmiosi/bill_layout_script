@@ -27,7 +27,6 @@ private:
     output_dialog *parent;
 
     layout_box_list m_layout;
-    bool m_aborted = false;
 };
 
 class output_dialog : public wxDialog {

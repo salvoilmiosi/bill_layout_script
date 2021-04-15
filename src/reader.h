@@ -25,6 +25,8 @@ struct function_call {
     bool nodiscard;
 };
 
+struct reader_aborted{};
+
 class reader {
 public:
     reader() = default;
@@ -58,8 +60,9 @@ public:
     bool is_running() {
         return m_running;
     }
-    void halt() {
+    void abort() {
         m_running = false;
+        m_aborted = true;
     }
 
 private:
@@ -84,6 +87,7 @@ private:
     size_t m_program_counter;
     
     std::atomic<bool> m_running = false;
+    std::atomic<bool> m_aborted = false;
     bitset<reader_flags> m_flags;
 
     const pdf_document *m_doc = nullptr;

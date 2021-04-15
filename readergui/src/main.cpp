@@ -2,6 +2,7 @@
 #include <wx/intl.h>
 
 #include "gui/readergui.h"
+#include "intl.h"
 
 class MainApp : public wxApp {
 public:
@@ -9,8 +10,6 @@ public:
 
 private:
     ReaderGui *main_gui;
-
-    wxLocale locale{wxLANGUAGE_ITALIAN};
 };
 wxIMPLEMENT_APP(MainApp);
 
@@ -19,6 +18,8 @@ bool MainApp::OnInit() {
         return false;
     }
 
+    intl::set_language(wxLANGUAGE_ITALIAN);
+    
     main_gui = new ReaderGui();
 
     SetTopWindow(main_gui);

@@ -105,28 +105,27 @@ wxThread::ExitCode reader_thread::Entry() {
         my_parser.read_layout(path, m_layout);
         m_reader.add_code(std::move(my_parser).get_bytecode());
         m_reader.start();
-        if (!m_aborted) {
-            wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
+        wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
 
-            if (!m_reader.get_warnings().empty()) {
-                auto *evt = new wxThreadEvent(wxEVT_COMMAND_LAYOUT_ERROR);
-                std::string warnings = string_join(m_reader.get_warnings(), "\n\n");
-                evt->SetString(wxString::FromUTF8(warnings.c_str()));
-                wxQueueEvent(parent, evt);
-            }
-            return (wxThread::ExitCode) 0;
+        if (!m_reader.get_warnings().empty()) {
+            auto *evt = new wxThreadEvent(wxEVT_COMMAND_LAYOUT_ERROR);
+            std::string warnings = string_join(m_reader.get_warnings(), "\n\n");
+            evt->SetString(wxString::FromUTF8(warnings.c_str()));
+            wxQueueEvent(parent, evt);
         }
+        return (wxThread::ExitCode) 0;
     } catch (const std::exception &error) {
         auto *evt = new wxThreadEvent(wxEVT_COMMAND_LAYOUT_ERROR);
         evt->SetString(wxString::FromUTF8(error.what()));
         wxQueueEvent(parent, evt);
+    } catch (reader_aborted) {
+        // ignore output
     }
     return (wxThread::ExitCode) 1;
 }
 
 void reader_thread::abort() {
-    m_aborted = true;
-    m_reader.halt();
+    m_reader.abort();
 }
 
 void output_dialog::compileAndRead() {

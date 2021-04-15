@@ -5,9 +5,6 @@
 #include <wx/sizer.h>
 #include <wx/thread.h>
 
-#include "reader.h"
-#include "layout.h"
-
 wxDEFINE_EVENT(wxEVT_COMMAND_READ_COMPLETE, wxThreadEvent);
 
 enum {
@@ -22,57 +19,49 @@ BEGIN_EVENT_TABLE(ReaderGui, wxFrame)
     EVT_MENU(MENU_RESTART, ReaderGui::OnRestart)
 END_EVENT_TABLE()
 
-class ReaderThread : public wxThread {
-public:
-    ReaderThread(ReaderGui *parent) : wxThread(wxTHREAD_JOINABLE), parent(parent) {}
+ReaderThread::ReaderThread(ReaderGui *parent) : wxThread(wxTHREAD_JOINABLE), parent(parent) {}
 
-    void compile_layout() {
-        m_halted = m_reader.is_running();
-        m_reader.halt();
-        m_reader.clear();
-        m_reader.add_flags(reader_flags::RECURSIVE);
-        m_reader.add_layout(parent->getControlScript().first);
-    }
-private:
-    ReaderGui *parent;
+void ReaderThread::start() {
+    m_reader.add_flags(reader_flags::RECURSIVE);
+    m_reader.add_layout(parent->getControlScript().first);
+    m_running = true;
+    Run();
+}
 
-    reader m_reader;
-    std::atomic<bool> m_halted = false;
+void ReaderThread::abort() {
+    m_running = false;
+    m_reader.abort();
+    Wait();
+}
 
-    void queue_reader_output(const reader_output &obj) {
-        if (m_halted) {
-            m_halted = false;
-        } else {
-            auto evt = new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE);
-            evt->SetPayload(obj);
-            wxQueueEvent(parent, evt);
+wxThread::ExitCode ReaderThread::Entry() {
+    auto queue_reader_output = [&](const reader_output &obj) {
+        auto evt = new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE);
+        evt->SetPayload(obj);
+        wxQueueEvent(parent, evt);
+    };
+
+    while (m_running && ! parent->m_queue.empty()) {
+        pdf_document doc;
+        std::filesystem::path relative_path;
+        try {
+            doc.open(parent->m_queue.dequeue());
+            relative_path = std::filesystem::relative(doc.filename(), parent->m_selected_dir);
+            m_reader.set_document(doc);
+            m_reader.start();
+
+            queue_reader_output({m_reader.get_values(), relative_path, m_reader.get_warnings()});
+        } catch (reader_aborted) {
+            break;
+        } catch (const layout_error &error) {
+            queue_reader_output({{}, relative_path, {error.what()}});
+        } catch (...) {
+            queue_reader_output({{}, relative_path, {"Errore sconosciuto"}});
         }
     }
 
-protected:
-    virtual ExitCode Entry() override {
-        while (parent->m_running) {
-            pdf_document doc;
-            std::filesystem::path relative_path;
-            try {
-                doc.open(parent->m_queue.dequeue());
-                relative_path = std::filesystem::relative(doc.filename(), parent->m_selected_dir);
-                m_reader.set_document(doc);
-                m_reader.start();
-
-                queue_reader_output({m_reader.get_values(), relative_path, m_reader.get_warnings()});
-            } catch (queue_timeout) {
-                // ignore
-            } catch (const layout_error &error) {
-                queue_reader_output({{}, relative_path, {error.what()}});
-            } catch (...) {
-                queue_reader_output({{}, relative_path, {"Errore sconosciuto"}});
-            }
-        }
-
-        return 0;
-    }
-};
+    return 0;
+}
 
 ReaderGui::ReaderGui() : wxFrame(nullptr, wxID_ANY, "Reader GUI", wxDefaultPosition, wxSize(900, 700)) {
     m_config = new wxConfig("BillLayoutScript");
@@ -91,19 +80,12 @@ ReaderGui::ReaderGui() : wxFrame(nullptr, wxID_ANY, "Reader GUI", wxDefaultPosit
     Show();
 
     Connect(wxEVT_COMMAND_READ_COMPLETE, wxThreadEventHandler(ReaderGui::OnReadCompleted));
-    
-    m_running = true;
-    for (auto &thread : m_threads) {
-        thread = new ReaderThread(this);
-        thread->Run();
-    }
 }
 
 ReaderGui::~ReaderGui() {
-    m_running = false;
-    for (auto &thread : m_threads) {
-        thread->Wait();
-        delete thread;
+    for (auto &t : m_threads) {
+        delete t;
+        t = nullptr;
     }
 }
 
@@ -124,9 +106,11 @@ void ReaderGui::setDirectory(const std::filesystem::path &path) {
 
     m_selected_dir = path;
 
-    for (auto &thread : m_threads) {
-        dynamic_cast<ReaderThread *>(thread)->compile_layout();
+    for (auto &t : m_threads) {
+        delete t;
+        t = nullptr;
     }
+
     m_table->DeleteAllItems();
     m_queue.clear();
     std::filesystem::recursive_directory_iterator it(path);
@@ -135,6 +119,12 @@ void ReaderGui::setDirectory(const std::filesystem::path &path) {
         if (std::filesystem::is_regular_file(filename) && filename.extension() == ".pdf") {
             m_queue.enqueue(filename);
         }
+    }
+
+    for (size_t i=0; i < std::min(m_threads.size(), m_queue.size()); ++i) {
+        auto &t = m_threads[i];
+        t = new ReaderThread(this);
+        t->start();
     }
 }
 
@@ -156,8 +146,8 @@ std::pair<std::filesystem::path, bool> ReaderGui::getControlScript(bool open_dia
         if (diag.ShowModal() == wxID_OK) {
             filename = diag.GetPath();
             m_config->Write("ControlScriptFilename", filename);
+            return {filename.ToStdString(), true};
         }
-        return {filename.ToStdString(), true};
     }
     return {filename.ToStdString(), false};
 }
