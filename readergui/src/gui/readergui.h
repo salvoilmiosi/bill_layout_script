@@ -58,8 +58,10 @@ private:
     void OnOpenFolder(wxCommandEvent &evt);
     void OnSetScript(wxCommandEvent &evt);
     void OnRestart(wxCommandEvent &evt);
+    void OnStop(wxCommandEvent &evt);
 
-    void setDirectory(const std::filesystem::path &path);
+    void startReader(const std::filesystem::path &path);
+    void stopReader();
     std::pair<std::filesystem::path, bool> getControlScript(bool open_dialog = false);
 
     friend class ReaderThread;

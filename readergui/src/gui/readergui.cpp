@@ -10,13 +10,15 @@ wxDEFINE_EVENT(wxEVT_COMMAND_READ_COMPLETE, wxThreadEvent);
 enum {
     MENU_OPEN_FOLDER = 10000,
     MENU_SET_SCRIPT,
-    MENU_RESTART
+    MENU_RESTART,
+    MENU_STOP
 };
 
 BEGIN_EVENT_TABLE(ReaderGui, wxFrame)
-    EVT_MENU(MENU_OPEN_FOLDER, ReaderGui::OnOpenFolder)
-    EVT_MENU(MENU_SET_SCRIPT, ReaderGui::OnSetScript)
-    EVT_MENU(MENU_RESTART, ReaderGui::OnRestart)
+    EVT_MENU(MENU_OPEN_FOLDER,  ReaderGui::OnOpenFolder)
+    EVT_MENU(MENU_SET_SCRIPT,   ReaderGui::OnSetScript)
+    EVT_MENU(MENU_RESTART,      ReaderGui::OnRestart)
+    EVT_MENU(MENU_STOP,         ReaderGui::OnStop)
 END_EVENT_TABLE()
 
 ReaderThread::ReaderThread(ReaderGui *parent) : wxThread(wxTHREAD_JOINABLE), parent(parent) {}
@@ -71,6 +73,7 @@ ReaderGui::ReaderGui() : wxFrame(nullptr, wxID_ANY, "Reader GUI", wxDefaultPosit
     menu_reader->Append(MENU_OPEN_FOLDER, "Apri Cartella");
     menu_reader->Append(MENU_SET_SCRIPT, "Imposta Script Layout");
     menu_reader->Append(MENU_RESTART, "Riavvia");
+    menu_reader->Append(MENU_STOP, "Stop");
 
     menu_bar->Append(menu_reader, "Reader");
     SetMenuBar(menu_bar);
@@ -82,10 +85,7 @@ ReaderGui::ReaderGui() : wxFrame(nullptr, wxID_ANY, "Reader GUI", wxDefaultPosit
 }
 
 ReaderGui::~ReaderGui() {
-    for (auto &t : m_threads) {
-        delete t;
-        t = nullptr;
-    }
+    stopReader();
 }
 
 void ReaderGui::OnReadCompleted(wxThreadEvent &evt) {
@@ -96,21 +96,17 @@ void ReaderGui::OnReadCompleted(wxThreadEvent &evt) {
 void ReaderGui::OnOpenFolder(wxCommandEvent &evt) {
     wxDirDialog diag(this, "Scegli una cartella...");
     if (diag.ShowModal() == wxID_OK) {
-        setDirectory(diag.GetPath().ToStdString());
+        startReader(diag.GetPath().ToStdString());
     }
 }
 
-void ReaderGui::setDirectory(const std::filesystem::path &path) {
+void ReaderGui::startReader(const std::filesystem::path &path) {
     if (path.empty()) return;
 
     m_selected_dir = path;
 
-    for (auto &t : m_threads) {
-        delete t;
-        t = nullptr;
-    }
+    stopReader();
 
-    m_table->DeleteAllItems();
     m_queue.clear();
     for (const auto &path : std::filesystem::recursive_directory_iterator(path)) {
         const auto &filename = path.path();
@@ -119,6 +115,7 @@ void ReaderGui::setDirectory(const std::filesystem::path &path) {
         }
     }
 
+    m_table->DeleteAllItems();
     for (size_t i=0; i < std::min({m_threads.size(), m_queue.size(), size_t(wxThread::GetCPUCount())}); ++i) {
         auto &t = m_threads[i];
         t = new ReaderThread(this);
@@ -126,14 +123,25 @@ void ReaderGui::setDirectory(const std::filesystem::path &path) {
     }
 }
 
+void ReaderGui::stopReader() {
+    for (auto &t : m_threads) {
+        delete t;
+        t = nullptr;
+    }
+}
+
 void ReaderGui::OnSetScript(wxCommandEvent &evt) {
     if (getControlScript(true).second) {
-        setDirectory(m_selected_dir);
+        startReader(m_selected_dir);
     }
 }
 
 void ReaderGui::OnRestart(wxCommandEvent &evt) {
-    setDirectory(m_selected_dir);
+    startReader(m_selected_dir);
+}
+
+void ReaderGui::OnStop(wxCommandEvent &evt) {
+    stopReader();
 }
 
 std::pair<std::filesystem::path, bool> ReaderGui::getControlScript(bool open_dialog) {

@@ -17,8 +17,6 @@ public:
     reader_thread(output_dialog *parent, reader &m_reader, const layout_box_list &layout);
     ~reader_thread();
 
-    void abort();
-
 protected:
     virtual ExitCode Entry();
 

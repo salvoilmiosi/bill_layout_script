@@ -57,9 +57,6 @@ public:
     const size_t get_table_count() { return m_table_index + 1; }
     const auto get_layouts() { return m_layouts; }
 
-    bool is_running() {
-        return m_running;
-    }
     void abort() {
         m_running = false;
         m_aborted = true;

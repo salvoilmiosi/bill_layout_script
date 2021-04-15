@@ -82,7 +82,7 @@ void output_dialog::OnClickUpdate(wxCommandEvent &) {
 
 void output_dialog::OnClickAbort(wxCommandEvent &) {
     if (m_thread) {
-        m_thread->abort();
+        m_reader.abort();
     } else {
         wxBell();
     }
@@ -124,10 +124,6 @@ wxThread::ExitCode reader_thread::Entry() {
     return (wxThread::ExitCode) 1;
 }
 
-void reader_thread::abort() {
-    m_reader.abort();
-}
-
 void output_dialog::compileAndRead() {
     if (m_thread || ! parent->getPdfDocument().isopen()) {
         wxBell();
@@ -157,16 +153,16 @@ void output_dialog::OnReadCompleted(wxCommandEvent &evt) {
 }
 
 void output_dialog::OnUpdateSpin(wxSpinEvent &evt) {
+    if (m_thread) return;
     updateItems();
 }
 
 void output_dialog::OnUpdate(wxCommandEvent &evt) {
+    if (m_thread) return;
     updateItems();
 }
 
 void output_dialog::updateItems() {
-    if (m_reader.is_running()) return;
-
     m_list_ctrl->ClearAll();
 
     auto col_name = m_list_ctrl->AppendColumn("Nome", wxLIST_FORMAT_LEFT, 150);
