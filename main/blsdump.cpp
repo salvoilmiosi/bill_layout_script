@@ -138,18 +138,17 @@ int MainApp::OnRun() {
                 std::cout << *line->get_args<opcode::COMMENT>();
             } else {
                 std::cout << '\t' << line->command();
-                line->visit(overloaded{
-                    [](std::monostate){},
-                    [&](jump_address args) {
-                        if (auto *addr = std::get_if<ptrdiff_t>(&args)) {
-                            auto it_label = line + *addr;
+                line->visit([&](auto args) {
+                    if constexpr (std::is_base_of_v<jump_address, decltype(args)>) {
+                        auto &addr = static_cast<jump_address &>(args);
+                        if (auto *diff = std::get_if<ptrdiff_t>(&addr)) {
+                            auto it_label = line + *diff;
                             if (it_label->command() == opcode::LABEL) {
-                                args = it_label->get_args<opcode::LABEL>();
+                                addr = it_label->get_args<opcode::LABEL>();
                             }
                         }
-                        std::cout << ' ' << print_args(args);
-                    },
-                    [&](auto && args) {
+                    }
+                    if constexpr (! std::is_same_v<std::monostate, decltype(args)>) {
                         std::cout << ' ' << print_args(args);
                     }
                 });
