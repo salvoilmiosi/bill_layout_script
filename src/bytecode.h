@@ -4,7 +4,6 @@
 #include "pdf_document.h"
 #include "utils.h"
 #include "fixed_point.h"
-#include "intl.h"
 #include "functions.h"
 #include "string_ptr.h"
 
@@ -100,7 +99,6 @@ DEFINE_ENUM_TYPES(opcode,
     (RESETVIEW)                     // content_stack.top.resetview()
     (THROWERROR)                    // stack -> throw
     (WARNING)                       // stack -> warnings
-    (SETLANG, intl::language)       // imposta la lingua del layout
     (JMP, jump_address)             // unconditional jump
     (JZ, jump_address)              // stack -> jump if top == 0
     (JNZ, jump_address)             // stack -> jump if top != 0

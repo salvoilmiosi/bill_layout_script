@@ -5,7 +5,6 @@
 
 #include <fmt/format.h>
 
-#include "intl.h"
 #include "utils.h"
 
 // Converte una stringa in numero usando il formato del locale
@@ -84,12 +83,12 @@ static std::string escape_regex_char(char c) {
 
 // Genera la regex per parsare numeri secondo il locale selezionato
 static std::string number_regex() {
-    auto tho = intl::thousand_sep();
-    auto dec = intl::decimal_point();
-    if (tho) {
-        return fmt::format("(?:-?(?:\\d{{1,3}}(?:{0}\\d{{3}})*|\\d+)(?:{1}\\d+)?(?!\\d))", escape_regex_char(tho), escape_regex_char(dec));
+    auto tho = escape_regex_char(intl::thousand_sep());
+    auto dec = escape_regex_char(intl::decimal_point());
+    if (!tho.empty()) {
+        return fmt::format("(?:-?(?:\\d{{1,3}}(?:{0}\\d{{3}})*|\\d+)(?:{1}\\d+)?(?!\\d))", tho, dec);
     } else {
-        return fmt::format("(?:-?\\d+(?:{0}\\d+)?(?!\\d))", escape_regex_char(dec));
+        return fmt::format("(?:-?\\d+(?:{0}\\d+)?(?!\\d))", dec);
     }
 };
 

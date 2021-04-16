@@ -13,6 +13,8 @@ private:
 
     wxString bls_filename;
     wxString pdf_filename;
+
+    intl::locale loc{wxLANGUAGE_DEFAULT};
 };
 wxIMPLEMENT_APP(MainApp);
 

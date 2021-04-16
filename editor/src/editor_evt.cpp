@@ -11,7 +11,6 @@
 #include "box_editor_panel.h"
 #include "box_dialog.h"
 #include "output_dialog.h"
-#include "intl.h"
 #include "reader.h"
 #include "layout_options_dialog.h"
 

@@ -1,28 +1,15 @@
 #ifndef __INTL_H__
 #define __INTL_H__
 
-#include <string>
+#include <wx/intl.h>
 
 namespace intl {
-    typedef int language;
+    struct locale : wxLocale {
+        locale(wxLanguage lang);
+    };
 
     char decimal_point();
-
     char thousand_sep();
-
-    std::string language_string(language lang);
-
-    std::string language_name(language lang);
-    
-    language language_code(const std::string &lang);
-
-    language system_language();
-
-    bool valid_language(language lang);
-
-    void set_language(language lang);
-    
-    void reset_language();
-}
+};
 
 #endif

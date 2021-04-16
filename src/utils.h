@@ -2,12 +2,15 @@
 #define __UTILS_H__
 
 #include <wx/datetime.h>
+#include <wx/intl.h>
 
 #include <string>
 #include <algorithm>
 #include <charconv>
 
 #include <fmt/format.h>
+
+#include "intl.h"
 
 constexpr char UNIT_SEPARATOR = '\x1f';
 

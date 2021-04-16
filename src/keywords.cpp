@@ -278,9 +278,6 @@ void parser::read_keyword() {
             std::ranges::move(imported.m_code, std::back_inserter(m_code));
         } else {
             m_code.add_line<opcode::IMPORT>(imported_file.string());
-            if (intl::valid_language(m_layout->language_code)) {
-                m_code.add_line<opcode::SETLANG>(m_layout->language_code);
-            }
         }
         break;
     }

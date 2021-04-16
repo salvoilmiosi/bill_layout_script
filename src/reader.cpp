@@ -4,7 +4,6 @@
 #include "parser.h"
 #include "functions.h"
 #include "binary_bls.h"
-#include "intl.h"
 
 void reader::clear() {
     m_code.clear();
@@ -199,7 +198,6 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SPLITVIEW:  m_contents.top().splitview(); break;
     case opcode::NEXTRESULT: m_contents.top().nextresult(); break;
     case opcode::RESETVIEW:  m_contents.top().resetview(); break;
-    case opcode::SETLANG:    intl::set_language(cmd.get_args<opcode::SETLANG>()); break;
     case opcode::JMP:        jump_to(cmd.get_args<opcode::JMP>()); break;
     case opcode::JZ:         if(!m_stack.pop().as_bool()) jump_to(cmd.get_args<opcode::JZ>()); break;
     case opcode::JNZ:        if(m_stack.pop().as_bool()) jump_to(cmd.get_args<opcode::JNZ>()); break;

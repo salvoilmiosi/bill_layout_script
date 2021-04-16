@@ -25,6 +25,8 @@ private:
     bool get_layout = false;
     bool use_cache = false;
     bool parse_recursive = false;
+
+    intl::locale loc{wxLANGUAGE_DEFAULT};
 };
 
 wxIMPLEMENT_APP_CONSOLE(MainApp);

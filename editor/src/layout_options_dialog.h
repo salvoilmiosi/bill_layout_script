@@ -16,10 +16,7 @@ public:
 private:
     layout_box_list *m_layout;
 
-    wxListBox *m_lang_list;
     wxCheckBox *m_setlayout_box;
-
-    std::vector<intl::language> lang_codes;
 
     DECLARE_EVENT_TABLE()
 };

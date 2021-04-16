@@ -2,7 +2,6 @@
 #define __BOX_LAYOUT_H__
 
 #include "pdf_document.h"
-#include "intl.h"
 
 #include <list>
 #include <cstring>
@@ -27,7 +26,6 @@ struct layout_error : std::runtime_error {
 class layout_box_list : public std::list<layout_box> {
 public:
     using base = std::list<layout_box>;
-    intl::language language_code{};
     bool setlayout = false;
 
 public:
@@ -35,7 +33,6 @@ public:
 
     void clear() {
         base::clear();
-        language_code = {};
         setlayout = false;
     }
 

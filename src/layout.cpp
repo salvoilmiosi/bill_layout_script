@@ -2,16 +2,12 @@
 
 #include "fixed_point.h"
 #include "utils.h"
-#include "intl.h"
 
 #include <iostream>
 #include <fstream>
 
 std::ostream &operator << (std::ostream &output, const layout_box_list &layout) {
     output << "### Bill Layout Script\n";
-    if (intl::valid_language(layout.language_code)) {
-        output << fmt::format("### Language {}\n", intl::language_string(layout.language_code));
-    }
     if (layout.setlayout) {
         output << "### Set Layout\n";
     }
@@ -169,8 +165,6 @@ std::istream &operator >> (std::istream &input, layout_box_list &layout) {
             } else {
                 layout.push_back(current);
             }
-        } else if (auto suf = suffix(line, "### Language")) {
-            layout.language_code = intl::language_code(std::string(suf.value));
         } else if (line == "### Set Layout") {
             layout.setlayout = true;
         } else if (line.front() != '#') {

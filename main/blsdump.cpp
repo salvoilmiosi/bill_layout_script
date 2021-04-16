@@ -9,7 +9,6 @@
 #include "parser.h"
 #include "fixed_point.h"
 #include "utils.h"
-#include "intl.h"
 #include "binary_bls.h"
 
 class MainApp : public wxAppConsole {
@@ -95,10 +94,6 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<string
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<small_int> &args) {
     return out << num_tostring(args.data);
-}
-
-template<> std::ostream &operator << (std::ostream &out, const print_args<intl::language> &args) {
-    return out << intl::language_string(args.data);
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<jump_address> &label) {
