@@ -81,6 +81,8 @@ ReaderGui::ReaderGui() : wxFrame(nullptr, wxID_ANY, "Reader GUI", wxDefaultPosit
     m_table = new VariableMapTable(this);
     Show();
 
+    SetStatusBar(CreateStatusBar());
+
     Connect(wxEVT_COMMAND_READ_COMPLETE, wxThreadEventHandler(ReaderGui::OnReadCompleted));
 }
 
@@ -91,6 +93,12 @@ ReaderGui::~ReaderGui() {
 void ReaderGui::OnReadCompleted(wxThreadEvent &evt) {
     m_table->AddReaderValues(evt.GetPayload<reader_output>());
     m_table->Refresh();
+
+    if (size_t n = m_queue.size()) {
+        SetStatusText(fmt::format("{} File Rimanenti", n));
+    } else {
+        SetStatusText(wxEmptyString);
+    }
 }
 
 void ReaderGui::OnOpenFolder(wxCommandEvent &evt) {
