@@ -10,63 +10,95 @@
 
 #include "data_table_view.h"
 
-template<typename T> inline wxString to_string(const T &value) {
-    std::ostringstream ss;
-    ss << value;
-    return ss.str();
-}
+struct default_formatter {
+    template<typename T> wxString operator()(const T &value) {
+        std::ostringstream ss;
+        ss << value;
+        return ss.str();
+    }
+    wxString operator()(const std::string &value) { return wxString::FromUTF8(value.c_str()); }
+    wxString operator()(const fixed_point &value) { return fixed_point_to_string(value); }
+    wxString operator()(const wxDateTime &value) { return value.Format("%d/%m/%Y"); }
+};
 
-template<> inline wxString to_string(const wxString &value) { return value; }
-template<> inline wxString to_string(const fixed_point &value) { return fixed_point_to_string(value); }
-template<> inline wxString to_string(const wxDateTime &value) { return value.Format("%d/%m/%Y"); }
+template<typename T> inline T variable_to(const variable &var) = delete;
+template<> inline std::string variable_to(const variable &var) { return var.as_string(); }
+template<> inline fixed_point variable_to(const variable &var) { return var.as_number(); }
+template<> inline wxDateTime variable_to(const variable &var) { return var.as_date(); }
 
-template<typename T, typename Formatter = decltype([](const T&obj) { return to_string(obj); })>
 struct table_value {
     const char *header;
-    const char *value;
-    int index;
     int column_width = 80;
 };
 
-using string_table_value = table_value<wxString>;
-using number_table_value = table_value<fixed_point>;
-using date_table_value = table_value<wxDateTime>;
+struct variable_table_record : std::multimap<std::string, variable> {
+    std::string filename;
+    std::string status;
+};
 
-using month_table_value = table_value<wxDateTime, decltype([](const wxDateTime &value) {
+template<typename T, typename Formatter = default_formatter>
+struct variable_table_value :  table_value {
+    const char *value;
+    int index;
+
+    variable_table_value(const char *header, const char *value, int index = 0)
+        : table_value(header)
+        , value(value)
+        , index(index) {}
+    
+    std::optional<T> operator()(const variable_table_record &map) const {
+        auto [lower, upper] = map.equal_range(value);
+        if (index < std::distance(lower, upper)) {
+            const auto &var = std::next(lower, index)->second;
+            if (!var.is_null()) {
+                return variable_to<T>(var);
+            }
+        }
+        return std::nullopt;
+    }
+};
+
+template<typename T, typename TVal, typename Formatter = default_formatter>
+struct member_ptr_value : table_value {
+    T TVal::* value;
+
+    member_ptr_value(const char *header, T TVal::* value)
+        : table_value(header)
+        , value(value) {}
+};
+
+template<typename Formatter = default_formatter>
+using string_table_value = variable_table_value<std::string, Formatter>;
+
+template<typename Formatter = default_formatter>
+using date_table_value = variable_table_value<wxDateTime, Formatter>;
+
+template<typename Formatter = default_formatter>
+using number_table_value = variable_table_value<fixed_point, Formatter>;
+
+using month_table_value = date_table_value<decltype([](const wxDateTime &value) {
     return value.Format("%b %Y");
 })>;
 
-using percent_table_value = table_value<fixed_point, decltype([](const fixed_point &value) {
+using percent_table_value = number_table_value<decltype([](const fixed_point &value) {
     return fixed_point_to_string(value) + "%";
 })>;
 
-using euro_table_value = table_value<fixed_point, decltype([](const fixed_point &value) {
+using euro_table_value = number_table_value<decltype([](const fixed_point &value) {
     return wxString::Format(L"%s \u20ac", fixed_point_to_string(value));
 })>;
-using euro_kwh_table_value = table_value<fixed_point, decltype([](const fixed_point &value) {
+using euro_kwh_table_value = number_table_value<decltype([](const fixed_point &value) {
     return wxString::Format(L"%s \u20ac/kWh", fixed_point_to_string(value));
 })>;
-using kwh_table_value = table_value<fixed_point, decltype([](const fixed_point &value) {
+using kwh_table_value = number_table_value<decltype([](const fixed_point &value) {
     return wxString::Format(L"%s kWh", fixed_point_to_string(value));
 })>;
-using kvar_table_value = table_value<fixed_point, decltype([](const fixed_point &value) {
+using kvar_table_value = number_table_value<decltype([](const fixed_point &value) {
     return wxString::Format(L"%s kVar", fixed_point_to_string(value));
 })>;
-using kw_table_value = table_value<fixed_point, decltype([](const fixed_point &value) {
+using kw_table_value = number_table_value<decltype([](const fixed_point &value) {
     return wxString::Format(L"%s kW", fixed_point_to_string(value));
 })>;
-
-struct variable_table_record : std::multimap<std::string, variable> {
-    wxString filename;
-    wxString status;
-};
-
-template<typename T, typename TVal>
-struct member_ptr_value {
-    const char *header;
-    T TVal::* value;
-    int column_width = 80;
-};
 
 static inline std::tuple dati_fattura {
     member_ptr_value    {"Nome File",               &variable_table_record::filename},
@@ -110,11 +142,6 @@ static inline std::tuple dati_fattura {
     euro_kwh_table_value{"Disp. Var",               "disp_var"}
 };
 
-template<typename T> inline T variable_to(const variable &var) = delete;
-template<> inline wxString variable_to(const variable &var) { return wxString::FromUTF8(var.as_string().c_str()); }
-template<> inline fixed_point variable_to(const variable &var) { return var.as_number(); }
-template<> inline wxDateTime variable_to(const variable &var) { return var.as_date(); }
-
 struct reader_output {
     variable_map values;
     std::filesystem::path filename;
@@ -127,21 +154,11 @@ public:
         const wxValidator &validator = wxDefaultValidator) :
             DataTableView<variable_table_record>(parent, id, position, size, validator) {
         auto addVariableColumn = overloaded{
-            [&]<typename T, typename Formatter>(const table_value<T, Formatter> &value) {
-                AddColumn<OptionalValueColumn<T, Formatter>>(value.header, value.column_width,
-                [=](const variable_table_record &map) -> std::optional<T> {
-                    auto [lower, upper] = map.equal_range(value.value);
-                    if (value.index < std::distance(lower, upper)) {
-                        const auto &var = std::next(lower, value.index)->second;
-                        if (!var.is_null()) {
-                            return variable_to<T>(var);
-                        }
-                    }
-                    return std::nullopt;
-                });
+            [&]<typename T, typename Formatter>(const variable_table_value<T, Formatter> &value) {
+                AddColumn<OptionalValueColumn<T, Formatter>>(value.header, value.column_width, std::ref(value));
             },
-            [&]<typename T, typename TVal>(const member_ptr_value<T, TVal> &value) {
-                AddColumn<T>(value.header, value.column_width, value.value);
+            [&]<typename T, typename TVal, typename Formatter>(const member_ptr_value<T, TVal, Formatter> &value) {
+                AddColumn<OptionalValueColumn<T, Formatter>>(value.header, value.column_width, value.value);
             }
         };
         [&]<size_t ... Is>(std::index_sequence<Is...>) {
@@ -151,9 +168,8 @@ public:
 
     void AddReaderValues(const reader_output &data) {
         variable_table_record current;
-        current.filename = wxString::FromUTF8(data.filename.string().c_str());
-        std::string str = string_join(data.warnings, "; ");
-        current.status = wxString::FromUTF8(str.c_str());
+        current.filename = data.filename.string();
+        current.status = string_join(data.warnings, "; ");
         size_t table_idx = 0;
         for (const auto &[key, value] : data.values) {
             if (key.table_index == variable_key::global_index) continue;
