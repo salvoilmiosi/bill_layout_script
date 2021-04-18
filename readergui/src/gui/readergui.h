@@ -59,6 +59,7 @@ private:
     void OnSetScript(wxCommandEvent &evt);
     void OnRestart(wxCommandEvent &evt);
     void OnStop(wxCommandEvent &evt);
+    void OnClear(wxCommandEvent &evt);
 
     void startReader(const std::filesystem::path &path);
     void stopReader();

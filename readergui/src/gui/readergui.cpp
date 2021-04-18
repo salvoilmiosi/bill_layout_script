@@ -11,7 +11,8 @@ enum {
     MENU_OPEN_FOLDER = 10000,
     MENU_SET_SCRIPT,
     MENU_RESTART,
-    MENU_STOP
+    MENU_STOP,
+    MENU_CLEAR
 };
 
 BEGIN_EVENT_TABLE(ReaderGui, wxFrame)
@@ -19,6 +20,7 @@ BEGIN_EVENT_TABLE(ReaderGui, wxFrame)
     EVT_MENU(MENU_SET_SCRIPT,   ReaderGui::OnSetScript)
     EVT_MENU(MENU_RESTART,      ReaderGui::OnRestart)
     EVT_MENU(MENU_STOP,         ReaderGui::OnStop)
+    EVT_MENU(MENU_CLEAR,        ReaderGui::OnClear)
 END_EVENT_TABLE()
 
 ReaderThread::ReaderThread(ReaderGui *parent) : wxThread(wxTHREAD_JOINABLE), parent(parent) {}
@@ -74,6 +76,7 @@ ReaderGui::ReaderGui() : wxFrame(nullptr, wxID_ANY, "Reader GUI", wxDefaultPosit
     menu_reader->Append(MENU_SET_SCRIPT, "Imposta Script Layout");
     menu_reader->Append(MENU_RESTART, "Riavvia");
     menu_reader->Append(MENU_STOP, "Stop");
+    menu_reader->Append(MENU_CLEAR, "Cancella");
 
     menu_bar->Append(menu_reader, "Reader");
     SetMenuBar(menu_bar);
@@ -150,6 +153,12 @@ void ReaderGui::OnRestart(wxCommandEvent &evt) {
 
 void ReaderGui::OnStop(wxCommandEvent &evt) {
     stopReader();
+}
+
+void ReaderGui::OnClear(wxCommandEvent &evt) {
+    stopReader();
+    m_table->DeleteAllItems();
+    SetStatusText(wxEmptyString);
 }
 
 std::pair<std::filesystem::path, bool> ReaderGui::getControlScript(bool open_dialog) {
