@@ -28,12 +28,10 @@ ReaderThread::ReaderThread(ReaderGui *parent) : wxThread(wxTHREAD_JOINABLE), par
 void ReaderThread::start() {
     m_reader.add_flags(reader_flags::RECURSIVE);
     m_reader.add_layout(parent->getControlScript().first);
-    m_running = true;
     Run();
 }
 
 void ReaderThread::abort() {
-    m_running = false;
     m_reader.abort();
     Wait();
 }
@@ -45,7 +43,7 @@ wxThread::ExitCode ReaderThread::Entry() {
         wxQueueEvent(parent, evt);
     };
 
-    while (m_running && ! parent->m_queue.empty()) {
+    while (parent->m_running && ! parent->m_queue.empty()) {
         std::filesystem::path relative_path;
         try {
             pdf_document doc(parent->m_queue.dequeue());
@@ -94,6 +92,8 @@ ReaderGui::~ReaderGui() {
 }
 
 void ReaderGui::OnReadCompleted(wxThreadEvent &evt) {
+    if (!m_running) return;
+
     m_table->AddReaderValues(evt.GetPayload<reader_output>());
     m_table->Refresh();
 
@@ -127,6 +127,7 @@ void ReaderGui::startReader(const std::filesystem::path &path) {
     }
 
     m_table->DeleteAllItems();
+    m_running = true;
     for (size_t i=0; i < std::min({m_threads.size(), m_queue.size(), size_t(wxThread::GetCPUCount())}); ++i) {
         auto &t = m_threads[i];
         t = new ReaderThread(this);
@@ -135,6 +136,7 @@ void ReaderGui::startReader(const std::filesystem::path &path) {
 }
 
 void ReaderGui::stopReader() {
+    m_running = false;
     for (auto &t : m_threads) {
         delete t;
         t = nullptr;

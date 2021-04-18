@@ -31,7 +31,6 @@ public:
 private:
     class ReaderGui *parent;
     reader m_reader;
-    std::atomic<bool> m_running;
 
 protected:
     virtual ExitCode Entry() override;
@@ -52,6 +51,7 @@ private:
 
     safe_queue<std::filesystem::path> m_queue;
     std::array<ReaderThread *, 16> m_threads{nullptr};
+    std::atomic<bool> m_running;
 
     void OnReadCompleted(wxThreadEvent &evt);
 
