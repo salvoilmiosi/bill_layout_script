@@ -168,7 +168,15 @@ static std::string search_regex_all(std::string_view value, const std::string &r
 template<std::ranges::input_range R>
 static std::string table_header(std::string_view value, R &&labels) {
     std::cmatch header_match;
-    std::regex header_regex(fmt::format(".*{}.*", string_join(labels, ".*"), std::regex::icase));
+    std::regex header_regex(fmt::format(".*{}.*", string_join(labels |
+    std::views::transform([first=true](std::string_view str) mutable {
+        if (first) {
+            first = false;
+            return std::string(str);
+        } else {
+            return fmt::format("(?:{})?", str);
+        }
+    }), ".*")), std::regex::icase);
     if (!std::regex_search(value.begin(), value.end(), header_match, header_regex)) {
         return std::string();
     }
