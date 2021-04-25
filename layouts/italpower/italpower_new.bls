@@ -130,6 +130,9 @@ $with($search(@,/Periodo fatturato (.+)/)) {
     mese_fine=$month(@,"%d %b. %Y",/\D\s*-\s*(\D)/)
     mese_fattura=$month_add(mese_inizio,::calc_mese)
   }
+  $if(mese_fine < mese_inizio) {
+    $error("Axpo: Periodo Non Valido")
+  }
 }
 ### End Script
 ### End Box

@@ -119,8 +119,10 @@ data_fattura=$date(@,"%d.%m.%Y",/Del (\D)/)
 mese_fattura=$month(@,"%b.%Y")
 mese_fine=$month(@,"%b.%Y",/\D - (\D)/)
 $if($isset(mese_fine)) {
+  $if(mese_fine < mese_fattura) {
+    $error("SEN: Periodo Non Valido")
+  }
   mese_fattura=$month_add(mese_fattura,::calc_mese)
-  ::calc_mese+=1
 }
 _mese=$date_format(mese_fattura,"%m/%y")
 ### End Script
@@ -144,9 +146,6 @@ iva=$search(@,/IVA.* (\N%)/)
 ### Rect 0.51906633 0.36861986 0.21763146 0.035925712
 ### Script
 %totale_fattura=$search(@,/(\N)/)
-$ifnot($isset(totale_fattura)) {
-  $error("SEN: Storno")
-}
 data_scadenza=$date(@,"%d.%m.%Y",/Entro il (\D)/)
 ### End Script
 ### End Box
@@ -243,6 +242,7 @@ $with(&::_dettaglio) {
 ### Script
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
+    ::calc_mese+=1
     $nexttable()
     $goto(nome_fornitore)
   }

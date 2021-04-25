@@ -4,9 +4,9 @@
 ### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
+### Flags TRIM 
 ### Page 1
 ### Rect 0.07538146 0.31081033 0.82919604 0.024828043
-### Flags TRIM
 ### Script
 $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
   $error("Sorgenia: Stringa di Convalida Errata")
@@ -34,7 +34,7 @@ $ifnot($ate() || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
 ### Box Nome Fornitore
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags NOREAD
+### Flags NOREAD 
 ### Page 1
 ### Rect 0.061290324 0.04104903 0.36129034 0.08323831
 ### Goto Label nome_fornitore
@@ -56,9 +56,9 @@ numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 ### Box Ragione sociale
 ### Type RECTANGLE
 ### Mode DEFAULT
+### Flags TRIM 
 ### Page 1
 ### Rect 0.076612905 0.15037057 0.38810483 0.02850627
-### Flags TRIM
 ### Script
 'ragione_sociale
 ### End Script
@@ -94,6 +94,9 @@ codice_pod=$search(@,/per il punto di fornitura \(POD\) ([0-9A-Z]+)/)
 ### Script
 mese_fattura=$month(@,"%B %Y")
 mese_fine=$month(@,"%B %Y",/\D\/(\D)/)
+$if(mese_fine < mese_fattura) {
+  $error("Sorgenia: Periodo Non Valido")
+}
 mese_fattura=$month_add(mese_fattura,::calc_mese)
 $ifnot($isset(mese_fattura)) {
   $error("Sorgenia: Mese Fattura Mancante")
@@ -166,7 +169,7 @@ $step($captures($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/),
 ### Box Parsing Dettaglio
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags NOREAD
+### Flags NOREAD 
 ### Page 3
 ### Rect 0.26032954 0.030786771 0.057603687 0.04479557
 ### Script

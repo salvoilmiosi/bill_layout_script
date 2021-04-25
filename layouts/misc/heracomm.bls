@@ -132,6 +132,9 @@ $with(&::_dettaglio) {
     $setend($indexof(@,"\n"))
     mese_inizio=$month(@,"%d.%m.%Y",/dal (\D) al \D/)
     mese_fine=$month(@,"%d.%m.%Y",/dal \D al (\D)/)
+    $if(mese_fine < mese_inizio) {
+      $error("Heracomm: Periodo Non Valido")
+    }
     mese_fattura=$month_add(mese_inizio,::calc_mese)
   }
   _periodo=$format(/dal \d\d\.\d\d\.\d\d\d\d al \d\d\.$0/,$date_format(mese_fattura,"%m.%Y"))

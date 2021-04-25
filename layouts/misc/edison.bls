@@ -78,6 +78,9 @@ codice_pod=$search(@,/POD (.+)/)
 mese_fattura=$month(@,"%B %Y")
 mese_fine=$month(@,"%B %Y",/\D - (\D)/)
 $if($isset(mese_fine)) {
+  $if(mese_fine < mese_fattura) {
+    $error("Edison: Periodo Non Valido")
+  }
   mese_fattura=$month_add(mese_fattura,::calc_mese)
 }
 _mese=$date_format(mese_fattura,"%m/%Y")

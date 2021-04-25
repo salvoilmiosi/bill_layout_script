@@ -142,8 +142,10 @@ data_scadenza=$date(@,"%d/%m/%Y",/Entro il (\D)/)
 mese_fattura=$month(@,"%b. %Y")
 mese_fine=$month(@,"%b. %Y",/\D - (\D)/)
 $if($isset(mese_fine)) {
+  $if(mese_fine < mese_fattura) {
+    $error("Enel: Periodo Non Valido")
+  }
   mese_fattura=$month_add(mese_fattura,::calc_mese)
-  ::calc_mese+=1
 }
 ### End Script
 ### End Box
@@ -256,6 +258,7 @@ $with(&::_dettaglio) {
 ### Script
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
+    ::calc_mese+=1
     $nexttable()
     $goto(nome_fornitore)
   }

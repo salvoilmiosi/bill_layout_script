@@ -76,6 +76,9 @@ $ifnot($isset(mese_fattura)) {
   mese_fine=$month($format("$0 $1",_anno,$search(@,/\w\w\w - (\w\w\w)/)),"%Y %b")
 }
 $if($isset(mese_fine)) {
+  $if(mese_fine < mese_fattura) {
+    $error("Sorgenia: Periodo Non Valido")
+  }
   mese_fattura=$month_add(mese_fattura,::calc_mese)
 }
 ### End Script

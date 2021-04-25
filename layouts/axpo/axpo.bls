@@ -97,6 +97,9 @@ codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
 
 mese_inizio=$month(@,"%d.%m.%Y",/PERIODO (\D) - \D/)
 mese_fine=$month(@,"%d.%m.%Y",/PERIODO \D - (\D)/)
+$if(mese_fine < mese_inizio) {
+  $error("Axpo: Periodo Non Valido")
+}
 mese_fattura=$month_add(mese_inizio,::calc_mese)
 _mese=$date_format(mese_fattura,"%m\\.%Y")
 ### End Script

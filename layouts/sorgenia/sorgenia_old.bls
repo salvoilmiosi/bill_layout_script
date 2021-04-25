@@ -117,6 +117,9 @@ p+::off_allegati
 ### Script
 mese_fattura=$month(@,"%B %Y")
 mese_fine=$month(@,"%B %Y",/\D\/(\D)/)
+$if(mese_fine < mese_fattura) {
+  $error("Sorgenia: Periodo Non Valido")
+}
 mese_fattura=$month_add(mese_fattura,::calc_mese)
 $ifnot($isset(mese_fattura)) {
   $error("Sorgenia (old): Mese Fattura Mancante")
