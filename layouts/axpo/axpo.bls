@@ -21,6 +21,28 @@ $if($ate()) {
 ### End Script
 ### End Box
 
+### Box Lettura Dettaglio
+### Type RECTANGLE
+### Mode RAW
+### Page 3
+### Rect 0.032258064 0.090079814 0.95483875 0.8556215434660633
+### Goto Label lettura_dettaglio
+### Spacers
+p+::off_allegato
+p+::off_dettaglio
+p+::next_page
+### End Spacers
+### Script
+$if($ate()) {
+  $warning("Axpo: Dettaglio Mancante")
+}$elifnot($contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) {
+  ::_dettaglio+=@
+  ::off_dettaglio+=1
+  $goto(lettura_dettaglio)
+}
+### End Script
+### End Box
+
 ### Box Nome Fornitore
 ### Type RECTANGLE
 ### Mode DEFAULT
@@ -44,16 +66,16 @@ $setend($indexof(@,"\n"))
 ### End Script
 ### End Box
 
-### Box Totale da pagare / scadenza
+### Box Totale / scadenza
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Page 1
-### Rect 0.6150193 0.3080678 0.35555232 0.10002199
+### Rect 0.5112903225806451 0.3080678 0.459281297419355 0.2258688515837104
 ### Spacers
 p+::off_allegato
 ### End Spacers
 ### Script
-%totale_fattura=$search(@,/TOTALE DA PAGARE (\N)/)
+%totale_fattura=$search(@,/TOTALE BOLLETTA: (\N)/)
 data_scadenza=$date(@,"%d.%m.%Y",/entro il (\D)/)
 ### End Script
 ### End Box
@@ -69,31 +91,27 @@ p+::off_allegato
 ### Script
 numero_fattura=$search(@,/N\. fattura (\N)/)
 data_fattura=$date(@,"%d.%m.%Y",/N\. fattura \N del (\D)/)
-mese_fattura=$month(@,"%d.%m.%Y",/PERIODO \D - (\D)/)
 numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/)
 codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
 'indirizzo_fornitura=$singleline($search(@,/FORNIAMO ENERGIA IN\n([^]+?\d{5}.+)\n/))
+
+mese_inizio=$month(@,"%d.%m.%Y",/PERIODO (\D) - \D/)
+mese_fine=$month(@,"%d.%m.%Y",/PERIODO \D - (\D)/)
+mese_fattura=$month_add(mese_inizio,::calc_mese)
 _mese=$date_format(mese_fattura,"%m\\.%Y")
 ### End Script
 ### End Box
 
-### Box Dettaglio Costi
+### Box IVA
 ### Type RECTANGLE
 ### Mode RAW
 ### Page 1
-### Rect 0.047653962 0.65514416 0.4389663 0.23846543
+### Rect 0.047653962 0.6506787330316742 0.4389663 0.24293085696832573
 ### Spacers
 p+::off_allegato
 ### End Spacers
 ### Script
 iva=$search(@,/Importo IVA (\N%)/)
-$if($isset(codice_pod)) {
-  %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA (\N) \u20ac/)
-  %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO E LA GESTIONE DEL CONTATORE (\N) \u20ac/)
-  %oneri=$search(@,/SPESA PER ONERI DI SISTEMA (\N) \u20ac/)
-  %accise=$search(@,/IMPOSTE (\N) \u20ac/)
-  %imponibile=$search(@,/imponibile di (\N)/)
-}
 ### End Script
 ### End Box
 
@@ -118,7 +136,7 @@ $ifnot($isset(codice_pod)) {
 ### Type PAGE
 ### Mode LAYOUT
 ### Page 2
-### Rect 0.03504043645161288 0.41277081630558726 0.9407660151612903 0.09578106510832379
+### Rect 0.02697592032258067 0.2542759474344356 0.9423789183870968 0.029646515507411597
 ### Spacers
 p+::off_allegato
 p+::next_page
@@ -126,7 +144,7 @@ p+::next_page
 ### Script
 $between("CONSUMI E LETTURE","Consumi fatturati negli ultimi 12 mesi") {
   $step($table_row($search(@,$format(/(.+ - \d\d\.$0.+)/,_mese)),
-    $table_header(@,/Periodo \(dal - al\)/,/(?:Consumi fatturati kWh)?/,/(?:Energia Reattiva)?/))) {
+    $table_header(@,"Periodo \\(dal - al\\)","Consumi fatturati kWh","Energia Reattiva"))) {
     $skip()
     $step($captures(@,/(\N)(?: (\N) (\N))?/)) {
       %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
@@ -137,50 +155,14 @@ $between("CONSUMI E LETTURE","Consumi fatturati negli ultimi 12 mesi") {
 ### End Script
 ### End Box
 
-### Box Imponibile
-### Type RECTANGLE
-### Mode DEFAULT
-### Page 2
-### Rect 0.5112903225806452 0.3204104903078677 0.09999999999999998 0.04789053591790193
-### Spacers
-p+::off_allegato
-p+::next_page
-### End Spacers
-### Script
-%imponibile=$search(@,/TOTALE IMPONIBILE (\N)/)
-### End Script
-### End Box
-
-### Box Lettura Quadro Dettaglio
-### Type RECTANGLE
-### Mode RAW
-### Page 3
-### Rect 0.032258064 0.090079814 0.95483875 0.8289623
-### Goto Label quadro_dettaglio
-### Spacers
-p+::off_allegato
-p+::next_page
-### End Spacers
-### Script
-$ifnot($ate() || $contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) {
-  _dettaglio+=@
-  ::next_page+=1
-  $goto(quadro_dettaglio)
-}
-### End Script
-### End Box
-
-### Box Parsing Quadro Dettaglio
+### Box Parsing Dettaglio
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Flags NOREAD 
 ### Page 3
 ### Rect 0.21504012 0.053452756 0.04193318 0.029393759
 ### Script
-$ifnot($isset(_dettaglio)) {
-  $warning("Axpo: Dettaglio Mancante")
-}
-$with(&_dettaglio) {
+$with(&::_dettaglio) {
   %sbilanciamento=$search($search(@,/Sbilanciamento\n((dal.+\n)+)/),
     $format(/al \d\d\.$0 Euro\/kWh (\N)/,_mese))
   %pcv=$search($search(@,/Prezzo Commercializzazione Vendita\n((dal.+\n)+)/),
@@ -206,13 +188,24 @@ $with(&_dettaglio) {
   ^penale_reattiva_sup75=$search_all($search(@,/Energia Reattiva oltre 75%\n((dal.+\n)+)/),
     $format(/al \d\d\.$0 F[1-3] Euro\/kVarh \N \N (\N)/,_mese))
   
-  %spesa_materia_energia=$search(@,/SPESA PER LA MATERIA ENERGIA IMPORTO \u20ac (\N)/)
-  %trasporto_gestione=$search(@,/SPESA PER IL TRASPORTO IMPORTO \u20ac (\N)/)
-  %oneri=$search(@,/ONERI DI SISTEMA IMPORTO \u20ac (\N)/)
+  $between("SPESA PER LA MATERIA ENERGIA","Subtotale") {
+    ^spesa_materia_energia=$search_all(@,$format(/dal \d\d\.\d\d\.\d\d\d\d al \d\d\.$0.+ (\N) \d+%/,_mese))
+  }
+  $between("SCONTI","Subtotale") {
+    ^sconti=$search_all(@,$format(/dal \d\d\.\d\d\.\d\d\d\d al \d\d\.$0.+ (\N) \d+%/,_mese))
+  }
+  $between("SPESA PER IL TRASPORTO","Subtotale") {
+    ^trasporto_gestione=$search_all(@,$format(/dal \d\d\.\d\d\.\d\d\d\d al \d\d\.$0.+ (\N) \d+%/,_mese))
+  }
+  $between("ONERI DI SISTEMA","Subtotale") {
+    ^oneri=$search_all(@,$format(/dal \d\d\.\d\d\.\d\d\d\d al \d\d\.$0.+ (\N) \d+%/,_mese))
+  }
 
   %potenza[0:3]=$search(@,$format(/al \d\d\.$0 Euro\/kW \N (\N)/,_mese))
   %accise=$search($search(@,/Imposta erariale di consumo \(accisa\)\n[^]*?- Imposta erariale\n((dal.+\n)+)/),
     $format(/al \d\d\.$0 Euro\/kWh \N \N (\N)/,_mese))
+
+  imponibile=$sum(spesa_materia_energia,sconti,trasporto_gestione,oneri,accise)
 }
 ### End Script
 ### End Box
@@ -226,12 +219,22 @@ $with(&_dettaglio) {
 ### Spacers
 p+::off_allegato
 p+::next_page
+p+::off_dettaglio
 ### End Spacers
 ### Script
-$if(@ == "DATI FORNITURA") {
-  ::next_page+=1
+$if(mese_fattura != mese_fine) {
+  # Prossima tabella multimese
+  ::calc_mese+=1
   $nexttable()
   $goto(nome_fornitore)
+}
+$if(@ == "DATI FORNITURA") {
+  # Prossima tabella multipod
+  ::next_page += 1 + ::off_dettaglio
+  ::off_dettaglio = 0
+  $nexttable()
+  $clear(::_dettaglio)
+  $goto(lettura_dettaglio)
 }
 ### End Script
 ### End Box
