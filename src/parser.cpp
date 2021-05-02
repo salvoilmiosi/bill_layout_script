@@ -46,7 +46,9 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
 
 spacer_index find_spacer_index(std::string_view name) {
     for (size_t i=0; i<EnumSize<spacer_index>; ++i) {
-        if (EnumData<const char *>(static_cast<spacer_index>(i)) == name) {
+        if (std::ranges::any_of(EnumData<0>(static_cast<spacer_index>(i)), [&](const char *c) {
+            return c == name;
+        })) {
             return static_cast<spacer_index>(i);
         }
     }

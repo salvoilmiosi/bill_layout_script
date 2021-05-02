@@ -20,16 +20,16 @@ struct command_call {
 };
 
 DEFINE_ENUM(spacer_index,
-    (PAGE,      "p")
-    (X,         "x")
-    (Y,         "y")
-    (WIDTH,     "width")
-    (HEIGHT,    "height")
-    (TOP,       "top")
-    (RIGHT,     "right")
-    (BOTTOM,    "bottom")
-    (LEFT,      "left")
-    (ROTATE,    "rotate")
+    (PAGE,      static_vector{"p", "page"})
+    (X,         static_vector{"x"})
+    (Y,         static_vector{"y"})
+    (WIDTH,     static_vector{"w", "width"})
+    (HEIGHT,    static_vector{"h", "height"})
+    (TOP,       static_vector{"t", "top"})
+    (RIGHT,     static_vector{"r", "right"})
+    (BOTTOM,    static_vector{"b", "bottom"})
+    (LEFT,      static_vector{"l", "left"})
+    (ROTATE,    static_vector{"rot", "rotate"})
 )
 
 struct readbox_options {

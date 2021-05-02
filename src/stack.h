@@ -34,8 +34,16 @@ private:
     size_t m_size = 0;
 
 public:
+    constexpr static_vector() = default;
+    
+    constexpr static_vector(std::initializer_list<T> init) {
+        for (auto &obj : init) {
+            push_back(obj);
+        }
+    }
+
     template<typename U>
-    void push_back(U &&obj) {
+    constexpr void push_back(U &&obj) {
         if (m_size >= N) {
             throw std::out_of_range("Stack overflow");
         }
@@ -43,50 +51,60 @@ public:
     }
 
     template<typename ... Ts>
-    T &emplace_back(Ts && ... args) {
+    constexpr T &emplace_back(Ts && ... args) {
         push_back(T{std::forward<Ts>(args) ... });
         return back();
     }
 
-    void pop_back() {
+    constexpr void pop_back() {
         if (m_size == 0) {
             throw std::out_of_range("Stack underflow");
         }
         --m_size;
     }
 
-    void clear() {
+    constexpr void clear() {
         m_size = 0;
     }
 
-    bool empty() {
+    constexpr bool empty() {
         return m_size == 0;
     }
 
-    size_t size() {
+    constexpr size_t size() {
         return m_size;
     }
 
-    size_t capacity() {
+    constexpr size_t capacity() {
         return N;
     }
 
-    T &back() {
+    constexpr T &back() {
         return (*this)[m_size - 1];
     }
 
-    const T &back() const {
+    constexpr const T &back() const {
         return (*this)[m_size - 1];
     }
 
-    T &operator[](size_t index) {
+    constexpr T &operator[](size_t index) {
         return m_data[index];
     }
 
-    const T &operator[](size_t index) const {
+    constexpr const T &operator[](size_t index) const {
         return m_data[index];
+    }
+
+    constexpr const T *begin() const {
+        return m_data;
+    }
+
+    constexpr const T *end() const {
+        return m_data + m_size;
     }
 };
+
+template<typename T> static_vector(std::initializer_list<T>) -> static_vector<T>;
 
 template<typename T, size_t N = MAX_SIZE>
 using static_stack = simple_stack<T, static_vector<T, N>>;
