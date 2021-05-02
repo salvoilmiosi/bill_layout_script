@@ -90,6 +90,7 @@ private:
     bytecode m_code;
 
     simple_stack<loop_label_pair> m_loop_labels;
+    std::map<std::string, small_int, std::less<>> m_fun_arg_indices;
     int m_content_level = 0;
 
     bitset<parser_flags> m_flags;

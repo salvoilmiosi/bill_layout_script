@@ -451,9 +451,13 @@ void parser::read_function() {
     }
     case hash("arg"): {
         m_lexer.require(token_type::PAREN_BEGIN);
-        auto num = string_toint(m_lexer.require(token_type::INTEGER).value);
+        auto tok = m_lexer.require(token_type::IDENTIFIER);
         m_lexer.require(token_type::PAREN_END);
-        m_code.add_line<opcode::PUSHARG>(small_int(num));
+        if (auto it = m_fun_arg_indices.find(tok.value); it != m_fun_arg_indices.end()) {
+            m_code.add_line<opcode::PUSHARG>(it->second);
+        } else {
+            throw parsing_error(fmt::format("Argomento funzione sconosciuto: {}", tok.value), tok);
+        }
         break;
     }
     case hash("call"): {

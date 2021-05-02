@@ -140,9 +140,29 @@ void parser::read_keyword() {
         break;
     }
     case hash("function"): {
+        bool has_content = false;
         m_lexer.require(token_type::PAREN_BEGIN);
         auto name = m_lexer.require(token_type::IDENTIFIER);
-        m_lexer.require(token_type::PAREN_END);
+        int idx = 0;
+        while (!m_lexer.check_next(token_type::PAREN_END)) {
+            m_lexer.require(token_type::COMMA);
+            auto tok = m_lexer.next();
+            switch (tok.type) {
+            case token_type::CONTENT:
+                if (idx == 0) {
+                    has_content = true;
+                    ++m_content_level;
+                } else {
+                    throw unexpected_token(tok, token_type::IDENTIFIER);
+                }
+                break;
+            case token_type::IDENTIFIER:
+                m_fun_arg_indices.emplace(tok.value, idx++);
+                break;
+            default:
+                throw unexpected_token(tok, token_type::IDENTIFIER);
+            }
+        }
         
         std::string fun_label = fmt::format("__function_{}", name.value);
         std::string endfun_label = fmt::format("__endfunction_{}", name.value);
@@ -152,6 +172,10 @@ void parser::read_keyword() {
         read_statement();
         m_code.add_line<opcode::RET>();
         m_code.add_label(endfun_label);
+        m_fun_arg_indices.clear();
+        if (has_content) {
+            --m_content_level;
+        }
         break;
     }
     case hash("call"): {
