@@ -19,6 +19,7 @@ $elif($contains(@,"MetaEnergia S.p.A")) $import("misc/metaenergia")
 $elif($contains(@,"Edison Energia SpA")) $import("misc/edison")
 $elif($contains(@,"Estra Energie S.r.l")) $import("misc/estra")
 $elif($contains(@,"HERA COMM s.r.l")) $import("misc/heracomm")
+$elif($contains(@,"AMG GAS S.R.L.")) $import("misc/amg/controllo")
 $else $warning("Nessun Layout")
 ### End Script
 ### End Box

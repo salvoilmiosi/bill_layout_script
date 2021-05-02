@@ -1,0 +1,31 @@
+### Bill Layout Script
+
+### Box Convalida Fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Flags TRIM 
+### Page 1
+### Rect 0.015321756894790603 0.01227436823104693 0.3054136874361594 0.08231046931407943
+### Script
+$ifnot(@ == "AMG GAS S.R.L.\n(Gas ed Energia Elettrica)") {
+  $error("AMG: Stringa di Convalida Errata")
+}
+### End Script
+### End Box
+
+### Box Check Tipo Fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Flags TRIM 
+### Page 1
+### Rect 0.599591419816139 0.011552346570397111 0.36670071501532175 0.03032490974729242
+### Script
+$if(@ == "Fornitura di Gas Naturale - Mercato Libero") {
+  $import("amg_gas")
+} $elif(@ == "Fornitura di Energia Elettrica - Mercato Libero") {
+  $import("amg_luce")
+} $else {
+  $error("AMG: Fattura Non Valida")
+}
+### End Script
+### End Box
