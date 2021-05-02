@@ -40,7 +40,8 @@ $if($ate()) {
 ### Rect 0.048197635 0.21550742 0.6294624 0.76047003
 ### Goto Label dettaglio_costi
 ### Spacers
-p+::offset_dettaglio top-::spacer_dettaglio
+p+::offset_dettaglio
+t-::spacer_dettaglio
 ### End Spacers
 ### Script
 ::_dettaglio+=@

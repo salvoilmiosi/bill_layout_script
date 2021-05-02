@@ -28,7 +28,8 @@ $if($ate()) {
 ### Rect 0.040290102 0.080957815 0.91055596 0.8734165
 ### Goto Label lettura_dati
 ### Spacers
-p+::off_allegati p+::next_page
+p+::off_allegati
+p+::next_page
 ### End Spacers
 ### Script
 $ifnot($ate() || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {

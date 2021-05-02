@@ -80,7 +80,8 @@ numero_cliente=$search(@,/Codice cliente (.+)\n/)
 ### Page 2
 ### Rect 0.02086479 0.052815437 0.966129 0.037628278
 ### Spacers
-p+::off_allegato p+::page_offset
+p+::off_allegato
+p+::page_offset
 ### End Spacers
 ### Script
 mese_fattura=$month(@,"%B %Y",/Dettaglio consumi mese di (\D)/)
@@ -93,7 +94,8 @@ mese_fattura=$month(@,"%B %Y",/Dettaglio consumi mese di (\D)/)
 ### Page 2
 ### Rect 0.016346991 0.12086659 0.483653 0.112206854
 ### Spacers
-p+::off_allegato p+::page_offset
+p+::off_allegato
+p+::page_offset
 ### End Spacers
 ### Script
 codice_pod=$search(@,/Codice POD (.+)\n/)
@@ -107,7 +109,8 @@ codice_pod=$search(@,/Codice POD (.+)\n/)
 ### Page 2
 ### Rect 0.5075084 0.13629562 0.42495131 0.06718019
 ### Spacers
-p+::off_allegato p+::page_offset
+p+::off_allegato
+p+::page_offset
 ### End Spacers
 ### Script
 $step($captures(@,/Misura (\N) (\N) (\N)/)) {
@@ -128,7 +131,8 @@ $step($captures(@,/Energia Reattiva \(kVar\) (\N) (\N) (\N)/)) {
 ### Page 2
 ### Rect 0.017741935 0.2531357 0.9758065 0.69359004
 ### Spacers
-p+::off_allegato p+::page_offset
+p+::off_allegato
+p+::page_offset
 ### End Spacers
 ### Script
 %spesa_materia_energia=$search(@,/Servizi di Vendita (\N)/)
@@ -162,7 +166,8 @@ $step($captures(@,/Energia F3 \u20ac\/kWh (\N) Euro (\N)/)) {
 ### Page 3
 ### Rect 0.022580646 0.05587229 0.96129036 0.02622577
 ### Spacers
-p+::off_allegato p+::page_offset
+p+::off_allegato
+p+::page_offset
 ### End Spacers
 ### Script
 $if($contains(@,"Dettaglio consumi")) {
