@@ -48,11 +48,3 @@ target_link_libraries(blsdump layout ${JSONCPP_LIBRARIES})
 
 add_executable(sizes main/sizes.cpp)
 target_link_libraries(sizes layout)
-
-if(WIN32 AND MSYS)
-    add_custom_target(fix_compile_commands ALL
-        COMMAND sed -i 's/\\/\\\(.\\\)\\//\\1:\\//g' ${CMAKE_BINARY_DIR}/compile_commands.json
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        COMMENT "Fixing compilation Database."
-    )
-endif()
