@@ -237,18 +237,27 @@ void parser::read_keyword() {
         if (m_content_level == 0) {
             throw parsing_error("Stack contenuti vuoto", tok_name);
         }
-        m_code.add_line<opcode::PUSHVIEW>();
         auto begin_str = m_lexer.require(token_type::STRING).parse_string();
         int begin_len = begin_str.size();
-        m_code.add_line<opcode::PUSHSTR>(std::move(begin_str));
-        m_code.add_line<opcode::CALL>("indexof", 2);
-        m_code.add_line<opcode::SETBEGIN>();
-        if (m_lexer.check_next(token_type::COMMA)) {
+        if (begin_len != 0) {
             m_code.add_line<opcode::PUSHVIEW>();
-            m_code.add_line<opcode::PUSHSTR>(m_lexer.require(token_type::STRING).parse_string());   
-            m_code.add_line<opcode::PUSHINT>(begin_len);
-            m_code.add_line<opcode::CALL>("indexof", 3);
-            m_code.add_line<opcode::SETEND>();
+            m_code.add_line<opcode::PUSHSTR>(std::move(begin_str));
+            m_code.add_line<opcode::CALL>("indexof", 2);
+            m_code.add_line<opcode::SETBEGIN>();
+        }
+        if (m_lexer.check_next(token_type::COMMA)) {
+            auto end_str = m_lexer.require(token_type::STRING).parse_string();
+            if (!end_str.empty()) {
+                m_code.add_line<opcode::PUSHVIEW>();
+                m_code.add_line<opcode::PUSHSTR>(std::move(end_str));
+                if (begin_len != 0) {
+                    m_code.add_line<opcode::PUSHINT>(begin_len);
+                    m_code.add_line<opcode::CALL>("indexof", 3);
+                } else {
+                    m_code.add_line<opcode::CALL>("indexof", 2);
+                }
+                m_code.add_line<opcode::SETEND>();
+            }
         }
         m_lexer.require(token_type::PAREN_END);
         read_statement();
