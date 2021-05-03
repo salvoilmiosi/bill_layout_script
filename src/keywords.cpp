@@ -143,13 +143,12 @@ void parser::read_keyword() {
         bool has_content = false;
         m_lexer.require(token_type::PAREN_BEGIN);
         auto name = m_lexer.require(token_type::IDENTIFIER);
-        int idx = 0;
         while (!m_lexer.check_next(token_type::PAREN_END)) {
             m_lexer.require(token_type::COMMA);
             auto tok = m_lexer.next();
             switch (tok.type) {
             case token_type::CONTENT:
-                if (idx == 0) {
+                if (m_fun_arg_indices.empty() && !has_content) {
                     has_content = true;
                     ++m_content_level;
                 } else {
@@ -157,7 +156,9 @@ void parser::read_keyword() {
                 }
                 break;
             case token_type::IDENTIFIER:
-                m_fun_arg_indices.emplace(tok.value, idx++);
+                if (!m_fun_arg_indices.try_emplace(std::string(tok.value), m_fun_arg_indices.size()).second) {
+                    throw parsing_error(fmt::format("Argomento funzione duplicato: {}", tok.value), tok);
+                }
                 break;
             default:
                 throw unexpected_token(tok, token_type::IDENTIFIER);
