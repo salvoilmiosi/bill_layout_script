@@ -34,7 +34,7 @@ void parser::read_keyword() {
             read_expression();
             break;
         case FUN_VARIABLE:
-            read_variable_name();
+            read_variable(false);
             break;
         case FUN_VOID:
             break;

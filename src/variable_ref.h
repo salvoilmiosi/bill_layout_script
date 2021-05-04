@@ -16,14 +16,12 @@ public:
     using map_type = Map;
     using iterator_type = typename Map::iterator;
 
-private:
+protected:
     map_type *m_map = nullptr;
     key_type m_key;
 
     iterator_type m_begin;
     iterator_type m_end;
-
-    size_t m_len;
 
 public:
     multimap_range() = default;
@@ -32,23 +30,20 @@ public:
         auto range = m_map->equal_range(m_key);
         m_begin = range.first;
         m_end = range.second;
-        m_len = std::distance(m_begin, m_end);
     }
 
     void resize(size_t newlen) {
-        while (newlen > m_len) {
+        for (size_t len = size(); len < newlen; ++len) {
             auto it = m_map->emplace_hint(m_end, m_key, value_type());
-            if (m_len == 0) {
+            if (m_begin == m_end) {
                 m_begin = it;
             }
             m_end = std::next(it);
-            ++m_len;
         }
     }
 
     void clear() {
         m_begin = m_end = m_map->erase(m_begin, m_end);
-        m_len = 0;
     }
 
     value_type &at(size_t index) const {
@@ -60,7 +55,7 @@ public:
     }
 
     size_t size() const {
-        return m_len;
+        return std::distance(m_begin, m_end);
     }
 
     auto begin() const {
@@ -110,6 +105,20 @@ public:
         } else {
             return null_var;
         }
+    }
+
+    void clear_value() {
+        if (index > size()) return;
+        auto it_begin = std::next(m_begin, index);
+        auto it_end = index + length >= size() ? m_end : std::next(it_begin, length);
+        auto it_removed = m_map->erase(it_begin, it_end);
+        if (it_begin == m_begin) {
+            m_begin = it_removed;
+        }
+        if (it_end == m_end) {
+            m_end = it_removed;
+        }
+        length = 0;
     }
 
     void set_value(variable &&value, bitset<setvar_flags> flags) {
