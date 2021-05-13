@@ -473,16 +473,16 @@ void parser::read_function() {
         break;
     }
     case hash("ate"):
+        m_lexer.require(token_type::PAREN_BEGIN);
+        m_lexer.require(token_type::PAREN_END);
+        m_code.add_line<opcode::GETBOX>(spacer_index::PAGE);
+        m_code.add_line<opcode::DOCPAGES>();
+        m_code.add_line<opcode::CALL>("gt", 2);
+        break;
     case hash("docpages"):
         m_lexer.require(token_type::PAREN_BEGIN);
         m_lexer.require(token_type::PAREN_END);
-        if (fun_name == "docpages") {
-            m_code.add_line<opcode::DOCPAGES>();
-        } else {
-            m_code.add_line<opcode::GETBOX>(spacer_index::PAGE);
-            m_code.add_line<opcode::DOCPAGES>();
-            m_code.add_line<opcode::CALL>("gt", 2);
-        }
+        m_code.add_line<opcode::DOCPAGES>();
         break;
     default: {
         auto it = function_lookup.find(fun_name);
