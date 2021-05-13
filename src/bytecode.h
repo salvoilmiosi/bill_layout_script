@@ -107,6 +107,7 @@ DEFINE_ENUM_TYPES(opcode,
     (JSRVAL, jsr_address)           // program_counter -> call_stack -- jump to subroutine
     (RET)                           // jump to call_stack.top
     (RETVAL)                        // return to caller and push value to stack
+    (RETVAR)                        // return to caller and push selected variable
     (IMPORT, string_ptr)            // importa il file e lo esegue
     (LAYOUTNAME, string_ptr)        // aggiunge il nome del layout nella lista di output
     (SETLAYOUT)                     // ferma l'esecuzione se settata la flag setlayout in reader
@@ -161,7 +162,7 @@ struct bytecode : std::vector<command_args> {
     bytecode() {
         reserve(4096);
     }
-    
+
     template<opcode Cmd, typename ... Ts>
     void add_line(Ts && ... args) {
         push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
@@ -179,6 +180,14 @@ struct bytecode : std::vector<command_args> {
         } else {
             throw std::runtime_error(fmt::format("Etichetta goto duplicata: {}", *label));
         }
+    }
+
+    void move_not_comments(size_t pos_begin, size_t pos_end) {
+        auto it_begin = begin() + pos_begin;
+        auto it_end = begin() + pos_end;
+        std::rotate(std::find_if_not(it_begin, it_end, [](const command_args &cmd) {
+            return cmd.command() == opcode::COMMENT;
+        }), it_end, end());
     }
 };
 

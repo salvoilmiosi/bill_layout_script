@@ -162,9 +162,9 @@ bool parser::read_statement(bool throw_on_eof) {
         }
         return false;
     default: {
-        size_t selvar_begin = m_code.size();
+        auto selvar_begin = m_code.size();
         auto prefixes = read_variable(false);
-        size_t selvar_end = m_code.size();
+        auto selvar_end = m_code.size();
         
         auto tok = m_lexer.peek();
         bitset<setvar_flags> flags;
@@ -200,7 +200,7 @@ bool parser::read_statement(bool throw_on_eof) {
         if (prefixes & variable_prefixes::OVERWRITE)  flags |= setvar_flags::OVERWRITE;
         if (prefixes & variable_prefixes::FORCE)      flags |= setvar_flags::FORCE;
 
-        std::rotate(m_code.begin() + selvar_begin, m_code.begin() + selvar_end, m_code.end());
+        m_code.move_not_comments(selvar_begin, selvar_end);
         m_code.add_line<opcode::SETVAR>(flags);
     }
     }

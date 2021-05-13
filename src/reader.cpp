@@ -76,16 +76,12 @@ void reader::exec_command(const command_args &cmd) {
         }
     };
 
-    auto jump_return = [&](bool get_value) {
-        variable ret_value;
-        if (get_value) {
-            ret_value = m_stack.pop();
-        }
+    auto jump_return = [&](auto &&ret_value) {
         auto fun_call = m_calls.pop();
         m_program_counter = fun_call.return_addr;
         m_stack.resize(m_stack.size() - fun_call.numargs);
         if (fun_call.nodiscard) {
-            m_stack.push(ret_value);
+            m_stack.push(std::forward<decltype(ret_value)>(ret_value));
         }
     };
 
@@ -206,8 +202,9 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::JSR:        jump_subroutine(cmd.get_args<opcode::JSR>()); break;
     case opcode::THROWERROR: m_running = false; throw layout_error(m_stack.pop().as_string()); break;
     case opcode::WARNING:    m_warnings.push_back(m_stack.pop().as_string()); break;
-    case opcode::RET:        jump_return(false); break;
-    case opcode::RETVAL:     jump_return(true); break;
+    case opcode::RET:        jump_return(variable()); break;
+    case opcode::RETVAL:     jump_return(m_stack.pop()); break;
+    case opcode::RETVAR:     jump_return(m_selected.get_value()); break;
     case opcode::IMPORT:     import_layout(*cmd.get_args<opcode::IMPORT>()); break;
     case opcode::LAYOUTNAME: push_layout(*cmd.get_args<opcode::LAYOUTNAME>()); break;
     case opcode::SETLAYOUT:  if (m_flags & reader_flags::HALT_ON_SETLAYOUT) m_running = false; break;

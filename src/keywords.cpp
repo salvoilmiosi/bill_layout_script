@@ -118,12 +118,12 @@ void parser::read_keyword() {
         read_expression();
         m_code.add_line<opcode::JZ>(endfor_label);
         m_lexer.require(token_type::COMMA);
-        size_t increase_stmt_begin = m_code.size();
+        auto increase_stmt_begin = m_code.size();
         read_statement();
-        size_t increase_stmt_end = m_code.size();
+        auto increase_stmt_end = m_code.size();
         m_lexer.require(token_type::PAREN_END);
         read_statement();
-        std::rotate(m_code.begin() + increase_stmt_begin, m_code.begin() + increase_stmt_end, m_code.end());
+        m_code.move_not_comments(increase_stmt_begin, increase_stmt_end);
         m_code.add_line<opcode::JMP>(for_label);
         m_code.add_label(endfor_label);
         m_loop_labels.pop();
@@ -331,7 +331,11 @@ void parser::read_keyword() {
         } else {
             read_expression();
             m_lexer.require(token_type::PAREN_END);
-            m_code.add_line<opcode::RETVAL>();
+            if (m_code.back().command() == opcode::PUSHVAR) {
+                m_code.back() = make_command<opcode::RETVAR>();
+            } else {
+                m_code.add_line<opcode::RETVAL>();
+            }
         }
         break;
     default:
