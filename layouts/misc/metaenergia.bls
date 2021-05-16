@@ -20,7 +20,7 @@ fornitore="MetaEnergia"
 ### Flags TRIM
 ### Script
 $if(@ != "FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA - MERCATO LIBERO") {
-  $error("MetaEnergia: Stringa di Convalida Errata")
+  $error(::ERRORE_LAYOUT_INVALIDO, "MetaEnergia: Stringa di Convalida Errata")
 }
 ### End Script
 ### End Box
@@ -47,7 +47,7 @@ numero_fattura = $search(@,/Fattura N\. (\w+)/)
 data_fattura = $date(@,"%d/%m/%Y",/Emessa il (\D)/)
 mese_fattura = $month(@,"%d/%m/%Y",/Periodo di riferimento \D - (\D)/)
 $ifnot($isset(mese_fattura)) {
-  $error("MetaEnergia: Mese Fattura Mancante")
+  $error(::ERRORE_PERIODO_INVALIDO, "MetaEnergia: Mese Fattura Mancante")
 }
 
 _mese = $date_format(mese_fattura,"%m/%Y")

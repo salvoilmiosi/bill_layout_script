@@ -12,7 +12,7 @@ p+::off_dettaglio
 ### End Spacers
 ### Script
 $if($ate()) {
-  $warning("AMG: Dettaglio Mancante")
+  $error(::ERRORE_DETTAGLIO_MANCANTE, "AMG: Dettaglio Mancante")
 } $elif($contains(@,"DETTAGLIO FATTURA")) {
   $goto(lettura_dettaglio)
 } $else {
@@ -119,11 +119,11 @@ $if($matches(@,/\w+\. - \w+\. \d{4}/)) {
   mese_inizio=$month($format("$0 $1",_date_tokens[0],_date_tokens[2]),"%b %Y")
   mese_fine=$month($format("$0 $1",_date_tokens[1],_date_tokens[2]),"%b %Y")
   $if(mese_inizio > mese_fine) {
-    $error("AMG: Formato Periodo Errato")
+    $error(::ERRORE_PERIODO_INVALIDO, "AMG: Formato Periodo Errato")
   }
   mese_fattura=$month_add(mese_inizio,::calc_mese)
 } $else {
-  $error("AMG: Formato Periodo Errato")
+  $error(::ERRORE_PERIODO_INVALIDO, "AMG: Formato Periodo Errato")
 }
 _mese=$date_format(mese_fattura,"%m/%Y")
 ### End Script

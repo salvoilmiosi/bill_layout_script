@@ -6,6 +6,7 @@
 #include "fixed_point.h"
 #include "functions.h"
 #include "string_ptr.h"
+#include "exceptions.h"
 
 typedef uint8_t small_int;
 
@@ -98,7 +99,7 @@ DEFINE_ENUM_TYPES(opcode,
     (NEXTRESULT)                    // content_stack.top.nextresult()
     (RESETVIEW)                     // content_stack.top.resetview()
     (THROWERROR)                    // stack -> throw
-    (WARNING)                       // stack -> warnings
+    (ADDNOTE)                       // stack -> notes
     (JMP, jump_address)             // unconditional jump
     (JZ, jump_address)              // stack -> jump if top == 0
     (JNZ, jump_address)             // stack -> jump if top != 0
@@ -178,7 +179,7 @@ struct bytecode : std::vector<command_args> {
         if (find_label(label) == end()) {
             add_line<opcode::LABEL>(label);
         } else {
-            throw std::runtime_error(fmt::format("Etichetta goto duplicata: {}", *label));
+            throw layout_error(fmt::format("Etichetta goto duplicata: {}", *label));
         }
     }
 

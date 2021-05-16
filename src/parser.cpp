@@ -469,7 +469,17 @@ void parser::read_function() {
             read_expression();
             ++numargs;
         }
-        m_code.add_line<opcode::JSRVAL>(fmt::format("__function_{}", tok.value), numargs);
+        if (auto it = m_functions.find(tok.value); it != m_functions.end()) {
+            if (it->second.numargs != numargs) {
+                throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", tok.value, it->second.numargs), tok);
+            }
+            if (it->second.has_contents && m_content_level == 0) {
+                throw parsing_error(fmt::format("Impossibile chiamare {}, stack contenuti vuoto", tok.value), tok);
+            }
+            m_code.add_line<opcode::JSRVAL>(fmt::format("__function_{}", tok.value), numargs);
+        } else {
+            throw parsing_error(fmt::format("Funzione {} non dichiarata", tok.value), tok);
+        }
         break;
     }
     case hash("ate"):

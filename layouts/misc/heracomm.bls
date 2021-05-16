@@ -12,7 +12,7 @@ p+::off_allegato
 ### End Spacers
 ### Script
 $if($ate()) {
-  $error("Heracomm: Stringa di Convalida Errata")
+  $error(::ERRORE_LAYOUT_INVALIDO, "Heracomm: Stringa di Convalida Errata")
 } $elifnot($search(@,/(1 \/ \d+)/)) {
   ::off_allegato+=1
   $goto(check_pagina)
@@ -133,7 +133,7 @@ $with(&::_dettaglio) {
     mese_inizio=$month(@,"%d.%m.%Y",/dal (\D) al \D/)
     mese_fine=$month(@,"%d.%m.%Y",/dal \D al (\D)/)
     $if(mese_fine < mese_inizio) {
-      $error("Heracomm: Periodo Non Valido")
+      $error(::ERRORE_PERIODO_INVALIDO, "Heracomm: Periodo Non Valido")
     }
     mese_fattura=$month_add(mese_inizio,::calc_mese)
   }

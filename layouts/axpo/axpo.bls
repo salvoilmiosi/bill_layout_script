@@ -13,7 +13,7 @@ p+::off_allegato
 ### End Spacers
 ### Script
 $if($ate()) {
-  $error("Axpo: Stringa di Convalida Errata")
+  $error(::ERRORE_LAYOUT_INVALIDO, "Axpo: Stringa di Convalida Errata")
 } $elif(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero") {
   ::off_allegato+=1
   $goto(check_convalida)
@@ -34,7 +34,7 @@ p+::next_page
 ### End Spacers
 ### Script
 $if($ate()) {
-  $warning("Axpo: Dettaglio Mancante")
+  $error(::ERRORE_DETTAGLIO_MANCANTE, "Axpo: Dettaglio Mancante")
 }$elifnot($contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) {
   ::_dettaglio+=@
   ::off_dettaglio+=1
@@ -98,7 +98,7 @@ codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/)
 mese_inizio=$month(@,"%d.%m.%Y",/PERIODO (\D) - \D/)
 mese_fine=$month(@,"%d.%m.%Y",/PERIODO \D - (\D)/)
 $if(mese_fine < mese_inizio) {
-  $error("Axpo: Periodo Non Valido")
+  $error(::ERRORE_PERIODO_INVALIDO, "Axpo: Periodo Non Valido")
 }
 mese_fattura=$month_add(mese_inizio,::calc_mese)
 _mese=$date_format(mese_fattura,"%m\\.%Y")

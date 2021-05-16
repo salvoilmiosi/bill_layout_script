@@ -8,7 +8,7 @@
 ### Rect 0.03387097 0.096921325 0.36451614 0.044469774
 ### Script
 $ifnot($contains(@,"Servizio di Maggior Tutela")) {
-  $error("SEN: Stringa di Convalida Errata")
+  $error(::ERRORE_LAYOUT_INVALIDO, "SEN: Stringa di Convalida Errata")
 }
 ### End Script
 ### End Box
@@ -25,7 +25,7 @@ p+::offset_dettaglio
 ### End Spacers
 ### Script
 $if($ate()) {
-  $warning("SEN: Dettaglio Mancante")
+  $error(::ERRORE_DETTAGLIO_MANCANTE, "SEN: Dettaglio Mancante")
 } $elif(@ != "DETTAGLIO IMPORTI BOLLETTA") {
   ::offset_dettaglio+=1
   $goto(calcolo_offset)
@@ -121,7 +121,7 @@ mese_fattura=$month(@,"%b.%Y")
 mese_fine=$month(@,"%b.%Y",/\D - (\D)/)
 $if($isset(mese_fine)) {
   $if(mese_fine < mese_fattura) {
-    $error("SEN: Periodo Non Valido")
+    $error(::ERRORE_PERIODO_INVALIDO, "SEN: Periodo Non Valido")
   }
   mese_fattura=$month_add(mese_fattura,::calc_mese)
 }

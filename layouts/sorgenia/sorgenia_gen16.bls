@@ -9,7 +9,7 @@
 ### Rect 0.037950665 0.5240123 0.4743833 0.03269837
 ### Script
 $if(@ != "Servizio di fornitura energia elettrica") {
-  $error("Sorgenia (gen16): Stringa di Convalida Errata")
+  $error(::ERRORE_LAYOUT_INVALIDO, "Sorgenia (gen16): Stringa di Convalida Errata")
 }
 ### End Script
 ### End Box
@@ -77,7 +77,7 @@ $ifnot($isset(mese_fattura)) {
 }
 $if($isset(mese_fine)) {
   $if(mese_fine < mese_fattura) {
-    $error("Sorgenia: Periodo Non Valido")
+    $error(::ERRORE_PERIODO_INVALIDO, "Sorgenia: Periodo Non Valido")
   }
   mese_fattura=$month_add(mese_fattura,::calc_mese)
 }

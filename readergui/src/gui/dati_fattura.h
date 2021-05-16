@@ -159,7 +159,7 @@ static inline std::tuple dati_fattura {
 struct reader_output {
     variable_map values;
     std::filesystem::path filename;
-    std::vector<std::string> warnings;
+    std::vector<std::string> notes;
 };
 
 class VariableMapTable : public DataTableView<variable_table_record> {
@@ -181,7 +181,7 @@ public:
         std::multimap<std::string, variable> current_map;
 
         auto check_missing_add_item = [&]() {
-            variable_table_record record{std::move(current_map), data.filename.string(), data.warnings};
+            variable_table_record record{std::move(current_map), data.filename.string(), data.notes};
             current_map.clear();
 
             [&]<size_t ... Is>(std::index_sequence<Is...>) {

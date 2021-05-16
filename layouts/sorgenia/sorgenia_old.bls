@@ -13,7 +13,7 @@ p+::off_allegati
 ### End Spacers
 ### Script
 $if($ate()) {
-  $error("Sorgenia (old): Stringa di Convalida Errata")
+  $error(::ERRORE_LAYOUT_INVALIDO, "Sorgenia (old): Stringa di Convalida Errata")
 } $elif(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO") {
   ::off_allegati+=1
   $goto(convalida)
@@ -119,11 +119,11 @@ p+::off_allegati
 mese_fattura=$month(@,"%B %Y")
 mese_fine=$month(@,"%B %Y",/\D\/(\D)/)
 $if(mese_fine < mese_fattura) {
-  $error("Sorgenia: Periodo Non Valido")
+  $error(::ERRORE_PERIODO_INVALIDO, "Sorgenia: Periodo Non Valido")
 }
 mese_fattura=$month_add(mese_fattura,::calc_mese)
 $ifnot($isset(mese_fattura)) {
-  $error("Sorgenia (old): Mese Fattura Mancante")
+  $error(::ERRORE_PERIODO_INVALIDO, "Sorgenia (old): Mese Fattura Mancante")
 }
 ### End Script
 ### End Box

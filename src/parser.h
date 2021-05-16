@@ -30,6 +30,11 @@ struct loop_label_pair {
     string_ptr break_label;
 };
 
+struct function_info {
+    small_int numargs;
+    bool has_contents;
+};
+
 class invalid_numargs : public parsing_error {
 private:
     static std::string get_message(const std::string &fun_name, size_t minargs, size_t maxargs) {
@@ -91,6 +96,7 @@ private:
 
     simple_stack<loop_label_pair> m_loop_labels;
     std::map<std::string, small_int, std::less<>> m_fun_arg_indices;
+    std::map<std::string, function_info, std::less<>> m_functions;
     int m_content_level = 0;
 
     bitset<parser_flags> m_flags;

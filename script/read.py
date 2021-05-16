@@ -67,12 +67,12 @@ def read_pdf(pdf_file):
 
         ret['values'] = [v for v in out_dict['values'] if all(i in v for i in required_data)]
         if ret['values'] != out_dict['values']:
-            if 'warnings' not in out_dict: out_dict['warnings'] = []
-            out_dict['warnings'].append('Dati Mancanti') 
+            if 'notes' not in out_dict: out_dict['notes'] = []
+            out_dict['notes'].append('Dati Mancanti') 
         ret['layouts'] = [str(Path(x).resolve()) for x in out_dict['layouts']]
-        if 'warnings' in out_dict:
-            ret['warnings'] = out_dict['warnings']
-            print('\033[33m{0} ### {1}\033[0m'.format(rel_path, ', '.join(out_dict['warnings'])))
+        if 'notes' in out_dict:
+            ret['notes'] = out_dict['notes']
+            print('\033[33m{0} ### {1}\033[0m'.format(rel_path, ', '.join(out_dict['notes'])))
         else:
             print(rel_path)
     except pyreader.LayoutError as err:

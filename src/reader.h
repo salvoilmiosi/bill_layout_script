@@ -53,7 +53,7 @@ public:
     void start();
 
     const auto &get_values() { return m_values; }
-    const auto &get_warnings() { return m_warnings; }
+    const auto &get_notes() { return m_notes; }
     const size_t get_table_count() { return m_table_index + 1; }
     const auto get_layouts() { return m_layouts; }
 
@@ -77,7 +77,7 @@ private:
 
     std::vector<std::filesystem::path> m_layouts;
 
-    std::vector<std::string> m_warnings;
+    std::vector<std::string> m_notes;
 
     pdf_rect m_current_box;
 

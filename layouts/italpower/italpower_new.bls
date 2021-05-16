@@ -13,7 +13,7 @@ p+::off_dettaglio
 ### End Spacers
 ### Script
 $if($ate()) {
-  $warning("Italpower: Dettaglio Mancante")
+  $error(::ERRORE_DETTAGLIO_MANCANTE, "Italpower: Dettaglio Mancante")
 } $elif(@ == "ELEMENTI DI DETTAGLIO") {
   $goto(lettura_dettaglio)
 } $else {
@@ -131,7 +131,7 @@ $with($search(@,/Periodo fatturato (.+)/)) {
     mese_fattura=$month_add(mese_inizio,::calc_mese)
   }
   $if(mese_fine < mese_inizio) {
-    $error("Axpo: Periodo Non Valido")
+    $error(::ERRORE_PERIODO_INVALIDO, "Axpo: Periodo Non Valido")
   }
 }
 ### End Script

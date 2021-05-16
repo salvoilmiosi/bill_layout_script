@@ -6,6 +6,7 @@
 ### Page 1
 ### Rect 0 0 0 0
 ### Script
+$import("errors")
 $if  ($contains(@,"Axpo Italia SpA")) $import("axpo/controllo")
 $elif($contains(@,"ITALPOWER ENERGIA")) $import("italpower/controllo")
 $elif($contains(@,"Sorgenia S.p.A")) $import("sorgenia/controllo")
@@ -20,6 +21,6 @@ $elif($contains(@,"Edison Energia SpA")) $import("misc/edison")
 $elif($contains(@,"Estra Energie S.r.l")) $import("misc/estra")
 $elif($contains(@,"HERA COMM s.r.l")) $import("misc/heracomm")
 $elif($contains(@,"AMG GAS S.R.L.")) $import("misc/amg/controllo")
-$else $warning("Nessun Layout")
+$else $error(::ERRORE_NON_IMPLEMENTATO, "Nessun Layout")
 ### End Script
 ### End Box

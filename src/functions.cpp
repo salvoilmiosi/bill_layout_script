@@ -6,6 +6,7 @@
 #include <fmt/format.h>
 
 #include "utils.h"
+#include "exceptions.h"
 
 // Converte una stringa in numero usando il formato del locale
 static variable parse_num(std::string_view str) {
@@ -42,7 +43,7 @@ static std::string string_format(std::string_view str, R &&fmt_args) {
                     ret += fmt_args[idx];
                     continue;
                 } else {
-                    throw std::runtime_error(fmt::format("Stringa di formato non valida: {}", str));
+                    throw layout_error(fmt::format("Stringa di formato non valida: {}", str));
                 }
             } else {
                 ret += FORMAT_CHAR;
@@ -98,7 +99,7 @@ static std::regex create_regex(std::string regex) {
         string_replace(regex, "\\N", number_regex());
         return std::regex(regex, std::regex::icase);
     } catch (const std::regex_error &error) {
-        throw std::runtime_error(fmt::format("Espressione regolare non valida: {0}\n{1}", regex, error.what()));
+        throw layout_error(fmt::format("Espressione regolare non valida: {0}\n{1}", regex, error.what()));
     }
 }
 

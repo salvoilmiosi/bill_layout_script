@@ -13,7 +13,7 @@ p+::off_dettaglio
 ### End Spacers
 ### Script
 $if($ate()) {
-  $warning("Estra: Dettaglio Mancante")
+  $error(::ERRORE_DETTAGLIO_MANCANTE, "Estra: Dettaglio Mancante")
 } $elif(@ != "ELEMENTI DI DETTAGLIO") {
   ::off_dettaglio+=1
   $goto(ricerca_dettaglio)
@@ -62,7 +62,7 @@ data_fattura=$date(@,"%d.%m.%Y",/del (\D)/)
 mese_inizio=$month(@,"%d.%m.%Y",/(\D) - \D/)
 mese_fine=$month(@,"%d.%m.%Y",/\D - (\D)/)
 $if(mese_fine < mese_inizio) {
-  $error("Estra: Periodo Non Valido")
+  $error(::ERRORE_PERIODO_INVALIDO, "Estra: Periodo Non Valido")
 }
 mese_fattura=$month_add(mese_inizio,::calc_mese)
 _periodo = $format(/\d\d\.\d\d.\d\d\d\d - \d\d\.$0/,$date_format(mese_fattura,"%m.%Y"))

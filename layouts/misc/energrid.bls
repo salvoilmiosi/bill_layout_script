@@ -9,7 +9,7 @@
 ### Goto Label convalida
 ### Script
 $ifnot($contains(@,"www.energrid.it")) {
-  $error("EnerGrid: Stringa di Convalida Errata")
+  $error(::ERRORE_LAYOUT_INVALIDO, "EnerGrid: Stringa di Convalida Errata")
 }
 ### End Script
 ### End Box
@@ -58,7 +58,7 @@ data_scadenza=$date(@,"%d/%m/%Y",/Scadenza fattura: (\D)/)
 
 mese_fattura=$month(@,"%d/%m/%Y",/\D - (\D)/)
 $ifnot($isset(mese_fattura)) {
-  $error("EnerGrid: Mese Fattura Mancante")
+  $error(::ERRORE_PERIODO_INVALIDO, "EnerGrid: Mese Fattura Mancante")
 }
 _mese=$date_format(mese_fattura,"%m/%Y")
 ### End Script
@@ -123,7 +123,7 @@ $between("DETTAGLIO IMPOSTE","TOTALE (Salvo conguagli, errori e omissioni)") {
 p+_off_dettaglio
 ### End Spacers
 ### Script
-$if($ate()) $warning("EnerGrid: Dettaglio Mancante")
+$if($ate()) $error(::ERRORE_DETTAGLIO_MANCANTE, "EnerGrid: Dettaglio Mancante")
 _pod_dettaglio=$search(@,/POD: (.+)/)
 $if(_pod_dettaglio!=codice_pod) {
   _off_dettaglio+=1

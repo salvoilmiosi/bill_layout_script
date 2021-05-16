@@ -12,13 +12,14 @@ void parser::read_keyword() {
 
     enum function_type {
         FUN_EXPRESSION,
+        FUN_2_EXPRESSIONS,
         FUN_VARIABLE,
         FUN_VOID,
     };
     
     static const std::map<std::string, std::tuple<function_type, command_args>, std::less<>> simple_functions = {
-        {"error",       {FUN_EXPRESSION, make_command<opcode::THROWERROR>()}},
-        {"warning",     {FUN_EXPRESSION, make_command<opcode::WARNING>()}},
+        {"error",       {FUN_2_EXPRESSIONS, make_command<opcode::THROWERROR>()}},
+        {"note",        {FUN_EXPRESSION, make_command<opcode::ADDNOTE>()}},
         {"setbegin",    {FUN_EXPRESSION, make_command<opcode::SETBEGIN>()}},
         {"setend",      {FUN_EXPRESSION, make_command<opcode::SETEND>()}},
         {"clear",       {FUN_VARIABLE,   make_command<opcode::CLEAR>()}},
@@ -31,6 +32,11 @@ void parser::read_keyword() {
         m_lexer.require(token_type::PAREN_BEGIN);
         switch (std::get<function_type>(it->second)) {
         case FUN_EXPRESSION:
+            read_expression();
+            break;
+        case FUN_2_EXPRESSIONS:
+            read_expression();
+            m_lexer.require(token_type::COMMA);
             read_expression();
             break;
         case FUN_VARIABLE:
@@ -169,7 +175,10 @@ void parser::read_keyword() {
         std::string endfun_label = fmt::format("__endfunction_{}", name.value);
 
         m_code.add_line<opcode::JMP>(endfun_label);
+
         m_code.add_label(fun_label);
+        m_functions.emplace(std::string(name.value), function_info{small_int(m_fun_arg_indices.size()), has_content});
+
         read_statement();
         m_code.add_line<opcode::RET>();
         m_code.add_label(endfun_label);
@@ -188,7 +197,17 @@ void parser::read_keyword() {
             read_expression();
             ++numargs;
         }
-        m_code.add_line<opcode::JSR>(fmt::format("__function_{}", tok.value), numargs);
+        if (auto it = m_functions.find(tok.value); it != m_functions.end()) {
+            if (it->second.numargs != numargs) {
+                throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", tok.value, it->second.numargs), tok);
+            }
+            if (it->second.has_contents && m_content_level == 0) {
+                throw parsing_error(fmt::format("Impossibile chiamare {}, stack contenuti vuoto", tok.value), tok);
+            }
+            m_code.add_line<opcode::JSR>(fmt::format("__function_{}", tok.value), numargs);
+        } else {
+            throw parsing_error(fmt::format("Funzione {} non dichiarata", tok.value), tok);
+        }
         break;
     }
     case hash("foreach"): {

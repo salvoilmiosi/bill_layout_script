@@ -90,25 +90,34 @@ int MainApp::OnRun() {
             }
         }
 
-        for (auto &v : my_reader.get_warnings()) {
-            Json::Value &warnings = result["warnings"];
-            if (warnings.isNull()) warnings = Json::arrayValue;
-            warnings.append(v);
+        for (auto &v : my_reader.get_notes()) {
+            Json::Value &notes = result["notes"];
+            if (notes.isNull()) notes = Json::arrayValue;
+            notes.append(v);
         }
 
         auto &json_layouts = result["layouts"] = Json::arrayValue;
         for (auto &l : my_reader.get_layouts()) {
             json_layouts.append(l.string());
         }
+
+        result["errcode"] = 0;
+    } catch (const layout_runtime_error &error) {
+        result["error"] = error.what();
+        result["errcode"] = error.errcode;
+        retcode = 1;
     } catch (const layout_error &error) {
         result["error"] = error.what();
-        retcode = 1;
+        result["errcode"] = -1;
+        retcode = 2;
     } catch (const std::exception &error) {
         result["error"] = error.what();
-        retcode = 2;
+        result["errcode"] = -1;
+        retcode = 3;
     } catch (...) {
         result["error"] = "Errore sconosciuto";
-        retcode = 3;
+        result["errcode"] = -1;
+        retcode = 4;
     }
 
     std::cout << result;

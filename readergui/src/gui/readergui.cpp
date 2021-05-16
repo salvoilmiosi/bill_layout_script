@@ -51,7 +51,7 @@ wxThread::ExitCode ReaderThread::Entry() {
             m_reader.set_document(doc);
             m_reader.start();
 
-            queue_reader_output({m_reader.get_values(), relative_path, m_reader.get_warnings()});
+            queue_reader_output({m_reader.get_values(), relative_path, m_reader.get_notes()});
         } catch (reader_aborted) {
             break;
         } catch (const layout_error &error) {

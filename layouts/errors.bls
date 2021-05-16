@@ -1,0 +1,15 @@
+### Bill Layout Script
+
+### Box Codici di Errore
+### Type RECTANGLE
+### Mode DEFAULT
+### Flags NOREAD
+### Page 1
+### Rect 0 0 0 0
+### Script
+::ERRORE_NON_IMPLEMENTATO = 1
+::ERRORE_LAYOUT_INVALIDO = 2
+::ERRORE_PERIODO_INVALIDO = 3
+::ERRORE_DETTAGLIO_MANCANTE = 4
+### End Script
+### End Box

@@ -9,7 +9,7 @@
 ### Rect 0.5398872 0.030786771 0.3545528 0.05587229
 ### Script
 $if(@ != "Bolletta Energia Elettrica\nFornitura del Mercato Libero")
-  $error("Axpo (old): Stringa di Convalida Errata")
+  $error(::ERRORE_LAYOUT_INVALIDO, "Axpo (old): Stringa di Convalida Errata")
 ### End Script
 ### End Box
 

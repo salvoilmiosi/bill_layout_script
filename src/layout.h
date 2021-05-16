@@ -2,6 +2,7 @@
 #define __BOX_LAYOUT_H__
 
 #include "pdf_document.h"
+#include "exceptions.h"
 
 #include <list>
 #include <cstring>
@@ -16,11 +17,6 @@ struct layout_box : public pdf_rect {
     std::string script;
     std::string spacers;
     std::string goto_label;
-};
-
-struct layout_error : std::runtime_error {
-    template<typename T>
-    layout_error(T &&message) : std::runtime_error(std::forward<T>(message)) {}
 };
 
 class layout_box_list : public std::list<layout_box> {

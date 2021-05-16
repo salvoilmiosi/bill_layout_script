@@ -2,7 +2,6 @@
 #define __LEXER_H__
 
 #include <string>
-#include <stdexcept>
 #include <functional>
 #include <fmt/format.h>
 

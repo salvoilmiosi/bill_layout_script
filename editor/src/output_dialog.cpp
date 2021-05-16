@@ -106,16 +106,23 @@ wxThread::ExitCode reader_thread::Entry() {
         m_reader.start();
         wxQueueEvent(parent, new wxThreadEvent(wxEVT_COMMAND_READ_COMPLETE));
 
-        if (!m_reader.get_warnings().empty()) {
+        if (!m_reader.get_notes().empty()) {
             auto *evt = new wxThreadEvent(wxEVT_COMMAND_LAYOUT_ERROR);
-            std::string warnings = string_join(m_reader.get_warnings(), "\n\n");
-            evt->SetString(wxString::FromUTF8(warnings.c_str()));
+            std::string notes = string_join(m_reader.get_notes(), "\n\n");
+            evt->SetString(wxString::FromUTF8(notes.c_str()));
+            evt->SetInt(0);
             wxQueueEvent(parent, evt);
         }
         return (wxThread::ExitCode) 0;
+    } catch (const layout_runtime_error &error) {
+        auto *evt = new wxThreadEvent(wxEVT_COMMAND_LAYOUT_ERROR);
+        evt->SetString(wxString::FromUTF8(error.what()));
+        evt->SetInt(error.errcode);
+        wxQueueEvent(parent, evt);
     } catch (const std::exception &error) {
         auto *evt = new wxThreadEvent(wxEVT_COMMAND_LAYOUT_ERROR);
         evt->SetString(wxString::FromUTF8(error.what()));
+        evt->SetInt(-1);
         wxQueueEvent(parent, evt);
     } catch (reader_aborted) {
         // ignore output
@@ -142,6 +149,14 @@ void output_dialog::compileAndRead() {
 }
 
 void output_dialog::OnLayoutError(wxCommandEvent &evt) {
+    int errcode = evt.GetInt();
+    if (errcode == 0) {
+        error_dialog->SetTitle("Note");
+    } else if (errcode == -1) {
+        error_dialog->SetTitle("Errore Fatale");
+    } else {
+        error_dialog->SetTitle(wxString::Format("Errore di Layout (Codice %d)", errcode));
+    }
     error_dialog->ShowText(evt.GetString());
 }
 

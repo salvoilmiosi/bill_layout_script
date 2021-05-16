@@ -9,7 +9,7 @@
 ### Rect 0.07538146 0.31081033 0.82919604 0.024828043
 ### Script
 $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
-  $error("Sorgenia: Stringa di Convalida Errata")
+  $error(::ERRORE_LAYOUT_INVALIDO, "Sorgenia: Stringa di Convalida Errata")
 ### End Script
 ### End Box
 
@@ -95,11 +95,11 @@ codice_pod=$search(@,/per il punto di fornitura \(POD\) ([0-9A-Z]+)/)
 mese_fattura=$month(@,"%B %Y")
 mese_fine=$month(@,"%B %Y",/\D\/(\D)/)
 $if(mese_fine < mese_fattura) {
-  $error("Sorgenia: Periodo Non Valido")
+  $error(::ERRORE_PERIODO_INVALIDO, "Sorgenia: Periodo Non Valido")
 }
 mese_fattura=$month_add(mese_fattura,::calc_mese)
 $ifnot($isset(mese_fattura)) {
-  $error("Sorgenia: Mese Fattura Mancante")
+  $error(::ERRORE_PERIODO_INVALIDO, "Sorgenia: Mese Fattura Mancante")
 }
 ### End Script
 ### End Box
