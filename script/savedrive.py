@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from pathlib import Path
 from datetime import date
 import json
@@ -21,6 +23,8 @@ for k,v in clienti['clients'].items():
             filename /= v['dir']
         try:
             file_from = f['filename']
+            if not f['values']: continue
+
             mese_fattura=date.fromisoformat(f['values'][0]['mese_fattura'][0])
             if mese_fattura.year < 2020:
                 continue

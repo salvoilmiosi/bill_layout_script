@@ -56,9 +56,11 @@ int MainApp::OnRun() {
     int retcode = 0;
     Json::Value result = Json::objectValue;
 
+    reader my_reader;
+
     try {
         pdf_document my_doc(input_pdf);
-        reader my_reader(my_doc);
+        my_reader.set_document(my_doc);
         if (parse_recursive) my_reader.add_flags(reader_flags::RECURSIVE);
         if (use_cache) my_reader.add_flags(reader_flags::USE_CACHE);
         if (get_layout) my_reader.add_flags(reader_flags::HALT_ON_SETLAYOUT);
@@ -105,6 +107,12 @@ int MainApp::OnRun() {
     } catch (const layout_runtime_error &error) {
         result["error"] = error.what();
         result["errcode"] = error.errcode;
+
+        auto &json_layouts = result["layouts"] = Json::arrayValue;
+        for (auto &l : my_reader.get_layouts()) {
+            json_layouts.append(l.string());
+        }
+        
         retcode = 1;
     } catch (const layout_error &error) {
         result["error"] = error.what();

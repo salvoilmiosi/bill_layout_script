@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from multiprocessing import Pool, cpu_count
 from pathlib import Path
 from datetime import date, datetime
@@ -27,11 +29,16 @@ def check_conguagli(results):
     sorted_data = []
     error_data = []
     for x in results:
+        data = {'filename': x['filename'], 'errcode': x['errcode'], 'values': []}
+        if 'layouts' in x:
+            data['layouts'] = x['layouts']
         if 'error' in x:
-            error_data.append({'filename': x['filename'], 'error': x['error'], 'values': []})
-            continue
-        for v in x['values']:
-            sorted_data.append({'filename': x['filename'], 'layouts': x['layouts'], 'values': [v]})
+            data['error'] = x['error']
+            error_data.append(data)
+        elif 'values' in x:
+            for v in x['values']:
+                data['values'] = [v]
+                sorted_data.append(data)
         
     sorted_data.sort(key = lambda obj : (
         obj['values'][0]['codice_pod'][0],
@@ -65,22 +72,30 @@ def read_pdf(pdf_file):
     try:
         out_dict = pyreader.readpdf(pdf_file, args.script, cached=args.cached, recursive=args.recursive)
 
-        ret['values'] = [v for v in out_dict['values'] if all(i in v for i in required_data)]
-        if ret['values'] != out_dict['values']:
-            if 'notes' not in out_dict: out_dict['notes'] = []
-            out_dict['notes'].append('Dati Mancanti') 
-        ret['layouts'] = [str(Path(x).resolve()) for x in out_dict['layouts']]
-        if 'notes' in out_dict:
-            ret['notes'] = out_dict['notes']
+        if 'layouts' in out_dict:
+            ret['layouts'] = [str(Path(x).resolve()) for x in out_dict['layouts']]
+        if 'values' in out_dict:
+            if all(all(i in v for i in required_data) for v in out_dict['values']):
+                ret['values'] = out_dict['values']
+            else:
+                ret['values'] = []
+                out_dict['errcode'] = -1
+                out_dict['error'] = 'Dati Mancanti'
+        ret['errcode'] = out_dict['errcode']
+        if 'error' in out_dict:
+            ret['error'] = out_dict['error']
+            if ret['errcode'] > 0:
+                print('\033[31m{0} (Codice {1}) {2}\033[0m'.format(rel_path, ret['errcode'], ret['error']))
+            else:
+                print('\033[35m{0} ### {1}\033[0m'.format(rel_path, ret['error']))
+        elif 'notes' in out_dict:
             print('\033[33m{0} ### {1}\033[0m'.format(rel_path, ', '.join(out_dict['notes'])))
         else:
             print(rel_path)
-    except pyreader.LayoutError as err:
-        ret['error'] = str(err)
-        print('\033[31m{0} ### {1}\033[0m'.format(rel_path, ret['error']))
     except pyreader.FatalError as err:
+        ret['errcode'] = -2
         ret['error'] = str(err)
-        print('\033[35m{0} ### {1}\033[0m'.format(rel_path, ret['error']))
+        print('\033[34m{0} ### {1}\033[0m'.format(rel_path, ret['error']))
 
     return ret
 
@@ -101,7 +116,7 @@ if __name__ == '__main__':
         for pdf_file in in_files:
             skip = False
             for old_obj in filter(lambda x : x['filename'] == str(pdf_file), in_data):
-                if 'error' not in old_obj and all(lastmodified(f) < lastmodified(output_file) for f in old_obj['layouts'] + [pdf_file]):
+                if all(lastmodified(f) < lastmodified(output_file) for f in old_obj['layouts'] + [pdf_file]):
                     results.append(old_obj)
                     skip = True
             if not skip: files.append(pdf_file)
