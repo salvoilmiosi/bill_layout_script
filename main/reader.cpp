@@ -25,8 +25,6 @@ private:
     bool get_layout = false;
     bool use_cache = false;
     bool parse_recursive = false;
-
-    intl::locale loc{wxLANGUAGE_DEFAULT};
 };
 
 wxIMPLEMENT_APP_CONSOLE(MainApp);
@@ -36,9 +34,10 @@ void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
     parser.AddParam("input-bls");
     parser.AddSwitch("d", "show-debug", "Show Debug Variables");
     parser.AddSwitch("g", "show-globals", "Show Global Variables");
-    parser.AddSwitch("l", "get-layout", "Halt On Setlayout");
+    parser.AddSwitch("h", "halt-setlayout", "Halt On Setlayout");
     parser.AddSwitch("c", "use-cache", "Use Script Cache");
     parser.AddSwitch("r", "recursive-imports", "Recursive Imports");
+    parser.AddOption("l", "language", "Language");
 }
 
 bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
@@ -46,9 +45,24 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     input_bls = parser.GetParam(1).ToStdString();
     show_debug = parser.FoundSwitch("d") == wxCMD_SWITCH_ON;
     show_globals = parser.FoundSwitch("g") == wxCMD_SWITCH_ON;
-    get_layout = parser.FoundSwitch("l") == wxCMD_SWITCH_ON;
+    get_layout = parser.FoundSwitch("h") == wxCMD_SWITCH_ON;
     use_cache = parser.FoundSwitch("c") == wxCMD_SWITCH_ON;
     parse_recursive = parser.FoundSwitch("r") == wxCMD_SWITCH_ON;
+
+    wxString lang;
+    if (parser.Found("l", &lang)) {
+        const wxLanguageInfo *lang_info = wxLocale::FindLanguageInfo(lang);
+        if (lang_info) {
+            if (!intl::set_language(static_cast<wxLanguage>(lang_info->Language))) {
+                return false;
+            }
+        } else {
+            std::cerr << "Lingua sconosciuta: " << lang << std::endl;
+            return false;
+        }
+    } else {
+        intl::set_language(wxLANGUAGE_DEFAULT);
+    }
     return true;
 }
 

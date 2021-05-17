@@ -4,10 +4,9 @@
 #include <wx/intl.h>
 
 namespace intl {
-    struct locale : wxLocale {
-        locale(wxLanguage lang);
-    };
-
+    bool set_language(wxLanguage lang);
+    void reset_language();
+    
     char decimal_point();
     char thousand_sep();
 };

@@ -13,8 +13,6 @@ private:
 
     wxString bls_filename;
     wxString pdf_filename;
-
-    intl::locale loc{wxLANGUAGE_DEFAULT};
 };
 wxIMPLEMENT_APP(MainApp);
 
@@ -22,6 +20,8 @@ bool MainApp::OnInit() {
     if (!wxApp::OnInit()) {
         return false;
     }
+
+    intl::set_language(wxLANGUAGE_DEFAULT);
 
     wxImage::AddHandler(new wxPNGHandler);
 
