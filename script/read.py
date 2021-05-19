@@ -34,11 +34,11 @@ def check_conguagli(results):
             data['layouts'] = x['layouts']
         if 'error' in x:
             data['error'] = x['error']
-            error_data.append(data)
+            error_data.append(data.copy())
         elif 'values' in x:
             for v in x['values']:
                 data['values'] = [v]
-                sorted_data.append(data)
+                sorted_data.append(data.copy())
         
     sorted_data.sort(key = lambda obj : (
         obj['values'][0]['codice_pod'][0],
