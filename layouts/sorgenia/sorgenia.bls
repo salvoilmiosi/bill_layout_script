@@ -16,7 +16,7 @@ $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
 ### Box Lettura Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 3
+### Page 2
 ### Rect 0.040290102 0.080957815 0.91055596 0.86431015
 ### Goto Label lettura_dati
 ### Spacers
@@ -134,43 +134,11 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/)
 ### End Script
 ### End Box
 
-### Box Energia Attiva
-### Type RECTANGLE
-### Mode LAYOUT
-### Page 2
-### Rect 0.058017727 0.3854048 0.35532874 0.53301203
-### Script
-### Il rettangolo e' alto perche' il layout shifta verticalmente
-
-$step($captures($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/),
-  $format(/$0 \w+ (\N) (\N) (\N)/,$date_format(mese_fattura,"%b - %y"))))
-{
-  %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
-}
-### End Script
-### End Box
-
-### Box Energia Reattiva
-### Type RECTANGLE
-### Mode LAYOUT
-### Page 2
-### Rect 0.058017727 0.38654503 0.2352941 0.53301203
-### Script
-### Il rettangolo e' alto perche' il layout shifta verticalmente
-
-$step($captures($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/),
-  $format(/$0 (\N) (\N) (\N)/,$date_format(mese_fattura,"%b - %y"))))
-{
-  %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
-}
-### End Script
-### End Box
-
 ### Box Parsing Dettaglio
 ### Type RECTANGLE
 ### Mode DEFAULT
 ### Flags NOREAD 
-### Page 3
+### Page 2
 ### Rect 0.26032954 0.030786771 0.057603687 0.04479557
 ### Script
 $import("parsing_dettaglio")

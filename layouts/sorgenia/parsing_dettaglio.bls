@@ -8,6 +8,19 @@
 ### Rect 0 0 0 0
 ### Script
 $with(&::_dettaglio) {
+  $between("CONSUMI e RICALCOLI","CONSUMI ULTIMI 13 MESI") {
+    $between("ENERGIA ATTIVA","ENERGIA REATTIVA") {
+      $step($captures(@,$format(/$0 \w+\*? (\N) (\N) (\N)/,$date_format(mese_fattura,"%b - %y")))) {
+        %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
+      }
+    }
+    $between("ENERGIA REATTIVA") {
+      $step($captures(@,$format(/$0 (\N) (\N) (\N)/,$date_format(mese_fattura,"%b - %y")))) {
+        %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
+      }
+    }
+  }
+  
   ^cts=$search_all(@,/Corrispettivo Tariffario Specifico dal \d\d\/\d\d\/\d\d\d\d al \d\d\/\d\d\/\d\d\d\d (\N)/)
   iva=$search(@,/Iva (\N%)/)
 
@@ -18,14 +31,20 @@ $with(&::_dettaglio) {
   %spesa_materia_energia=$search(@,/DETTAGLIO DELLA SPESA PER (?:L\u2019ENERGIA ELETTRICA|LA MATERIA ENERGIA)[^]+?(\N) DETTAGLIO/)
   %trasporto_gestione=$search(@,/DETTAGLIO DELLA SPESA PER (?:IL TRASPORTO, GESTIONE DEL CONTATORE|TRASPORTO ENERGIA, GESTIONE CONTATORE) E ONERI DI SISTEMA[^]+?(\N) IMPOSTE/)
 
-  $step($captures(@,/Prezzo (?:F1|Picco|Ore Giorno) euro\/kWh (\N) (\N)/)) {
-    %prezzo_energia[0] %energia_attiva[0]
+  $foreach($search_all(@,/Prezzo (?:F1|Picco|Ore Giorno) euro\/kWh (\N \N)/)) {
+    $step($captures(@,/(\N) (\N)/)) {
+      %prezzo_energia[0] %energia_attiva[0]+=@
+    }
   }
-  $step($captures(@,/Prezzo (?:F2|Fuori Picco|Ore Notte) euro\/kWh (\N) (\N)/)) {
-    %prezzo_energia[1] %energia_attiva[1]
+  $foreach($search_all(@,/Prezzo (?:F2|Fuori Picco|Ore Notte) euro\/kWh (\N \N)/)) {
+    $step($captures(@,/(\N) (\N)/)) {
+      %prezzo_energia[1] %energia_attiva[1]+=@
+    }
   }
-  $step($captures(@,/Prezzo F3 euro\/kWh (\N) (\N)/)) {
-    %prezzo_energia[2] %energia_attiva[2]
+  $foreach($search_all(@,/Prezzo F3 euro\/kWh (\N \N)/)) {
+    $step($captures(@,/(\N) (\N)/)) {
+      %prezzo_energia[2] %energia_attiva[2]+=@
+    }
   }
 
   $step($captures(@,/Prezzo energia(?: monorario)? euro\/kWh (\N) (\N)/)) {

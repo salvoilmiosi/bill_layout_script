@@ -4,7 +4,7 @@
 ### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags TRIM
+### Flags TRIM 
 ### Page 1
 ### Rect 0.07399102 0.30294654 0.82919604 0.024828043
 ### Goto Label convalida
@@ -24,7 +24,7 @@ $if($ate()) {
 ### Box Lettura Dettaglio
 ### Type RECTANGLE
 ### Mode LAYOUT
-### Page 3
+### Page 2
 ### Rect 0.040290102 0.080957815 0.91055596 0.8734165
 ### Goto Label lettura_dati
 ### Spacers
@@ -43,7 +43,7 @@ $ifnot($ate() || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
 ### Box Nome Fornitore
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags NOREAD
+### Flags NOREAD 
 ### Page 1
 ### Rect 0.061290324 0.04104903 0.36129034 0.08323831
 ### Goto Label nome_fornitore
@@ -68,7 +68,7 @@ numero_cliente=$search(@,/(\N)/)
 ### Box Ragione sociale
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags TRIM
+### Flags TRIM 
 ### Page 1
 ### Rect 0.076612905 0.15037057 0.38810483 0.02850627
 ### Spacers
@@ -167,49 +167,11 @@ p+::off_allegati
 ### End Script
 ### End Box
 
-### Box Energia Attiva
-### Type RECTANGLE
-### Mode LAYOUT
-### Page 2
-### Rect 0.058017727 0.3854048 0.35532874 0.53301203
-### Spacers
-p+::off_allegati
-### End Spacers
-### Script
-### Il rettangolo e' alto perche' il layout shifta verticalmente
-
-$step($captures($search(@,/ENERGIA ATTIVA[^]+?F1 F2 F3\n([^]+)/),
-  $format(/$0 \w+ (\N) (\N) (\N)/,$date_format(mese_fattura,"%b - %y"))))
-{
-  %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
-}
-### End Script
-### End Box
-
-### Box Energia Reattiva
-### Type RECTANGLE
-### Mode LAYOUT
-### Page 2
-### Rect 0.058017727 0.38654503 0.25530854 0.53301203
-### Spacers
-p+::off_allegati
-### End Spacers
-### Script
-### Il rettangolo e' alto perche' il layout shifta verticalmente
-
-$step($captures($search(@,/ENERGIA REATTIVA[^]+?F1 F2 F3\n([^]+)/),
-  $format(/$0 (\N) (\N) (\N)/,$date_format(mese_fattura,"%b - %y"))))
-{
-  %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
-}
-### End Script
-### End Box
-
 ### Box Parsing Dettaglio
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags NOREAD
-### Page 3
+### Flags NOREAD 
+### Page 2
 ### Rect 0.259447 0.028506272 0.057603687 0.04479557
 ### Spacers
 p+::off_allegati
