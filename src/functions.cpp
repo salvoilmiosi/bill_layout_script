@@ -207,9 +207,9 @@ static std::string table_row(std::string_view row, std::string_view indices) {
         | std::views::transform([&](std::string_view str) {
             std::cmatch match;
             if (std::regex_match(str.begin(), str.end(), match, std::regex("(\\d+):(-?\\d+)"))) {
-                size_t begin = string_toint(match.str(1));
+                size_t begin = string_to<int>(match.str(1));
                 if (begin < row.size()) {
-                    size_t len = string_toint(match.str(2));
+                    size_t len = string_to<int>(match.str(2));
                     return row.substr(begin, len);
                 }
             }

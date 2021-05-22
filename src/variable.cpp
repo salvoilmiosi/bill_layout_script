@@ -9,7 +9,7 @@ template<typename T, typename ... Ts> struct is_one_of<T, T, Ts...> : std::true_
 template<typename T, typename ... Ts> constexpr bool is_one_of_v = is_one_of<T, Ts...>::value;
 
 template<typename T> concept string_t = is_one_of_v<T, string_state, std::string_view>;
-template<typename T> concept number_t = is_one_of_v<T, fixed_point, int64_t, double>;
+template<typename T> concept number_t = is_one_of_v<T, fixed_point, big_int, double>;
 template<typename T> concept not_number_t = ! number_t<T>;
 
 std::string &variable::get_string() const {
@@ -18,7 +18,7 @@ std::string &variable::get_string() const {
             [](auto)                    { return std::string(); },
             [](std::string_view str)    { return std::string(str); },
             [](fixed_point num)         { return fixed_point_to_string(num); },
-            [](int64_t num)             { return num_tostring(num); },
+            [](big_int num)             { return num_tostring(num); },
             [](double num)              { return num_tostring(num); },
             [](wxDateTime date)         { return date.FormatISODate().ToStdString(); }
         }, m_value);
@@ -42,18 +42,18 @@ fixed_point variable::as_number() const {
     }, m_value);
 }
 
-int64_t variable::as_int() const {
+big_int variable::as_int() const {
     return std::visit(overloaded{
         [&](string_t auto) {
-            int64_t num = 0;
+            big_int num = 0;
             auto view = as_view();
             std::from_chars(view.begin(), view.end(), num);
             return num;
         },
         [](fixed_point num) { return num.getAsInteger(); },
-        [](int64_t num)     { return num; },
-        [](double num)      { return int64_t(num); },
-        [](auto)            { return int64_t(0); }
+        [](big_int num)     { return num; },
+        [](double num)      { return big_int(num); },
+        [](auto)            { return big_int(0); }
     }, m_value);
 }
 
@@ -61,7 +61,7 @@ double variable::as_double() const {
     return std::visit(overloaded{
         [&](string_t auto)  { return as_number().getAsDouble(); },
         [](fixed_point num) { return num.getAsDouble(); },
-        [](int64_t num)     { return double(num); },
+        [](big_int num)     { return double(num); },
         [](double num)      { return num; },
         [](auto)            { return 0.0; }
     }, m_value);
@@ -215,7 +215,7 @@ variable variable::operator -(const variable &rhs) const {
         [&](not_number_t auto, fixed_point num) {
             return as_number() - num;
         },
-        [&](not_number_t auto, int64_t num) {
+        [&](not_number_t auto, big_int num) {
             return as_int() - num;
         },
         [&](not_number_t auto, double num) {
@@ -242,7 +242,7 @@ variable variable::operator * (const variable &rhs) const {
         [&](not_number_t auto, fixed_point num) {
             return as_number() * num;
         },
-        [&](not_number_t auto, int64_t num) {
+        [&](not_number_t auto, big_int num) {
             return as_int() * num;
         },
         [&](not_number_t auto, double num) {
@@ -265,7 +265,7 @@ variable variable::operator / (const variable &rhs) const {
         [&](not_number_t auto, fixed_point num) {
             return as_number() / num;
         },
-        [&](not_number_t auto, int64_t num) {
+        [&](not_number_t auto, big_int num) {
             return as_int() / num;
         },
         [&](not_number_t auto, double num) {

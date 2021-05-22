@@ -269,7 +269,7 @@ void parser::sub_expression() {
         switch (tok_num.type) {
         case token_type::INTEGER:
             m_lexer.advance(tok_num);
-            m_code.add_line<opcode::PUSHINT>(string_to<int64_t>(tok_num.value));
+            m_code.add_line<opcode::PUSHINT>(string_to<big_int>(tok_num.value));
             break;
         case token_type::NUMBER:
             m_lexer.advance(tok_num);
@@ -287,7 +287,7 @@ void parser::sub_expression() {
         switch (tok_num.type) {
         case token_type::INTEGER:
             m_lexer.advance(tok_num);
-            m_code.add_line<opcode::PUSHINT>(-string_to<int64_t>(tok_num.value));
+            m_code.add_line<opcode::PUSHINT>(-string_to<big_int>(tok_num.value));
             break;
         case token_type::NUMBER:
             m_lexer.advance(tok_num);
@@ -301,7 +301,7 @@ void parser::sub_expression() {
     }
     case token_type::INTEGER:
         m_lexer.advance(tok_first);
-        m_code.add_line<opcode::PUSHINT>(string_to<int64_t>(tok_first.value));
+        m_code.add_line<opcode::PUSHINT>(string_to<big_int>(tok_first.value));
         break;
     case token_type::NUMBER:
         m_lexer.advance(tok_first);
@@ -384,7 +384,7 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
             case token_type::INTEGER: // variable[:N] -- append N times
                 m_lexer.advance(tok);
                 var_idx.flags |= selvar_flags::APPEND;
-                var_idx.length = string_toint(tok.value);
+                var_idx.length = string_to<int>(tok.value);
                 break;
             default:
                 read_expression();
@@ -399,7 +399,7 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
             break;
         default:
             if (tok = m_lexer.check_next(token_type::INTEGER)) { // variable[N]
-                var_idx.index = string_toint(tok.value);
+                var_idx.index = string_to<int>(tok.value);
             } else {
                 read_expression();
                 var_idx.flags |= selvar_flags::DYN_IDX;
@@ -407,7 +407,7 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
             if (tok = m_lexer.check_next(token_type::COLON)) { // variable[N:M] -- M times after index N
                 if (read_only) throw unexpected_token(tok, token_type::BRACKET_END);
                 if (tok = m_lexer.check_next(token_type::INTEGER)) {
-                    var_idx.length = string_toint(tok.value);
+                    var_idx.length = string_to<int>(tok.value);
                 } else {
                     read_expression();
                     var_idx.flags |= selvar_flags::DYN_LEN;

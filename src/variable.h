@@ -6,10 +6,12 @@
 #include <wx/datetime.h>
 #include "fixed_point.h"
 
+typedef int64_t big_int;
+
 struct null_state {};
 struct string_state {};
 
-using variable_variant = std::variant<null_state, string_state, std::string_view, fixed_point, int64_t, double, wxDateTime>;
+using variable_variant = std::variant<null_state, string_state, std::string_view, fixed_point, big_int, double, wxDateTime>;
 
 class variable {
 public:
@@ -21,7 +23,7 @@ public:
     variable(std::string_view value) : m_value(value) {}
 
     variable(fixed_point value) : m_value(value) {}
-    variable(std::integral auto value) : m_value(int64_t(value)) {}
+    variable(std::integral auto value) : m_value(big_int(value)) {}
     variable(std::floating_point auto value) : m_value(double(value)) {}
 
     variable(wxDateTime value) : m_value(value) {}
@@ -40,7 +42,7 @@ public:
 
     std::string_view as_view() const;
     fixed_point as_number() const;
-    int64_t as_int() const;
+    big_int as_int() const;
     double as_double() const;
     wxDateTime as_date() const;
 

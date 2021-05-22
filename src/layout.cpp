@@ -115,7 +115,7 @@ std::istream &operator >> (std::istream &input, layout_box_list &layout) {
                         }
                     }
                 } else if (auto suf = suffix(line, "### Page")) {
-                    current.page = string_toint(suf.value);
+                    current.page = string_to<int>(suf.value);
                 } else if (auto suf = suffix(line, "### Rect")) {
                     std::istringstream ss;
                     ss.rdbuf()->pubsetbuf(const_cast<char *>(suf.value.begin()), suf.value.size());

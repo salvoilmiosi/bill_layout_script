@@ -95,10 +95,6 @@ constexpr T string_to(std::string_view str) {
     return ret;
 }
 
-constexpr int string_toint(std::string_view str) {
-    return string_to<int>(str);
-}
-
 template<typename T> requires std::is_arithmetic_v<T>
 std::string num_tostring(T num) {
     return fmt::format("{}", num);
