@@ -153,7 +153,7 @@ p+::spacer_multipod
 p+::next_page
 ### End Spacers
 ### Script
-$if($ate() || $contains(@,"Comunicazioni") || $contains(@,"Dati di fornitura")) {
+$if($doc(ate) || $contains(@,"Comunicazioni") || $contains(@,"Dati di fornitura")) {
   $goto(parsing_spese)
 }
 _dettaglio+=@

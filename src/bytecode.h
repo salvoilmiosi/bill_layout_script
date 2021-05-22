@@ -33,6 +33,23 @@ DEFINE_ENUM(spacer_index,
     (ROTATE,    static_vector{"rot", "rotate"})
 )
 
+DEFINE_ENUM(doc_index,
+    (NPAGES,    static_vector{"npages"})
+    (ATE,       static_vector{"ate"})
+)
+
+template<string_enum T>
+T find_enum_index(std::string_view name) {
+    for (size_t i=0; i<EnumSize<T>; ++i) {
+        if (std::ranges::any_of(EnumData<0>(static_cast<T>(i)), [&](const char *c) {
+            return c == name;
+        })) {
+            return static_cast<T>(i);
+        }
+    }
+    throw std::out_of_range("Out of range");
+}
+
 struct readbox_options {
     read_mode mode;
     box_type type;
@@ -88,7 +105,7 @@ DEFINE_ENUM_TYPES(opcode,
     (PUSHSTR, string_ptr)           // str -> stack
     (PUSHARG, small_int)            // stack -> stack
     (GETBOX, spacer_index)          // current_box[index] -> stack
-    (DOCPAGES)                      // m_doc.pages -> stack
+    (GETDOC, doc_index)             // document[index] -> stack
     (CALL, command_call)            // stack * numargs -> fun_name -> stack
     (ADDCONTENT)                    // stack -> content_stack
     (POPCONTENT)                    // content_stack.pop()

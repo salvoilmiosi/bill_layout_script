@@ -12,7 +12,7 @@
 p+::off_allegato
 ### End Spacers
 ### Script
-$if($ate()) {
+$if($doc(ate)) {
   $error(::ERRORE_LAYOUT_INVALIDO, "Axpo: Stringa di Convalida Errata")
 } $elif(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero") {
   ::off_allegato+=1
@@ -33,7 +33,7 @@ p+::off_dettaglio
 p+::next_page
 ### End Spacers
 ### Script
-$if($ate()) {
+$if($doc(ate)) {
   $error(::ERRORE_DETTAGLIO_MANCANTE, "Axpo: Dettaglio Mancante")
 }$elifnot($contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) {
   ::_dettaglio+=@

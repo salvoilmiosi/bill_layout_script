@@ -12,7 +12,7 @@
 p+::off_dettaglio
 ### End Spacers
 ### Script
-$if($ate()) {
+$if($doc(ate)) {
   $error(::ERRORE_DETTAGLIO_MANCANTE, "Italpower: Dettaglio Mancante")
 } $elif(@ == "ELEMENTI DI DETTAGLIO") {
   $goto(lettura_dettaglio)
@@ -33,7 +33,7 @@ $if($ate()) {
 p+::off_dettaglio
 ### End Spacers
 ### Script
-$if($ate() || $contains(@,"AGGIORNAMENTI CORRISPETTIVI")) {
+$if($doc(ate) || $contains(@,"AGGIORNAMENTI CORRISPETTIVI")) {
   $goto(nome_fornitore)
 } $else {
   ::_dettaglio+=@

@@ -94,7 +94,7 @@ numero_cliente = $search(@,/Codice cliente: (.+)\n/)
 p+::next_page
 ### End Spacers
 ### Script
-$ifnot($ate() || $contains(@,"Comunicazioni finali")) {
+$ifnot($doc(ate) || $contains(@,"Comunicazioni finali")) {
   _dettaglio+=@
   ::next_page+=1
   $goto(lettura_dettaglio)

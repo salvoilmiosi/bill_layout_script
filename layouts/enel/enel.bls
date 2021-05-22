@@ -24,7 +24,7 @@ $ifnot($contains(@,"Enel Energia - Mercato libero dell'energia")) {
 p+::offset_dettaglio
 ### End Spacers
 ### Script
-$if($ate()) {
+$if($doc(ate)) {
   $error(::ERRORE_DETTAGLIO_MANCANTE, "Enel: Dettaglio Mancante")
 } $elif(@ != "DETTAGLIO IMPORTI IN BOLLETTA") {
   ::offset_dettaglio+=1
@@ -59,7 +59,7 @@ p+::offset_dettaglio
 ### End Spacers
 ### Script
 ::spacer_dettaglio=$box(height)
-$ifnot($ate()) {
+$ifnot($doc(ate)) {
   ::offset_dettaglio+=1
   $goto(dettaglio_costi)
 }

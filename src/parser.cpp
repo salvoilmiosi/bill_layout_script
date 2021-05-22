@@ -44,17 +44,6 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
     }
 }
 
-spacer_index find_spacer_index(std::string_view name) {
-    for (size_t i=0; i<EnumSize<spacer_index>; ++i) {
-        if (std::ranges::any_of(EnumData<0>(static_cast<spacer_index>(i)), [&](const char *c) {
-            return c == name;
-        })) {
-            return static_cast<spacer_index>(i);
-        }
-    }
-    return static_cast<spacer_index>(-1);
-}
-
 void parser::read_box(const layout_box &box) {
     if (box.flags & box_flags::DISABLED) {
         return;
@@ -106,7 +95,8 @@ void parser::read_box(const layout_box &box) {
     while(true) {
         auto tok = m_lexer.next();
         if (tok.type == token_type::IDENTIFIER) {
-            if (auto it = find_spacer_index(tok.value); it != static_cast<spacer_index>(-1)) {
+            try {
+                auto idx = find_enum_index<spacer_index>(tok.value);
                 bool negative = false;
                 auto tok_sign = m_lexer.next();
                 switch (tok_sign.type) {
@@ -120,9 +110,9 @@ void parser::read_box(const layout_box &box) {
                 }
                 read_expression();
                 if (negative) m_code.add_line<opcode::CALL>("neg", 1);
-                m_code.add_line<opcode::MVBOX>(it);
-            } else {
-                throw unexpected_token(tok);
+                m_code.add_line<opcode::MVBOX>(idx);
+            } catch (std::out_of_range) {
+                throw parsing_error(fmt::format("Flag spacer non valido: {}", tok.value), tok);
             }
         } else if (tok.type != token_type::END_OF_FILE) {
             throw unexpected_token(tok, token_type::IDENTIFIER);
@@ -441,11 +431,22 @@ void parser::read_function() {
     case hash("box"): {
         m_lexer.require(token_type::PAREN_BEGIN);
         auto tok = m_lexer.require(token_type::IDENTIFIER);
-        if (auto spacer = find_spacer_index(tok.value); spacer != static_cast<spacer_index>(-1)) {
-            m_lexer.require(token_type::PAREN_END);
-            m_code.add_line<opcode::GETBOX>(spacer);
-        } else {
-            throw unexpected_token(tok);
+        m_lexer.require(token_type::PAREN_END);
+        try {
+            m_code.add_line<opcode::GETBOX>(find_enum_index<spacer_index>(tok.value));
+        } catch (std::out_of_range) {
+            throw parsing_error(fmt::format("Flag spacer non valido: {}", tok.value), tok);
+        }
+        break;
+    }
+    case hash("doc"): {
+        m_lexer.require(token_type::PAREN_BEGIN);
+        auto tok = m_lexer.require(token_type::IDENTIFIER);
+        m_lexer.require(token_type::PAREN_END);
+        try {
+            m_code.add_line<opcode::GETDOC>(find_enum_index<doc_index>(tok.value));
+        } catch (std::out_of_range) {
+            throw parsing_error(fmt::format("Flag documento non valido: {}", tok.value), tok);
         }
         break;
     }
@@ -482,18 +483,6 @@ void parser::read_function() {
         }
         break;
     }
-    case hash("ate"):
-        m_lexer.require(token_type::PAREN_BEGIN);
-        m_lexer.require(token_type::PAREN_END);
-        m_code.add_line<opcode::GETBOX>(spacer_index::PAGE);
-        m_code.add_line<opcode::DOCPAGES>();
-        m_code.add_line<opcode::CALL>("gt", 2);
-        break;
-    case hash("docpages"):
-        m_lexer.require(token_type::PAREN_BEGIN);
-        m_lexer.require(token_type::PAREN_END);
-        m_code.add_line<opcode::DOCPAGES>();
-        break;
     default: {
         auto it = function_lookup.find(fun_name);
         if (it == function_lookup.end()) {
