@@ -367,13 +367,13 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
         case token_type::NOT:       add_flags_to(prefixes, variable_prefixes::FORCE, !read_only); break;
         case token_type::AMPERSAND: add_flags_to(prefixes, variable_prefixes::REF, read_only); break;
         case token_type::BRACKET_BEGIN:
-            var_idx.flags |= selvar_flags::DYN_NAME;
             read_expression();
             m_lexer.require(token_type::BRACKET_END);
+            var_idx.flags |= selvar_flags::DYN_NAME;
             in_loop = false;
             break;
         case token_type::IDENTIFIER:
-            var_idx.name = std::string(tok_prefix.value);
+            var_idx.name = tok_prefix.value;
             in_loop = false;
             break;
         default:
