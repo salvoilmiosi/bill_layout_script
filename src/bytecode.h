@@ -58,6 +58,7 @@ struct readbox_options {
 
 DEFINE_ENUM_FLAGS(selvar_flags,
     (GLOBAL)
+    (DYN_NAME)
     (DYN_IDX)
     (DYN_LEN)
     (EACH)

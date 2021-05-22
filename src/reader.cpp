@@ -38,17 +38,21 @@ void reader::start() {
 }
 
 void reader::exec_command(const command_args &cmd) {
-    auto select_var = [&](const variable_selector &sel) {
-        m_selected = variable_ref(m_values,
-            variable_key{*sel.name, (sel.flags & selvar_flags::GLOBAL) ? variable_key::global_index : m_table_index},
-            sel.index, sel.length);
-
+    auto select_var = [&](variable_selector sel) {
         if (sel.flags & selvar_flags::DYN_LEN) {
-            m_selected.length = m_stack.pop().as_int();
+            sel.length = m_stack.pop().as_int();
         }
         if (sel.flags & selvar_flags::DYN_IDX) {
-            m_selected.index = m_stack.pop().as_int();
+            sel.index = m_stack.pop().as_int();
         }
+
+        m_selected = variable_ref(m_values, variable_key{
+            (sel.flags & selvar_flags::DYN_NAME)
+                ? m_stack.pop().as_string() : *sel.name,
+            (sel.flags & selvar_flags::GLOBAL)
+                ? variable_key::global_index : m_table_index},
+            sel.index, sel.length);
+
         if (sel.flags & selvar_flags::EACH) {
             m_selected.index = 0;
             m_selected.length = m_selected.size();

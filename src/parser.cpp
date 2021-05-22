@@ -323,9 +323,24 @@ void parser::sub_expression() {
 }
 
 void parser::read_variable_name() {
-    bool isglobal = m_lexer.check_next(token_type::GLOBAL);
-    auto tok_var = m_lexer.require(token_type::IDENTIFIER);
-    m_code.add_line<opcode::SELVAR>(std::string(tok_var.value), small_int(0), small_int(0), isglobal ? flags_t(selvar_flags::GLOBAL) : flags_t(0));
+    variable_selector selvar;
+    if (m_lexer.check_next(token_type::GLOBAL)) {
+        selvar.flags |= selvar_flags::GLOBAL;
+    }
+    auto tok = m_lexer.next();
+    switch (tok.type) {
+    case token_type::IDENTIFIER:
+        selvar.name = tok.value;
+        break;
+    case token_type::BRACKET_BEGIN:
+        read_expression();
+        m_lexer.require(token_type::BRACKET_END);
+        selvar.flags |= selvar_flags::DYN_NAME;
+        break;
+    default:
+        throw unexpected_token(tok, token_type::IDENTIFIER);
+    }
+    m_code.add_line<opcode::SELVAR>(std::move(selvar));
 }
 
 bitset<variable_prefixes> parser::read_variable(bool read_only) {
@@ -351,6 +366,12 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
         case token_type::TILDE:     add_flags_to(prefixes, variable_prefixes::OVERWRITE, !read_only); break;
         case token_type::NOT:       add_flags_to(prefixes, variable_prefixes::FORCE, !read_only); break;
         case token_type::AMPERSAND: add_flags_to(prefixes, variable_prefixes::REF, read_only); break;
+        case token_type::BRACKET_BEGIN:
+            var_idx.flags |= selvar_flags::DYN_NAME;
+            read_expression();
+            m_lexer.require(token_type::BRACKET_END);
+            in_loop = false;
+            break;
         case token_type::IDENTIFIER:
             var_idx.name = std::string(tok_prefix.value);
             in_loop = false;
@@ -424,8 +445,7 @@ void parser::read_function() {
         m_lexer.require(token_type::PAREN_END);
         m_code.add_line<opcode::GETSIZE>();
         if (fun_name == "isset") {
-            m_code.add_line<opcode::PUSHINT>(0);
-            m_code.add_line<opcode::CALL>("neq", 2);
+            m_code.add_line<opcode::CALL>("bool", 1);
         }
         break;
     case hash("box"): {

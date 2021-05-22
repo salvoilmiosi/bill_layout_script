@@ -288,6 +288,7 @@ const function_map function_lookup {
     {"leq", [](const variable &a, const variable &b) { return a <= b; }},
     {"geq", [](const variable &a, const variable &b) { return a >= b; }},
     {"int", [](int a) { return a; }},
+    {"bool",[](bool a) { return a; }},
     {"mod", [](int a, int b) { return a % b; }},
     {"add", [](const variable &a, const variable &b) { return a + b; }},
     {"sub", [](const variable &a, const variable &b) { return a - b; }},
