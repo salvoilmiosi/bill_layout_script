@@ -109,6 +109,7 @@ void parser::read_box(const layout_box &box) {
                     throw unexpected_token(tok_sign, token_type::PLUS);
                 }
                 read_expression();
+                m_lexer.require(token_type::SEMICOLON);
                 if (negative) m_code.add_line<opcode::CALL>("neg", 1);
                 m_code.add_line<opcode::MVBOX>(idx);
             } catch (std::out_of_range) {
@@ -127,14 +128,16 @@ void parser::read_box(const layout_box &box) {
     }
 
     m_lexer.set_script(box.script);
-    while (read_statement(false));
+    while (!m_lexer.check_next(token_type::END_OF_FILE)) {
+        read_statement();
+    }
 
     if (!(box.flags & box_flags::NOREAD || box.flags & box_flags::SPACER)) {
         m_code.add_line<opcode::POPCONTENT>();
     }
 }
 
-bool parser::read_statement(bool throw_on_eof) {
+void parser::read_statement() {
     auto tok_first = m_lexer.peek();
     switch (tok_first.type) {
     case token_type::BRACE_BEGIN:
@@ -147,54 +150,57 @@ bool parser::read_statement(bool throw_on_eof) {
         read_keyword();
         break;
     case token_type::END_OF_FILE:
-        if (throw_on_eof) {
-            throw unexpected_token(tok_first);
-        }
-        return false;
-    default: {
-        auto selvar_begin = m_code.size();
-        auto prefixes = read_variable(false);
-        auto selvar_end = m_code.size();
-        
-        auto tok = m_lexer.peek();
-        bitset<setvar_flags> flags;
-        bool negative = false;
-        
-        switch (tok.type) {
-        case token_type::SUB_ASSIGN:
-            flags |= setvar_flags::DECREASE;
-            [[fallthrough]];
-        case token_type::ADD_ASSIGN:
-            flags |= setvar_flags::INCREASE;
-            [[fallthrough]];
-        case token_type::ASSIGN:
-            m_lexer.advance(tok);
-            read_expression();
-            break;
-        default:
-            if (m_content_level == 0) {
-                throw parsing_error("Stack contenuti vuoto", tok);
-            }
-            m_code.add_line<opcode::PUSHVIEW>();
-            break;
-        }
-
-        if (prefixes & variable_prefixes::CAPITALIZE) {
-            m_code.add_line<opcode::CALL>("capitalize", 1);
-        }
-        if (prefixes & variable_prefixes::AGGREGATE) {
-            m_code.add_line<opcode::CALL>("aggregate", 1);
-        } else if (prefixes & variable_prefixes::PARSENUM) {
-            m_code.add_line<opcode::CALL>("num", 1);
-        }
-        if (prefixes & variable_prefixes::OVERWRITE)  flags |= setvar_flags::OVERWRITE;
-        if (prefixes & variable_prefixes::FORCE)      flags |= setvar_flags::FORCE;
-
-        m_code.move_not_comments(selvar_begin, selvar_end);
-        m_code.add_line<opcode::SETVAR>(flags);
+        throw unexpected_token(tok_first);
+    case token_type::SEMICOLON:
+        m_lexer.advance(tok_first);
+        break;
+    default:
+        sub_statement();
+        m_lexer.require(token_type::SEMICOLON);
     }
+}
+
+void parser::sub_statement() {
+    auto selvar_begin = m_code.size();
+    auto prefixes = read_variable(false);
+    auto selvar_end = m_code.size();
+    
+    auto tok = m_lexer.peek();
+    bitset<setvar_flags> flags;
+    bool negative = false;
+    
+    switch (tok.type) {
+    case token_type::SUB_ASSIGN:
+        flags |= setvar_flags::DECREASE;
+        [[fallthrough]];
+    case token_type::ADD_ASSIGN:
+        flags |= setvar_flags::INCREASE;
+        [[fallthrough]];
+    case token_type::ASSIGN:
+        m_lexer.advance(tok);
+        read_expression();
+        break;
+    default:
+        if (m_content_level == 0) {
+            throw parsing_error("Stack contenuti vuoto", tok);
+        }
+        m_code.add_line<opcode::PUSHVIEW>();
+        break;
     }
-    return true;
+
+    if (prefixes & variable_prefixes::CAPITALIZE) {
+        m_code.add_line<opcode::CALL>("capitalize", 1);
+    }
+    if (prefixes & variable_prefixes::AGGREGATE) {
+        m_code.add_line<opcode::CALL>("aggregate", 1);
+    } else if (prefixes & variable_prefixes::PARSENUM) {
+        m_code.add_line<opcode::CALL>("num", 1);
+    }
+    if (prefixes & variable_prefixes::OVERWRITE)  flags |= setvar_flags::OVERWRITE;
+    if (prefixes & variable_prefixes::FORCE)      flags |= setvar_flags::FORCE;
+
+    m_code.move_not_comments(selvar_begin, selvar_end);
+    m_code.add_line<opcode::SETVAR>(flags);
 }
 
 void parser::read_expression() {

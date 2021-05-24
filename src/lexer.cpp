@@ -140,6 +140,9 @@ token lexer::next(bool do_advance) {
     case '*':
         tok.type = token_type::ASTERISK;
         break;
+    case ';':
+        tok.type = token_type::SEMICOLON;
+        break;
     case '&':
         if (*m_current == '&') {
             nextChar();

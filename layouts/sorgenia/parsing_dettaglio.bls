@@ -11,55 +11,55 @@ $with(&::_dettaglio) {
   $between("CONSUMI e RICALCOLI","CONSUMI ULTIMI 13 MESI") {
     $between("ENERGIA ATTIVA","ENERGIA REATTIVA") {
       $step($captures(@,$format(/$0 \w+\*? (\N) (\N) (\N)/,$date_format(mese_fattura,"%b - %y")))) {
-        %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
+        %energia_attiva_rilevata[0]; %energia_attiva_rilevata[1]; %energia_attiva_rilevata[2];
       }
     }
     $between("ENERGIA REATTIVA") {
       $step($captures(@,$format(/$0 (\N) (\N) (\N)/,$date_format(mese_fattura,"%b - %y")))) {
-        %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
+        %energia_reattiva[0]; %energia_reattiva[1]; %energia_reattiva[2];
       }
     }
   }
   
-  ^cts=$search_all(@,/Corrispettivo Tariffario Specifico dal \d\d\/\d\d\/\d\d\d\d al \d\d\/\d\d\/\d\d\d\d (\N)/)
-  iva=$search(@,/Iva (\N%)/)
+  ^cts=$search_all(@,/Corrispettivo Tariffario Specifico dal \d\d\/\d\d\/\d\d\d\d al \d\d\/\d\d\/\d\d\d\d (\N)/);
+  iva=$search(@,/Iva (\N%)/);
 
-  $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")))
-  $setend($indexof(@,"\n",$indexof(@,"FORNITURA DI")))
+  $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")));
+  $setend($indexof(@,"\n",$indexof(@,"FORNITURA DI")));
 
-  %pcv=$search(@,/PCV euro\/cliente\/mese \N \N (\N)/)
-  %spesa_materia_energia=$search(@,/DETTAGLIO DELLA SPESA PER (?:L\u2019ENERGIA ELETTRICA|LA MATERIA ENERGIA)[^]+?(\N) DETTAGLIO/)
-  %trasporto_gestione=$search(@,/DETTAGLIO DELLA SPESA PER (?:IL TRASPORTO, GESTIONE DEL CONTATORE|TRASPORTO ENERGIA, GESTIONE CONTATORE) E ONERI DI SISTEMA[^]+?(\N) IMPOSTE/)
+  %pcv=$search(@,/PCV euro\/cliente\/mese \N \N (\N)/);
+  %spesa_materia_energia=$search(@,/DETTAGLIO DELLA SPESA PER (?:L\u2019ENERGIA ELETTRICA|LA MATERIA ENERGIA)[^]+?(\N) DETTAGLIO/);
+  %trasporto_gestione=$search(@,/DETTAGLIO DELLA SPESA PER (?:IL TRASPORTO, GESTIONE DEL CONTATORE|TRASPORTO ENERGIA, GESTIONE CONTATORE) E ONERI DI SISTEMA[^]+?(\N) IMPOSTE/);
 
   $foreach($search_all(@,/Prezzo (?:F1|Picco|Ore Giorno) euro\/kWh (\N \N)/)) {
     $step($captures(@,/(\N) (\N)/)) {
-      %prezzo_energia[0] %energia_attiva[0]+=@
+      %prezzo_energia[0]; %energia_attiva[0]+=@;
     }
   }
   $foreach($search_all(@,/Prezzo (?:F2|Fuori Picco|Ore Notte) euro\/kWh (\N \N)/)) {
     $step($captures(@,/(\N) (\N)/)) {
-      %prezzo_energia[1] %energia_attiva[1]+=@
+      %prezzo_energia[1]; %energia_attiva[1]+=@;
     }
   }
   $foreach($search_all(@,/Prezzo F3 euro\/kWh (\N \N)/)) {
     $step($captures(@,/(\N) (\N)/)) {
-      %prezzo_energia[2] %energia_attiva[2]+=@
+      %prezzo_energia[2]; %energia_attiva[2]+=@;
     }
   }
 
   $step($captures(@,/Prezzo energia(?: monorario)? euro\/kWh (\N) (\N)/)) {
-    %prezzo_energia[0:3] %~energia_attiva
+    %prezzo_energia[0:3]; %~energia_attiva;
   }
 
-  %sbilanciamento=$search(@,/Incremento prezzo euro\/kWh (\N)/)
+  %sbilanciamento=$search(@,/Incremento prezzo euro\/kWh (\N)/);
 
-  %imponibile=$search(@,/(\N)$/)
+  %imponibile=$search(@,/(\N)$/);
 
-  %penale_reattiva_inf75=$search(@,/Energia Reattiva tra il 33% e 75% attiva euro\/kVARh \N \N (\N)/)
-  %penale_reattiva_sup75=$search(@,/Energia Reattiva oltre il 75% attiva euro\/kVARh \N \N (\N)/)
+  %penale_reattiva_inf75=$search(@,/Energia Reattiva tra il 33% e 75% attiva euro\/kVARh \N \N (\N)/);
+  %penale_reattiva_sup75=$search(@,/Energia Reattiva oltre il 75% attiva euro\/kVARh \N \N (\N)/);
 
-  %potenza[0:3]=$search(@,/Quota Potenza euro\/kW\/mese \N (\N)/)
-  %accise=$search(@,/Imposta erariale.+ (\N)\n/)
+  %potenza[0:3]=$search(@,/Quota Potenza euro\/kW\/mese \N (\N)/);
+  %accise=$search(@,/Imposta erariale.+ (\N)\n/);
 }
 ### End Script
 ### End Box

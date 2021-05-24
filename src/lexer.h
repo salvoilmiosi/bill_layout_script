@@ -17,6 +17,7 @@ DEFINE_ENUM(token_type,
     (NUMBER,       "Numero")
     (INTEGER,      "Numero Intero")
     (FUNCTION,     "Funzione")
+    (SEMICOLON,    ";")
     (AMPERSAND,    "&")
     (PAREN_BEGIN,  "(")
     (PAREN_END,    ")")

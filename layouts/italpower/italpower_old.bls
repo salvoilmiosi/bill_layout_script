@@ -1,0 +1,179 @@
+### Bill Layout Script
+### Set Layout
+
+### Box Convalida Layout
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### Rect 0.01935488 0.2746439 0.70976573 0.023931593
+### Goto Label convalida
+### Spacers
+p+::off_allegato;
+### End Spacers
+### Script
+$if($doc(ate)) $error(::ERRORE_LAYOUT_INVALIDO, "Italpower: Stringa di Convalida Errata");
+$elifnot($contains(@,"FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA")) {
+  ::off_allegato+=1;
+  $goto(convalida);
+} 
+### End Script
+### End Box
+
+### Box Nome Fornitore
+### Type RECTANGLE
+### Mode DEFAULT
+### Flags NOREAD
+### Page 1
+### Rect 0.019354839 0.014823261 0.3548387 0.08437856
+### Goto Label nome_fornitore
+### Script
+fornitore="Italpower";
+### End Script
+### End Box
+
+### Box Numero fattura
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### Rect 0.016757436 0.3109084 0.29507053 0.07633263
+### Spacers
+p+::off_allegato;
+### End Spacers
+### Script
+numero_fattura=$search(@,/Fattura Numero: (.+)\n/);
+data_fattura=$date(@,"%d/%m/%Y",/Data Fattura: (\D)/);
+data_scadenza=$date(@,"%d/%m/%Y",/Scadenza Fattura: (\D)/);
+### End Script
+### End Box
+
+### Box Sintesi valori
+### Type RECTANGLE
+### Mode RAW
+### Page 1
+### Rect 0.33064517 0.3014754 0.656078 0.27987975
+### Spacers
+p+::off_allegato;
+### End Spacers
+### Script
+%totale_fattura=$search(@,/Totale Fattura \u20ac (\N)/);
+iva=$search(@,/IVA (\N%)/);
+### End Script
+### End Box
+
+### Box Dati cliente
+### Type RECTANGLE
+### Mode RAW
+### Page 1
+### Rect 0.016757436 0.5792475 0.48646837 0.2518474
+### Spacers
+p+::off_allegato;
+### End Spacers
+### Script
+numero_cliente=$search(@,/Codice cliente (.+)\n/);
+'ragione_sociale=$search(@,/Ragione sociale (.+)\n/);
+### End Script
+### End Box
+
+### Box Periodo
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 2
+### Rect 0.02086479 0.052815437 0.966129 0.037628278
+### Spacers
+p+::off_allegato;
+p+::page_offset;
+### End Spacers
+### Script
+mese_fattura=$month(@,"%B %Y",/Dettaglio consumi mese di (\D)/);
+### End Script
+### End Box
+
+### Box Dati fornitura
+### Type RECTANGLE
+### Mode RAW
+### Page 2
+### Rect 0.016346991 0.12086659 0.483653 0.112206854
+### Spacers
+p+::off_allegato;
+p+::page_offset;
+### End Spacers
+### Script
+codice_pod=$search(@,/Codice POD (.+)\n/);
+'indirizzo_fornitura=$singleline($search(@,/Indirizzo fornitura ([^]+?\d{5}.+)\n/));
+### End Script
+### End Box
+
+### Box Energia attiva
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### Rect 0.5075084 0.13629562 0.42495131 0.06718019
+### Spacers
+p+::off_allegato;
+p+::page_offset;
+### End Spacers
+### Script
+$step($captures(@,/Misura (\N) (\N) (\N)/)) {
+  %energia_attiva_rilevata[0]; %energia_attiva_rilevata[1]; %energia_attiva_rilevata[2];
+}
+$step($captures(@,/Potenza \(kW\) (\N) (\N) (\N)/)) {
+  %potenza[0]; %potenza[1]; %potenza[2];
+}
+$step($captures(@,/Energia Reattiva \(kVar\) (\N) (\N) (\N)/)) {
+  %energia_reattiva[0]; %energia_reattiva[1]; %energia_reattiva[2];
+}
+### End Script
+### End Box
+
+### Box Prezzi Energia
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### Rect 0.017741935 0.2531357 0.9758065 0.69359004
+### Spacers
+p+::off_allegato;
+p+::page_offset;
+### End Spacers
+### Script
+%spesa_materia_energia=$search(@,/Servizi di Vendita (\N)/);
+%spesa_materia_energia=$search(@,/Spesa Materia Prima (\N)/);
+%trasporto_gestione=$search(@,/Servizi di Rete (\N)/);
+%trasporto_gestione=$search(@,/Trasporto, Gestione Contatore e Oneri di Sistema (\N)/);
+%oneri_amministrativi=$search(@,/Altri Oneri (\N)/);
+%accise=$search(@,/Imposte.+Euro.+ (\N)/);
+$step($captures(@,/Energia (?:F1|Peak) \u20ac\/kWh (\N) Euro (\N)/)) {
+  %energia_attiva[0]; %prezzo_energia[0];
+}
+$step($captures(@,/Energia (?:F2|Off-Peak) \u20ac\/kWh (\N) Euro (\N)/)) {
+  %energia_attiva[1]; %prezzo_energia[1];
+}
+$step($captures(@,/Energia F3 \u20ac\/kWh (\N) Euro (\N)/)) {
+  %energia_attiva[2]; %prezzo_energia[2];
+}
+%pcv=$search(@,/PCV .+ Euro (\N)/);
+%disp_var=$search(@,/Dispacciamento Quota Variabile.+ Euro (\N)/);
+%penale_reattiva_inf75=$search(@,/reattiva entro 75% .+ Euro \N (\N)/);
+%penale_reattiva_sup75=$search(@,/reattiva oltre 75% .+ Euro \N (\N)/);
+%imponibile=$search(@,/Totale periodo (\N)/);
+%pcv=$search(@,/PCV .+Euro (\N)/);
+%potenza[0:3]=$search(@,/Trasporto Quota Potenza \u20ac\/kW (\N)/);
+### End Script
+### End Box
+
+### Box Pagina successiva
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 3
+### Rect 0.022580646 0.05587229 0.96129036 0.02622577
+### Spacers
+p+::off_allegato;
+p+::page_offset;
+### End Spacers
+### Script
+$if($contains(@,"Dettaglio consumi")) {
+  ::page_offset+=1;
+  $nexttable();
+  $goto(nome_fornitore);
+}
+### End Script
+### End Box

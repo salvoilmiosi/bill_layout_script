@@ -8,7 +8,7 @@
 ### Page 1
 ### Rect 0.04808817 0.0386214 0.26773414 0.08643837
 ### Script
-fornitore="MetaEnergia"
+fornitore="MetaEnergia";
 ### End Script
 ### End Box
 
@@ -20,7 +20,7 @@ fornitore="MetaEnergia"
 ### Flags TRIM
 ### Script
 $if(@ != "FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA - MERCATO LIBERO") {
-  $error(::ERRORE_LAYOUT_INVALIDO, "MetaEnergia: Stringa di Convalida Errata")
+  $error(::ERRORE_LAYOUT_INVALIDO, "MetaEnergia: Stringa di Convalida Errata");
 }
 ### End Script
 ### End Box
@@ -31,9 +31,9 @@ $if(@ != "FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA - MERCATO LIBERO") {
 ### Page 1
 ### Rect 0.058485612 0.14988782 0.33401784 0.1416118
 ### Script
-ragione_sociale = $capitalize($search(@,/INTESTATARIO\n(.+)\n/))
-indirizzo_fornitura = $capitalize($search(@,/Le stiamo fornendo energia elettrica in:\n(.+)\n/))
-codice_pod = $search(@,/Codice POD: (.+)\n/)
+ragione_sociale = $capitalize($search(@,/INTESTATARIO\n(.+)\n/));
+indirizzo_fornitura = $capitalize($search(@,/Le stiamo fornendo energia elettrica in:\n(.+)\n/));
+codice_pod = $search(@,/Codice POD: (.+)\n/);
 ### End Script
 ### End Box
 
@@ -43,14 +43,14 @@ codice_pod = $search(@,/Codice POD: (.+)\n/)
 ### Page 1
 ### Rect 0.06368434 0.33563837 0.87104565 0.02544105
 ### Script
-numero_fattura = $search(@,/Fattura N\. (\w+)/)
-data_fattura = $date(@,"%d/%m/%Y",/Emessa il (\D)/)
-mese_fattura = $month(@,"%d/%m/%Y",/Periodo di riferimento \D - (\D)/)
+numero_fattura = $search(@,/Fattura N\. (\w+)/);
+data_fattura = $date(@,"%d/%m/%Y",/Emessa il (\D)/);
+mese_fattura = $month(@,"%d/%m/%Y",/Periodo di riferimento \D - (\D)/);
 $ifnot($isset(mese_fattura)) {
-  $error(::ERRORE_PERIODO_INVALIDO, "MetaEnergia: Mese Fattura Mancante")
+  $error(::ERRORE_PERIODO_INVALIDO, "MetaEnergia: Mese Fattura Mancante");
 }
 
-_mese = $date_format(mese_fattura,"%m/%Y")
+_mese = $date_format(mese_fattura,"%m/%Y");
 ### End Script
 ### End Box
 
@@ -60,7 +60,7 @@ _mese = $date_format(mese_fattura,"%m/%Y")
 ### Page 1
 ### Rect 0.06368434 0.36414462 0.4483897 0.03586273
 ### Script
-data_scadenza = $date(@,"%d/%m/%Y",/Totale da pagare entro il (\D)/)
+data_scadenza = $date(@,"%d/%m/%Y",/Totale da pagare entro il (\D)/);
 ### End Script
 ### End Box
 
@@ -70,7 +70,7 @@ data_scadenza = $date(@,"%d/%m/%Y",/Totale da pagare entro il (\D)/)
 ### Page 1
 ### Rect 0.5484651 0.3650642 0.36650985 0.03586273
 ### Script
-%totale_fattura
+%totale_fattura;
 ### End Script
 ### End Box
 
@@ -80,7 +80,7 @@ data_scadenza = $date(@,"%d/%m/%Y",/Totale da pagare entro il (\D)/)
 ### Page 1
 ### Rect 0.525949 0.045455948 0.31360933 0.07011002
 ### Script
-numero_cliente = $search(@,/Codice cliente: (.+)\n/)
+numero_cliente = $search(@,/Codice cliente: (.+)\n/);
 ### End Script
 ### End Box
 
@@ -91,13 +91,13 @@ numero_cliente = $search(@,/Codice cliente: (.+)\n/)
 ### Rect 0.052041367 0.12135033 0.9031695 0.8370542
 ### Goto Label lettura_dettaglio
 ### Spacers
-p+::next_page
+p+::next_page;
 ### End Spacers
 ### Script
 $ifnot($doc(ate) || $contains(@,"Comunicazioni finali")) {
-  _dettaglio+=@
-  ::next_page+=1
-  $goto(lettura_dettaglio)
+  _dettaglio+=@;
+  ::next_page+=1;
+  $goto(lettura_dettaglio);
 }
 ### End Script
 ### End Box
@@ -112,35 +112,35 @@ $ifnot($doc(ate) || $contains(@,"Comunicazioni finali")) {
 $with(&_dettaglio) {
   $step($captures($search(@,/Energia attiva \(kWh\)\n((Dal.+\n)+)/),
     $format(/al \d\d\/$0 \w+ (\N) (\N) (\N)/,_mese))) {
-    %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
+    %energia_attiva_rilevata[0]; %energia_attiva_rilevata[1]; %energia_attiva_rilevata[2];
   }
   $step($captures($search(@,/Energia reattiva \(kVARh\)\n((Dal.+\n)+)/),
     $format(/al \d\d\/$0 \w+ (\N) (\N) (\N)/,_mese))) {
-    %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
+    %energia_reattiva[0]; %energia_reattiva[1]; %energia_reattiva[2];
   }
 
-  %spesa_materia_energia = $search(@,/TOTALE SERVIZI DI VENDITA (\N)/)
+  %spesa_materia_energia = $search(@,/TOTALE SERVIZI DI VENDITA (\N)/);
   $step($captures($search(@,/Energia in Peak\n((Dal.+\n)+)/),
     $format(/al \d\d\/$0 \u20ac\/kWh (\N) (\N)/,_mese))) {
-    %prezzo_energia[0] %energia_attiva[0]
+    %prezzo_energia[0]; %energia_attiva[0];
   }
   $step($captures($search(@,/Energia in Off-Peak\n((Dal.+\n)+)/),
     $format(/al \d\d\/$0 \u20ac\/kWh (\N) (\N)/,_mese))) {
-    %prezzo_energia[1] %energia_attiva[1]
+    %prezzo_energia[1]; %energia_attiva[1];
   }
 
-  %trasporto_gestione = $search(@,/TOTALE SERVIZI DI RETE (\N)/)
+  %trasporto_gestione = $search(@,/TOTALE SERVIZI DI RETE (\N)/);
   %potenza[0:3] = $search($search(@,/Quota Potenza\n((Dal.+\n)+)/),
-    $format(/al \d\d\/$0 \u20ac\/kW \N (\N)/,_mese))
+    $format(/al \d\d\/$0 \u20ac\/kW \N (\N)/,_mese));
   $foreach($search_all(@,/Energia Reattiva F[1-3] 75%-100%\n((Dal.+\n)+)/)) {
-    %penale_reattiva_inf75+=$search(@,$format(/al \d\d\/$0 \u20ac\/kVARh \N \N (\N)/,_mese))
+    %penale_reattiva_inf75+=$search(@,$format(/al \d\d\/$0 \u20ac\/kVARh \N \N (\N)/,_mese));
   }
   $foreach($search_all(@,/Energia Reattiva F[1-3] 33%-75%\n((Dal.+\n)+)/)) {
-    %penale_reattiva_sup75+=$search(@,$format(/al \d\d\/$0 \u20ac\/kVARh \N \N (\N)/,_mese))
+    %penale_reattiva_sup75+=$search(@,$format(/al \d\d\/$0 \u20ac\/kVARh \N \N (\N)/,_mese));
   }
   %accise=$search($search(@,/IMPOSTE SUI CONSUMI\nAccisa\n((Dal.+\n)+)/),
-    $format(/al \d\d\/$0 \u20ac\/kWh \N \N (\N)/,_mese))
-  ^cts=$search_all($search(@,/Corrispettivo Tariffario Specifico.+\n((Dal.+\n)+)/),/\u20ac \N \N (\N)/)
+    $format(/al \d\d\/$0 \u20ac\/kWh \N \N (\N)/,_mese));
+  ^cts=$search_all($search(@,/Corrispettivo Tariffario Specifico.+\n((Dal.+\n)+)/),/\u20ac \N \N (\N)/);
 }
 ### End Script
 ### End Box
@@ -152,10 +152,10 @@ $with(&_dettaglio) {
 ### Rect 0.5064516 0.53105414 0.45645162 0.18005697
 ### Script
 $foreach($search_all(@,/(IVA \N% su imponibile di \u20ac \N)/)) {
-  %_imp=$search(@,/imponibile di \u20ac (\N)/)
+  %_imp=$search(@,/imponibile di \u20ac (\N)/);
   $if(_imp > $coalesce(imponibile,0)) {
-    imponibile=_imp
-    iva=$search(@,/IVA (\d\d%)/)
+    imponibile=_imp;
+    iva=$search(@,/IVA (\d\d%)/);
   }
 }
 ### End Script

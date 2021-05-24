@@ -8,16 +8,16 @@
 ### Rect 0.01455026455026455 0.01216089803554724 0.03835978835978836 0.028999064546304958
 ### Goto Label ricerca_dettaglio
 ### Spacers
-p+::off_dettaglio
+p+::off_dettaglio;
 ### End Spacers
 ### Script
 $if($doc(ate)) {
-  $error(::ERRORE_DETTAGLIO_MANCANTE, "AMG: Dettaglio Mancante")
+  $error(::ERRORE_DETTAGLIO_MANCANTE, "AMG: Dettaglio Mancante");
 } $elif($contains(@,"DETTAGLIO FATTURA")) {
-  $goto(lettura_dettaglio)
+  $goto(lettura_dettaglio);
 } $else {
-  ::off_dettaglio+=1
-  $goto(ricerca_dettaglio)
+  ::off_dettaglio+=1;
+  $goto(ricerca_dettaglio);
 }
 ### End Script
 ### End Box
@@ -29,13 +29,13 @@ $if($doc(ate)) {
 ### Rect 0.06084656084656084 0.013096351730589336 0.03835978835978836 0.02806361085126286
 ### Goto Label lettura_dettaglio
 ### Spacers
-p+::off_dettaglio
+p+::off_dettaglio;
 ### End Spacers
 ### Script
 $ifnot($doc(ate) || $isempty(@)) {
-  ::_dettaglio+=@
-  ::off_dettaglio+=1
-  $goto(lettura_dettaglio)
+  ::_dettaglio+=@;
+  ::off_dettaglio+=1;
+  $goto(lettura_dettaglio);
 }
 ### End Script
 ### End Box
@@ -48,7 +48,7 @@ $ifnot($doc(ate) || $isempty(@)) {
 ### Rect 0.014516129032258065 0.014823261117445839 0.3193548387096774 0.08437856328392247
 ### Goto Label nome_fornitore
 ### Script
-fornitore="AMG"
+fornitore="AMG";
 ### End Script
 ### End Box
 
@@ -58,8 +58,8 @@ fornitore="AMG"
 ### Page 1
 ### Rect 0.5983870967741935 0.011402508551881421 0.382258064516129 0.10347352450596982
 ### Script
-numero_cliente=$search(@,/Codice Anagrafico (\d+)/)
-codice_pod=$search(@,/POD (\w+)/)
+numero_cliente=$search(@,/Codice Anagrafico (\d+)/);
+codice_pod=$search(@,/POD (\w+)/);
 ### End Script
 ### End Box
 
@@ -69,7 +69,7 @@ codice_pod=$search(@,/POD (\w+)/)
 ### Page 1
 ### Rect 0.5112903225806451 0.18015963511972635 0.4580645161290323 0.09236031927023944
 ### Script
-'ragione_sociale=$search(@,/Egr\.\/Spett\.le (.+)\n/)
+'ragione_sociale=$search(@,/Egr\.\/Spett\.le (.+)\n/);
 ### End Script
 ### End Box
 
@@ -79,11 +79,11 @@ codice_pod=$search(@,/POD (\w+)/)
 ### Page 1
 ### Rect 0.509200879765396 0.2862029646522235 0.4612903225806452 0.231869324504403
 ### Script
-%totale_fattura=$search(@,/Importo Fattura \u20ac (\N)/)
-data_scadenza=$date(@,"%d/%m/%Y",/Da pagare entro il (\D)/)
-numero_fattura=$search(@,/Fattura nr\. (\d+)/)
-data_fattura=$date(@,"%d/%m/%Y",/Fattura nr\. \d+ del (\D)/)
-iva=$search(@,/Aliquota al (\d+%)/)
+%totale_fattura=$search(@,/Importo Fattura \u20ac (\N)/);
+data_scadenza=$date(@,"%d/%m/%Y",/Da pagare entro il (\D)/);
+numero_fattura=$search(@,/Fattura nr\. (\d+)/);
+data_fattura=$date(@,"%d/%m/%Y",/Fattura nr\. \d+ del (\D)/);
+iva=$search(@,/Aliquota al (\d+%)/);
 ### End Script
 ### End Box
 
@@ -93,7 +93,7 @@ iva=$search(@,/Aliquota al (\d+%)/)
 ### Page 1
 ### Rect 0.01818181818181818 0.721285140562249 0.49318181818181817 0.21204819277108433
 ### Script
-'indirizzo_fornitura=$singleline($search(@,/Indirizzo Fornitura ([^]+\d{5}.+)/))
+'indirizzo_fornitura=$singleline($search(@,/Indirizzo Fornitura ([^]+\d{5}.+)/));
 ### End Script
 ### End Box
 
@@ -103,7 +103,7 @@ iva=$search(@,/Aliquota al (\d+%)/)
 ### Page 1
 ### Rect 0.5125 0.721285140562249 0.4602272727272728 0.21124497991967872
 ### Script
-%potenza[0:3]=$search(@,/Potenza Disponibile (\N) kW/)
+%potenza[0:3]=$search(@,/Potenza Disponibile (\N) kW/);
 ### End Script
 ### End Box
 
@@ -115,17 +115,17 @@ iva=$search(@,/Aliquota al (\d+%)/)
 ### Rect 0.020737327188940113 0.3651181744091279 0.46889400921658986 0.030154849225753844
 ### Script
 $if($matches(@,/\w+\. - \w+\. \d{4}/)) {
-  $foreach($captures(@,/(\w+)\. - (\w+)\. (\d{4})/)) !_date_tokens[]
-  mese_inizio=$month($format("$0 $1",_date_tokens[0],_date_tokens[2]),"%b %Y")
-  mese_fine=$month($format("$0 $1",_date_tokens[1],_date_tokens[2]),"%b %Y")
+  $foreach($captures(@,/(\w+)\. - (\w+)\. (\d{4})/)) !_date_tokens[];
+  mese_inizio=$month($format("$0 $1",_date_tokens[0],_date_tokens[2]),"%b %Y");
+  mese_fine=$month($format("$0 $1",_date_tokens[1],_date_tokens[2]),"%b %Y");
   $if(mese_inizio > mese_fine) {
-    $error(::ERRORE_PERIODO_INVALIDO, "AMG: Formato Periodo Errato")
+    $error(::ERRORE_PERIODO_INVALIDO, "AMG: Formato Periodo Errato");
   }
-  mese_fattura=$month_add(mese_inizio,::calc_mese)
+  mese_fattura=$month_add(mese_inizio,::calc_mese);
 } $else {
-  $error(::ERRORE_PERIODO_INVALIDO, "AMG: Formato Periodo Errato")
+  $error(::ERRORE_PERIODO_INVALIDO, "AMG: Formato Periodo Errato");
 }
-_mese=$date_format(mese_fattura,"%m/%Y")
+_mese=$date_format(mese_fattura,"%m/%Y");
 ### End Script
 ### End Box
 
@@ -138,9 +138,9 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 $between("DETTAGLIO LETTURE","DETTAGLIO ALTRE PARTITE") {
   $foreach($search_all(@,$format(/\d\d\/$0 (.+)/,_mese))) {
     $step($captures(@,/(\N) (\N) (\N) Effettivi/)) {
-      %energia_attiva_rilevata[0]+=@
-      %energia_attiva_rilevata[1]+=@
-      %energia_attiva_rilevata[2]+=@
+      %energia_attiva_rilevata[0]+=@;
+      %energia_attiva_rilevata[1]+=@;
+      %energia_attiva_rilevata[2]+=@;
     }
   }
 }
@@ -155,73 +155,73 @@ $between("DETTAGLIO LETTURE","DETTAGLIO ALTRE PARTITE") {
 ### Rect 0.10449735449735449 0.01216089803554724 0.041005291005291 0.02806361085126286
 ### Script
 $function(check_periodo,@) {
-  $return($date_between(mese_fattura,
+  $return $date_between(mese_fattura,
     $month(@,"%d/%m/%Y",/(\D) - \D/),
-    $month(@,"%d/%m/%Y",/\D - (\D)/)))
+    $month(@,"%d/%m/%Y",/\D - (\D)/));
 }
 $function(calc_parziale,@) {
-  $clear(_tot)
+  $clear(_tot);
   $foreach($search_all(@,$format(/($0 \N \u20ac\/cliente\/giorni \N giorni \N)/,_regex_periodo))) {
     $if($call(check_periodo)) {
-      %_tot+=$search(@,/(\N)$/)
+      %_tot+=$search(@,/(\N)$/);
     }
   }
   $foreach($search_all(@,$format(/($0 \N) \u20ac\/cliente\/mese/,_regex_periodo))) {
     $if($call(check_periodo)) {
-      %_tot+=$search(@,/(\N)$/)
+      %_tot+=$search(@,/(\N)$/);
     }
   }
   $foreach($search_all(@,$format(/($0 \N \u20ac\/kWh \N kWh \N)/,_regex_periodo))) {
     $if($call(check_periodo)) {
-      %_tot+=$search(@,/(\N)$/)
+      %_tot+=$search(@,/(\N)$/);
     }
   }
-  $return($trunc(_tot,2))
+  $return $trunc(_tot,2);
 }
-_regex_periodo=/\d\d\/\d\d\/\d\d\d\d - \d\d\/\d\d\/\d\d\d\d/
+_regex_periodo=/\d\d\/\d\d\/\d\d\d\d - \d\d\/\d\d\/\d\d\d\d/;
 $with(&::_dettaglio) {
   $between("Spesa per la Materia Prima Energia","Spesa per il trasporto") {
     $foreach($search_all(@,$format(/Comp\. PCV ($0 \N) \u20ac\/cliente\/mese/,_regex_periodo))) {
       $if($call(check_periodo)) {
-        %pcv=$search(@,/(\N)$/)
-        $break()
+        %pcv=$search(@,/(\N)$/);
+        $break;
       }
     }
     $foreach($search_all(@,$format(/Comp\. PED F123 ($0 \N \u20ac\/kWh \N) kWh/,_regex_periodo))) {
       $if($call(check_periodo)) {
         $step($captures(@,/(\N) \u20ac\/kWh (\N)/)) {
-          %prezzo_energia %energia_attiva+=@
+          %prezzo_energia; %energia_attiva+=@;
         }
       }
     }
-    spesa_materia_energia+=$call(calc_parziale)
+    spesa_materia_energia+=$call(calc_parziale);
   }
   $between("Spesa per il trasporto","Spesa per Oneri") {
     $foreach($search_all(@,$format(/($0 \N \u20ac\/kW\/mese \N kW)/,_regex_periodo))) {
       $if($call(check_periodo)) {
-        %potenza[0:3] = $search(@,/(\N) kW/)
-        trasporto_gestione+=$trunc($num($search(@,/(\N) \u20ac\/kW\/mese/)) * potenza,2)
+        %potenza[0:3] = $search(@,/(\N) kW/);
+        trasporto_gestione+=$trunc($num($search(@,/(\N) \u20ac\/kW\/mese/)) * potenza,2);
       }
     }
     $foreach($search_all(@,$format(/($0 \N \u20ac\/kW\/giorni \N kW\/giorni \N)/,_regex_periodo))) {
       $if($call(check_periodo)) {
-        %potenza[0:3] = $search(@,/(\N) kW/)
-        %trasporto_gestione+=$search(@,/(\N)$/)
+        %potenza[0:3] = $search(@,/(\N) kW/);
+        %trasporto_gestione+=$search(@,/(\N)$/);
       }
     }
-    trasporto_gestione+=$call(calc_parziale)
+    trasporto_gestione+=$call(calc_parziale);
   }
   $between("Spesa per Oneri","Imposte") {
-    oneri=$call(calc_parziale)
+    oneri=$call(calc_parziale);
   }
   $between("Imposte","ALTRI IMPORTI") {
     $foreach($search_all(@,$format(/Imposta Erariale ($0 \N \u20ac\/kWh \N kWh \N)/,_regex_periodo))) {
       $if($call(check_periodo)) {
-        %accise=$search(@,/(\N)$/)
+        %accise=$search(@,/(\N)$/);
       }
     }
   }
-  imponibile=$sum(spesa_materia_energia,trasporto_gestione,oneri,accise,altre_partite)
+  imponibile=$sum(spesa_materia_energia,trasporto_gestione,oneri,accise,altre_partite);
 }
 ### End Script
 ### End Box
@@ -234,9 +234,9 @@ $with(&::_dettaglio) {
 ### Rect 0.15343915343915343 0.014967259120673527 0.035714285714285726 0.025257249766136577
 ### Script
 $if(mese_fattura != mese_fine) {
-  ::calc_mese+=1
-  $nexttable()
-  $goto(nome_fornitore)
+  ::calc_mese+=1;
+  $nexttable();
+  $goto(nome_fornitore);
 }
 ### End Script
 ### End Box

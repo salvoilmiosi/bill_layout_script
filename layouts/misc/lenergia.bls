@@ -8,7 +8,7 @@
 ### Page 1
 ### Rect 0.0580645 0.018244 0.35 0.114025
 ### Script
-fornitore="Lenergia"
+fornitore="Lenergia";
 ### End Script
 ### End Box
 
@@ -18,11 +18,11 @@ fornitore="Lenergia"
 ### Page 1
 ### Rect 0.512487 0.0275867 0.474766 0.12414
 ### Script
-numero_cliente=$search(@,/Codice Cliente: (.+)\n/)
-numero_fattura=$search(@,/fattura n\. (\N) /)
-data_fattura=$date(@,"%d/%m/%Y",/fattura n\. \N del (\D)/)
-mese_fattura=$month(@,"%d/%m/%Y",/Periodo \D - (\D)/)
-_mese=$date_format(mese_fattura,"%m/%Y")
+numero_cliente=$search(@,/Codice Cliente: (.+)\n/);
+numero_fattura=$search(@,/fattura n\. (\N) /);
+data_fattura=$date(@,"%d/%m/%Y",/fattura n\. \N del (\D)/);
+mese_fattura=$month(@,"%d/%m/%Y",/Periodo \D - (\D)/);
+_mese=$date_format(mese_fattura,"%m/%Y");
 ### End Script
 ### End Box
 
@@ -32,7 +32,7 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 ### Page 1
 ### Rect 0.110562 0.362306 0.332986 0.0358627
 ### Script
-%totale_fattura
+%totale_fattura;
 ### End Script
 ### End Box
 
@@ -42,7 +42,7 @@ _mese=$date_format(mese_fattura,"%m/%Y")
 ### Page 1
 ### Rect 0.112903 0.420753 0.333871 0.0342075
 ### Script
-data_scadenza=$date(@,"%d/%m/%Y")
+data_scadenza=$date(@,"%d/%m/%Y");
 ### End Script
 ### End Box
 
@@ -52,8 +52,8 @@ data_scadenza=$date(@,"%d/%m/%Y")
 ### Page 1
 ### Rect 0.105359 0.220694 0.348595 0.0551734
 ### Script
-'ragione_sociale=$search(@,/^(.+)\n/)
-'indirizzo_fornitura=$singleline($search(@,/^.+\n([^]+?\d{5}.+)\n/))
+'ragione_sociale=$search(@,/^(.+)\n/);
+'indirizzo_fornitura=$singleline($search(@,/^.+\n([^]+?\d{5}.+)\n/));
 ### End Script
 ### End Box
 
@@ -63,9 +63,9 @@ data_scadenza=$date(@,"%d/%m/%Y")
 ### Page 1
 ### Rect 0.51769 0.340236 0.469563 0.205061
 ### Script
-%spesa_materia_energia=$search(@,/Spesa per la materia Energia (\N)\n/)
-%trasporto_gestione=$search(@,/Servizi di rete (\N)\n/)
-%oneri=$search(@,/Spesa per oneri di sistema (\N)\n/)
+%spesa_materia_energia=$search(@,/Spesa per la materia Energia (\N)\n/);
+%trasporto_gestione=$search(@,/Servizi di rete (\N)\n/);
+%oneri=$search(@,/Spesa per oneri di sistema (\N)\n/);
 ### End Script
 ### End Box
 
@@ -76,7 +76,7 @@ data_scadenza=$date(@,"%d/%m/%Y")
 ### Rect 0.516389 0.570125 0.474766 0.0855188
 ### Script
 $step($captures(@,/IVA (\N%) (\N)/)) {
-  iva %imponibile
+  iva; %imponibile;
 }
 ### End Script
 ### End Box
@@ -87,7 +87,7 @@ $step($captures(@,/IVA (\N%) (\N)/)) {
 ### Page 2
 ### Rect 0.0684262 0.0233233 0.904203 0.17188616
 ### Script
-codice_pod=$search(@,/Codice punto di erogazione \(POD\): ([a-zA-Z0-9]+)/)
+codice_pod=$search(@,/Codice punto di erogazione \(POD\): ([a-zA-Z0-9]+)/);
 ### End Script
 ### End Box
 
@@ -98,13 +98,13 @@ codice_pod=$search(@,/Codice punto di erogazione \(POD\): ([a-zA-Z0-9]+)/)
 ### Rect 0.035119668 0.2005698 0.92351717 0.6100175
 ### Script
 $step($captures(@,$format(/\d\d\/$0 Energia Attiva kWh (\N) (\N) (\N)/,_mese))) {
-    %energia_attiva_rilevata[0] %energia_attiva_rilevata[1] %energia_attiva_rilevata[2]
+    %energia_attiva_rilevata[0]; %energia_attiva_rilevata[1]; %energia_attiva_rilevata[2];
 }
 $step($captures(@,$format(/\d\d\/$0 Energia Reattiva kvarh (\N) (\N) (\N)/,_mese))) {
-    %energia_reattiva[0] %energia_reattiva[1] %energia_reattiva[2]
+    %energia_reattiva[0]; %energia_reattiva[1]; %energia_reattiva[2];
 }
 $step($captures(@,$format(/\d\d\/$0 Potenza kW (\N) (\N) (\N)/,_mese))) {
-    %potenza[0] %potenza[1] %potenza[2]
+    %potenza[0]; %potenza[1]; %potenza[2];
 }
 ### End Script
 ### End Box
@@ -116,23 +116,23 @@ $step($captures(@,$format(/\d\d\/$0 Potenza kW (\N) (\N) (\N)/,_mese))) {
 ### Rect 0.053763438 0.06647673 0.912485 0.8831909
 ### Goto Label quadro_dettaglio
 ### Spacers
-p+::page_offset
+p+::page_offset;
 ### End Spacers
 ### Script
 $step($captures(@,$format(/Indice mese di competenza F1 .+ \d\d\/$0 \u20ac\/kWh (\N) (\N)/,_mese))) {
-  %prezzo_energia[0] %energia_attiva[0]
+  %prezzo_energia[0]; %energia_attiva[0];
 }
 $step($captures(@,$format(/Indice mese di competenza F2 .+ \d\d\/$0 \u20ac\/kWh (\N) (\N)/,_mese))) {
-  %prezzo_energia[1] %energia_attiva[1]
+  %prezzo_energia[1]; %energia_attiva[1];
 }
 $step($captures(@,$format(/Indice mese di competenza F3 .+ \d\d\/$0 \u20ac\/kWh (\N) (\N)/,_mese))) {
-  %prezzo_energia[2] %energia_attiva[2]
+  %prezzo_energia[2]; %energia_attiva[2];
 }
 
-%pcv=$search(@,$format(/PCV .+ \d\d\/$0 \u20ac\/Pdp\/mese \N \N (\N)/,_mese))
-%accise=$search(@,$format(/Imposta erariale di consumo .+ \d\d\/$0 \u20ac\/kWh \N \N (\N)/,_mese))
-%penale_reattiva_inf75=$search(@,/Penale Reattiva 33%.+kvarh \N \N (\N)/)
-%penale_reattiva_sup75=$search(@,/Penale Reattiva 75%.+kvarh \N \N (\N)/)
+%pcv=$search(@,$format(/PCV .+ \d\d\/$0 \u20ac\/Pdp\/mese \N \N (\N)/,_mese));
+%accise=$search(@,$format(/Imposta erariale di consumo .+ \d\d\/$0 \u20ac\/kWh \N \N (\N)/,_mese));
+%penale_reattiva_inf75=$search(@,/Penale Reattiva 33%.+kvarh \N \N (\N)/);
+%penale_reattiva_sup75=$search(@,/Penale Reattiva 75%.+kvarh \N \N (\N)/);
 ### End Script
 ### End Box
 
@@ -143,12 +143,12 @@ $step($captures(@,$format(/Indice mese di competenza F3 .+ \d\d\/$0 \u20ac\/kWh 
 ### Page 6
 ### Rect 0.091051 0.038599394 0.03381893 0.023894865
 ### Spacers
-p+::page_offset
+p+::page_offset;
 ### End Spacers
 ### Script
 $ifnot($doc(ate)) {
-  ::page_offset+=1
-  $goto(quadro_dettaglio)
+  ::page_offset+=1;
+  $goto(quadro_dettaglio);
 }
 ### End Script
 ### End Box

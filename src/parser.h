@@ -74,7 +74,9 @@ private:
     void read_box(const layout_box &box);
     const layout_box *current_box = nullptr;
     
-    bool read_statement(bool throw_on_eof = true);
+    void read_statement();
+    void sub_statement();
+
     void read_expression();
     void sub_expression();
 

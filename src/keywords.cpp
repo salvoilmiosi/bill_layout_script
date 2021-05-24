@@ -24,7 +24,6 @@ void parser::read_keyword() {
         {"setend",      {FUN_EXPRESSION, make_command<opcode::SETEND>()}},
         {"clear",       {FUN_VARIABLE,   make_command<opcode::CLEAR>()}},
         {"nexttable",   {FUN_VOID,       make_command<opcode::NEXTTABLE>()}},
-        {"skip",        {FUN_VOID,       make_command<opcode::NOP>()}},
         {"halt",        {FUN_VOID,       make_command<opcode::HLT>()}}
     };
 
@@ -46,6 +45,7 @@ void parser::read_keyword() {
             break;
         }
         m_lexer.require(token_type::PAREN_END);
+        m_lexer.require(token_type::SEMICOLON);
         m_code.push_back(std::get<command_args>(it->second));
     } else switch (hash(fun_name)) {
     case hash("if"):
@@ -118,14 +118,14 @@ void parser::read_keyword() {
         string_ptr endfor_label = make_label("endfor");
         m_loop_labels.push(loop_label_pair{for_label, endfor_label});
         m_lexer.require(token_type::PAREN_BEGIN);
-        read_statement();
-        m_lexer.require(token_type::COMMA);
+        sub_statement();
+        m_lexer.require(token_type::SEMICOLON);
         m_code.add_label(for_label);
         read_expression();
         m_code.add_line<opcode::JZ>(endfor_label);
-        m_lexer.require(token_type::COMMA);
+        m_lexer.require(token_type::SEMICOLON);
         auto increase_stmt_begin = m_code.size();
-        read_statement();
+        sub_statement();
         auto increase_stmt_end = m_code.size();
         m_lexer.require(token_type::PAREN_END);
         read_statement();
@@ -143,6 +143,7 @@ void parser::read_keyword() {
         }
         m_code.add_line<opcode::JMP>(fmt::format("__{}_box_{}", m_parser_id, tok.value));
         m_lexer.require(token_type::PAREN_END);
+        m_lexer.require(token_type::SEMICOLON);
         break;
     }
     case hash("function"): {
@@ -200,6 +201,7 @@ void parser::read_keyword() {
             read_expression();
             ++numargs;
         }
+        m_lexer.require(token_type::SEMICOLON);
         if (auto it = m_functions.find(tok.value); it != m_functions.end()) {
             if (it->second.numargs != numargs) {
                 throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", tok.value, it->second.numargs), tok);
@@ -325,6 +327,7 @@ void parser::read_keyword() {
         m_lexer.require(token_type::PAREN_BEGIN);
         auto tok_layout_name = m_lexer.require(token_type::STRING);
         m_lexer.require(token_type::PAREN_END);
+        m_lexer.require(token_type::SEMICOLON);
         auto imported_file = m_path.parent_path() / (tok_layout_name.parse_string() + ".bls");
         if (m_flags & parser_flags::RECURSIVE_IMPORTS) {
             parser imported;
@@ -339,20 +342,18 @@ void parser::read_keyword() {
     }
     case hash("break"):
     case hash("continue"):
-        m_lexer.require(token_type::PAREN_BEGIN);
-        m_lexer.require(token_type::PAREN_END);
+        m_lexer.require(token_type::SEMICOLON);
         if (m_loop_labels.empty()) {
             throw parsing_error("Non in un loop", tok_name);
         }
         m_code.add_line<opcode::JMP>(fun_name == "break" ? m_loop_labels.top().break_label : m_loop_labels.top().continue_label);
         break;
     case hash("return"):
-        m_lexer.require(token_type::PAREN_BEGIN);
-        if (m_lexer.check_next(token_type::PAREN_END)) {
+        if (m_lexer.check_next(token_type::SEMICOLON)) {
             m_code.add_line<opcode::RET>();
         } else {
             read_expression();
-            m_lexer.require(token_type::PAREN_END);
+            m_lexer.require(token_type::SEMICOLON);
             if (m_code.back().command() == opcode::PUSHVAR) {
                 m_code.back() = make_command<opcode::RETVAR>();
             } else {
