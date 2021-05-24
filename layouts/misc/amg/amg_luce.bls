@@ -33,7 +33,7 @@ p+::off_dettaglio;
 ### End Spacers
 ### Script
 $ifnot($doc(ate) || $isempty(@)) {
-  ::_dettaglio+=@;
+  +::_dettaglio;
   ::off_dettaglio+=1;
   $goto(lettura_dettaglio);
 }
@@ -138,9 +138,9 @@ _mese=$date_format(mese_fattura,"%m/%Y");
 $between("DETTAGLIO LETTURE","DETTAGLIO ALTRE PARTITE") {
   $foreach($search_all(@,$format(/\d\d\/$0 (.+)/,_mese))) {
     $step($captures(@,/(\N) (\N) (\N) Effettivi/)) {
-      %energia_attiva_rilevata[0]+=@;
-      %energia_attiva_rilevata[1]+=@;
-      %energia_attiva_rilevata[2]+=@;
+      %+energia_attiva_rilevata[0];
+      %+energia_attiva_rilevata[1];
+      %+energia_attiva_rilevata[2];
     }
   }
 }
@@ -190,7 +190,7 @@ $with(&::_dettaglio) {
     $foreach($search_all(@,$format(/Comp\. PED F123 ($0 \N \u20ac\/kWh \N) kWh/,_regex_periodo))) {
       $if($call(check_periodo)) {
         $step($captures(@,/(\N) \u20ac\/kWh (\N)/)) {
-          %prezzo_energia; %energia_attiva+=@;
+          %prezzo_energia; %+energia_attiva;
         }
       }
     }

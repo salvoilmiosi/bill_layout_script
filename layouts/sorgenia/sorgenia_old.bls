@@ -33,7 +33,7 @@ p+::next_page;
 ### End Spacers
 ### Script
 $ifnot($doc(ate) || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
-  ::_dettaglio+=@;
+  +::_dettaglio;
   ::next_page+=1;
   $goto(lettura_dati);
 }

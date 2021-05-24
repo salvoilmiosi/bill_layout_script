@@ -18,6 +18,8 @@ DEFINE_ENUM_FLAGS(variable_prefixes,
     (CAPITALIZE)
     (REF)
     (FORCE)
+    (ADD)
+    (SUB)
 )
 
 DEFINE_ENUM_FLAGS(parser_flags,

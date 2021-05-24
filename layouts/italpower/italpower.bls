@@ -36,7 +36,7 @@ p+::off_dettaglio;
 $if($doc(ate) || $contains(@,"AGGIORNAMENTI CORRISPETTIVI")) {
   $goto(nome_fornitore);
 } $else {
-  ::_dettaglio+=@;
+  +::_dettaglio;
   ::off_dettaglio+=1;
   $goto(lettura_dettaglio);
 }
@@ -210,17 +210,17 @@ $with(&::_dettaglio) {
       }
     }
     $step($captures(@,$format(/Energia - F1 - Periodo $0 Euro\/kWh (\N) (\N) (\N)/,_periodo))) {
-      %prezzo_energia[0]; {%energia_attiva[0]; %_tot_consumi+=@;} spesa_materia_energia+=$trunc($num(@),2);
+      %prezzo_energia[0]; {%energia_attiva[0]; %+_tot_consumi;} spesa_materia_energia+=$trunc($num(@),2);
     }
     $step($captures(@,$format(/Energia - F2 - Periodo $0 Euro\/kWh (\N) (\N) (\N)/,_periodo))) {
-      %prezzo_energia[1]; {%energia_attiva[1]; %_tot_consumi+=@;} spesa_materia_energia+=$trunc($num(@),2);
+      %prezzo_energia[1]; {%energia_attiva[1]; %+_tot_consumi;} spesa_materia_energia+=$trunc($num(@),2);
     }
     $step($captures(@,$format(/Energia - F3 - Periodo $0 Euro\/kWh (\N) (\N) (\N)/,_periodo))) {
-      %prezzo_energia[2]; {%energia_attiva[2]; %_tot_consumi+=@;} spesa_materia_energia+=$trunc($num(@),2);
+      %prezzo_energia[2]; {%energia_attiva[2]; %+_tot_consumi;} spesa_materia_energia+=$trunc($num(@),2);
     }
     $foreach($search_all(@,$format(/Perdite di rete - F[1-3] - Periodo $0 Euro\/kWh \N (\N \N)/,_periodo))) {
       $step($captures(@,/(\N) (\N)/)) {
-        %_tot_perdite_rete+=@; %spesa_materia_energia+=@;
+        %+_tot_perdite_rete; %+spesa_materia_energia;
       }
     }
     $foreach($search_all(@,$format(/Dispacciamento - Periodo ($0 Euro\/kWh \N)/,_periodo_generic))) {

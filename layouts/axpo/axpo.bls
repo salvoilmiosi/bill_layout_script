@@ -38,7 +38,7 @@ $if($doc(ate)) {
     $error(::ERRORE_DETTAGLIO_MANCANTE, "Axpo: Dettaglio Mancante");
   }
 }$elifnot($contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) {
-  ::_dettaglio+=@;
+  +::_dettaglio;
   ::off_dettaglio+=1;
   $goto(lettura_dettaglio);
 }

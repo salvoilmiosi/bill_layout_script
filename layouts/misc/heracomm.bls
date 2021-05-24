@@ -50,7 +50,7 @@ rotate+::rotation;
 ### Script
 $if($isempty(@) || $doc(ate)) $goto(nome_fornitore);
 $else {
-  ::_dettaglio+=@;
+  +::_dettaglio;
 }
 ### End Script
 ### End Box
@@ -66,7 +66,7 @@ p+::off_dettaglio;
 rotate+::rotation;
 ### End Spacers
 ### Script
-::_dettaglio+=@;
++::_dettaglio;
 ::off_dettaglio+=1;
 $goto(lettura_dettaglio);
 ### End Script
@@ -147,7 +147,7 @@ $with(&::_dettaglio) {
       %energia_attiva_rilevata[0]; %energia_attiva_rilevata[1]; %energia_attiva_rilevata[2];
     }
     $step($captures(@,$format(/$0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_inizio))) {
-      %energia_attiva_rilevata[0]-=@; %energia_attiva_rilevata[1]-=@; %energia_attiva_rilevata[2]-=@;
+      %-energia_attiva_rilevata[0]; %-energia_attiva_rilevata[1]; %-energia_attiva_rilevata[2];
     }
   }
   $between("energia reattiva (kVARh)","consumo rilevato energia") {
@@ -155,7 +155,7 @@ $with(&::_dettaglio) {
       %energia_reattiva[0]; %energia_reattiva[1]; %energia_reattiva[2];
     }
     $step($captures(@,$format(/$0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_inizio))) {
-      %energia_reattiva[0]-=@; %energia_reattiva[1]-=@; %energia_reattiva[2]-=@;
+      %-energia_reattiva[0]; %-energia_reattiva[1]; %-energia_reattiva[2];
     }
   }
   $between("potenza (kW)","..........."){

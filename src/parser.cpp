@@ -172,10 +172,14 @@ void parser::sub_statement() {
     switch (tok.type) {
     case token_type::SUB_ASSIGN:
         flags |= setvar_flags::DECREASE;
-        [[fallthrough]];
+        m_lexer.advance(tok);
+        read_expression();
+        break;
     case token_type::ADD_ASSIGN:
         flags |= setvar_flags::INCREASE;
-        [[fallthrough]];
+        m_lexer.advance(tok);
+        read_expression();
+        break;
     case token_type::ASSIGN:
         m_lexer.advance(tok);
         read_expression();
@@ -186,6 +190,21 @@ void parser::sub_statement() {
         }
         m_code.add_line<opcode::PUSHVIEW>();
         break;
+    }
+    
+    if (prefixes & variable_prefixes::ADD && !(flags & setvar_flags::DECREASE)) {
+        flags |= setvar_flags::INCREASE;
+    }
+    if (prefixes & variable_prefixes::SUB) {
+        if (flags & setvar_flags::INCREASE) {
+            flags ^= setvar_flags::INCREASE;
+        }
+        if (flags & setvar_flags::DECREASE) {
+            flags ^= setvar_flags::DECREASE;
+            flags |= setvar_flags::INCREASE;
+        } else {
+            flags |= setvar_flags::DECREASE;
+        }
     }
 
     if (prefixes & variable_prefixes::CAPITALIZE) {
@@ -371,6 +390,8 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
         case token_type::SINGLE_QUOTE: add_flags_to(prefixes, variable_prefixes::CAPITALIZE, !read_only); break;
         case token_type::TILDE:     add_flags_to(prefixes, variable_prefixes::OVERWRITE, !read_only); break;
         case token_type::NOT:       add_flags_to(prefixes, variable_prefixes::FORCE, !read_only); break;
+        case token_type::PLUS:      add_flags_to(prefixes, variable_prefixes::ADD, !read_only); break;
+        case token_type::MINUS:     add_flags_to(prefixes, variable_prefixes::SUB, !read_only); break;
         case token_type::AMPERSAND: add_flags_to(prefixes, variable_prefixes::REF, read_only); break;
         case token_type::BRACKET_BEGIN:
             read_expression();

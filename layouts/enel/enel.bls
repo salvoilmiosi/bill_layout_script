@@ -44,7 +44,7 @@ p+::offset_dettaglio;
 t-::spacer_dettaglio;
 ### End Spacers
 ### Script
-::_dettaglio+=@;
++::_dettaglio;
 ### End Script
 ### End Box
 
@@ -178,7 +178,7 @@ $if($contains(@,"Energia attiva")) {
     %energia_attiva_rilevata[0]; %energia_attiva_rilevata[1]; %energia_attiva_rilevata[2];
   }
   $step($captures(@,$format(/$0 (\N) (\N) (\N)/,_inizio_dettaglio))) {
-    %energia_attiva_rilevata[0]-=@; %energia_attiva_rilevata[1]-=@; %energia_attiva_rilevata[2]-=@;
+    %-energia_attiva_rilevata[0]; %-energia_attiva_rilevata[1]; %-energia_attiva_rilevata[2];
   }
 }
 $if($contains(@,"Energia reattiva")) {
@@ -186,7 +186,7 @@ $if($contains(@,"Energia reattiva")) {
     %energia_reattiva[0]; %energia_reattiva[1]; %energia_reattiva[2];
   }
   $step($captures(@,$format(/$0 \N \N \N (\N) (\N) (\N)/,_inizio_dettaglio))) {
-    %energia_reattiva[0]-=@; %energia_reattiva[1]-=@; %energia_reattiva[2]-=@;
+    %-energia_reattiva[0]; %-energia_reattiva[1]; %-energia_reattiva[2];
   }
 }
 ### End Script

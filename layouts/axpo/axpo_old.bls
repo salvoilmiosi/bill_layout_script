@@ -156,7 +156,7 @@ p+::next_page;
 $if($doc(ate) || $contains(@,"Comunicazioni") || $contains(@,"Dati di fornitura")) {
   $goto(parsing_spese);
 }
-_dettaglio+=@;
++_dettaglio;
 ::next_page+=1;
 $goto(lettura_spese);
 ### End Script

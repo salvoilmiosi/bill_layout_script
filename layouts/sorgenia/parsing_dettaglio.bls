@@ -33,17 +33,17 @@ $with(&::_dettaglio) {
 
   $foreach($search_all(@,/Prezzo (?:F1|Picco|Ore Giorno) euro\/kWh (\N \N)/)) {
     $step($captures(@,/(\N) (\N)/)) {
-      %prezzo_energia[0]; %energia_attiva[0]+=@;
+      %prezzo_energia[0]; %+energia_attiva[0];
     }
   }
   $foreach($search_all(@,/Prezzo (?:F2|Fuori Picco|Ore Notte) euro\/kWh (\N \N)/)) {
     $step($captures(@,/(\N) (\N)/)) {
-      %prezzo_energia[1]; %energia_attiva[1]+=@;
+      %prezzo_energia[1]; %+energia_attiva[1];
     }
   }
   $foreach($search_all(@,/Prezzo F3 euro\/kWh (\N \N)/)) {
     $step($captures(@,/(\N) (\N)/)) {
-      %prezzo_energia[2]; %energia_attiva[2]+=@;
+      %prezzo_energia[2]; %+energia_attiva[2];
     }
   }
 

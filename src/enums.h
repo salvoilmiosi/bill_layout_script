@@ -126,6 +126,7 @@ public:
  
     constexpr bitset &operator &= (auto n) { m_value &= flags_t(n); return *this; }
     constexpr bitset &operator |= (auto n) { m_value |= flags_t(n); return *this; }
+    constexpr bitset &operator ^= (auto n) { m_value ^= flags_t(n); return *this; }
     constexpr bitset &operator <<= (auto n) { m_value <<= flags_t(n); return *this; }
     constexpr bitset &operator >>= (auto n) { m_value >>= flags_t(n); return *this; }
  
