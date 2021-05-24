@@ -118,16 +118,22 @@ void parser::read_keyword() {
         string_ptr endfor_label = make_label("endfor");
         m_loop_labels.push(loop_label_pair{for_label, endfor_label});
         m_lexer.require(token_type::PAREN_BEGIN);
-        sub_statement();
-        m_lexer.require(token_type::SEMICOLON);
+        if (!m_lexer.check_next(token_type::SEMICOLON)) {
+            sub_statement();
+            m_lexer.require(token_type::SEMICOLON);
+        }
         m_code.add_label(for_label);
-        read_expression();
-        m_code.add_line<opcode::JZ>(endfor_label);
-        m_lexer.require(token_type::SEMICOLON);
+        if (!m_lexer.check_next(token_type::SEMICOLON)) {
+            read_expression();
+            m_code.add_line<opcode::JZ>(endfor_label);
+            m_lexer.require(token_type::SEMICOLON);
+        }
         auto increase_stmt_begin = m_code.size();
-        sub_statement();
+        if (!m_lexer.check_next(token_type::PAREN_END)) {
+            sub_statement();
+            m_lexer.require(token_type::PAREN_END);
+        }
         auto increase_stmt_end = m_code.size();
-        m_lexer.require(token_type::PAREN_END);
         read_statement();
         m_code.move_not_comments(increase_stmt_begin, increase_stmt_end);
         m_code.add_line<opcode::JMP>(for_label);

@@ -34,7 +34,9 @@ p+::next_page;
 ### End Spacers
 ### Script
 $if($doc(ate)) {
-  $error(::ERRORE_DETTAGLIO_MANCANTE, "Axpo: Dettaglio Mancante");
+  $ifnot($isset(::_dettaglio)) {
+    $error(::ERRORE_DETTAGLIO_MANCANTE, "Axpo: Dettaglio Mancante");
+  }
 }$elifnot($contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) {
   ::_dettaglio+=@;
   ::off_dettaglio+=1;
