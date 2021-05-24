@@ -149,12 +149,13 @@ void parser::read_keyword() {
         bool has_content = false;
         m_lexer.require(token_type::PAREN_BEGIN);
         auto name = m_lexer.require(token_type::IDENTIFIER);
+        small_int num_args = 0;
         while (!m_lexer.check_next(token_type::PAREN_END)) {
             m_lexer.require(token_type::COMMA);
             auto tok = m_lexer.next();
             switch (tok.type) {
             case token_type::CONTENT:
-                if (m_fun_arg_indices.empty() && !has_content) {
+                if (num_args == 0 && !has_content) {
                     has_content = true;
                     ++m_content_level;
                 } else {
@@ -162,9 +163,11 @@ void parser::read_keyword() {
                 }
                 break;
             case token_type::IDENTIFIER:
-                if (!m_fun_arg_indices.try_emplace(std::string(tok.value), m_fun_arg_indices.size()).second) {
+                if (std::ranges::find(m_fun_args, tok.value) != m_fun_args.end()) {
                     throw parsing_error(fmt::format("Argomento funzione duplicato: {}", tok.value), tok);
                 }
+                m_fun_args.emplace_back(tok.value);
+                ++num_args;
                 break;
             default:
                 throw unexpected_token(tok, token_type::IDENTIFIER);
@@ -177,12 +180,12 @@ void parser::read_keyword() {
         m_code.add_line<opcode::JMP>(endfun_label);
 
         m_code.add_label(fun_label);
-        m_functions.emplace(std::string(name.value), function_info{small_int(m_fun_arg_indices.size()), has_content});
+        m_functions.emplace(std::string(name.value), function_info{num_args, has_content});
 
         read_statement();
         m_code.add_line<opcode::RET>();
         m_code.add_label(endfun_label);
-        m_fun_arg_indices.clear();
+        m_fun_args.resize(m_fun_args.size() - num_args);
         if (has_content) {
             --m_content_level;
         }

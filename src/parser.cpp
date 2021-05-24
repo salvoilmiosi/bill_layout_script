@@ -474,8 +474,8 @@ void parser::read_function() {
         m_lexer.require(token_type::PAREN_BEGIN);
         auto tok = m_lexer.require(token_type::IDENTIFIER);
         m_lexer.require(token_type::PAREN_END);
-        if (auto it = m_fun_arg_indices.find(tok.value); it != m_fun_arg_indices.end()) {
-            m_code.add_line<opcode::PUSHARG>(it->second);
+        if (auto it = std::ranges::find(m_fun_args, tok.value); it != m_fun_args.end()) {
+            m_code.add_line<opcode::PUSHARG>(it - m_fun_args.begin());
         } else {
             throw parsing_error(fmt::format("Argomento funzione sconosciuto: {}", tok.value), tok);
         }
