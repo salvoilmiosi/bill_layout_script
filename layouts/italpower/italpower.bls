@@ -119,7 +119,7 @@ codice_pod=$search(@,/NUMERO POD: (\w+)/);
 ### Script
 $with($search(@,/Periodo fatturato (.+)/)) {
   $if($matches(@,/\d+\s*-\s*\d+ \w+\. \d+/)) { # es. 01-31 gen 2021
-    mese_fattura=$date(@,"%b. %Y");
+    mese_fattura=$month(@,"%b. %Y");
   } $elif($matches(@,/\d+ \w+\.\s*-\s*\d+ \w+\. \d+/)) { # es. 01 gen.-31 mar. 2021
     $foreach($captures(@,/\d+ (\w+)\.\s*-\s*\d+ (\w+)\. (\d+)/)) !_tokens_mese[];
     mese_inizio=$month($format("$0 $1",_tokens_mese[0], _tokens_mese[2]),"%b %Y");
