@@ -208,6 +208,12 @@ struct bytecode : std::vector<command_args> {
             return cmd.command() == opcode::COMMENT;
         }), it_end, end());
     }
+
+    command_args &last_not_comment() {
+        return *std::find_if_not(rbegin(), rend(), [](const command_args &cmd) {
+            return cmd.command() == opcode::COMMENT;
+        });
+    }
 };
 
 #endif

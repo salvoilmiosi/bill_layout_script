@@ -322,8 +322,9 @@ void parser::read_keyword() {
         } else {
             read_expression();
             m_lexer.require(token_type::SEMICOLON);
-            if (m_code.back().command() == opcode::PUSHVAR) {
-                m_code.back() = make_command<opcode::RETVAR>();
+            auto &last = m_code.last_not_comment();
+            if (last.command() == opcode::PUSHVAR) {
+                last = make_command<opcode::RETVAR>();
             } else {
                 m_code.add_line<opcode::RETVAL>();
             }
