@@ -102,6 +102,7 @@ private:
     std::vector<std::string> m_fun_args;
     std::map<std::string, function_info, std::less<>> m_functions;
     int m_content_level = 0;
+    int m_function_level = 0;
 
     bitset<parser_flags> m_flags;
 

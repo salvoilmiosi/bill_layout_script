@@ -133,6 +133,7 @@ void parser::read_keyword() {
         break;
     }
     case hash("function"): {
+        ++m_function_level;
         bool has_content = false;
         m_lexer.require(token_type::PAREN_BEGIN);
         auto name = m_lexer.require(token_type::IDENTIFIER);
@@ -176,6 +177,7 @@ void parser::read_keyword() {
         if (has_content) {
             --m_content_level;
         }
+        --m_function_level;
         break;
     }
     case hash("foreach"): {
@@ -312,6 +314,9 @@ void parser::read_keyword() {
         m_code.add_line<opcode::JMP>(fun_name == "break" ? m_loop_labels.top().break_label : m_loop_labels.top().continue_label);
         break;
     case hash("return"):
+        if (m_function_level == 0) {
+            throw parsing_error("Non in una funzione", tok_name);
+        }
         if (m_lexer.check_next(token_type::SEMICOLON)) {
             m_code.add_line<opcode::RET>();
         } else {
