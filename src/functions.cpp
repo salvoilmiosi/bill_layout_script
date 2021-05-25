@@ -300,6 +300,9 @@ const function_map function_lookup {
     {"and", [](bool a, bool b) { return a && b; }},
     {"or",  [](bool a, bool b) { return a || b; }},
     {"null", []{ return variable(); }},
+    {"hex", [](int num) {
+        return fmt::format("{:x}", num);
+    }},
     {"num", [](const variable &var) {
         if (var.is_number()) return var;
         return parse_num(var.as_view());
