@@ -115,14 +115,15 @@ iva=$search(@,/Aliquota al (\d+%)/);
 ### Rect 0.020737327188940113 0.3651181744091279 0.46889400921658986 0.030154849225753844
 ### Script
 $if($matches(@,/\w+\. - \w+\. \d{4}/)) {
-  $foreach($captures(@,/(\w+)\. - (\w+)\. (\d{4})/)) !_date_tokens[];
-  mese_inizio=$month($format("$0 $1",_date_tokens[0],_date_tokens[2]),"%b %Y");
-  mese_fine=$month($format("$0 $1",_date_tokens[1],_date_tokens[2]),"%b %Y");
-  $if(mese_inizio > mese_fine) {
-    $error(::ERRORE_PERIODO_INVALIDO, "AMG: Formato Periodo Errato");
+  $with($captures(@,/(\w+)\. - (\w+)\. (\d{4})/)) {
+    mese_inizio=$month($format("$0 $1", $subitem(@,0), $subitem(@,2)),"%b %Y");
+    mese_fine=$month($format("$0 $1", $subitem(@,1), $subitem(@,2)),"%b %Y");
+    mese_fattura=$month_add(mese_inizio,::calc_mese);
   }
-  mese_fattura=$month_add(mese_inizio,::calc_mese);
 } $else {
+  $error(::ERRORE_PERIODO_INVALIDO, "AMG: Formato Periodo Errato");
+}
+$if(mese_inizio > mese_fine) {
   $error(::ERRORE_PERIODO_INVALIDO, "AMG: Formato Periodo Errato");
 }
 _mese=$date_format(mese_fattura,"%m/%Y");

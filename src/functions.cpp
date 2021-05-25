@@ -318,6 +318,15 @@ const function_map function_lookup {
     {"list", [](varargs<std::string_view> args) {
         return string_join(args, UNIT_SEPARATOR);
     }},
+    {"subitem", [](std::string_view str, size_t idx) {
+        for (std::string_view view : string_split(str, UNIT_SEPARATOR)) {
+            if (idx == 0) {
+                return std::string(view);
+            }
+            --idx;
+        }
+        return std::string();
+    }},
     {"sum", [](varargs<fixed_point> args) {
         return std::accumulate(args.begin(), args.end(), fixed_point());
     }},
