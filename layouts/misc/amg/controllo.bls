@@ -21,9 +21,9 @@ $ifnot(@ == "AMG GAS S.R.L.\n(Gas ed Energia Elettrica)") {
 ### Rect 0.599591419816139 0.011552346570397111 0.36670071501532175 0.03032490974729242
 ### Script
 $if(@ == "Fornitura di Gas Naturale - Mercato Libero") {
-  $import("amg_gas");
+  $import "amg_gas";
 } $elif(@ == "Fornitura di Energia Elettrica - Mercato Libero") {
-  $import("amg_luce");
+  $import "amg_luce";
 } $else {
   $error(::ERRORE_PERIODO_INVALIDO, "AMG: Fattura Non Valida");
 }

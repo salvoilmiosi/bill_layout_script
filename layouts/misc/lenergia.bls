@@ -148,7 +148,7 @@ p+::page_offset;
 ### Script
 $ifnot($doc(ate)) {
   ::page_offset+=1;
-  $goto(quadro_dettaglio);
+  $goto quadro_dettaglio;
 }
 ### End Script
 ### End Box

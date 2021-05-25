@@ -26,7 +26,7 @@ p+::next_page;
 $ifnot($doc(ate) || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
   +::_dettaglio;
   ::next_page+=1;
-  $goto(lettura_dati);
+  $goto lettura_dati;
 }
 ### End Script
 ### End Box
@@ -141,12 +141,12 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/);
 ### Page 2
 ### Rect 0.26032954 0.030786771 0.057603687 0.04479557
 ### Script
-$import("parsing_dettaglio");
+$import "parsing_dettaglio";
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
     ::calc_mese+=1;
-    $nexttable();
-    $goto(nome_fornitore);
+    $nexttable;
+    $goto nome_fornitore;
   }
 }
 ### End Script

@@ -154,11 +154,11 @@ p+::next_page;
 ### End Spacers
 ### Script
 $if($doc(ate) || $contains(@,"Comunicazioni") || $contains(@,"Dati di fornitura")) {
-  $goto(parsing_spese);
+  $goto parsing_spese;
 }
 +_dettaglio;
 ::next_page+=1;
-$goto(lettura_spese);
+$goto lettura_spese;
 ### End Script
 ### End Box
 
@@ -218,8 +218,8 @@ p+::next_page;
 $if(::spacer_multipod) {
   $if(@ == "Dati di fornitura") {
     ::next_page+=1;
-    $nexttable();
-    $goto(nome_fornitore);
+    $nexttable;
+    $goto nome_fornitore;
   }
 }
 ### End Script

@@ -16,7 +16,7 @@ $if($doc(ate)) {
   $error(::ERRORE_LAYOUT_INVALIDO, "Sorgenia (old): Stringa di Convalida Errata");
 } $elif(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO") {
   ::off_allegati+=1;
-  $goto(convalida);
+  $goto convalida;
 }
 ### End Script
 ### End Box
@@ -35,7 +35,7 @@ p+::next_page;
 $ifnot($doc(ate) || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
   +::_dettaglio;
   ::next_page+=1;
-  $goto(lettura_dati);
+  $goto lettura_dati;
 }
 ### End Script
 ### End Box
@@ -177,12 +177,12 @@ p+::off_allegati;
 p+::off_allegati;
 ### End Spacers
 ### Script
-$import("parsing_dettaglio");
+$import "parsing_dettaglio";
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
     ::calc_mese+=1;
-    $nexttable();
-    $goto(nome_fornitore);
+    $nexttable;
+    $goto nome_fornitore;
   }
 }
 ### End Script

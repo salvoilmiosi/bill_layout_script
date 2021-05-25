@@ -14,7 +14,7 @@ p+::off_allegati;
 $if($doc(ate)) $error(::ERRORE_LAYOUT_INVALIDO, "Green network: Stringa di Convalida Errata");
 $elifnot($contains(@,"GREEN NETWORK S.p.A.\nSociet\u00e0 a Socio Unico")) {
   ::off_allegati+=1;
-  $goto(convalida);
+  $goto convalida;
 }
 ### End Script
 ### End Box

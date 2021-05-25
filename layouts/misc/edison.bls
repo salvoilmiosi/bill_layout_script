@@ -159,8 +159,8 @@ $with($replace(@,"\u2212","-")) {
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
     ::calc_mese+=1;
-    $nexttable();
-    $goto(nome_fornitore);
+    $nexttable;
+    $goto nome_fornitore;
   }
 }
 ### End Script

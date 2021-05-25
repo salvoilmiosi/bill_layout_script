@@ -14,7 +14,7 @@ p+::off_allegato;
 $if($doc(ate)) $error(::ERRORE_LAYOUT_INVALIDO, "Italpower: Stringa di Convalida Errata");
 $elifnot($contains(@,"FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA")) {
   ::off_allegato+=1;
-  $goto(convalida);
+  $goto convalida;
 } 
 ### End Script
 ### End Box
@@ -172,8 +172,8 @@ p+::page_offset;
 ### Script
 $if($contains(@,"Dettaglio consumi")) {
   ::page_offset+=1;
-  $nexttable();
-  $goto(nome_fornitore);
+  $nexttable;
+  $goto nome_fornitore;
 }
 ### End Script
 ### End Box

@@ -71,7 +71,7 @@ private:
 
     simple_stack<variable> m_stack;
     simple_stack<content_view> m_contents;
-    static_stack<function_call> m_calls;
+    simple_stack<function_call> m_calls;
 
     variable_ref m_selected;
 

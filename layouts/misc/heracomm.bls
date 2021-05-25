@@ -15,7 +15,7 @@ $if($doc(ate)) {
   $error(::ERRORE_LAYOUT_INVALIDO, "Heracomm: Stringa di Convalida Errata");
 } $elifnot($search(@,/(1 \/ \d+)/)) {
   ::off_allegato+=1;
-  $goto(check_pagina);
+  $goto check_pagina;
 } $elifnot($contains(@,"www.gruppohera.it")) {
   ::rotation=3;
 }
@@ -48,7 +48,7 @@ p+::off_dettaglio;
 rotate+::rotation;
 ### End Spacers
 ### Script
-$if($isempty(@) || $doc(ate)) $goto(nome_fornitore);
+$if($isempty(@) || $doc(ate)) $goto nome_fornitore;
 $else {
   +::_dettaglio;
 }
@@ -68,7 +68,7 @@ rotate+::rotation;
 ### Script
 +::_dettaglio;
 ::off_dettaglio+=1;
-$goto(lettura_dettaglio);
+$goto lettura_dettaglio;
 ### End Script
 ### End Box
 
@@ -258,8 +258,8 @@ $with(&::_dettaglio) {
 ### Script
 $if(mese_fattura != mese_fine) {
   ::calc_mese+=1;
-  $nexttable();
-  $goto(nome_fornitore);
+  $nexttable;
+  $goto nome_fornitore;
 }
 ### End Script
 ### End Box

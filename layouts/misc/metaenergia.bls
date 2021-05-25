@@ -97,7 +97,7 @@ p+::next_page;
 $ifnot($doc(ate) || $contains(@,"Comunicazioni finali")) {
   +_dettaglio;
   ::next_page+=1;
-  $goto(lettura_dettaglio);
+  $goto lettura_dettaglio;
 }
 ### End Script
 ### End Box

@@ -15,10 +15,10 @@ p+::off_dettaglio;
 $if($doc(ate)) {
   $error(::ERRORE_DETTAGLIO_MANCANTE, "Italpower: Dettaglio Mancante");
 } $elif(@ == "ELEMENTI DI DETTAGLIO") {
-  $goto(lettura_dettaglio);
+  $goto lettura_dettaglio;
 } $else {
   ::off_dettaglio+=1;
-  $goto(cerca_dettaglio);
+  $goto cerca_dettaglio;
 }
 ### End Script
 ### End Box
@@ -34,11 +34,11 @@ p+::off_dettaglio;
 ### End Spacers
 ### Script
 $if($doc(ate) || $contains(@,"AGGIORNAMENTI CORRISPETTIVI")) {
-  $goto(nome_fornitore);
+  $goto nome_fornitore;
 } $else {
   +::_dettaglio;
   ::off_dettaglio+=1;
-  $goto(lettura_dettaglio);
+  $goto lettura_dettaglio;
 }
 ### End Script
 ### End Box
@@ -166,13 +166,13 @@ $between("RIEPILOGO LETTURE E CONSUMI","CONSUMI FATTURATI") {
 ### Page 4
 ### Rect 0.22715053909677418 0.027588217240592926 0.04543010606451612 0.03170482722919042
 ### Script
-$function(check_periodo,@) {
+$function check_periodo(@) {
   $return $date_between(mese_fattura,
     $date(@,"%d/%m/%Y",/(\D)\s*-\s*\D/),
     $date(@,"%d/%m/%Y",/\D\s*-\s*(\D)/));
 }
-$function(calc_totale_parziale,@) {
-  $clear(_ret);
+$function calc_totale_parziale(@) {
+  $clear _ret;
   $foreach($search_all(@,$format(/Periodo ($0 Euro\/POD\/mese \N)/,_periodo_generic))) {
     $if($check_periodo()) {
       _ret+=$trunc($num($search(@,/Euro\/POD\/mese (\N)/)),2);
@@ -186,8 +186,8 @@ $function(calc_totale_parziale,@) {
   }
   $return _ret;
 }
-$function(calc_penale_reattiva,@,percent_reattiva,format_str) {
-  $clear(_ret);
+$function calc_penale_reattiva(@, percent_reattiva, format_str) {
+  $clear _ret;
   $for(_i=0; _i<3; _i+=1) {
     $foreach($search_all(@,$format(/Energia Reattiva \($2\) - F$1 - Periodo ($0 Euro\/kVarh \N)/,_periodo_generic,_i+1,$arg(format_str)))) {
       $if($check_periodo()) {
@@ -266,8 +266,8 @@ $with(&::_dettaglio) {
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
     ::calc_mese+=1;
-    $nexttable();
-    $goto(nome_fornitore);
+    $nexttable;
+    $goto nome_fornitore;
   }
 }
 ### End Script

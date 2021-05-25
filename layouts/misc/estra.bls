@@ -16,7 +16,7 @@ $if($doc(ate)) {
   $error(::ERRORE_DETTAGLIO_MANCANTE, "Estra: Dettaglio Mancante");
 } $elif(@ != "ELEMENTI DI DETTAGLIO") {
   ::off_dettaglio+=1;
-  $goto(ricerca_dettaglio);
+  $goto ricerca_dettaglio;
 }
 ### End Script
 ### End Box
@@ -34,7 +34,7 @@ p+::off_dettaglio;
 $ifnot($doc(ate)) {
   ::_dettaglio+=$replace(@,"\u2212","-");
   ::off_dettaglio+=1;
-  $goto(lettura_dettaglio);
+  $goto lettura_dettaglio;
 }
 ### End Script
 ### End Box
@@ -169,8 +169,8 @@ $with(&::_dettaglio) {
 ### Script
 $if(mese_fattura!=mese_fine) {
   ::calc_mese+=1;
-  $nexttable();
-  $goto(nome_fornitore);
+  $nexttable;
+  $goto nome_fornitore;
 }
 ### End Script
 ### End Box

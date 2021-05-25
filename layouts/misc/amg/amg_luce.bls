@@ -14,10 +14,10 @@ p+::off_dettaglio;
 $if($doc(ate)) {
   $error(::ERRORE_DETTAGLIO_MANCANTE, "AMG: Dettaglio Mancante");
 } $elif($contains(@,"DETTAGLIO FATTURA")) {
-  $goto(lettura_dettaglio);
+  $goto lettura_dettaglio;
 } $else {
   ::off_dettaglio+=1;
-  $goto(ricerca_dettaglio);
+  $goto ricerca_dettaglio;
 }
 ### End Script
 ### End Box
@@ -35,7 +35,7 @@ p+::off_dettaglio;
 $ifnot($doc(ate) || $isempty(@)) {
   +::_dettaglio;
   ::off_dettaglio+=1;
-  $goto(lettura_dettaglio);
+  $goto lettura_dettaglio;
 }
 ### End Script
 ### End Box
@@ -155,13 +155,13 @@ $between("DETTAGLIO LETTURE","DETTAGLIO ALTRE PARTITE") {
 ### Page 4
 ### Rect 0.10449735449735449 0.01216089803554724 0.041005291005291 0.02806361085126286
 ### Script
-$function(check_periodo,@) {
+$function check_periodo(@) {
   $return $date_between(mese_fattura,
     $month(@,"%d/%m/%Y",/(\D) - \D/),
     $month(@,"%d/%m/%Y",/\D - (\D)/));
 }
-$function(calc_parziale,@) {
-  $clear(_tot);
+$function calc_parziale(@) {
+  $clear _tot;
   $foreach($search_all(@,$format(/($0 \N \u20ac\/cliente\/giorni \N giorni \N)/,_regex_periodo))) {
     $if($check_periodo()) {
       %_tot+=$search(@,/(\N)$/);
@@ -236,8 +236,8 @@ $with(&::_dettaglio) {
 ### Script
 $if(mese_fattura != mese_fine) {
   ::calc_mese+=1;
-  $nexttable();
-  $goto(nome_fornitore);
+  $nexttable;
+  $goto nome_fornitore;
 }
 ### End Script
 ### End Box

@@ -122,24 +122,21 @@ void parser::read_keyword() {
         break;
     }
     case hash("goto"): {
-        m_lexer.require(token_type::PAREN_BEGIN);
         auto tok = m_lexer.require(token_type::IDENTIFIER);
         for (size_t i=0; i<m_content_level; ++i) {
             m_code.add_line<opcode::POPCONTENT>();
         }
         m_code.add_line<opcode::JMP>(fmt::format("__{}_box_{}", m_parser_id, tok.value));
-        m_lexer.require(token_type::PAREN_END);
         m_lexer.require(token_type::SEMICOLON);
         break;
     }
     case hash("function"): {
         ++m_function_level;
         bool has_content = false;
-        m_lexer.require(token_type::PAREN_BEGIN);
         auto name = m_lexer.require(token_type::IDENTIFIER);
+        m_lexer.require(token_type::PAREN_BEGIN);
         small_int num_args = 0;
         while (!m_lexer.check_next(token_type::PAREN_END)) {
-            m_lexer.require(token_type::COMMA);
             auto tok = m_lexer.next();
             switch (tok.type) {
             case token_type::CONTENT:
@@ -159,6 +156,16 @@ void parser::read_keyword() {
                 break;
             default:
                 throw unexpected_token(tok, token_type::IDENTIFIER);
+            }
+            tok = m_lexer.peek();
+            switch (tok.type) {
+            case token_type::COMMA:
+                m_lexer.advance(tok);
+                break;
+            case token_type::PAREN_END:
+                break;
+            default:
+                throw unexpected_token(tok, token_type::PAREN_END);
             }
         }
         
@@ -289,9 +296,7 @@ void parser::read_keyword() {
         m_code.add_line<opcode::RESETVIEW>();
         break;
     case hash("import"): {
-        m_lexer.require(token_type::PAREN_BEGIN);
         auto tok_layout_name = m_lexer.require(token_type::STRING);
-        m_lexer.require(token_type::PAREN_END);
         m_lexer.require(token_type::SEMICOLON);
         auto imported_file = m_path.parent_path() / (tok_layout_name.parse_string() + ".bls");
         if (m_flags & parser_flags::RECURSIVE_IMPORTS) {
@@ -332,15 +337,18 @@ void parser::read_keyword() {
         break;
     default:
         if (auto it = simple_functions.find(fun_name); it != simple_functions.end()) {
-            m_lexer.require(token_type::PAREN_BEGIN);
             switch (std::get<function_type>(it->second)) {
             case FUN_EXPRESSION:
+                m_lexer.require(token_type::PAREN_BEGIN);
                 read_expression();
+                m_lexer.require(token_type::PAREN_END);
                 break;
             case FUN_2_EXPRESSIONS:
+                m_lexer.require(token_type::PAREN_BEGIN);
                 read_expression();
                 m_lexer.require(token_type::COMMA);
                 read_expression();
+                m_lexer.require(token_type::PAREN_END);
                 break;
             case FUN_VARIABLE:
                 read_variable(false);
@@ -348,7 +356,6 @@ void parser::read_keyword() {
             case FUN_VOID:
                 break;
             }
-            m_lexer.require(token_type::PAREN_END);
             m_lexer.require(token_type::SEMICOLON);
             m_code.push_back(std::get<command_args>(it->second));
         } else if (auto it = m_functions.find(fun_name); it != m_functions.end()) {

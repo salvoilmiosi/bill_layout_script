@@ -7,9 +7,9 @@
 ### Rect 0.03202087 0.06875042 0.19449715 0.03605205
 ### Script
 $if($contains(@,"C/O MILANO CENTRO")) {
-  $import("axpo_old");
+  $import "axpo_old";
 } $else {
-  $import("axpo");
+  $import "axpo";
 }
 ### End Script
 ### End Box

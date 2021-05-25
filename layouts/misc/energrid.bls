@@ -127,7 +127,7 @@ $if($doc(ate)) $error(::ERRORE_DETTAGLIO_MANCANTE, "EnerGrid: Dettaglio Mancante
 _pod_dettaglio=$search(@,/POD: (.+)/);
 $if(_pod_dettaglio!=codice_pod) {
   _off_dettaglio+=1;
-  $goto(cerca_dettaglio);
+  $goto cerca_dettaglio;
 }
 ### End Script
 ### End Box
@@ -179,10 +179,10 @@ p+::off_pod;
 $ifnot($doc(ate) || $contains(@,"INFORMAZIONI AI CLIENTI")) {
   ::off_pod+=1;
   $if($contains(@,"DATI FORNITURA")) {
-    $nexttable();
-    $goto(nome_fornitore);
+    $nexttable;
+    $goto nome_fornitore;
   } $else {
-    $goto(check_pagina);
+    $goto check_pagina;
   }
 }
 ### End Script

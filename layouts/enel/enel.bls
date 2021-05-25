@@ -28,7 +28,7 @@ $if($doc(ate)) {
   $error(::ERRORE_DETTAGLIO_MANCANTE, "Enel: Dettaglio Mancante");
 } $elif(@ != "DETTAGLIO IMPORTI IN BOLLETTA") {
   ::offset_dettaglio+=1;
-  $goto(calcolo_offset);
+  $goto calcolo_offset;
 }
 ### End Script
 ### End Box
@@ -61,7 +61,7 @@ p+::offset_dettaglio;
 ::spacer_dettaglio=$box(height);
 $ifnot($doc(ate)) {
   ::offset_dettaglio+=1;
-  $goto(dettaglio_costi);
+  $goto dettaglio_costi;
 }
 ### End Script
 ### End Box
@@ -259,8 +259,8 @@ $with(&::_dettaglio) {
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
     ::calc_mese+=1;
-    $nexttable();
-    $goto(nome_fornitore);
+    $nexttable;
+    $goto nome_fornitore;
   }
 }
 ### End Script
