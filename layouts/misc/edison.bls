@@ -107,7 +107,7 @@ data_scadenza=$date(@,"%d %B %Y");
 $step($captures($replace(@,"\u2212","-"),
   $format(/\w+ \d\d\/\d\d\/\d\d\d\d - \d\d\/$0 (\N) (\N) (\N)/,_mese)))
 {
-  %energia_attiva_rilevata[0]; %energia_attiva_rilevata[1]; %energia_attiva_rilevata[2];
+  %energia_attiva_rilevata[0]=@; %energia_attiva_rilevata[1]=@; %energia_attiva_rilevata[2]=@;
 }
 ### End Script
 ### End Box
@@ -120,13 +120,13 @@ $step($captures($replace(@,"\u2212","-"),
 ### Script
 $with($replace(@,"\u2212","-")) {
   $step($captures(@,$format(/Componente energia - F1 .+ al \d\d\/$0 \u20ac\/kWh (\N) (\N) kWh/,_mese))) {
-    %prezzo_energia[0]; %energia_attiva[0];
+    %prezzo_energia[0]=@; %energia_attiva[0]=@;
   }
   $step($captures(@,$format(/Componente energia - F2 .+ al \d\d\/$0 \u20ac\/kWh (\N) (\N) kWh/,_mese))) {
-    %prezzo_energia[1]; %energia_attiva[1];
+    %prezzo_energia[1]=@; %energia_attiva[1]=@;
   }
   $step($captures(@,$format(/Componente energia - F3 .+ al \d\d\/$0 \u20ac\/kWh (\N) (\N) kWh/,_mese))) {
-    %prezzo_energia[2]; %energia_attiva[2];
+    %prezzo_energia[2]=@; %energia_attiva[2]=@;
   }
   %potenza[0:3]=$search(@,$format(/Quota potenza .+ al \d\d\/$0 \u20ac\/kW\/mese \N (\N) kW/,_mese));
   iva=$search(@,/IVA (\N%)/);
@@ -158,7 +158,7 @@ $with($replace(@,"\u2212","-")) {
 ### Script
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
-    ::calc_mese+=1;
+    ::calc_mese++;
     $nexttable;
     $goto nome_fornitore;
   }

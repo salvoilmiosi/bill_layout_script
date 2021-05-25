@@ -12,7 +12,7 @@ p+::off_allegati;
 ### Script
 $if($doc(ate)) $error(::ERRORE_LAYOUT_INVALIDO, "Sorgenia: Impossibile determinare il layout");
 $elifnot($contains(@,"PAG")) {
-  ::off_allegati+=1;
+  ::off_allegati++;
   $goto convalida;
 }
 ### End Script

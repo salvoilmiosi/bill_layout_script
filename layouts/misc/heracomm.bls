@@ -14,7 +14,7 @@ p+::off_allegato;
 $if($doc(ate)) {
   $error(::ERRORE_LAYOUT_INVALIDO, "Heracomm: Stringa di Convalida Errata");
 } $elifnot($search(@,/(1 \/ \d+)/)) {
-  ::off_allegato+=1;
+  ::off_allegato++;
   $goto check_pagina;
 } $elifnot($contains(@,"www.gruppohera.it")) {
   ::rotation=3;
@@ -50,7 +50,7 @@ rotate+::rotation;
 ### Script
 $if($isempty(@) || $doc(ate)) $goto nome_fornitore;
 $else {
-  +::_dettaglio;
+  ::_dettaglio+=@;
 }
 ### End Script
 ### End Box
@@ -66,8 +66,8 @@ p+::off_dettaglio;
 rotate+::rotation;
 ### End Spacers
 ### Script
-+::_dettaglio;
-::off_dettaglio+=1;
+::_dettaglio+=@;
+::off_dettaglio++;
 $goto lettura_dettaglio;
 ### End Script
 ### End Box
@@ -144,23 +144,23 @@ $with(&::_dettaglio) {
     $date_format(mese_fattura,"01\\.%m\\.%Y"));
   $between("energia attiva (kWh)","consumo rilevato energia") {
     $step($captures(@,$format(/$0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_fine))) {
-      %energia_attiva_rilevata[0]; %energia_attiva_rilevata[1]; %energia_attiva_rilevata[2];
+      %energia_attiva_rilevata[0]=@; %energia_attiva_rilevata[1]=@; %energia_attiva_rilevata[2]=@;
     }
     $step($captures(@,$format(/$0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_inizio))) {
-      %-energia_attiva_rilevata[0]; %-energia_attiva_rilevata[1]; %-energia_attiva_rilevata[2];
+      %energia_attiva_rilevata[0]-=@; %energia_attiva_rilevata[1]-=@; %energia_attiva_rilevata[2]-=@;
     }
   }
   $between("energia reattiva (kVARh)","consumo rilevato energia") {
     $step($captures(@,$format(/$0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_fine))) {
-      %energia_reattiva[0]; %energia_reattiva[1]; %energia_reattiva[2];
+      %energia_reattiva[0]=@; %energia_reattiva[1]=@; %energia_reattiva[2]=@;
     }
     $step($captures(@,$format(/$0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_inizio))) {
-      %-energia_reattiva[0]; %-energia_reattiva[1]; %-energia_reattiva[2];
+      %energia_reattiva[0]-=@; %energia_reattiva[1]-=@; %energia_reattiva[2]-=@;
     }
   }
   $between("potenza (kW)","..........."){
     $step($captures(@,$format(/$0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_fine))) {
-      %potenza[0]; %potenza[1]; %potenza[2];
+      %potenza[0]=@; %potenza[1]=@; %potenza[2]=@;
     }
   }
   $between("Totale servizi di Vendita","...........") {
@@ -169,13 +169,13 @@ $with(&::_dettaglio) {
       $setend($indexof(@,"Perdite di Rete"));
       $with($search(@,$format(/Importo $0\n((?:\s+.+\n)+)/,_periodo))) {
         $step($captures(@,/fascia F1 \u20ac\/kWh (\N) (\N) kWh/)) {
-          %prezzo_energia[0]; %energia_attiva[0];
+          %prezzo_energia[0]=@; %energia_attiva[0]=@;
         }
         $step($captures(@,/fascia F2 \u20ac\/kWh (\N) (\N) kWh/)) {
-          %prezzo_energia[1]; %energia_attiva[1];
+          %prezzo_energia[1]=@; %energia_attiva[1]=@;
         }
         $step($captures(@,/fascia F3 \u20ac\/kWh (\N) (\N) kWh/)) {
-          %prezzo_energia[2]; %energia_attiva[2];
+          %prezzo_energia[2]=@; %energia_attiva[2]=@;
         }
       }
     }
@@ -257,7 +257,7 @@ $with(&::_dettaglio) {
 ### Rect 0.3773412702120966 0.06426464259653104 0.027093787866044883 0.03737960254547193
 ### Script
 $if(mese_fattura != mese_fine) {
-  ::calc_mese+=1;
+  ::calc_mese++;
   $nexttable;
   $goto nome_fornitore;
 }

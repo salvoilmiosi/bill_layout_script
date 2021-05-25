@@ -17,7 +17,7 @@ $if($doc(ate)) {
 } $elif(@ == "ELEMENTI DI DETTAGLIO") {
   $goto lettura_dettaglio;
 } $else {
-  ::off_dettaglio+=1;
+  ::off_dettaglio++;
   $goto cerca_dettaglio;
 }
 ### End Script
@@ -36,8 +36,8 @@ p+::off_dettaglio;
 $if($doc(ate) || $contains(@,"AGGIORNAMENTI CORRISPETTIVI")) {
   $goto nome_fornitore;
 } $else {
-  +::_dettaglio;
-  ::off_dettaglio+=1;
+  ::_dettaglio+=@;
+  ::off_dettaglio++;
   $goto lettura_dettaglio;
 }
 ### End Script
@@ -62,8 +62,8 @@ fornitore="Italpower";
 ### Rect 0.045161292 0.16647662 0.42580646 0.13568985
 ### Script
 $step($captures(@,/CODICE CLIENTE: (\w+) Intestatario del contratto: (.+)\n/)) {
-  numero_cliente;
-  'ragione_sociale;
+  numero_cliente=@;
+  'ragione_sociale=@;
 }
 ### End Script
 ### End Box
@@ -151,8 +151,8 @@ $between("RIEPILOGO LETTURE E CONSUMI","CONSUMI FATTURATI") {
   $foreach($captures(@,$format(/(.+\d\d\/$0 F1.+)\n(.+F2.+)\n(.+F3.+)/,$date_format(mese_fattura,"%m/%Y")))) {
     $step($table_row(@,_header)) {
       ;
-      %energia_attiva_rilevata[];
-      %energia_reattiva[];
+      %energia_attiva_rilevata[]=@;
+      %energia_reattiva[]=@;
     }
   }
 }
@@ -188,7 +188,7 @@ $function calc_totale_parziale(@) {
 }
 $function calc_penale_reattiva(@, percent_reattiva, format_str) {
   $clear _ret;
-  $for(_i=0; _i<3; _i+=1) {
+  $for(_i=0; _i<3; _i++) {
     $foreach($search_all(@,$format(/Energia Reattiva \($2\) - F$1 - Periodo ($0 Euro\/kVarh \N)/,_periodo_generic,_i+1,$arg(format_str)))) {
       $if($check_periodo()) {
         _ret+=$trunc($max(0, energia_reattiva[_i] - energia_attiva[_i]*$arg(percent_reattiva))
@@ -213,17 +213,17 @@ $with(&::_dettaglio) {
       }
     }
     $step($captures(@,$format(/Energia - F1 - Periodo $0 Euro\/kWh (\N) (\N) (\N)/,_periodo))) {
-      %prezzo_energia[0]; {%energia_attiva[0]; %+_tot_consumi;} spesa_materia_energia+=$trunc($num(@),2);
+      %prezzo_energia[0]=@; {%energia_attiva[0]=@; %_tot_consumi+=@;} spesa_materia_energia+=$trunc($num(@),2);
     }
     $step($captures(@,$format(/Energia - F2 - Periodo $0 Euro\/kWh (\N) (\N) (\N)/,_periodo))) {
-      %prezzo_energia[1]; {%energia_attiva[1]; %+_tot_consumi;} spesa_materia_energia+=$trunc($num(@),2);
+      %prezzo_energia[1]=@; {%energia_attiva[1]=@; %_tot_consumi+=@;} spesa_materia_energia+=$trunc($num(@),2);
     }
     $step($captures(@,$format(/Energia - F3 - Periodo $0 Euro\/kWh (\N) (\N) (\N)/,_periodo))) {
-      %prezzo_energia[2]; {%energia_attiva[2]; %+_tot_consumi;} spesa_materia_energia+=$trunc($num(@),2);
+      %prezzo_energia[2]=@; {%energia_attiva[2]=@; %_tot_consumi+=@;} spesa_materia_energia+=$trunc($num(@),2);
     }
     $foreach($search_all(@,$format(/Perdite di rete - F[1-3] - Periodo $0 Euro\/kWh \N (\N \N)/,_periodo))) {
       $step($captures(@,/(\N) (\N)/)) {
-        %+_tot_perdite_rete; %+spesa_materia_energia;
+        %_tot_perdite_rete+=@; %spesa_materia_energia+=@;
       }
     }
     $foreach($search_all(@,$format(/Dispacciamento - Periodo ($0 Euro\/kWh \N)/,_periodo_generic))) {
@@ -265,7 +265,7 @@ $with(&::_dettaglio) {
 ### Script
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
-    ::calc_mese+=1;
+    ::calc_mese++;
     $nexttable;
     $goto nome_fornitore;
   }

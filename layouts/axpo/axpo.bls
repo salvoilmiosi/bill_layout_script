@@ -15,7 +15,7 @@ p+::off_allegato;
 $if($doc(ate)) {
   $error(::ERRORE_LAYOUT_INVALIDO, "Axpo: Stringa di Convalida Errata");
 } $elif(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero") {
-  ::off_allegato+=1;
+  ::off_allegato++;
   $goto check_convalida;
 }
 ### End Script
@@ -38,8 +38,8 @@ $if($doc(ate)) {
     $error(::ERRORE_DETTAGLIO_MANCANTE, "Axpo: Dettaglio Mancante");
   }
 }$elifnot($contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) {
-  +::_dettaglio;
-  ::off_dettaglio+=1;
+  ::_dettaglio+=@;
+  ::off_dettaglio++;
   $goto lettura_dettaglio;
 }
 ### End Script
@@ -64,7 +64,7 @@ fornitore="Axpo";
 ### Rect 0.51044726 0.16909401 0.4719575 0.11482845294184721
 ### Script
 $setend($indexof(@,"\n"));
-'ragione_sociale;
+'ragione_sociale=@;
 ### End Script
 ### End Box
 
@@ -152,9 +152,9 @@ $between("CONSUMI E LETTURE","Consumi fatturati negli ultimi 12 mesi") {
     $table_header(@,"Periodo \\(dal - al\\)",/Consumi fatturati kWh(?: Consumi fatturati kWh)?/,"Energia Reattiva"))) {
     ;
     $step($captures(@,/(\N) (\N) (\N)/)) {
-      %energia_attiva_rilevata[0]; %energia_attiva_rilevata[1]; %energia_attiva_rilevata[2];
+      %energia_attiva_rilevata[0]=@; %energia_attiva_rilevata[1]=@; %energia_attiva_rilevata[2]=@;
     }
-    %energia_reattiva;
+    %energia_reattiva=@;
   }
 }
 ### End Script
@@ -174,17 +174,17 @@ $with(&::_dettaglio) {
     $format(/al \d\d\.$0 euro\/\w+ \N \N (\N)/,_mese));
   $with($search(@,/Prezzo (?:Energia|Indicizzato)\n((dal.+\n)+)/)) {
     $step($captures(@,$format(/al \d\d\.$0 (?:F1|PEAK) Euro\/kWh (\N) (\N)/,_mese))) {
-      %prezzo_energia[0]; %energia_attiva[0];
+      %prezzo_energia[0]=@; %energia_attiva[0]=@;
     }
     $step($captures(@,$format(/al \d\d\.$0 (?:F2|OFFPEAK) Euro\/kWh (\N) (\N)/,_mese))) {
-      %prezzo_energia[1]; %energia_attiva[1];
+      %prezzo_energia[1]=@; %energia_attiva[1]=@;
     }
     $step($captures(@,$format(/al \d\d\.$0 F3 Euro\/kWh (\N) (\N)/,_mese))) {
-      %prezzo_energia[2]; %energia_attiva[2];
+      %prezzo_energia[2]=@; %energia_attiva[2]=@;
     }
 
     $step($captures(@,$format(/al \d\d\.$0 Euro\/kWh (\N) (\N)/,_mese))) {
-      %~prezzo_energia; %~energia_attiva;
+      %~prezzo_energia=@; %~energia_attiva=@;
     }
   }
 
@@ -229,7 +229,7 @@ p+::off_dettaglio;
 ### Script
 $if(mese_fattura != mese_fine) {
   # Prossima tabella multimese
-  ::calc_mese+=1;
+  ::calc_mese++;
   $nexttable;
   $goto nome_fornitore;
 }

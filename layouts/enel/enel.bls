@@ -27,7 +27,7 @@ p+::offset_dettaglio;
 $if($doc(ate)) {
   $error(::ERRORE_DETTAGLIO_MANCANTE, "Enel: Dettaglio Mancante");
 } $elif(@ != "DETTAGLIO IMPORTI IN BOLLETTA") {
-  ::offset_dettaglio+=1;
+  ::offset_dettaglio++;
   $goto calcolo_offset;
 }
 ### End Script
@@ -44,7 +44,7 @@ p+::offset_dettaglio;
 t-::spacer_dettaglio;
 ### End Spacers
 ### Script
-+::_dettaglio;
+::_dettaglio+=@;
 ### End Script
 ### End Box
 
@@ -60,7 +60,7 @@ p+::offset_dettaglio;
 ### Script
 ::spacer_dettaglio=$box(height);
 $ifnot($doc(ate)) {
-  ::offset_dettaglio+=1;
+  ::offset_dettaglio++;
   $goto dettaglio_costi;
 }
 ### End Script
@@ -96,7 +96,7 @@ fornitore="Enel Energia";
 ### Rect 0.4918691806451613 0.17783226572405927 0.4113566258064517 0.09012668524515394
 ### Script
 $setend($indexof(@,"\n"));
-'ragione_sociale;
+'ragione_sociale=@;
 ### End Script
 ### End Box
 
@@ -175,18 +175,18 @@ $ifnot($contains(@,_inizio_dettaglio)) {
 }
 $if($contains(@,"Energia attiva")) {
   $step($captures(@,$format(/$0 (\N) (\N) (\N)/,_fine_dettaglio))) {
-    %energia_attiva_rilevata[0]; %energia_attiva_rilevata[1]; %energia_attiva_rilevata[2];
+    %energia_attiva_rilevata[0]=@; %energia_attiva_rilevata[1]=@; %energia_attiva_rilevata[2]=@;
   }
   $step($captures(@,$format(/$0 (\N) (\N) (\N)/,_inizio_dettaglio))) {
-    %-energia_attiva_rilevata[0]; %-energia_attiva_rilevata[1]; %-energia_attiva_rilevata[2];
+    %energia_attiva_rilevata[0]-=@; %energia_attiva_rilevata[1]-=@; %energia_attiva_rilevata[2]-=@;
   }
 }
 $if($contains(@,"Energia reattiva")) {
   $step($captures(@,$format(/$0 \N \N \N (\N) (\N) (\N)/,_fine_dettaglio))) {
-    %energia_reattiva[0]; %energia_reattiva[1]; %energia_reattiva[2];
+    %energia_reattiva[0]=@; %energia_reattiva[1]=@; %energia_reattiva[2]=@;
   }
   $step($captures(@,$format(/$0 \N \N \N (\N) (\N) (\N)/,_inizio_dettaglio))) {
-    %-energia_reattiva[0]; %-energia_reattiva[1]; %-energia_reattiva[2];
+    %energia_reattiva[0]-=@; %energia_reattiva[1]-=@; %energia_reattiva[2]-=@;
   }
 }
 ### End Script
@@ -205,11 +205,20 @@ $with(&::_dettaglio) {
   $between("SPESA PER L'ENERGIA", "Totale spesa per l'energia") {
     ^spesa_materia_energia=$search_all($search_all(@,_regex_periodo),/.+ (\N)/);
     $step($captures($search($search(@, /Energia (?:fascia F1|ore picco|mese)\n([^]+?)Totale energia/),
-      _regex_periodo),/\u20ac\/kWh (\N) (\N)/)) { %prezzo_energia[0]; %energia_attiva[0]; }
+      _regex_periodo),/\u20ac\/kWh (\N) (\N)/))
+    {
+      %prezzo_energia[0]=@; %energia_attiva[0]=@;
+    }
     $step($captures($search($search(@, /Energia (?:fascia F2|ore fuori picco)\n([^]+?)Totale energia/),
-      _regex_periodo),/\u20ac\/kWh (\N) (\N)/)) { %prezzo_energia[1]; %energia_attiva[1]; }
+      _regex_periodo),/\u20ac\/kWh (\N) (\N)/))
+    {
+      %prezzo_energia[1]=@; %energia_attiva[1]=@;
+    }
     $step($captures($search($search(@, /Energia fascia F3\n([^]+?)Totale energia/),
-      _regex_periodo),/\u20ac\/kWh (\N) (\N)/)) { %prezzo_energia[2]; %energia_attiva[2]; }
+      _regex_periodo),/\u20ac\/kWh (\N) (\N)/))
+    {
+      %prezzo_energia[2]=@; %energia_attiva[2]=@;
+    }
     $between("Altri importi materia energia", "Totale altri importi materia energia") {
       $with($search_all(@,_regex_periodo)) {
         %pcv=$search(@,/Commercializzazione vendita .*\u20ac\/cliente\/ mese (\N)/);
@@ -258,7 +267,7 @@ $with(&::_dettaglio) {
 ### Script
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
-    ::calc_mese+=1;
+    ::calc_mese++;
     $nexttable;
     $goto nome_fornitore;
   }

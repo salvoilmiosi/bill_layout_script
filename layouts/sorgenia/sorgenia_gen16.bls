@@ -116,18 +116,18 @@ $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")));
 $setend($indexof(@,"\n",$indexof(@,"FORNITURA DI")));
 
 $step($captures(@,/CONSUMI EFFETTIVI \(kWh\) (\N) (\N) (\N)/)) {
-  %energia_attiva_rilevata[0]; %energia_attiva_rilevata[1]; %energia_attiva_rilevata[2];
+  %energia_attiva_rilevata[0]=@; %energia_attiva_rilevata[1]=@; %energia_attiva_rilevata[2]=@;
 }
 %spesa_materia_energia=$search(@,/SERVIZI DI VENDITA (\N)/);
 %pcv=$search(@,/PCV euro\/cliente\/mese \N \N (\N)/);
 $step($captures(@,/Prezzo F1 euro\/kWh (\N) (\N)/)) {
-  %prezzo_energia[0]; %energia_attiva[0];
+  %prezzo_energia[0]=@; %energia_attiva[0]=@;
 }
 $step($captures(@,/Prezzo F2 euro\/kWh (\N) (\N)/)) {
-  %prezzo_energia[1]; %energia_attiva[1];
+  %prezzo_energia[1]=@; %energia_attiva[1]=@;
 }
 $step($captures(@,/Prezzo F3 euro\/kWh (\N) (\N)/)) {
-  %prezzo_energia[2]; %energia_attiva[2];
+  %prezzo_energia[2]=@; %energia_attiva[2]=@;
 }
 %trasporto_gestione=$search(@,/SERVIZI DI RETE (\N)/);
 %potenza[0:3]=$search(@,/Quota Potenza euro\/kW\/mese \N (\N)/);
@@ -144,7 +144,7 @@ $step($captures(@,/Prezzo F3 euro\/kWh (\N) (\N)/)) {
 ### Script
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
-    ::calc_mese+=1;
+    ::calc_mese++;
     $nexttable;
     $goto nome_fornitore;
   }

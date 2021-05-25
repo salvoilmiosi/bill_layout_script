@@ -185,6 +185,9 @@ token lexer::next(bool do_advance) {
         if (*m_current == '=') {
             nextChar();
             tok.type = token_type::ADD_ASSIGN;
+        } else if (*m_current == '+') {
+            nextChar();
+            tok.type = token_type::ADD_ONE;
         } else {
             tok.type = token_type::PLUS;
         }
@@ -193,6 +196,9 @@ token lexer::next(bool do_advance) {
         if (*m_current == '=') {
             nextChar();
             tok.type = token_type::SUB_ASSIGN;
+        } else if (*m_current == '-') {
+            nextChar();
+            tok.type = token_type::SUB_ONE;
         } else {
             tok.type = token_type::MINUS;
         }

@@ -62,7 +62,7 @@ mese_fattura=$month(@,"%B %Y");
 ### Page 1
 ### Rect 0.2435484 0.2599772 0.2564516 0.03990878
 ### Script
-%totale_fattura;
+%totale_fattura=@;
 ### End Script
 ### End Box
 
@@ -156,8 +156,8 @@ p+::next_page;
 $if($doc(ate) || $contains(@,"Comunicazioni") || $contains(@,"Dati di fornitura")) {
   $goto parsing_spese;
 }
-+_dettaglio;
-::next_page+=1;
+_dettaglio+=@;
+::next_page++;
 $goto lettura_spese;
 ### End Script
 ### End Box
@@ -183,13 +183,13 @@ $with(&_dettaglio) {
   %imponibile=$search(@,/TOT\. \u20ac (\N)/);
 
   $step($captures(@,/Prezzo Energia (?:F1|PEAK) (\N) kWh (\N)/)) {
-    %energia_attiva[0]; %prezzo_energia[0];
+    %energia_attiva[0]=@; %prezzo_energia[0]=@;
   }
   $step($captures(@,/Prezzo Energia (?:F2|OFFPEAK) (\N) kWh (\N)/)) {
-    %energia_attiva[1]; %prezzo_energia[1];
+    %energia_attiva[1]=@; %prezzo_energia[1]=@;
   }
   $step($captures(@,/Prezzo Energia F3 (\N) kWh (\N)/)) {
-    %energia_attiva[2]; %prezzo_energia[2];
+    %energia_attiva[2]=@; %prezzo_energia[2]=@;
   }
 
   %pcv=$search(@,/Prezzo Commercializzazione e Vendita .+\u20ac (\N)/);
@@ -217,7 +217,7 @@ p+::next_page;
 ### Script
 $if(::spacer_multipod) {
   $if(@ == "Dati di fornitura") {
-    ::next_page+=1;
+    ::next_page++;
     $nexttable;
     $goto nome_fornitore;
   }

@@ -29,6 +29,8 @@ DEFINE_ENUM(token_type,
     (ASSIGN,       "=")
     (ADD_ASSIGN,   "+=")
     (SUB_ASSIGN,   "-=")
+    (ADD_ONE,      "++")
+    (SUB_ONE,      "--")
     (CONTENT,      "@")
     (TILDE,        "~")
     (COLON,        ":")

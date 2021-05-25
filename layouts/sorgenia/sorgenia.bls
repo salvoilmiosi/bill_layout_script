@@ -24,8 +24,8 @@ p+::next_page;
 ### End Spacers
 ### Script
 $ifnot($doc(ate) || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
-  +::_dettaglio;
-  ::next_page+=1;
+  ::_dettaglio+=@;
+  ::next_page++;
   $goto lettura_dati;
 }
 ### End Script
@@ -60,7 +60,7 @@ numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/);
 ### Page 1
 ### Rect 0.076612905 0.15037057 0.38810483 0.02850627
 ### Script
-'ragione_sociale;
+'ragione_sociale=@;
 ### End Script
 ### End Box
 
@@ -120,7 +120,7 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/);
 ### Page 1
 ### Rect 0.31451613 0.43543327 0.36794356 0.033494867
 ### Script
-%totale_fattura;
+%totale_fattura=@;
 ### End Script
 ### End Box
 
@@ -144,7 +144,7 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/);
 $import "parsing_dettaglio";
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
-    ::calc_mese+=1;
+    ::calc_mese++;
     $nexttable;
     $goto nome_fornitore;
   }

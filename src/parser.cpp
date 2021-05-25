@@ -165,46 +165,31 @@ void parser::sub_statement() {
     auto prefixes = read_variable(false);
     auto selvar_end = m_code.size();
     
-    auto tok = m_lexer.peek();
+    auto tok = m_lexer.next();
     bitset<setvar_flags> flags;
-    bool negative = false;
     
     switch (tok.type) {
     case token_type::SUB_ASSIGN:
         flags |= setvar_flags::DECREASE;
-        m_lexer.advance(tok);
         read_expression();
         break;
     case token_type::ADD_ASSIGN:
         flags |= setvar_flags::INCREASE;
-        m_lexer.advance(tok);
         read_expression();
         break;
+    case token_type::ADD_ONE:
+        flags |= setvar_flags::INCREASE;
+        m_code.add_line<opcode::PUSHINT>(1);
+        break;
+    case token_type::SUB_ONE:
+        flags |= setvar_flags::DECREASE;
+        m_code.add_line<opcode::PUSHINT>(1);
+        break;
     case token_type::ASSIGN:
-        m_lexer.advance(tok);
         read_expression();
         break;
     default:
-        if (m_content_level == 0) {
-            throw parsing_error("Stack contenuti vuoto", tok);
-        }
-        m_code.add_line<opcode::PUSHVIEW>();
-        break;
-    }
-    
-    if (prefixes & variable_prefixes::ADD && !(flags & setvar_flags::DECREASE)) {
-        flags |= setvar_flags::INCREASE;
-    }
-    if (prefixes & variable_prefixes::SUB) {
-        if (flags & setvar_flags::INCREASE) {
-            flags ^= setvar_flags::INCREASE;
-        }
-        if (flags & setvar_flags::DECREASE) {
-            flags ^= setvar_flags::DECREASE;
-            flags |= setvar_flags::INCREASE;
-        } else {
-            flags |= setvar_flags::DECREASE;
-        }
+        throw unexpected_token(tok, token_type::ASSIGN);
     }
 
     if (prefixes & variable_prefixes::CAPITALIZE) {
@@ -223,7 +208,7 @@ void parser::sub_statement() {
 }
 
 void parser::read_expression() {
-    std::map<token_type, std::tuple<int, command_args>> operators = {
+    static const std::map<token_type, std::tuple<int, command_args>> operators = {
         {token_type::ASTERISK,      {6, make_command<opcode::CALL>("mul", 2)}},
         {token_type::SLASH,         {6, make_command<opcode::CALL>("div", 2)}},
         {token_type::PLUS,          {5, make_command<opcode::CALL>("add", 2)}},
@@ -240,7 +225,7 @@ void parser::read_expression() {
 
     sub_expression();
 
-    simple_stack<decltype(operators)::iterator> op_stack;
+    simple_stack<decltype(operators)::const_iterator> op_stack;
     
     while (true) {
         auto tok_op = m_lexer.peek();
@@ -390,8 +375,6 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
         case token_type::SINGLE_QUOTE: add_flags_to(prefixes, variable_prefixes::CAPITALIZE, !read_only); break;
         case token_type::TILDE:     add_flags_to(prefixes, variable_prefixes::OVERWRITE, !read_only); break;
         case token_type::NOT:       add_flags_to(prefixes, variable_prefixes::FORCE, !read_only); break;
-        case token_type::PLUS:      add_flags_to(prefixes, variable_prefixes::ADD, !read_only); break;
-        case token_type::MINUS:     add_flags_to(prefixes, variable_prefixes::SUB, !read_only); break;
         case token_type::AMPERSAND: add_flags_to(prefixes, variable_prefixes::REF, read_only); break;
         case token_type::BRACKET_BEGIN:
             read_expression();
