@@ -508,34 +508,7 @@ void parser::read_function() {
         }
         break;
     }
-    case hash("call"): {
-        m_lexer.require(token_type::PAREN_BEGIN);
-        auto tok = m_lexer.require(token_type::IDENTIFIER);
-        small_int numargs = 0;
-        while (!m_lexer.check_next(token_type::PAREN_END)) {
-            m_lexer.require(token_type::COMMA);
-            read_expression();
-            ++numargs;
-        }
-        if (auto it = m_functions.find(tok.value); it != m_functions.end()) {
-            if (it->second.numargs != numargs) {
-                throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", tok.value, it->second.numargs), tok);
-            }
-            if (it->second.has_contents && m_content_level == 0) {
-                throw parsing_error(fmt::format("Impossibile chiamare {}, stack contenuti vuoto", tok.value), tok);
-            }
-            m_code.add_line<opcode::JSRVAL>(fmt::format("__function_{}", tok.value), numargs);
-        } else {
-            throw parsing_error(fmt::format("Funzione {} non dichiarata", tok.value), tok);
-        }
-        break;
-    }
     default: {
-        auto it = function_lookup.find(fun_name);
-        if (it == function_lookup.end()) {
-            throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
-        }
-
         small_int num_args = 0;
         m_lexer.require(token_type::PAREN_BEGIN);
         while (!m_lexer.check_next(token_type::PAREN_END)) {
@@ -553,11 +526,23 @@ void parser::read_function() {
             }
         }
 
-        const auto &fun = it->second;
-        if (num_args < fun.minargs || num_args > fun.maxargs) {
-            throw invalid_numargs(std::string(fun_name), fun.minargs, fun.maxargs, tok_fun_name);
+        if (auto it = function_lookup.find(fun_name); it != function_lookup.end()) {
+            const auto &fun = it->second;
+            if (num_args < fun.minargs || num_args > fun.maxargs) {
+                throw invalid_numargs(std::string(fun_name), fun.minargs, fun.maxargs, tok_fun_name);
+            }
+            m_code.add_line<opcode::CALL>(it, num_args);
+        } else if (auto it = m_functions.find(fun_name); it != m_functions.end()) {
+            if (it->second.numargs != num_args) {
+                throw invalid_numargs(std::string(fun_name), it->second.numargs, it->second.numargs, tok_fun_name);
+            }
+            if (it->second.has_contents && m_content_level == 0) {
+                throw parsing_error(fmt::format("Impossibile chiamare {}, stack contenuti vuoto", fun_name), tok_fun_name);
+            }
+            m_code.add_line<opcode::JSRVAL>(fmt::format("__function_{}", fun_name), num_args);
+        } else {
+            throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
         }
-        m_code.add_line<opcode::CALL>(it, num_args);
     }
     }
 }

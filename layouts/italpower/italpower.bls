@@ -174,13 +174,13 @@ $function(check_periodo,@) {
 $function(calc_totale_parziale,@) {
   $clear(_ret);
   $foreach($search_all(@,$format(/Periodo ($0 Euro\/POD\/mese \N)/,_periodo_generic))) {
-    $if($call(check_periodo)) {
+    $if($check_periodo()) {
       _ret+=$trunc($num($search(@,/Euro\/POD\/mese (\N)/)),2);
     }
   }
   ^_ret+=$search_all(@,$format(/Periodo $0 Euro\/kW\/mese \N \N (\N)/,_periodo));
   $foreach($search_all(@,$format(/Periodo ($0 Euro\/kWh \N)/,_periodo_generic))) {
-    $if($call(check_periodo)) {
+    $if($check_periodo()) {
       _ret+=$trunc($num($search(@,/Euro\/kWh (\N)/)) * _tot_consumi,2);
     }
   }
@@ -190,7 +190,7 @@ $function(calc_penale_reattiva,@,percent_reattiva,format_str) {
   $clear(_ret);
   $for(_i=0; _i<3; _i+=1) {
     $foreach($search_all(@,$format(/Energia Reattiva \($2\) - F$1 - Periodo ($0 Euro\/kVarh \N)/,_periodo_generic,_i+1,$arg(format_str)))) {
-      $if($call(check_periodo)) {
+      $if($check_periodo()) {
         _ret+=$trunc($max(0, energia_reattiva[_i] - energia_attiva[_i]*$arg(percent_reattiva))
           *$num($search(@,/Euro\/kVarh (\N)/)),2);
       }
@@ -203,12 +203,12 @@ $with(&::_dettaglio) {
   _periodo_generic=/\d{2}\/\d{2}\/\d{4}\s*-\s*\d{2}\/\d{2}\/\d{4}/;
   $between("","Totale materia energia") {
     $foreach($search_all(@,$format(/Commercializzazione e vendita \(PCV1\) - Periodo ($0 Euro\/POD\/mese \N)/,_periodo_generic))) {
-      $if($call(check_periodo)) {
+      $if($check_periodo()) {
         pcv=$trunc($num($search(@,/Euro\/POD\/mese (\N)/)),2);
       }
     }
     $foreach($search_all(@,$format(/Periodo ($0 Euro\/POD\/mese \N)/,_periodo_generic))) {
-      $if($call(check_periodo)) {
+      $if($check_periodo()) {
         spesa_materia_energia+=$trunc($num($search(@,/Euro\/POD\/mese (\N)/)),2);
       }
     }
@@ -227,23 +227,23 @@ $with(&::_dettaglio) {
       }
     }
     $foreach($search_all(@,$format(/Dispacciamento - Periodo ($0 Euro\/kWh \N)/,_periodo_generic))) {
-      $if($call(check_periodo)) {
+      $if($check_periodo()) {
         %disp_var=$search(@,/Euro\/kWh (\N)/);
         spesa_materia_energia+=$trunc(disp_var * (_tot_consumi + _tot_perdite_rete),2);
       }
     }
   }
   $between("Totale materia energia","Totale Trasporto e gestione del contatore") {
-    trasporto_gestione=$call(calc_totale_parziale);
+    trasporto_gestione=$calc_totale_parziale();
     %potenza[0:3]=$search(@,$format(/Quota Potenza - trasporto - Periodo $0 Euro\/kW\/mese \N (\N)/,_periodo));
 
-    penale_reattiva_inf75=$call(calc_penale_reattiva,0.33,"Tra il 33 % ed il 75 %");
-    penale_reattiva_sup75=$call(calc_penale_reattiva,0.75,"Oltre il 75 %");
+    penale_reattiva_inf75=$calc_penale_reattiva(0.33,"Tra il 33 % ed il 75 %");
+    penale_reattiva_sup75=$calc_penale_reattiva(0.75,"Oltre il 75 %");
 
     trasporto_gestione+=penale_reattiva_inf75 + penale_reattiva_sup75;
   }
   $between("Totale Trasporto e gestione del contatore","Totale oneri di sistema") {
-    oneri=$call(calc_totale_parziale);
+    oneri=$calc_totale_parziale();
   }
   $between("Totale oneri di sistema","Totale imposte") {
     $if($contains(@,"Accisa sull'energia elettrica")) {

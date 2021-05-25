@@ -27,27 +27,7 @@ void parser::read_keyword() {
         {"halt",        {FUN_VOID,       make_command<opcode::HLT>()}}
     };
 
-    if (auto it = simple_functions.find(fun_name); it != simple_functions.end()) {
-        m_lexer.require(token_type::PAREN_BEGIN);
-        switch (std::get<function_type>(it->second)) {
-        case FUN_EXPRESSION:
-            read_expression();
-            break;
-        case FUN_2_EXPRESSIONS:
-            read_expression();
-            m_lexer.require(token_type::COMMA);
-            read_expression();
-            break;
-        case FUN_VARIABLE:
-            read_variable(false);
-            break;
-        case FUN_VOID:
-            break;
-        }
-        m_lexer.require(token_type::PAREN_END);
-        m_lexer.require(token_type::SEMICOLON);
-        m_code.push_back(std::get<command_args>(it->second));
-    } else switch (hash(fun_name)) {
+    switch (hash(fun_name)) {
     case hash("if"):
     case hash("ifnot"): {
         string_ptr endif_label = make_label("endif");
@@ -198,29 +178,6 @@ void parser::read_keyword() {
         }
         break;
     }
-    case hash("call"): {
-        m_lexer.require(token_type::PAREN_BEGIN);
-        auto tok = m_lexer.require(token_type::IDENTIFIER);
-        small_int numargs = 0;
-        while (!m_lexer.check_next(token_type::PAREN_END)) {
-            m_lexer.require(token_type::COMMA);
-            read_expression();
-            ++numargs;
-        }
-        m_lexer.require(token_type::SEMICOLON);
-        if (auto it = m_functions.find(tok.value); it != m_functions.end()) {
-            if (it->second.numargs != numargs) {
-                throw parsing_error(fmt::format("La funzione {0} richiede {1} argomenti", tok.value, it->second.numargs), tok);
-            }
-            if (it->second.has_contents && m_content_level == 0) {
-                throw parsing_error(fmt::format("Impossibile chiamare {}, stack contenuti vuoto", tok.value), tok);
-            }
-            m_code.add_line<opcode::JSR>(fmt::format("__function_{}", tok.value), numargs);
-        } else {
-            throw parsing_error(fmt::format("Funzione {} non dichiarata", tok.value), tok);
-        }
-        break;
-    }
     case hash("foreach"): {
         string_ptr begin_label = make_label("foreach");
         string_ptr continue_label = make_label("foreach_continue");
@@ -368,6 +325,54 @@ void parser::read_keyword() {
         }
         break;
     default:
-        throw parsing_error("Parola chiave sconosciuta", tok_name);
+        if (auto it = simple_functions.find(fun_name); it != simple_functions.end()) {
+            m_lexer.require(token_type::PAREN_BEGIN);
+            switch (std::get<function_type>(it->second)) {
+            case FUN_EXPRESSION:
+                read_expression();
+                break;
+            case FUN_2_EXPRESSIONS:
+                read_expression();
+                m_lexer.require(token_type::COMMA);
+                read_expression();
+                break;
+            case FUN_VARIABLE:
+                read_variable(false);
+                break;
+            case FUN_VOID:
+                break;
+            }
+            m_lexer.require(token_type::PAREN_END);
+            m_lexer.require(token_type::SEMICOLON);
+            m_code.push_back(std::get<command_args>(it->second));
+        } else if (auto it = m_functions.find(fun_name); it != m_functions.end()) {
+            m_lexer.require(token_type::PAREN_BEGIN);
+            small_int num_args = 0;
+            while (!m_lexer.check_next(token_type::PAREN_END)) {
+                ++num_args;
+                read_expression();
+                auto tok_comma = m_lexer.peek();
+                switch (tok_comma.type) {
+                case token_type::COMMA:
+                    m_lexer.advance(tok_comma);
+                    break;
+                case token_type::PAREN_END:
+                    break;
+                default:
+                    throw unexpected_token(tok_comma, token_type::PAREN_END);
+                }
+            }
+            m_lexer.require(token_type::SEMICOLON);
+            
+            if (it->second.numargs != num_args) {
+                throw invalid_numargs(std::string(fun_name), it->second.numargs, it->second.numargs, tok_name);
+            }
+            if (it->second.has_contents && m_content_level == 0) {
+                throw parsing_error(fmt::format("Impossibile chiamare {}, stack contenuti vuoto", fun_name), tok_name);
+            }
+            m_code.add_line<opcode::JSR>(fmt::format("__function_{}", fun_name), num_args);
+        } else {
+            throw parsing_error("Parola chiave sconosciuta", tok_name);
+        }
     }
 }
