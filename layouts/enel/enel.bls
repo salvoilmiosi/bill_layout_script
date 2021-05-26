@@ -175,7 +175,7 @@ $ifnot($contains(@,_inizio_dettaglio)) {
 }
 $if($contains(@,"Energia attiva")) {
   $step($captures(@,$format(/$0 (\N) (\N) (\N)/,_fine_dettaglio))) {
-    %energia_attiva_rilevata[0]=@; %energia_attiva_rilevata[1]=@; %energia_attiva_rilevata[2]=@;
+    .%energia_attiva_rilevata[0]; .%energia_attiva_rilevata[1]; .%energia_attiva_rilevata[2];
   }
   $step($captures(@,$format(/$0 (\N) (\N) (\N)/,_inizio_dettaglio))) {
     %energia_attiva_rilevata[0]-=@; %energia_attiva_rilevata[1]-=@; %energia_attiva_rilevata[2]-=@;
@@ -183,7 +183,7 @@ $if($contains(@,"Energia attiva")) {
 }
 $if($contains(@,"Energia reattiva")) {
   $step($captures(@,$format(/$0 \N \N \N (\N) (\N) (\N)/,_fine_dettaglio))) {
-    %energia_reattiva[0]=@; %energia_reattiva[1]=@; %energia_reattiva[2]=@;
+    .%energia_reattiva[0]; .%energia_reattiva[1]; .%energia_reattiva[2];
   }
   $step($captures(@,$format(/$0 \N \N \N (\N) (\N) (\N)/,_inizio_dettaglio))) {
     %energia_reattiva[0]-=@; %energia_reattiva[1]-=@; %energia_reattiva[2]-=@;
@@ -207,17 +207,17 @@ $with(&::_dettaglio) {
     $step($captures($search($search(@, /Energia (?:fascia F1|ore picco|mese)\n([^]+?)Totale energia/),
       _regex_periodo),/\u20ac\/kWh (\N) (\N)/))
     {
-      %prezzo_energia[0]=@; %energia_attiva[0]=@;
+      .%prezzo_energia[0]; .%energia_attiva[0];
     }
     $step($captures($search($search(@, /Energia (?:fascia F2|ore fuori picco)\n([^]+?)Totale energia/),
       _regex_periodo),/\u20ac\/kWh (\N) (\N)/))
     {
-      %prezzo_energia[1]=@; %energia_attiva[1]=@;
+      .%prezzo_energia[1]; .%energia_attiva[1];
     }
     $step($captures($search($search(@, /Energia fascia F3\n([^]+?)Totale energia/),
       _regex_periodo),/\u20ac\/kWh (\N) (\N)/))
     {
-      %prezzo_energia[2]=@; %energia_attiva[2]=@;
+      .%prezzo_energia[2]; .%energia_attiva[2];
     }
     $between("Altri importi materia energia", "Totale altri importi materia energia") {
       $with($search_all(@,_regex_periodo)) {

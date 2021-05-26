@@ -161,35 +161,48 @@ void parser::read_statement() {
 }
 
 void parser::sub_statement() {
+    auto tok = m_lexer.peek();
+    bool dot = tok.type == token_type::DOT;
+    if (dot) {
+        m_lexer.advance(tok);
+        if (m_content_level == 0) {
+            throw parsing_error("Stack contenuti vuoto", tok);
+        }
+    }
+
     auto selvar_begin = m_code.size();
     auto prefixes = read_variable(false);
     auto selvar_end = m_code.size();
     
-    auto tok = m_lexer.next();
     bitset<setvar_flags> flags;
-    
-    switch (tok.type) {
-    case token_type::SUB_ASSIGN:
-        flags |= setvar_flags::DECREASE;
-        read_expression();
-        break;
-    case token_type::ADD_ASSIGN:
-        flags |= setvar_flags::INCREASE;
-        read_expression();
-        break;
-    case token_type::ADD_ONE:
-        flags |= setvar_flags::INCREASE;
-        m_code.add_line<opcode::PUSHINT>(1);
-        break;
-    case token_type::SUB_ONE:
-        flags |= setvar_flags::DECREASE;
-        m_code.add_line<opcode::PUSHINT>(1);
-        break;
-    case token_type::ASSIGN:
-        read_expression();
-        break;
-    default:
-        throw unexpected_token(tok, token_type::ASSIGN);
+
+    if (dot) {
+        m_code.add_line<opcode::PUSHVIEW>();
+    } else {
+        tok = m_lexer.next();
+        switch (tok.type) {
+        case token_type::SUB_ASSIGN:
+            flags |= setvar_flags::DECREASE;
+            read_expression();
+            break;
+        case token_type::ADD_ASSIGN:
+            flags |= setvar_flags::INCREASE;
+            read_expression();
+            break;
+        case token_type::ADD_ONE:
+            flags |= setvar_flags::INCREASE;
+            m_code.add_line<opcode::PUSHINT>(1);
+            break;
+        case token_type::SUB_ONE:
+            flags |= setvar_flags::DECREASE;
+            m_code.add_line<opcode::PUSHINT>(1);
+            break;
+        case token_type::ASSIGN:
+            read_expression();
+            break;
+        default:
+            throw unexpected_token(tok, token_type::ASSIGN);
+        }
     }
 
     if (prefixes & variable_prefixes::CAPITALIZE) {

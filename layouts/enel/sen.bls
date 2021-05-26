@@ -175,10 +175,10 @@ $newview {
   $step($table_row(
     $search(@,$format(/dal \d\d\.\d\d\.\d\d\d\d\n(.+) al \d\d\.$0/,
       $date_format(mese_fattura,"%m\\.%Y"))),_table_fmt)) {
-    %energia_attiva_rilevata[0]=@; %energia_attiva_rilevata[1]=@; %energia_attiva_rilevata[2]=@;
-    %energia_reattiva[0]=@; %energia_reattiva[1]=@; %energia_reattiva[2]=@;
+    .%energia_attiva_rilevata[0]; .%energia_attiva_rilevata[1]; .%energia_attiva_rilevata[2];
+    .%energia_reattiva[0]; .%energia_reattiva[1]; .%energia_reattiva[2];
     ;
-    %potenza[0]=@; %potenza[1]=@; %potenza[2]=@;
+    .%potenza[0]; .%potenza[1]; .%potenza[2];
   }
 }
 ### End Script
@@ -200,13 +200,13 @@ $with(&::_dettaglio) {
       $format(/dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0([^]+?)(dal|Totale|$)/,_mese_abbr)),/(\N)(?:\n|$)/);
     $with($search(@,$format(/(In F1 dal \d\d\/\d\d\/\d\d\d\d al \d\d\/$0 [^]+?)(dal|Totale|$)/,_mese_abbr))) {   
       $step($captures(@,/F1.+\/kWh (\N) kWh (\N)/)) {
-        %prezzo_energia[0]=@; %energia_attiva[0]=@;
+        .%prezzo_energia[0]; .%energia_attiva[0];
       }
       $step($captures(@,/F2.+\/kWh (\N) kWh (\N)/)) {
-        %prezzo_energia[1]=@; %energia_attiva[1]=@;
+        .%prezzo_energia[1]; .%energia_attiva[1];
       }
       $step($captures(@,/F3.+\/kWh (\N) kWh (\N)/)) {
-        %prezzo_energia[2]=@; %energia_attiva[2]=@;
+        .%prezzo_energia[2]; .%energia_attiva[2];
       }
     }
   }

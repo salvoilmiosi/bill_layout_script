@@ -144,7 +144,7 @@ $with(&::_dettaglio) {
     $date_format(mese_fattura,"01\\.%m\\.%Y"));
   $between("energia attiva (kWh)","consumo rilevato energia") {
     $step($captures(@,$format(/$0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_fine))) {
-      %energia_attiva_rilevata[0]=@; %energia_attiva_rilevata[1]=@; %energia_attiva_rilevata[2]=@;
+      .%energia_attiva_rilevata[0]; .%energia_attiva_rilevata[1]; .%energia_attiva_rilevata[2];
     }
     $step($captures(@,$format(/$0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_inizio))) {
       %energia_attiva_rilevata[0]-=@; %energia_attiva_rilevata[1]-=@; %energia_attiva_rilevata[2]-=@;
@@ -152,7 +152,7 @@ $with(&::_dettaglio) {
   }
   $between("energia reattiva (kVARh)","consumo rilevato energia") {
     $step($captures(@,$format(/$0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_fine))) {
-      %energia_reattiva[0]=@; %energia_reattiva[1]=@; %energia_reattiva[2]=@;
+      .%energia_reattiva[0]; .%energia_reattiva[1]; .%energia_reattiva[2];
     }
     $step($captures(@,$format(/$0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_inizio))) {
       %energia_reattiva[0]-=@; %energia_reattiva[1]-=@; %energia_reattiva[2]-=@;
@@ -160,7 +160,7 @@ $with(&::_dettaglio) {
   }
   $between("potenza (kW)","..........."){
     $step($captures(@,$format(/$0 (\N) (\N) (\N) Lettura Rilevata/,_lettura_fine))) {
-      %potenza[0]=@; %potenza[1]=@; %potenza[2]=@;
+      .%potenza[0]; .%potenza[1]; .%potenza[2];
     }
   }
   $between("Totale servizi di Vendita","...........") {
@@ -169,13 +169,13 @@ $with(&::_dettaglio) {
       $setend($indexof(@,"Perdite di Rete"));
       $with($search(@,$format(/Importo $0\n((?:\s+.+\n)+)/,_periodo))) {
         $step($captures(@,/fascia F1 \u20ac\/kWh (\N) (\N) kWh/)) {
-          %prezzo_energia[0]=@; %energia_attiva[0]=@;
+          .%prezzo_energia[0]; .%energia_attiva[0];
         }
         $step($captures(@,/fascia F2 \u20ac\/kWh (\N) (\N) kWh/)) {
-          %prezzo_energia[1]=@; %energia_attiva[1]=@;
+          .%prezzo_energia[1]; .%energia_attiva[1];
         }
         $step($captures(@,/fascia F3 \u20ac\/kWh (\N) (\N) kWh/)) {
-          %prezzo_energia[2]=@; %energia_attiva[2]=@;
+          .%prezzo_energia[2]; .%energia_attiva[2];
         }
       }
     }

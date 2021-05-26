@@ -152,7 +152,7 @@ $between("CONSUMI E LETTURE","Consumi fatturati negli ultimi 12 mesi") {
     $table_header(@,"Periodo \\(dal - al\\)",/Consumi fatturati kWh(?: Consumi fatturati kWh)?/,"Energia Reattiva"))) {
     ;
     $step($captures(@,/(\N) (\N) (\N)/)) {
-      %energia_attiva_rilevata[0]=@; %energia_attiva_rilevata[1]=@; %energia_attiva_rilevata[2]=@;
+      .%energia_attiva_rilevata[0]; .%energia_attiva_rilevata[1]; .%energia_attiva_rilevata[2];
     }
     %energia_reattiva=@;
   }
@@ -174,13 +174,13 @@ $with(&::_dettaglio) {
     $format(/al \d\d\.$0 euro\/\w+ \N \N (\N)/,_mese));
   $with($search(@,/Prezzo (?:Energia|Indicizzato)\n((dal.+\n)+)/)) {
     $step($captures(@,$format(/al \d\d\.$0 (?:F1|PEAK) Euro\/kWh (\N) (\N)/,_mese))) {
-      %prezzo_energia[0]=@; %energia_attiva[0]=@;
+      .%prezzo_energia[0]; .%energia_attiva[0];
     }
     $step($captures(@,$format(/al \d\d\.$0 (?:F2|OFFPEAK) Euro\/kWh (\N) (\N)/,_mese))) {
-      %prezzo_energia[1]=@; %energia_attiva[1]=@;
+      .%prezzo_energia[1]; .%energia_attiva[1];
     }
     $step($captures(@,$format(/al \d\d\.$0 F3 Euro\/kWh (\N) (\N)/,_mese))) {
-      %prezzo_energia[2]=@; %energia_attiva[2]=@;
+      .%prezzo_energia[2]; .%energia_attiva[2];
     }
 
     $step($captures(@,$format(/al \d\d\.$0 Euro\/kWh (\N) (\N)/,_mese))) {

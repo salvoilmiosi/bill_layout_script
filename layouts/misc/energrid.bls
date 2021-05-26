@@ -102,8 +102,8 @@ p+::off_pod;
 ### Script
 $between("RIEPILOGO CONSUMI PRIMO ADDEBITO","TOTALE (Salvo conguagli, errori e omissioni)") {
   $step($captures(@,$format(/\d\d\/$0 Consumi Fatturati (\N) (\N) (\N) \N (\N) (\N) (\N)/,_mese))) {
-    %energia_attiva_rilevata[0]=@; %energia_attiva_rilevata[1]=@; %energia_attiva_rilevata[2]=@;
-    %energia_reattiva[0]=@; %energia_reattiva[1]=@; %energia_reattiva[2]=@;
+    .%energia_attiva_rilevata[0]; .%energia_attiva_rilevata[1]; .%energia_attiva_rilevata[2];
+    .%energia_reattiva[0]; .%energia_reattiva[1]; .%energia_reattiva[2];
   }
 }
 $between("DETTAGLIO IMPOSTE","TOTALE (Salvo conguagli, errori e omissioni)") {
@@ -145,13 +145,13 @@ $between("DETTAGLIO IMPORTI","TOTALE (Salvo conguagli, errori e omissioni)") {
   $between("Spese per la materia energia","Spese per trasporto") {
     %spesa_materia_energia=$search(@,/(\N)/);
     $step($captures(@,$format(/Componente di Generazione fascia F1 .+ al \d\d\/$0 Euro\/kWh (\N) (\N)/,_mese))) {
-      %prezzo_energia[0]=@; %energia_attiva[0]=@;
+      .%prezzo_energia[0]; .%energia_attiva[0];
     }
     $step($captures(@,$format(/Componente di Generazione fascia F2 .+ al \d\d\/$0 Euro\/kWh (\N) (\N)/,_mese))) {
-      %prezzo_energia[1]=@; %energia_attiva[1]=@;
+      .%prezzo_energia[1]; .%energia_attiva[1];
     }
     $step($captures(@,$format(/Componente di Generazione fascia F3 .+ al \d\d\/$0 Euro\/kWh (\N) (\N)/,_mese))) {
-      %prezzo_energia[2]=@; %energia_attiva[2]=@;
+      .%prezzo_energia[2]; .%energia_attiva[2];
     }
   }
   $between("Spese per trasporto","Spese per oneri") {

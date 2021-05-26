@@ -111,7 +111,7 @@ codice_pod=$search(@,/POD \(Punto di prelievo\) (\w+)/);
 ### Script
 $between("CONSUMI FATTURATI","RIEPILOGO IMPOSTE E IVA") {
   $step($captures(@,$format(/Effettivi $0 \N (\N) (\N) (\N)/,_periodo))) {
-    %energia_attiva_rilevata[0]=@; %energia_attiva_rilevata[1]=@; %energia_attiva_rilevata[2]=@;
+    .%energia_attiva_rilevata[0]; .%energia_attiva_rilevata[1]; .%energia_attiva_rilevata[2];
   }
 }
 ### End Script
@@ -129,13 +129,13 @@ $with(&::_dettaglio) {
     ^spesa_materia_energia=$search_all(@,$format(/$0 .+ (\N) \N/,_periodo));
     %pcv=$search(@,$format(/Commercializzazione vendita $0 \u20ac\/POD\/mese \N \N (\N)/,_periodo));
     $step($captures(@,$format(/Energia F1 $0 \u20ac\/kWh (\N) (\N)/,_periodo))) {
-      %prezzo_energia[0]=@; %energia_attiva[0]=@;
+      .%prezzo_energia[0]; .%energia_attiva[0];
     }
     $step($captures(@,$format(/Energia F2 $0 \u20ac\/kWh (\N) (\N)/,_periodo))) {
-      %prezzo_energia[1]=@; %energia_attiva[1]=@;
+      .%prezzo_energia[1]; .%energia_attiva[1];
     }
     $step($captures(@,$format(/Energia F3 $0 \u20ac\/kWh (\N) (\N)/,_periodo))) {
-      %prezzo_energia[2]=@; %energia_attiva[2]=@;
+      .%prezzo_energia[2]; .%energia_attiva[2];
     }
     %sbilanciamento=$search(@,$format(/Sbilanciamento $0 \u20ac\/kWh (\N)/,_periodo));
   }
