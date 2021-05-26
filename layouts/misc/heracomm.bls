@@ -8,16 +8,16 @@
 ### Rect 0.0048387097 0.005701254 0.9919355 0.11123422987096773
 ### Goto Label check_pagina
 ### Spacers
-p+::off_allegato;
+p+*off_allegato;
 ### End Spacers
 ### Script
 $if($doc(ate)) {
-  $error(::ERRORE_LAYOUT_INVALIDO, "Heracomm: Stringa di Convalida Errata");
+  $error(*ERRORE_LAYOUT_INVALIDO, "Heracomm: Stringa di Convalida Errata");
 } $elifnot($search(@,/(1 \/ \d+)/)) {
-  ::off_allegato++;
+  *off_allegato++;
   $goto check_pagina;
 } $elifnot($contains(@,"www.gruppohera.it")) {
-  ::rotation=3;
+  *rotation=3;
 }
 ### End Script
 ### End Box
@@ -28,11 +28,11 @@ $if($doc(ate)) {
 ### Page 1
 ### Rect 0.028506271379703536 0.23387096774193547 0.620296465222349 0.12580645161290324
 ### Spacers
-p+::off_dettaglio;
-rotate+::rotation;
+p+*off_dettaglio;
+rotate+*rotation;
 ### End Spacers
 ### Script
-::mul_nota_credito=$if($contains(@,"Importo a credito"),-1,1);
+*mul_nota_credito=$if($contains(@,"Importo a credito"),-1,1);
 ### End Script
 ### End Box
 
@@ -43,14 +43,14 @@ rotate+::rotation;
 ### Rect 0.019455252918287938 0.14619882 0.47393317008171215 0.8187134
 ### Goto Label lettura_dettaglio
 ### Spacers
-p+::off_allegato;
-p+::off_dettaglio;
-rotate+::rotation;
+p+*off_allegato;
+p+*off_dettaglio;
+rotate+*rotation;
 ### End Spacers
 ### Script
 $if($isempty(@) || $doc(ate)) $goto nome_fornitore;
 $else {
-  ::_dettaglio+=@;
+  *_dettaglio+=@;
 }
 ### End Script
 ### End Box
@@ -61,13 +61,13 @@ $else {
 ### Page 4
 ### Rect 0.4950413 0.14107715677419358 0.4842064302204928 0.8187134
 ### Spacers
-p+::off_allegato;
-p+::off_dettaglio;
-rotate+::rotation;
+p+*off_allegato;
+p+*off_dettaglio;
+rotate+*rotation;
 ### End Spacers
 ### Script
-::_dettaglio+=@;
-::off_dettaglio++;
+*_dettaglio+=@;
+*off_dettaglio++;
 $goto lettura_dettaglio;
 ### End Script
 ### End Box
@@ -90,8 +90,8 @@ fornitore="Heracomm";
 ### Page 3
 ### Rect 0.02892562 0.2748538 0.29008263 0.6175917825864277
 ### Spacers
-p+::off_allegato;
-rotate+::rotation;
+p+*off_allegato;
+rotate+*rotation;
 ### End Spacers
 ### Script
 numero_fattura=$search(@,/(?:Bolletta|Fattura elettronica) n\. (\d+)/);
@@ -111,8 +111,8 @@ codice_pod=$search(@,/POD \(Punto di prelievo\): (\w+)/);
 ### Page 3
 ### Rect 0.346281 0.12982456 0.6305785 0.70058477
 ### Spacers
-p+::off_allegato;
-rotate+::rotation;
+p+*off_allegato;
+rotate+*rotation;
 ### End Spacers
 ### Script
 %totale_fattura=$search(@,/Totale bolletta\/contratto (\N)/);
@@ -126,16 +126,16 @@ rotate+::rotation;
 ### Page 4
 ### Rect 0.34734598900075014 0.06527792929611916 0.028054298642533948 0.03457106274007682
 ### Script
-$with(&::_dettaglio) {
+$with(&*_dettaglio) {
   $newview {
     $setbegin($min($indexof(@,"Quadro di dettaglio"),$indexof(@,"Elementi di dettaglio")));
     $setend($indexof(@,"\n"));
     mese_inizio=$month(@,"%d.%m.%Y",/dal (\D) al \D/);
     mese_fine=$month(@,"%d.%m.%Y",/dal \D al (\D)/);
     $if(mese_fine < mese_inizio) {
-      $error(::ERRORE_PERIODO_INVALIDO, "Heracomm: Periodo Non Valido");
+      $error(*ERRORE_PERIODO_INVALIDO, "Heracomm: Periodo Non Valido");
     }
-    mese_fattura=$month_add(mese_inizio,::calc_mese);
+    mese_fattura=$month_add(mese_inizio,*calc_mese);
   }
   _periodo=$format(/dal \d\d\.\d\d\.\d\d\d\d al \d\d\.$0/,$date_format(mese_fattura,"%m.%Y"));
   _lettura_fine=$date_format($last_day(mese_fattura),"%d\\.%m\\.%Y");
@@ -210,7 +210,7 @@ $with(&::_dettaglio) {
     $between("QUOTA FISSA", "QUOTA POTENZA") {
       $foreach($search_all(@,/Importo (dal \d\d\.\d\d\.\d\d\d\d al \d\d\.\d\d\.\d\d\d\d .+)/)) {
         $if($date_between(mese_fattura,$date(@,"%d.%m.%Y",/dal (\D) al \D/),$date(@,"%d.%m.%Y",/dal \D al (\D)/))) {
-          trasporto_gestione+=$trunc($abs($num($search(@,/\u20ac\/cliente\/mese (\N)/)))*::mul_nota_credito, 2);
+          trasporto_gestione+=$trunc($abs($num($search(@,/\u20ac\/cliente\/mese (\N)/)))**mul_nota_credito, 2);
           $break;
         }
       }
@@ -241,7 +241,7 @@ $with(&::_dettaglio) {
     }
   }
   $between("Totale Imposte") {
-    accise=$trunc(0.0125 * _totale_consumi * ::mul_nota_credito, 2);
+    accise=$trunc(0.0125 * _totale_consumi * *mul_nota_credito, 2);
     iva=$search(@,/IVA (\d+%)/);
     imponibile=$sum(spesa_materia_energia,trasporto_gestione,accise);
   }
@@ -257,7 +257,7 @@ $with(&::_dettaglio) {
 ### Rect 0.3773412702120966 0.06426464259653104 0.027093787866044883 0.03737960254547193
 ### Script
 $if(mese_fattura != mese_fine) {
-  ::calc_mese++;
+  *calc_mese++;
   $nexttable;
   $goto nome_fornitore;
 }

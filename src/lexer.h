@@ -35,7 +35,6 @@ DEFINE_ENUM(token_type,
     (CONTENT,      "@")
     (TILDE,        "~")
     (COLON,        ":")
-    (GLOBAL,       "::")
     (SINGLE_QUOTE, "'")
     (PERCENT,      "%")
     (CARET,        "^")

@@ -9,7 +9,7 @@
 ### Goto Label convalida
 ### Script
 $ifnot($contains(@,"www.energrid.it")) {
-  $error(::ERRORE_LAYOUT_INVALIDO, "EnerGrid: Stringa di Convalida Errata");
+  $error(*ERRORE_LAYOUT_INVALIDO, "EnerGrid: Stringa di Convalida Errata");
 }
 ### End Script
 ### End Box
@@ -58,7 +58,7 @@ data_scadenza=$date(@,"%d/%m/%Y",/Scadenza fattura: (\D)/);
 
 mese_fattura=$month(@,"%d/%m/%Y",/\D - (\D)/);
 $ifnot($isset(mese_fattura)) {
-  $error(::ERRORE_PERIODO_INVALIDO, "EnerGrid: Mese Fattura Mancante");
+  $error(*ERRORE_PERIODO_INVALIDO, "EnerGrid: Mese Fattura Mancante");
 }
 _mese=$date_format(mese_fattura,"%m/%Y");
 ### End Script
@@ -82,7 +82,7 @@ codice_pod=$search(@,/POD: (\w+)/);
 ### Page 2
 ### Rect 0.045739044 0.10376283 0.91132927 0.21464685
 ### Spacers
-p+::off_pod;
+p+*off_pod;
 ### End Spacers
 ### Script
 'indirizzo_fornitura=$singleline($search(@,/Indirizzo di fornitura: ([^]+?\d{5}.+)\n/));
@@ -97,7 +97,7 @@ codice_pod=$search(@,/POD(?: \(punto di prelievo\)|:) (\w+)/);
 ### Page 2
 ### Rect 0.043880455 0.5927153 0.9120019 0.23200065
 ### Spacers
-p+::off_pod;
+p+*off_pod;
 ### End Spacers
 ### Script
 $between("RIEPILOGO CONSUMI PRIMO ADDEBITO","TOTALE (Salvo conguagli, errori e omissioni)") {
@@ -123,7 +123,7 @@ $between("DETTAGLIO IMPOSTE","TOTALE (Salvo conguagli, errori e omissioni)") {
 p+_off_dettaglio;
 ### End Spacers
 ### Script
-$if($doc(ate)) $error(::ERRORE_DETTAGLIO_MANCANTE, "EnerGrid: Dettaglio Mancante");
+$if($doc(ate)) $error(*ERRORE_DETTAGLIO_MANCANTE, "EnerGrid: Dettaglio Mancante");
 _pod_dettaglio=$search(@,/POD: (.+)/);
 $if(_pod_dettaglio!=codice_pod) {
   _off_dettaglio++;
@@ -173,11 +173,11 @@ $between("DETTAGLIO IMPORTI","TOTALE (Salvo conguagli, errori e omissioni)") {
 ### Rect 0.017741935 0.034207527 0.31774193 0.15507412
 ### Goto Label check_pagina
 ### Spacers
-p+::off_pod;
+p+*off_pod;
 ### End Spacers
 ### Script
 $ifnot($doc(ate) || $contains(@,"INFORMAZIONI AI CLIENTI")) {
-  ::off_pod++;
+  *off_pod++;
   $if($contains(@,"DATI FORNITURA")) {
     $nexttable;
     $goto nome_fornitore;

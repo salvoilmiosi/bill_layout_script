@@ -8,7 +8,7 @@
 ### Rect 0.015321756894790603 0.01227436823104693 0.3054136874361594 0.08231046931407943
 ### Script
 $ifnot(@ == "AMG GAS S.R.L.\n(Gas ed Energia Elettrica)") {
-  $error(::ERRORE_LAYOUT_INVALIDO, "AMG: Stringa di Convalida Errata");
+  $error(*ERRORE_LAYOUT_INVALIDO, "AMG: Stringa di Convalida Errata");
 }
 ### End Script
 ### End Box
@@ -25,7 +25,7 @@ $if(@ == "Fornitura di Gas Naturale - Mercato Libero") {
 } $elif(@ == "Fornitura di Energia Elettrica - Mercato Libero") {
   $import "amg_luce";
 } $else {
-  $error(::ERRORE_PERIODO_INVALIDO, "AMG: Fattura Non Valida");
+  $error(*ERRORE_PERIODO_INVALIDO, "AMG: Fattura Non Valida");
 }
 ### End Script
 ### End Box

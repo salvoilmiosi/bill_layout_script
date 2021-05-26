@@ -9,7 +9,7 @@
 ### Rect 0.5398872 0.030786771 0.3545528 0.05587229
 ### Script
 $if(@ != "Bolletta Energia Elettrica\nFornitura del Mercato Libero")
-  $error(::ERRORE_LAYOUT_INVALIDO, "Axpo (old): Stringa di Convalida Errata");
+  $error(*ERRORE_LAYOUT_INVALIDO, "Axpo (old): Stringa di Convalida Errata");
 ### End Script
 ### End Box
 
@@ -89,7 +89,7 @@ $if($contains(@,"Dati di fornitura")) {
   codice_pod=$search(@,/POD (.+)\n/);
   %potenza[0:3]=$search(@,/Potenza Impegnata (\N)/);
 } $else {
-  ::spacer_multipod=1;
+  *spacer_multipod=1;
 }
 ### End Script
 ### End Box
@@ -101,7 +101,7 @@ $if($contains(@,"Dati di fornitura")) {
 ### Rect 0.06617039400000002 0.3263163991448119 0.42907363 0.2335468
 ### Script
 iva=$search(@,/IVA (\N%)/);
-$ifnot(::spacer_multipod) {
+$ifnot(*spacer_multipod) {
   %spesa_materia_energia=$search(@,/(?:Corrispettivi energia|Spese per l'energia) (\N) \u20ac/);
   %trasporto_gestione=$search(@,/(?:Trasporto|Spesa per trasporto, gestione contatore e oneri di sistema) (\N) \u20ac/);
 }
@@ -115,10 +115,10 @@ $ifnot(::spacer_multipod) {
 ### Rect 0.03205999 0.09432077 0.45019805 0.24091297
 ### Goto Label dati_fattura_multipod
 ### Spacers
-p+::next_page;
+p+*next_page;
 ### End Spacers
 ### Script
-$if(::spacer_multipod) {
+$if(*spacer_multipod) {
   'indirizzo_fornitura=$singleline($search(@,/Indirizzo ([^]+?\(..\))/));
   codice_pod=$search(@,/POD (.+)\n/);
   %potenza[0:3]=$search(@,/Potenza Impegnata (\N)/);
@@ -132,10 +132,10 @@ $if(::spacer_multipod) {
 ### Page 3
 ### Rect 0.4935484 0.09236032 0.45645162 0.16419612
 ### Spacers
-p+::next_page;
+p+*next_page;
 ### End Spacers
 ### Script
-$if(::spacer_multipod) {
+$if(*spacer_multipod) {
   %spesa_materia_energia=$search(@,/(?:Corrispettivi energia|Spese per l'energia) \u20ac (\N)/);
   %trasporto_gestione=$search(@,/(?:Trasporto|Spesa per trasporto, gestione contatore e oneri di sistema) \u20ac (\N)/);
 }
@@ -149,15 +149,15 @@ $if(::spacer_multipod) {
 ### Rect 0.033843674 0.09464082 0.9073328 0.87001145
 ### Goto Label lettura_spese
 ### Spacers
-p+::spacer_multipod;
-p+::next_page;
+p+*spacer_multipod;
+p+*next_page;
 ### End Spacers
 ### Script
 $if($doc(ate) || $contains(@,"Comunicazioni") || $contains(@,"Dati di fornitura")) {
   $goto parsing_spese;
 }
 _dettaglio+=@;
-::next_page++;
+*next_page++;
 $goto lettura_spese;
 ### End Script
 ### End Box
@@ -211,13 +211,13 @@ $with(&_dettaglio) {
 ### Page 3
 ### Rect 0.040290087 0.09806158 0.20306204 0.029646521
 ### Spacers
-p+::spacer_multipod;
-p+::next_page;
+p+*spacer_multipod;
+p+*next_page;
 ### End Spacers
 ### Script
-$if(::spacer_multipod) {
+$if(*spacer_multipod) {
   $if(@ == "Dati di fornitura") {
-    ::next_page++;
+    *next_page++;
     $nexttable;
     $goto nome_fornitore;
   }

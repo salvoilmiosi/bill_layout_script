@@ -8,15 +8,15 @@
 ### Rect 0.01455026455026455 0.01216089803554724 0.03835978835978836 0.028999064546304958
 ### Goto Label ricerca_dettaglio
 ### Spacers
-p+::off_dettaglio;
+p+*off_dettaglio;
 ### End Spacers
 ### Script
 $if($doc(ate)) {
-  $error(::ERRORE_DETTAGLIO_MANCANTE, "AMG: Dettaglio Mancante");
+  $error(*ERRORE_DETTAGLIO_MANCANTE, "AMG: Dettaglio Mancante");
 } $elif($contains(@,"DETTAGLIO FATTURA")) {
   $goto lettura_dettaglio;
 } $else {
-  ::off_dettaglio++;
+  *off_dettaglio++;
   $goto ricerca_dettaglio;
 }
 ### End Script
@@ -29,12 +29,12 @@ $if($doc(ate)) {
 ### Rect 0.06084656084656084 0.013096351730589336 0.03835978835978836 0.02806361085126286
 ### Goto Label lettura_dettaglio
 ### Spacers
-p+::off_dettaglio;
+p+*off_dettaglio;
 ### End Spacers
 ### Script
 $ifnot($doc(ate) || $isempty(@)) {
-  ::_dettaglio+=@;
-  ::off_dettaglio++;
+  *_dettaglio+=@;
+  *off_dettaglio++;
   $goto lettura_dettaglio;
 }
 ### End Script
@@ -118,13 +118,13 @@ $if($matches(@,/\w+\. - \w+\. \d{4}/)) {
   $with($captures(@,/(\w+)\. - (\w+)\. (\d{4})/)) {
     mese_inizio=$month($format("$0 $1", $subitem(@,0), $subitem(@,2)),"%b %Y");
     mese_fine=$month($format("$0 $1", $subitem(@,1), $subitem(@,2)),"%b %Y");
-    mese_fattura=$month_add(mese_inizio,::calc_mese);
+    mese_fattura=$month_add(mese_inizio,*calc_mese);
   }
 } $else {
-  $error(::ERRORE_PERIODO_INVALIDO, "AMG: Formato Periodo Errato");
+  $error(*ERRORE_PERIODO_INVALIDO, "AMG: Formato Periodo Errato");
 }
 $if(mese_inizio > mese_fine) {
-  $error(::ERRORE_PERIODO_INVALIDO, "AMG: Formato Periodo Errato");
+  $error(*ERRORE_PERIODO_INVALIDO, "AMG: Formato Periodo Errato");
 }
 _mese=$date_format(mese_fattura,"%m/%Y");
 ### End Script
@@ -180,7 +180,7 @@ $function calc_parziale(@) {
   $return $trunc(_tot,2);
 }
 _regex_periodo=/\d\d\/\d\d\/\d\d\d\d - \d\d\/\d\d\/\d\d\d\d/;
-$with(&::_dettaglio) {
+$with(&*_dettaglio) {
   $between("Spesa per la Materia Prima Energia","Spesa per il trasporto") {
     $foreach($search_all(@,$format(/Comp\. PCV ($0 \N) \u20ac\/cliente\/mese/,_regex_periodo))) {
       $if($check_periodo()) {
@@ -235,7 +235,7 @@ $with(&::_dettaglio) {
 ### Rect 0.15343915343915343 0.014967259120673527 0.035714285714285726 0.025257249766136577
 ### Script
 $if(mese_fattura != mese_fine) {
-  ::calc_mese++;
+  *calc_mese++;
   $nexttable;
   $goto nome_fornitore;
 }

@@ -9,13 +9,13 @@
 ### Rect 0.78485096 0.023945268 0.20306204 0.07639681
 ### Goto Label check_convalida
 ### Spacers
-p+::off_allegato;
+p+*off_allegato;
 ### End Spacers
 ### Script
 $if($doc(ate)) {
-  $error(::ERRORE_LAYOUT_INVALIDO, "Axpo: Stringa di Convalida Errata");
+  $error(*ERRORE_LAYOUT_INVALIDO, "Axpo: Stringa di Convalida Errata");
 } $elif(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero") {
-  ::off_allegato++;
+  *off_allegato++;
   $goto check_convalida;
 }
 ### End Script
@@ -28,18 +28,18 @@ $if($doc(ate)) {
 ### Rect 0.032258064 0.090079814 0.95483875 0.8556215434660633
 ### Goto Label lettura_dettaglio
 ### Spacers
-p+::off_allegato;
-p+::off_dettaglio;
-p+::next_page;
+p+*off_allegato;
+p+*off_dettaglio;
+p+*next_page;
 ### End Spacers
 ### Script
 $if($doc(ate)) {
-  $ifnot($isset(::_dettaglio)) {
-    $error(::ERRORE_DETTAGLIO_MANCANTE, "Axpo: Dettaglio Mancante");
+  $ifnot($isset(*_dettaglio)) {
+    $error(*ERRORE_DETTAGLIO_MANCANTE, "Axpo: Dettaglio Mancante");
   }
 }$elifnot($contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) {
-  ::_dettaglio+=@;
-  ::off_dettaglio++;
+  *_dettaglio+=@;
+  *off_dettaglio++;
   $goto lettura_dettaglio;
 }
 ### End Script
@@ -74,7 +74,7 @@ $setend($indexof(@,"\n"));
 ### Page 1
 ### Rect 0.5112903225806451 0.3080678 0.459281297419355 0.2258688515837104
 ### Spacers
-p+::off_allegato;
+p+*off_allegato;
 ### End Spacers
 ### Script
 %totale_fattura=$search(@,/TOTALE BOLLETTA: (\N)/);
@@ -88,7 +88,7 @@ data_scadenza=$date(@,"%d.%m.%Y",/entro il (\D)/);
 ### Page 1
 ### Rect 0.0315568 0.09791284 0.22615707 0.31941897
 ### Spacers
-p+::off_allegato;
+p+*off_allegato;
 ### End Spacers
 ### Script
 numero_fattura=$search(@,/N\. fattura (\N)/);
@@ -100,9 +100,9 @@ codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/);
 mese_inizio=$month(@,"%d.%m.%Y",/PERIODO (\D) - \D/);
 mese_fine=$month(@,"%d.%m.%Y",/PERIODO \D - (\D)/);
 $if(mese_fine < mese_inizio) {
-  $error(::ERRORE_PERIODO_INVALIDO, "Axpo: Periodo Non Valido");
+  $error(*ERRORE_PERIODO_INVALIDO, "Axpo: Periodo Non Valido");
 }
-mese_fattura=$month_add(mese_inizio,::calc_mese);
+mese_fattura=$month_add(mese_inizio,*calc_mese);
 _mese=$date_format(mese_fattura,"%m\\.%Y");
 ### End Script
 ### End Box
@@ -113,7 +113,7 @@ _mese=$date_format(mese_fattura,"%m\\.%Y");
 ### Page 1
 ### Rect 0.047653962 0.6506787330316742 0.4389663 0.24293085696832573
 ### Spacers
-p+::off_allegato;
+p+*off_allegato;
 ### End Spacers
 ### Script
 iva=$search(@,/Importo IVA (\N%)/);
@@ -126,8 +126,8 @@ iva=$search(@,/Importo IVA (\N%)/);
 ### Page 2
 ### Rect 0.04193548 0.13418806 0.22741936 0.11324638
 ### Spacers
-p+::off_allegato;
-p+::next_page;
+p+*off_allegato;
+p+*next_page;
 ### End Spacers
 ### Script
 $ifnot($isset(codice_pod)) {
@@ -143,8 +143,8 @@ $ifnot($isset(codice_pod)) {
 ### Page 2
 ### Rect 0.02697592032258067 0.2542759474344356 0.9423789183870968 0.029646515507411597
 ### Spacers
-p+::off_allegato;
-p+::next_page;
+p+*off_allegato;
+p+*next_page;
 ### End Spacers
 ### Script
 $between("CONSUMI E LETTURE","Consumi fatturati negli ultimi 12 mesi") {
@@ -167,7 +167,7 @@ $between("CONSUMI E LETTURE","Consumi fatturati negli ultimi 12 mesi") {
 ### Page 3
 ### Rect 0.21504012 0.053452756 0.04193318 0.029393759
 ### Script
-$with(&::_dettaglio) {
+$with(&*_dettaglio) {
   %sbilanciamento=$search($search(@,/Sbilanciamento\n((dal.+\n)+)/),
     $format(/al \d\d\.$0 Euro\/kWh (\N)/,_mese));
   %pcv=$search($search(@,/Prezzo Commercializzazione Vendita\n((dal.+\n)+)/),
@@ -222,23 +222,23 @@ $with(&::_dettaglio) {
 ### Page 3
 ### Rect 0.03840065 0.0989254 0.22611547 0.032341655
 ### Spacers
-p+::off_allegato;
-p+::next_page;
-p+::off_dettaglio;
+p+*off_allegato;
+p+*next_page;
+p+*off_dettaglio;
 ### End Spacers
 ### Script
 $if(mese_fattura != mese_fine) {
   # Prossima tabella multimese
-  ::calc_mese++;
+  *calc_mese++;
   $nexttable;
   $goto nome_fornitore;
 }
 $if(@ == "DATI FORNITURA") {
   # Prossima tabella multipod
-  ::next_page += 1 + ::off_dettaglio;
-  ::off_dettaglio = 0;
+  *next_page += 1 + *off_dettaglio;
+  *off_dettaglio = 0;
   $nexttable;
-  $clear ::_dettaglio;
+  $clear *_dettaglio;
   $goto lettura_dettaglio;
 }
 ### End Script

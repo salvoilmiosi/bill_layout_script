@@ -8,7 +8,7 @@
 ### Rect 0.03387097 0.096921325 0.34032258 0.044469774
 ### Script
 $ifnot($contains(@,"Enel Energia - Mercato libero dell'energia")) {
-  $error(::ERRORE_LAYOUT_INVALIDO, "Enel: Stringa di Convalida Errata");
+  $error(*ERRORE_LAYOUT_INVALIDO, "Enel: Stringa di Convalida Errata");
 }
 ### End Script
 ### End Box
@@ -21,13 +21,13 @@ $ifnot($contains(@,"Enel Energia - Mercato libero dell'energia")) {
 ### Rect 0.053306885 0.20998158 0.3093039 0.027190598
 ### Goto Label calcolo_offset
 ### Spacers
-p+::offset_dettaglio;
+p+*offset_dettaglio;
 ### End Spacers
 ### Script
 $if($doc(ate)) {
-  $error(::ERRORE_DETTAGLIO_MANCANTE, "Enel: Dettaglio Mancante");
+  $error(*ERRORE_DETTAGLIO_MANCANTE, "Enel: Dettaglio Mancante");
 } $elif(@ != "DETTAGLIO IMPORTI IN BOLLETTA") {
-  ::offset_dettaglio++;
+  *offset_dettaglio++;
   $goto calcolo_offset;
 }
 ### End Script
@@ -40,11 +40,11 @@ $if($doc(ate)) {
 ### Rect 0.048197635 0.21550742 0.71199036 0.76047003
 ### Goto Label dettaglio_costi
 ### Spacers
-p+::offset_dettaglio;
-t-::spacer_dettaglio;
+p+*offset_dettaglio;
+t-*spacer_dettaglio;
 ### End Spacers
 ### Script
-::_dettaglio+=@;
+*_dettaglio+=@;
 ### End Script
 ### End Box
 
@@ -55,12 +55,12 @@ t-::spacer_dettaglio;
 ### Page 3
 ### Rect 0.048348106 0.005701254 0.032232072 0.20980616
 ### Spacers
-p+::offset_dettaglio;
+p+*offset_dettaglio;
 ### End Spacers
 ### Script
-::spacer_dettaglio=$box(height);
+*spacer_dettaglio=$box(height);
 $ifnot($doc(ate)) {
-  ::offset_dettaglio++;
+  *offset_dettaglio++;
   $goto dettaglio_costi;
 }
 ### End Script
@@ -143,9 +143,9 @@ mese_fattura=$month(@,"%b. %Y");
 mese_fine=$month(@,"%b. %Y",/\D - (\D)/);
 $if($isset(mese_fine)) {
   $if(mese_fine < mese_fattura) {
-    $error(::ERRORE_PERIODO_INVALIDO, "Enel: Periodo Non Valido");
+    $error(*ERRORE_PERIODO_INVALIDO, "Enel: Periodo Non Valido");
   }
-  mese_fattura=$month_add(mese_fattura,::calc_mese);
+  mese_fattura=$month_add(mese_fattura,*calc_mese);
 }
 ### End Script
 ### End Box
@@ -201,7 +201,7 @@ $if($contains(@,"Energia reattiva")) {
 ### Script
 _fine_periodo = $date_format($last_day(mese_fattura),"%d/%m/%y");
 _regex_periodo = $format(/(.+ dal \d\d\/\d\d\/\d\d al $0[^]+?)(?=\n.+ dal \d\d|Totale|$)/, _fine_periodo);
-$with(&::_dettaglio) {
+$with(&*_dettaglio) {
   $between("SPESA PER L'ENERGIA", "Totale spesa per l'energia") {
     ^spesa_materia_energia=$search_all($search_all(@,_regex_periodo),/.+ (\N)/);
     $step($captures($search($search(@, /Energia (?:fascia F1|ore picco|mese)\n([^]+?)Totale energia/),
@@ -267,7 +267,7 @@ $with(&::_dettaglio) {
 ### Script
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
-    ::calc_mese++;
+    *calc_mese++;
     $nexttable;
     $goto nome_fornitore;
   }

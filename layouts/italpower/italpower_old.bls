@@ -8,12 +8,12 @@
 ### Rect 0.01935488 0.2746439 0.70976573 0.023931593
 ### Goto Label convalida
 ### Spacers
-p+::off_allegato;
+p+*off_allegato;
 ### End Spacers
 ### Script
-$if($doc(ate)) $error(::ERRORE_LAYOUT_INVALIDO, "Italpower: Stringa di Convalida Errata");
+$if($doc(ate)) $error(*ERRORE_LAYOUT_INVALIDO, "Italpower: Stringa di Convalida Errata");
 $elifnot($contains(@,"FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA")) {
-  ::off_allegato++;
+  *off_allegato++;
   $goto convalida;
 } 
 ### End Script
@@ -37,7 +37,7 @@ fornitore="Italpower";
 ### Page 1
 ### Rect 0.016757436 0.3109084 0.29507053 0.07633263
 ### Spacers
-p+::off_allegato;
+p+*off_allegato;
 ### End Spacers
 ### Script
 numero_fattura=$search(@,/Fattura Numero: (.+)\n/);
@@ -52,7 +52,7 @@ data_scadenza=$date(@,"%d/%m/%Y",/Scadenza Fattura: (\D)/);
 ### Page 1
 ### Rect 0.33064517 0.3014754 0.656078 0.27987975
 ### Spacers
-p+::off_allegato;
+p+*off_allegato;
 ### End Spacers
 ### Script
 %totale_fattura=$search(@,/Totale Fattura \u20ac (\N)/);
@@ -66,7 +66,7 @@ iva=$search(@,/IVA (\N%)/);
 ### Page 1
 ### Rect 0.016757436 0.5792475 0.48646837 0.2518474
 ### Spacers
-p+::off_allegato;
+p+*off_allegato;
 ### End Spacers
 ### Script
 numero_cliente=$search(@,/Codice cliente (.+)\n/);
@@ -80,8 +80,8 @@ numero_cliente=$search(@,/Codice cliente (.+)\n/);
 ### Page 2
 ### Rect 0.02086479 0.052815437 0.966129 0.037628278
 ### Spacers
-p+::off_allegato;
-p+::page_offset;
+p+*off_allegato;
+p+*page_offset;
 ### End Spacers
 ### Script
 mese_fattura=$month(@,"%B %Y",/Dettaglio consumi mese di (\D)/);
@@ -94,8 +94,8 @@ mese_fattura=$month(@,"%B %Y",/Dettaglio consumi mese di (\D)/);
 ### Page 2
 ### Rect 0.016346991 0.12086659 0.483653 0.112206854
 ### Spacers
-p+::off_allegato;
-p+::page_offset;
+p+*off_allegato;
+p+*page_offset;
 ### End Spacers
 ### Script
 codice_pod=$search(@,/Codice POD (.+)\n/);
@@ -109,8 +109,8 @@ codice_pod=$search(@,/Codice POD (.+)\n/);
 ### Page 2
 ### Rect 0.5075084 0.13629562 0.42495131 0.06718019
 ### Spacers
-p+::off_allegato;
-p+::page_offset;
+p+*off_allegato;
+p+*page_offset;
 ### End Spacers
 ### Script
 $step($captures(@,/Misura (\N) (\N) (\N)/)) {
@@ -131,8 +131,8 @@ $step($captures(@,/Energia Reattiva \(kVar\) (\N) (\N) (\N)/)) {
 ### Page 2
 ### Rect 0.017741935 0.2531357 0.9758065 0.69359004
 ### Spacers
-p+::off_allegato;
-p+::page_offset;
+p+*off_allegato;
+p+*page_offset;
 ### End Spacers
 ### Script
 %spesa_materia_energia=$search(@,/Servizi di Vendita (\N)/);
@@ -166,12 +166,12 @@ $step($captures(@,/Energia F3 \u20ac\/kWh (\N) Euro (\N)/)) {
 ### Page 3
 ### Rect 0.022580646 0.05587229 0.96129036 0.02622577
 ### Spacers
-p+::off_allegato;
-p+::page_offset;
+p+*off_allegato;
+p+*page_offset;
 ### End Spacers
 ### Script
 $if($contains(@,"Dettaglio consumi")) {
-  ::page_offset++;
+  *page_offset++;
   $nexttable;
   $goto nome_fornitore;
 }

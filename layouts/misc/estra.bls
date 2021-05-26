@@ -9,13 +9,13 @@
 ### Goto Label ricerca_dettaglio
 ### Flags TRIM
 ### Spacers
-p+::off_dettaglio;
+p+*off_dettaglio;
 ### End Spacers
 ### Script
 $if($doc(ate)) {
-  $error(::ERRORE_DETTAGLIO_MANCANTE, "Estra: Dettaglio Mancante");
+  $error(*ERRORE_DETTAGLIO_MANCANTE, "Estra: Dettaglio Mancante");
 } $elif(@ != "ELEMENTI DI DETTAGLIO") {
-  ::off_dettaglio++;
+  *off_dettaglio++;
   $goto ricerca_dettaglio;
 }
 ### End Script
@@ -28,12 +28,12 @@ $if($doc(ate)) {
 ### Rect 0.04032258 0.114025086 0.9370968 0.8540479
 ### Goto Label lettura_dettaglio
 ### Spacers
-p+::off_dettaglio;
+p+*off_dettaglio;
 ### End Spacers
 ### Script
 $ifnot($doc(ate)) {
-  ::_dettaglio+=$replace(@,"\u2212","-");
-  ::off_dettaglio++;
+  *_dettaglio+=$replace(@,"\u2212","-");
+  *off_dettaglio++;
   $goto lettura_dettaglio;
 }
 ### End Script
@@ -62,9 +62,9 @@ data_fattura=$date(@,"%d.%m.%Y",/del (\D)/);
 mese_inizio=$month(@,"%d.%m.%Y",/(\D) - \D/);
 mese_fine=$month(@,"%d.%m.%Y",/\D - (\D)/);
 $if(mese_fine < mese_inizio) {
-  $error(::ERRORE_PERIODO_INVALIDO, "Estra: Periodo Non Valido");
+  $error(*ERRORE_PERIODO_INVALIDO, "Estra: Periodo Non Valido");
 }
-mese_fattura=$month_add(mese_inizio,::calc_mese);
+mese_fattura=$month_add(mese_inizio,*calc_mese);
 _periodo = $format(/\d\d\.\d\d.\d\d\d\d - \d\d\.$0/,$date_format(mese_fattura,"%m.%Y"));
 ### End Script
 ### End Box
@@ -124,7 +124,7 @@ $between("CONSUMI FATTURATI","RIEPILOGO IMPOSTE E IVA") {
 ### Page 3
 ### Rect 0.32258067 0.079041496 0.048387095 0.028506272
 ### Script
-$with(&::_dettaglio) {
+$with(&*_dettaglio) {
   $between("TOTALE MATERIA ENERGIA","TOTALE TRASPORTO E GESTIONE CONTATORE") {
     ^spesa_materia_energia=$search_all(@,$format(/$0 .+ (\N) \N/,_periodo));
     %pcv=$search(@,$format(/Commercializzazione vendita $0 \u20ac\/POD\/mese \N \N (\N)/,_periodo));
@@ -168,7 +168,7 @@ $with(&::_dettaglio) {
 ### Rect 0.3844086 0.07889734 0.043010753 0.02756654
 ### Script
 $if(mese_fattura!=mese_fine) {
-  ::calc_mese++;
+  *calc_mese++;
   $nexttable;
   $goto nome_fornitore;
 }

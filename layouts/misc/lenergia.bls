@@ -116,7 +116,7 @@ $step($captures(@,$format(/\d\d\/$0 Potenza kW (\N) (\N) (\N)/,_mese))) {
 ### Rect 0.053763438 0.06647673 0.912485 0.8831909
 ### Goto Label quadro_dettaglio
 ### Spacers
-p+::page_offset;
+p+*page_offset;
 ### End Spacers
 ### Script
 $step($captures(@,$format(/Indice mese di competenza F1 .+ \d\d\/$0 \u20ac\/kWh (\N) (\N)/,_mese))) {
@@ -143,11 +143,11 @@ $step($captures(@,$format(/Indice mese di competenza F3 .+ \d\d\/$0 \u20ac\/kWh 
 ### Page 6
 ### Rect 0.091051 0.038599394 0.03381893 0.023894865
 ### Spacers
-p+::page_offset;
+p+*page_offset;
 ### End Spacers
 ### Script
 $ifnot($doc(ate)) {
-  ::page_offset++;
+  *page_offset++;
   $goto quadro_dettaglio;
 }
 ### End Script

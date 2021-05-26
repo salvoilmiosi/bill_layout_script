@@ -9,13 +9,13 @@
 ### Rect 0.07399102 0.30294654 0.82919604 0.024828043
 ### Goto Label convalida
 ### Spacers
-p+::off_allegati;
+p+*off_allegati;
 ### End Spacers
 ### Script
 $if($doc(ate)) {
-  $error(::ERRORE_LAYOUT_INVALIDO, "Sorgenia (old): Stringa di Convalida Errata");
+  $error(*ERRORE_LAYOUT_INVALIDO, "Sorgenia (old): Stringa di Convalida Errata");
 } $elif(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO") {
-  ::off_allegati++;
+  *off_allegati++;
   $goto convalida;
 }
 ### End Script
@@ -28,13 +28,13 @@ $if($doc(ate)) {
 ### Rect 0.040290102 0.080957815 0.91055596 0.8734165
 ### Goto Label lettura_dati
 ### Spacers
-p+::off_allegati;
-p+::next_page;
+p+*off_allegati;
+p+*next_page;
 ### End Spacers
 ### Script
 $ifnot($doc(ate) || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
-  ::_dettaglio+=@;
-  ::next_page++;
+  *_dettaglio+=@;
+  *next_page++;
   $goto lettura_dati;
 }
 ### End Script
@@ -58,7 +58,7 @@ fornitore="Sorgenia";
 ### Page 1
 ### Rect 0.48481974 0.010436194 0.46489564 0.104729146
 ### Spacers
-p+::off_allegati;
+p+*off_allegati;
 ### End Spacers
 ### Script
 numero_cliente=$search(@,/(\N)/);
@@ -72,7 +72,7 @@ numero_cliente=$search(@,/(\N)/);
 ### Page 1
 ### Rect 0.076612905 0.15037057 0.38810483 0.02850627
 ### Spacers
-p+::off_allegati;
+p+*off_allegati;
 ### End Spacers
 ### Script
 'ragione_sociale=@;
@@ -85,7 +85,7 @@ p+::off_allegati;
 ### Page 1
 ### Rect 0.08320533 0.3307055 0.34372735 0.038518578
 ### Spacers
-p+::off_allegati;
+p+*off_allegati;
 ### End Spacers
 ### Script
 numero_fattura=$search(@,/N. fattura: (.+)/);
@@ -99,7 +99,7 @@ data_fattura=$date(@,"%d/%m/%Y",/Emessa il (\D)/);
 ### Page 1
 ### Rect 0.43225807 0.32853043 0.48138958 0.06241271
 ### Spacers
-p+::off_allegati;
+p+*off_allegati;
 ### End Spacers
 ### Script
 codice_pod=$search(@,/per il punto di fornitura \(POD\) ([0-9A-Z]+)/);
@@ -113,17 +113,17 @@ codice_pod=$search(@,/per il punto di fornitura \(POD\) ([0-9A-Z]+)/);
 ### Page 1
 ### Rect 0.07073511 0.422843 0.3672129 0.11006591
 ### Spacers
-p+::off_allegati;
+p+*off_allegati;
 ### End Spacers
 ### Script
 mese_fattura=$month(@,"%B %Y");
 mese_fine=$month(@,"%B %Y",/\D\/(\D)/);
 $if(mese_fine < mese_fattura) {
-  $error(::ERRORE_PERIODO_INVALIDO, "Sorgenia: Periodo Non Valido");
+  $error(*ERRORE_PERIODO_INVALIDO, "Sorgenia: Periodo Non Valido");
 }
-mese_fattura=$month_add(mese_fattura,::calc_mese);
+mese_fattura=$month_add(mese_fattura,*calc_mese);
 $ifnot($isset(mese_fattura)) {
-  $error(::ERRORE_PERIODO_INVALIDO, "Sorgenia (old): Mese Fattura Mancante");
+  $error(*ERRORE_PERIODO_INVALIDO, "Sorgenia (old): Mese Fattura Mancante");
 }
 ### End Script
 ### End Box
@@ -134,7 +134,7 @@ $ifnot($isset(mese_fattura)) {
 ### Page 1
 ### Rect 0.6679324 0.422843 0.23481973 0.11006591
 ### Spacers
-p+::off_allegati;
+p+*off_allegati;
 ### End Spacers
 ### Script
 data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/);
@@ -147,7 +147,7 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/);
 ### Page 1
 ### Rect 0.43870968 0.4244267 0.21856391 0.10689852
 ### Spacers
-p+::off_allegati;
+p+*off_allegati;
 ### End Spacers
 ### Script
 %totale_fattura=$search(@,/(\N) \u20ac/);
@@ -160,7 +160,7 @@ p+::off_allegati;
 ### Page 1
 ### Rect 0.65733 0.66411793 0.26752618 0.12493569
 ### Spacers
-p+::off_allegati;
+p+*off_allegati;
 ### End Spacers
 ### Script
 %potenza[0:3]=$search(@,/Potenza impegnata: (\N)/);
@@ -174,13 +174,13 @@ p+::off_allegati;
 ### Page 2
 ### Rect 0.259447 0.028506272 0.057603687 0.04479557
 ### Spacers
-p+::off_allegati;
+p+*off_allegati;
 ### End Spacers
 ### Script
 $import "parsing_dettaglio";
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
-    ::calc_mese++;
+    *calc_mese++;
     $nexttable;
     $goto nome_fornitore;
   }

@@ -9,7 +9,7 @@
 ### Rect 0.07538146 0.31081033 0.82919604 0.024828043
 ### Script
 $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
-  $error(::ERRORE_LAYOUT_INVALIDO, "Sorgenia: Stringa di Convalida Errata");
+  $error(*ERRORE_LAYOUT_INVALIDO, "Sorgenia: Stringa di Convalida Errata");
 ### End Script
 ### End Box
 
@@ -20,12 +20,12 @@ $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
 ### Rect 0.040290102 0.080957815 0.91055596 0.86431015
 ### Goto Label lettura_dati
 ### Spacers
-p+::next_page;
+p+*next_page;
 ### End Spacers
 ### Script
 $ifnot($doc(ate) || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
-  ::_dettaglio+=@;
-  ::next_page++;
+  *_dettaglio+=@;
+  *next_page++;
   $goto lettura_dati;
 }
 ### End Script
@@ -95,11 +95,11 @@ codice_pod=$search(@,/per il punto di fornitura \(POD\) ([0-9A-Z]+)/);
 mese_fattura=$month(@,"%B %Y");
 mese_fine=$month(@,"%B %Y",/\D\/(\D)/);
 $if(mese_fine < mese_fattura) {
-  $error(::ERRORE_PERIODO_INVALIDO, "Sorgenia: Periodo Non Valido");
+  $error(*ERRORE_PERIODO_INVALIDO, "Sorgenia: Periodo Non Valido");
 }
-mese_fattura=$month_add(mese_fattura,::calc_mese);
+mese_fattura=$month_add(mese_fattura,*calc_mese);
 $ifnot($isset(mese_fattura)) {
-  $error(::ERRORE_PERIODO_INVALIDO, "Sorgenia: Mese Fattura Mancante");
+  $error(*ERRORE_PERIODO_INVALIDO, "Sorgenia: Mese Fattura Mancante");
 }
 ### End Script
 ### End Box
@@ -144,7 +144,7 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/);
 $import "parsing_dettaglio";
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
-    ::calc_mese++;
+    *calc_mese++;
     $nexttable;
     $goto nome_fornitore;
   }

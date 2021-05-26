@@ -7,7 +7,7 @@
 ### Rect 0.05645161 0.09578107 0.3467742 0.04104903
 ### Script
 $if($contains(@,"Enel Servizio Elettrico")) {
-  ::fornitore="Enel Energia";
+  *fornitore="Enel Energia";
   $import "sen";
 } $else {
   $import "enel";

@@ -177,12 +177,7 @@ token lexer::next(bool do_advance) {
         tok.type = token_type::TILDE;
         break;
     case ':':
-        if (*m_current == ':') {
-            nextChar();
-            tok.type = token_type::GLOBAL;
-        } else {
-            tok.type = token_type::COLON;
-        }
+        tok.type = token_type::COLON;
         break;
     case '+':
         if (*m_current == '=') {

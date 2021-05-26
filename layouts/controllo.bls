@@ -21,6 +21,6 @@ $elif($contains(@,"Edison Energia SpA")) $import "misc/edison";
 $elif($contains(@,"Estra Energie S.r.l")) $import "misc/estra";
 $elif($contains(@,"HERA COMM s.r.l")) $import "misc/heracomm";
 $elif($contains(@,"AMG GAS S.R.L.")) $import "misc/amg/controllo";
-$else $error(::ERRORE_NON_IMPLEMENTATO, "Nessun Layout");
+$else $error(*ERRORE_NON_IMPLEMENTATO, "Nessun Layout");
 ### End Script
 ### End Box

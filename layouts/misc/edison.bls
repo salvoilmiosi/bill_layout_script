@@ -9,7 +9,7 @@
 ### Rect 0.7381144 0.0045636054 0.23529412 0.022818027
 ### Script
 $if(@ != "ENERGIA ELETTRICA") {
-  $error(::ERRORE_LAYOUT_INVALIDO, "Edison: Stringa di Convalida Errata");
+  $error(*ERRORE_LAYOUT_INVALIDO, "Edison: Stringa di Convalida Errata");
 }
 ### End Script
 ### End Box
@@ -79,9 +79,9 @@ mese_fattura=$month(@,"%B %Y");
 mese_fine=$month(@,"%B %Y",/\D - (\D)/);
 $if($isset(mese_fine)) {
   $if(mese_fine < mese_fattura) {
-    $error(::ERRORE_PERIODO_INVALIDO, "Edison: Periodo Non Valido");
+    $error(*ERRORE_PERIODO_INVALIDO, "Edison: Periodo Non Valido");
   }
-  mese_fattura=$month_add(mese_fattura,::calc_mese);
+  mese_fattura=$month_add(mese_fattura,*calc_mese);
 }
 _mese=$date_format(mese_fattura,"%m/%Y");
 ### End Script
@@ -158,7 +158,7 @@ $with($replace(@,"\u2212","-")) {
 ### Script
 $if($isset(mese_fine)) {
   $if(mese_fattura != mese_fine) {
-    ::calc_mese++;
+    *calc_mese++;
     $nexttable;
     $goto nome_fornitore;
   }

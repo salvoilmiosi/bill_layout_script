@@ -8,6 +8,6 @@
 ### Page 1
 ### Rect 0.32482124616956076 0.022686463946255904 0.02349336057201229 0.01660649819494585
 ### Script
-$error(::ERRORE_NON_IMPLEMENTATO, "AMG: Fattura Gas Non Implementata");
+$error(*ERRORE_NON_IMPLEMENTATO, "AMG: Fattura Gas Non Implementata");
 ### End Script
 ### End Box

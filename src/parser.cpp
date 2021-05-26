@@ -347,7 +347,7 @@ void parser::sub_expression() {
 
 void parser::read_variable_name() {
     variable_selector selvar;
-    if (m_lexer.check_next(token_type::GLOBAL)) {
+    if (m_lexer.check_next(token_type::ASTERISK)) {
         selvar.flags |= selvar_flags::GLOBAL;
     }
     auto tok = m_lexer.next();
@@ -382,7 +382,7 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
     while (in_loop) {
         tok_prefix = m_lexer.next();
         switch (tok_prefix.type) {
-        case token_type::GLOBAL:    add_flags_to(var_idx.flags, selvar_flags::GLOBAL); break;
+        case token_type::ASTERISK:  add_flags_to(var_idx.flags, selvar_flags::GLOBAL); break;
         case token_type::PERCENT:   add_flags_to(prefixes, variable_prefixes::PARSENUM, !read_only); break;
         case token_type::CARET:     add_flags_to(prefixes, variable_prefixes::AGGREGATE, !read_only); break;
         case token_type::SINGLE_QUOTE: add_flags_to(prefixes, variable_prefixes::CAPITALIZE, !read_only); break;
