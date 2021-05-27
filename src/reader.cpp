@@ -137,6 +137,8 @@ void reader::exec_command(const command_args &cmd) {
 
     auto get_doc_info = [&](doc_index idx) -> variable {
         switch (idx) {
+        case doc_index::FILENAME:
+            return m_doc->filename().string();
         case doc_index::NPAGES:
             return m_doc->num_pages();
         case doc_index::ATE:

@@ -34,6 +34,7 @@ DEFINE_ENUM(spacer_index,
 )
 
 DEFINE_ENUM(doc_index,
+    (FILENAME,  static_vector{"filename"})
     (NPAGES,    static_vector{"npages"})
     (ATE,       static_vector{"ate"})
 )
