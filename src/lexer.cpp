@@ -159,7 +159,7 @@ token lexer::next(bool do_advance) {
             nextChar();
             tok.type = token_type::OR;
         } else {
-            ok = false;
+            tok.type = token_type::PIPE;
         }
         break;
     case '!':

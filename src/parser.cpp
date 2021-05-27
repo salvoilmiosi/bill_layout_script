@@ -347,27 +347,6 @@ void parser::sub_expression() {
     }
 }
 
-void parser::read_variable_name() {
-    variable_selector selvar;
-    if (m_lexer.check_next(token_type::ASTERISK)) {
-        selvar.flags |= selvar_flags::GLOBAL;
-    }
-    auto tok = m_lexer.next();
-    switch (tok.type) {
-    case token_type::IDENTIFIER:
-        selvar.name = tok.value;
-        break;
-    case token_type::BRACKET_BEGIN:
-        read_expression();
-        m_lexer.require(token_type::BRACKET_END);
-        selvar.flags |= selvar_flags::DYN_NAME;
-        break;
-    default:
-        throw unexpected_token(tok, token_type::IDENTIFIER);
-    }
-    m_code.add_line<opcode::SELVAR>(std::move(selvar));
-}
-
 bitset<variable_prefixes> parser::read_variable(bool read_only) {
     bitset<variable_prefixes> prefixes;
 
@@ -465,43 +444,24 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
     return prefixes;
 }
 
+template<opcode Cmd>
+void parser::add_enum_index_command() {
+    m_lexer.require(token_type::DOT);
+    auto tok = m_lexer.require(token_type::IDENTIFIER);
+    try {
+        m_code.add_line<Cmd>(find_enum_index<EnumType<Cmd>>(tok.value));
+    } catch (std::out_of_range) {
+        throw parsing_error(fmt::format("Argomento non valido: {}", tok.value), tok);
+    }
+};
+
 void parser::read_function() {
     auto tok_fun_name = m_lexer.require(token_type::FUNCTION);
     auto fun_name = tok_fun_name.value.substr(1);
     
     switch (hash(fun_name)) {
-    case hash("isset"):
-    case hash("size"):
-        m_lexer.require(token_type::PAREN_BEGIN);
-        read_variable_name();
-        m_lexer.require(token_type::PAREN_END);
-        m_code.add_line<opcode::GETSIZE>();
-        if (fun_name == "isset") {
-            m_code.add_line<opcode::CALL>("bool", 1);
-        }
-        break;
-    case hash("box"): {
-        m_lexer.require(token_type::PAREN_BEGIN);
-        auto tok = m_lexer.require(token_type::IDENTIFIER);
-        m_lexer.require(token_type::PAREN_END);
-        try {
-            m_code.add_line<opcode::GETBOX>(find_enum_index<spacer_index>(tok.value));
-        } catch (std::out_of_range) {
-            throw parsing_error(fmt::format("Flag spacer non valido: {}", tok.value), tok);
-        }
-        break;
-    }
-    case hash("doc"): {
-        m_lexer.require(token_type::PAREN_BEGIN);
-        auto tok = m_lexer.require(token_type::IDENTIFIER);
-        m_lexer.require(token_type::PAREN_END);
-        try {
-            m_code.add_line<opcode::GETDOC>(find_enum_index<doc_index>(tok.value));
-        } catch (std::out_of_range) {
-            throw parsing_error(fmt::format("Flag documento non valido: {}", tok.value), tok);
-        }
-        break;
-    }
+    case hash("box"): add_enum_index_command<opcode::GETBOX>(); break;
+    case hash("doc"): add_enum_index_command<opcode::GETDOC>(); break;
     default: {
         small_int num_args = 0;
         m_lexer.require(token_type::PAREN_BEGIN);

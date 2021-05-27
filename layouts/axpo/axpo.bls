@@ -12,7 +12,7 @@
 p+*off_allegato;
 ### End Spacers
 ### Script
-$if($doc(ate)) {
+$if($doc.ate) {
   $error(*ERRORE_LAYOUT_INVALIDO, "Axpo: Stringa di Convalida Errata");
 } $elif(@ != "BOLLETTA\nENERGIA\nELETTRICA\nFornitura del Mercato Libero") {
   *off_allegato++;
@@ -33,8 +33,8 @@ p+*off_dettaglio;
 p+*next_page;
 ### End Spacers
 ### Script
-$if($doc(ate)) {
-  $ifnot($isset(*_dettaglio)) {
+$if($doc.ate) {
+  $ifnot(*_dettaglio) {
     $error(*ERRORE_DETTAGLIO_MANCANTE, "Axpo: Dettaglio Mancante");
   }
 }$elifnot($contains(@,"DATI FORNITURA") || $contains(@,"COMUNICAZIONI")) {
@@ -130,7 +130,7 @@ p+*off_allegato;
 p+*next_page;
 ### End Spacers
 ### Script
-$ifnot($isset(codice_pod)) {
+$ifnot(codice_pod) {
   codice_pod=$search(@,/CODICE POD ([0-9A-Z]+)/);
   'indirizzo_fornitura=$singleline($search(@,/FORNIAMO ENERGIA IN\n([^]+?\d{5}.+)/));
 }

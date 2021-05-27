@@ -77,7 +77,7 @@ codice_pod=$search(@,/POD (.+)/);
 ### Script
 mese_fattura=$month(@,"%B %Y");
 mese_fine=$month(@,"%B %Y",/\D - (\D)/);
-$if($isset(mese_fine)) {
+$if(mese_fine) {
   $if(mese_fine < mese_fattura) {
     $error(*ERRORE_PERIODO_INVALIDO, "Edison: Periodo Non Valido");
   }
@@ -156,7 +156,7 @@ $with($replace(@,"\u2212","-")) {
 ### Page 4
 ### Rect 0.2610798 0.046750285 0.0467365 0.030786773
 ### Script
-$if($isset(mese_fine)) {
+$if(mese_fine) {
   $if(mese_fattura != mese_fine) {
     *calc_mese++;
     $nexttable;

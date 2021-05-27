@@ -23,6 +23,7 @@ DEFINE_ENUM(token_type,
     (PAREN_END,    ")")
     (COMMA,        ",")
     (DOT,          ".")
+    (PIPE,         "|")
     (BRACKET_BEGIN,"[")
     (BRACKET_END,  "]")
     (BRACE_BEGIN,  "{")

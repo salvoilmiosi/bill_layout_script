@@ -83,8 +83,9 @@ private:
     void read_function();
     void read_keyword();
 
-    void read_variable_name();
     bitset<variable_prefixes> read_variable(bool read_only = false);
+
+    template<opcode Cmd> void add_enum_index_command();
 
 private:
     static inline int parser_counter = 0;

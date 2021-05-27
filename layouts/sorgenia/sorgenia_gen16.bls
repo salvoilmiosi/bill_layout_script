@@ -66,16 +66,16 @@ codice_pod=$search(@,/POD \(Punto di prelievo\): (.+)/);
 ### Rect 0.26176625 0.5822756 0.23662084 0.025235059
 ### Script
 mese_fattura=$month(@,"%B %Y");
-$ifnot($isset(mese_fattura)) {
+$ifnot(mese_fattura) {
   mese_fattura=$month(@,"%b %Y",/(\D) - \D/);
   mese_fine=$month(@,"%b %Y",/\D - (\D)/);
 }
-$ifnot($isset(mese_fattura)) {
+$ifnot(mese_fattura) {
   _anno=$search(@,/(\d\d\d\d)/);
   mese_fattura=$month($format("$0 $1",_anno,$search(@,/(\w\w\w) - \w\w\w/)),"%Y %b");
   mese_fine=$month($format("$0 $1",_anno,$search(@,/\w\w\w - (\w\w\w)/)),"%Y %b");
 }
-$if($isset(mese_fine)) {
+$if(mese_fine) {
   $if(mese_fine < mese_fattura) {
     $error(*ERRORE_PERIODO_INVALIDO, "Sorgenia: Periodo Non Valido");
   }
@@ -142,7 +142,7 @@ $step($captures(@,/Prezzo F3 euro\/kWh (\N) (\N)/)) {
 ### Page 2
 ### Rect 0.036764704 0.0058689383 0.030834913 0.017606815
 ### Script
-$if($isset(mese_fine)) {
+$if(mese_fine) {
   $if(mese_fattura != mese_fine) {
     *calc_mese++;
     $nexttable;

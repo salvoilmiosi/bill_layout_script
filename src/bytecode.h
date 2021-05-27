@@ -96,7 +96,6 @@ DEFINE_ENUM_TYPES(opcode,
     (SELVAR, variable_selector)     // (name, index, size, flags) -> selected
     (SETVAR, bitset<setvar_flags>)  // selected, stack -> set
     (CLEAR)                         // selected -> clear
-    (GETSIZE)                       // selected -> size() -> stack
     (PUSHVAR)                       // selected -> stack
     (PUSHREF)                       // selected.str_view -> stack
     (PUSHVIEW)                      // content_stack -> stack

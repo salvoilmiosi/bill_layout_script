@@ -46,7 +46,7 @@ codice_pod = $search(@,/Codice POD: (.+)\n/);
 numero_fattura = $search(@,/Fattura N\. (\w+)/);
 data_fattura = $date(@,"%d/%m/%Y",/Emessa il (\D)/);
 mese_fattura = $month(@,"%d/%m/%Y",/Periodo di riferimento \D - (\D)/);
-$ifnot($isset(mese_fattura)) {
+$ifnot(mese_fattura) {
   $error(*ERRORE_PERIODO_INVALIDO, "MetaEnergia: Mese Fattura Mancante");
 }
 
@@ -94,7 +94,7 @@ numero_cliente = $search(@,/Codice cliente: (.+)\n/);
 p+*next_page;
 ### End Spacers
 ### Script
-$ifnot($doc(ate) || $contains(@,"Comunicazioni finali")) {
+$ifnot($doc.ate || $contains(@,"Comunicazioni finali")) {
   _dettaglio+=@;
   *next_page++;
   $goto lettura_dettaglio;

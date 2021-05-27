@@ -12,7 +12,7 @@
 p+*off_allegati;
 ### End Spacers
 ### Script
-$if($doc(ate)) {
+$if($doc.ate) {
   $error(*ERRORE_LAYOUT_INVALIDO, "Sorgenia (old): Stringa di Convalida Errata");
 } $elif(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO") {
   *off_allegati++;
@@ -32,7 +32,7 @@ p+*off_allegati;
 p+*next_page;
 ### End Spacers
 ### Script
-$ifnot($doc(ate) || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
+$ifnot($doc.ate || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
   *_dettaglio+=@;
   *next_page++;
   $goto lettura_dati;
@@ -122,7 +122,7 @@ $if(mese_fine < mese_fattura) {
   $error(*ERRORE_PERIODO_INVALIDO, "Sorgenia: Periodo Non Valido");
 }
 mese_fattura=$month_add(mese_fattura,*calc_mese);
-$ifnot($isset(mese_fattura)) {
+$ifnot(mese_fattura) {
   $error(*ERRORE_PERIODO_INVALIDO, "Sorgenia (old): Mese Fattura Mancante");
 }
 ### End Script
@@ -178,7 +178,7 @@ p+*off_allegati;
 ### End Spacers
 ### Script
 $import "parsing_dettaglio";
-$if($isset(mese_fine)) {
+$if(mese_fine) {
   $if(mese_fattura != mese_fine) {
     *calc_mese++;
     $nexttable;

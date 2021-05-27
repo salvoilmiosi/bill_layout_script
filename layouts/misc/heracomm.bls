@@ -11,7 +11,7 @@
 p+*off_allegato;
 ### End Spacers
 ### Script
-$if($doc(ate)) {
+$if($doc.ate) {
   $error(*ERRORE_LAYOUT_INVALIDO, "Heracomm: Stringa di Convalida Errata");
 } $elifnot($search(@,/(1 \/ \d+)/)) {
   *off_allegato++;
@@ -48,7 +48,7 @@ p+*off_dettaglio;
 rotate+*rotation;
 ### End Spacers
 ### Script
-$if($isempty(@) || $doc(ate)) $goto nome_fornitore;
+$if($isempty(@) || $doc.ate) $goto nome_fornitore;
 $else {
   *_dettaglio+=@;
 }
@@ -223,14 +223,14 @@ $with(&*_dettaglio) {
         $if($date_between(mese_fattura,$date(@,"%d.%m.%Y",/dal (\D) al \D/),$date(@,"%d.%m.%Y",/dal \D al (\D)/))) {
           trasporto_gestione+=$trunc($num($search(@,/\u20ac\/kWh (\N)/)) * _totale_consumi, 2);
           %prezzo_inf75=$search(@,/Corrispettivi energia reattiva entro 75% \u20ac\/kVARh (\N)/);
-          $if($isset(prezzo_inf75)) {
+          $if(prezzo_inf75) {
             %penale_reattiva_inf75=$trunc($sum(
               $max(0, energia_reattiva[0] - energia_attiva[0]*0.33),
               $max(0, energia_reattiva[1] - energia_attiva[1]*0.33)) * prezzo_inf75, 2);
             trasporto_gestione+=penale_reattiva_inf75;
           }
           %prezzo_sup75=$search(@,/Corrispettivi energia reattiva oltre 75% \u20ac\/kVARh (\N)/);
-          $if($isset(prezzo_sup75)) {
+          $if(prezzo_sup75) {
             penale_reattiva_sup75=$trunc($sum(
               $max(0, energia_reattiva[0] - energia_attiva[0]*0.75),
               $max(0, energia_reattiva[1] - energia_attiva[1]*0.75)) * prezzo_sup75, 2);

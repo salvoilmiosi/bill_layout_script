@@ -12,7 +12,7 @@
 p+*off_dettaglio;
 ### End Spacers
 ### Script
-$if($doc(ate)) {
+$if($doc.ate) {
   $error(*ERRORE_DETTAGLIO_MANCANTE, "Estra: Dettaglio Mancante");
 } $elif(@ != "ELEMENTI DI DETTAGLIO") {
   *off_dettaglio++;
@@ -31,7 +31,7 @@ $if($doc(ate)) {
 p+*off_dettaglio;
 ### End Spacers
 ### Script
-$ifnot($doc(ate)) {
+$ifnot($doc.ate) {
   *_dettaglio+=$replace(@,"\u2212","-");
   *off_dettaglio++;
   $goto lettura_dettaglio;

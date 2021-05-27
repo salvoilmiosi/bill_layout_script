@@ -23,7 +23,7 @@ $if(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO")
 p+*next_page;
 ### End Spacers
 ### Script
-$ifnot($doc(ate) || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
+$ifnot($doc.ate || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
   *_dettaglio+=@;
   *next_page++;
   $goto lettura_dati;
@@ -98,7 +98,7 @@ $if(mese_fine < mese_fattura) {
   $error(*ERRORE_PERIODO_INVALIDO, "Sorgenia: Periodo Non Valido");
 }
 mese_fattura=$month_add(mese_fattura,*calc_mese);
-$ifnot($isset(mese_fattura)) {
+$ifnot(mese_fattura) {
   $error(*ERRORE_PERIODO_INVALIDO, "Sorgenia: Mese Fattura Mancante");
 }
 ### End Script
@@ -142,7 +142,7 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/);
 ### Rect 0.26032954 0.030786771 0.057603687 0.04479557
 ### Script
 $import "parsing_dettaglio";
-$if($isset(mese_fine)) {
+$if(mese_fine) {
   $if(mese_fattura != mese_fine) {
     *calc_mese++;
     $nexttable;
