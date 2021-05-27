@@ -336,10 +336,12 @@ void parser::sub_expression() {
         break;
     default: {
         auto prefixes = read_variable(true);
-        if (prefixes & variable_prefixes::REF) {
-            m_code.add_line<opcode::PUSHREF>();
-        } else {
-            m_code.add_line<opcode::PUSHVAR>();
+        if (m_code.last_not_comment().command() != opcode::PUSHARG) {
+            if (prefixes & variable_prefixes::REF) {
+                m_code.add_line<opcode::PUSHREF>();
+            } else {
+                m_code.add_line<opcode::PUSHVAR>();
+            }
         }
     }
     }
@@ -401,6 +403,13 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
             break;
         default:
             throw unexpected_token(tok_prefix, token_type::IDENTIFIER);
+        }
+    }
+
+    if (read_only) {
+        if (auto it = std::ranges::find(m_fun_args, var_idx.name); it != m_fun_args.end()) {
+            m_code.add_line<opcode::PUSHARG>(it - m_fun_args.begin());
+            return {};
         }
     }
 
@@ -490,17 +499,6 @@ void parser::read_function() {
             m_code.add_line<opcode::GETDOC>(find_enum_index<doc_index>(tok.value));
         } catch (std::out_of_range) {
             throw parsing_error(fmt::format("Flag documento non valido: {}", tok.value), tok);
-        }
-        break;
-    }
-    case hash("arg"): {
-        m_lexer.require(token_type::PAREN_BEGIN);
-        auto tok = m_lexer.require(token_type::IDENTIFIER);
-        m_lexer.require(token_type::PAREN_END);
-        if (auto it = std::ranges::find(m_fun_args, tok.value); it != m_fun_args.end()) {
-            m_code.add_line<opcode::PUSHARG>(it - m_fun_args.begin());
-        } else {
-            throw parsing_error(fmt::format("Argomento funzione sconosciuto: {}", tok.value), tok);
         }
         break;
     }
