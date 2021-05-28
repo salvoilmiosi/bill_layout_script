@@ -170,7 +170,7 @@ $goto lettura_spese;
 ### Rect 0.19357695 0.047890533 0.046551988 0.030786768
 ### Goto Label parsing_spese
 ### Script
-$with(&_dettaglio) {
+$with(_dettaglio) {
   $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")));
   $setend($indexof(@,"TOT. \u20ac", $indexof(@,"\n")));
 

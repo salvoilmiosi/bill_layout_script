@@ -180,7 +180,7 @@ $function calc_parziale(@) {
   $return $trunc(_tot,2);
 }
 _regex_periodo=/\d\d\/\d\d\/\d\d\d\d - \d\d\/\d\d\/\d\d\d\d/;
-$with(&*_dettaglio) {
+$with(*_dettaglio) {
   $between("Spesa per la Materia Prima Energia","Spesa per il trasporto") {
     $foreach($search_all(@,$format(/Comp\. PCV ($0 \N) \u20ac\/cliente\/mese/,_regex_periodo))) {
       $if($check_periodo()) {

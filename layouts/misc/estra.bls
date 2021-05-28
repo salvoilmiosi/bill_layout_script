@@ -124,7 +124,7 @@ $between("CONSUMI FATTURATI","RIEPILOGO IMPOSTE E IVA") {
 ### Page 3
 ### Rect 0.32258067 0.079041496 0.048387095 0.028506272
 ### Script
-$with(&*_dettaglio) {
+$with(*_dettaglio) {
   $between("TOTALE MATERIA ENERGIA","TOTALE TRASPORTO E GESTIONE CONTATORE") {
     ^spesa_materia_energia=$search_all(@,$format(/$0 .+ (\N) \N/,_periodo));
     %pcv=$search(@,$format(/Commercializzazione vendita $0 \u20ac\/POD\/mese \N \N (\N)/,_periodo));

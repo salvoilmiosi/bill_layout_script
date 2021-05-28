@@ -109,7 +109,7 @@ $ifnot($doc.ate || $contains(@,"Comunicazioni finali")) {
 ### Page 2
 ### Rect 0.3080384 0.08228446 0.04617861 0.029602662
 ### Script
-$with(&_dettaglio) {
+$with(_dettaglio) {
   $step($captures($search(@,/Energia attiva \(kWh\)\n((Dal.+\n)+)/),
     $format(/al \d\d\/$0 \w+ (\N) (\N) (\N)/,_mese))) {
     .%energia_attiva_rilevata[0]; .%energia_attiva_rilevata[1]; .%energia_attiva_rilevata[2];

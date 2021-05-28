@@ -337,11 +337,7 @@ void parser::sub_expression() {
     default: {
         auto prefixes = read_variable(true);
         if (m_code.last_not_comment().command() != opcode::PUSHARG) {
-            if (prefixes & variable_prefixes::REF) {
-                m_code.add_line<opcode::PUSHREF>();
-            } else {
-                m_code.add_line<opcode::PUSHVAR>();
-            }
+            m_code.add_line<opcode::PUSHVAR>();
         }
     }
     }
@@ -354,8 +350,8 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
 
     token tok_prefix;
 
-    auto add_flags_to = [&](auto &out, auto flags, bool condition = true) {
-        if ((out & flags) || !condition) throw unexpected_token(tok_prefix, token_type::IDENTIFIER);
+    auto add_flags_to = [&](auto &out, auto flags, bool read_write = false) {
+        if ((out & flags) || (!read_write && read_only)) throw unexpected_token(tok_prefix, token_type::IDENTIFIER);
         out |= flags;
     };
     
@@ -363,13 +359,12 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
     while (in_loop) {
         tok_prefix = m_lexer.next();
         switch (tok_prefix.type) {
-        case token_type::ASTERISK:  add_flags_to(var_idx.flags, selvar_flags::GLOBAL); break;
-        case token_type::PERCENT:   add_flags_to(prefixes, variable_prefixes::PARSENUM, !read_only); break;
-        case token_type::CARET:     add_flags_to(prefixes, variable_prefixes::AGGREGATE, !read_only); break;
-        case token_type::SINGLE_QUOTE: add_flags_to(prefixes, variable_prefixes::CAPITALIZE, !read_only); break;
-        case token_type::TILDE:     add_flags_to(prefixes, variable_prefixes::OVERWRITE, !read_only); break;
-        case token_type::NOT:       add_flags_to(prefixes, variable_prefixes::FORCE, !read_only); break;
-        case token_type::AMPERSAND: add_flags_to(prefixes, variable_prefixes::REF, read_only); break;
+        case token_type::ASTERISK:      add_flags_to(var_idx.flags, selvar_flags::GLOBAL, true); break;
+        case token_type::PERCENT:       add_flags_to(prefixes, variable_prefixes::PARSENUM); break;
+        case token_type::CARET:         add_flags_to(prefixes, variable_prefixes::AGGREGATE); break;
+        case token_type::SINGLE_QUOTE:  add_flags_to(prefixes, variable_prefixes::CAPITALIZE); break;
+        case token_type::TILDE:         add_flags_to(prefixes, variable_prefixes::OVERWRITE); break;
+        case token_type::NOT:           add_flags_to(prefixes, variable_prefixes::FORCE); break;
         case token_type::BRACKET_BEGIN:
             read_expression();
             m_lexer.require(token_type::BRACKET_END);

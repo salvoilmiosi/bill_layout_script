@@ -198,7 +198,7 @@ $function calc_penale_reattiva(@, percent_reattiva, format_str) {
   }
   $return _ret;
 }
-$with(&*_dettaglio) {
+$with(*_dettaglio) {
   _periodo=$format(/\d\d\/\d\d\/\d\d\d\d-\s*\d\d\/$0/,$date_format(mese_fattura,"%m/%Y"));
   _periodo_generic=/\d{2}\/\d{2}\/\d{4}\s*-\s*\d{2}\/\d{2}\/\d{4}/;
   $between("","Totale materia energia") {

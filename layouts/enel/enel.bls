@@ -201,7 +201,7 @@ $if($contains(@,"Energia reattiva")) {
 ### Script
 _fine_periodo = $date_format($last_day(mese_fattura),"%d/%m/%y");
 _regex_periodo = $format(/(.+ dal \d\d\/\d\d\/\d\d al $0[^]+?)(?=\n.+ dal \d\d|Totale|$)/, _fine_periodo);
-$with(&*_dettaglio) {
+$with(*_dettaglio) {
   $between("SPESA PER L'ENERGIA", "Totale spesa per l'energia") {
     ^spesa_materia_energia=$search_all($search_all(@,_regex_periodo),/.+ (\N)/);
     $step($captures($search($search(@, /Energia (?:fascia F1|ore picco|mese)\n([^]+?)Totale energia/),

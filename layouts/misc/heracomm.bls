@@ -126,7 +126,7 @@ rotate+*rotation;
 ### Page 4
 ### Rect 0.34734598900075014 0.06527792929611916 0.028054298642533948 0.03457106274007682
 ### Script
-$with(&*_dettaglio) {
+$with(*_dettaglio) {
   $newview {
     $setbegin($min($indexof(@,"Quadro di dettaglio"),$indexof(@,"Elementi di dettaglio")));
     $setend($indexof(@,"\n"));

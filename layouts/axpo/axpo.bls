@@ -167,7 +167,7 @@ $between("CONSUMI E LETTURE","Consumi fatturati negli ultimi 12 mesi") {
 ### Page 3
 ### Rect 0.21504012 0.053452756 0.04193318 0.029393759
 ### Script
-$with(&*_dettaglio) {
+$with(*_dettaglio) {
   %sbilanciamento=$search($search(@,/Sbilanciamento\n((dal.+\n)+)/),
     $format(/al \d\d\.$0 Euro\/kWh (\N)/,_mese));
   %pcv=$search($search(@,/Prezzo Commercializzazione Vendita\n((dal.+\n)+)/),

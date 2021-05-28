@@ -180,6 +180,9 @@ void parser::read_keyword() {
             read_expression();
             m_lexer.require(token_type::PAREN_END);
             ++m_content_level;
+            if (auto &last = m_code.last_not_comment(); last.command() == opcode::PUSHVAR) {
+                last = make_command<opcode::PUSHREF>();
+            }
             m_code.add_line<opcode::ADDCONTENT>();
             pushed_content = true;
         }
@@ -204,6 +207,9 @@ void parser::read_keyword() {
         read_expression();
         m_lexer.require(token_type::PAREN_END);
         ++m_content_level;
+        if (auto &last = m_code.last_not_comment(); last.command() == opcode::PUSHVAR) {
+            last = make_command<opcode::PUSHREF>();
+        }
         m_code.add_line<opcode::ADDCONTENT>();
         read_statement();
         --m_content_level;
@@ -249,6 +255,9 @@ void parser::read_keyword() {
             read_expression();
             m_lexer.require(token_type::PAREN_END);
             ++m_content_level;
+            if (auto &last = m_code.last_not_comment(); last.command() == opcode::PUSHVAR) {
+                last = make_command<opcode::PUSHREF>();
+            }
             m_code.add_line<opcode::ADDCONTENT>();
             pushed_content = true;
         }
