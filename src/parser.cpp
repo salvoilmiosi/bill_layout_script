@@ -352,10 +352,19 @@ variable_prefixes parser::read_variable(bool read_only) {
         return parsing_error("Contesto di sola lettura", tok);
     };
 
-    auto add_flags_to = [&](auto &out, auto flags, bool read_write = false) {
+    auto add_flags_to = [&](auto &out, auto flags) {
         if (out & flags) throw parsing_error("Prefisso duplicato", tok_prefix);
-        if (!read_write && read_only) throw read_only_error(tok_prefix);
         out |= flags;
+    };
+
+    auto add_flags = overloaded {
+        [&](selvar_flags flags) {
+            add_flags_to(selvar.flags, flags);
+        },
+        [&](setvar_flags flags) {
+            if (read_only) throw read_only_error(tok_prefix);
+            add_flags_to(prefixes.flags, flags);
+        }
     };
 
     auto add_function_call = [&](std::string_view fun_name) {
@@ -371,9 +380,9 @@ variable_prefixes parser::read_variable(bool read_only) {
     while (in_loop) {
         tok_prefix = m_lexer.next();
         switch (tok_prefix.type) {
-        case token_type::ASTERISK:      add_flags_to(selvar.flags, selvar_flags::GLOBAL, true); break;
-        case token_type::TILDE:         add_flags_to(prefixes.flags, setvar_flags::OVERWRITE); break;
-        case token_type::NOT:           add_flags_to(prefixes.flags, setvar_flags::FORCE); break;
+        case token_type::ASTERISK:      add_flags(selvar_flags::GLOBAL); break;
+        case token_type::TILDE:         add_flags(setvar_flags::OVERWRITE); break;
+        case token_type::NOT:           add_flags(setvar_flags::FORCE); break;
         case token_type::PERCENT:       add_function_call("num"); break;
         case token_type::CARET:         add_function_call("aggregate"); break;
         case token_type::SINGLE_QUOTE:  add_function_call("capitalize"); break;
