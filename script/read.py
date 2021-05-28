@@ -95,6 +95,7 @@ def read_pdf(pdf_file):
     except pyreader.FatalError as err:
         ret['errcode'] = -2
         ret['error'] = str(err)
+        ret['layouts'] = []
         print('\033[34m{0} ### {1}\033[0m'.format(rel_path, ret['error']))
 
     return ret
