@@ -212,19 +212,27 @@ void parser::sub_statement() {
 }
 
 void parser::read_expression() {
-    static const std::map<token_type, std::tuple<int, command_args>> operators = {
-        {token_type::ASTERISK,      {6, make_command<opcode::CALL>("mul", 2)}},
-        {token_type::SLASH,         {6, make_command<opcode::CALL>("div", 2)}},
-        {token_type::PLUS,          {5, make_command<opcode::CALL>("add", 2)}},
-        {token_type::MINUS,         {5, make_command<opcode::CALL>("sub", 2)}},
-        {token_type::LESS,          {4, make_command<opcode::CALL>("lt", 2)}},
-        {token_type::LESS_EQ,       {4, make_command<opcode::CALL>("leq", 2)}},
-        {token_type::GREATER,       {4, make_command<opcode::CALL>("gt", 2)}},
-        {token_type::GREATER_EQ,    {4, make_command<opcode::CALL>("geq", 2)}},
-        {token_type::EQUALS,        {3, make_command<opcode::CALL>("eq", 2)}},
-        {token_type::NOT_EQUALS,    {3, make_command<opcode::CALL>("neq", 2)}},
-        {token_type::AND,           {2, make_command<opcode::CALL>("and", 2)}},
-        {token_type::OR,            {1, make_command<opcode::CALL>("or", 2)}},
+    struct operator_precedence {
+        command_args command;
+        int precedence;
+
+        operator_precedence(std::string_view fun_name, int precedence)
+            : command(make_command<opcode::CALL>(fun_name, 2))
+            , precedence(precedence) {}
+    };
+    static const std::map<token_type, operator_precedence> operators = {
+        {token_type::ASTERISK,      {"mul", 6}},
+        {token_type::SLASH,         {"div", 6}},
+        {token_type::PLUS,          {"add", 5}},
+        {token_type::MINUS,         {"sub", 5}},
+        {token_type::LESS,          {"lt",  4}},
+        {token_type::LESS_EQ,       {"leq", 4}},
+        {token_type::GREATER,       {"gt",  4}},
+        {token_type::GREATER_EQ,    {"geq", 4}},
+        {token_type::EQUALS,        {"eq",  3}},
+        {token_type::NOT_EQUALS,    {"neq", 3}},
+        {token_type::AND,           {"and", 2}},
+        {token_type::OR,            {"or",  1}},
     };
 
     sub_expression();
@@ -237,8 +245,8 @@ void parser::read_expression() {
         if (it == std::end(operators)) break;
         
         m_lexer.advance(tok_op);
-        if (!op_stack.empty() && std::get<int>(op_stack.back()->second) >= std::get<int>(it->second)) {
-            m_code.push_back(std::get<command_args>(op_stack.back()->second));
+        if (!op_stack.empty() && op_stack.back()->second.precedence >= it->second.precedence) {
+            m_code.push_back(op_stack.back()->second.command);
             op_stack.pop_back();
         }
         op_stack.push_back(it);
@@ -246,7 +254,7 @@ void parser::read_expression() {
     }
 
     while (!op_stack.empty()) {
-        m_code.push_back(std::get<command_args>(op_stack.back()->second));
+        m_code.push_back(op_stack.back()->second.command);
         op_stack.pop_back();
     }
 }
