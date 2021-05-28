@@ -340,30 +340,35 @@ variable_prefixes parser::read_variable(bool read_only) {
 
     token tok_prefix;
 
+    auto read_only_error = [](const token &tok) {
+        return parsing_error("Contesto di sola lettura", tok);
+    };
+
     auto add_flags_to = [&](auto &out, auto flags, bool read_write = false) {
-        if ((out & flags) || (!read_write && read_only)) throw unexpected_token(tok_prefix, token_type::IDENTIFIER);
+        if (out & flags) throw parsing_error("Prefisso duplicato", tok_prefix);
+        if (!read_write && read_only) throw read_only_error(tok_prefix);
         out |= flags;
     };
 
-    static const std::map<token_type, command_args> variable_prefix_tokens = {
-        {token_type::PERCENT,       make_command<opcode::CALL>("num", 1)},
-        {token_type::CARET,         make_command<opcode::CALL>("aggregate", 1)},
-        {token_type::SINGLE_QUOTE,  make_command<opcode::CALL>("capitalize", 1)}
+    auto add_function_call = [&](std::string_view fun_name) {
+        if (read_only) throw read_only_error(tok_prefix);
+        if (prefixes.call.command() == opcode::NOP) {
+            prefixes.call = make_command<opcode::CALL>(fun_name, 1);
+        } else {
+            throw parsing_error("Ammesso solo un prefisso di funzione", tok_prefix);
+        }
     };
     
     bool in_loop = true;
     while (in_loop) {
         tok_prefix = m_lexer.next();
-        if (auto it = variable_prefix_tokens.find(tok_prefix.type); it != variable_prefix_tokens.end()) {
-            if (prefixes.call.command() == opcode::NOP) {
-                prefixes.call = it->second;
-            } else {
-                throw unexpected_token(tok_prefix, token_type::IDENTIFIER);
-            }
-        } else switch (tok_prefix.type) {
+        switch (tok_prefix.type) {
         case token_type::ASTERISK:      add_flags_to(selvar.flags, selvar_flags::GLOBAL, true); break;
         case token_type::TILDE:         add_flags_to(prefixes.flags, setvar_flags::OVERWRITE); break;
         case token_type::NOT:           add_flags_to(prefixes.flags, setvar_flags::FORCE); break;
+        case token_type::PERCENT:       add_function_call("num"); break;
+        case token_type::CARET:         add_function_call("aggregate"); break;
+        case token_type::SINGLE_QUOTE:  add_function_call("capitalize"); break;
         case token_type::BRACKET_BEGIN:
             read_expression();
             m_lexer.require(token_type::BRACKET_END);
@@ -391,7 +396,7 @@ variable_prefixes parser::read_variable(bool read_only) {
         token tok = m_lexer.peek();
         switch (tok.type) {
         case token_type::COLON: {
-            if (read_only) throw unexpected_token(tok, token_type::INTEGER);
+            if (read_only) throw read_only_error(tok);
             m_lexer.advance(tok);
             tok = m_lexer.peek();
             switch (tok.type) {
@@ -411,7 +416,7 @@ variable_prefixes parser::read_variable(bool read_only) {
             break;
         }
         case token_type::BRACKET_END:
-            if (read_only) throw unexpected_token(tok, token_type::INTEGER);
+            if (read_only) throw read_only_error(tok);
             selvar.flags |= selvar_flags::APPEND; // variable[] -- append
             break;
         default:
@@ -422,7 +427,7 @@ variable_prefixes parser::read_variable(bool read_only) {
                 selvar.flags |= selvar_flags::DYN_IDX;
             }
             if (tok = m_lexer.check_next(token_type::COLON)) { // variable[N:M] -- M times after index N
-                if (read_only) throw unexpected_token(tok, token_type::BRACKET_END);
+                if (read_only) throw read_only_error(tok);
                 if (tok = m_lexer.check_next(token_type::INTEGER)) {
                     selvar.length = string_to<int>(tok.value);
                 } else {
