@@ -11,13 +11,11 @@
 #include "bytecode.h"
 #include "stack.h"
 
-DEFINE_ENUM_FLAGS(variable_prefixes,
-    (OVERWRITE)
-    (PARSENUM)
-    (AGGREGATE)
-    (CAPITALIZE)
-    (FORCE)
-)
+struct variable_prefixes {
+    bitset<setvar_flags> flags;
+    command_args call;
+    bool function_arg = false;
+};
 
 DEFINE_ENUM_FLAGS(parser_flags,
     (ADD_COMMENTS)
@@ -82,7 +80,7 @@ private:
     void read_function();
     void read_keyword();
 
-    bitset<variable_prefixes> read_variable(bool read_only = false);
+    variable_prefixes read_variable(bool read_only = false);
 
     template<opcode Cmd> void add_enum_index_command();
 

@@ -173,8 +173,6 @@ void parser::sub_statement() {
     auto selvar_begin = m_code.size();
     auto prefixes = read_variable(false);
     auto selvar_end = m_code.size();
-    
-    bitset<setvar_flags> flags;
 
     if (dot) {
         m_code.add_line<opcode::PUSHVIEW>();
@@ -182,19 +180,19 @@ void parser::sub_statement() {
         tok = m_lexer.next();
         switch (tok.type) {
         case token_type::SUB_ASSIGN:
-            flags |= setvar_flags::DECREASE;
+            prefixes.flags |= setvar_flags::DECREASE;
             read_expression();
             break;
         case token_type::ADD_ASSIGN:
-            flags |= setvar_flags::INCREASE;
+            prefixes.flags |= setvar_flags::INCREASE;
             read_expression();
             break;
         case token_type::ADD_ONE:
-            flags |= setvar_flags::INCREASE;
+            prefixes.flags |= setvar_flags::INCREASE;
             m_code.add_line<opcode::PUSHINT>(1);
             break;
         case token_type::SUB_ONE:
-            flags |= setvar_flags::DECREASE;
+            prefixes.flags |= setvar_flags::DECREASE;
             m_code.add_line<opcode::PUSHINT>(1);
             break;
         case token_type::ASSIGN:
@@ -205,19 +203,12 @@ void parser::sub_statement() {
         }
     }
 
-    if (prefixes & variable_prefixes::CAPITALIZE) {
-        m_code.add_line<opcode::CALL>("capitalize", 1);
+    if (prefixes.call.command() != opcode::NOP) {
+        m_code.push_back(prefixes.call);
     }
-    if (prefixes & variable_prefixes::AGGREGATE) {
-        m_code.add_line<opcode::CALL>("aggregate", 1);
-    } else if (prefixes & variable_prefixes::PARSENUM) {
-        m_code.add_line<opcode::CALL>("num", 1);
-    }
-    if (prefixes & variable_prefixes::OVERWRITE)  flags |= setvar_flags::OVERWRITE;
-    if (prefixes & variable_prefixes::FORCE)      flags |= setvar_flags::FORCE;
 
     m_code.move_not_comments(selvar_begin, selvar_end);
-    m_code.add_line<opcode::SETVAR>(flags);
+    m_code.add_line<opcode::SETVAR>(prefixes.flags);
 }
 
 void parser::read_expression() {
@@ -336,17 +327,16 @@ void parser::sub_expression() {
         break;
     default: {
         auto prefixes = read_variable(true);
-        if (m_code.last_not_comment().command() != opcode::PUSHARG) {
+        if (!prefixes.function_arg) {
             m_code.add_line<opcode::PUSHVAR>();
         }
     }
     }
 }
 
-bitset<variable_prefixes> parser::read_variable(bool read_only) {
-    bitset<variable_prefixes> prefixes;
-
-    variable_selector var_idx;
+variable_prefixes parser::read_variable(bool read_only) {
+    variable_prefixes prefixes;
+    variable_selector selvar;
 
     token tok_prefix;
 
@@ -354,25 +344,34 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
         if ((out & flags) || (!read_write && read_only)) throw unexpected_token(tok_prefix, token_type::IDENTIFIER);
         out |= flags;
     };
+
+    static const std::map<token_type, command_args> variable_prefix_tokens = {
+        {token_type::PERCENT,       make_command<opcode::CALL>("num", 1)},
+        {token_type::CARET,         make_command<opcode::CALL>("aggregate", 1)},
+        {token_type::SINGLE_QUOTE,  make_command<opcode::CALL>("capitalize", 1)}
+    };
     
     bool in_loop = true;
     while (in_loop) {
         tok_prefix = m_lexer.next();
-        switch (tok_prefix.type) {
-        case token_type::ASTERISK:      add_flags_to(var_idx.flags, selvar_flags::GLOBAL, true); break;
-        case token_type::PERCENT:       add_flags_to(prefixes, variable_prefixes::PARSENUM); break;
-        case token_type::CARET:         add_flags_to(prefixes, variable_prefixes::AGGREGATE); break;
-        case token_type::SINGLE_QUOTE:  add_flags_to(prefixes, variable_prefixes::CAPITALIZE); break;
-        case token_type::TILDE:         add_flags_to(prefixes, variable_prefixes::OVERWRITE); break;
-        case token_type::NOT:           add_flags_to(prefixes, variable_prefixes::FORCE); break;
+        if (auto it = variable_prefix_tokens.find(tok_prefix.type); it != variable_prefix_tokens.end()) {
+            if (prefixes.call.command() == opcode::NOP) {
+                prefixes.call = it->second;
+            } else {
+                throw unexpected_token(tok_prefix, token_type::IDENTIFIER);
+            }
+        } else switch (tok_prefix.type) {
+        case token_type::ASTERISK:      add_flags_to(selvar.flags, selvar_flags::GLOBAL, true); break;
+        case token_type::TILDE:         add_flags_to(prefixes.flags, setvar_flags::OVERWRITE); break;
+        case token_type::NOT:           add_flags_to(prefixes.flags, setvar_flags::FORCE); break;
         case token_type::BRACKET_BEGIN:
             read_expression();
             m_lexer.require(token_type::BRACKET_END);
-            var_idx.flags |= selvar_flags::DYN_NAME;
+            selvar.flags |= selvar_flags::DYN_NAME;
             in_loop = false;
             break;
         case token_type::IDENTIFIER:
-            var_idx.name = tok_prefix.value;
+            selvar.name = tok_prefix.value;
             in_loop = false;
             break;
         default:
@@ -381,9 +380,10 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
     }
 
     if (read_only) {
-        if (auto it = std::ranges::find(m_fun_args, var_idx.name); it != m_fun_args.end()) {
+        if (auto it = std::ranges::find(m_fun_args, selvar.name); it != m_fun_args.end()) {
             m_code.add_line<opcode::PUSHARG>(it - m_fun_args.begin());
-            return {};
+            prefixes.function_arg = true;
+            return prefixes;
         }
     }
 
@@ -396,45 +396,45 @@ bitset<variable_prefixes> parser::read_variable(bool read_only) {
             tok = m_lexer.peek();
             switch (tok.type) {
             case token_type::BRACKET_END:
-                var_idx.flags |= selvar_flags::EACH; // variable[:]
+                selvar.flags |= selvar_flags::EACH; // variable[:]
                 break;
             case token_type::INTEGER: // variable[:N] -- append N times
                 m_lexer.advance(tok);
-                var_idx.flags |= selvar_flags::APPEND;
-                var_idx.length = string_to<int>(tok.value);
+                selvar.flags |= selvar_flags::APPEND;
+                selvar.length = string_to<int>(tok.value);
                 break;
             default:
                 read_expression();
-                var_idx.flags |= selvar_flags::APPEND;
-                var_idx.flags |= selvar_flags::DYN_LEN;
+                selvar.flags |= selvar_flags::APPEND;
+                selvar.flags |= selvar_flags::DYN_LEN;
             }
             break;
         }
         case token_type::BRACKET_END:
             if (read_only) throw unexpected_token(tok, token_type::INTEGER);
-            var_idx.flags |= selvar_flags::APPEND; // variable[] -- append
+            selvar.flags |= selvar_flags::APPEND; // variable[] -- append
             break;
         default:
             if (tok = m_lexer.check_next(token_type::INTEGER)) { // variable[N]
-                var_idx.index = string_to<int>(tok.value);
+                selvar.index = string_to<int>(tok.value);
             } else {
                 read_expression();
-                var_idx.flags |= selvar_flags::DYN_IDX;
+                selvar.flags |= selvar_flags::DYN_IDX;
             }
             if (tok = m_lexer.check_next(token_type::COLON)) { // variable[N:M] -- M times after index N
                 if (read_only) throw unexpected_token(tok, token_type::BRACKET_END);
                 if (tok = m_lexer.check_next(token_type::INTEGER)) {
-                    var_idx.length = string_to<int>(tok.value);
+                    selvar.length = string_to<int>(tok.value);
                 } else {
                     read_expression();
-                    var_idx.flags |= selvar_flags::DYN_LEN;
+                    selvar.flags |= selvar_flags::DYN_LEN;
                 }
             }
         }
         m_lexer.require(token_type::BRACKET_END);
     }
 
-    m_code.add_line<opcode::SELVAR>(var_idx);
+    m_code.add_line<opcode::SELVAR>(selvar);
 
     return prefixes;
 }
