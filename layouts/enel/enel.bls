@@ -228,7 +228,7 @@ $with(*_dettaglio) {
     }
   }
   $newview {
-    $setbegin($min($indexof(@,"SPESA PER IL TRASPORTO"),$indexof(@,"SPESA TRASPORTO")));
+    $setbegin($searchpos(@,/SPESA (?:PER IL )?TRASPORTO/));
     $setend($indexof(@,"Totale spesa"));
     $foreach($search_all(@,_regex_periodo)) {
       ^trasporto_gestione+=$search_all(@,/mesi.?1 (\N)/);

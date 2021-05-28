@@ -145,6 +145,14 @@ static variable search_regex(std::string_view value, const std::string &regex, s
     return match.str(index);
 }
 
+// cerca la regex in str e ritorna la posizione del primo valore trovato
+static size_t search_regex_pos(std::string_view value, const std::string &regex, size_t index) {
+    std::cmatch match;
+    if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return value.size();
+    if (match.size() >= index) return value.size();
+    return std::distance(value.begin(), match[index].first);
+}
+
 static auto match_to_view = std::views::transform([](const std::csub_match &m) {
     return std::string_view(m.first, m.second);
 });
@@ -358,6 +366,9 @@ const function_map function_lookup {
     }},
     {"search", [](std::string_view str, const std::string &regex, optional_size<1> index) {
         return search_regex(str, regex, index);
+    }},
+    {"searchpos", [](std::string_view str, const std::string &regex, optional_size<0> index) {
+        return search_regex_pos(str, regex, index);
     }},
     {"search_all", [](std::string_view str, const std::string &regex, optional_size<1> index) {
         return search_regex_all(str, regex, index);

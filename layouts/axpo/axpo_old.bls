@@ -4,7 +4,7 @@
 ### Box Convalida Layout
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags TRIM
+### Flags TRIM 
 ### Page 1
 ### Rect 0.5398872 0.030786771 0.3545528 0.05587229
 ### Script
@@ -16,7 +16,7 @@ $if(@ != "Bolletta Energia Elettrica\nFornitura del Mercato Libero")
 ### Box Nome Fornitore
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags NOREAD
+### Flags NOREAD 
 ### Page 1
 ### Rect 0.024193548 0.014823261 0.19271415 0.061848786
 ### Goto Label nome_fornitore
@@ -165,14 +165,14 @@ $goto lettura_spese;
 ### Box Parsing Spese Energia
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags NOREAD
+### Flags NOREAD 
 ### Page 3
 ### Rect 0.19357695 0.047890533 0.046551988 0.030786768
 ### Goto Label parsing_spese
 ### Script
 $with(_dettaglio) {
   $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")));
-  $setend($indexof(@,"TOT. \u20ac", $indexof(@,"\n")));
+  $setend($searchpos(@,/\n.+TOT\. \u20ac/));
 
   $between("Consumi rilevati dal distributore","Spese per l'energia") {
     %energia_attiva_rilevata[0]=$search(@,/F1 .+ (\N)\n/);
@@ -207,7 +207,7 @@ $with(_dettaglio) {
 ### Box Controllo Prossima pagina
 ### Type RECTANGLE
 ### Mode DEFAULT
-### Flags TRIM
+### Flags TRIM 
 ### Page 3
 ### Rect 0.040290087 0.09806158 0.20306204 0.029646521
 ### Spacers

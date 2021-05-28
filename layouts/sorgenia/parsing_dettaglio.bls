@@ -25,7 +25,7 @@ $with(*_dettaglio) {
   iva=$search(@,/Iva (\N%)/);
 
   $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")));
-  $setend($indexof(@,"\n",$indexof(@,"FORNITURA DI")));
+  $setend($searchpos(@,/\n.+FORNITURA DI/));
 
   %pcv=$search(@,/PCV euro\/cliente\/mese \N \N (\N)/);
   %spesa_materia_energia=$search(@,/DETTAGLIO DELLA SPESA PER (?:L\u2019ENERGIA ELETTRICA|LA MATERIA ENERGIA)[^]+?(\N) DETTAGLIO/);
