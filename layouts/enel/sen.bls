@@ -158,7 +158,7 @@ data_scadenza=$date(@,"%d.%m.%Y",/Entro il (\D)/);
 ### Rect 0.5096111270967741 0.19265552657924745 0.4194211309677419 0.0889864346522235
 ### Script
 $setend($indexof(@,"\n"));
-'ragione_sociale=@;
+.'ragione_sociale;
 ### End Script
 ### End Box
 

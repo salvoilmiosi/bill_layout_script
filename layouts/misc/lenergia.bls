@@ -32,7 +32,7 @@ _mese=$date_format(mese_fattura,"%m/%Y");
 ### Page 1
 ### Rect 0.110562 0.362306 0.332986 0.0358627
 ### Script
-%totale_fattura=@;
+.%totale_fattura;
 ### End Script
 ### End Box
 
@@ -76,7 +76,7 @@ data_scadenza=$date(@,"%d/%m/%Y");
 ### Rect 0.516389 0.570125 0.474766 0.0855188
 ### Script
 $step($captures(@,/IVA (\N%) (\N)/)) {
-  iva=@; %imponibile=@;
+  .iva; .%imponibile;
 }
 ### End Script
 ### End Box

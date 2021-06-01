@@ -128,7 +128,7 @@ rotate+*rotation;
 ### Script
 $with(*_dettaglio) {
   $newview {
-    $setbegin($searchpos(@,/(?:Quadro|Elementi) di dettaglio/));
+    $setbegin($min($indexof(@,"Quadro di dettaglio"),$indexof(@,"Elementi di dettaglio")));
     $setend($indexof(@,"\n"));
     mese_inizio=$month(@,"%d.%m.%Y",/dal (\D) al \D/);
     mese_fine=$month(@,"%d.%m.%Y",/dal \D al (\D)/);
@@ -165,7 +165,7 @@ $with(*_dettaglio) {
   }
   $between("Totale servizi di Vendita","...........") {
     $newview {
-      $setbegin($searchpos(@,/Prezzo (?:Netto|dell'energia)/));
+      $setbegin($min($indexof(@,"Prezzo Netto"),$indexof(@,"Prezzo dell'energia")));
       $setend($indexof(@,"Perdite di Rete"));
       $with($search(@,$format(/Importo $0\n((?:\s+.+\n)+)/,_periodo))) {
         $step($captures(@,/fascia F1 \u20ac\/kWh (\N) (\N) kWh/)) {

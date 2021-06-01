@@ -62,8 +62,8 @@ fornitore="Italpower";
 ### Rect 0.045161292 0.16647662 0.42580646 0.13568985
 ### Script
 $step($captures(@,/CODICE CLIENTE: (\w+) Intestatario del contratto: (.+)\n/)) {
-  numero_cliente=@;
-  'ragione_sociale=@;
+  .numero_cliente;
+  .'ragione_sociale;
 }
 ### End Script
 ### End Box

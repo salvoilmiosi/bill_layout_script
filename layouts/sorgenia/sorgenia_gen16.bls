@@ -43,7 +43,7 @@ numero_cliente=$search(@,/Codice Cliente (.+)/);
 ### Rect 0.49973556 0.19253415 0.408514 0.08879002
 ### Script
 $setend($indexof(@,"\n"));
-'ragione_sociale=@;
+.'ragione_sociale;
 ### End Script
 ### End Box
 

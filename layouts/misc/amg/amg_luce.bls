@@ -191,7 +191,7 @@ $with(*_dettaglio) {
     $foreach($search_all(@,$format(/Comp\. PED F123 ($0 \N \u20ac\/kWh \N) kWh/,_regex_periodo))) {
       $if($check_periodo()) {
         $step($captures(@,/(\N) \u20ac\/kWh (\N)/)) {
-          %prezzo_energia=@; %energia_attiva+=@;
+          .%prezzo_energia; %energia_attiva+=@;
         }
       }
     }

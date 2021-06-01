@@ -70,7 +70,7 @@ data_scadenza = $date(@,"%d/%m/%Y",/Totale da pagare entro il (\D)/);
 ### Page 1
 ### Rect 0.5484651 0.3650642 0.36650985 0.03586273
 ### Script
-%totale_fattura=@;
+.%totale_fattura;
 ### End Script
 ### End Box
 

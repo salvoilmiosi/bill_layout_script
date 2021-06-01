@@ -64,7 +64,7 @@ fornitore="Axpo";
 ### Rect 0.51044726 0.16909401 0.4719575 0.11482845294184721
 ### Script
 $setend($indexof(@,"\n"));
-'ragione_sociale=@;
+.'ragione_sociale;
 ### End Script
 ### End Box
 
@@ -154,7 +154,7 @@ $between("CONSUMI E LETTURE","Consumi fatturati negli ultimi 12 mesi") {
     $step($captures(@,/(\N) (\N) (\N)/)) {
       .%energia_attiva_rilevata[0]; .%energia_attiva_rilevata[1]; .%energia_attiva_rilevata[2];
     }
-    %energia_reattiva=@;
+    .%energia_reattiva;
   }
 }
 ### End Script
@@ -184,7 +184,7 @@ $with(*_dettaglio) {
     }
 
     $step($captures(@,$format(/al \d\d\.$0 Euro\/kWh (\N) (\N)/,_mese))) {
-      %~prezzo_energia=@; %~energia_attiva=@;
+      .%~prezzo_energia; .%~energia_attiva;
     }
   }
 

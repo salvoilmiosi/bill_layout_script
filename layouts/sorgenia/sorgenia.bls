@@ -60,7 +60,7 @@ numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/);
 ### Page 1
 ### Rect 0.076612905 0.15037057 0.38810483 0.02850627
 ### Script
-'ragione_sociale=@;
+.'ragione_sociale;
 ### End Script
 ### End Box
 
@@ -120,7 +120,7 @@ data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/);
 ### Page 1
 ### Rect 0.31451613 0.43543327 0.36794356 0.033494867
 ### Script
-%totale_fattura=@;
+.%totale_fattura;
 ### End Script
 ### End Box
 
