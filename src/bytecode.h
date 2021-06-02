@@ -33,8 +33,10 @@ DEFINE_ENUM(spacer_index,
     (ROTATE,    static_vector{"rot", "rotate"})
 )
 
-DEFINE_ENUM(doc_index,
+DEFINE_ENUM(sys_index,
     (FILENAME,  static_vector{"filename"})
+    (LAYOUT,    static_vector{"layout"})
+    (LAYOUTDIR, static_vector{"layoutdir"})
     (NPAGES,    static_vector{"npages"})
     (ATE,       static_vector{"ate"})
 )
@@ -106,7 +108,7 @@ DEFINE_ENUM_TYPES(opcode,
     (PUSHSTR, string_ptr)           // str -> stack
     (PUSHARG, small_int)            // stack -> stack
     (GETBOX, spacer_index)          // current_box[index] -> stack
-    (GETDOC, doc_index)             // document[index] -> stack
+    (GETSYS, sys_index)             // document[index] -> stack
     (CALL, command_call)            // stack * numargs -> fun_name -> stack
     (ADDCONTENT)                    // stack -> content_stack
     (POPCONTENT)                    // content_stack.pop()

@@ -135,14 +135,18 @@ void reader::exec_command(const command_args &cmd) {
         }
     };
 
-    auto get_doc_info = [&](doc_index idx) -> variable {
+    auto get_sys_info = [&](sys_index idx) -> variable {
         switch (idx) {
-        case doc_index::FILENAME:
+        case sys_index::FILENAME:
             return m_doc->filename().string();
-        case doc_index::NPAGES:
+        case sys_index::NPAGES:
             return m_doc->num_pages();
-        case doc_index::ATE:
+        case sys_index::ATE:
             return m_current_box.page > m_doc->num_pages();
+        case sys_index::LAYOUT:
+            return m_layouts.back().string();
+        case sys_index::LAYOUTDIR:
+            return m_layouts.back().parent_path().string();
         default:
             return variable();
         }
@@ -202,7 +206,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHSTR:    m_stack.push(*cmd.get_args<opcode::PUSHSTR>()); break;
     case opcode::PUSHARG:    push_function_arg(cmd.get_args<opcode::PUSHARG>()); break;
     case opcode::GETBOX:     m_stack.push(get_box_info(cmd.get_args<opcode::GETBOX>())); break;
-    case opcode::GETDOC:     m_stack.push(get_doc_info(cmd.get_args<opcode::GETDOC>())); break;
+    case opcode::GETSYS:     m_stack.push(get_sys_info(cmd.get_args<opcode::GETSYS>())); break;
     case opcode::CALL:       m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
     case opcode::ADDCONTENT: m_contents.push(m_stack.pop()); break;
     case opcode::POPCONTENT: m_contents.pop(); break;

@@ -478,7 +478,7 @@ void parser::read_function() {
     
     switch (hash(fun_name)) {
     case hash("box"): add_enum_index_command<opcode::GETBOX>(); break;
-    case hash("doc"): add_enum_index_command<opcode::GETDOC>(); break;
+    case hash("sys"): add_enum_index_command<opcode::GETSYS>(); break;
     default: {
         small_int num_args = 0;
         m_lexer.require(token_type::PAREN_BEGIN);

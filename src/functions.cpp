@@ -2,6 +2,7 @@
 
 #include <regex>
 #include <numeric>
+#include <fstream>
 
 #include <fmt/format.h>
 
@@ -461,5 +462,12 @@ const function_map function_lookup {
             if (!arg.is_null()) return arg;
         }
         return variable();
+    }},
+    {"readfile", [](const std::string &filename) -> variable {
+        std::ifstream ifs(filename);
+        if (ifs.fail()) return {};
+        return std::string{
+            std::istreambuf_iterator<char>(ifs),
+            std::istreambuf_iterator<char>()};
     }},
 };
