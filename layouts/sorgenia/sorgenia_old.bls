@@ -12,7 +12,7 @@
 p+*off_allegati;
 ### End Spacers
 ### Script
-$if($doc.ate) {
+$if($sys.ate) {
   $error(*ERRORE_LAYOUT_INVALIDO, "Sorgenia (old): Stringa di Convalida Errata");
 } $elif(@ != "BOLLETTA PER LA FORNITURA DI ENERGIA ELETTRICA NEL MERCATO LIBERO") {
   *off_allegati++;
@@ -32,7 +32,7 @@ p+*off_allegati;
 p+*next_page;
 ### End Spacers
 ### Script
-$ifnot($doc.ate || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
+$ifnot($sys.ate || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
   *_dettaglio+=@;
   *next_page++;
   $goto lettura_dati;

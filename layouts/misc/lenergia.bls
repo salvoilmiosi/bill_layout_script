@@ -146,7 +146,7 @@ $step($captures(@,$format(/Indice mese di competenza F3 .+ \d\d\/$0 \u20ac\/kWh 
 p+*page_offset;
 ### End Spacers
 ### Script
-$ifnot($doc.ate) {
+$ifnot($sys.ate) {
   *page_offset++;
   $goto quadro_dettaglio;
 }

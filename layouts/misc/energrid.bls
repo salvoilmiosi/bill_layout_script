@@ -123,7 +123,7 @@ $between("DETTAGLIO IMPOSTE","TOTALE (Salvo conguagli, errori e omissioni)") {
 p+_off_dettaglio;
 ### End Spacers
 ### Script
-$if($doc.ate) $error(*ERRORE_DETTAGLIO_MANCANTE, "EnerGrid: Dettaglio Mancante");
+$if($sys.ate) $error(*ERRORE_DETTAGLIO_MANCANTE, "EnerGrid: Dettaglio Mancante");
 _pod_dettaglio=$search(@,/POD: (.+)/);
 $if(_pod_dettaglio!=codice_pod) {
   _off_dettaglio++;
@@ -176,7 +176,7 @@ $between("DETTAGLIO IMPORTI","TOTALE (Salvo conguagli, errori e omissioni)") {
 p+*off_pod;
 ### End Spacers
 ### Script
-$ifnot($doc.ate || $contains(@,"INFORMAZIONI AI CLIENTI")) {
+$ifnot($sys.ate || $contains(@,"INFORMAZIONI AI CLIENTI")) {
   *off_pod++;
   $if($contains(@,"DATI FORNITURA")) {
     $nexttable;

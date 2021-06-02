@@ -11,7 +11,7 @@
 p+*off_allegato;
 ### End Spacers
 ### Script
-$if($doc.ate) $error(*ERRORE_LAYOUT_INVALIDO, "Italpower: Stringa di Convalida Errata");
+$if($sys.ate) $error(*ERRORE_LAYOUT_INVALIDO, "Italpower: Stringa di Convalida Errata");
 $elifnot($contains(@,"FATTURA PER LA FORNITURA DI ENERGIA ELETTRICA")) {
   *off_allegato++;
   $goto convalida;

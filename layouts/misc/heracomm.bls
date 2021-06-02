@@ -11,7 +11,7 @@
 p+*off_allegato;
 ### End Spacers
 ### Script
-$if($doc.ate) {
+$if($sys.ate) {
   $error(*ERRORE_LAYOUT_INVALIDO, "Heracomm: Stringa di Convalida Errata");
 } $elifnot($search(@,/(1 \/ \d+)/)) {
   *off_allegato++;
@@ -48,7 +48,7 @@ p+*off_dettaglio;
 rotate+*rotation;
 ### End Spacers
 ### Script
-$if($isempty(@) || $doc.ate) $goto nome_fornitore;
+$if($isempty(@) || $sys.ate) $goto nome_fornitore;
 $else {
   *_dettaglio+=@;
 }
