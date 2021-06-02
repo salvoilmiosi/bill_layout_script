@@ -15,6 +15,7 @@ parser = ArgumentParser()
 parser.add_argument('input_directory')
 parser.add_argument('output_file')
 parser.add_argument('-s', '--script', default=Path(__file__).resolve().parent.parent / 'layouts/controllo.bls')
+parser.add_argument('-e', '--errorlist', default=Path(__file__).resolve().parent.parent / 'layouts/errors.lst')
 parser.add_argument('-f', '--force-read', action='store_true')
 parser.add_argument('-c', '--cached', action='store_true')
 parser.add_argument('-r', '--recursive', action='store_true')
@@ -65,6 +66,9 @@ def check_conguagli(results):
 
 required_data = ('fornitore', 'numero_fattura', 'mese_fattura', 'data_fattura', 'codice_pod')
 
+with open(args.errorlist, 'r') as file:
+    errcodes = file.readlines()
+
 def exec_reader(pdf_file):
     try:
         proc_args = [Path(__file__).parent.parent / 'build/reader', pdf_file, args.script]
@@ -93,7 +97,7 @@ def read_pdf(pdf_file):
         else:
             print(rel_path)
     elif ret['errcode'] > 0:
-        cprint('{0} (Codice {1}) {2}'.format(rel_path, ret['errcode'], ret['error']), 'red')
+        cprint('{0} ### {1}: {2}'.format(rel_path, errcodes[ret['errcode']], ret['error']), 'red')
     else:
         cprint('{0} ### {1}'.format(rel_path, ret['error']), 'magenta')
 

@@ -6,7 +6,11 @@
 ### Page 1
 ### Rect 0 0 0 0
 ### Script
-$import "errors";
+_i=0;
+$foreach($lines($readfile($sys.layoutdir + "/errors.lst"))) {
+    *["ERRORE_" + @]=_i;
+    _i++;
+}
 $if  ($contains(@,"Axpo Italia SpA")) $import "axpo/controllo";
 $elif($contains(@,"ITALPOWER ENERGIA")) $import "italpower/controllo";
 $elif($contains(@,"Sorgenia S.p.A")) $import "sorgenia/controllo";
