@@ -4,10 +4,10 @@ from multiprocessing import Pool, cpu_count
 from pathlib import Path
 from datetime import date, datetime
 from argparse import ArgumentParser
+from termcolor import cprint
+import subprocess
 import json
 import os
-
-import pyreader
 
 os.system('color')
 
@@ -65,38 +65,37 @@ def check_conguagli(results):
 
 required_data = ('fornitore', 'numero_fattura', 'mese_fattura', 'data_fattura', 'codice_pod')
 
-def read_pdf(pdf_file):
-    rel_path = pdf_file.relative_to(input_directory)
-    ret = {'filename':str(pdf_file)}
-
+def exec_reader(pdf_file):
     try:
-        out_dict = pyreader.readpdf(pdf_file, args.script, cached=args.cached, recursive=args.recursive)
+        proc_args = [Path(__file__).parent.parent / 'build/reader', pdf_file, args.script]
+        if args.cached: proc_args.append('-c')
+        if args.recursive: proc_args.append('-r')
+        proc = subprocess.run(proc_args, capture_output=True, text=True, timeout=5)
+        return json.loads(proc.stdout)
+    except subprocess.TimeoutExpired:
+        return {'errcode': -2, 'error': 'Timeout Scaduto'}
+    except json.JSONDecodeError:
+        return {'errcode': -3, 'error': 'Errore Fatale'}
 
-        if 'layouts' in out_dict:
-            ret['layouts'] = [str(Path(x).resolve()) for x in out_dict['layouts']]
-        if 'values' in out_dict:
-            if all(all(i in v for i in required_data) for v in out_dict['values']):
-                ret['values'] = out_dict['values']
-            else:
-                ret['values'] = []
-                out_dict['errcode'] = -1
-                out_dict['error'] = 'Dati Mancanti'
-        ret['errcode'] = out_dict['errcode']
-        if 'error' in out_dict:
-            ret['error'] = out_dict['error']
-            if ret['errcode'] > 0:
-                print('\033[31m{0} (Codice {1}) {2}\033[0m'.format(rel_path, ret['errcode'], ret['error']))
-            else:
-                print('\033[35m{0} ### {1}\033[0m'.format(rel_path, ret['error']))
-        elif 'notes' in out_dict:
-            print('\033[33m{0} ### {1}\033[0m'.format(rel_path, ', '.join(out_dict['notes'])))
+def read_pdf(pdf_file):
+    ret = exec_reader(pdf_file)
+    ret['filename'] = str(pdf_file)
+
+    if 'values' in ret and not all(all(i in v for i in required_data) for v in ret['values']):
+        ret.pop('values')
+        ret['errcode'] = -1
+        ret['error'] = 'Dati Mancanti'
+    
+    rel_path = pdf_file.relative_to(input_directory)
+    if ret['errcode'] == 0:
+        if 'notes' in ret:
+            cprint('{0} ### {1}'.format(rel_path, ', '.join(ret['notes'])), 'yellow')
         else:
             print(rel_path)
-    except pyreader.FatalError as err:
-        ret['errcode'] = -2
-        ret['error'] = str(err)
-        ret['layouts'] = []
-        print('\033[34m{0} ### {1}\033[0m'.format(rel_path, ret['error']))
+    elif ret['errcode'] > 0:
+        cprint('{0} (Codice {1}) {2}'.format(rel_path, ret['errcode'], ret['error']), 'red')
+    else:
+        cprint('{0} ### {1}'.format(rel_path, ret['error']), 'magenta')
 
     return ret
 
@@ -117,7 +116,7 @@ if __name__ == '__main__':
         for pdf_file in in_files:
             skip = False
             for old_obj in filter(lambda x : x['filename'] == str(pdf_file), in_data):
-                if all(lastmodified(f) < lastmodified(output_file) for f in old_obj['layouts'] + [pdf_file]):
+                if 'layouts' in old_obj and all(lastmodified(f) < lastmodified(output_file) for f in old_obj['layouts'] + [pdf_file]):
                     results.append(old_obj)
                     skip = True
             if not skip: files.append(pdf_file)
