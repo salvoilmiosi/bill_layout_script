@@ -34,18 +34,23 @@ DEFINE_ENUM(spacer_index,
 )
 
 DEFINE_ENUM(sys_index,
-    (DOCFILE,   static_vector{"doc_file"})
-    (DOCPAGES,  static_vector{"doc_pages"})
-    (ATE,       static_vector{"ate"})
-    (LAYOUT,    static_vector{"layout_file"})
-    (LAYOUTDIR, static_vector{"layout_dir"})
-    (TOKENIDX,  static_vector{"tokenidx"})
+    (DOCFILE,   "doc_file")
+    (DOCPAGES,  "doc_pages")
+    (ATE,       "ate")
+    (LAYOUT,    "layout_file")
+    (LAYOUTDIR, "layout_dir")
+    (TOKENIDX,  "tokenidx")
 )
 
 template<string_enum T>
 T find_enum_index(std::string_view name) {
     for (size_t i=0; i<EnumSize<T>; ++i) {
-        if (std::ranges::any_of(EnumData<0>(static_cast<T>(i)), [&](const char *c) {
+        const auto &data = EnumData<0>(static_cast<T>(i));
+        if constexpr (std::is_same_v<std::decay_t<decltype(data)>, const char *>) {
+            if (name == data) {
+                return static_cast<T>(i);
+            }
+        } else if (std::ranges::any_of(data, [&](const char *c) {
             return c == name;
         })) {
             return static_cast<T>(i);
