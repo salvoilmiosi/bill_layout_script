@@ -309,6 +309,7 @@ const function_map function_lookup {
     {"and", [](bool a, bool b) { return a && b; }},
     {"or",  [](bool a, bool b) { return a || b; }},
     {"null", []{ return variable(); }},
+    {"isnull", [](const variable &var) { return var.is_null(); }},
     {"hex", [](int num) {
         return fmt::format("{:x}", num);
     }},
