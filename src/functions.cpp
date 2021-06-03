@@ -6,7 +6,6 @@
 
 #include <fmt/format.h>
 
-#include "utils.h"
 #include "exceptions.h"
 
 // Converte una stringa in numero usando il formato del locale
@@ -211,20 +210,18 @@ static std::string table_header(std::string_view value, R &&labels) {
     UNIT_SEPARATOR);
 }
 
-static std::string table_row(std::string_view row, std::string_view indices) {
-    return string_join(string_split(indices, UNIT_SEPARATOR)
-        | std::views::transform([&](std::string_view str) {
-            std::cmatch match;
-            if (std::regex_match(str.begin(), str.end(), match, std::regex("(\\d+):(-?\\d+)"))) {
-                size_t begin = string_to<int>(match.str(1));
-                if (begin < row.size()) {
-                    size_t len = string_to<int>(match.str(2));
-                    return row.substr(begin, len);
-                }
+static std::string table_row(std::string_view row, string_list indices) {
+    return string_join(indices | std::views::transform([&](std::string_view str) {
+        std::cmatch match;
+        if (std::regex_match(str.begin(), str.end(), match, std::regex("(\\d+):(-?\\d+)"))) {
+            size_t begin = string_to<int>(match.str(1));
+            if (begin < row.size()) {
+                size_t len = string_to<int>(match.str(2));
+                return row.substr(begin, len);
             }
-            return std::string_view();
-        }),
-    UNIT_SEPARATOR);
+        }
+        return std::string_view();
+    }), UNIT_SEPARATOR);
 }
 
 // Prende un formato per strptime e lo converte in una regex corrispondente
@@ -317,9 +314,9 @@ const function_map function_lookup {
         if (var.is_number()) return var;
         return parse_num(var.as_view());
     }},
-    {"aggregate", [](std::string_view str) {
+    {"aggregate", [](string_list list) {
         variable ret;
-        for (const auto &s : string_split(str, UNIT_SEPARATOR)) {
+        for (const auto &s : list) {
             ret += parse_num(s);
         }
         return ret;
@@ -331,8 +328,8 @@ const function_map function_lookup {
     {"list", [](varargs<std::string_view> args) {
         return string_join(args, UNIT_SEPARATOR);
     }},
-    {"subitem", [](std::string_view str, size_t idx) {
-        for (std::string_view view : string_split(str, UNIT_SEPARATOR)) {
+    {"subitem", [](string_list list, size_t idx) {
+        for (std::string_view view : list) {
             if (idx == 0) {
                 return std::string(view);
             }
@@ -363,7 +360,7 @@ const function_map function_lookup {
     {"table_header", [](std::string_view header, varargs<std::string_view> labels) {
         return table_header(header, labels);
     }},
-    {"table_row", [](std::string_view row, std::string_view indices) {
+    {"table_row", [](std::string_view row, string_list indices) {
         return table_row(row, indices);
     }},
     {"search", [](std::string_view str, const std::string &regex, optional_size<1> index) {

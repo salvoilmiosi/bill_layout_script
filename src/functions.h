@@ -7,6 +7,7 @@
 
 #include "variable.h"
 #include "stack.h"
+#include "utils.h"
 
 template<typename T> T convert_var(variable &var) = delete;
 
@@ -24,6 +25,10 @@ template<> inline int          convert_var<int>        (variable &var) { return 
 template<> inline float        convert_var<float>      (variable &var) { return var.as_double(); }
 template<> inline double       convert_var<double>     (variable &var) { return var.as_double(); }
 template<> inline bool         convert_var<bool>       (variable &var) { return var.as_bool(); }
+
+using string_list = decltype(string_split(std::declval<std::string_view>(), UNIT_SEPARATOR));
+
+template<> inline string_list convert_var<string_list> (variable &var) { return string_split(var.as_view(), UNIT_SEPARATOR); }
 
 template<typename T> constexpr bool is_convertible = requires(variable &v) {
     convert_var<T>(v);
