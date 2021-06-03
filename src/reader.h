@@ -76,6 +76,7 @@ private:
     variable_ref m_selected;
 
     std::vector<std::filesystem::path> m_layouts;
+    decltype(m_layouts)::iterator m_current_layout;
 
     std::vector<std::string> m_notes;
 

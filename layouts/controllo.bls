@@ -7,7 +7,7 @@
 ### Rect 0 0 0 0
 ### Script
 _i=0;
-$foreach($lines($readfile($sys.layoutdir + "/errors.lst"))) {
+$foreach($lines($readfile($sys.layout_dir + "/errors.lst"))) {
     *["ERRORE_" + @]=_i;
     _i++;
 }

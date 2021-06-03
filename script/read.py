@@ -71,7 +71,7 @@ with open(args.errorlist, 'r') as file:
 
 def exec_reader(pdf_file):
     try:
-        proc_args = [Path(__file__).parent.parent / 'build/reader', pdf_file, args.script]
+        proc_args = [Path(__file__).parent.parent / 'build/reader', '-p', pdf_file, args.script]
         if args.cached: proc_args.append('-c')
         if args.recursive: proc_args.append('-r')
         proc = subprocess.run(proc_args, capture_output=True, text=True, timeout=5)

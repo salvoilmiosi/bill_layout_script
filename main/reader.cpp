@@ -30,34 +30,38 @@ private:
 wxIMPLEMENT_APP_CONSOLE(MainApp);
 
 void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
-    parser.AddParam("input-pdf");
     parser.AddParam("input-bls");
+    parser.AddOption("p", "input-pdf", "Input PDF");
+    parser.AddOption("l", "language", "Language");
     parser.AddSwitch("d", "show-debug", "Show Debug Variables");
     parser.AddSwitch("g", "show-globals", "Show Global Variables");
     parser.AddSwitch("h", "halt-setlayout", "Halt On Setlayout");
     parser.AddSwitch("c", "use-cache", "Use Script Cache");
     parser.AddSwitch("r", "recursive-imports", "Recursive Imports");
-    parser.AddOption("l", "language", "Language");
 }
 
 bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
-    input_pdf = parser.GetParam(0).ToStdString();
-    input_bls = parser.GetParam(1).ToStdString();
+    wxString str;
+
+    input_bls = parser.GetParam(0).ToStdString();
     show_debug = parser.FoundSwitch("d") == wxCMD_SWITCH_ON;
     show_globals = parser.FoundSwitch("g") == wxCMD_SWITCH_ON;
     get_layout = parser.FoundSwitch("h") == wxCMD_SWITCH_ON;
     use_cache = parser.FoundSwitch("c") == wxCMD_SWITCH_ON;
     parse_recursive = parser.FoundSwitch("r") == wxCMD_SWITCH_ON;
 
-    wxString lang;
-    if (parser.Found("l", &lang)) {
-        const wxLanguageInfo *lang_info = wxLocale::FindLanguageInfo(lang);
+    if (parser.Found("p", &str)) {
+        input_pdf = str.ToStdString();
+    }
+
+    if (parser.Found("l", &str)) {
+        const wxLanguageInfo *lang_info = wxLocale::FindLanguageInfo(str);
         if (lang_info) {
             if (!intl::set_language(static_cast<wxLanguage>(lang_info->Language))) {
                 return false;
             }
         } else {
-            std::cerr << "Lingua sconosciuta: " << lang << std::endl;
+            std::cerr << "Lingua sconosciuta: " << str << std::endl;
             return false;
         }
     } else {
@@ -73,8 +77,13 @@ int MainApp::OnRun() {
     reader my_reader;
 
     try {
-        pdf_document my_doc(input_pdf);
-        my_reader.set_document(my_doc);
+        pdf_document my_doc;
+        
+        if (!input_pdf.empty()) {
+            my_doc.open(input_pdf);
+            my_reader.set_document(my_doc);
+        }
+        
         if (parse_recursive) my_reader.add_flags(reader_flags::RECURSIVE);
         if (use_cache) my_reader.add_flags(reader_flags::USE_CACHE);
         if (get_layout) my_reader.add_flags(reader_flags::HALT_ON_SETLAYOUT);

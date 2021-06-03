@@ -34,11 +34,11 @@ DEFINE_ENUM(spacer_index,
 )
 
 DEFINE_ENUM(sys_index,
-    (FILENAME,  static_vector{"filename"})
-    (LAYOUT,    static_vector{"layout"})
-    (LAYOUTDIR, static_vector{"layoutdir"})
-    (NPAGES,    static_vector{"npages"})
+    (DOCFILE,   static_vector{"doc_file"})
+    (DOCPAGES,  static_vector{"doc_pages"})
     (ATE,       static_vector{"ate"})
+    (LAYOUT,    static_vector{"layout_file"})
+    (LAYOUTDIR, static_vector{"layout_dir"})
 )
 
 template<string_enum T>
@@ -107,8 +107,8 @@ DEFINE_ENUM_TYPES(opcode,
     (PUSHDOUBLE, double)            // double -> stack
     (PUSHSTR, string_ptr)           // str -> stack
     (PUSHARG, small_int)            // stack -> stack
-    (GETBOX, spacer_index)          // current_box[index] -> stack
-    (GETSYS, sys_index)             // document[index] -> stack
+    (GETBOX, spacer_index)          // box[index] -> stack
+    (GETSYS, sys_index)             // sys[index] -> stack
     (CALL, command_call)            // stack * numargs -> fun_name -> stack
     (ADDCONTENT)                    // stack -> content_stack
     (POPCONTENT)                    // content_stack.pop()
@@ -130,7 +130,8 @@ DEFINE_ENUM_TYPES(opcode,
     (RETVAL)                        // return to caller and push value to stack
     (RETVAR)                        // return to caller and push selected variable
     (IMPORT, string_ptr)            // importa il file e lo esegue
-    (LAYOUTNAME, string_ptr)        // aggiunge il nome del layout nella lista di output
+    (ADDLAYOUT, string_ptr)         // aggiunge il nome del layout nella lista di output
+    (SETCURLAYOUT, int)             // sposta il puntatore del layout corrente
     (SETLAYOUT)                     // ferma l'esecuzione se settata la flag setlayout in reader
     (HLT)                           // ferma l'esecuzione
 )

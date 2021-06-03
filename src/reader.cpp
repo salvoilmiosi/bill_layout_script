@@ -8,6 +8,7 @@
 void reader::clear() {
     m_code.clear();
     m_flags = 0;
+    m_doc = nullptr;
 }
 
 void reader::start() {
@@ -16,6 +17,7 @@ void reader::start() {
     m_layouts.clear();
     m_stack.clear();
     m_contents.clear();
+    m_calls.clear();
 
     m_selected = {};
     m_current_box = {};
@@ -135,18 +137,27 @@ void reader::exec_command(const command_args &cmd) {
         }
     };
 
+    auto check_doc_ptr = [&]() {
+        if (!m_doc) {
+            throw layout_error("Nessun documento aperto");
+        }
+    };
+
     auto get_sys_info = [&](sys_index idx) -> variable {
         switch (idx) {
-        case sys_index::FILENAME:
+        case sys_index::DOCFILE:
+            check_doc_ptr();
             return m_doc->filename().string();
-        case sys_index::NPAGES:
+        case sys_index::DOCPAGES:
+            check_doc_ptr();
             return m_doc->num_pages();
         case sys_index::ATE:
+            check_doc_ptr();
             return m_current_box.page > m_doc->num_pages();
         case sys_index::LAYOUT:
-            return m_layouts.back().string();
+            return m_current_layout->string();
         case sys_index::LAYOUTDIR:
-            return m_layouts.back().parent_path().string();
+            return m_current_layout->parent_path().string();
         default:
             return variable();
         }
@@ -157,6 +168,7 @@ void reader::exec_command(const command_args &cmd) {
         m_current_box.type = opts.type;
         m_current_box.flags = opts.flags;
 
+        check_doc_ptr();
         m_contents.push(m_doc->get_text(m_current_box));
     };
 
@@ -176,7 +188,8 @@ void reader::exec_command(const command_args &cmd) {
 
     auto push_layout = [&](const std::filesystem::path &filename) {
         m_layouts.push_back(filename);
-        m_code[m_program_counter] = make_command<opcode::NOP>();
+        m_code[m_program_counter] = make_command<opcode::SETCURLAYOUT>(m_layouts.size() - 1);
+        m_current_layout = m_layouts.end() - 1;
     };
 
     auto throw_error = [&]() {
@@ -228,7 +241,8 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::RETVAL:     jump_return(m_stack.pop()); break;
     case opcode::RETVAR:     jump_return(m_selected.get_value()); break;
     case opcode::IMPORT:     import_layout(*cmd.get_args<opcode::IMPORT>()); break;
-    case opcode::LAYOUTNAME: push_layout(*cmd.get_args<opcode::LAYOUTNAME>()); break;
+    case opcode::ADDLAYOUT:  push_layout(*cmd.get_args<opcode::ADDLAYOUT>()); break;
+    case opcode::SETCURLAYOUT: m_current_layout = m_layouts.begin() + cmd.get_args<opcode::SETCURLAYOUT>(); break;
     case opcode::SETLAYOUT:  if (m_flags & reader_flags::HALT_ON_SETLAYOUT) m_running = false; break;
     case opcode::HLT:        m_running = false; break;
     }
@@ -261,7 +275,7 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
     if (m_flags & reader_flags::USE_CACHE && std::filesystem::exists(cache_filename) && !is_modified(filename)) {
         new_code = binary_bls::read(cache_filename);
         if (m_flags & reader_flags::RECURSIVE && std::ranges::any_of(new_code, [&](const command_args &line) {
-            return line.command() == opcode::LAYOUTNAME && is_modified(*line.get_args<opcode::LAYOUTNAME>());
+            return line.command() == opcode::ADDLAYOUT && is_modified(*line.get_args<opcode::ADDLAYOUT>());
         })) {
             recompile();
         }
@@ -282,6 +296,7 @@ size_t reader::add_code(bytecode &&new_code) {
     if (addr == 0) {
         m_code.add_line<opcode::HLT>();
     } else {
+        m_code.add_line<opcode::SETCURLAYOUT>(m_current_layout - m_layouts.begin());
         m_code.add_line<opcode::RET>();
     }
     

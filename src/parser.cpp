@@ -13,7 +13,7 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
     m_layout = &layout;
     
     try {
-        m_code.add_line<opcode::LAYOUTNAME>(std::filesystem::canonical(path).string());
+        m_code.add_line<opcode::ADDLAYOUT>(std::filesystem::canonical(path).string());
         if (layout.setlayout) {
             m_code.add_line<opcode::SETLAYOUT>();
         }
