@@ -7,7 +7,7 @@
 ### Rect 0 0 0 0
 ### Script
 $foreach($lines($readfile($sys.layout_dir + "/errors.lst"))) {
-    *["ERRORE_" + @] = $sys.tokenidx;
+    *["ERRORE_" + $trim(@)] = $sys.tokenidx;
 }
 $if  ($contains(@,"Axpo Italia SpA")) $import "axpo/controllo";
 $elif($contains(@,"ITALPOWER ENERGIA")) $import "italpower/controllo";

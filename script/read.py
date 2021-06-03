@@ -67,7 +67,7 @@ def check_conguagli(results):
 required_data = ('fornitore', 'numero_fattura', 'mese_fattura', 'data_fattura', 'codice_pod')
 
 with open(args.errorlist, 'r') as file:
-    errcodes = file.readlines()
+    errcodes = [line.strip() for line in file.readlines()]
 
 def exec_reader(pdf_file):
     try:
