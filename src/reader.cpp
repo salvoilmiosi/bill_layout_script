@@ -158,6 +158,8 @@ void reader::exec_command(const command_args &cmd) {
             return m_current_layout->string();
         case sys_index::LAYOUTDIR:
             return m_current_layout->parent_path().string();
+        case sys_index::TOKENIDX:
+            return m_contents.top().tokenidx();
         default:
             return variable();
         }

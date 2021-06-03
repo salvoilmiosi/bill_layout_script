@@ -39,6 +39,7 @@ DEFINE_ENUM(sys_index,
     (ATE,       static_vector{"ate"})
     (LAYOUT,    static_vector{"layout_file"})
     (LAYOUTDIR, static_vector{"layout_dir"})
+    (TOKENIDX,  static_vector{"tokenidx"})
 )
 
 template<string_enum T>

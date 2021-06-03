@@ -63,27 +63,27 @@ public:
         --m_size;
     }
 
-    constexpr void clear() {
+    constexpr void clear() noexcept {
         m_size = 0;
     }
 
-    constexpr bool empty() {
+    constexpr bool empty() const noexcept {
         return m_size == 0;
     }
 
-    constexpr size_t size() {
+    constexpr size_t size() const noexcept {
         return m_size;
     }
 
-    constexpr size_t capacity() {
+    constexpr size_t capacity() const noexcept {
         return N;
     }
 
-    constexpr T &back() {
+    constexpr T &back() noexcept {
         return (*this)[m_size - 1];
     }
 
-    constexpr const T &back() const {
+    constexpr const T &back() const noexcept {
         return (*this)[m_size - 1];
     }
 

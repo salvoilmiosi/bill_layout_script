@@ -10,6 +10,7 @@
 struct view_span {
     size_t m_begin;
     size_t m_end;
+    int m_index;
     
     constexpr size_t size() const noexcept {
         return m_end - m_begin;
@@ -23,7 +24,7 @@ private:
 public:
     template<typename T>
     content_view(T &&value) : variable(std::forward<T>(value)) {
-        m_spans.push(view_span{0, as_view().size()});
+        m_spans.push(view_span{0, as_view().size(), 0});
     }
 
     void setbegin(size_t n) noexcept {
@@ -47,7 +48,8 @@ public:
             m_spans.top().m_begin,
             std::min(
                 as_view().find(UNIT_SEPARATOR, m_spans.top().m_begin),
-                m_spans.top().m_end)
+                m_spans.top().m_end),
+            0
         );
     }
 
@@ -64,9 +66,14 @@ public:
         m_spans.top().m_end = std::min(
             as_view().find(UNIT_SEPARATOR, m_spans.top().m_begin),
             m_spans[m_spans.size() - 2].m_end);
+        ++m_spans.top().m_index;
     }
 
-    bool tokenend() noexcept {
+    int tokenidx() const noexcept {
+        return m_spans.top().m_index;
+    }
+
+    bool tokenend() const noexcept {
         assert(m_spans.size() > 1);
         return m_spans.top().m_begin >= m_spans[m_spans.size() - 2].m_end;
     }
