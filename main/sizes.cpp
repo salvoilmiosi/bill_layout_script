@@ -1,9 +1,9 @@
-#include <fmt/format.h>
 #include <boost/core/demangle.hpp>
 
 #include <typeinfo>
 
 #include "bytecode.h"
+#include "utils.h"
 
 template<typename T, typename TList> struct type_in_list{};
 

@@ -293,7 +293,7 @@ std::string lexer::token_location_info(const token &tok) {
             break;
         }
     }
-    return fmt::format("{0}\n{3:->{2}}\nLn {1}, Col {2}", line, numline, loc, '^');
+    return std::format("{0}\n{3:->{2}}\nLn {1}, Col {2}", line, numline, loc, '^');
 }
 
 bool lexer::readIdentifier() {

@@ -2,6 +2,8 @@
 
 #include <wx/cmdline.h>
 
+#include "intl.h"
+
 class MainApp : public wxApp {
 public:
     virtual bool OnInit() override;

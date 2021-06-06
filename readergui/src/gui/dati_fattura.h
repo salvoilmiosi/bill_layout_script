@@ -187,7 +187,7 @@ public:
             [&]<size_t ... Is>(std::index_sequence<Is...>) {
                 ([&](const auto &value) {
                     if (value.required && !std::invoke(value, record)) {
-                        record.status.push_back(fmt::format("Mancante {}", value.header));
+                        record.status.push_back(std::format("Mancante {}", value.header));
                     }
                 }(std::get<Is>(dati_fattura)), ...);
             }(std::make_index_sequence<std::tuple_size_v<decltype(dati_fattura)>>{});

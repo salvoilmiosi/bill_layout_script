@@ -2,15 +2,24 @@
 #define __UTILS_H__
 
 #include <wx/datetime.h>
-#include <wx/intl.h>
 
 #include <string>
 #include <algorithm>
 #include <charconv>
+#include <ranges>
 
+#ifndef __MSC_VER
 #include <fmt/format.h>
+namespace std {
+    template<typename ... Ts>
+    inline auto format(Ts && ... args) {
+        return fmt::format(std::forward<Ts>(args) ...);
+    }
+}
+#else
+#include <format>
+#endif
 
-#include "intl.h"
 
 constexpr char UNIT_SEPARATOR = '\x1f';
 
@@ -90,14 +99,14 @@ constexpr T string_to(std::string_view str) {
     T ret;
     auto result = std::from_chars(str.begin(), str.end(), ret);
     if (result.ec != std::errc()) {
-        throw std::invalid_argument(fmt::format("Impossibile convertire {} in numero", str));
+        throw std::invalid_argument(std::format("Impossibile convertire {} in numero", str));
     }
     return ret;
 }
 
 template<typename T> requires std::is_arithmetic_v<T>
 std::string num_tostring(T num) {
-    return fmt::format("{}", num);
+    return std::format("{}", num);
 }
 
 inline auto operator <=> (const wxLongLong &lhs, const wxLongLong &rhs) {

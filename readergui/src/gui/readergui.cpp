@@ -98,7 +98,7 @@ void ReaderGui::OnReadCompleted(wxThreadEvent &evt) {
     m_table->Refresh();
 
     if (size_t n = m_queue.size()) {
-        SetStatusText(fmt::format("{} File Rimanenti", n));
+        SetStatusText(std::format("{} File Rimanenti", n));
     } else {
         SetStatusText(wxEmptyString);
     }

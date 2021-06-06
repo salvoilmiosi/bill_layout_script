@@ -1,6 +1,7 @@
 #include <wx/app.h>
 
 #include "gui/readergui.h"
+#include "intl.h"
 
 class MainApp : public wxApp {
 public:

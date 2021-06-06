@@ -1,7 +1,6 @@
 #include "lexer.h"
 #include "utils.h"
 
-#include <fmt/format.h>
 #include <cassert>
 
 typedef std::string_view::iterator location;

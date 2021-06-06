@@ -206,7 +206,7 @@ struct bytecode : std::vector<command_args> {
         if (find_label(label) == end()) {
             add_line<opcode::LABEL>(label);
         } else {
-            throw layout_error(fmt::format("Etichetta goto duplicata: {}", *label));
+            throw layout_error(std::format("Etichetta goto duplicata: {}", *label));
         }
     }
 

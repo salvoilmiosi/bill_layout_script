@@ -4,12 +4,11 @@
 #include <vector>
 #include <map>
 
-#include <fmt/core.h>
-
 #include "layout.h"
 #include "lexer.h"
 #include "bytecode.h"
 #include "stack.h"
+#include "utils.h"
 
 struct variable_prefixes {
     bitset<setvar_flags> flags;
@@ -36,11 +35,11 @@ class invalid_numargs : public parsing_error {
 private:
     static std::string get_message(const std::string &fun_name, size_t minargs, size_t maxargs) {
         if (maxargs == std::numeric_limits<size_t>::max()) {
-            return fmt::format("La funzione {0} richiede almeno {1} argomenti", fun_name, minargs);
+            return std::format("La funzione {0} richiede almeno {1} argomenti", fun_name, minargs);
         } else if (minargs == maxargs) {
-            return fmt::format("La funzione {0} richiede {1} argomenti", fun_name, minargs);
+            return std::format("La funzione {0} richiede {1} argomenti", fun_name, minargs);
         } else {
-            return fmt::format("La funzione {0} richiede {1}-{2} argomenti", fun_name, minargs, maxargs);
+            return std::format("La funzione {0} richiede {1}-{2} argomenti", fun_name, minargs, maxargs);
         }
     }
 

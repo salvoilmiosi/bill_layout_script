@@ -4,9 +4,9 @@
 #include <numeric>
 #include <fstream>
 
-#include <fmt/format.h>
-
 #include "exceptions.h"
+#include "utils.h"
+#include "intl.h"
 
 // Converte una stringa in numero usando il formato del locale
 static variable parse_num(std::string_view str) {
@@ -43,7 +43,7 @@ static std::string string_format(std::string_view str, R &&fmt_args) {
                     ret += fmt_args[idx];
                     continue;
                 } else {
-                    throw layout_error(fmt::format("Stringa di formato non valida: {}", str));
+                    throw layout_error(std::format("Stringa di formato non valida: {}", str));
                 }
             } else {
                 ret += FORMAT_CHAR;
@@ -87,9 +87,9 @@ static std::string number_regex() {
     auto tho = escape_regex_char(intl::thousand_sep());
     auto dec = escape_regex_char(intl::decimal_point());
     if (!tho.empty()) {
-        return fmt::format("(?:-?(?:\\d{{1,3}}(?:{0}\\d{{3}})*|\\d+)(?:{1}\\d+)?(?!\\d))", tho, dec);
+        return std::format("(?:-?(?:\\d{{1,3}}(?:{0}\\d{{3}})*|\\d+)(?:{1}\\d+)?(?!\\d))", tho, dec);
     } else {
-        return fmt::format("(?:-?\\d+(?:{0}\\d+)?(?!\\d))", dec);
+        return std::format("(?:-?\\d+(?:{0}\\d+)?(?!\\d))", dec);
     }
 };
 
@@ -99,7 +99,7 @@ static std::regex create_regex(std::string regex) {
         string_replace(regex, "\\N", number_regex());
         return std::regex(regex, std::regex::icase);
     } catch (const std::regex_error &error) {
-        throw layout_error(fmt::format("Espressione regolare non valida: {0}\n{1}", regex, error.what()));
+        throw layout_error(std::format("Espressione regolare non valida: {0}\n{1}", regex, error.what()));
     }
 }
 
@@ -177,13 +177,13 @@ static std::string search_regex_all(std::string_view value, const std::string &r
 template<std::ranges::input_range R>
 static std::string table_header(std::string_view value, R &&labels) {
     std::cmatch header_match;
-    std::regex header_regex(fmt::format(".*{}.*", string_join(labels |
+    std::regex header_regex(std::format(".*{}.*", string_join(labels |
     std::views::transform([first=true](std::string_view str) mutable {
         if (first) {
             first = false;
             return std::string(str);
         } else {
-            return fmt::format("(?:{})?", str);
+            return std::format("(?:{})?", str);
         }
     }), ".*")), std::regex::icase);
     if (!std::regex_search(value.begin(), value.end(), header_match, header_regex)) {
@@ -199,9 +199,9 @@ static std::string table_header(std::string_view value, R &&labels) {
                 auto match_end = match[0].second;
                 pos = std::find_if_not(match_end, header_end, isspace);
                 if (pos == header_end) {
-                    return fmt::format("{}:-1", match_begin - header_begin);
+                    return std::format("{}:-1", match_begin - header_begin);
                 } else {
-                    return fmt::format("{}:{}", match_begin - header_begin, pos - match_begin);
+                    return std::format("{}:{}", match_begin - header_begin, pos - match_begin);
                 }
             } else {
                 return std::string();
@@ -308,7 +308,7 @@ const function_map function_lookup {
     {"null", []{ return variable(); }},
     {"isnull", [](const variable &var) { return var.is_null(); }},
     {"hex", [](int num) {
-        return fmt::format("{:x}", num);
+        return std::format("{:x}", num);
     }},
     {"num", [](const variable &var) {
         if (var.is_number()) return var;
@@ -421,10 +421,10 @@ const function_map function_lookup {
         return string_trim(str);
     }},
     {"lpad", [](std::string_view str, int amount) {
-        return fmt::format("{0: >{1}}", str, str.size() + amount);
+        return std::format("{0: >{1}}", str, str.size() + amount);
     }},
     {"rpad", [](std::string_view str, int amount) {
-        return fmt::format("{0: <{1}}", str, str.size() + amount);
+        return std::format("{0: <{1}}", str, str.size() + amount);
     }},
     {"contains", [](std::string_view str, std::string_view str2) {
         return string_find_icase(str, str2, 0) < str.size();

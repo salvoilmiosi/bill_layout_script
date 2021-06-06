@@ -3,10 +3,10 @@
 
 #include <string>
 #include <functional>
-#include <fmt/format.h>
 
 #include "enums.h"
 #include "stack.h"
+#include "utils.h"
 
 DEFINE_ENUM(token_type,
     (INVALID,      "Token Invalido")
@@ -86,8 +86,8 @@ protected:
 public:
     unexpected_token(token tok, token_type expected = token_type::INVALID)
         : parsing_error(expected == token_type::INVALID
-            ? fmt::format("Imprevisto '{}'", EnumData<const char *>(tok.type))
-            : fmt::format("Imprevisto '{}', richiesto '{}'", EnumData<const char *>(tok.type), EnumData<const char *>(expected)), tok),
+            ? std::format("Imprevisto '{}'", EnumData<const char *>(tok.type))
+            : std::format("Imprevisto '{}', richiesto '{}'", EnumData<const char *>(tok.type), EnumData<const char *>(expected)), tok),
         m_expected(expected) {}
 
     token_type expected() {
