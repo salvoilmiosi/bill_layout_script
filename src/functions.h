@@ -1,7 +1,6 @@
 #ifndef __FUNCTIONS_H__
 #define __FUNCTIONS_H__
 
-#include <functional>
 #include <ranges>
 #include <map>
 
@@ -50,9 +49,8 @@ template<typename T> using convert_lvalue = first_convertible_t<
 
 template<typename T>
 struct vararg_converter {
-    using out_type = convert_lvalue<T>;
-    out_type operator ()(variable &var) const {
-        return convert_var<out_type>(var);
+    decltype(auto) operator ()(variable &var) const {
+        return convert_var<convert_lvalue<T>>(var);
     }
 };
 
@@ -200,28 +198,37 @@ template<typename TypeList, size_t I> inline decltype(auto) get_arg(arg_list &ar
         return convert_var<convert_rvalue<type>>(args[I]);
     }
 }
-struct function_handler : std::function<variable(arg_list&&)> {
-    using base = std::function<variable(arg_list&&)>;
 
-    const size_t minargs;
-    const size_t maxargs;
+class function_handler {
+private:
+    variable (*const m_fun) (arg_list &&);
 
     // l'operatore unario + converte una funzione lambda senza capture
     // in puntatore a funzione. In questo modo il compilatore può
     // dedurre i tipi dei parametri della funzione tramite i template
 
-    // Viene creata una closure che passa automaticamente gli argomenti
+    // function_handler rappresenta una closure che passa automaticamente gli argomenti
     // da arg_list alla funzione fun, convertendoli nei tipi giusti
+    template<typename Function> static variable call_function(arg_list &&args) {
+        using types = function_types<decltype(+Function{})>;
+        return [] <size_t ... Is> (arg_list &args, std::index_sequence<Is...>) {
+            return Function{}(get_arg<types, Is>(args) ...);
+        }(args, std::make_index_sequence<types::size>{});
+    }
+
+public:
+    const size_t minargs;
+    const size_t maxargs;
+
     template<typename Function>
-    function_handler(Function fun) :
-        base([](arg_list &&args) -> variable {
-            using types = function_types<decltype(+fun)>;
-            return [] <size_t ... Is> (arg_list &args, std::index_sequence<Is...>) {
-                return Function{}(get_arg<types, Is>(args) ...);
-            }(args, std::make_index_sequence<types::size>{});
-        }),
-        minargs(check_args<decltype(+fun)>::minargs),
-        maxargs(check_args<decltype(+fun)>::maxargs) {}
+    function_handler(Function fun)
+        : m_fun(call_function<Function>)
+        , minargs(check_args<decltype(+fun)>::minargs)
+        , maxargs(check_args<decltype(+fun)>::maxargs) {}
+
+    variable operator ()(arg_list &&args) const {
+        return m_fun(std::move(args));
+    }
 };
 
 using function_map = std::map<std::string, function_handler, std::less<>>;
