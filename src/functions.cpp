@@ -104,11 +104,11 @@ static std::regex create_regex(std::string regex) {
 }
 
 // Cerca la posizione di str2 in str senza fare differenza tra maiuscole e minuscole
-static size_t string_find_icase(std::string_view str, std::string_view str2, size_t index) {
+static auto string_find_icase(std::string_view str, std::string_view str2, size_t index) {
     return std::ranges::search(
         str.substr(std::min(str.size(), index)),
         str2, {}, toupper, toupper
-    ).begin() - str.begin();
+    );
 }
 
 // converte ogni carattere di spazio in " " e elimina gli spazi ripetuti
@@ -145,23 +145,23 @@ static variable search_regex(std::string_view value, const std::string &regex, s
     return match.str(index);
 }
 
-// cerca la regex in str e ritorna la posizione del primo valore trovato
-static size_t search_regex_pos(std::string_view value, const std::string &regex, size_t index) {
-    std::cmatch match;
-    if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return value.size();
-    if (match.size() >= index) return value.size();
-    return std::distance(value.begin(), match[index].first);
-}
-
-static auto match_to_view = std::views::transform([](const std::csub_match &m) {
+inline auto match_to_view(const std::csub_match &m) {
     return std::string_view(m.first, m.second);
-});
+};
+
+// cerca la regex in str e ritorna la posizione del primo valore trovato
+static std::string_view search_regex_pos(std::string_view value, const std::string &regex, size_t index) {
+    std::cmatch match;
+    if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return {value.end(), value.end()};
+    if (match.size() >= index) return {value.end(), value.end()};
+    return match_to_view(match[index]);
+}
 
 // cerca la regex in str e ritorna tutti i capture del primo valore trovato
 static variable search_regex_captures(std::string_view value, const std::string &regex) {
     std::cmatch match;
     if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return variable();
-    return string_join(match | std::views::drop(1) | match_to_view, UNIT_SEPARATOR);
+    return string_join(match | std::views::drop(1) | std::views::transform(match_to_view), UNIT_SEPARATOR);
 }
 
 // cerca la regex in str e ritorna i valori trovati
@@ -171,7 +171,7 @@ static std::string search_regex_all(std::string_view value, const std::string &r
         std::ranges::subrange(
             std::cregex_token_iterator(value.begin(), value.end(), reg, index),
             std::cregex_token_iterator())
-        | match_to_view, UNIT_SEPARATOR);
+        | std::views::transform(match_to_view), UNIT_SEPARATOR);
 }
 
 template<std::ranges::input_range R>
@@ -367,7 +367,10 @@ const function_map function_lookup {
         return search_regex(str, regex, index);
     }},
     {"searchpos", [](std::string_view str, const std::string &regex, optional_size<0> index) {
-        return search_regex_pos(str, regex, index);
+        return search_regex_pos(str, regex, index).begin() - str.begin();
+    }},
+    {"searchposend", [](std::string_view str, const std::string &regex, optional_size<0> index) {
+        return search_regex_pos(str, regex, index).end() - str.begin();
     }},
     {"search_all", [](std::string_view str, const std::string &regex, optional_size<1> index) {
         return search_regex_all(str, regex, index);
@@ -427,7 +430,7 @@ const function_map function_lookup {
         return std::format("{0: <{1}}", str, str.size() + amount);
     }},
     {"contains", [](std::string_view str, std::string_view str2) {
-        return string_find_icase(str, str2, 0) < str.size();
+        return string_find_icase(str, str2, 0).begin() != str.end();
     }},
     {"substr", [](std::string_view str, size_t pos, optional_size<std::string_view::npos> count) {
         return std::string(str.substr(std::min(str.size(), pos), count));
@@ -439,7 +442,10 @@ const function_map function_lookup {
         return str.size();
     }},
     {"indexof", [](std::string_view str, std::string_view value, optional<size_t> index) {
-        return string_find_icase(str, value, index);
+        return string_find_icase(str, value, index).begin() - str.begin();
+    }},
+    {"indexofend", [](std::string_view str, std::string_view value, optional<size_t> index) {
+        return string_find_icase(str, value, index).end() - str.begin();
     }},
     {"tolower", [](std::string_view str) {
         auto view = str | std::views::transform(tolower);

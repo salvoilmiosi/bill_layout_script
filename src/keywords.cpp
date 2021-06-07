@@ -223,11 +223,10 @@ void parser::read_keyword() {
             throw parsing_error("Stack contenuti vuoto", tok_name);
         }
         auto begin_str = m_lexer.require(token_type::STRING).parse_string();
-        int begin_len = begin_str.size();
-        if (begin_len != 0) {
+        if (!begin_str.empty()) {
             m_code.add_line<opcode::PUSHVIEW>();
             m_code.add_line<opcode::PUSHSTR>(std::move(begin_str));
-            m_code.add_line<opcode::CALL>("indexof", 2);
+            m_code.add_line<opcode::CALL>("indexofend", 2);
             m_code.add_line<opcode::SETBEGIN>();
         }
         if (m_lexer.check_next(token_type::COMMA)) {
@@ -235,12 +234,7 @@ void parser::read_keyword() {
             if (!end_str.empty()) {
                 m_code.add_line<opcode::PUSHVIEW>();
                 m_code.add_line<opcode::PUSHSTR>(std::move(end_str));
-                if (begin_len != 0) {
-                    m_code.add_line<opcode::PUSHINT>(begin_len);
-                    m_code.add_line<opcode::CALL>("indexof", 3);
-                } else {
-                    m_code.add_line<opcode::CALL>("indexof", 2);
-                }
+                m_code.add_line<opcode::CALL>("indexof", 2);
                 m_code.add_line<opcode::SETEND>();
             }
         }
