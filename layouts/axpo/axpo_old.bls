@@ -171,7 +171,7 @@ $goto lettura_spese;
 ### Goto Label parsing_spese
 ### Script
 $with(_dettaglio) {
-  $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")));
+  $setbegin($indexofend(@,$date_format(mese_fattura,"%B %Y")));
   $setend($searchpos(@,/\n.+?TOT\. \u20ac/));
 
   $between("Consumi rilevati dal distributore","Spese per l'energia") {
