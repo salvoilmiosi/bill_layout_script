@@ -86,8 +86,7 @@ void reader::exec_command(const command_args &cmd) {
         }
     };
 
-    auto move_box = [&](spacer_index idx) {
-        auto amt = m_stack.pop();
+    auto move_box = [&](spacer_index idx, variable &&amt) {
         switch (idx) {
         case spacer_index::PAGE:
             m_current_box.page += amt.as_int(); break;
@@ -204,49 +203,50 @@ void reader::exec_command(const command_args &cmd) {
     switch (cmd.command()) {
     case opcode::NOP:
     case opcode::COMMENT:
-    case opcode::LABEL:      break;
-    case opcode::NEWBOX:     m_current_box = {}; break;
-    case opcode::MVBOX:      move_box(cmd.get_args<opcode::MVBOX>()); break;
-    case opcode::RDBOX:      read_box(cmd.get_args<opcode::RDBOX>()); break;
-    case opcode::NEXTTABLE:  ++m_table_index; break;
-    case opcode::SELVAR:     select_var(cmd.get_args<opcode::SELVAR>()); break;
-    case opcode::SETVAR:     m_selected.set_value(m_stack.pop(), cmd.get_args<opcode::SETVAR>()); break;
-    case opcode::CLEAR:      m_selected.clear_value(); break;
-    case opcode::PUSHVAR:    m_stack.push(m_selected.get_value()); break;
-    case opcode::PUSHREF:    m_stack.push(m_selected.get_value().as_view()); break;
-    case opcode::PUSHVIEW:   m_stack.push(m_contents.top().view()); break;
-    case opcode::PUSHNUM:    m_stack.push(cmd.get_args<opcode::PUSHNUM>()); break;
-    case opcode::PUSHINT:    m_stack.push(cmd.get_args<opcode::PUSHINT>()); break;
-    case opcode::PUSHDOUBLE: m_stack.push(cmd.get_args<opcode::PUSHDOUBLE>()); break;
-    case opcode::PUSHSTR:    m_stack.push(*cmd.get_args<opcode::PUSHSTR>()); break;
-    case opcode::PUSHARG:    push_function_arg(cmd.get_args<opcode::PUSHARG>()); break;
-    case opcode::GETBOX:     m_stack.push(get_box_info(cmd.get_args<opcode::GETBOX>())); break;
-    case opcode::GETSYS:     m_stack.push(get_sys_info(cmd.get_args<opcode::GETSYS>())); break;
-    case opcode::CALL:       m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
-    case opcode::ADDCONTENT: m_contents.push(m_stack.pop()); break;
-    case opcode::POPCONTENT: m_contents.pop(); break;
-    case opcode::SETBEGIN:   m_contents.top().setbegin(m_stack.pop().as_int()); break;
-    case opcode::SETEND:     m_contents.top().setend(m_stack.pop().as_int()); break;
-    case opcode::NEWVIEW:    m_contents.top().newview(); break;
-    case opcode::SPLITVIEW:  m_contents.top().splitview(); break;
-    case opcode::NEXTRESULT: m_contents.top().nextresult(); break;
-    case opcode::RESETVIEW:  m_contents.top().resetview(); break;
-    case opcode::JMP:        jump_to(cmd.get_args<opcode::JMP>()); break;
-    case opcode::JZ:         if(!m_stack.pop().as_bool()) jump_to(cmd.get_args<opcode::JZ>()); break;
-    case opcode::JNZ:        if(m_stack.pop().as_bool()) jump_to(cmd.get_args<opcode::JNZ>()); break;
-    case opcode::JNTE:       if(!m_contents.top().tokenend()) jump_to(cmd.get_args<opcode::JNTE>()); break;
-    case opcode::JSRVAL:     jump_subroutine(cmd.get_args<opcode::JSRVAL>(), true); break;
-    case opcode::JSR:        jump_subroutine(cmd.get_args<opcode::JSR>()); break;
-    case opcode::THROWERROR: throw_error(); break;
-    case opcode::ADDNOTE:    m_notes.push_back(m_stack.pop().as_string()); break;
-    case opcode::RET:        jump_return(variable()); break;
-    case opcode::RETVAL:     jump_return(m_stack.pop()); break;
-    case opcode::RETVAR:     jump_return(m_selected.get_value()); break;
-    case opcode::IMPORT:     import_layout(*cmd.get_args<opcode::IMPORT>()); break;
-    case opcode::ADDLAYOUT:  push_layout(*cmd.get_args<opcode::ADDLAYOUT>()); break;
-    case opcode::SETCURLAYOUT: m_current_layout = m_layouts.begin() + cmd.get_args<opcode::SETCURLAYOUT>(); break;
-    case opcode::SETLAYOUT:  if (m_flags & reader_flags::HALT_ON_SETLAYOUT) m_running = false; break;
-    case opcode::HLT:        m_running = false; break;
+    case opcode::LABEL:         break;
+    case opcode::NEWBOX:        m_current_box = {}; break;
+    case opcode::MVBOX:         move_box(cmd.get_args<opcode::MVBOX>(), m_stack.pop()); break;
+    case opcode::MVNBOX:        move_box(cmd.get_args<opcode::MVNBOX>(), -m_stack.pop()); break;
+    case opcode::RDBOX:         read_box(cmd.get_args<opcode::RDBOX>()); break;
+    case opcode::NEXTTABLE:     ++m_table_index; break;
+    case opcode::SELVAR:        select_var(cmd.get_args<opcode::SELVAR>()); break;
+    case opcode::SETVAR:        m_selected.set_value(m_stack.pop(), cmd.get_args<opcode::SETVAR>()); break;
+    case opcode::CLEAR:         m_selected.clear_value(); break;
+    case opcode::PUSHVAR:       m_stack.push(m_selected.get_value()); break;
+    case opcode::PUSHREF:       m_stack.push(m_selected.get_value().as_view()); break;
+    case opcode::PUSHVIEW:      m_stack.push(m_contents.top().view()); break;
+    case opcode::PUSHNUM:       m_stack.push(cmd.get_args<opcode::PUSHNUM>()); break;
+    case opcode::PUSHINT:       m_stack.push(cmd.get_args<opcode::PUSHINT>()); break;
+    case opcode::PUSHDOUBLE:    m_stack.push(cmd.get_args<opcode::PUSHDOUBLE>()); break;
+    case opcode::PUSHSTR:       m_stack.push(*cmd.get_args<opcode::PUSHSTR>()); break;
+    case opcode::PUSHARG:       push_function_arg(cmd.get_args<opcode::PUSHARG>()); break;
+    case opcode::GETBOX:        m_stack.push(get_box_info(cmd.get_args<opcode::GETBOX>())); break;
+    case opcode::GETSYS:        m_stack.push(get_sys_info(cmd.get_args<opcode::GETSYS>())); break;
+    case opcode::CALL:          m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
+    case opcode::ADDCONTENT:    m_contents.push(m_stack.pop()); break;
+    case opcode::POPCONTENT:    m_contents.pop(); break;
+    case opcode::SETBEGIN:      m_contents.top().setbegin(m_stack.pop().as_int()); break;
+    case opcode::SETEND:        m_contents.top().setend(m_stack.pop().as_int()); break;
+    case opcode::NEWVIEW:       m_contents.top().newview(); break;
+    case opcode::SPLITVIEW:     m_contents.top().splitview(); break;
+    case opcode::NEXTRESULT:    m_contents.top().nextresult(); break;
+    case opcode::RESETVIEW:     m_contents.top().resetview(); break;
+    case opcode::JMP:           jump_to(cmd.get_args<opcode::JMP>()); break;
+    case opcode::JZ:            if(!m_stack.pop().as_bool()) jump_to(cmd.get_args<opcode::JZ>()); break;
+    case opcode::JNZ:           if(m_stack.pop().as_bool()) jump_to(cmd.get_args<opcode::JNZ>()); break;
+    case opcode::JNTE:          if(!m_contents.top().tokenend()) jump_to(cmd.get_args<opcode::JNTE>()); break;
+    case opcode::JSRVAL:        jump_subroutine(cmd.get_args<opcode::JSRVAL>(), true); break;
+    case opcode::JSR:           jump_subroutine(cmd.get_args<opcode::JSR>()); break;
+    case opcode::THROWERROR:    throw_error(); break;
+    case opcode::ADDNOTE:       m_notes.push_back(m_stack.pop().as_string()); break;
+    case opcode::RET:           jump_return(variable()); break;
+    case opcode::RETVAL:        jump_return(m_stack.pop()); break;
+    case opcode::RETVAR:        jump_return(m_selected.get_value()); break;
+    case opcode::IMPORT:        import_layout(*cmd.get_args<opcode::IMPORT>()); break;
+    case opcode::ADDLAYOUT:     push_layout(*cmd.get_args<opcode::ADDLAYOUT>()); break;
+    case opcode::SETCURLAYOUT   : m_current_layout = m_layouts.begin() + cmd.get_args<opcode::SETCURLAYOUT>(); break;
+    case opcode::SETLAYOUT:     if (m_flags & reader_flags::HALT_ON_SETLAYOUT) m_running = false; break;
+    case opcode::HLT:           m_running = false; break;
     }
 }
 

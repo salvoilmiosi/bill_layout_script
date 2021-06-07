@@ -110,8 +110,11 @@ void parser::read_box(const layout_box &box) {
                 }
                 read_expression();
                 m_lexer.require(token_type::SEMICOLON);
-                if (negative) m_code.add_line<opcode::CALL>("neg", 1);
-                m_code.add_line<opcode::MVBOX>(idx);
+                if (negative) {
+                    m_code.add_line<opcode::MVNBOX>(idx);
+                } else {
+                    m_code.add_line<opcode::MVBOX>(idx);
+                }
             } catch (std::out_of_range) {
                 throw parsing_error(std::format("Flag spacer non valido: {}", tok.value), tok);
             }

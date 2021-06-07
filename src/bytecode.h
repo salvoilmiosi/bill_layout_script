@@ -100,6 +100,7 @@ DEFINE_ENUM_TYPES(opcode,
     (LABEL, string_ptr)             // jump label
     (NEWBOX)                        // resetta current_box
     (MVBOX, spacer_index)           // stack -> current_box[index]
+    (MVNBOX, spacer_index)          // -stack -> current_box[index]
     (RDBOX, readbox_options)        // poppler.get_text(current_box) -> content_stack
     (NEXTTABLE)                     // current_table++
     (SELVAR, variable_selector)     // (name, index, size, flags) -> selected
