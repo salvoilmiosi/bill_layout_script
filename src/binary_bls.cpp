@@ -145,11 +145,11 @@ template<> struct binary_io<variable_selector> {
 
 template<> struct binary_io<jump_address> {
     static void write(std::ostream &output, const jump_address &label) {
-        writeData(output, std::get<ptrdiff_t>(label));
+        writeData<int16_t>(output, std::get<ptrdiff_t>(label));
     }
 
     static jump_address read(std::istream &input) {
-        return readData<ptrdiff_t>(input);
+        return static_cast<ptrdiff_t>(readData<int16_t>(input));
     }
 };
 
