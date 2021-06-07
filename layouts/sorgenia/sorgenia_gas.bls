@@ -1,0 +1,131 @@
+### Bill Layout Script
+### Set Layout
+
+### Box Lettura Dettaglio
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 2
+### Rect 0.040290102 0.080957815 0.91055596 0.86431015
+### Goto Label lettura_dati
+### Spacers
+p+*next_page;
+### End Spacers
+### Script
+$ifnot($sys.ate || $contains(@,"INFORMAZIONI PER I CLIENTI SORGENIA")) {
+  *_dettaglio+=@;
+  *next_page++;
+  $goto lettura_dati;
+}
+### End Script
+### End Box
+
+### Box Nome Fornitore
+### Type RECTANGLE
+### Mode DEFAULT
+### Flags NOREAD 
+### Page 1
+### Rect 0.061290324 0.04104903 0.36129034 0.08323831
+### Goto Label nome_fornitore
+### Script
+fornitore="Sorgenia";
+### End Script
+### End Box
+
+### Box Numero cliente
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 1
+### Rect 0.48481974 0.010436194 0.46489564 0.104729146
+### Script
+numero_cliente=$search(@,/CODICE CLIENTE (.+)\n/);
+### End Script
+### End Box
+
+### Box Ragione sociale
+### Type RECTANGLE
+### Mode DEFAULT
+### Flags TRIM 
+### Page 1
+### Rect 0.076612905 0.15037057 0.38810483 0.02850627
+### Script
+.'ragione_sociale;
+### End Script
+### End Box
+
+### Box Numero / Data Fattura
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 1
+### Rect 0.078366615 0.33640674 0.38614953 0.039876044
+### Script
+numero_fattura=$search(@,/N\. fattura (.+)/);
+data_fattura=$date(@,"%d/%m/%Y",/Emessa il (\D)/);
+### End Script
+### End Box
+
+### Box PDR / Indirizzo
+### Type RECTANGLE
+### Mode LAYOUT
+### Page 1
+### Rect 0.47096774 0.33537194 0.46042183 0.05117309
+### Script
+codice_pdr=$search(@,/per il punto di riconsegna \(PDR\) (\d+)/);
+'indirizzo_fornitura=$singleline($search(@,/\ndi ([^]+?\d{5}.+)/));
+### End Script
+### End Box
+
+### Box Periodo
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### Rect 0.07358871 0.4846066 0.31149194 0.023517672
+### Script
+mese_fattura=$month(@,"%B %Y");
+mese_fine=$month(@,"%B %Y",/\D\/(\D)/);
+$if(mese_fine < mese_fattura) {
+  $error(*ERRORE_PERIODO_INVALIDO, "Sorgenia: Periodo Non Valido");
+}
+mese_fattura=$month_add(mese_fattura,*calc_mese);
+$ifnot(mese_fattura) {
+  $error(*ERRORE_PERIODO_INVALIDO, "Sorgenia: Mese Fattura Mancante");
+}
+### End Script
+### End Box
+
+### Box Data scadenza
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### Rect 0.7051532 0.43586698 0.23481973 0.04943812
+### Script
+data_scadenza=$date(@,"%d/%m/%Y",/DA SALDARE ENTRO (\D)/);
+### End Script
+### End Box
+
+### Box Totale spesa
+### Type RECTANGLE
+### Mode DEFAULT
+### Page 1
+### Rect 0.31451613 0.43543327 0.36794356 0.033494867
+### Script
+.%totale_fattura;
+### End Script
+### End Box
+
+### Box Parsing Dettaglio
+### Type RECTANGLE
+### Mode DEFAULT
+### Flags NOREAD 
+### Page 2
+### Rect 0.26032954 0.030786771 0.057603687 0.04479557
+### Script
+$import "parsing_dettaglio_gas";
+$if(mese_fine) {
+  $if(mese_fattura != mese_fine) {
+    *calc_mese++;
+    $nexttable;
+    $goto nome_fornitore;
+  }
+}
+### End Script
+### End Box
