@@ -24,7 +24,7 @@ $with(*_dettaglio) {
   ^cts=$search_all(@,/Corrispettivo Tariffario Specifico dal \d\d\/\d\d\/\d\d\d\d al \d\d\/\d\d\/\d\d\d\d (\N)/);
   iva=$search(@,/Iva (\N%)/);
 
-  $setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")));
+  $setbegin($indexofend(@,$date_format(mese_fattura,"%B %Y")));
   $setend($searchpos(@,/\n.+FORNITURA DI/));
 
   %pcv=$search(@,/PCV euro\/cliente\/mese \N \N (\N)/);

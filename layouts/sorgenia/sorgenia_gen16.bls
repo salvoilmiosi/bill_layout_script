@@ -112,7 +112,7 @@ data_fattura=$date(@,"%d/%m/%Y",/Del: (\D)/);
 ### Page 2
 ### Rect 0.0315568 0.02850627 0.9274193 0.91467947
 ### Script
-$setbegin($indexof(@,$date_format(mese_fattura,"%B %Y")));
+$setbegin($indexofend(@,$date_format(mese_fattura,"%B %Y")));
 $setend($indexof(@,"\n",$indexof(@,"FORNITURA DI")));
 
 $step($captures(@,/CONSUMI EFFETTIVI \(kWh\) (\N) (\N) (\N)/)) {
