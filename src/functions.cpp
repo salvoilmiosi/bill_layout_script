@@ -138,23 +138,17 @@ static std::string &string_capitalize(std::string &str) {
     return str;
 }
 
-// cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
-static variable search_regex(std::string_view value, const std::string &regex, size_t index) {
-    std::cmatch match;
-    if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return variable();
-    return match.str(index);
-}
-
 inline auto match_to_view(const std::csub_match &m) {
     return std::string_view(m.first, m.second);
 };
 
-// cerca la regex in str e ritorna la posizione del primo valore trovato
-static std::string_view search_regex_pos(std::string_view value, const std::string &regex, size_t index) {
+// cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
+static std::string_view search_regex(std::string_view value, const std::string &regex, size_t index) {
     std::cmatch match;
-    if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return {value.end(), value.end()};
-    if (match.size() >= index) return {value.end(), value.end()};
-    return match_to_view(match[index]);
+    if (std::regex_search(value.begin(), value.end(), match, create_regex(regex))) {
+        if (index < match.size()) return match_to_view(match[index]);
+    }
+    return {value.end(), value.end()};
 }
 
 // cerca la regex in str e ritorna tutti i capture del primo valore trovato
@@ -276,10 +270,10 @@ static variable search_date(std::string_view value, const std::string &format, s
         string_replace(regex, "\\D", date_regex(format));
     }
 
-    if (auto search_res = search_regex(value, regex, index); !search_res.is_null()) {
+    if (auto search_res = search_regex(value, regex, index); !search_res.empty()) {
         wxDateTime date;
         wxString::const_iterator end;
-        if (date.ParseFormat(search_res.as_string(), format, wxDateTime(time_t(0)), &end)) {
+        if (date.ParseFormat(std::string(search_res), format, wxDateTime(time_t(0)), &end)) {
             return date;
         }
     }
@@ -363,14 +357,18 @@ const function_map function_lookup {
     {"table_row", [](std::string_view row, string_list indices) {
         return table_row(row, indices);
     }},
-    {"search", [](std::string_view str, const std::string &regex, optional_size<1> index) {
-        return search_regex(str, regex, index);
+    {"search", [](std::string_view str, const std::string &regex, optional_size<1> index) -> variable {
+        if (auto res = search_regex(str, regex, index); !res.empty()) {
+            return std::string(res);
+        } else {
+            return {};
+        }
     }},
     {"searchpos", [](std::string_view str, const std::string &regex, optional_size<0> index) {
-        return search_regex_pos(str, regex, index).begin() - str.begin();
+        return search_regex(str, regex, index).begin() - str.begin();
     }},
     {"searchposend", [](std::string_view str, const std::string &regex, optional_size<0> index) {
-        return search_regex_pos(str, regex, index).end() - str.begin();
+        return search_regex(str, regex, index).end() - str.begin();
     }},
     {"search_all", [](std::string_view str, const std::string &regex, optional_size<1> index) {
         return search_regex_all(str, regex, index);
