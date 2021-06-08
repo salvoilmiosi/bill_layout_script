@@ -183,19 +183,17 @@ static std::string table_header(std::string_view value, R &&labels) {
     if (!std::regex_search(value.begin(), value.end(), header_match, header_regex)) {
         return std::string();
     }
-    auto header_begin = header_match[0].first;
-    auto header_end = header_match[0].second;
+    auto header_str = match_to_view(header_match[0]);
     return string_join(labels
-        | std::views::transform([&, pos = header_begin](std::string_view label) mutable {
+        | std::views::transform([&, pos = header_str.begin()](std::string_view label) mutable {
             std::cmatch match;
-            if (std::regex_search(pos, header_end, match, std::regex(label.begin(), label.end(), std::regex::icase))) {
-                auto match_begin = match[0].first;
-                auto match_end = match[0].second;
-                pos = std::find_if_not(match_end, header_end, isspace);
-                if (pos == header_end) {
-                    return std::format("{}:-1", match_begin - header_begin);
+            if (std::regex_search(pos, header_str.end(), match, std::regex(label.begin(), label.end(), std::regex::icase))) {
+                auto match_str = match_to_view(match[0]);
+                pos = std::find_if_not(match_str.end(), header_str.end(), isspace);
+                if (pos == header_str.end()) {
+                    return std::format("{}:-1", match_str.begin() - header_str.begin());
                 } else {
-                    return std::format("{}:{}", match_begin - header_begin, pos - match_begin);
+                    return std::format("{}:{}", match_str.begin() - header_str.begin(), pos - match_str.begin());
                 }
             } else {
                 return std::string();
