@@ -25,7 +25,7 @@ $with(*_dettaglio) {
   iva=$search(@,/Iva (\N%)/);
 
   $setbegin($indexofend(@,$date_format(mese_fattura,"%B %Y")));
-  $setend($searchpos(@,/\n.+FORNITURA DI/));
+  $setend($searchposend(@,/FORNITURA DI .+\n/));
 
   %pcv=$search(@,/PCV euro\/cliente\/mese \N \N (\N)/);
   %spesa_materia_energia=$search(@,/DETTAGLIO DELLA SPESA PER (?:L\u2019ENERGIA ELETTRICA|LA MATERIA ENERGIA)[^]+?(\N) DETTAGLIO/);
@@ -47,13 +47,13 @@ $with(*_dettaglio) {
     }
   }
 
-  $step($captures(@,/Prezzo energia(?: monorario)? euro\/kWh (\N) (\N)/)) {
-    .%prezzo_energia[0:3]; .%~energia_attiva;
+  $step($captures(@,/Prezzo (?:energia(?: monorario)?|Luce) euro\/kWh (\N) (\N)/)) {
+    .%~prezzo_energia; .%~energia_attiva;
   }
 
   %sbilanciamento=$search(@,/Incremento prezzo euro\/kWh (\N)/);
 
-  %imponibile=$search(@,/(\N)$/);
+  %imponibile=$search(@,/FORNITURA DI.+ (\N)/);
 
   %penale_reattiva_inf75=$search(@,/Energia Reattiva tra il 33% e 75% attiva euro\/kVARh \N \N (\N)/);
   %penale_reattiva_sup75=$search(@,/Energia Reattiva oltre il 75% attiva euro\/kVARh \N \N (\N)/);
