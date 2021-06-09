@@ -1,9 +1,5 @@
 .vscode/*
 build/*
-work/*
-bls-ext/*
-layouts/**/*.txt
-layouts/**/*.cache
 *.exe
 *.dll
 *.so

@@ -1,3 +1,0 @@
-IDI_ICON1 ICON "icon_readergui.ico"
-
-#include "wx/msw/wx.rc"
