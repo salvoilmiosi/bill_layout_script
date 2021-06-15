@@ -339,7 +339,11 @@ void parser::sub_expression() {
     default: {
         auto prefixes = read_variable(true);
         if (!prefixes.function_arg) {
-            m_code.add_line<opcode::PUSHVAR>();
+            if (prefixes.pushref) {
+                m_code.add_line<opcode::PUSHREF>();
+            } else {
+                m_code.add_line<opcode::PUSHVAR>();
+            }
         }
     }
     }
@@ -378,6 +382,15 @@ variable_prefixes parser::read_variable(bool read_only) {
             throw parsing_error("Ammesso solo un prefisso di funzione", tok_prefix);
         }
     };
+
+    auto add_pushref = [&]() {
+        if (!read_only) throw parsing_error("Non in contesto di sola lettura", tok_prefix);
+        if (!prefixes.pushref) {
+            prefixes.pushref = true;
+        } else {
+            throw parsing_error("Prefisso duplicato", tok_prefix);
+        }
+    };
     
     bool in_loop = true;
     while (in_loop) {
@@ -389,6 +402,7 @@ variable_prefixes parser::read_variable(bool read_only) {
         case token_type::PERCENT:       add_function_call("num"); break;
         case token_type::CARET:         add_function_call("aggregate"); break;
         case token_type::SINGLE_QUOTE:  add_function_call("capitalize"); break;
+        case token_type::AMPERSAND:     add_pushref(); break;
         case token_type::BRACKET_BEGIN:
             read_expression();
             m_lexer.require(token_type::BRACKET_END);

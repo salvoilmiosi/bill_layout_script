@@ -13,7 +13,8 @@
 struct variable_prefixes {
     bitset<setvar_flags> flags;
     command_args call;
-    bool function_arg = false;
+    bool function_arg:1 = false;
+    bool pushref:1 = false;
 };
 
 DEFINE_ENUM_FLAGS(parser_flags,

@@ -213,7 +213,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SETVAR:        m_selected.set_value(m_stack.pop(), cmd.get_args<opcode::SETVAR>()); break;
     case opcode::CLEAR:         m_selected.clear_value(); break;
     case opcode::PUSHVAR:       m_stack.push(m_selected.get_value()); break;
-    case opcode::PUSHREF:       m_stack.push(m_selected.get_value().as_view()); break;
+    case opcode::PUSHREF:       m_stack.push(m_selected.get_value_ref()); break;
     case opcode::PUSHVIEW:      m_stack.push(m_contents.top().view()); break;
     case opcode::PUSHNUM:       m_stack.push(cmd.get_args<opcode::PUSHNUM>()); break;
     case opcode::PUSHINT:       m_stack.push(cmd.get_args<opcode::PUSHINT>()); break;

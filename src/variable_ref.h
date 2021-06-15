@@ -107,6 +107,15 @@ public:
         }
     }
 
+    variable get_value_ref() const {
+        const variable &value = get_value();
+        if (value.is_string()) {
+            return value.as_view();
+        } else{
+            return value;
+        }
+    }
+
     void clear_value() {
         if (index > size()) return;
         auto it_begin = std::next(m_begin, index);
