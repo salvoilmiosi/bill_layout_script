@@ -29,9 +29,9 @@ using string_list = decltype(string_split(std::declval<std::string_view>(), UNIT
 
 template<> inline string_list convert_var<string_list> (variable &var) { return string_split(var.as_view(), UNIT_SEPARATOR); }
 
-template<typename T> constexpr bool is_convertible = requires(variable &v) {
-    convert_var<T>(v);
-};
+template<typename T, typename = void> struct is_convertible_impl : std::false_type {};
+template<typename T> struct is_convertible_impl<T, std::void_t<decltype(convert_var<T>(std::declval<variable &>()))>> : std::true_type {};
+template<typename T> constexpr bool is_convertible = is_convertible_impl<T>::value;
 
 template<typename ... Ts> struct first_convertible {};
 template<> struct first_convertible<> {

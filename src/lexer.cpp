@@ -91,7 +91,16 @@ token lexer::next(bool do_advance) {
     case '/':
         tok.type = token_type::SLASH;
         break;
-    case '0' ... '9':
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
         ok = readNumber();
         if (std::find(start, m_current, '.') == m_current) {
             tok.type = token_type::INTEGER;
@@ -217,8 +226,32 @@ token lexer::next(bool do_advance) {
             tok.type = token_type::LESS;
         }
         break;
-    case 'a' ... 'z':
-    case 'A' ... 'Z':
+    case 'a': case 'A':
+    case 'b': case 'B':
+    case 'c': case 'C':
+    case 'd': case 'D':
+    case 'e': case 'E':
+    case 'f': case 'F':
+    case 'g': case 'G':
+    case 'h': case 'H':
+    case 'i': case 'I':
+    case 'j': case 'J':
+    case 'k': case 'K':
+    case 'l': case 'L':
+    case 'm': case 'M':
+    case 'n': case 'N':
+    case 'o': case 'O':
+    case 'p': case 'P':
+    case 'q': case 'Q':
+    case 'r': case 'R':
+    case 's': case 'S':
+    case 't': case 'T':
+    case 'u': case 'U':
+    case 'v': case 'V':
+    case 'w': case 'W':
+    case 'x': case 'X':
+    case 'y': case 'Y':
+    case 'z': case 'Z':
     case '_':
         tok.type = token_type::IDENTIFIER;
         ok = readIdentifier();
