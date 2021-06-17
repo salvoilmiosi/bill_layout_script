@@ -7,6 +7,15 @@ namespace intl {
     static char s_decimal_point;
     static char s_thousand_sep;
 
+    wxLanguage string_to_language(const std::string &str) {
+        const wxLanguageInfo *lang_info = wxLocale::FindLanguageInfo(str);
+        if (lang_info) {
+            return static_cast<wxLanguage>(lang_info->Language);
+        } else {
+            return wxLANGUAGE_UNKNOWN;
+        }
+    }
+
     bool set_language(wxLanguage lang) {
         if (!wxLocale::IsAvailable(lang)) {
             std::cerr << "Lingua non supportata: " << wxLocale::GetLanguageName(lang) << std::endl;

@@ -56,9 +56,9 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     }
 
     if (parser.Found("l", &str)) {
-        const wxLanguageInfo *lang_info = wxLocale::FindLanguageInfo(str);
-        if (lang_info) {
-            if (!intl::set_language(static_cast<wxLanguage>(lang_info->Language))) {
+        wxLanguage lang = intl::string_to_language(str.ToStdString());
+        if (lang != wxLANGUAGE_UNKNOWN) {
+            if (!intl::set_language(lang)) {
                 return false;
             }
         } else {
