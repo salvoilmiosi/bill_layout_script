@@ -18,8 +18,9 @@ src/unicode.cpp
 src/variable.cpp
 )
 
+find_package(fmt REQUIRED)
+find_package(jsoncpp REQUIRED)
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(FMT REQUIRED fmt)
 pkg_check_modules(POPPLER REQUIRED poppler-cpp)
 
 find_package(wxWidgets REQUIRED COMPONENTS base)
@@ -29,19 +30,16 @@ add_library(bls SHARED ${libbls_SRCS})
 target_include_directories(bls PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/decimal_for_cpp/include
-    ${FMT_INCLUDE_DIRS}
     ${POPPLER_INCLUDE_DIRS}
 )
 target_link_libraries(bls
     ${wxWidgets_LIBRARIES}
-    ${FMT_LIBRARIES}
     ${POPPLER_LIBRARIES}
+    fmt::fmt-header-only
 )
 
-pkg_check_modules(JSONCPP REQUIRED jsoncpp)
-
 add_executable(blsexec src/main.cpp)
-target_include_directories(blsexec PRIVATE ${JSONCPP_INCLUDE_DIRS})
-target_link_libraries(blsexec bls ${JSONCPP_LIBRARIES})
+target_include_directories(blsexec PRIVATE ${JSON_INC_PATH})
+target_link_libraries(blsexec bls jsoncpp_static)
 
 install(TARGETS bls blsexec)
