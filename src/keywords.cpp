@@ -106,7 +106,7 @@ void parser::read_keyword() {
     }
     case hash("goto"): {
         auto tok = m_lexer.require(token_type::IDENTIFIER);
-        for (size_t i=0; i<m_content_level; ++i) {
+        for (int i=0; i<m_content_level; ++i) {
             m_code.add_line<opcode::POPCONTENT>();
         }
         m_code.add_line<opcode::JMP>(std::format("__{}_box_{}", m_parser_id, tok.value));

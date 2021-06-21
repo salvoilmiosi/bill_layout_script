@@ -41,7 +41,7 @@ void pdf_document::open(const std::filesystem::path &filename) {
     m_filename = filename;
 
     m_pages.clear();
-    for (size_t i=0; i < m_document->pages(); ++i) {
+    for (int i=0; i < m_document->pages(); ++i) {
         m_pages.emplace_back(m_document->create_page(i));
     }
 }
