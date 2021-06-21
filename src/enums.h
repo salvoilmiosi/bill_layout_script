@@ -124,11 +124,11 @@ public:
     constexpr bitset operator << (auto n) const { return m_value << n; }
     constexpr bitset operator >> (auto n) const { return m_value >> n; }
  
-    constexpr bitset &operator &= (auto n) { m_value &= flags_t(n); return *this; }
-    constexpr bitset &operator |= (auto n) { m_value |= flags_t(n); return *this; }
-    constexpr bitset &operator ^= (auto n) { m_value ^= flags_t(n); return *this; }
-    constexpr bitset &operator <<= (auto n) { m_value <<= flags_t(n); return *this; }
-    constexpr bitset &operator >>= (auto n) { m_value >>= flags_t(n); return *this; }
+    constexpr decltype(auto) operator &= (auto n) { m_value &= flags_t(n); return *this; }
+    constexpr decltype(auto) operator |= (auto n) { m_value |= flags_t(n); return *this; }
+    constexpr decltype(auto) operator ^= (auto n) { m_value ^= flags_t(n); return *this; }
+    constexpr decltype(auto) operator <<= (auto n) { m_value <<= flags_t(n); return *this; }
+    constexpr decltype(auto) operator >>= (auto n) { m_value >>= flags_t(n); return *this; }
  
     constexpr operator flags_t() const { return m_value; }
 };

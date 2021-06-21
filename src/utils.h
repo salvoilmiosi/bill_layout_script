@@ -97,7 +97,7 @@ inline std::string &string_replace(std::string &str, std::string_view from, std:
 template<typename T>
 constexpr T string_to(std::string_view str) {
     T ret;
-    auto result = std::from_chars(str.begin(), str.end(), ret);
+    auto result = std::from_chars(str.data(), str.data() + str.size(), ret);
     if (result.ec != std::errc()) {
         throw std::invalid_argument(std::format("Impossibile convertire {} in numero", str));
     }

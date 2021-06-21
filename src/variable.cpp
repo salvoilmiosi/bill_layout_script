@@ -47,7 +47,7 @@ big_int variable::as_int() const {
         [&](string_t auto) {
             big_int num = 0;
             auto view = as_view();
-            std::from_chars(view.begin(), view.end(), num);
+            std::from_chars(view.data(), view.data() + view.size(), num);
             return num;
         },
         [](fixed_point num) { return num.getAsInteger(); },

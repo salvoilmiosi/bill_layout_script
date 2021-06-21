@@ -3,6 +3,7 @@
 #include <regex>
 #include <numeric>
 #include <fstream>
+#include <string_view>
 
 #include "exceptions.h"
 #include "utils.h"
@@ -12,7 +13,7 @@
 static variable parse_num(std::string_view str) {
     fixed_point num;
     std::istringstream iss;
-    iss.rdbuf()->pubsetbuf(const_cast<char *>(str.begin()), str.size());
+    iss.rdbuf()->pubsetbuf(const_cast<char *>(str.data()), str.size());
     if (dec::fromStream(iss, dec::decimal_format(intl::decimal_point(), intl::thousand_sep()), num)) {
         return num;
     } else {
@@ -114,9 +115,13 @@ static auto string_find_icase(std::string_view str, std::string_view str2, size_
 // converte ogni carattere di spazio in " " e elimina gli spazi ripetuti
 static std::string string_singleline(std::string_view str) {
     std::string ret;
-    std::ranges::unique_copy(str | std::views::transform([](auto ch) {
+    auto in_range = str | std::views::transform([](char ch) {
         return isspace(ch) ? ' ' : ch;
-    }), std::back_inserter(ret), [](auto a, auto b) {
+    });
+    auto range = std::unique_copy(
+        in_range.begin(), in_range.end(),
+        std::back_inserter(ret),
+    [](char a, char b) {
         return a == ' ' && b == ' ';
     });
     return ret;
@@ -145,7 +150,7 @@ inline auto match_to_view(const std::csub_match &m) {
 // cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
 static std::string_view search_regex(std::string_view value, const std::string &regex, size_t index) {
     std::cmatch match;
-    if (std::regex_search(value.begin(), value.end(), match, create_regex(regex))) {
+    if (std::regex_search(value.data(), value.data() + value.size(), match, create_regex(regex))) {
         if (index < match.size()) return match_to_view(match[index]);
     }
     return {value.end(), value.end()};
@@ -154,7 +159,7 @@ static std::string_view search_regex(std::string_view value, const std::string &
 // cerca la regex in str e ritorna tutti i capture del primo valore trovato
 static variable search_regex_captures(std::string_view value, const std::string &regex) {
     std::cmatch match;
-    if (!std::regex_search(value.begin(), value.end(), match, create_regex(regex))) return variable();
+    if (!std::regex_search(value.data(), value.data() + value.size(), match, create_regex(regex))) return variable();
     return string_join(match | std::views::drop(1) | std::views::transform(match_to_view), UNIT_SEPARATOR);
 }
 
@@ -163,7 +168,7 @@ static std::string search_regex_all(std::string_view value, const std::string &r
     auto reg = create_regex(regex);
     return string_join(
         std::ranges::subrange(
-            std::cregex_token_iterator(value.begin(), value.end(), reg, index),
+            std::cregex_token_iterator(value.data(), value.data() + value.size(), reg, index),
             std::cregex_token_iterator())
         | std::views::transform(match_to_view), UNIT_SEPARATOR);
 }
@@ -180,14 +185,14 @@ static std::string table_header(std::string_view value, R &&labels) {
             return std::format("(?:{})?", str);
         }
     }), ".*")), std::regex::icase);
-    if (!std::regex_search(value.begin(), value.end(), header_match, header_regex)) {
+    if (!std::regex_search(value.data(), value.data() + value.size(), header_match, header_regex)) {
         return std::string();
     }
     auto header_str = match_to_view(header_match[0]);
     return string_join(labels
         | std::views::transform([&, pos = header_str.begin()](std::string_view label) mutable {
             std::cmatch match;
-            if (std::regex_search(pos, header_str.end(), match, std::regex(label.begin(), label.end(), std::regex::icase))) {
+            if (std::regex_search(&*pos, header_str.data() + header_str.size(), match, std::regex(label.begin(), label.end(), std::regex::icase))) {
                 auto match_str = match_to_view(match[0]);
                 pos = std::find_if_not(match_str.end(), header_str.end(), isspace);
                 if (pos == header_str.end()) {
@@ -205,7 +210,7 @@ static std::string table_header(std::string_view value, R &&labels) {
 static std::string table_row(std::string_view row, string_list indices) {
     return string_join(indices | std::views::transform([&](std::string_view str) {
         std::cmatch match;
-        if (std::regex_match(str.begin(), str.end(), match, std::regex("(\\d+):(-?\\d+)"))) {
+        if (std::regex_match(str.data(), str.data() + str.size(), match, std::regex("(\\d+):(-?\\d+)"))) {
             size_t begin = string_to<int>(match.str(1));
             if (begin < row.size()) {
                 size_t len = string_to<int>(match.str(2));

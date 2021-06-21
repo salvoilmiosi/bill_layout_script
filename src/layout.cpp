@@ -99,7 +99,7 @@ std::istream &operator >> (std::istream &input, layout_box_list &layout) {
                     }
                 } else if (auto suf = suffix(line, "### Flags")) {
                     std::istringstream ss;
-                    ss.rdbuf()->pubsetbuf(const_cast<char *>(suf.value.begin()), suf.value.size());
+                    ss.rdbuf()->pubsetbuf(const_cast<char *>(suf.value.data()), suf.value.size());
                     std::string label;
                     while (ss >> label) {
                         try {
@@ -112,7 +112,7 @@ std::istream &operator >> (std::istream &input, layout_box_list &layout) {
                     current.page = string_to<int>(suf.value);
                 } else if (auto suf = suffix(line, "### Rect")) {
                     std::istringstream ss;
-                    ss.rdbuf()->pubsetbuf(const_cast<char *>(suf.value.begin()), suf.value.size());
+                    ss.rdbuf()->pubsetbuf(const_cast<char *>(suf.value.data()), suf.value.size());
                     ss.imbue(std::locale::classic());
                     ss >> current.x >> current.y >> current.w >> current.h;
                     if (ss.fail()) {

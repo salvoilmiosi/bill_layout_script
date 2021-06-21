@@ -262,7 +262,7 @@ token lexer::next(bool do_advance) {
     }
 
     if (!ok) tok.type = token_type::INVALID;
-    tok.value = std::string_view(start, m_current - start);
+    tok.value = std::string_view(start, m_current);
 
     if (!do_advance) {
         m_current = start;
@@ -276,7 +276,7 @@ token lexer::require(token_type type) {
         auto begin = m_current;
         require(token_type::SLASH);
         if (readRegexp()) {
-            tok.value = std::string_view(begin, m_current - begin);
+            tok.value = std::string_view(begin, m_current);
             tok.type = token_type::REGEXP;
         } else {
             tok.type = token_type::INVALID;
@@ -310,7 +310,7 @@ std::string lexer::token_location_info(const token &tok) {
     size_t loc = 1;
     bool found = false;
     std::string line;
-    for (const char *c = script.begin(); c < script.end(); ++c) {
+    for (auto c = script.begin(); c != script.end(); ++c) {
         if (*c != '\n') line += *c;
         if (c == tok.value.begin()) {
             found = true;
@@ -330,7 +330,7 @@ std::string lexer::token_location_info(const token &tok) {
 }
 
 bool lexer::readIdentifier() {
-    const char *p = m_current;
+    auto p = m_current;
     char c = *p;
     while ((c >= '0' && c <= '9') ||
         (c >= 'a' && c <= 'z') ||
@@ -374,7 +374,7 @@ bool lexer::readRegexp() {
 }
 
 bool lexer::readNumber() {
-    const char *p = m_current;
+    auto p = m_current;
     char c = '0';
     while (c >= '0' && c <= '9') {
         c = (m_current = p) < script.end() ? *p++ : '\0';
