@@ -13,10 +13,10 @@ std::ostream &operator << (std::ostream &output, const layout_box_list &layout) 
     }
 
     for (auto &box : layout) {
-        output << '\n'
-            << "### Box " << box.name << '\n'
-            << "### Type " << box.type << '\n'
-            << "### Mode " << box.mode << '\n';
+        output << "\n### Box " << box.name << '\n';
+        if (box.mode != read_mode::DEFAULT) {
+            output << "### Mode " << box.mode << '\n';
+        }
         if (box.flags) {
             output << "### Flags " << box.flags << '\n';
         }
@@ -91,12 +91,6 @@ std::istream &operator >> (std::istream &input, layout_box_list &layout) {
                 if (line == "### End Box") {
                     fail = false;
                     break;
-                } else if (auto suf = suffix(line, "### Type")) {
-                    try {
-                        current.type = FindEnum<box_type>(suf.value);
-                    } catch (std::invalid_argument) {
-                        throw layout_error(std::format("Token 'Type' non valido: {}", suf.value));
-                    }
                 } else if (auto suf = suffix(line, "### Mode")) {
                     try {
                         current.mode = FindEnum<read_mode>(suf.value);

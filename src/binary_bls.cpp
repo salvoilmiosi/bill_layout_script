@@ -99,14 +99,12 @@ template<> struct binary_io<fixed_point> {
 template<> struct binary_io<readbox_options> {
     static void write(std::ostream &output, const readbox_options &box) {
         writeData(output, box.mode);
-        writeData(output, box.type);
         writeData(output, box.flags);
     }
 
     static readbox_options read(std::istream &input) {
         readbox_options options;
         options.mode = readData<read_mode>(input);
-        options.type = readData<box_type>(input);
         options.flags = readData<flags_t>(input);
         return options;
     }

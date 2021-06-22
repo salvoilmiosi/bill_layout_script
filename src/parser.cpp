@@ -68,7 +68,7 @@ void parser::read_box(const layout_box &box) {
 
     if (!(box.flags & box_flags::NOREAD) || box.flags & box_flags::SPACER) {
         m_code.add_line<opcode::NEWBOX>();
-        if (box.type == box_type::RECTANGLE) {
+        if (!(box.flags & box_flags::PAGE)) {
             m_code.add_line<opcode::PUSHDOUBLE>(box.x);
             m_code.add_line<opcode::MVBOX>(spacer_index::X);
             m_code.add_line<opcode::PUSHDOUBLE>(box.y);
@@ -78,10 +78,8 @@ void parser::read_box(const layout_box &box) {
             m_code.add_line<opcode::PUSHDOUBLE>(box.h);
             m_code.add_line<opcode::MVBOX>(spacer_index::HEIGHT);
         }
-        if (box.type != box_type::WHOLEFILE) {
-            m_code.add_line<opcode::PUSHINT>(box.page);
-            m_code.add_line<opcode::MVBOX>(spacer_index::PAGE);
-        }
+        m_code.add_line<opcode::PUSHINT>(box.page);
+        m_code.add_line<opcode::MVBOX>(spacer_index::PAGE);
     }
     m_content_level = 0;
 
@@ -127,7 +125,7 @@ void parser::read_box(const layout_box &box) {
 
     if (!(box.flags & box_flags::NOREAD || box.flags & box_flags::SPACER)) {
         ++m_content_level;
-        m_code.add_line<opcode::RDBOX>(box.mode, box.type, box.flags);
+        m_code.add_line<opcode::RDBOX>(box.mode, box.flags);
     }
 
     m_lexer.set_script(box.script);

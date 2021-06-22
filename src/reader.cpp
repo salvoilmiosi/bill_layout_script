@@ -166,7 +166,6 @@ void reader::exec_command(const command_args &cmd) {
 
     auto read_box = [&](readbox_options opts) {
         m_current_box.mode = opts.mode;
-        m_current_box.type = opts.type;
         m_current_box.flags = opts.flags;
 
         check_doc_ptr();

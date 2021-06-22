@@ -13,12 +13,6 @@
 #include "utils.h"
 #include "enums.h"
 
-DEFINE_ENUM(box_type,
-    (RECTANGLE,  "Rettangolo")
-    (PAGE,       "Pagina")
-    (WHOLEFILE,  "File")
-)
-
 DEFINE_ENUM(read_mode,
     (DEFAULT,  "Default", poppler::page::non_raw_non_physical_layout)
     (LAYOUT,   "Layout",  poppler::page::physical_layout)
@@ -27,6 +21,7 @@ DEFINE_ENUM(read_mode,
 
 DEFINE_ENUM_FLAGS(box_flags,
     (DISABLED,  "Disabilita")
+    (PAGE,      "Leggi Pagina")
     (NOREAD,    "Nessuna Lettura")
     (SPACER,    "Spaziatore")
     (TRIM,      "Taglia Spazi")
@@ -36,7 +31,6 @@ struct pdf_rect {
     double x, y, w, h;
     int page;
     read_mode mode = read_mode::DEFAULT;
-    box_type type = box_type::RECTANGLE;
     bitset<box_flags> flags;
 
     void rotate(int amt);

@@ -61,7 +61,6 @@ T find_enum_index(std::string_view name) {
 
 struct readbox_options {
     read_mode mode;
-    box_type type;
     bitset<box_flags> flags;
 };
 
