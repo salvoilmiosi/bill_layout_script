@@ -31,6 +31,18 @@ namespace intl {
         return true;
     }
 
+    bool set_language_from_string(const std::string &str) {
+        wxLanguage lang = intl::string_to_language(str);
+        if (lang != wxLANGUAGE_UNKNOWN) {
+            return set_language(lang);
+        }
+        return false;
+    }
+
+    void set_default_language() {
+        set_language(wxLANGUAGE_DEFAULT);
+    }
+
     void reset_language() {
         if (s_current_locale) delete s_current_locale;
         s_current_locale = nullptr;
