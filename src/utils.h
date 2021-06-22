@@ -8,7 +8,7 @@
 #include <charconv>
 #include <ranges>
 
-#ifndef __MSC_VER
+#ifndef HAVE_STD_FORMAT
 #include <fmt/format.h>
 namespace std {
     template<typename ... Ts>
