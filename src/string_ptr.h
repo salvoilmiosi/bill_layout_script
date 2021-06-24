@@ -12,7 +12,7 @@ private:
     template<typename U>
     static auto find_string(U && str) {
         auto it = m_data.lower_bound(str);
-        if (*it != str) {
+        if (it == m_data.end() || *it != str) {
             it = m_data.emplace_hint(it, std::forward<U>(str));
         }
         return &*it;
