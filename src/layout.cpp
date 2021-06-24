@@ -2,6 +2,7 @@
 
 #include "fixed_point.h"
 #include "utils.h"
+#include "svstream.h"
 
 #include <iostream>
 #include <fstream>
@@ -98,8 +99,7 @@ std::istream &operator >> (std::istream &input, layout_box_list &layout) {
                         throw layout_error(std::format("Token 'Mode' non valido: {}", suf.value));
                     }
                 } else if (auto suf = suffix(line, "### Flags")) {
-                    std::istringstream ss;
-                    ss.rdbuf()->pubsetbuf(const_cast<char *>(suf.value.data()), suf.value.size());
+                    isviewstream ss{suf.value};
                     std::string label;
                     while (ss >> label) {
                         try {
@@ -111,8 +111,7 @@ std::istream &operator >> (std::istream &input, layout_box_list &layout) {
                 } else if (auto suf = suffix(line, "### Page")) {
                     current.page = string_to<int>(suf.value);
                 } else if (auto suf = suffix(line, "### Rect")) {
-                    std::istringstream ss;
-                    ss.rdbuf()->pubsetbuf(const_cast<char *>(suf.value.data()), suf.value.size());
+                    isviewstream ss{suf.value};
                     ss.imbue(std::locale::classic());
                     ss >> current.x >> current.y >> current.w >> current.h;
                     if (ss.fail()) {

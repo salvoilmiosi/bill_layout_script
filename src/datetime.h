@@ -57,7 +57,7 @@ public:
 
 #else
 #include <chrono>
-#include <sstream>
+#include "svstream.h"
 
 class datetime {
 private:
@@ -77,9 +77,7 @@ public:
     }
 
     std::string to_string() const {
-        std::ostringstream oss;
-        oss << m_date;
-        return oss.str();
+        return std::format("{:%Y-%m-%d}", m_date);
     }
 
     static datetime from_string(std::string_view str) {
@@ -92,8 +90,7 @@ public:
 
     static datetime parse_date(std::string_view str, const std::string &format_str) {
         datetime ret;
-        std::istringstream iss;
-        iss.rdbuf()->pubsetbuf(const_cast<char *>(str.data()), str.size());
+        isviewstream iss{str};
         std::chrono::from_stream(iss, format_str.c_str(), ret.m_date);
         return ret;
     }

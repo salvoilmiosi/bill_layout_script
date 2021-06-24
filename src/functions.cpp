@@ -3,17 +3,16 @@
 #include <regex>
 #include <numeric>
 #include <fstream>
-#include <string_view>
 
 #include "exceptions.h"
 #include "utils.h"
 #include "intl.h"
+#include "svstream.h"
 
 // Converte una stringa in numero usando il formato del locale
 static variable parse_num(std::string_view str) {
     fixed_point num;
-    std::istringstream iss;
-    iss.rdbuf()->pubsetbuf(const_cast<char *>(str.data()), str.size());
+    isviewstream iss{str};
     if (dec::fromStream(iss, dec::decimal_format(intl::decimal_point(), intl::thousand_sep()), num)) {
         return num;
     } else {
