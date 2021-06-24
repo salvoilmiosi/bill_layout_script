@@ -106,15 +106,15 @@ constexpr T string_to(std::string_view str) {
 
 template<typename T> requires std::is_arithmetic_v<T>
 std::string num_tostring(T num) {
+#ifndef HAS_FLOAT_TO_CHARS
     return std::format("{}", num);
-}
-
-inline auto operator <=> (const wxLongLong &lhs, const wxLongLong &rhs) {
-    return lhs.GetValue() <=> rhs.GetValue();
-}
-
-inline auto operator <=> (const wxDateTime &lhs, const wxDateTime &rhs) {
-    return lhs.GetValue() <=> rhs.GetValue();
+#else
+    std::array<char, 16> buffer;
+    if (auto [ptr, ec] = std::to_chars(buffer.data(), buffer.data() + buffer.size(), num); ec == std::errc()) {
+        return {buffer.data(), ptr};
+    }
+    return "";
+#endif
 }
 
 #endif

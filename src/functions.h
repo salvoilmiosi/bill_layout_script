@@ -18,7 +18,7 @@ template<> inline const std::string &convert_var<const std::string &> (variable 
 
 template<> inline std::string_view  convert_var<std::string_view> (variable &var) { return var.as_view(); }
 template<> inline fixed_point  convert_var<fixed_point> (variable &var) { return var.as_number(); }
-template<> inline wxDateTime   convert_var<wxDateTime> (variable &var) { return var.as_date(); }
+template<> inline datetime     convert_var<datetime>    (variable &var) { return var.as_date(); }
 template<> inline size_t       convert_var<size_t>     (variable &var) { return var.as_int(); }
 template<> inline int          convert_var<int>        (variable &var) { return var.as_int(); }
 template<> inline float        convert_var<float>      (variable &var) { return var.as_double(); }

@@ -20,7 +20,7 @@ std::string &variable::get_string() const {
             [](fixed_point num)         { return fixed_point_to_string(num); },
             [](big_int num)             { return num_tostring(num); },
             [](double num)              { return num_tostring(num); },
-            [](wxDateTime date)         { return date.FormatISODate().ToStdString(); }
+            [](datetime date)           { return date.to_string(); }
         }, m_value);
     }
     return m_str;
@@ -67,15 +67,11 @@ double variable::as_double() const {
     }, m_value);
 }
 
-wxDateTime variable::as_date() const {
+datetime variable::as_date() const {
     return std::visit(overloaded{
-        [&](string_t auto) {
-            wxDateTime dt(time_t(0));
-            dt.ParseISODate(as_string());
-            return dt;
-        },
-        [](wxDateTime date) { return date; },
-        [](auto)            { return wxDateTime(time_t(0)); }
+        [&](string_t auto) { return datetime::from_string(as_string()); },
+        [](datetime date) { return date; },
+        [](auto)            { return datetime(); }
     }, m_value);
 }
 
@@ -85,7 +81,7 @@ bool variable::as_bool() const {
         [&](string_state)           { return !m_str.empty(); },
         [](std::string_view str)    { return !str.empty(); },
         [](number_t auto num)       { return num != 0; },
-        [](wxDateTime date)         { return date.GetTicks() != 0; }
+        [](datetime date)           { return date.is_valid(); }
     }, m_value);
 }
 
@@ -127,10 +123,10 @@ std::partial_ordering variable::operator <=> (const variable &other) const {
         [](number_t auto num, null_state)           { return num <=> 0; },
         [](null_state, number_t auto num)           { return 0 <=> num; },
         
-        [](wxDateTime dt1, wxDateTime dt2)          { return dt1 <=> dt2; },
+        [](datetime dt1, datetime dt2)              { return dt1 <=> dt2; },
         
-        [&](wxDateTime dt, string_t auto)           { return dt <=> other.as_date(); },
-        [&](string_t auto, wxDateTime dt)           { return as_date() <=> dt; },
+        [&](datetime dt, string_t auto)             { return dt <=> other.as_date(); },
+        [&](string_t auto, datetime dt)             { return as_date() <=> dt; },
 
         [](null_state, null_state)                  { return std::partial_ordering::equivalent; },
         [](auto, auto)                              { return std::partial_ordering::unordered; }

@@ -265,7 +265,7 @@ static std::string date_regex(std::string_view format) {
 
 // Viene creata un'espressione regolare che corrisponde alla stringa di formato valido per strptime,
 // poi cerca la data in value e la parsa. Ritorna time_t=0 se c'e' errore.
-static variable search_date(std::string_view value, const std::string &format, std::string regex, size_t index) {
+static datetime search_date(std::string_view value, const std::string &format, std::string regex, size_t index) {
     if (regex.empty()) {
         regex = date_regex(format);
         index = 0;
@@ -273,14 +273,11 @@ static variable search_date(std::string_view value, const std::string &format, s
         string_replace(regex, "\\D", date_regex(format));
     }
 
+    datetime ret;
     if (auto search_res = search_regex(value, regex, index); !search_res.empty()) {
-        wxDateTime date;
-        wxString::const_iterator end;
-        if (date.ParseFormat(std::string(search_res), format, wxDateTime(time_t(0)), &end)) {
-            return date;
-        }
+        datetime::parse_date(ret, std::string(search_res), format);
     }
-    return variable();
+    return ret;
 }
 
 const function_map function_lookup {
@@ -389,25 +386,31 @@ const function_map function_lookup {
         return date_regex(format);
     }},
     {"date", [](std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
-        return search_date(str, format, regex, index);
-    }},
-    {"month", [](std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
-        if (auto date = search_date(str, format, regex, index); !date.is_null()) {
-            return variable(date.as_date().SetDay(1));
+        if (auto date = search_date(str, format, regex, index); date.is_valid()) {
+            return variable(date);
         }
         return variable();
     }},
-    {"date_format", [](wxDateTime date, const std::string &format) {
-        return date.Format(format).ToStdString();
+    {"month", [](std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
+        if (auto date = search_date(str, format, regex, index); date.is_valid()) {
+            date.set_day(1);
+            return variable(date);
+        }
+        return variable();
     }},
-    {"month_add", [](wxDateTime date, int num) {
-        return date.Add(wxDateSpan(0, num));
+    {"date_format", [](datetime date, const std::string &format) {
+        return date.format(format);
     }},
-    {"last_day", [](wxDateTime date) {
-        return date.SetToLastMonthDay(date.GetMonth(), date.GetYear());
+    {"month_add", [](datetime date, int num) {
+        date.add_months(num);
+        return date;
     }},
-    {"date_between", [](wxDateTime date, wxDateTime date_begin, wxDateTime date_end) {
-        return date.IsBetween(date_begin, date_end);
+    {"last_day", [](datetime date) {
+        date.set_to_last_month_day();
+        return date;
+    }},
+    {"date_between", [](datetime date, datetime date_begin, datetime date_end) {
+        return date >= date_begin && date <= date_end;
     }},
     {"singleline", [](std::string_view str) {
         return string_singleline(str);
