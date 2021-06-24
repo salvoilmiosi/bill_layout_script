@@ -45,6 +45,7 @@ set(bls_libraries
 
 if(MSVC AND MSVC_VERSION GREATER_EQUAL 1929)
     target_compile_definitions(bls PUBLIC HAVE_STD_FORMAT)
+    target_compile_definitions(bls PUBLIC HAVE_STD_CALENDAR)
 else()
     find_package(fmt REQUIRED)
     list(APPEND bls_libraries fmt::fmt-header-only)

@@ -273,11 +273,10 @@ static datetime search_date(std::string_view value, const std::string &format, s
         string_replace(regex, "\\D", date_regex(format));
     }
 
-    datetime ret;
     if (auto search_res = search_regex(value, regex, index); !search_res.empty()) {
-        datetime::parse_date(ret, std::string(search_res), format);
+        return datetime::parse_date(search_res, format);
     }
-    return ret;
+    return datetime();
 }
 
 const function_map function_lookup {

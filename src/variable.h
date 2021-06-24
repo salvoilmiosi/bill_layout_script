@@ -3,7 +3,6 @@
 
 #include <variant>
 #include <string>
-#include <wx/datetime.h>
 #include "fixed_point.h"
 #include "datetime.h"
 

@@ -1,8 +1,6 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
-#include <wx/datetime.h>
-
 #include <string>
 #include <algorithm>
 #include <charconv>

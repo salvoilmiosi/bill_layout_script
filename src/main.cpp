@@ -56,12 +56,7 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
     }
 
     if (parser.Found("l", &str)) {
-        if (!intl::set_language_from_string(str.ToStdString())) {
-            std::cerr << "Lingua sconosciuta: " << str << std::endl;
-            return false;
-        }
-    } else {
-        intl::set_default_language();
+        intl::set_language(str.ToStdString());
     }
     return true;
 }
