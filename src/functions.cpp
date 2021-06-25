@@ -189,15 +189,15 @@ static std::string table_header(std::string_view value, R &&labels) {
     }
     auto header_str = match_to_view(header_match[0]);
     return string_join(labels
-        | std::views::transform([&, pos = header_str.begin()](std::string_view label) mutable {
+        | std::views::transform([&, pos = header_str.data()](std::string_view label) mutable {
             std::cmatch match;
             if (std::regex_search(&*pos, header_str.data() + header_str.size(), match, std::regex(label.begin(), label.end(), std::regex::icase))) {
                 auto match_str = match_to_view(match[0]);
-                pos = std::find_if_not(match_str.end(), header_str.end(), isspace);
-                if (pos == header_str.end()) {
-                    return std::format("{}:-1", match_str.begin() - header_str.begin());
+                pos = std::find_if_not(match_str.data() + match_str.size(), header_str.data() + header_str.size(), isspace);
+                if (pos == header_str.data() + header_str.size()) {
+                    return std::format("{}:-1", match_str.data() - header_str.data());
                 } else {
-                    return std::format("{}:{}", match_str.begin() - header_str.begin(), pos - match_str.begin());
+                    return std::format("{}:{}", match_str.data() - header_str.data(), pos - match_str.data());
                 }
             } else {
                 return std::string();
