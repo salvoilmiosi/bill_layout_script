@@ -69,3 +69,16 @@ target_include_directories(blsexec PRIVATE ${JSON_INC_PATH})
 target_link_libraries(blsexec bls jsoncpp_lib)
 
 install(TARGETS bls blsexec)
+
+set(BLS_BUILD_UTILS ON CACHE BOOL "Build BLS Utils")
+
+if(${BLS_BUILD_UTILS})
+    add_executable(blsdump utils/blsdump.cpp)
+    target_include_directories(blsdump PRIVATE ${JSON_INC_PATH})
+    target_link_libraries(blsdump bls jsoncpp_lib)
+
+    add_executable(sizes utils/sizes.cpp)
+    target_link_libraries(sizes bls)
+
+    install(TARGETS blsdump sizes)
+endif()
