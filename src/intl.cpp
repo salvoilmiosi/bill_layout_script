@@ -1,53 +1,61 @@
 #include "intl.h"
-#include <iostream>
 
 namespace intl {
-    static wxLocale *s_current_locale = nullptr;
-
-    static char s_decimal_point;
-    static char s_thousand_sep;
-
-    wxLanguage string_to_language(const std::string &str) {
-        const wxLanguageInfo *lang_info = wxLocale::FindLanguageInfo(str);
-        if (lang_info) {
-            return static_cast<wxLanguage>(lang_info->Language);
-        } else {
-            return wxLANGUAGE_UNKNOWN;
-        }
-    }
-
-    bool set_language(wxLanguage lang) {
-        if (!wxLocale::IsAvailable(lang)) {
-            std::cerr << "Lingua non supportata: " << wxLocale::GetLanguageName(lang) << std::endl;
-            return false;
-        }
-
-        if (s_current_locale) delete s_current_locale;
-
-        s_current_locale = new wxLocale(lang);
-
-        s_decimal_point = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER).at(0);
-        s_thousand_sep = wxLocale::GetInfo(wxLOCALE_THOUSANDS_SEP, wxLOCALE_CAT_NUMBER).at(0);
-        return true;
-    }
-
-    bool set_language_from_string(const std::string &str) {
-        wxLanguage lang = intl::string_to_language(str);
-        if (lang != wxLANGUAGE_UNKNOWN) {
-            return set_language(lang);
-        }
-        return false;
-    }
-
-    void set_default_language() {
-        set_language(wxLANGUAGE_DEFAULT);
-    }
-
-    void reset_language() {
-        if (s_current_locale) delete s_current_locale;
-        s_current_locale = nullptr;
-    }
-
+    static char s_decimal_point = '.';
+    static char s_thousand_sep = ',';
+    
     char decimal_point() { return s_decimal_point; }
     char thousand_sep() { return s_thousand_sep; }
 }
+
+#ifdef HAVE_STD_LOCALE
+#include <locale>
+
+namespace intl {
+    bool set_language(const std::string &name) {
+        try {
+            std::locale loc{name};
+            std::locale::global(loc);
+
+            s_decimal_point = std::use_facet<std::numpunct<char>>(loc).decimal_point();
+            s_thousand_sep = std::use_facet<std::numpunct<char>>(loc).thousands_sep();
+
+            return true;
+        } catch (std::runtime_error) {
+            return false;
+        }
+    }
+}
+
+#else
+#include <wx/intl.h>
+#include <memory>
+
+namespace intl {
+    static std::unique_ptr<wxLocale> sp_current_locale;
+
+    bool set_language(const std::string &name) {
+        wxLanguage lang = wxLANGUAGE_DEFAULT;
+        if (!name.empty()) {
+            const wxLanguageInfo *lang_info = wxLocale::FindLanguageInfo(name);
+            if (lang_info) {
+                lang = static_cast<wxLanguage>(lang_info->Language);
+            } else {
+                return false;
+            }
+        }
+
+        if (!wxLocale::IsAvailable(lang)) {
+            return false;
+        }
+        
+        sp_current_locale.reset(new wxLocale(lang));
+
+        s_decimal_point = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER).at(0);
+        s_thousand_sep = wxLocale::GetInfo(wxLOCALE_THOUSANDS_SEP, wxLOCALE_CAT_NUMBER).at(0);
+
+        return true;
+    }
+}
+
+#endif
