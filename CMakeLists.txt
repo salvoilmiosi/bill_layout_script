@@ -28,34 +28,38 @@ find_package(Boost REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(poppler REQUIRED poppler-cpp IMPORTED_TARGET)
 
-find_package(wxWidgets REQUIRED COMPONENTS base)
-include(${wxWidgets_USE_FILE})
-
 add_library(bls SHARED ${libbls_SRCS})
-target_include_directories(bls PUBLIC
+
+set(bls_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/decimal_for_cpp/include
     ${Boost_INCLUDE_DIRS}
 )
 
-set(bls_libraries
-    ${wxWidgets_LIBRARIES}
-    PkgConfig::poppler
-)
+set(bls_libraries PkgConfig::poppler)
 
 if(MSVC AND MSVC_VERSION GREATER_EQUAL 1929)
     target_compile_definitions(bls PUBLIC HAVE_STD_FORMAT)
     target_compile_definitions(bls PUBLIC HAVE_STD_CALENDAR)
     target_compile_definitions(bls PUBLIC HAVE_STD_LOCALE)
+
+    target_compile_definitions(bls PUBLIC USE_CXXOPTS)
+    list(APPEND bls_include_dirs ${CMAKE_CURRENT_SOURCE_DIR}/cxxopts/include)
 else()
     find_package(fmt REQUIRED)
     list(APPEND bls_libraries fmt::fmt-header-only)
+
+    find_package(wxWidgets REQUIRED COMPONENTS base)
+    include(${wxWidgets_USE_FILE})
+    
+    list(APPEND bls_libraries ${wxWidgets_LIBRARIES})
 endif()
 
 if(MSVC AND MSVC_VERSION GREATER_EQUAL 1914)
     target_compile_definitions(bls PUBLIC HAVE_FLOAT_TO_CHARS)
 endif()
 
+target_include_directories(bls PUBLIC ${bls_include_dirs})
 target_link_libraries(bls ${bls_libraries})
 
 find_package(jsoncpp REQUIRED)

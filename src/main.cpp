@@ -1,9 +1,6 @@
 #include <iostream>
 #include <filesystem>
 
-#include <wx/app.h>
-#include <wx/cmdline.h>
-
 #include <json/json.h>
 
 #include "parser.h"
@@ -11,15 +8,13 @@
 #include "utils.h"
 #include "intl.h"
 
-class MainApp : public wxAppConsole {
-public:
-    virtual int OnRun() override;
-    virtual void OnInitCmdLine(wxCmdLineParser &parser) override;
-    virtual bool OnCmdLineParsed(wxCmdLineParser &parser) override;
+struct MainApp {
+    int run();
 
-private:
     std::filesystem::path input_pdf;
     std::filesystem::path input_bls;
+
+    std::string selected_locale;
 
     bool show_debug = false;
     bool show_globals = false;
@@ -28,46 +23,12 @@ private:
     bool parse_recursive = false;
 };
 
-wxIMPLEMENT_APP_CONSOLE(MainApp);
-
-void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
-    parser.AddParam("input-bls");
-    parser.AddOption("p", "input-pdf", "Input PDF");
-    parser.AddOption("l", "language", "Language");
-    parser.AddSwitch("d", "show-debug", "Show Debug Variables");
-    parser.AddSwitch("g", "show-globals", "Show Global Variables");
-    parser.AddSwitch("h", "halt-setlayout", "Halt On Setlayout");
-    parser.AddSwitch("c", "use-cache", "Use Script Cache");
-    parser.AddSwitch("r", "recursive-imports", "Recursive Imports");
-}
-
-bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
-    wxString str;
-
-    input_bls = parser.GetParam(0).ToStdString();
-    show_debug = parser.FoundSwitch("d") == wxCMD_SWITCH_ON;
-    show_globals = parser.FoundSwitch("g") == wxCMD_SWITCH_ON;
-    get_layout = parser.FoundSwitch("h") == wxCMD_SWITCH_ON;
-    use_cache = parser.FoundSwitch("c") == wxCMD_SWITCH_ON;
-    parse_recursive = parser.FoundSwitch("r") == wxCMD_SWITCH_ON;
-
-    if (parser.Found("p", &str)) {
-        input_pdf = str.ToStdString();
+int MainApp::run() {
+    if (!intl::set_language(selected_locale)) {
+        std::cerr << "Lingua non supportata: " << selected_locale << '\n';
+        return -1;
     }
 
-    if (parser.Found("l", &str)) {
-        if (!intl::set_language(str.ToStdString())) {
-            std::cout << "Lingua non supportata: " << str << '\n';
-            return false;
-        }
-    } else {
-        intl::set_language("");
-    }
-    
-    return true;
-}
-
-int MainApp::OnRun() {
     int retcode = 0;
     Json::Value result = Json::objectValue;
 
@@ -151,3 +112,93 @@ int MainApp::OnRun() {
     std::cout << result;
     return retcode;
 }
+
+#ifndef USE_CXXOPTS
+#include <wx/app.h>
+#include <wx/cmdline.h>
+struct WxMainApp : public wxAppConsole, public MainApp {
+    virtual int OnRun() override {
+        return MainApp::run();
+    }
+
+    virtual void OnInitCmdLine(wxCmdLineParser &parser) override;
+    virtual bool OnCmdLineParsed(wxCmdLineParser &parser) override;
+};
+
+wxIMPLEMENT_APP_CONSOLE(WxMainApp);
+
+void WxMainApp::OnInitCmdLine(wxCmdLineParser &parser) {
+    parser.AddParam("input-bls");
+    parser.AddOption("p", "input-pdf", "Input PDF");
+    parser.AddOption("l", "language", "Language");
+    parser.AddSwitch("d", "show-debug", "Show Debug Variables");
+    parser.AddSwitch("g", "show-globals", "Show Global Variables");
+    parser.AddSwitch("h", "halt-setlayout", "Halt On Setlayout");
+    parser.AddSwitch("c", "use-cache", "Use Script Cache");
+    parser.AddSwitch("r", "recursive-imports", "Recursive Imports");
+}
+
+bool WxMainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
+    wxString str;
+
+    input_bls = parser.GetParam(0).ToStdString();
+    show_debug = parser.FoundSwitch("d") == wxCMD_SWITCH_ON;
+    show_globals = parser.FoundSwitch("g") == wxCMD_SWITCH_ON;
+    get_layout = parser.FoundSwitch("h") == wxCMD_SWITCH_ON;
+    use_cache = parser.FoundSwitch("c") == wxCMD_SWITCH_ON;
+    parse_recursive = parser.FoundSwitch("r") == wxCMD_SWITCH_ON;
+
+    if (parser.Found("p", &str)) {
+        input_pdf = str.ToStdString();
+    }
+
+    if (parser.Found("l", &str)) {
+        selected_locale = str.ToStdString();
+    }
+    
+    return true;
+}
+
+#else
+#include "cxxopts.hpp"
+
+int main(int argc, char **argv) {
+    MainApp app;
+
+    try {
+        cxxopts::Options options(argv[0], "Executes bls files");
+
+        options.positional_help("Input-bls-File");
+
+        options.add_options()
+            ("input-bls", "Input bls File", cxxopts::value(app.input_bls))
+            ("p,input-pdf", "Input pdf File", cxxopts::value(app.input_pdf))
+            ("l,language", "Language", cxxopts::value(app.selected_locale))
+            ("d,show-debug", "Show Debug Variables", cxxopts::value(app.show_debug))
+            ("g,show-globals", "Show Global Variables", cxxopts::value(app.show_globals))
+            ("k,halt-setlayout", "Halt On Setlayout", cxxopts::value(app.get_layout))
+            ("c,use-cache", "Use Script Cache", cxxopts::value(app.use_cache))
+            ("r,recursive-imports", "Recursive Imports", cxxopts::value(app.parse_recursive))
+            ("h,help", "Print Help");
+
+        options.parse_positional({"input-bls"});
+
+        auto result = options.parse(argc, argv);
+        if (result.count("help")) {
+            std::cout << options.help() << std::endl;
+            return 0;
+        }
+
+        if (!result.count("input-bls")) {
+            std::cout << options.help() << std::endl;
+            return 0;
+        }
+    } catch (const cxxopts::OptionException &e) {
+        std::cerr << "Errore nel parsing delle opzioni: " << e.what() << std::endl;
+        return -1;
+    }
+
+    return app.run();
+}
+
+#endif
