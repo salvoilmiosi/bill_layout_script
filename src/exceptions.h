@@ -2,6 +2,7 @@
 #define __EXCEPTIONS_H__
 
 #include <stdexcept>
+#include <cassert>
 
 struct layout_error : std::runtime_error {
     template<typename T>

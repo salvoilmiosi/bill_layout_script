@@ -6,11 +6,16 @@
 
 #include "decimal.h"
 #include <string>
+#include <ranges>
 
 using fixed_point = dec::decimal<10>;
 
 inline std::string fixed_point_to_string(fixed_point num) {
-    std::string str = dec::toString(num);
+    std::ostringstream ss;
+    ss.imbue(std::locale::classic());
+    ss << num;
+
+    std::string str = ss.str();
     auto it = str.rbegin();
     for (; *it == '0' && it != str.rend(); ++it);
     if (*it == '.') ++it;

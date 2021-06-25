@@ -52,6 +52,10 @@ else()
     list(APPEND bls_libraries fmt::fmt-header-only)
 endif()
 
+if(MSVC AND MSVC_VERSION GREATER_EQUAL 1914)
+    target_compile_definitions(bls PUBLIC HAVE_FLOAT_TO_CHARS)
+endif()
+
 target_link_libraries(bls ${bls_libraries})
 
 find_package(jsoncpp REQUIRED)

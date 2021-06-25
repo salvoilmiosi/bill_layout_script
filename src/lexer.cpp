@@ -1,8 +1,8 @@
 #include "lexer.h"
 
 void lexer::set_script(std::string_view str) {
-    script = str;
-    m_current = script.begin();
+    m_begin = m_current = str.data();
+    m_end = m_begin + str.size();
 
     last_debug_line = -1;
     addDebugData();
@@ -10,14 +10,14 @@ void lexer::set_script(std::string_view str) {
 }
 
 char lexer::nextChar() {
-    if (m_current == script.end())
+    if (m_current == m_end)
         return '\0';
     return *m_current++;
 }
 
 void lexer::skipSpaces() {
     bool comment = false;
-    while (m_current != script.end()) {
+    while (m_current != m_end) {
         switch (*m_current) {
         case '\r':
         case '\n':
@@ -44,7 +44,8 @@ void lexer::skipSpaces() {
 
 void lexer::addDebugData() {
     if (comment_callback) {
-        size_t begin = script.find_first_not_of(" \t\r\n", m_current - script.begin());
+        std::string_view script{m_current, m_end};
+        size_t begin = script.find_first_not_of(" \t\r\n");
         if (begin != std::string::npos && begin != last_debug_line) {
             last_debug_line = begin;
             size_t endline = script.find_first_of("\r\n", begin);
@@ -302,7 +303,7 @@ token lexer::check_next(token_type type) {
 
 void lexer::advance(token tok) {
     flushDebugData();
-    m_current = tok.value.begin() + tok.value.size();
+    m_current = tok.value.data() + tok.value.size();
 }
 
 std::string lexer::token_location_info(const token &tok) {
@@ -310,9 +311,9 @@ std::string lexer::token_location_info(const token &tok) {
     size_t loc = 1;
     bool found = false;
     std::string line;
-    for (auto c = script.begin(); c != script.end(); ++c) {
+    for (auto c = m_begin; c != m_end; ++c) {
         if (*c != '\n') line += *c;
-        if (c == tok.value.begin()) {
+        if (c == tok.value.data()) {
             found = true;
         }
         if (!found) {
@@ -336,7 +337,7 @@ bool lexer::readIdentifier() {
         (c >= 'a' && c <= 'z') ||
         (c >= 'A' && c <= 'Z') ||
         c == '_') {
-        c = (m_current = p) < script.end() ? *p++ : '\0';
+        c = (m_current = p) < m_end ? *p++ : '\0';
     }
     return true;
 }
@@ -377,12 +378,12 @@ bool lexer::readNumber() {
     auto p = m_current;
     char c = '0';
     while (c >= '0' && c <= '9') {
-        c = (m_current = p) < script.end() ? *p++ : '\0';
+        c = (m_current = p) < m_end ? *p++ : '\0';
     }
     if (c == '.') {
-        c = (m_current = p) < script.end() ? *p++ : '\0';
+        c = (m_current = p) < m_end ? *p++ : '\0';
         while (c >= '0' && c <= '9')
-            c = (m_current = p) < script.end() ? *p++ : '\0';
+            c = (m_current = p) < m_end ? *p++ : '\0';
     }
     return true;
 }

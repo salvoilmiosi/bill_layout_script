@@ -123,9 +123,9 @@ private:
     size_t last_debug_line;
     simple_stack<std::string> debug_lines;
 
-    std::string_view script;
-
-    std::string_view::iterator m_current;
+    const char *m_begin;
+    const char *m_current;
+    const char *m_end;
 
     char nextChar();
     void skipSpaces();

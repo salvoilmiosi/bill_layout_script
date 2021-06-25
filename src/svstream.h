@@ -1,4 +1,4 @@
-#ifndef __svstream_H_
+#ifndef __svstream_H__
 #define __svstream_H__
 
 #include <streambuf>
