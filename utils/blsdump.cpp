@@ -1,56 +1,59 @@
 #include <iostream>
 #include <filesystem>
 
-#include <wx/app.h>
-#include <wx/cmdline.h>
-
 #include <json/value.h>
 
+#include "cxxopts.hpp"
 #include "parser.h"
 #include "fixed_point.h"
 #include "utils.h"
 #include "binary_bls.h"
 
-class MainApp : public wxAppConsole {
-public:
-    virtual int OnRun() override;
-    virtual void OnInitCmdLine(wxCmdLineParser &parser) override;
-    virtual bool OnCmdLineParsed(wxCmdLineParser &parser) override;
+struct MainApp {
+    int run();
 
-private:
     std::filesystem::path input_file;
     std::filesystem::path output_cache;
 
-    bitset<parser_flags> flags;
-    bool do_read_cache = false;
+    bool skip_comments;
+    bool recursive_imports;
+    bool do_read_cache;
 };
 
-wxIMPLEMENT_APP_CONSOLE(MainApp);
+int main(int argc, char **argv) {
+    MainApp app;
 
-void MainApp::OnInitCmdLine(wxCmdLineParser &parser) {
-    parser.AddParam("input-file");
-    parser.AddSwitch("s", "skip-comments", "Skip Comments");
-    parser.AddSwitch("r", "recursive-imports", "Recursive Imports");
-    parser.AddSwitch("c", "read-cache", "Read Cache");
-    parser.AddOption("o", "output-cache", "Output Cache");
-}
+    try {
+        cxxopts::Options options(argv[0], "Analyzes bls compiler output");
 
-bool MainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
-    auto check_flag = [&](auto flag, const char *name, bool invert = false) {
-        flags |= flags_t(flag) & -(invert ^ parser.FoundSwitch(name) == wxCMD_SWITCH_ON);
-    };
-    auto check_option = [&](auto &out, const char *name) {
-        if (wxString str; parser.Found(name, &str)) {
-            out = str.ToStdString();
+        options.positional_help("Input-bls-File");
+
+        options.add_options()
+            ("input-bls", "Input bls File", cxxopts::value(app.input_file))
+            ("s,skip-comments", "Skip Comments", cxxopts::value(app.skip_comments))
+            ("r,recursive-imports", "Recursive Imports", cxxopts::value(app.recursive_imports))
+            ("c,read-cache", "Read Cache", cxxopts::value(app.do_read_cache))
+            ("o,output-cache", "Output Cache File", cxxopts::value(app.output_cache))
+            ("h,help", "Print Help");
+
+        options.parse_positional({"input-bls"});
+
+        auto result = options.parse(argc, argv);
+        if (result.count("help")) {
+            std::cout << options.help() << std::endl;
+            return 0;
         }
-    };
 
-    input_file = parser.GetParam(0).ToStdString();
-    check_flag(parser_flags::ADD_COMMENTS, "s", true);
-    check_flag(parser_flags::RECURSIVE_IMPORTS, "r");
-    do_read_cache = parser.FoundSwitch("c") == wxCMD_SWITCH_ON;
-    check_option(output_cache, "o");
-    return true;
+        if (!result.count("input-bls")) {
+            std::cout << options.help() << std::endl;
+            return 0;
+        }
+    } catch (const cxxopts::OptionException &e) {
+        std::cerr << "Errore nel parsing delle opzioni: " << e.what() << std::endl;
+        return -1;
+    }
+
+    return app.run();
 }
 
 static std::string quoted_string(const std::string &str) {
@@ -112,13 +115,14 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<jsr_ad
     return out << print_args(static_cast<jump_address>(args.data)) << ' ' << num_tostring(args.data.numargs);
 }
 
-int MainApp::OnRun() {
+int MainApp::run() {
     try {
         bytecode code;
 
         if (!do_read_cache) {
             parser my_parser;
-            my_parser.add_flags(flags);
+            if (!skip_comments) my_parser.add_flags(parser_flags::ADD_COMMENTS);
+            if (recursive_imports) my_parser.add_flags(parser_flags::RECURSIVE_IMPORTS);
             my_parser.read_layout(input_file, layout_box_list::from_file(input_file));
             code = std::move(my_parser).get_bytecode();
         } else {

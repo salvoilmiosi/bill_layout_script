@@ -33,6 +33,7 @@ add_library(bls SHARED ${libbls_SRCS})
 set(bls_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/decimal_for_cpp/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/cxxopts/include
     ${Boost_INCLUDE_DIRS}
 )
 
@@ -42,10 +43,9 @@ if(MSVC AND MSVC_VERSION GREATER_EQUAL 1929)
     target_compile_definitions(bls PUBLIC HAVE_STD_FORMAT)
     target_compile_definitions(bls PUBLIC HAVE_STD_CALENDAR)
     target_compile_definitions(bls PUBLIC HAVE_STD_LOCALE)
-
-    target_compile_definitions(bls PUBLIC USE_CXXOPTS)
-    list(APPEND bls_include_dirs ${CMAKE_CURRENT_SOURCE_DIR}/cxxopts/include)
 else()
+    target_compile_definitions(bls PUBLIC USE_WXWIDGETS)
+
     find_package(fmt REQUIRED)
     list(APPEND bls_libraries fmt::fmt-header-only)
 

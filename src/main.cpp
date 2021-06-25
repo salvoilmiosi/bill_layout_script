@@ -1,8 +1,13 @@
 #include <iostream>
 #include <filesystem>
 
+#ifdef USE_WXWIDGETS
+#include <wx/init.h>
+#endif
+
 #include <json/json.h>
 
+#include "cxxopts.hpp"
 #include "parser.h"
 #include "reader.h"
 #include "utils.h"
@@ -113,55 +118,6 @@ int MainApp::run() {
     return retcode;
 }
 
-#ifndef USE_CXXOPTS
-#include <wx/app.h>
-#include <wx/cmdline.h>
-struct WxMainApp : public wxAppConsole, public MainApp {
-    virtual int OnRun() override {
-        return MainApp::run();
-    }
-
-    virtual void OnInitCmdLine(wxCmdLineParser &parser) override;
-    virtual bool OnCmdLineParsed(wxCmdLineParser &parser) override;
-};
-
-wxIMPLEMENT_APP_CONSOLE(WxMainApp);
-
-void WxMainApp::OnInitCmdLine(wxCmdLineParser &parser) {
-    parser.AddParam("input-bls");
-    parser.AddOption("p", "input-pdf", "Input PDF");
-    parser.AddOption("l", "language", "Language");
-    parser.AddSwitch("d", "show-debug", "Show Debug Variables");
-    parser.AddSwitch("g", "show-globals", "Show Global Variables");
-    parser.AddSwitch("h", "halt-setlayout", "Halt On Setlayout");
-    parser.AddSwitch("c", "use-cache", "Use Script Cache");
-    parser.AddSwitch("r", "recursive-imports", "Recursive Imports");
-}
-
-bool WxMainApp::OnCmdLineParsed(wxCmdLineParser &parser) {
-    wxString str;
-
-    input_bls = parser.GetParam(0).ToStdString();
-    show_debug = parser.FoundSwitch("d") == wxCMD_SWITCH_ON;
-    show_globals = parser.FoundSwitch("g") == wxCMD_SWITCH_ON;
-    get_layout = parser.FoundSwitch("h") == wxCMD_SWITCH_ON;
-    use_cache = parser.FoundSwitch("c") == wxCMD_SWITCH_ON;
-    parse_recursive = parser.FoundSwitch("r") == wxCMD_SWITCH_ON;
-
-    if (parser.Found("p", &str)) {
-        input_pdf = str.ToStdString();
-    }
-
-    if (parser.Found("l", &str)) {
-        selected_locale = str.ToStdString();
-    }
-    
-    return true;
-}
-
-#else
-#include "cxxopts.hpp"
-
 int main(int argc, char **argv) {
     MainApp app;
 
@@ -198,7 +154,15 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    return app.run();
-}
-
+#ifdef USE_WXWIDGETS
+    wxEntryStart(argc, argv);
 #endif
+
+    int ret = app.run();
+
+#ifdef USE_WXWIDGETS
+    wxEntryCleanup();
+#endif
+
+    return ret;
+}
