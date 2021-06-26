@@ -57,6 +57,8 @@ public:
 
 #else
 #include <chrono>
+#include <sstream>
+#include <iomanip>
 #include "svstream.h"
 
 class datetime {
@@ -77,30 +79,33 @@ public:
     }
 
     std::string to_string() const {
-        return std::format("{:%Y-%m-%d}", m_date);
+        return format("%F");
     }
 
     static datetime from_string(std::string_view str) {
-        return parse_date(str, "%Y-%m-%d");
+        return parse_date(str, "%F");
     }
 
-    std::string format(std::string_view fmt_str) const {
-        return std::format(std::format("{{0:{}}}", fmt_str), m_date);
+    std::string format(const std::string &fmt_str) const {
+        time_t t = std::chrono::system_clock::to_time_t(std::chrono::sys_days{m_date});
+        std::stringstream ss;
+        ss << std::put_time(std::localtime(&t), fmt_str.c_str());
+        return ss.str();
     }
 
-    static datetime parse_date(std::string_view str, const std::string &format_str) {
+    static datetime parse_date(std::string_view str, const std::string &fmt_str) {
         datetime ret;
         isviewstream iss{str};
-        std::chrono::from_stream(iss, format_str.c_str(), ret.m_date);
+        std::chrono::from_stream(iss, fmt_str.c_str(), ret.m_date);
         return ret;
     }
 
     void set_day(int day) {
-        m_date = std::chrono::year_month_day(m_date.year(), m_date.month(), std::chrono::day(day));
+        m_date = m_date.year() / m_date.month() / day;
     }
 
     void set_to_last_month_day() {
-        m_date = std::chrono::year_month_day_last(m_date.year(), std::chrono::month_day_last(m_date.month()));
+        m_date = m_date.year() / m_date.month() / std::chrono::last;
     }
 
     void add_months(int months) {
