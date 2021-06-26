@@ -28,7 +28,7 @@ std::ostream &operator << (std::ostream &output, const layout_box_list &layout) 
         }
         if (!box.spacers.empty()) {
             output << "### Spacers\n";
-            for (const auto &line : string_split(box.spacers, "\n")) {
+            for (const auto &line : string_split(box.spacers, '\n')) {
                 if (line == "### End Spacers") {
                     throw layout_error(std::format("In {}:\nInvalido Token End Spacers", box.name.empty() ? std::string("(Box senza nome)") : box.name));
                 } else {
@@ -39,7 +39,7 @@ std::ostream &operator << (std::ostream &output, const layout_box_list &layout) 
         }
         if (!box.script.empty()) {
             output << "### Script\n";
-            for (const auto &line : string_split(box.script, "\n")) {
+            for (const auto &line : string_split(box.script, '\n')) {
                 if (line == "### End Script") {
                     throw layout_error(std::format("In {}:\nInvalido Token End Script", box.name.empty() ? std::string("(Box senza nome)") : box.name));
                 } else {

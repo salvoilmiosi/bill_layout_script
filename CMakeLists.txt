@@ -43,13 +43,16 @@ set(bls_libraries PkgConfig::poppler)
 
 if(MSVC AND MSVC_VERSION GREATER_EQUAL 1929)
     target_compile_definitions(bls PUBLIC HAVE_STD_FORMAT)
+else()
+    find_package(fmt REQUIRED)
+    list(APPEND bls_libraries fmt::fmt-header-only)
+endif()
+
+if((MSVC AND MSVC_VERSION GREATER_EQUAL 1929) OR (CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 11))
     target_compile_definitions(bls PUBLIC HAVE_STD_CALENDAR)
     target_compile_definitions(bls PUBLIC HAVE_STD_LOCALE)
 else()
     target_compile_definitions(bls PUBLIC USE_WXWIDGETS)
-
-    find_package(fmt REQUIRED)
-    list(APPEND bls_libraries fmt::fmt-header-only)
 
     find_package(wxWidgets REQUIRED COMPONENTS base)
     include(${wxWidgets_USE_FILE})
@@ -57,7 +60,7 @@ else()
     list(APPEND bls_libraries ${wxWidgets_LIBRARIES})
 endif()
 
-if(MSVC AND MSVC_VERSION GREATER_EQUAL 1914)
+if((MSVC AND MSVC_VERSION GREATER_EQUAL 1914) OR (CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 11))
     target_compile_definitions(bls PUBLIC HAVE_FLOAT_TO_CHARS)
 endif()
 

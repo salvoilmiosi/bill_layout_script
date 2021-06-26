@@ -65,7 +65,11 @@ class datetime {
 private:
     std::chrono::year_month_day m_date;
 
+    datetime(const std::chrono::year_month_day &ymd) : m_date(ymd) {}
+
 public:
+    datetime() = default;
+    
     auto operator <=> (const datetime &rhs) const {
         return m_date <=> rhs.m_date;
     }
@@ -79,11 +83,11 @@ public:
     }
 
     std::string to_string() const {
-        return format("%F");
+        return format("%Y-%m-%d");
     }
 
     static datetime from_string(std::string_view str) {
-        return parse_date(str, "%F");
+        return parse_date(str, "%Y-%m-%d");
     }
 
     std::string format(const std::string &fmt_str) const {
@@ -94,10 +98,17 @@ public:
     }
 
     static datetime parse_date(std::string_view str, const std::string &fmt_str) {
-        datetime ret;
-        isviewstream iss{str};
-        std::chrono::from_stream(iss, fmt_str.c_str(), ret.m_date);
-        return ret;
+        isviewstream ss{str};
+        std::tm t{};
+        ss >> std::get_time(&t, fmt_str.c_str());
+        if (!ss.fail()) {
+            return std::chrono::year_month_day(
+                std::chrono::sys_days(std::chrono::round<std::chrono::days>(
+                    std::chrono::system_clock::from_time_t(std::mktime(&t))
+            )));
+        } else {
+            return datetime();
+        }
     }
 
     void set_day(int day) {
