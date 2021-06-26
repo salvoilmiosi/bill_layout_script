@@ -1,7 +1,6 @@
 #include <iostream>
 #include <filesystem>
-
-#include <json/value.h>
+#include <iomanip>
 
 #include "cxxopts.hpp"
 #include "parser.h"
@@ -56,10 +55,6 @@ int main(int argc, char **argv) {
     return app.run();
 }
 
-static std::string quoted_string(const std::string &str) {
-    return string_trim(Json::Value(str).toStyledString());
-}
-
 template<typename T> struct print_args {
     const T &data;
     print_args(const T &data) : data(data) {}
@@ -92,7 +87,7 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<fixed_
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<string_ptr> &args) {
-    return out << quoted_string(*args.data);
+    return out << std::quoted(*args.data);
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<small_int> &args) {

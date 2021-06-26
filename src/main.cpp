@@ -5,9 +5,9 @@
 #include <wx/init.h>
 #endif
 
-#include <json/json.h>
-
+#include "tao/json.hpp"
 #include "cxxopts.hpp"
+
 #include "parser.h"
 #include "reader.h"
 #include "utils.h"
@@ -35,7 +35,7 @@ int MainApp::run() {
     }
 
     int retcode = 0;
-    Json::Value result = Json::objectValue;
+    tao::json::value result = tao::json::empty_object;
 
     reader my_reader;
 
@@ -53,13 +53,13 @@ int MainApp::run() {
         my_reader.add_layout(input_bls);
         my_reader.start();
 
-        Json::Value &json_values = result["values"] = Json::arrayValue;
+        tao::json::value &json_values = result["values"] = tao::json::empty_array;
         
-        auto write_var = [](Json::Value &table, const std::string &name, const variable &var) {
-            if (table.isNull()) table = Json::objectValue;
+        auto write_var = [](tao::json::value &table, const std::string &name, const variable &var) {
+            if (table.is_null()) table = tao::json::empty_object;
             auto &json_arr = table[name];
-            if (json_arr.isNull()) json_arr = Json::arrayValue;
-            json_arr.append(var.as_string());
+            if (json_arr.is_null()) json_arr = tao::json::empty_array;
+            json_arr.push_back(var.as_string());
         };
 
         for (auto &[key, var] : my_reader.get_values()) {
@@ -71,22 +71,22 @@ int MainApp::run() {
                     write_var(result["globals"], key.name, var);
                 }
             } else {
-                while (json_values.size() <= key.table_index) {
-                    json_values.append(Json::objectValue);
+                while (json_values.get_array().size() <= key.table_index) {
+                    json_values.push_back(tao::json::empty_object);
                 }
                 write_var(json_values[key.table_index], key.name, var);
             }
         }
 
         for (auto &v : my_reader.get_notes()) {
-            Json::Value &notes = result["notes"];
-            if (notes.isNull()) notes = Json::arrayValue;
-            notes.append(v);
+            tao::json::value &notes = result["notes"];
+            if (notes.is_null()) notes = tao::json::empty_array;
+            notes.push_back(v);
         }
 
-        auto &json_layouts = result["layouts"] = Json::arrayValue;
+        auto &json_layouts = result["layouts"] = tao::json::empty_array;
         for (auto &l : my_reader.get_layouts()) {
-            json_layouts.append(l.string());
+            json_layouts.push_back(l.string());
         }
 
         result["errcode"] = 0;
@@ -94,9 +94,9 @@ int MainApp::run() {
         result["error"] = error.what();
         result["errcode"] = error.errcode;
 
-        auto &json_layouts = result["layouts"] = Json::arrayValue;
+        auto &json_layouts = result["layouts"] = tao::json::empty_array;
         for (auto &l : my_reader.get_layouts()) {
-            json_layouts.append(l.string());
+            json_layouts.push_back(l.string());
         }
         
         retcode = 1;
@@ -114,7 +114,7 @@ int MainApp::run() {
         retcode = 4;
     }
 
-    std::cout << result;
+    tao::json::to_stream(std::cout, result, 4);
     return retcode;
 }
 
