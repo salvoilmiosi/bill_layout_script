@@ -7,6 +7,7 @@
 #include "variable.h"
 #include "stack.h"
 #include "utils.h"
+#include "type_list.h"
 
 template<typename T> T convert_var(variable &var) = delete;
 
@@ -114,22 +115,6 @@ template<typename T> struct is_optional : is_optional_impl<std::decay_t<T>> {};
 template<typename T> struct is_varargs_impl : std::false_type {};
 template<typename T, size_t Minargs> struct is_varargs_impl<varargs<T, Minargs>> : std::bool_constant<is_variable<T>{}> {};
 template<typename T> struct is_varargs : is_varargs_impl<std::decay_t<T>> {};
-
-template<typename ... Ts> struct type_list {
-    static constexpr size_t size = sizeof...(Ts);
-};
-
-template<size_t N, typename TypeList> struct get_nth {};
-
-template<size_t N, typename First, typename ... Ts> struct get_nth<N, type_list<First, Ts...>> {
-    using type = typename get_nth<N-1, type_list<Ts ...>>::type;
-};
-
-template<typename First, typename ... Ts> struct get_nth<0, type_list<First, Ts ...>> {
-    using type = First;
-};
-
-template<size_t I, typename TypeList> using get_nth_t = typename get_nth<I, TypeList>::type;
 
 template<bool Req, typename ... Ts> struct check_args_impl {};
 template<bool Req> struct check_args_impl<Req> {
