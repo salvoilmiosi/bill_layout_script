@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.6.0)
 project(bill_layout_script VERSION 0.1.0)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(CMAKE_DEBUG_POSTFIX _d)
 
 if(MSVC)
@@ -26,7 +28,7 @@ src/variable.cpp
 find_package(Boost REQUIRED)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(poppler REQUIRED poppler-cpp IMPORTED_TARGET)
+pkg_check_modules(poppler REQUIRED poppler-cpp>=0.88 IMPORTED_TARGET)
 
 add_library(bls SHARED ${libbls_SRCS})
 
@@ -45,7 +47,11 @@ if(MSVC AND MSVC_VERSION GREATER_EQUAL 1929)
     target_compile_definitions(bls PUBLIC HAVE_STD_FORMAT)
 else()
     find_package(fmt REQUIRED)
-    list(APPEND bls_libraries fmt::fmt-header-only)
+    if (TARGET fmt::fmt-header-only)
+        list(APPEND bls_libraries fmt::fmt-header-only)
+    else()
+        list(APPEND bls_libraries fmt::fmt)
+    endif()
 endif()
 
 if((MSVC AND MSVC_VERSION GREATER_EQUAL 1929) OR (CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 11))
@@ -76,7 +82,6 @@ set(BLS_BUILD_UTILS ON CACHE BOOL "Build BLS Utils")
 
 if(${BLS_BUILD_UTILS})
     add_executable(blsdump utils/blsdump.cpp)
-    target_include_directories(blsdump PRIVATE)
     target_link_libraries(blsdump bls cxxopts)
 
     add_executable(sizes utils/sizes.cpp)
