@@ -50,8 +50,20 @@ public:
         m_date.SetToLastMonthDay(m_date.GetMonth(), m_date.GetYear());
     }
 
+    void add_years(int years) {
+        m_date.Add(wxDateSpan(years));
+    }
+
     void add_months(int months) {
         m_date.Add(wxDateSpan(0, months));
+    }
+
+    void add_weeks(int weeks) {
+        m_date.Add(wxDateSpan(0, 0, weeks));
+    }
+
+    void add_days(int days) {
+        m_date.Add(wxDateSpan(0, 0, 0, days));
     }
 };
 
@@ -119,8 +131,20 @@ public:
         m_date = m_date.year() / m_date.month() / std::chrono::last;
     }
 
+    void add_years(int years) {
+        m_date += std::chrono::years(years);
+    }
+
     void add_months(int months) {
         m_date += std::chrono::months(months);
+    }
+
+    void add_weeks(int weeks) {
+        m_date = std::chrono::sys_days{m_date} + std::chrono::weeks(weeks);
+    }
+
+    void add_days(int days) {
+        m_date = std::chrono::sys_days{m_date} + std::chrono::days(days);
     }
 };
 

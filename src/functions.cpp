@@ -399,8 +399,20 @@ const function_map function_lookup {
     {"date_format", [](datetime date, const std::string &format) {
         return date.format(format);
     }},
-    {"month_add", [](datetime date, int num) {
-        date.add_months(num);
+    {"year_add", [](datetime date, int years) {
+        date.add_years(years);
+        return date;
+    }},
+    {"month_add", [](datetime date, int months) {
+        date.add_months(months);
+        return date;
+    }},
+    {"week_add", [](datetime date, int weeks) {
+        date.add_weeks(weeks);
+        return date;
+    }},
+    {"day_add", [](datetime date, int num) {
+        date.add_days(num);
         return date;
     }},
     {"last_day", [](datetime date) {
