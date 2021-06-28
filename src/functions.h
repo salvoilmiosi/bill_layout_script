@@ -11,24 +11,24 @@
 
 template<typename T> T convert_var(variable &var) = delete;
 
-template<> inline variable    &&convert_var<variable &&>    (variable &var) { return std::move(var); }
-template<> inline std::string &&convert_var<std::string &&> (variable &var) { return std::move(var).as_string(); }
+template<> inline variable &&           convert_var(variable &var) { return std::move(var); }
+template<> inline std::string &&        convert_var(variable &var) { return std::move(var).as_string(); }
 
-template<> inline const variable    &convert_var<const variable &>    (variable &var) { return var; }
-template<> inline const std::string &convert_var<const std::string &> (variable &var) { return var.as_string(); }
+template<> inline const variable &      convert_var(variable &var) { return var; }
+template<> inline const std::string &   convert_var(variable &var) { return var.as_string(); }
 
-template<> inline std::string_view  convert_var<std::string_view> (variable &var) { return var.as_view(); }
-template<> inline fixed_point  convert_var<fixed_point> (variable &var) { return var.as_number(); }
-template<> inline datetime     convert_var<datetime>    (variable &var) { return var.as_date(); }
-template<> inline size_t       convert_var<size_t>     (variable &var) { return var.as_int(); }
-template<> inline int          convert_var<int>        (variable &var) { return var.as_int(); }
-template<> inline float        convert_var<float>      (variable &var) { return var.as_double(); }
-template<> inline double       convert_var<double>     (variable &var) { return var.as_double(); }
-template<> inline bool         convert_var<bool>       (variable &var) { return var.as_bool(); }
+template<> inline std::string_view      convert_var(variable &var) { return var.as_view(); }
+template<> inline fixed_point           convert_var(variable &var) { return var.as_number(); }
+template<> inline datetime              convert_var(variable &var) { return var.as_date(); }
+template<> inline size_t                convert_var(variable &var) { return var.as_int(); }
+template<> inline int                   convert_var(variable &var) { return var.as_int(); }
+template<> inline float                 convert_var(variable &var) { return var.as_double(); }
+template<> inline double                convert_var(variable &var) { return var.as_double(); }
+template<> inline bool                  convert_var(variable &var) { return var.as_bool(); }
 
 using string_list = decltype(string_split(std::declval<std::string_view>(), UNIT_SEPARATOR));
 
-template<> inline string_list convert_var<string_list> (variable &var) { return string_split(var.as_view(), UNIT_SEPARATOR); }
+template<> inline string_list convert_var(variable &var) { return string_split(var.as_view(), UNIT_SEPARATOR); }
 
 template<typename T, typename = void> struct is_convertible_impl : std::false_type {};
 template<typename T> struct is_convertible_impl<T, std::void_t<decltype(convert_var<T>(std::declval<variable &>()))>> : std::true_type {};
