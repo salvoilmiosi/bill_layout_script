@@ -43,7 +43,20 @@ add_subdirectory(json)
 
 set(bls_libraries PkgConfig::poppler)
 
-if(MSVC AND MSVC_VERSION GREATER_EQUAL 1929)
+function(check_cpp_function TEST_FILE_NAME OUT_RESULT)
+    set(TEST_FILE ".cmake/.test_${TEST_FILE_NAME}.cpp")
+    try_compile(TEST_RESULT
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}
+        CXX_STANDARD 20)
+    if (TEST_RESULT)
+        message("-- Using STL ${TEST_FILE_NAME}")
+    endif()
+    set(${OUT_RESULT} ${TEST_RESULT} PARENT_SCOPE)
+endfunction()
+
+check_cpp_function(format HAVE_STD_FORMAT)
+if(HAVE_STD_FORMAT)
     target_compile_definitions(bls PUBLIC HAVE_STD_FORMAT)
 else()
     find_package(fmt REQUIRED)
@@ -54,7 +67,8 @@ else()
     endif()
 endif()
 
-if((MSVC AND MSVC_VERSION GREATER_EQUAL 1929) OR (CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 11))
+check_cpp_function(calendar HAVE_STD_CALENDAR)
+if(HAVE_STD_CALENDAR)
     target_compile_definitions(bls PUBLIC HAVE_STD_CALENDAR)
     target_compile_definitions(bls PUBLIC HAVE_STD_LOCALE)
 else()
@@ -66,7 +80,8 @@ else()
     list(APPEND bls_libraries ${wxWidgets_LIBRARIES})
 endif()
 
-if((MSVC AND MSVC_VERSION GREATER_EQUAL 1914) OR (CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 11))
+check_cpp_function(charconv HAVE_FLOAT_TO_CHARS)
+if(HAVE_FLOAT_TO_CHARS)
     target_compile_definitions(bls PUBLIC HAVE_FLOAT_TO_CHARS)
 endif()
 
