@@ -8,7 +8,7 @@ namespace intl {
     char thousand_sep() { return s_thousand_sep; }
 }
 
-#ifdef HAVE_STD_LOCALE
+#ifndef USE_WXWIDGETS
 #include <locale>
 
 namespace intl {
@@ -29,12 +29,11 @@ namespace intl {
 
 #else
 #include <wx/intl.h>
-#include <memory>
 
 namespace intl {
-    static std::unique_ptr<wxLocale> sp_current_locale;
-
     bool set_language(const std::string &name) {
+        static wxLocale *current_locale = nullptr;
+
         wxLanguage lang = wxLANGUAGE_DEFAULT;
         if (!name.empty()) {
             const wxLanguageInfo *lang_info = wxLocale::FindLanguageInfo(name);
@@ -49,7 +48,8 @@ namespace intl {
             return false;
         }
         
-        sp_current_locale.reset(new wxLocale(lang));
+        if (current_locale) delete current_locale;
+        current_locale = new wxLocale(lang);
 
         s_decimal_point = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER).at(0);
         s_thousand_sep = wxLocale::GetInfo(wxLOCALE_THOUSANDS_SEP, wxLOCALE_CAT_NUMBER).at(0);

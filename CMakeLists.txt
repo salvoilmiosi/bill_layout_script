@@ -13,6 +13,7 @@ endif()
 
 set(libbls_SRCS
 src/binary_bls.cpp
+src/datetime.cpp
 src/functions.cpp
 src/keywords.cpp
 src/intl.cpp
@@ -56,9 +57,8 @@ function(check_cpp_function TEST_FILE_NAME OUT_RESULT)
 endfunction()
 
 check_cpp_function(format HAVE_STD_FORMAT)
-if(HAVE_STD_FORMAT)
-    target_compile_definitions(bls PUBLIC HAVE_STD_FORMAT)
-else()
+if(NOT HAVE_STD_FORMAT)
+    target_compile_definitions(bls PUBLIC USE_FMTLIB)
     find_package(fmt REQUIRED)
     if (TARGET fmt::fmt-header-only)
         list(APPEND bls_libraries fmt::fmt-header-only)
@@ -67,16 +67,12 @@ else()
     endif()
 endif()
 
-check_cpp_function(calendar HAVE_STD_CALENDAR)
-if(HAVE_STD_CALENDAR)
-    target_compile_definitions(bls PUBLIC HAVE_STD_CALENDAR)
-    target_compile_definitions(bls PUBLIC HAVE_STD_LOCALE)
-else()
+if(MINGW)
     target_compile_definitions(bls PUBLIC USE_WXWIDGETS)
 
     find_package(wxWidgets REQUIRED COMPONENTS base)
     include(${wxWidgets_USE_FILE})
-    
+
     list(APPEND bls_libraries ${wxWidgets_LIBRARIES})
 endif()
 
@@ -94,13 +90,10 @@ target_link_libraries(blsexec bls cxxopts taocpp-json)
 install(TARGETS bls blsexec)
 
 set(BLS_BUILD_UTILS ON CACHE BOOL "Build BLS Utils")
-
-if(${BLS_BUILD_UTILS})
+if(BLS_BUILD_UTILS)
     add_executable(blsdump utils/blsdump.cpp)
     target_link_libraries(blsdump bls cxxopts)
 
     add_executable(sizes utils/sizes.cpp)
     target_link_libraries(sizes bls)
-
-    install(TARGETS blsdump sizes)
 endif()

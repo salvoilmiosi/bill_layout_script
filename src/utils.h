@@ -6,7 +6,7 @@
 #include <charconv>
 #include <ranges>
 
-#ifndef HAVE_STD_FORMAT
+#ifdef USE_FMTLIB
 #include <fmt/format.h>
 namespace std {
     template<typename ... Ts>
