@@ -8,6 +8,9 @@ namespace intl {
     
     char decimal_point();
     char thousand_sep();
+
+    std::string to_utf8(std::string_view str);
+    std::string from_utf8(std::string_view str);
 };
 
 #endif

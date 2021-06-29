@@ -1,42 +1,25 @@
 #include "datetime.h"
 
-#include <sstream>
-#include <iomanip>
 #include "svstream.h"
+#include "intl.h"
 
-#ifdef USE_BOOST_LOCALE
 #include <boost/locale.hpp>
-#endif
+#include <sstream>
 
 static inline std::tm time_t_to_tm(time_t t) { return *std::localtime(&t); }
 static inline time_t tm_to_time_t(std::tm t) { return std::mktime(&t); }
 
 std::string datetime::format(const std::string &fmt_str) const {
     std::stringstream ss;
-#ifndef USE_BOOST_LOCALE
-    ss << std::put_time(std::localtime(&m_date), fmt_str.c_str());
-#else
     ss << boost::locale::as::ftime(fmt_str) << m_date;
-#endif
-    return ss.str();
+    return intl::to_utf8(ss.str());
 }
 
 datetime datetime::parse_date(std::string_view str, const std::string &fmt_str) {
-    isviewstream ss{str};
-#ifndef USE_BOOST_LOCALE
-    std::tm t{};
-    ss >> std::get_time(&t, fmt_str.c_str());
-    if (!ss.fail()) {
-        return tm_to_time_t(t);
-    }
-#else
-    time_t t;
-    ss >> boost::locale::as::ftime(fmt_str) >> t;
-    if (!ss.fail()) {
-        return t;
-    }
-#endif
-    return datetime();
+    std::stringstream ss{intl::from_utf8(str)};
+    datetime ret;
+    ss >> boost::locale::as::ftime(fmt_str) >> ret.m_date;
+    return ret;
 }
 
 void datetime::set_day(int day) {

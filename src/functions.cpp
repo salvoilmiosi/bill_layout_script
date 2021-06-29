@@ -227,17 +227,20 @@ static std::string date_regex(std::string_view format) {
         if (*it == '%') {
             ++it;
             switch (*it) {
+            case 'a': case 'A':
+            case 'b': case 'B':
             case 'h':
-            case 'b':
-            case 'B':
-                ret += "\\w+";
+                ret += "[^\\s]+";
                 break;
-            case 'd':
-                ret += "\\d{1,2}";
-                break;
+            case 'w':
             case 'm':
             case 'y':
-                ret += "\\d{2}";
+            case 'H':
+            case 'l':
+            case 'd':
+            case 'M':
+            case 'S':
+                ret += "\\d{1,2}";
                 break;
             case 'Y':
                 ret += "\\d{4}";

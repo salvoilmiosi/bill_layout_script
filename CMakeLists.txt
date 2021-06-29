@@ -26,7 +26,7 @@ src/unicode.cpp
 src/variable.cpp
 )
 
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS locale)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(poppler REQUIRED poppler-cpp>=0.88 IMPORTED_TARGET)
@@ -42,7 +42,7 @@ set(bls_include_dirs
 add_subdirectory(external/cxxopts)
 add_subdirectory(external/json)
 
-set(bls_libraries PkgConfig::poppler)
+set(bls_libraries PkgConfig::poppler Boost::locale)
 
 function(check_cpp_function TEST_FILE_NAME OUT_RESULT)
     set(TEST_FILE ".cmake/.test_${TEST_FILE_NAME}.cpp")
@@ -65,12 +65,6 @@ if(NOT HAVE_STD_FORMAT)
     else()
         list(APPEND bls_libraries fmt::fmt)
     endif()
-endif()
-
-if(MINGW)
-    target_compile_definitions(bls PUBLIC USE_BOOST_LOCALE)
-    find_package(Boost REQUIRED COMPONENTS locale)
-    list(APPEND bls_libraries Boost::locale)
 endif()
 
 check_cpp_function(charconv HAVE_FLOAT_TO_CHARS)
