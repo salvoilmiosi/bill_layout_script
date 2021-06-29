@@ -1,10 +1,6 @@
 #include <iostream>
 #include <filesystem>
 
-#ifdef USE_WXWIDGETS
-#include <wx/init.h>
-#endif
-
 #include "tao/json.hpp"
 #include "cxxopts.hpp"
 
@@ -154,15 +150,5 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-#ifdef USE_WXWIDGETS
-    wxEntryStart(argc, argv);
-#endif
-
-    int ret = app.run();
-
-#ifdef USE_WXWIDGETS
-    wxEntryCleanup();
-#endif
-
-    return ret;
+    return app.run();
 }

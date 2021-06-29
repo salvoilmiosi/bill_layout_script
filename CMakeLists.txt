@@ -68,12 +68,9 @@ if(NOT HAVE_STD_FORMAT)
 endif()
 
 if(MINGW)
-    target_compile_definitions(bls PUBLIC USE_WXWIDGETS)
-
-    find_package(wxWidgets REQUIRED COMPONENTS base)
-    include(${wxWidgets_USE_FILE})
-
-    list(APPEND bls_libraries ${wxWidgets_LIBRARIES})
+    target_compile_definitions(bls PUBLIC USE_BOOST_LOCALE)
+    find_package(Boost REQUIRED COMPONENTS locale)
+    list(APPEND bls_libraries Boost::locale)
 endif()
 
 check_cpp_function(charconv HAVE_FLOAT_TO_CHARS)

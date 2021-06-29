@@ -4,36 +4,36 @@
 #include <iomanip>
 #include "svstream.h"
 
-#ifdef USE_WXWIDGETS
-#include <wx/datetime.h>
+#ifdef USE_BOOST_LOCALE
+#include <boost/locale.hpp>
 #endif
 
 static inline std::tm time_t_to_tm(time_t t) { return *std::localtime(&t); }
 static inline time_t tm_to_time_t(std::tm t) { return std::mktime(&t); }
 
 std::string datetime::format(const std::string &fmt_str) const {
-#ifndef USE_WXWIDGETS
     std::stringstream ss;
+#ifndef USE_BOOST_LOCALE
     ss << std::put_time(std::localtime(&m_date), fmt_str.c_str());
-    return ss.str();
 #else
-    return wxDateTime(m_date).Format(fmt_str).ToStdString();
+    ss << boost::locale::as::ftime(fmt_str) << m_date;
 #endif
+    return ss.str();
 }
 
 datetime datetime::parse_date(std::string_view str, const std::string &fmt_str) {
-#ifndef USE_WXWIDGETS
-    std::tm t{};
     isviewstream ss{str};
+#ifndef USE_BOOST_LOCALE
+    std::tm t{};
     ss >> std::get_time(&t, fmt_str.c_str());
     if (!ss.fail()) {
         return tm_to_time_t(t);
     }
 #else
-    wxString::const_iterator end;
-    wxDateTime ret;
-    if (ret.ParseFormat(wxString(str.data(), str.data() + str.size()), fmt_str, wxDateTime(time_t(0)), &end)) {
-        return tm_to_time_t(ret.GetTicks());
+    time_t t;
+    ss >> boost::locale::as::ftime(fmt_str) >> t;
+    if (!ss.fail()) {
+        return t;
     }
 #endif
     return datetime();
