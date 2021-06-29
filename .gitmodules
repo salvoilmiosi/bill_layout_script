@@ -1,9 +1,9 @@
 [submodule "decimal_for_cpp"]
-	path = decimal_for_cpp
+	path = external/decimal_for_cpp
 	url = https://github.com/vpiotr/decimal_for_cpp
 [submodule "cxxopts"]
-	path = cxxopts
+	path = external/cxxopts
 	url = https://github.com/jarro2783/cxxopts
 [submodule "json"]
-	path = json
+	path = external/json
 	url = https://github.com/taocpp/json

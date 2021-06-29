@@ -35,12 +35,12 @@ add_library(bls SHARED ${libbls_SRCS})
 
 set(bls_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/decimal_for_cpp/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/decimal_for_cpp/include
     ${Boost_INCLUDE_DIRS}
 )
 
-add_subdirectory(cxxopts)
-add_subdirectory(json)
+add_subdirectory(external/cxxopts)
+add_subdirectory(external/json)
 
 set(bls_libraries PkgConfig::poppler)
 
