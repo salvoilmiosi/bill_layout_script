@@ -6,8 +6,7 @@
 #include <boost/locale.hpp>
 #include <sstream>
 
-static inline std::tm time_t_to_tm(time_t t) { return *std::localtime(&t); }
-static inline time_t tm_to_time_t(std::tm t) { return std::mktime(&t); }
+namespace bl = boost::locale;
 
 std::string datetime::format(const std::string &fmt_str) const {
     std::stringstream ss;
@@ -23,24 +22,27 @@ datetime datetime::parse_date(std::string_view str, const std::string &fmt_str) 
 }
 
 datetime datetime::from_ymd(int year, int month, int day) {
-    std::tm t{};
-    t.tm_year = year + 1900;
-    t.tm_mon = month + 1;
-    t.tm_mday = day;
-    return tm_to_time_t(t);
+    bl::date_time t{0};
+    t.set(bl::period::year(), year);
+    t.set(bl::period::month(), month - 1);
+    t.set(bl::period::day(), day);
+    return time_t(t.time());
 }
 
 void datetime::set_day(int day) {
     if (!is_valid()) return;
-    auto date = time_t_to_tm(m_date);
-    date.tm_mday = day;
-    m_date = tm_to_time_t(date);
+    bl::date_time t(m_date);
+    t.set(bl::period::day(), day);
+    m_date = t.time();
 }
 
 void datetime::set_to_last_month_day() {
     if (!is_valid()) return;
-    auto date = time_t_to_tm(m_date);
-    date.tm_mday = [month = date.tm_mon, year = date.tm_year + 1900]() {
+    bl::date_time t(m_date);
+    t.set(bl::period::day(), [
+        month = bl::period::month(t),
+        year = bl::period::year(t)
+    ]() {
         switch (month) {
         case 0: case 2: case 4: case 6: case 7: case 9: case 11:
             return 31;
@@ -57,32 +59,31 @@ void datetime::set_to_last_month_day() {
             }
             return 28;
         }
-    }();
-    m_date = tm_to_time_t(date);
+    }());
+    m_date = t.time();
 }
 
 void datetime::add_years(int years) {
     if (!is_valid()) return;
-    auto date = time_t_to_tm(m_date);
-    date.tm_year += years;
-    m_date = tm_to_time_t(date);
+    bl::date_time t(m_date);
+    t += bl::period::year(years);
+    m_date = t.time();
 }
 
 void datetime::add_months(int months) {
     if (!is_valid()) return;
-    auto date = time_t_to_tm(m_date);
-    date.tm_mon += months;
-    m_date = tm_to_time_t(date);
+    bl::date_time t(m_date);
+    t += bl::period::month(months);
+    m_date = t.time();
 }
 
 void datetime::add_weeks(int weeks) {
-    if (!is_valid()) return;
     add_days(7 * weeks);
 }
 
 void datetime::add_days(int days) {
     if (!is_valid()) return;
-    auto date = time_t_to_tm(m_date);
-    date.tm_mday += days;
-    m_date = tm_to_time_t(date);
+    bl::date_time t(m_date);
+    t += bl::period::day(days);
+    m_date = t.time();
 }
