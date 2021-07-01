@@ -35,6 +35,8 @@ public:
     std::string format(const std::string &fmt_str) const;
     static datetime parse_date(std::string_view str, const std::string &fmt_str);
 
+    static datetime from_ymd(int year, int month, int day);
+
     void set_day(int day);
     void set_to_last_month_day();
     void add_years(int years);

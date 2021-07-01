@@ -282,14 +282,20 @@ static datetime search_date(std::string_view value, const std::string &format, s
 }
 
 const function_map function_lookup {
+    {"str", [](const std::string &str) { return str; }},
+    {"num", [](const variable &var) {
+        if (var.is_number()) return var;
+        return parse_num(var.as_view());
+    }},
+    {"int", [](int a) { return a; }},
+    {"date", [](datetime date) { return date; }},
+    {"bool",[](bool a) { return a; }},
     {"eq",  [](const variable &a, const variable &b) { return a == b; }},
     {"neq", [](const variable &a, const variable &b) { return a != b; }},
     {"lt",  [](const variable &a, const variable &b) { return a < b; }},
     {"gt",  [](const variable &a, const variable &b) { return a > b; }},
     {"leq", [](const variable &a, const variable &b) { return a <= b; }},
     {"geq", [](const variable &a, const variable &b) { return a >= b; }},
-    {"int", [](int a) { return a; }},
-    {"bool",[](bool a) { return a; }},
     {"mod", [](int a, int b) { return a % b; }},
     {"add", [](const variable &a, const variable &b) { return a + b; }},
     {"sub", [](const variable &a, const variable &b) { return a - b; }},
@@ -304,10 +310,6 @@ const function_map function_lookup {
     {"isnull", [](const variable &var) { return var.is_null(); }},
     {"hex", [](int num) {
         return std::format("{:x}", num);
-    }},
-    {"num", [](const variable &var) {
-        if (var.is_number()) return var;
-        return parse_num(var.as_view());
     }},
     {"aggregate", [](string_list list) {
         variable ret;
@@ -386,21 +388,17 @@ const function_map function_lookup {
     {"date_regex", [](std::string_view format) {
         return date_regex(format);
     }},
-    {"date", [](std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
+    {"search_date", [](std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
         if (auto date = search_date(str, format, regex, index); date.is_valid()) {
-            return variable(date);
-        }
-        return variable();
-    }},
-    {"month", [](std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
-        if (auto date = search_date(str, format, regex, index); date.is_valid()) {
-            date.set_day(1);
             return variable(date);
         }
         return variable();
     }},
     {"date_format", [](datetime date, const std::string &format) {
         return date.format(format);
+    }},
+    {"ymd", [](int year, int month, int day) {
+        return datetime::from_ymd(year, month, day);
     }},
     {"year_add", [](datetime date, int years) {
         date.add_years(years);
@@ -416,6 +414,14 @@ const function_map function_lookup {
     }},
     {"day_add", [](datetime date, int num) {
         date.add_days(num);
+        return date;
+    }},
+    {"day_set", [](datetime date, int day) {
+        date.set_day(day);
+        return date;
+    }},
+    {"first_day", [](datetime date) {
+        date.set_day(1);
         return date;
     }},
     {"last_day", [](datetime date) {

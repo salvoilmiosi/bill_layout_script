@@ -22,13 +22,23 @@ datetime datetime::parse_date(std::string_view str, const std::string &fmt_str) 
     return ret;
 }
 
+datetime datetime::from_ymd(int year, int month, int day) {
+    std::tm t{};
+    t.tm_year = year + 1900;
+    t.tm_mon = month + 1;
+    t.tm_mday = day;
+    return tm_to_time_t(t);
+}
+
 void datetime::set_day(int day) {
+    if (!is_valid()) return;
     auto date = time_t_to_tm(m_date);
     date.tm_mday = day;
     m_date = tm_to_time_t(date);
 }
 
 void datetime::set_to_last_month_day() {
+    if (!is_valid()) return;
     auto date = time_t_to_tm(m_date);
     date.tm_mday = [month = date.tm_mon, year = date.tm_year + 1900]() {
         switch (month) {
@@ -52,22 +62,26 @@ void datetime::set_to_last_month_day() {
 }
 
 void datetime::add_years(int years) {
+    if (!is_valid()) return;
     auto date = time_t_to_tm(m_date);
     date.tm_year += years;
     m_date = tm_to_time_t(date);
 }
 
 void datetime::add_months(int months) {
+    if (!is_valid()) return;
     auto date = time_t_to_tm(m_date);
     date.tm_mon += months;
     m_date = tm_to_time_t(date);
 }
 
 void datetime::add_weeks(int weeks) {
+    if (!is_valid()) return;
     add_days(7 * weeks);
 }
 
 void datetime::add_days(int days) {
+    if (!is_valid()) return;
     auto date = time_t_to_tm(m_date);
     date.tm_mday += days;
     m_date = tm_to_time_t(date);
