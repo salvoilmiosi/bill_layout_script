@@ -60,6 +60,10 @@ template<typename T> T readData(std::istream &input) {
     return binary_io<T>::read(input);
 }
 
+template<typename T> void readData(std::istream &input, T &out) {
+    out = binary_io<T>::read(input);
+}
+
 template<> struct binary_io<std::string> {
     static void write(std::ostream &output, const std::string &str) {
         writeData<string_size>(output, str.size());
@@ -104,8 +108,8 @@ template<> struct binary_io<readbox_options> {
 
     static readbox_options read(std::istream &input) {
         readbox_options options;
-        options.mode = readData<read_mode>(input);
-        options.flags = readData<flags_t>(input);
+        readData(input, options.mode);
+        readData(input, options.flags);
         return options;
     }
 };
@@ -133,10 +137,10 @@ template<> struct binary_io<variable_selector> {
 
     static variable_selector read(std::istream &input) {
         variable_selector sel;
-        sel.name = readData<string_ptr>(input);
-        sel.index = readData<small_int>(input);
-        sel.length = readData<small_int>(input);
-        sel.flags = readData<uint8_t>(input);
+        readData(input, sel.name);
+        readData(input, sel.index);
+        readData(input, sel.length);
+        readData(input, sel.flags);
         return sel;
     }
 };
@@ -160,18 +164,18 @@ template<> struct binary_io<jsr_address> {
     static jsr_address read(std::istream &input) {
         jsr_address addr;
         static_cast<jump_address>(addr) = readData<jump_address>(input);
-        addr.numargs = readData<small_int>(input);
+        readData(input, addr.numargs);
         return addr;
     }
 };
 
 template<typename T> struct binary_io<bitset<T>> {
     static void write(std::ostream &output, const bitset<T> &data) {
-        writeData<flags_t>(output, data);
+        writeData(output, data.data());
     }
 
     static bitset<T> read(std::istream &input) {
-        return readData<flags_t>(input);
+        return readData<std::underlying_type_t<T>>(input);
     }
 };
 

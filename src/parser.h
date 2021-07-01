@@ -53,8 +53,8 @@ class parser {
 public:
     parser() : m_parser_id(parser_counter++) {}
 
-    void add_flags(auto flags) {
-        m_flags |= flags;
+    void add_flag(parser_flags flag) {
+        m_flags.set(flag);
     }
 
     void read_layout(const std::filesystem::path &path, const layout_box_list &layout);

@@ -45,8 +45,8 @@ public:
     size_t add_layout(const std::filesystem::path &filename);
     size_t add_code(bytecode &&new_code);
 
-    void add_flags(auto flag) {
-        m_flags |= flag;
+    void add_flag(reader_flags flag) {
+        m_flags.set(flag);
     }
 
     void clear();

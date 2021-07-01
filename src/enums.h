@@ -5,11 +5,16 @@
 
 #include "utils.h"
 
+template<size_t S> struct sized_int {};
+template<size_t S> requires (S <= UINT8_MAX) struct sized_int<S> { using type = uint8_t; };
+template<size_t S> requires (S > UINT8_MAX && S <= UINT16_MAX) struct sized_int<S> { using type = uint16_t; };
+template<size_t S> requires (S > UINT16_MAX && S <= UINT32_MAX) struct sized_int<S> { using type = uint32_t; };
+template<size_t S> requires (S > UINT32_MAX && S <= UINT64_MAX) struct sized_int<S> { using type = uint64_t; };
+template<size_t S> using sized_int_t = typename sized_int<S>::type;
+
 template<typename T> struct EnumSizeImpl {};
 template<typename T> constexpr T FindEnum(std::string_view name) = delete;
 template<typename T> constexpr size_t EnumSize = EnumSizeImpl<T>::value;
-
-typedef uint8_t flags_t;
 
 template<typename T>
 concept string_enum = std::is_enum_v<T> && requires (T x) {
@@ -81,56 +86,71 @@ constexpr auto GetTuple(const enumName element) { \
     BOOST_PP_SEQ_FOR_EACH(GENERATE_TYPE_STRUCT, enumName, enumElementsParen) \
     template<enumName Enum> using EnumType = typename EnumTypeImpl<Enum>::type;
 
-#define DEFINE_ENUM(enumName, enumElements) \
-enum class enumName : uint8_t { \
-    BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, ADD_PARENTHESES(enumElements))) \
+#define DEFINE_ENUM_IMPL(enumName, enumElementsParen) \
+enum class enumName : sized_int_t<BOOST_PP_SEQ_SIZE(enumElementsParen)> { \
+    BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, enumElementsParen)) \
 }; \
-DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES(enumElements)) \
-DEFINE_ENUM_GET_TUPLE(enumName, ADD_PARENTHESES(enumElements))
+DEFINE_ENUM_FUNCTIONS(enumName, enumElementsParen) \
+DEFINE_ENUM_GET_TUPLE(enumName, enumElementsParen)
 
-#define DEFINE_ENUM_FLAGS(enumName, enumElements) \
-enum class enumName : flags_t { \
-    BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH_I(CREATE_FLAG_ELEMENT, enumName, ADD_PARENTHESES(enumElements))) \
+#define DEFINE_ENUM(enumName, enumElements) DEFINE_ENUM_IMPL(enumName, ADD_PARENTHESES(enumElements))
+
+#define DEFINE_ENUM_FLAGS_IMPL(enumName, enumElementsParen) \
+enum class enumName : sized_int_t<1 << BOOST_PP_SEQ_SIZE(enumElementsParen)> { \
+    BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH_I(CREATE_FLAG_ELEMENT, enumName, enumElementsParen)) \
 }; \
-DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES(enumElements)) \
-DEFINE_ENUM_GET_TUPLE(enumName, ADD_PARENTHESES(enumElements)) \
+DEFINE_ENUM_FUNCTIONS(enumName, enumElementsParen) \
+DEFINE_ENUM_GET_TUPLE(enumName, enumElementsParen) \
 template<> struct IsFlagEnum<enumName> : std::true_type {};
 
-#define DEFINE_ENUM_TYPES(enumName, enumElements) \
-enum class enumName : uint8_t { \
-    BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, ADD_PARENTHESES(enumElements))) \
+#define DEFINE_ENUM_FLAGS(enumName, enumElements) DEFINE_ENUM_FLAGS_IMPL(enumName, ADD_PARENTHESES(enumElements))
+
+#define DEFINE_ENUM_TYPES_IMPL(enumName, enumElementsParen) \
+enum class enumName : sized_int_t<BOOST_PP_SEQ_SIZE(enumElementsParen)> { \
+    BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, enumElementsParen)) \
 }; \
-DEFINE_ENUM_FUNCTIONS(enumName, ADD_PARENTHESES(enumElements)) \
-DEFINE_ENUM_GET_TYPE(enumName, ADD_PARENTHESES(enumElements))
+DEFINE_ENUM_FUNCTIONS(enumName, enumElementsParen) \
+DEFINE_ENUM_GET_TYPE(enumName, enumElementsParen)
+
+#define DEFINE_ENUM_TYPES(enumName, enumElements) DEFINE_ENUM_TYPES_IMPL(enumName, ADD_PARENTHESES(enumElements))
 
 template<flags_enum T>
 class bitset {
 private:
-    flags_t m_value = 0;
+    using flags_t = std::underlying_type_t<T>;
+    flags_t m_value{0};
 
 public:
     constexpr bitset() = default;
     constexpr bitset(flags_t value) : m_value(value) {}
 
-    constexpr friend bitset operator & (bitset lhs, T rhs) { return lhs.m_value & flags_t(rhs); }
-    constexpr friend bitset operator & (T lhs, bitset rhs) { return flags_t(lhs) & rhs.m_value; }
-    constexpr friend bitset operator | (bitset lhs, T rhs) { return lhs.m_value | flags_t(rhs); }
-    constexpr friend bitset operator | (T lhs, bitset rhs) { return flags_t(lhs) | rhs.m_value; }
-    constexpr friend bitset operator ^ (bitset lhs, T rhs) { return lhs.m_value ^ flags_t(rhs); }
-    constexpr friend bitset operator ^ (T lhs, bitset rhs) { return flags_t(lhs) ^ rhs.m_value; }
-    
-    constexpr bitset operator ~() const { return ~m_value; }
- 
-    constexpr bitset operator << (auto n) const { return m_value << n; }
-    constexpr bitset operator >> (auto n) const { return m_value >> n; }
- 
-    constexpr decltype(auto) operator &= (auto n) { m_value &= flags_t(n); return *this; }
-    constexpr decltype(auto) operator |= (auto n) { m_value |= flags_t(n); return *this; }
-    constexpr decltype(auto) operator ^= (auto n) { m_value ^= flags_t(n); return *this; }
-    constexpr decltype(auto) operator <<= (auto n) { m_value <<= flags_t(n); return *this; }
-    constexpr decltype(auto) operator >>= (auto n) { m_value >>= flags_t(n); return *this; }
- 
-    constexpr operator flags_t() const { return m_value; }
+    constexpr bool empty() const {
+        return m_value;
+    }
+
+    constexpr bool check(T value) const {
+        return m_value & static_cast<flags_t>(value);
+    }
+
+    constexpr void set(T value) {
+        m_value |= static_cast<flags_t>(value);
+    }
+
+    constexpr void unset(T value) {
+        m_value &= ~static_cast<flags_t>(value);
+    }
+
+    constexpr void toggle(T value) {
+        m_value ^= static_cast<flags_t>(value);
+    }
+
+    constexpr void reset() {
+        m_value = 0;
+    }
+
+    constexpr flags_t data() const {
+        return m_value;
+    }
 };
 
 template<string_enum T>
@@ -141,8 +161,9 @@ std::ostream &operator << (std::ostream &out, T value) {
 template<flags_enum T>
 std::ostream &operator << (std::ostream &out, const bitset<T> &flags) {
     for (size_t i=0; i < EnumSize<T>; ++i) {
-        if (flags & (1 << i)) {
-            out << static_cast<T>(1 << i) << ' ';
+        T value = static_cast<T>(1 << i);
+        if (flags.check(value)) {
+            out << value << ' ';
         }
     }
     return out;

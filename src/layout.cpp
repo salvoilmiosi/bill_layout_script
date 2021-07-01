@@ -18,7 +18,7 @@ std::ostream &operator << (std::ostream &output, const layout_box_list &layout) 
         if (box.mode != read_mode::DEFAULT) {
             output << "### Mode " << box.mode << '\n';
         }
-        if (box.flags) {
+        if (!box.flags.empty()) {
             output << "### Flags " << box.flags << '\n';
         }
         output << std::format("### Page {}\n", box.page);
@@ -103,7 +103,7 @@ std::istream &operator >> (std::istream &input, layout_box_list &layout) {
                     std::string label;
                     while (ss >> label) {
                         try {
-                            current.flags |= FindEnum<box_flags>(label);
+                            current.flags.set(FindEnum<box_flags>(label));
                         } catch (std::invalid_argument) {
                             throw layout_error(std::format("Token 'Flags' non valido: {}", label));
                         }

@@ -116,8 +116,8 @@ int MainApp::run() {
 
         if (!do_read_cache) {
             parser my_parser;
-            if (!skip_comments) my_parser.add_flags(parser_flags::ADD_COMMENTS);
-            if (recursive_imports) my_parser.add_flags(parser_flags::RECURSIVE_IMPORTS);
+            if (!skip_comments) my_parser.add_flag(parser_flags::ADD_COMMENTS);
+            if (recursive_imports) my_parser.add_flag(parser_flags::RECURSIVE_IMPORTS);
             my_parser.read_layout(input_file, layout_box_list::from_file(input_file));
             code = std::move(my_parser).get_bytecode();
         } else {

@@ -45,16 +45,16 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
 }
 
 void parser::read_box(const layout_box &box) {
-    if (box.flags & box_flags::DISABLED) {
+    if (box.flags.check(box_flags::DISABLED)) {
         return;
     }
     
-    if (m_flags & parser_flags::ADD_COMMENTS && !box.name.empty()) {
+    if (m_flags.check(parser_flags::ADD_COMMENTS) && !box.name.empty()) {
         m_code.add_line<opcode::COMMENT>("### " + box.name);
     }
     current_box = &box;
 
-    if (m_flags & parser_flags::ADD_COMMENTS) {
+    if (m_flags.check(parser_flags::ADD_COMMENTS)) {
         m_lexer.set_comment_callback(nullptr);
     }
     m_lexer.set_script(box.goto_label);
@@ -66,9 +66,9 @@ void parser::read_box(const layout_box &box) {
         throw unexpected_token(tok_label, token_type::IDENTIFIER);
     }
 
-    if (!(box.flags & box_flags::NOREAD) || box.flags & box_flags::SPACER) {
+    if (!box.flags.check(box_flags::NOREAD) && !box.flags.check(box_flags::SPACER)) {
         m_code.add_line<opcode::NEWBOX>();
-        if (!(box.flags & box_flags::PAGE)) {
+        if (!box.flags.check(box_flags::PAGE)) {
             m_code.add_line<opcode::PUSHDOUBLE>(box.x);
             m_code.add_line<opcode::MVBOX>(spacer_index::X);
             m_code.add_line<opcode::PUSHDOUBLE>(box.y);
@@ -83,7 +83,7 @@ void parser::read_box(const layout_box &box) {
     }
     m_content_level = 0;
 
-    if (m_flags & parser_flags::ADD_COMMENTS) {
+    if (m_flags.check(parser_flags::ADD_COMMENTS)) {
         m_lexer.set_comment_callback([this](const std::string &line){
             m_code.add_line<opcode::COMMENT>(line);
         });
@@ -123,7 +123,7 @@ void parser::read_box(const layout_box &box) {
         }
     }
 
-    if (!(box.flags & box_flags::NOREAD || box.flags & box_flags::SPACER)) {
+    if (!box.flags.check(box_flags::NOREAD) && !box.flags.check(box_flags::SPACER)) {
         ++m_content_level;
         m_code.add_line<opcode::RDBOX>(box.mode, box.flags);
     }
@@ -133,7 +133,7 @@ void parser::read_box(const layout_box &box) {
         read_statement();
     }
 
-    if (!(box.flags & box_flags::NOREAD || box.flags & box_flags::SPACER)) {
+    if (!box.flags.check(box_flags::NOREAD) && !box.flags.check(box_flags::SPACER)) {
         m_code.add_line<opcode::POPCONTENT>();
     }
 }
@@ -181,19 +181,19 @@ void parser::sub_statement() {
         tok = m_lexer.next();
         switch (tok.type) {
         case token_type::SUB_ASSIGN:
-            prefixes.flags |= setvar_flags::DECREASE;
+            prefixes.flags.set(setvar_flags::DECREASE);
             read_expression();
             break;
         case token_type::ADD_ASSIGN:
-            prefixes.flags |= setvar_flags::INCREASE;
+            prefixes.flags.set(setvar_flags::INCREASE);
             read_expression();
             break;
         case token_type::ADD_ONE:
-            prefixes.flags |= setvar_flags::INCREASE;
+            prefixes.flags.set(setvar_flags::INCREASE);
             m_code.add_line<opcode::PUSHINT>(1);
             break;
         case token_type::SUB_ONE:
-            prefixes.flags |= setvar_flags::DECREASE;
+            prefixes.flags.set(setvar_flags::DECREASE);
             m_code.add_line<opcode::PUSHINT>(1);
             break;
         case token_type::ASSIGN:
@@ -358,8 +358,8 @@ variable_prefixes parser::read_variable(bool read_only) {
     };
 
     auto add_flags_to = [&](auto &out, auto flags) {
-        if (out & flags) throw parsing_error("Prefisso duplicato", tok_prefix);
-        out |= flags;
+        if (out.check(flags)) throw parsing_error("Prefisso duplicato", tok_prefix);
+        out.set(flags);
     };
 
     auto add_flags = overloaded {
@@ -404,7 +404,7 @@ variable_prefixes parser::read_variable(bool read_only) {
         case token_type::BRACKET_BEGIN:
             read_expression();
             m_lexer.require(token_type::BRACKET_END);
-            selvar.flags |= selvar_flags::DYN_NAME;
+            selvar.flags.set(selvar_flags::DYN_NAME);
             in_loop = false;
             break;
         case token_type::IDENTIFIER:
@@ -433,30 +433,30 @@ variable_prefixes parser::read_variable(bool read_only) {
             tok = m_lexer.peek();
             switch (tok.type) {
             case token_type::BRACKET_END:
-                selvar.flags |= selvar_flags::EACH; // variable[:]
+                selvar.flags.set(selvar_flags::EACH); // variable[:]
                 break;
             case token_type::INTEGER: // variable[:N] -- append N times
                 m_lexer.advance(tok);
-                selvar.flags |= selvar_flags::APPEND;
+                selvar.flags.set(selvar_flags::APPEND);
                 selvar.length = string_to<int>(tok.value);
                 break;
             default:
                 read_expression();
-                selvar.flags |= selvar_flags::APPEND;
-                selvar.flags |= selvar_flags::DYN_LEN;
+                selvar.flags.set(selvar_flags::APPEND);
+                selvar.flags.set(selvar_flags::DYN_LEN);
             }
             break;
         }
         case token_type::BRACKET_END:
             if (read_only) throw read_only_error(tok);
-            selvar.flags |= selvar_flags::APPEND; // variable[] -- append
+            selvar.flags.set(selvar_flags::APPEND); // variable[] -- append
             break;
         default:
             if (tok = m_lexer.check_next(token_type::INTEGER)) { // variable[N]
                 selvar.index = string_to<int>(tok.value);
             } else {
                 read_expression();
-                selvar.flags |= selvar_flags::DYN_IDX;
+                selvar.flags.set(selvar_flags::DYN_IDX);
             }
             if (tok = m_lexer.check_next(token_type::COLON)) { // variable[N:M] -- M times after index N
                 if (read_only) throw read_only_error(tok);
@@ -464,7 +464,7 @@ variable_prefixes parser::read_variable(bool read_only) {
                     selvar.length = string_to<int>(tok.value);
                 } else {
                     read_expression();
-                    selvar.flags |= selvar_flags::DYN_LEN;
+                    selvar.flags.set(selvar_flags::DYN_LEN);
                 }
             }
         }

@@ -41,25 +41,25 @@ void reader::start() {
 
 void reader::exec_command(const command_args &cmd) {
     auto select_var = [&](variable_selector sel) {
-        if (sel.flags & selvar_flags::DYN_LEN) {
+        if (sel.flags.check(selvar_flags::DYN_LEN)) {
             sel.length = m_stack.pop().as_int();
         }
-        if (sel.flags & selvar_flags::DYN_IDX) {
+        if (sel.flags.check(selvar_flags::DYN_IDX)) {
             sel.index = m_stack.pop().as_int();
         }
 
         m_selected = variable_ref(m_values, variable_key{
-            (sel.flags & selvar_flags::DYN_NAME)
+            (sel.flags.check(selvar_flags::DYN_NAME))
                 ? m_stack.pop().as_string() : *sel.name,
-            (sel.flags & selvar_flags::GLOBAL)
+            (sel.flags.check(selvar_flags::GLOBAL))
                 ? variable_key::global_index : m_table_index},
             sel.index, sel.length);
 
-        if (sel.flags & selvar_flags::EACH) {
+        if (sel.flags.check(selvar_flags::EACH)) {
             m_selected.index = 0;
             m_selected.length = m_selected.size();
         }
-        if (sel.flags & selvar_flags::APPEND) {
+        if (sel.flags.check(selvar_flags::APPEND)) {
             m_selected.index = m_selected.size();
         }
     };
@@ -244,7 +244,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::IMPORT:        import_layout(*cmd.get_args<opcode::IMPORT>()); break;
     case opcode::ADDLAYOUT:     push_layout(*cmd.get_args<opcode::ADDLAYOUT>()); break;
     case opcode::SETCURLAYOUT   : m_current_layout = m_layouts.begin() + cmd.get_args<opcode::SETCURLAYOUT>(); break;
-    case opcode::SETLAYOUT:     if (m_flags & reader_flags::HALT_ON_SETLAYOUT) m_running = false; break;
+    case opcode::SETLAYOUT:     if (m_flags.check(reader_flags::HALT_ON_SETLAYOUT)) m_running = false; break;
     case opcode::HLT:           m_running = false; break;
     }
 }
@@ -260,12 +260,12 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
     bytecode new_code;
     auto recompile = [&] {
         parser my_parser;
-        if (m_flags & reader_flags::RECURSIVE) {
-            my_parser.add_flags(parser_flags::RECURSIVE_IMPORTS);
+        if (m_flags.check(reader_flags::RECURSIVE)) {
+            my_parser.add_flag(parser_flags::RECURSIVE_IMPORTS);
         }
         my_parser.read_layout(filename, layout_box_list::from_file(filename));
         new_code = std::move(my_parser).get_bytecode();
-        if (m_flags & reader_flags::USE_CACHE) {
+        if (m_flags.check(reader_flags::USE_CACHE)) {
             binary_bls::write(new_code, cache_filename);
         }
     };
@@ -273,9 +273,9 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
     // Se settata flag USE_CACHE, leggi il file di cache e
     // ricompila solo se uno dei file importati è stato modificato.
     // Altrimenti ricompila sempre
-    if (m_flags & reader_flags::USE_CACHE && std::filesystem::exists(cache_filename) && !is_modified(filename)) {
+    if (m_flags.check(reader_flags::USE_CACHE) && std::filesystem::exists(cache_filename) && !is_modified(filename)) {
         new_code = binary_bls::read(cache_filename);
-        if (m_flags & reader_flags::RECURSIVE && std::ranges::any_of(new_code, [&](const command_args &line) {
+        if (m_flags.check(reader_flags::RECURSIVE) && std::ranges::any_of(new_code, [&](const command_args &line) {
             return line.command() == opcode::ADDLAYOUT && is_modified(*line.get_args<opcode::ADDLAYOUT>());
         })) {
             recompile();

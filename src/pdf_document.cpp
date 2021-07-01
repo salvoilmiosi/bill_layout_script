@@ -60,14 +60,14 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
 #endif
             ;
         });
-        if (flags & box_flags::TRIM) {
+        if (flags.check(box_flags::TRIM)) {
             return string_trim({arr.begin(), arr.end()});
         } else {
             return {arr.begin(), arr.end()};
         }
     };
 
-    if (rect.flags & box_flags::PAGE) {
+    if (rect.flags.check(box_flags::PAGE)) {
         if (rect.page > num_pages() || rect.page <= 0) return "";
         return to_stdstring(get_page(rect.page).text(poppler::rectf(), poppler_mode));
     } else {

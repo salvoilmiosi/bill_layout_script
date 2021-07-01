@@ -43,9 +43,9 @@ int MainApp::run() {
             my_reader.set_document(my_doc);
         }
         
-        if (parse_recursive) my_reader.add_flags(reader_flags::RECURSIVE);
-        if (use_cache) my_reader.add_flags(reader_flags::USE_CACHE);
-        if (get_layout) my_reader.add_flags(reader_flags::HALT_ON_SETLAYOUT);
+        if (parse_recursive) my_reader.add_flag(reader_flags::RECURSIVE);
+        if (use_cache) my_reader.add_flag(reader_flags::USE_CACHE);
+        if (get_layout) my_reader.add_flag(reader_flags::HALT_ON_SETLAYOUT);
         my_reader.add_layout(input_bls);
         my_reader.start();
 
