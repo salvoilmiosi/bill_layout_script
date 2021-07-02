@@ -399,7 +399,7 @@ variable_prefixes parser::read_variable(bool read_only) {
         case token_type::NOT:           add_flags(setvar_flags::FORCE); break;
         case token_type::PERCENT:       add_function_call("num"); break;
         case token_type::CARET:         add_function_call("aggregate"); break;
-        case token_type::SINGLE_QUOTE:  add_function_call("capitalize"); break;
+        case token_type::SINGLE_QUOTE:  add_function_call("totitle"); break;
         case token_type::AMPERSAND:     add_pushref(); break;
         case token_type::BRACKET_BEGIN:
             read_expression();

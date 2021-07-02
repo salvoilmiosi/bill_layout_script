@@ -90,7 +90,8 @@ bool variable::is_null() const {
         [](null_state)              { return true; },
         [](auto)                    { return false; },
         [&](string_state)           { return m_str.empty(); },
-        [](std::string_view str)    { return str.empty(); }
+        [](std::string_view str)    { return str.empty(); },
+        [](datetime date)           { return !date.is_valid(); }
     }, m_value);
 }
 

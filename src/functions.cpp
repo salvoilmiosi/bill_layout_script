@@ -4,6 +4,8 @@
 #include <numeric>
 #include <fstream>
 
+#include <boost/locale.hpp>
+
 #include "exceptions.h"
 #include "utils.h"
 #include "intl.h"
@@ -124,22 +126,6 @@ static std::string string_singleline(std::string_view str) {
         return a == ' ' && b == ' ';
     });
     return ret;
-}
-
-// converte solo i primi caratteri di una stringa in maiuscolo e il resto in minuscolo
-static std::string &string_capitalize(std::string &str) {
-    bool cap = true;
-    for (auto &ch : str) {
-        if (isspace(ch) || ch == '.') {
-            cap = true;
-        } else if (isalpha(ch) && cap) {
-            cap = false;
-            ch = toupper(ch);
-        } else {
-            ch = tolower(ch);
-        }
-    }
-    return str;
 }
 
 inline auto match_to_view(const std::csub_match &m) {
@@ -361,11 +347,7 @@ const function_map function_lookup {
         return table_row(row, indices);
     }},
     {"search", [](std::string_view str, const std::string &regex, optional_size<1> index) -> variable {
-        if (auto res = search_regex(str, regex, index); !res.empty()) {
-            return std::string(res);
-        } else {
-            return {};
-        }
+        return search_regex(str, regex, index);
     }},
     {"searchpos", [](std::string_view str, const std::string &regex, optional_size<0> index) {
         return search_regex(str, regex, index).begin() - str.begin();
@@ -389,10 +371,7 @@ const function_map function_lookup {
         return date_regex(format);
     }},
     {"search_date", [](std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
-        if (auto date = search_date(str, format, regex, index); date.is_valid()) {
-            return variable(date);
-        }
-        return variable();
+        return search_date(str, format, regex, index);
     }},
     {"date_format", [](datetime date, const std::string &format) {
         return date.format(format);
@@ -434,9 +413,6 @@ const function_map function_lookup {
     {"singleline", [](std::string_view str) {
         return string_singleline(str);
     }},
-    {"capitalize", [](std::string &&str) {
-        return string_capitalize(str);
-    }},
     {"if", [](bool condition, const variable &var_if, optional<variable> var_else) {
         return condition ? var_if : var_else;
     }},
@@ -471,12 +447,13 @@ const function_map function_lookup {
         return string_find_icase(str, value, index).end() - str.begin();
     }},
     {"tolower", [](std::string_view str) {
-        auto view = str | std::views::transform(tolower);
-        return std::string{view.begin(), view.end()};
+        return boost::locale::to_lower(str.data(), str.data() + str.size());
     }},
     {"toupper", [](std::string_view str) {
-        auto view = str | std::views::transform(toupper);
-        return std::string{view.begin(), view.end()};
+        return boost::locale::to_upper(str.data(), str.data() + str.size());
+    }},
+    {"totitle", [](std::string_view str) {
+        return boost::locale::to_title(str.data(), str.data() + str.size());
     }},
     {"isempty", [](std::string_view str) {
         return str.empty();
