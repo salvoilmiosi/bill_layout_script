@@ -52,10 +52,11 @@ public:
     void clear();
     void start();
 
-    const auto &get_values() { return m_values; }
-    const auto &get_notes() { return m_notes; }
-    const size_t get_table_count() { return m_table_index + 1; }
-    const auto get_layouts() { return m_layouts; }
+    const auto &get_values() const { return m_values; }
+    const auto &get_notes() const { return m_notes; }
+    const auto &get_layouts() const { return m_layouts; }
+    
+    size_t get_table_count() const { return m_table_index + 1; }
 
     void abort() {
         m_running = false;

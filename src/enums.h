@@ -125,7 +125,7 @@ public:
     constexpr bitset(flags_t value) : m_value(value) {}
 
     constexpr bool empty() const {
-        return m_value;
+        return m_value == 0;
     }
 
     constexpr bool check(T value) const {

@@ -32,6 +32,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(poppler REQUIRED poppler-cpp>=0.88 IMPORTED_TARGET)
 
 add_library(bls SHARED ${libbls_SRCS})
+add_library(bls::bls ALIAS bls)
 
 set(bls_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/src

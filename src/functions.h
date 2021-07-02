@@ -58,7 +58,7 @@ struct vararg_converter {
 using arg_list = std::ranges::subrange<typename simple_stack<variable>::iterator>;
 
 // using decltype([]{ return T{}; }) faceva crashare gcc
-template<typename T> struct getter {
+template<typename T> struct value_getter {
     T operator ()() {
         return T{};
     }
@@ -70,7 +70,7 @@ template<std::integral T, T Value> struct int_getter {
     }
 };
 
-template<typename T, typename DefaultGetter = getter<T>>
+template<typename T, typename DefaultGetter = value_getter<T>>
 struct optional : T {
     using value_type = T;
 
