@@ -390,10 +390,6 @@ const function_map function_lookup {
         date.add_months(months);
         return date;
     }},
-    {"week_add", [](datetime date, int weeks) {
-        date.add_weeks(weeks);
-        return date;
-    }},
     {"day_add", [](datetime date, int num) {
         date.add_days(num);
         return date;

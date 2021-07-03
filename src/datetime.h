@@ -41,7 +41,6 @@ public:
     void set_to_last_month_day();
     void add_years(int years);
     void add_months(int months);
-    void add_weeks(int weeks);
     void add_days(int days);
 };
 

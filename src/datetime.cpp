@@ -39,27 +39,7 @@ void datetime::set_day(int day) {
 void datetime::set_to_last_month_day() {
     if (!is_valid()) return;
     bl::date_time t(m_date);
-    t.set(bl::period::day(), [
-        month = bl::period::month(t),
-        year = bl::period::year(t)
-    ]() {
-        switch (month) {
-        case 0: case 2: case 4: case 6: case 7: case 9: case 11:
-            return 31;
-        case 3: case 5: case 8: case 10:
-            return 30;
-        default:
-            if (year % 4 == 0) {
-                if (year % 100 == 0) {
-                    if (year % 400 == 0)
-                        return 29;
-                    return 28;
-                }
-                return 29;
-            }
-            return 28;
-        }
-    }());
+    t.set(bl::period::day(), t.maximum(bl::period::day()));
     m_date = t.time();
 }
 
@@ -75,10 +55,6 @@ void datetime::add_months(int months) {
     bl::date_time t(m_date);
     t += bl::period::month(months);
     m_date = t.time();
-}
-
-void datetime::add_weeks(int weeks) {
-    add_days(7 * weeks);
 }
 
 void datetime::add_days(int days) {
