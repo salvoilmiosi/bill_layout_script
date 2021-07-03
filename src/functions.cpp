@@ -370,6 +370,9 @@ const function_map function_lookup {
     {"date_regex", [](std::string_view format) {
         return date_regex(format);
     }},
+    {"parse_date", [](std::string_view str, const std::string &format) {
+        return datetime::parse_date(str, format);
+    }},
     {"search_date", [](std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
         return search_date(str, format, regex, index);
     }},
