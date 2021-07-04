@@ -23,22 +23,15 @@ namespace intl {
 
     bool set_language(const std::string &name) {
         try {
-            auto custom_lbm = boost::locale::localization_backend_manager::global();
-            #ifdef _WIN32
-                custom_lbm.select("winapi");
-            #else
-                custom_lbm.select("posix");
-            #endif
+            std::locale loc = boost::locale::generator{}(name);
+            std::locale::global(loc);
 
-            auto numloc = boost::locale::generator{custom_lbm}(name);
-            auto &numfacet = std::use_facet<std::numpunct<char>>(numloc);
+            auto &numfacet = std::use_facet<std::numpunct<char>>(loc);
             s_thousand_sep = numfacet.thousands_sep();
             s_decimal_point = numfacet.decimal_point();
             
-            std::locale loc = boost::locale::generator{}(name);
             s_encoding = std::use_facet<boost::locale::info>(loc).encoding();
-            std::locale::global(loc);
-
+        
             return true;
         } catch (std::runtime_error) {
             return false;

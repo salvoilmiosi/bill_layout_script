@@ -26,8 +26,6 @@ src/unicode.cpp
 src/variable.cpp
 )
 
-find_package(Boost REQUIRED COMPONENTS locale)
-
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(poppler REQUIRED poppler-cpp>=0.88 IMPORTED_TARGET)
 
@@ -42,6 +40,7 @@ set(bls_include_dirs
 
 add_subdirectory(external/cxxopts)
 add_subdirectory(external/json)
+add_subdirectory(external/boostlocale)
 
 set(bls_libraries PkgConfig::poppler Boost::locale)
 

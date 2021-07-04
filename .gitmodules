@@ -7,3 +7,6 @@
 [submodule "json"]
 	path = external/json
 	url = https://github.com/taocpp/json
+[submodule "external/boostlocale"]
+	path = external/boostlocale
+	url = http://github.com/salvoilmiosi/locale
