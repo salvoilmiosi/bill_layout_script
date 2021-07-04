@@ -1,7 +1,6 @@
 #include "intl.h"
 
 #include <boost/locale.hpp>
-#include <sstream>
 
 namespace intl {
     static char s_decimal_point = '.';
@@ -24,22 +23,21 @@ namespace intl {
 
     bool set_language(const std::string &name) {
         try {
+            auto custom_lbm = boost::locale::localization_backend_manager::global();
+            #ifdef _WIN32
+                custom_lbm.select("winapi");
+            #else
+                custom_lbm.select("posix");
+            #endif
+
+            auto numloc = boost::locale::generator{custom_lbm}(name);
+            auto &numfacet = std::use_facet<std::numpunct<char>>(numloc);
+            s_thousand_sep = numfacet.thousands_sep();
+            s_decimal_point = numfacet.decimal_point();
+            
             std::locale loc = boost::locale::generator{}(name);
-            std::locale::global(loc);
-
-            std::stringstream ss;
-            ss << boost::locale::as::number << 1000.5;
-            std::string num_str = ss.str();
-
-            s_thousand_sep = num_str[1];
-            if (s_thousand_sep == '0') {
-                s_thousand_sep='\0';
-                s_decimal_point = num_str[4];
-            } else {
-                s_decimal_point = num_str[5];
-            }
-
             s_encoding = std::use_facet<boost::locale::info>(loc).encoding();
+            std::locale::global(loc);
 
             return true;
         } catch (std::runtime_error) {
