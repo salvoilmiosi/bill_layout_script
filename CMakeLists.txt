@@ -40,6 +40,12 @@ set(bls_include_dirs
 
 add_subdirectory(external/cxxopts)
 add_subdirectory(external/json)
+
+set(BOOST_LOCALE_ENABLE_ICONV OFF)
+set(BOOST_LOCALE_ENABLE_ICU ON)
+set(BOOST_LOCALE_ENABLE_POSIX OFF)
+set(BOOST_LOCALE_ENABLE_STD OFF)
+set(BOOST_LOCALE_ENABLE_WINAPI OFF)
 add_subdirectory(external/boostlocale)
 
 set(bls_libraries PkgConfig::poppler Boost::locale)
