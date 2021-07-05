@@ -282,7 +282,6 @@ const function_map function_lookup {
         return parse_num(var.as_view());
     }},
     {"int", [](int a) { return a; }},
-    {"date", [](datetime date) { return date; }},
     {"bool",[](bool a) { return a; }},
     {"eq",  [](const variable &a, const variable &b) { return a == b; }},
     {"neq", [](const variable &a, const variable &b) { return a != b; }},
@@ -355,7 +354,7 @@ const function_map function_lookup {
         return table_row(row, indices);
     }},
     {"search", [](std::string_view str, const std::string &regex, optional_size<1> index) -> variable {
-        return search_regex(str, regex, index);
+        return std::string(search_regex(str, regex, index));
     }},
     {"searchpos", [](std::string_view str, const std::string &regex, optional_size<0> index) {
         return search_regex(str, regex, index).begin() - str.begin();
@@ -378,8 +377,12 @@ const function_map function_lookup {
     {"date_regex", [](std::string_view format) {
         return date_regex(format);
     }},
-    {"parse_date", [](std::string_view str, const std::string &format) {
-        return datetime::parse_date(str, format);
+    {"date", [](std::string_view str, optional<std::string> format) {
+        if (format.empty()) {
+            return datetime::from_string(str);
+        } else {
+            return datetime::parse_date(str, format);
+        }
     }},
     {"search_date", [](std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
         return search_date(str, format, regex, index);
