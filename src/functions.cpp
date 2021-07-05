@@ -15,7 +15,8 @@
 static variable parse_num(std::string_view str) {
     fixed_point num;
     isviewstream iss{str};
-    if (dec::fromStream(iss, dec::decimal_format(intl::decimal_point(), intl::thousand_sep()), num)) {
+    dec::decimal_format format(intl::decimal_point(), intl::thousands_sep(), !intl::grouping().empty(), intl::grouping());
+    if (dec::fromStream(iss, format, num)) {
         return num;
     } else {
         return variable();
@@ -86,13 +87,20 @@ static std::string escape_regex_char(char c) {
 
 // Genera la regex per parsare numeri secondo il locale selezionato
 static std::string number_regex() {
-    auto tho = escape_regex_char(intl::thousand_sep());
-    auto dec = escape_regex_char(intl::decimal_point());
-    if (!tho.empty()) {
-        return std::format("(?:-?(?:\\d{{1,3}}(?:{0}\\d{{3}})*|\\d+)(?:{1}\\d+)?(?!\\d))", tho, dec);
+    auto grp = intl::grouping();
+    std::string ret;
+    if (grp.empty()) {
+        ret = "\\d+";
     } else {
-        return std::format("(?:-?\\d+(?:{0}\\d+)?(?!\\d))", dec);
+        auto tho = escape_regex_char(intl::thousands_sep());
+        auto it = grp.rbegin();
+        ret = std::format("\\d{{1,{0}}}(?:{1}\\d{{{0}}})*", int(*it), tho);
+        for(++it; it != grp.rend(); ++it) {
+            ret = std::format("(?:{2}{1}\\d{{{0}}}|\\d{{1,{0}}})", int(*it), tho, ret);
+        }
+        ret = std::format("(?:{}|\\d+)", ret);
     }
+    return std::format("(?:-?{0}(?:{1}\\d+)?)(?!\\d)", ret, escape_regex_char(intl::decimal_point()));
 };
 
 // Costruisce un oggetto std::regex

@@ -7,7 +7,8 @@ namespace intl {
     bool set_language(const std::string &name);
     
     char decimal_point();
-    char thousand_sep();
+    char thousands_sep();
+    std::string grouping();
 
     std::string to_utf8(std::string_view str);
     std::string from_utf8(std::string_view str);
