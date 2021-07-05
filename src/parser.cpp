@@ -8,6 +8,8 @@
 #include "fixed_point.h"
 #include "functions.h"
 
+using namespace bls;
+
 void parser::read_layout(const std::filesystem::path &path, const layout_box_list &layout) {
     m_path = path;
     m_layout = &layout;
@@ -282,7 +284,7 @@ void parser::sub_expression() {
         switch (tok_num.type) {
         case token_type::INTEGER:
             m_lexer.advance(tok_num);
-            m_code.add_line<opcode::PUSHINT>(string_to<big_int>(tok_num.value));
+            m_code.add_line<opcode::PUSHINT>(util::string_to<big_int>(tok_num.value));
             break;
         case token_type::NUMBER:
             m_lexer.advance(tok_num);
@@ -300,7 +302,7 @@ void parser::sub_expression() {
         switch (tok_num.type) {
         case token_type::INTEGER:
             m_lexer.advance(tok_num);
-            m_code.add_line<opcode::PUSHINT>(-string_to<big_int>(tok_num.value));
+            m_code.add_line<opcode::PUSHINT>(-util::string_to<big_int>(tok_num.value));
             break;
         case token_type::NUMBER:
             m_lexer.advance(tok_num);
@@ -314,7 +316,7 @@ void parser::sub_expression() {
     }
     case token_type::INTEGER:
         m_lexer.advance(tok_first);
-        m_code.add_line<opcode::PUSHINT>(string_to<big_int>(tok_first.value));
+        m_code.add_line<opcode::PUSHINT>(util::string_to<big_int>(tok_first.value));
         break;
     case token_type::NUMBER:
         m_lexer.advance(tok_first);
@@ -362,7 +364,7 @@ variable_prefixes parser::read_variable(bool read_only) {
         out.set(flags);
     };
 
-    auto add_flags = overloaded {
+    auto add_flags = util::overloaded {
         [&](selvar_flags flags) {
             add_flags_to(selvar.flags, flags);
         },
@@ -438,7 +440,7 @@ variable_prefixes parser::read_variable(bool read_only) {
             case token_type::INTEGER: // variable[:N] -- append N times
                 m_lexer.advance(tok);
                 selvar.flags.set(selvar_flags::APPEND);
-                selvar.length = string_to<int>(tok.value);
+                selvar.length = util::string_to<int>(tok.value);
                 break;
             default:
                 read_expression();
@@ -453,7 +455,7 @@ variable_prefixes parser::read_variable(bool read_only) {
             break;
         default:
             if (tok = m_lexer.check_next(token_type::INTEGER)) { // variable[N]
-                selvar.index = string_to<int>(tok.value);
+                selvar.index = util::string_to<int>(tok.value);
             } else {
                 read_expression();
                 selvar.flags.set(selvar_flags::DYN_IDX);
@@ -461,7 +463,7 @@ variable_prefixes parser::read_variable(bool read_only) {
             if (tok = m_lexer.check_next(token_type::COLON)) { // variable[N:M] -- M times after index N
                 if (read_only) throw read_only_error(tok);
                 if (tok = m_lexer.check_next(token_type::INTEGER)) {
-                    selvar.length = string_to<int>(tok.value);
+                    selvar.length = util::string_to<int>(tok.value);
                 } else {
                     read_expression();
                     selvar.flags.set(selvar_flags::DYN_LEN);
@@ -490,10 +492,12 @@ void parser::add_enum_index_command() {
 void parser::read_function() {
     auto tok_fun_name = m_lexer.require(token_type::FUNCTION);
     auto fun_name = tok_fun_name.value.substr(1);
+
+    using namespace util::literals;
     
-    switch (hash(fun_name)) {
-    case hash("box"): add_enum_index_command<opcode::GETBOX>(); break;
-    case hash("sys"): add_enum_index_command<opcode::GETSYS>(); break;
+    switch (util::hash(fun_name)) {
+    case "box"_h: add_enum_index_command<opcode::GETBOX>(); break;
+    case "sys"_h: add_enum_index_command<opcode::GETSYS>(); break;
     default: {
         small_int num_args = 0;
         m_lexer.require(token_type::PAREN_BEGIN);

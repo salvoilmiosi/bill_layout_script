@@ -3,6 +3,8 @@
 
 #include <cassert>
 
+using namespace bls;
+
 typedef std::string_view::iterator location;
 
 // borrowed from jsoncpp source code

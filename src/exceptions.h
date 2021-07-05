@@ -4,18 +4,22 @@
 #include <stdexcept>
 #include <cassert>
 
-struct layout_error : std::runtime_error {
-    template<typename T>
-    layout_error(T &&message) : std::runtime_error(std::forward<T>(message)) {}
-};
+namespace bls {
 
-struct layout_runtime_error : std::runtime_error {
-    int errcode;
+    struct layout_error : std::runtime_error {
+        template<typename T>
+        layout_error(T &&message) : std::runtime_error(std::forward<T>(message)) {}
+    };
 
-    template<typename T>
-    layout_runtime_error(T &&message, int errcode)
-        : std::runtime_error(std::forward<T>(message))
-        , errcode(errcode) {}
-};
+    struct layout_runtime_error : std::runtime_error {
+        int errcode;
+
+        template<typename T>
+        layout_runtime_error(T &&message, int errcode)
+            : std::runtime_error(std::forward<T>(message))
+            , errcode(errcode) {}
+    };
+
+}
 
 #endif

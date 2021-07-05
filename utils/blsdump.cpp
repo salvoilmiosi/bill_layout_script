@@ -55,6 +55,8 @@ int main(int argc, char **argv) {
     return app.run();
 }
 
+using namespace bls;
+
 template<typename T> struct print_args {
     const T &data;
     print_args(const T &data) : data(data) {}
@@ -71,7 +73,7 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<readbo
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<command_call> &args) {
-    return out << args.data.fun->first << ' ' << num_tostring(args.data.numargs);
+    return out << args.data.fun->first << ' ' << util::to_string(args.data.numargs);
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<variable_selector> &args) {
@@ -91,11 +93,11 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<string
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<small_int> &args) {
-    return out << num_tostring(args.data);
+    return out << util::to_string(args.data);
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<jump_address> &label) {
-    std::visit(overloaded{
+    std::visit(util::overloaded{
         [&](string_ptr str) {
             out << print_args(str);
         },
@@ -107,7 +109,7 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<jump_a
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<jsr_address> &args) {
-    return out << print_args(static_cast<jump_address>(args.data)) << ' ' << num_tostring(args.data.numargs);
+    return out << print_args(static_cast<jump_address>(args.data)) << ' ' << util::to_string(args.data.numargs);
 }
 
 int MainApp::run() {
@@ -121,11 +123,11 @@ int MainApp::run() {
             my_parser.read_layout(input_file, layout_box_list::from_file(input_file));
             code = std::move(my_parser).get_bytecode();
         } else {
-            code = binary_bls::read(input_file);
+            code = binary::read(input_file);
         }
 
         if (!output_cache.empty()) {
-            binary_bls::write(code, output_cache);
+            binary::write(code, output_cache);
         }
         for (auto line = code.begin(); line != code.end(); ++line) {
             if (line->command() == opcode::COMMENT) {

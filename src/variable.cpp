@@ -2,6 +2,8 @@
 
 #include "utils.h"
 
+using namespace bls;
+
 template<typename T, typename ... Ts> struct is_one_of : std::false_type {};
 template<typename T, typename First, typename ... Ts>
 struct is_one_of<T, First, Ts...> : std::bool_constant<is_one_of<T, Ts...>::value> {};
@@ -14,12 +16,12 @@ template<typename T> concept not_number_t = ! number_t<T>;
 
 std::string &variable::get_string() const {
     if (m_str.empty()) {
-        m_str = std::visit(overloaded{
+        m_str = std::visit(util::overloaded{
             [](auto)                    { return std::string(); },
             [](std::string_view str)    { return std::string(str); },
             [](fixed_point num)         { return fixed_point_to_string(num); },
-            [](big_int num)             { return num_tostring(num); },
-            [](double num)              { return num_tostring(num); },
+            [](big_int num)             { return util::to_string(num); },
+            [](double num)              { return util::to_string(num); },
             [](datetime date)           { return date.to_string(); }
         }, m_value);
     }
@@ -27,7 +29,7 @@ std::string &variable::get_string() const {
 }
 
 std::string_view variable::as_view() const {
-    return std::visit(overloaded{
+    return std::visit(util::overloaded{
         [&](auto)                   { return std::string_view(as_string()); },
         [](std::string_view str)    { return str; },
         [](null_state)              { return std::string_view(); }
@@ -35,7 +37,7 @@ std::string_view variable::as_view() const {
 }
 
 fixed_point variable::as_number() const {
-    return std::visit(overloaded{
+    return std::visit(util::overloaded{
         [&](string_t auto)      { return fixed_point(as_string()); },
         [](number_t auto num)   { return fixed_point(num); },
         [](auto)                { return fixed_point(0); }
@@ -43,7 +45,7 @@ fixed_point variable::as_number() const {
 }
 
 big_int variable::as_int() const {
-    return std::visit(overloaded{
+    return std::visit(util::overloaded{
         [&](string_t auto) {
             big_int num = 0;
             auto view = as_view();
@@ -58,7 +60,7 @@ big_int variable::as_int() const {
 }
 
 double variable::as_double() const {
-    return std::visit(overloaded{
+    return std::visit(util::overloaded{
         [&](string_t auto)  { return as_number().getAsDouble(); },
         [](fixed_point num) { return num.getAsDouble(); },
         [](big_int num)     { return double(num); },
@@ -68,7 +70,7 @@ double variable::as_double() const {
 }
 
 datetime variable::as_date() const {
-    return std::visit(overloaded{
+    return std::visit(util::overloaded{
         [&](string_t auto) { return datetime::from_string(as_string()); },
         [](datetime date) { return date; },
         [](auto)            { return datetime(); }
@@ -76,7 +78,7 @@ datetime variable::as_date() const {
 }
 
 bool variable::as_bool() const {
-    return std::visit(overloaded{
+    return std::visit(util::overloaded{
         [](null_state)              { return false; },
         [&](string_state)           { return !m_str.empty(); },
         [](std::string_view str)    { return !str.empty(); },
@@ -86,7 +88,7 @@ bool variable::as_bool() const {
 }
 
 bool variable::is_null() const {
-    return std::visit(overloaded{
+    return std::visit(util::overloaded{
         [](null_state)              { return true; },
         [](auto)                    { return false; },
         [&](string_state)           { return m_str.empty(); },
@@ -96,21 +98,21 @@ bool variable::is_null() const {
 }
 
 bool variable::is_string() const {
-    return std::visit(overloaded{
+    return std::visit(util::overloaded{
         [](string_t auto)   { return true; },
         [](auto)            { return false; }
     }, m_value);
 }
 
 bool variable::is_number() const {
-    return std::visit(overloaded{
+    return std::visit(util::overloaded{
         [](number_t auto)   { return true; },
         [](auto)            { return false; }
     }, m_value);
 }
 
 std::partial_ordering variable::operator <=> (const variable &other) const {
-    return std::visit<std::partial_ordering>(overloaded{
+    return std::visit<std::partial_ordering>(util::overloaded{
         [&](string_t auto, string_t auto)           { return as_view() <=> other.as_view(); },
 
         [&](string_t auto, null_state)              { return as_view() <=> ""; },
@@ -135,7 +137,7 @@ std::partial_ordering variable::operator <=> (const variable &other) const {
 }
 
 void variable::assign(const variable &other) {
-    std::visit(overloaded{
+    std::visit(util::overloaded{
         [&](auto) {
             m_str = other.m_str;
             m_value = other.m_value;
@@ -148,7 +150,7 @@ void variable::assign(const variable &other) {
 }
 
 void variable::assign(variable &&other) {
-    std::visit(overloaded{
+    std::visit(util::overloaded{
         [&](auto) {
             m_str = std::move(other.m_str);
             m_value = std::move(other.m_value);
@@ -161,7 +163,7 @@ void variable::assign(variable &&other) {
 }
 
 variable &variable::operator += (const variable &rhs) {
-    std::visit(overloaded{
+    std::visit(util::overloaded{
         [](null_state, null_state) {},
         [](auto, null_state) {},
         [&](null_state, auto) {
@@ -191,7 +193,7 @@ variable variable::operator +(const variable &rhs) const {
 }
 
 variable variable::operator -() const {
-    return std::visit<variable>(overloaded{
+    return std::visit<variable>(util::overloaded{
         [](null_state) {
             return variable();
         },
@@ -205,7 +207,7 @@ variable variable::operator -() const {
 }
 
 variable variable::operator -(const variable &rhs) const {
-    return std::visit<variable>(overloaded{
+    return std::visit<variable>(util::overloaded{
         [](auto, auto) {
             return variable();
         },
@@ -232,7 +234,7 @@ variable &variable::operator -= (const variable &rhs) {
 }
 
 variable variable::operator * (const variable &rhs) const {
-    return std::visit<variable>(overloaded{
+    return std::visit<variable>(util::overloaded{
         [](auto, auto) {
             return variable();
         },
@@ -255,7 +257,7 @@ variable variable::operator * (const variable &rhs) const {
 }
 
 variable variable::operator / (const variable &rhs) const {
-    return std::visit<variable>(overloaded{
+    return std::visit<variable>(util::overloaded{
         [](auto, auto) {
             return variable();
         },

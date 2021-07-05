@@ -2,6 +2,8 @@
 
 #include <fstream>
 
+using namespace bls;
+
 typedef uint16_t string_size;
 
 inline bool is_big_endian() {
@@ -205,7 +207,7 @@ template<> struct binary_io<command_args> {
     }
 };
 
-namespace binary_bls {
+namespace bls::binary {
     bytecode read(const std::filesystem::path &filename) {
         std::ifstream ifs(filename, std::ios::binary | std::ios::in);
 

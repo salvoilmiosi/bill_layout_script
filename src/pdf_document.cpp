@@ -5,6 +5,8 @@
 
 #include "utils.h"
 
+using namespace bls;
+
 void pdf_rect::rotate(int amt) {
     switch (amt % 4) {
     case 0:
@@ -61,7 +63,7 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
             ;
         });
         if (flags.check(box_flags::TRIM)) {
-            return string_trim({arr.begin(), arr.end()});
+            return util::string_trim({arr.begin(), arr.end()});
         } else {
             return {arr.begin(), arr.end()};
         }

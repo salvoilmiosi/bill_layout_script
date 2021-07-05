@@ -9,6 +9,8 @@
 #include "utils.h"
 #include "set_language.h"
 
+using namespace bls;
+
 struct MainApp {
     int run();
 
@@ -25,7 +27,7 @@ struct MainApp {
 };
 
 int MainApp::run() {
-    if (!bls::set_language(selected_locale)) {
+    if (!set_language(selected_locale)) {
         std::cerr << "Lingua non supportata: " << selected_locale << '\n';
         return -1;
     }

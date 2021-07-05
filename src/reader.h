@@ -12,6 +12,8 @@
 #include "stack.h"
 #include "content_view.h"
 
+namespace bls {
+
 DEFINE_ENUM_FLAGS(reader_flags,
     (HALT_ON_SETLAYOUT)
     (USE_CACHE)
@@ -91,5 +93,7 @@ private:
 
     const pdf_document *m_doc = nullptr;
 };
+
+}
 
 #endif

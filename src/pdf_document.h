@@ -13,61 +13,65 @@
 #include "utils.h"
 #include "enums.h"
 
-DEFINE_ENUM(read_mode,
-    (DEFAULT,  "Default", poppler::page::non_raw_non_physical_layout)
-    (LAYOUT,   "Layout",  poppler::page::physical_layout)
-    (RAW,      "Grezza",  poppler::page::raw_order_layout)
-)
+namespace bls {
 
-DEFINE_ENUM_FLAGS(box_flags,
-    (DISABLED,  "Disabilita")
-    (PAGE,      "Leggi Pagina")
-    (NOREAD,    "Nessuna Lettura")
-    (SPACER,    "Spaziatore")
-    (TRIM,      "Taglia Spazi")
-)
+    DEFINE_ENUM(read_mode,
+        (DEFAULT,  "Default", poppler::page::non_raw_non_physical_layout)
+        (LAYOUT,   "Layout",  poppler::page::physical_layout)
+        (RAW,      "Grezza",  poppler::page::raw_order_layout)
+    )
 
-struct pdf_rect {
-    double x, y, w, h;
-    int page;
-    read_mode mode = read_mode::DEFAULT;
-    bitset<box_flags> flags;
+    DEFINE_ENUM_FLAGS(box_flags,
+        (DISABLED,  "Disabilita")
+        (PAGE,      "Leggi Pagina")
+        (NOREAD,    "Nessuna Lettura")
+        (SPACER,    "Spaziatore")
+        (TRIM,      "Taglia Spazi")
+    )
 
-    void rotate(int amt);
-};
+    struct pdf_rect {
+        double x, y, w, h;
+        int page;
+        read_mode mode = read_mode::DEFAULT;
+        bitset<box_flags> flags;
 
-class pdf_document {
-public:
-    pdf_document() = default;
+        void rotate(int amt);
+    };
 
-    explicit pdf_document(const std::filesystem::path &filename) {
-        open(filename);
-    }
+    class pdf_document {
+    public:
+        pdf_document() = default;
 
-    void open(const std::filesystem::path &filename);
-    bool isopen() const {
-        return m_document != nullptr;
-    }
+        explicit pdf_document(const std::filesystem::path &filename) {
+            open(filename);
+        }
 
-    std::string get_text(const pdf_rect &rect) const;
+        void open(const std::filesystem::path &filename);
+        bool isopen() const {
+            return m_document != nullptr;
+        }
 
-    const std::filesystem::path &filename() const { return m_filename; }
-    int num_pages() const { return m_pages.size(); }
+        std::string get_text(const pdf_rect &rect) const;
 
-    const poppler::page &get_page(int page) const {
-        return *m_pages[page - 1];
-    }
-    
-private:
-    std::filesystem::path m_filename;
+        const std::filesystem::path &filename() const { return m_filename; }
+        int num_pages() const { return m_pages.size(); }
 
-    std::unique_ptr<poppler::document> m_document;
-    std::vector<std::unique_ptr<poppler::page>> m_pages;
-};
+        const poppler::page &get_page(int page) const {
+            return *m_pages[page - 1];
+        }
+        
+    private:
+        std::filesystem::path m_filename;
 
-struct pdf_error : std::runtime_error {
-    template<typename T>
-    pdf_error(T &&message) : std::runtime_error(std::forward<T>(message)) {}
-};
+        std::unique_ptr<poppler::document> m_document;
+        std::vector<std::unique_ptr<poppler::page>> m_pages;
+    };
+
+    struct pdf_error : std::runtime_error {
+        template<typename T>
+        pdf_error(T &&message) : std::runtime_error(std::forward<T>(message)) {}
+    };
+
+}
 
 #endif // __PDF_DOCUMENT_H__

@@ -5,7 +5,7 @@
 
 #include <filesystem>
 
-namespace binary_bls {
+namespace bls::binary {
     bytecode read(const std::filesystem::path &filename);
     
     void write(const bytecode &code, const std::filesystem::path &filename);

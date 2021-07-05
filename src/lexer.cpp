@@ -1,5 +1,7 @@
 #include "lexer.h"
 
+using namespace bls;
+
 void lexer::set_script(std::string_view str) {
     m_begin = m_current = str.data();
     m_end = m_begin + str.size();

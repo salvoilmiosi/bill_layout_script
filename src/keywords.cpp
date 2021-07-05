@@ -2,6 +2,8 @@
 
 #include "utils.h"
 
+using namespace bls;
+
 void parser::read_keyword() {
     auto make_label = [&](std::string_view label) {
         return std::format("__{}_{}_{}", m_parser_id, m_code.size(), label);
@@ -10,9 +12,11 @@ void parser::read_keyword() {
     auto tok_name = m_lexer.require(token_type::FUNCTION);
     auto fun_name = tok_name.value.substr(1);
 
-    switch (hash(fun_name)) {
-    case hash("if"):
-    case hash("ifnot"): {
+    using namespace util::literals;
+
+    switch (util::hash(fun_name)) {
+    case "if"_h:
+    case "ifnot"_h: {
         string_ptr endif_label = make_label("endif");
         string_ptr else_label;
         bool condition_positive = fun_name == "if";
@@ -33,8 +37,8 @@ void parser::read_keyword() {
             auto tok_if = m_lexer.peek();
             if (tok_if.type == token_type::FUNCTION) {
                 fun_name = tok_if.value.substr(1);
-                switch (hash(fun_name)) {
-                case hash("else"):
+                switch (util::hash(fun_name)) {
+                case "else"_h:
                     m_lexer.advance(tok_if);
                     add_endif = true;
                     has_else = true;
@@ -43,8 +47,8 @@ void parser::read_keyword() {
                     read_statement();
                     in_loop = false;
                     break;
-                case hash("elif"):
-                case hash("elifnot"):
+                case "elif"_h:
+                case "elifnot"_h:
                     m_lexer.advance(tok_if);
                     condition_positive = fun_name == "elif";
                     add_endif = true;
@@ -61,7 +65,7 @@ void parser::read_keyword() {
         if (add_endif) m_code.add_label(endif_label);
         break;
     }
-    case hash("while"): {
+    case "while"_h: {
         string_ptr while_label = make_label("while");
         string_ptr endwhile_label = make_label("endwhile");
         m_loop_labels.push(loop_label_pair{while_label, endwhile_label});
@@ -76,7 +80,7 @@ void parser::read_keyword() {
         m_loop_labels.pop();
         break;
     }
-    case hash("for"): {
+    case "for"_h: {
         string_ptr for_label = make_label("for");
         string_ptr endfor_label = make_label("endfor");
         m_loop_labels.push(loop_label_pair{for_label, endfor_label});
@@ -104,7 +108,7 @@ void parser::read_keyword() {
         m_loop_labels.pop();
         break;
     }
-    case hash("goto"): {
+    case "goto"_h: {
         auto tok = m_lexer.require(token_type::IDENTIFIER);
         for (int i=0; i<m_content_level; ++i) {
             m_code.add_line<opcode::POPCONTENT>();
@@ -113,7 +117,7 @@ void parser::read_keyword() {
         m_lexer.require(token_type::SEMICOLON);
         break;
     }
-    case hash("function"): {
+    case "function"_h: {
         ++m_function_level;
         bool has_content = false;
         auto name = m_lexer.require(token_type::IDENTIFIER);
@@ -170,7 +174,7 @@ void parser::read_keyword() {
         --m_function_level;
         break;
     }
-    case hash("foreach"): {
+    case "foreach"_h: {
         string_ptr begin_label = make_label("foreach");
         string_ptr continue_label = make_label("foreach_continue");
         string_ptr end_label = make_label("endforeach");
@@ -202,7 +206,7 @@ void parser::read_keyword() {
         m_loop_labels.pop();
         break;
     }
-    case hash("with"): {
+    case "with"_h: {
         m_lexer.require(token_type::PAREN_BEGIN);
         read_expression();
         m_lexer.require(token_type::PAREN_END);
@@ -216,7 +220,7 @@ void parser::read_keyword() {
         m_code.add_line<opcode::POPCONTENT>();
         break;
     }
-    case hash("between"): {
+    case "between"_h: {
         m_code.add_line<opcode::NEWVIEW>();
         m_lexer.require(token_type::PAREN_BEGIN);
         if (m_content_level == 0) {
@@ -243,7 +247,7 @@ void parser::read_keyword() {
         m_code.add_line<opcode::RESETVIEW>();
         break;
     }
-    case hash("step"): {
+    case "step"_h: {
         bool pushed_content = false;
         if (m_lexer.check_next(token_type::PAREN_BEGIN)) {
             read_expression();
@@ -276,12 +280,12 @@ void parser::read_keyword() {
         }
         break;
     }
-    case hash("newview"):
+    case "newview"_h:
         m_code.add_line<opcode::NEWVIEW>();
         read_statement();
         m_code.add_line<opcode::RESETVIEW>();
         break;
-    case hash("import"): {
+    case "import"_h: {
         auto tok_layout_name = m_lexer.require(token_type::STRING);
         m_lexer.require(token_type::SEMICOLON);
         auto imported_file = m_path.parent_path() / (tok_layout_name.parse_string() + ".bls");
@@ -296,15 +300,15 @@ void parser::read_keyword() {
         }
         break;
     }
-    case hash("break"):
-    case hash("continue"):
+    case "break"_h:
+    case "continue"_h:
         m_lexer.require(token_type::SEMICOLON);
         if (m_loop_labels.empty()) {
             throw parsing_error("Non in un loop", tok_name);
         }
         m_code.add_line<opcode::JMP>(fun_name == "break" ? m_loop_labels.top().break_label : m_loop_labels.top().continue_label);
         break;
-    case hash("return"):
+    case "return"_h:
         if (m_function_level == 0) {
             throw parsing_error("Non in una funzione", tok_name);
         }
@@ -321,7 +325,7 @@ void parser::read_keyword() {
             }
         }
         break;
-    case hash("clear"):
+    case "clear"_h:
         read_variable(false);
         m_lexer.require(token_type::SEMICOLON);
         m_code.add_line<opcode::CLEAR>();

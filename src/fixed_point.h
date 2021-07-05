@@ -8,20 +8,24 @@
 #include <string>
 #include <ranges>
 
-using fixed_point = dec::decimal<10>;
+namespace bls {
 
-inline std::string fixed_point_to_string(fixed_point num) {
-    std::ostringstream ss;
-    ss.imbue(std::locale::classic());
-    ss << num;
+    using fixed_point = dec::decimal<10>;
 
-    std::string str = ss.str();
-    auto it = str.rbegin();
-    for (; *it == '0' && it != str.rend(); ++it);
-    if (*it == '.') ++it;
+    inline std::string fixed_point_to_string(fixed_point num) {
+        std::ostringstream ss;
+        ss.imbue(std::locale::classic());
+        ss << num;
 
-    str.erase(it.base(), str.end());
-    return str;
+        std::string str = ss.str();
+        auto it = str.rbegin();
+        for (; *it == '0' && it != str.rend(); ++it);
+        if (*it == '.') ++it;
+
+        str.erase(it.base(), str.end());
+        return str;
+    }
+
 }
 
 #endif

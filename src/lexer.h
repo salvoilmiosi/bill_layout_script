@@ -8,135 +8,139 @@
 #include "stack.h"
 #include "utils.h"
 
-DEFINE_ENUM(token_type,
-    (INVALID,      "Token Invalido")
-    (END_OF_FILE,  "Fine File")
-    (IDENTIFIER,   "Identificatore")
-    (STRING,       "Stringa")
-    (REGEXP,       "Espressione Regolare")
-    (NUMBER,       "Numero")
-    (INTEGER,      "Numero Intero")
-    (FUNCTION,     "Funzione")
-    (SEMICOLON,    ";")
-    (AMPERSAND,    "&")
-    (PAREN_BEGIN,  "(")
-    (PAREN_END,    ")")
-    (COMMA,        ",")
-    (DOT,          ".")
-    (PIPE,         "|")
-    (BRACKET_BEGIN,"[")
-    (BRACKET_END,  "]")
-    (BRACE_BEGIN,  "{")
-    (BRACE_END,    "}")
-    (ASSIGN,       "=")
-    (ADD_ASSIGN,   "+=")
-    (SUB_ASSIGN,   "-=")
-    (ADD_ONE,      "++")
-    (SUB_ONE,      "--")
-    (CONTENT,      "@")
-    (TILDE,        "~")
-    (COLON,        ":")
-    (SINGLE_QUOTE, "'")
-    (PERCENT,      "%")
-    (CARET,        "^")
-    (ASTERISK,     "*")
-    (SLASH,        "/")
-    (PLUS,         "+")
-    (MINUS,        "-")
-    (AND,          "&&")
-    (OR,           "||")
-    (NOT,          "!")
-    (EQUALS,       "==")
-    (NOT_EQUALS,   "!=")
-    (GREATER,      ">")
-    (LESS,         "<")
-    (GREATER_EQ,   ">=")
-    (LESS_EQ,      "<=")
-)
+namespace bls {
 
-struct token {
-    token_type type;
-    std::string_view value;
+    DEFINE_ENUM(token_type,
+        (INVALID,      "Token Invalido")
+        (END_OF_FILE,  "Fine File")
+        (IDENTIFIER,   "Identificatore")
+        (STRING,       "Stringa")
+        (REGEXP,       "Espressione Regolare")
+        (NUMBER,       "Numero")
+        (INTEGER,      "Numero Intero")
+        (FUNCTION,     "Funzione")
+        (SEMICOLON,    ";")
+        (AMPERSAND,    "&")
+        (PAREN_BEGIN,  "(")
+        (PAREN_END,    ")")
+        (COMMA,        ",")
+        (DOT,          ".")
+        (PIPE,         "|")
+        (BRACKET_BEGIN,"[")
+        (BRACKET_END,  "]")
+        (BRACE_BEGIN,  "{")
+        (BRACE_END,    "}")
+        (ASSIGN,       "=")
+        (ADD_ASSIGN,   "+=")
+        (SUB_ASSIGN,   "-=")
+        (ADD_ONE,      "++")
+        (SUB_ONE,      "--")
+        (CONTENT,      "@")
+        (TILDE,        "~")
+        (COLON,        ":")
+        (SINGLE_QUOTE, "'")
+        (PERCENT,      "%")
+        (CARET,        "^")
+        (ASTERISK,     "*")
+        (SLASH,        "/")
+        (PLUS,         "+")
+        (MINUS,        "-")
+        (AND,          "&&")
+        (OR,           "||")
+        (NOT,          "!")
+        (EQUALS,       "==")
+        (NOT_EQUALS,   "!=")
+        (GREATER,      ">")
+        (LESS,         "<")
+        (GREATER_EQ,   ">=")
+        (LESS_EQ,      "<=")
+    )
 
-    operator bool () {
-        return type != token_type::INVALID;
-    }
+    struct token {
+        token_type type;
+        std::string_view value;
 
-    std::string parse_string();
-};
+        operator bool () {
+            return type != token_type::INVALID;
+        }
 
-class parsing_error : public std::runtime_error {
-protected:
-    token m_location;
+        std::string parse_string();
+    };
 
-public:
-    template<typename T>
-    parsing_error(T &&message, token location) :
-        std::runtime_error(std::forward<T>(message)), m_location(location) {}
+    class parsing_error : public std::runtime_error {
+    protected:
+        token m_location;
 
-    token location() const noexcept {
-        return m_location;
-    }
-};
+    public:
+        template<typename T>
+        parsing_error(T &&message, token location) :
+            std::runtime_error(std::forward<T>(message)), m_location(location) {}
 
-class unexpected_token : public parsing_error {
-protected:
-    token_type m_expected;
+        token location() const noexcept {
+            return m_location;
+        }
+    };
 
-public:
-    unexpected_token(token tok, token_type expected = token_type::INVALID)
-        : parsing_error(expected == token_type::INVALID
-            ? std::format("Imprevisto '{}'", EnumData<const char *>(tok.type))
-            : std::format("Imprevisto '{}', richiesto '{}'", EnumData<const char *>(tok.type), EnumData<const char *>(expected)), tok),
-        m_expected(expected) {}
+    class unexpected_token : public parsing_error {
+    protected:
+        token_type m_expected;
 
-    token_type expected() {
-        return m_expected;
-    }
-};
+    public:
+        unexpected_token(token tok, token_type expected = token_type::INVALID)
+            : parsing_error(expected == token_type::INVALID
+                ? std::format("Imprevisto '{}'", EnumData<const char *>(tok.type))
+                : std::format("Imprevisto '{}', richiesto '{}'", EnumData<const char *>(tok.type), EnumData<const char *>(expected)), tok),
+            m_expected(expected) {}
 
-class lexer {
-public:
-    void set_script(std::string_view str);
+        token_type expected() {
+            return m_expected;
+        }
+    };
 
-    template<typename T>
-    void set_comment_callback(T &&fun) {
-        comment_callback = std::forward<T>(fun);
-    }
+    class lexer {
+    public:
+        void set_script(std::string_view str);
 
-    token next(bool do_advance = true);
-    token peek() {
-        return next(false);
-    }
-    
-    token require(token_type type);
+        template<typename T>
+        void set_comment_callback(T &&fun) {
+            comment_callback = std::forward<T>(fun);
+        }
 
-    token check_next(token_type type);
+        token next(bool do_advance = true);
+        token peek() {
+            return next(false);
+        }
+        
+        token require(token_type type);
 
-    void advance(token tok);
+        token check_next(token_type type);
 
-    std::string token_location_info(const token &tok);
+        void advance(token tok);
 
-private:
-    std::function<void(const std::string &)> comment_callback;
+        std::string token_location_info(const token &tok);
 
-    size_t last_debug_line;
-    simple_stack<std::string> debug_lines;
+    private:
+        std::function<void(const std::string &)> comment_callback;
 
-    const char *m_begin;
-    const char *m_current;
-    const char *m_end;
+        size_t last_debug_line;
+        simple_stack<std::string> debug_lines;
 
-    char nextChar();
-    void skipSpaces();
-    
-    void addDebugData();
-    void flushDebugData();
+        const char *m_begin;
+        const char *m_current;
+        const char *m_end;
 
-    bool readIdentifier();
-    bool readString();
-    bool readRegexp();
-    bool readNumber();
-};
+        char nextChar();
+        void skipSpaces();
+        
+        void addDebugData();
+        void flushDebugData();
+
+        bool readIdentifier();
+        bool readString();
+        bool readRegexp();
+        bool readNumber();
+    };
+
+}
 
 #endif

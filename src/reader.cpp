@@ -5,6 +5,8 @@
 #include "functions.h"
 #include "binary_bls.h"
 
+using namespace bls;
+
 void reader::clear() {
     m_code.clear();
     m_flags = 0;
@@ -266,7 +268,7 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
         my_parser.read_layout(filename, layout_box_list::from_file(filename));
         new_code = std::move(my_parser).get_bytecode();
         if (m_flags.check(reader_flags::USE_CACHE)) {
-            binary_bls::write(new_code, cache_filename);
+            binary::write(new_code, cache_filename);
         }
     };
 
@@ -274,7 +276,7 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
     // ricompila solo se uno dei file importati è stato modificato.
     // Altrimenti ricompila sempre
     if (m_flags.check(reader_flags::USE_CACHE) && std::filesystem::exists(cache_filename) && !is_modified(filename)) {
-        new_code = binary_bls::read(cache_filename);
+        new_code = binary::read(cache_filename);
         if (m_flags.check(reader_flags::RECURSIVE) && std::ranges::any_of(new_code, [&](const command_args &line) {
             return line.command() == opcode::ADDLAYOUT && is_modified(*line.get_args<opcode::ADDLAYOUT>());
         })) {

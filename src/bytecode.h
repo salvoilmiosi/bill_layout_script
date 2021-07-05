@@ -8,221 +8,227 @@
 #include "string_ptr.h"
 #include "exceptions.h"
 
-typedef uint8_t small_int;
+namespace bls {
 
-struct command_call {
-    function_iterator fun;
-    small_int numargs;
+    typedef uint8_t small_int;
 
-    command_call(std::string_view name, int numargs) : fun(function_lookup.find(name)), numargs(numargs) {
-        assert(fun != function_lookup.end());
-    }
-    command_call(function_iterator fun, int numargs) : fun(fun), numargs(numargs) {}
-};
+    struct command_call {
+        function_iterator fun;
+        small_int numargs;
 
-DEFINE_ENUM(spacer_index,
-    (PAGE,      static_vector{"p", "page"})
-    (X,         static_vector{"x"})
-    (Y,         static_vector{"y"})
-    (WIDTH,     static_vector{"w", "width"})
-    (HEIGHT,    static_vector{"h", "height"})
-    (TOP,       static_vector{"t", "top"})
-    (RIGHT,     static_vector{"r", "right"})
-    (BOTTOM,    static_vector{"b", "bottom"})
-    (LEFT,      static_vector{"l", "left"})
-    (ROTATE,    static_vector{"rot", "rotate"})
-)
+        command_call(std::string_view name, int numargs) : fun(function_lookup.find(name)), numargs(numargs) {
+            assert(fun != function_lookup.end());
+        }
+        command_call(function_iterator fun, int numargs) : fun(fun), numargs(numargs) {}
+    };
 
-DEFINE_ENUM(sys_index,
-    (DOCFILE,   "doc_file")
-    (DOCPAGES,  "doc_pages")
-    (ATE,       "ate")
-    (LAYOUT,    "layout_file")
-    (LAYOUTDIR, "layout_dir")
-    (TOKENIDX,  "tokenidx")
-)
+    DEFINE_ENUM(spacer_index,
+        (PAGE,      static_vector{"p", "page"})
+        (X,         static_vector{"x"})
+        (Y,         static_vector{"y"})
+        (WIDTH,     static_vector{"w", "width"})
+        (HEIGHT,    static_vector{"h", "height"})
+        (TOP,       static_vector{"t", "top"})
+        (RIGHT,     static_vector{"r", "right"})
+        (BOTTOM,    static_vector{"b", "bottom"})
+        (LEFT,      static_vector{"l", "left"})
+        (ROTATE,    static_vector{"rot", "rotate"})
+    )
 
-template<string_enum T>
-T find_enum_index(std::string_view name) {
-    for (size_t i=0; i<EnumSize<T>; ++i) {
-        const auto &data = EnumData<0>(static_cast<T>(i));
-        if constexpr (std::is_same_v<std::decay_t<decltype(data)>, const char *>) {
-            if (name == data) {
+    DEFINE_ENUM(sys_index,
+        (DOCFILE,   "doc_file")
+        (DOCPAGES,  "doc_pages")
+        (ATE,       "ate")
+        (LAYOUT,    "layout_file")
+        (LAYOUTDIR, "layout_dir")
+        (TOKENIDX,  "tokenidx")
+    )
+
+    template<string_enum T>
+    T find_enum_index(std::string_view name) {
+        for (size_t i=0; i<EnumSize<T>; ++i) {
+            const auto &data = EnumData<0>(static_cast<T>(i));
+            if constexpr (std::is_same_v<std::decay_t<decltype(data)>, const char *>) {
+                if (name == data) {
+                    return static_cast<T>(i);
+                }
+            } else if (std::ranges::any_of(data, [&](const char *c) {
+                return c == name;
+            })) {
                 return static_cast<T>(i);
             }
-        } else if (std::ranges::any_of(data, [&](const char *c) {
-            return c == name;
-        })) {
-            return static_cast<T>(i);
         }
-    }
-    throw std::out_of_range("Out of range");
-}
-
-struct readbox_options {
-    read_mode mode;
-    bitset<box_flags> flags;
-};
-
-DEFINE_ENUM_FLAGS(selvar_flags,
-    (GLOBAL)
-    (DYN_NAME)
-    (DYN_IDX)
-    (DYN_LEN)
-    (EACH)
-    (APPEND)
-)
-
-struct variable_selector {
-    string_ptr name;
-    small_int index = 0;
-    small_int length = 1;
-    bitset<selvar_flags> flags;
-};
-
-DEFINE_ENUM_FLAGS(setvar_flags,
-    (FORCE)
-    (OVERWRITE)
-    (INCREASE)
-    (DECREASE)
-)
-
-typedef std::variant<ptrdiff_t, string_ptr> jump_address;
-
-struct jsr_address : jump_address {
-    small_int numargs;
-};
-
-DEFINE_ENUM_TYPES(opcode,
-    (NOP)                           // no operation
-    (COMMENT, string_ptr)           // comment
-    (LABEL, string_ptr)             // jump label
-    (NEWBOX)                        // resetta current_box
-    (MVBOX, spacer_index)           // stack -> current_box[index]
-    (MVNBOX, spacer_index)          // -stack -> current_box[index]
-    (RDBOX, readbox_options)        // poppler.get_text(current_box) -> content_stack
-    (NEXTTABLE)                     // current_table++
-    (SELVAR, variable_selector)     // (name, index, size, flags) -> selected
-    (SETVAR, bitset<setvar_flags>)  // selected, stack -> set
-    (CLEAR)                         // selected -> clear
-    (PUSHVAR)                       // selected -> stack
-    (PUSHREF)                       // selected.str_view -> stack
-    (PUSHVIEW)                      // content_stack -> stack
-    (PUSHNUM, fixed_point)          // number -> stack
-    (PUSHINT, big_int)              // int -> stack
-    (PUSHDOUBLE, double)            // double -> stack
-    (PUSHSTR, string_ptr)           // str -> stack
-    (PUSHARG, small_int)            // stack -> stack
-    (GETBOX, spacer_index)          // box[index] -> stack
-    (GETSYS, sys_index)             // sys[index] -> stack
-    (CALL, command_call)            // stack * numargs -> fun_name -> stack
-    (ADDCONTENT)                    // stack -> content_stack
-    (POPCONTENT)                    // content_stack.pop()
-    (SETBEGIN)                      // stack -> content_stack.top.setbegin
-    (SETEND)                        // stack -> content_stack.top.setend
-    (NEWVIEW)                       // content_stack.top.newview()
-    (SPLITVIEW)                     // content_stack.top.splitview()
-    (NEXTRESULT)                    // content_stack.top.nextresult()
-    (RESETVIEW)                     // content_stack.top.resetview()
-    (THROWERROR)                    // stack -> throw
-    (ADDNOTE)                       // stack -> notes
-    (JMP, jump_address)             // unconditional jump
-    (JZ, jump_address)              // stack -> jump if top == 0
-    (JNZ, jump_address)             // stack -> jump if top != 0
-    (JNTE, jump_address)            // jump if content_stack.top at token end
-    (JSR, jsr_address)              // program_counter -> call_stack -- jump to subroutine and discard return value
-    (JSRVAL, jsr_address)           // program_counter -> call_stack -- jump to subroutine
-    (RET)                           // jump to call_stack.top
-    (RETVAL)                        // return to caller and push value to stack
-    (RETVAR)                        // return to caller and push selected variable
-    (IMPORT, string_ptr)            // importa il file e lo esegue
-    (ADDLAYOUT, string_ptr)         // aggiunge il nome del layout nella lista di output
-    (SETCURLAYOUT, int)             // sposta il puntatore del layout corrente
-    (SETLAYOUT)                     // ferma l'esecuzione se settata la flag setlayout in reader
-    (HLT)                           // ferma l'esecuzione
-)
-
-template<typename T> using variant_type = std::conditional_t<std::is_void_v<T>, std::monostate, T>;
-
-template<string_enum Enum, typename ISeq> struct enum_variant_impl{};
-template<string_enum Enum, size_t ... Is> struct enum_variant_impl<Enum, std::index_sequence<Is...>> {
-    using type = std::variant<variant_type<EnumType<static_cast<Enum>(Is)>> ...>;
-};
-
-template<string_enum Enum> using enum_variant = typename enum_variant_impl<Enum, std::make_index_sequence<EnumSize<Enum>>>::type;
-
-class command_args {
-private:
-    enum_variant<opcode> m_value;
-
-    template<size_t I, typename ... Ts>
-    command_args(std::in_place_index_t<I> idx, Ts && ... args) : m_value(idx, std::forward<Ts>(args) ...) {}
-
-public:
-    command_args() = default;
-    template<opcode Cmd, typename ... Ts>
-    friend command_args make_command(Ts && ... args);
-
-    opcode command() const noexcept {
-        return static_cast<opcode>(m_value.index());
-    }
-    
-    template<opcode Cmd> requires (! std::is_void_v<EnumType<Cmd>>)
-    const auto &get_args() const {
-        return std::get<static_cast<size_t>(Cmd)>(m_value);
+        throw std::out_of_range("Out of range");
     }
 
-    template<typename Visitor> auto visit(Visitor func) const {
-        return std::visit(func, m_value);
+    struct readbox_options {
+        read_mode mode;
+        bitset<box_flags> flags;
+    };
+
+    DEFINE_ENUM_FLAGS(selvar_flags,
+        (GLOBAL)
+        (DYN_NAME)
+        (DYN_IDX)
+        (DYN_LEN)
+        (EACH)
+        (APPEND)
+    )
+
+    struct variable_selector {
+        string_ptr name;
+        small_int index = 0;
+        small_int length = 1;
+        bitset<selvar_flags> flags;
+    };
+
+    DEFINE_ENUM_FLAGS(setvar_flags,
+        (FORCE)
+        (OVERWRITE)
+        (INCREASE)
+        (DECREASE)
+    )
+
+    typedef std::variant<ptrdiff_t, string_ptr> jump_address;
+
+    struct jsr_address : jump_address {
+        small_int numargs;
+    };
+
+    DEFINE_ENUM_TYPES(opcode,
+        (NOP)                           // no operation
+        (COMMENT, string_ptr)           // comment
+        (LABEL, string_ptr)             // jump label
+        (NEWBOX)                        // resetta current_box
+        (MVBOX, spacer_index)           // stack -> current_box[index]
+        (MVNBOX, spacer_index)          // -stack -> current_box[index]
+        (RDBOX, readbox_options)        // poppler.get_text(current_box) -> content_stack
+        (NEXTTABLE)                     // current_table++
+        (SELVAR, variable_selector)     // (name, index, size, flags) -> selected
+        (SETVAR, bitset<setvar_flags>)  // selected, stack -> set
+        (CLEAR)                         // selected -> clear
+        (PUSHVAR)                       // selected -> stack
+        (PUSHREF)                       // selected.str_view -> stack
+        (PUSHVIEW)                      // content_stack -> stack
+        (PUSHNUM, fixed_point)          // number -> stack
+        (PUSHINT, big_int)              // int -> stack
+        (PUSHDOUBLE, double)            // double -> stack
+        (PUSHSTR, string_ptr)           // str -> stack
+        (PUSHARG, small_int)            // stack -> stack
+        (GETBOX, spacer_index)          // box[index] -> stack
+        (GETSYS, sys_index)             // sys[index] -> stack
+        (CALL, command_call)            // stack * numargs -> fun_name -> stack
+        (ADDCONTENT)                    // stack -> content_stack
+        (POPCONTENT)                    // content_stack.pop()
+        (SETBEGIN)                      // stack -> content_stack.top.setbegin
+        (SETEND)                        // stack -> content_stack.top.setend
+        (NEWVIEW)                       // content_stack.top.newview()
+        (SPLITVIEW)                     // content_stack.top.splitview()
+        (NEXTRESULT)                    // content_stack.top.nextresult()
+        (RESETVIEW)                     // content_stack.top.resetview()
+        (THROWERROR)                    // stack -> throw
+        (ADDNOTE)                       // stack -> notes
+        (JMP, jump_address)             // unconditional jump
+        (JZ, jump_address)              // stack -> jump if top == 0
+        (JNZ, jump_address)             // stack -> jump if top != 0
+        (JNTE, jump_address)            // jump if content_stack.top at token end
+        (JSR, jsr_address)              // program_counter -> call_stack -- jump to subroutine and discard return value
+        (JSRVAL, jsr_address)           // program_counter -> call_stack -- jump to subroutine
+        (RET)                           // jump to call_stack.top
+        (RETVAL)                        // return to caller and push value to stack
+        (RETVAR)                        // return to caller and push selected variable
+        (IMPORT, string_ptr)            // importa il file e lo esegue
+        (ADDLAYOUT, string_ptr)         // aggiunge il nome del layout nella lista di output
+        (SETCURLAYOUT, int)             // sposta il puntatore del layout corrente
+        (SETLAYOUT)                     // ferma l'esecuzione se settata la flag setlayout in reader
+        (HLT)                           // ferma l'esecuzione
+    )
+
+    template<typename T> using variant_type = std::conditional_t<std::is_void_v<T>, std::monostate, T>;
+
+    namespace detail {
+        template<string_enum Enum, typename ISeq> struct enum_variant{};
+        template<string_enum Enum, size_t ... Is> struct enum_variant<Enum, std::index_sequence<Is...>> {
+            using type = std::variant<variant_type<EnumType<static_cast<Enum>(Is)>> ...>;
+        };
     }
 
-    template<typename Visitor> auto visit(Visitor func) {
-        return std::visit(func, m_value);
-    }
-};
+    template<string_enum Enum> using enum_variant = typename detail::enum_variant<Enum, std::make_index_sequence<EnumSize<Enum>>>::type;
 
-template<opcode Cmd, typename ... Ts>
-command_args make_command(Ts && ... args) {
-    return command_args(std::in_place_index<static_cast<size_t>(Cmd)>, std::forward<Ts>(args) ...);
-}
+    class command_args {
+    private:
+        enum_variant<opcode> m_value;
 
-struct bytecode : std::vector<command_args> {
-    bytecode() {
-        reserve(4096);
-    }
+        template<size_t I, typename ... Ts>
+        command_args(std::in_place_index_t<I> idx, Ts && ... args) : m_value(idx, std::forward<Ts>(args) ...) {}
+
+    public:
+        command_args() = default;
+        template<opcode Cmd, typename ... Ts>
+        friend command_args make_command(Ts && ... args);
+
+        opcode command() const noexcept {
+            return static_cast<opcode>(m_value.index());
+        }
+        
+        template<opcode Cmd> requires (! std::is_void_v<EnumType<Cmd>>)
+        const auto &get_args() const {
+            return std::get<static_cast<size_t>(Cmd)>(m_value);
+        }
+
+        template<typename Visitor> auto visit(Visitor func) const {
+            return std::visit(func, m_value);
+        }
+
+        template<typename Visitor> auto visit(Visitor func) {
+            return std::visit(func, m_value);
+        }
+    };
 
     template<opcode Cmd, typename ... Ts>
-    void add_line(Ts && ... args) {
-        push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
+    command_args make_command(Ts && ... args) {
+        return command_args(std::in_place_index<static_cast<size_t>(Cmd)>, std::forward<Ts>(args) ...);
     }
 
-    bytecode::const_iterator find_label(string_ptr label) {
-        return std::ranges::find_if(*this, [&](const command_args &line) {
-            return line.command() == opcode::LABEL && line.get_args<opcode::LABEL>() == label;
-        });
-    }
-
-    void add_label(string_ptr label) {
-        if (find_label(label) == end()) {
-            add_line<opcode::LABEL>(label);
-        } else {
-            throw layout_error(std::format("Etichetta goto duplicata: {}", *label));
+    struct bytecode : std::vector<command_args> {
+        bytecode() {
+            reserve(4096);
         }
-    }
 
-    void move_not_comments(size_t pos_begin, size_t pos_end) {
-        auto it_begin = begin() + pos_begin;
-        auto it_end = begin() + pos_end;
-        std::rotate(std::find_if_not(it_begin, it_end, [](const command_args &cmd) {
-            return cmd.command() == opcode::COMMENT;
-        }), it_end, end());
-    }
+        template<opcode Cmd, typename ... Ts>
+        void add_line(Ts && ... args) {
+            push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
+        }
 
-    command_args &last_not_comment() {
-        return *std::find_if_not(rbegin(), rend(), [](const command_args &cmd) {
-            return cmd.command() == opcode::COMMENT;
-        });
-    }
-};
+        bytecode::const_iterator find_label(string_ptr label) {
+            return std::ranges::find_if(*this, [&](const command_args &line) {
+                return line.command() == opcode::LABEL && line.get_args<opcode::LABEL>() == label;
+            });
+        }
+
+        void add_label(string_ptr label) {
+            if (find_label(label) == end()) {
+                add_line<opcode::LABEL>(label);
+            } else {
+                throw layout_error(std::format("Etichetta goto duplicata: {}", *label));
+            }
+        }
+
+        void move_not_comments(size_t pos_begin, size_t pos_end) {
+            auto it_begin = begin() + pos_begin;
+            auto it_end = begin() + pos_end;
+            std::rotate(std::find_if_not(it_begin, it_end, [](const command_args &cmd) {
+                return cmd.command() == opcode::COMMENT;
+            }), it_end, end());
+        }
+
+        command_args &last_not_comment() {
+            return *std::find_if_not(rbegin(), rend(), [](const command_args &cmd) {
+                return cmd.command() == opcode::COMMENT;
+            });
+        }
+    };
+
+}
 
 #endif

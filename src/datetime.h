@@ -4,44 +4,48 @@
 #include <ctime>
 #include <string>
 
-class datetime {
-private:
-    time_t m_date{0};
+namespace bls {
 
-public:
-    datetime() = default;
-    datetime(time_t date) : m_date{date} {}
-    
-    auto operator <=> (const datetime &rhs) const {
-        return m_date <=> rhs.m_date;
-    }
+    class datetime {
+    private:
+        time_t m_date{0};
 
-    bool operator == (const datetime &rhs) const {
-        return m_date == rhs.m_date;
-    }
+    public:
+        datetime() = default;
+        datetime(time_t date) : m_date{date} {}
+        
+        auto operator <=> (const datetime &rhs) const {
+            return m_date <=> rhs.m_date;
+        }
 
-    bool is_valid() const {
-        return m_date;
-    }
+        bool operator == (const datetime &rhs) const {
+            return m_date == rhs.m_date;
+        }
 
-    std::string to_string() const {
-        return format("%Y-%m-%d");
-    }
-    
-    static datetime from_string(std::string_view str) {
-        return parse_date(str, "%Y-%m-%d");
-    }
+        bool is_valid() const {
+            return m_date;
+        }
 
-    std::string format(const std::string &fmt_str) const;
-    static datetime parse_date(std::string_view str, const std::string &fmt_str);
+        std::string to_string() const {
+            return format("%Y-%m-%d");
+        }
+        
+        static datetime from_string(std::string_view str) {
+            return parse_date(str, "%Y-%m-%d");
+        }
 
-    static datetime from_ymd(int year, int month, int day);
+        std::string format(const std::string &fmt_str) const;
+        static datetime parse_date(std::string_view str, const std::string &fmt_str);
 
-    void set_day(int day);
-    void set_to_last_month_day();
-    void add_years(int years);
-    void add_months(int months);
-    void add_days(int days);
-};
+        static datetime from_ymd(int year, int month, int day);
+
+        void set_day(int day);
+        void set_to_last_month_day();
+        void add_years(int years);
+        void add_months(int months);
+        void add_days(int days);
+    };
+
+}
 
 #endif
