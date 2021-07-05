@@ -8,7 +8,6 @@
 
 #include "exceptions.h"
 #include "utils.h"
-#include "intl.h"
 #include "svstream.h"
 
 // Converte una stringa in numero usando il formato del locale
@@ -86,12 +85,13 @@ static std::string escape_regex_char(char c) {
 
 // Genera la regex per parsare numeri secondo il locale selezionato
 static std::string number_regex() {
-    auto grp = intl::grouping();
+    auto &facet = std::use_facet<std::numpunct<char>>(std::locale());
+    auto grp = facet.grouping();
     std::string ret;
     if (grp.empty()) {
         ret = "\\d+";
     } else {
-        auto tho = escape_regex_char(intl::thousands_sep());
+        auto tho = escape_regex_char(facet.thousands_sep());
         auto it = grp.rbegin();
         ret = std::format("\\d{{1,{0}}}(?:{1}\\d{{{0}}})*", int(*it), tho);
         for(++it; it != grp.rend(); ++it) {
@@ -99,7 +99,7 @@ static std::string number_regex() {
         }
         ret = std::format("(?:{}|\\d+)", ret);
     }
-    return std::format("(?:-?{0}(?:{1}\\d+)?)(?!\\d)", ret, escape_regex_char(intl::decimal_point()));
+    return std::format("(?:-?{0}(?:{1}\\d+)?)(?!\\d)", ret, escape_regex_char(facet.decimal_point()));
 };
 
 // Costruisce un oggetto std::regex

@@ -16,12 +16,12 @@ src/binary_bls.cpp
 src/datetime.cpp
 src/functions.cpp
 src/keywords.cpp
-src/intl.cpp
 src/layout.cpp
 src/lexer.cpp
 src/parser.cpp
 src/pdf_document.cpp
 src/reader.cpp
+src/set_language.cpp
 src/unicode.cpp
 src/variable.cpp
 )

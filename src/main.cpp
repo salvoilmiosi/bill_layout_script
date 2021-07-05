@@ -7,7 +7,7 @@
 #include "parser.h"
 #include "reader.h"
 #include "utils.h"
-#include "intl.h"
+#include "set_language.h"
 
 struct MainApp {
     int run();
@@ -25,7 +25,7 @@ struct MainApp {
 };
 
 int MainApp::run() {
-    if (!intl::set_language(selected_locale)) {
+    if (!bls::set_language(selected_locale)) {
         std::cerr << "Lingua non supportata: " << selected_locale << '\n';
         return -1;
     }

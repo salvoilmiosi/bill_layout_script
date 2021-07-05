@@ -1,7 +1,6 @@
 #include "datetime.h"
 
 #include "svstream.h"
-#include "intl.h"
 
 #include <boost/locale.hpp>
 #include <sstream>
@@ -11,11 +10,11 @@ namespace bl = boost::locale;
 std::string datetime::format(const std::string &fmt_str) const {
     std::stringstream ss;
     ss << boost::locale::as::ftime(fmt_str) << m_date;
-    return intl::to_utf8(ss.str());
+    return ss.str();
 }
 
 datetime datetime::parse_date(std::string_view str, const std::string &fmt_str) {
-    std::stringstream ss{intl::from_utf8(str)};
+    isviewstream ss{str};
     datetime ret;
     ss >> boost::locale::as::ftime(fmt_str) >> ret.m_date;
     return ret;
