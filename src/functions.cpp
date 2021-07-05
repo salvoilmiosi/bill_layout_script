@@ -15,8 +15,7 @@
 static variable parse_num(std::string_view str) {
     fixed_point num;
     isviewstream iss{str};
-    dec::decimal_format format(intl::decimal_point(), intl::thousands_sep(), !intl::grouping().empty(), intl::grouping());
-    if (dec::fromStream(iss, format, num)) {
+    if (dec::fromStream(iss, num)) {
         return num;
     } else {
         return variable();
