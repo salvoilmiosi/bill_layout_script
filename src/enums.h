@@ -9,6 +9,20 @@
 #include "magic_enum.hpp"
 
 namespace enums {
+    namespace detail {
+        template<size_t S, typename ... Ts> struct sized_int {};
+        template<size_t S, typename ... Ts> using sized_int_t = typename sized_int<S, Ts ...>::type;
+
+        template<size_t S, typename T> constexpr bool fits_in_v = S <= std::numeric_limits<T>::max();
+
+        template<size_t S, typename T> struct sized_int<S, T>
+            : std::enable_if<fits_in_v<S, T>, T> {};
+        template<size_t S, typename First, typename ... Ts> struct sized_int<S, First, Ts...>
+            : std::conditional<fits_in_v<S, First>, First, sized_int_t<S, Ts...>> {};
+    }
+
+    template<size_t S> using sized_int_t = detail::sized_int_t<S, uint8_t, uint16_t, uint32_t, uint64_t>;
+
     template<typename T> concept is_enum = magic_enum::is_scoped_enum_v<T>;
 
     template<is_enum T> struct data_type{};
@@ -127,7 +141,10 @@ std::ostream &operator << (std::ostream &out, const T &value) {
 #define CREATE_ENUM_ELEMENT(r, enumName, i, elementTuple) (ENUM_ELEMENT_NAME(elementTuple) = i)
 #define CREATE_FLAG_ELEMENT(r, enumName, i, elementTuple) (ENUM_ELEMENT_NAME(elementTuple) = 1 << i)
 
-#define ENUM_INT(enum_value_fun, elementTupleSeq) uint8_t
+#define CREATE_ENUM_ELEMENT_MAX_VALUE(n) n - 1
+#define CREATE_FLAG_ELEMENT_MAX_VALUE(n) 1 << (n - 1)
+
+#define ENUM_INT(enum_value_fun, elementTupleSeq) enums::sized_int_t<enum_value_fun##_MAX_VALUE(BOOST_PP_SEQ_SIZE(elementTupleSeq))>
 
 #define GENERATE_DEFAULT_CASE(enumName) throw std::runtime_error("[Invalid " BOOST_PP_STRINGIZE(enumName) "]");
 
@@ -162,13 +179,13 @@ template<enumName Enum> struct get_type<enumName, Enum> { using type = void; }; 
     BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_GET_TYPE, enumName, elementTupleSeq)
 
 #define IMPL_DEFINE_ENUM(enumName, elementTupleSeq, enum_value_fun, enum_data_fun, ...) \
-enum class enumName : ENUM_INT(CREATE_ENUM_ELEMENT, elementTupleSeq) { \
+enum class enumName : ENUM_INT(enum_value_fun, elementTupleSeq) { \
     BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH_I(enum_value_fun, enumName, elementTupleSeq)) \
 }; namespace enums { \
 enum_data_fun(enumName, elementTupleSeq, __VA_ARGS__) }
 
 #define IMPL_DEFINE_ENUM_IN_NS(namespaceName, enumName, elementTupleSeq, enum_value_fun, enum_data_fun, ...) \
-    enum class enumName : ENUM_INT(CREATE_ENUM_ELEMENT, elementTupleSeq) { \
+    enum class enumName : ENUM_INT(enum_value_fun, elementTupleSeq) { \
         BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH_I(enum_value_fun, enumName, elementTupleSeq)) \
     }; \
 } namespace enums { using namespace namespaceName; \
