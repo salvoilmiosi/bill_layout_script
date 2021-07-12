@@ -483,7 +483,7 @@ void parser::add_enum_index_command() {
     m_lexer.require(token_type::DOT);
     auto tok = m_lexer.require(token_type::IDENTIFIER);
     try {
-        m_code.add_line<Cmd>(find_enum_index<EnumType<Cmd>>(tok.value));
+        m_code.add_line<Cmd>(find_enum_index<enums::get_type_t<opcode, Cmd>>(tok.value));
     } catch (std::out_of_range) {
         throw parsing_error(std::format("Argomento non valido: {}", tok.value), tok);
     }

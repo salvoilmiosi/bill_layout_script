@@ -13,13 +13,13 @@
 namespace bls {
 
     struct variable_prefixes {
-        bitset<setvar_flags> flags;
+        enums::bitset<setvar_flags> flags;
         command_args call;
         bool function_arg:1 = false;
         bool pushref:1 = false;
     };
-
-    DEFINE_ENUM_FLAGS(parser_flags,
+    
+    DEFINE_ENUM_FLAGS_IN_NS(bls, parser_flags,
         (ADD_COMMENTS)
         (RECURSIVE_IMPORTS)
     )
@@ -102,7 +102,7 @@ namespace bls {
         int m_content_level = 0;
         int m_function_level = 0;
 
-        bitset<parser_flags> m_flags;
+        enums::bitset<parser_flags> m_flags;
 
         friend class lexer;
     };

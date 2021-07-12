@@ -14,26 +14,27 @@
 #include "enums.h"
 
 namespace bls {
+    typedef std::tuple<const char *, poppler::page::text_layout_enum> read_mode_tuple;
 
-    DEFINE_ENUM(read_mode,
+    DEFINE_ENUM_DATA_IN_NS(bls, read_mode, read_mode_tuple,
         (DEFAULT,  "Default", poppler::page::non_raw_non_physical_layout)
         (LAYOUT,   "Layout",  poppler::page::physical_layout)
         (RAW,      "Grezza",  poppler::page::raw_order_layout)
     )
 
-    DEFINE_ENUM_FLAGS(box_flags,
+    DEFINE_ENUM_FLAGS_DATA_IN_NS(bls, box_flags, const char *,
         (DISABLED,  "Disabilita")
         (PAGE,      "Leggi Pagina")
         (NOREAD,    "Nessuna Lettura")
         (SPACER,    "Spaziatore")
         (TRIM,      "Taglia Spazi")
     )
-
+    
     struct pdf_rect {
         double x, y, w, h;
         int page;
         read_mode mode = read_mode::DEFAULT;
-        bitset<box_flags> flags;
+        enums::bitset<box_flags> flags;
 
         void rotate(int amt);
     };

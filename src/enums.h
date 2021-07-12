@@ -2,119 +2,60 @@
 #define __ENUMS_H__
 
 #include <boost/preprocessor.hpp>
+#include <string>
+#include <tuple>
+#include <stdexcept>
 
-#include "utils.h"
+#include "magic_enum.hpp"
 
-namespace bls {
+namespace enums {
+    template<typename T> concept is_enum = magic_enum::is_scoped_enum_v<T>;
 
-    template<size_t S> struct sized_int {};
-    template<size_t S> requires (S <= UINT8_MAX) struct sized_int<S> { using type = uint8_t; };
-    template<size_t S> requires (S > UINT8_MAX && S <= UINT16_MAX) struct sized_int<S> { using type = uint16_t; };
-    template<size_t S> requires (S > UINT16_MAX && S <= UINT32_MAX) struct sized_int<S> { using type = uint32_t; };
-    template<size_t S> requires (S > UINT32_MAX && S <= UINT64_MAX) struct sized_int<S> { using type = uint64_t; };
-    template<size_t S> using sized_int_t = typename sized_int<S>::type;
+    template<is_enum T> struct data_type{};
+    template<is_enum T> using data_type_t = typename data_type<T>::type;
 
-    template<typename T> struct EnumSizeImpl {};
-    template<typename T> constexpr T FindEnum(std::string_view name) = delete;
-    template<typename T> constexpr size_t EnumSize = EnumSizeImpl<T>::value;
+    template<is_enum T, typename = void> struct is_data_enum : std::false_type {};
+    template<is_enum T> struct is_data_enum<T, std::void_t<data_type_t<T>>> : std::true_type {};
 
-    template<typename T>
-    concept string_enum = std::is_enum_v<T> && requires (T x) {
-        { ToString(x) } -> std::convertible_to<const char *>;
-        { EnumSize<T> } -> std::convertible_to<size_t>;
-    };
+    template<typename T> concept data_enum = is_data_enum<T>::value;
 
-    template<string_enum T> struct IsFlagEnum : std::false_type {};
-    template<typename T> concept flags_enum = IsFlagEnum<T>::value;
+    template<data_enum T> constexpr data_type_t<T> get_data(T value) = delete;
 
-    template<typename T, string_enum E> constexpr T EnumData(E x) { return std::get<T>(GetTuple(x)); }
-    template<size_t I, string_enum E> constexpr auto EnumData(E x) { return std::get<I>(GetTuple(x)); }
+    template<is_enum T, T Enum> struct get_type{};
+    template<is_enum T, T Enum> using get_type_t = typename get_type<T, Enum>::type;
 
-    #define HELPER1(...) ((__VA_ARGS__)) HELPER2
-    #define HELPER2(...) ((__VA_ARGS__)) HELPER1
-    #define HELPER1_END
-    #define HELPER2_END
-    #define ADD_PARENTHESES(sequence) BOOST_PP_CAT(HELPER1 sequence,_END)
+    template<is_enum T> struct is_type_enum : std::false_type {};
 
-    #define GET_FIRST_OF(element, ...) element
-    #define GET_TAIL_OF(element, ...) __VA_ARGS__
+    template<typename T> concept type_enum = is_type_enum<T>::value;
 
-    #define CREATE_ENUM_ELEMENT(r, data, elementTuple) (GET_FIRST_OF elementTuple)
-    #define CREATE_FLAG_ELEMENT(r, data, i, elementTuple) (GET_FIRST_OF elementTuple = 1 << i)
+    template<is_enum T> static constexpr bool is_flags_enum() {
+        size_t i = 1;
+        for (auto value : magic_enum::enum_values<T>()) {
+            if (value != static_cast<T>(i)) return false;
+            i <<= 1;
+        }
+        return true;
+    }
+    template<typename T> concept flags_enum = is_flags_enum<T>();
 
-    #define GENERATE_CASE_TO_STRING(r, enumName, elementTuple) \
-        case enumName::GET_FIRST_OF elementTuple : return BOOST_PP_STRINGIZE(GET_FIRST_OF elementTuple);
-
-    #define GENERATE_CASE_FIND_ENUM(r, enumName, elementTuple) \
-        case util::hash(BOOST_PP_STRINGIZE(GET_FIRST_OF elementTuple)): return enumName::GET_FIRST_OF elementTuple;
-
-    #define GENERATE_CASE_GET_DATA(r, enumName, elementTuple) \
-        case enumName::GET_FIRST_OF elementTuple : return std::make_tuple(GET_TAIL_OF elementTuple);
-
-    #define GENERATE_DEFAULT_CASE(enumName) \
-        default: throw std::invalid_argument("[Unknown " BOOST_PP_STRINGIZE(enumName) "]");
-
-    #define DEFINE_ENUM_FUNCTIONS(enumName, enumElementsParen) \
-    template<> struct EnumSizeImpl<enumName> : std::integral_constant<size_t, BOOST_PP_SEQ_SIZE(enumElementsParen)> {}; \
-    constexpr const char *ToString(const enumName element) { \
-        switch (element) { \
-            BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_TO_STRING, enumName, enumElementsParen) \
-            GENERATE_DEFAULT_CASE(enumName) \
-        } \
-    } \
-    template<> constexpr enumName FindEnum(std::string_view name) { \
-        switch (util::hash(name)) { \
-            BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_FIND_ENUM, enumName, enumElementsParen) \
-            GENERATE_DEFAULT_CASE(enumName) \
-        } \
+    template<is_enum T> constexpr size_t size() {
+        return magic_enum::enum_count<T>();
     }
 
-    #define DEFINE_ENUM_GET_TUPLE(enumName, enumElementsParen) \
-    constexpr auto GetTuple(const enumName element) { \
-        switch (element) { \
-            BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_GET_DATA, enumName, enumElementsParen) \
-            GENERATE_DEFAULT_CASE(enumName) \
-        } \
+    template<is_enum T> constexpr T from_string(std::string_view str) {
+        if (auto value = magic_enum::enum_cast<T>(str)) {
+            return value.value();
+        } else {
+            std::string err = "[Invalid";
+            err += magic_enum::enum_type_name<T>();
+            err += "]";
+            throw std::runtime_error(err);
+        }
     }
 
-    #define GENERATE_CASE_GET_TYPE(enumName, element, elementType) \
-        template<> struct EnumTypeImpl<enumName::element> { using type = elementType; };
-    #define GENERATE_TYPE_STRUCT(r, enumName, elementTuple) \
-        BOOST_PP_IF(BOOST_PP_EQUAL(BOOST_PP_TUPLE_SIZE(elementTuple), 2), \
-            GENERATE_CASE_GET_TYPE(enumName, GET_FIRST_OF elementTuple, GET_TAIL_OF elementTuple), BOOST_PP_EMPTY())
-
-    #define DEFINE_ENUM_GET_TYPE(enumName, enumElementsParen) \
-        template<enumName Enum> struct EnumTypeImpl{ using type = void; }; \
-        BOOST_PP_SEQ_FOR_EACH(GENERATE_TYPE_STRUCT, enumName, enumElementsParen) \
-        template<enumName Enum> using EnumType = typename EnumTypeImpl<Enum>::type;
-
-    #define DEFINE_ENUM_IMPL(enumName, enumElementsParen) \
-    enum class enumName : sized_int_t<BOOST_PP_SEQ_SIZE(enumElementsParen)> { \
-        BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, enumElementsParen)) \
-    }; \
-    DEFINE_ENUM_FUNCTIONS(enumName, enumElementsParen) \
-    DEFINE_ENUM_GET_TUPLE(enumName, enumElementsParen)
-
-    #define DEFINE_ENUM(enumName, enumElements) DEFINE_ENUM_IMPL(enumName, ADD_PARENTHESES(enumElements))
-
-    #define DEFINE_ENUM_FLAGS_IMPL(enumName, enumElementsParen) \
-    enum class enumName : sized_int_t<1 << BOOST_PP_SEQ_SIZE(enumElementsParen)> { \
-        BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH_I(CREATE_FLAG_ELEMENT, enumName, enumElementsParen)) \
-    }; \
-    DEFINE_ENUM_FUNCTIONS(enumName, enumElementsParen) \
-    DEFINE_ENUM_GET_TUPLE(enumName, enumElementsParen) \
-    template<> struct IsFlagEnum<enumName> : std::true_type {};
-
-    #define DEFINE_ENUM_FLAGS(enumName, enumElements) DEFINE_ENUM_FLAGS_IMPL(enumName, ADD_PARENTHESES(enumElements))
-
-    #define DEFINE_ENUM_TYPES_IMPL(enumName, enumElementsParen) \
-    enum class enumName : sized_int_t<BOOST_PP_SEQ_SIZE(enumElementsParen)> { \
-        BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(CREATE_ENUM_ELEMENT, enumName, enumElementsParen)) \
-    }; \
-    DEFINE_ENUM_FUNCTIONS(enumName, enumElementsParen) \
-    DEFINE_ENUM_GET_TYPE(enumName, enumElementsParen)
-
-    #define DEFINE_ENUM_TYPES(enumName, enumElements) DEFINE_ENUM_TYPES_IMPL(enumName, ADD_PARENTHESES(enumElements))
+    template<is_enum T> constexpr std::string_view to_string(T value) {
+        return magic_enum::enum_name(value);
+    }
 
     template<flags_enum T>
     class bitset {
@@ -153,24 +94,111 @@ namespace bls {
         constexpr flags_t data() const {
             return m_value;
         }
-    };
 
-    template<string_enum T>
-    std::ostream &operator << (std::ostream &out, T value) {
-        return out << ToString(value);
-    }
-
-    template<flags_enum T>
-    std::ostream &operator << (std::ostream &out, const bitset<T> &flags) {
-        for (size_t i=0; i < EnumSize<T>; ++i) {
-            T value = static_cast<T>(1 << i);
-            if (flags.check(value)) {
-                out << value << ' ';
+        friend std::ostream &operator << (std::ostream &out, const bitset &flags) {
+            for (auto value : magic_enum::enum_values<T>()) {
+                if (flags.check(value)) {
+                    out << value << ' ';
+                }
             }
+            return out;
         }
-        return out;
-    }
-
+    };
 }
+
+template<enums::is_enum T>
+std::ostream &operator << (std::ostream &out, const T &value) {
+    return out << enums::to_string(value);
+}
+
+#define DO_NOTHING(...)
+
+#define HELPER1(...) ((__VA_ARGS__)) HELPER2
+#define HELPER2(...) ((__VA_ARGS__)) HELPER1
+#define HELPER1_END
+#define HELPER2_END
+#define ADD_PARENTHESES(sequence) BOOST_PP_CAT(HELPER1 sequence,_END)
+
+#define STRIP_PARENS_ARGS(...) __VA_ARGS__
+#define STRIP_PARENS(x) x
+
+#define ENUM_ELEMENT_NAME(elementTuple) BOOST_PP_TUPLE_ELEM(0, elementTuple)
+
+#define CREATE_ENUM_ELEMENT(r, enumName, i, elementTuple) (ENUM_ELEMENT_NAME(elementTuple) = i)
+#define CREATE_FLAG_ELEMENT(r, enumName, i, elementTuple) (ENUM_ELEMENT_NAME(elementTuple) = 1 << i)
+
+#define ENUM_INT(enum_value_fun, elementTupleSeq) uint8_t
+
+#define GENERATE_DEFAULT_CASE(enumName) throw std::runtime_error("[Invalid " BOOST_PP_STRINGIZE(enumName) "]");
+
+#define UNROLL_ELEMENT_VALUE(elementTuple) \
+    BOOST_PP_IF(BOOST_PP_EQUAL(BOOST_PP_TUPLE_SIZE(elementTuple), 1), DO_NOTHING, STRIP_PARENS) \
+    (STRIP_PARENS_ARGS BOOST_PP_TUPLE_POP_FRONT(elementTuple))
+
+#define GENERATE_CASE_GET_DATA(r, enumName, elementTuple) case enumName::ENUM_ELEMENT_NAME(elementTuple): return { UNROLL_ELEMENT_VALUE(elementTuple) };
+
+#define CREATE_ENUM_GET_DATA(enumName, elementTupleSeq, valueType) \
+template<> struct data_type<enumName> { using type = valueType; }; \
+template<> constexpr valueType get_data<enumName>(enumName value) { \
+    switch(value) { \
+        BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_GET_DATA, enumName, elementTupleSeq) \
+        default: GENERATE_DEFAULT_CASE(enumName) \
+    } \
+}
+
+#define GENERATE_GET_TYPE_BASE(enumName) \
+template<> struct is_type_enum<enumName> : std::true_type {}; \
+template<enumName Enum> struct get_type<enumName, Enum> { using type = void; }; \
+
+#define GENERATE_GET_TYPE_STRUCT(enumName, elementTuple) \
+    template<> struct get_type<enumName, enumName::ENUM_ELEMENT_NAME(elementTuple)> { using type = BOOST_PP_TUPLE_ELEM(1, elementTuple); };
+
+#define GENERATE_CASE_GET_TYPE(r, enumName, elementTuple) \
+    BOOST_PP_IF(BOOST_PP_EQUAL(BOOST_PP_TUPLE_SIZE(elementTuple), 1), \
+        DO_NOTHING, GENERATE_GET_TYPE_STRUCT)(enumName, elementTuple)
+
+#define CREATE_ENUM_GET_TYPE(enumName, elementTupleSeq, ...) \
+    GENERATE_GET_TYPE_BASE(enumName) \
+    BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_GET_TYPE, enumName, elementTupleSeq)
+
+#define IMPL_DEFINE_ENUM(enumName, elementTupleSeq, enum_value_fun, enum_data_fun, ...) \
+enum class enumName : ENUM_INT(CREATE_ENUM_ELEMENT, elementTupleSeq) { \
+    BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH_I(enum_value_fun, enumName, elementTupleSeq)) \
+}; namespace enums { \
+enum_data_fun(enumName, elementTupleSeq, __VA_ARGS__) }
+
+#define IMPL_DEFINE_ENUM_IN_NS(namespaceName, enumName, elementTupleSeq, enum_value_fun, enum_data_fun, ...) \
+    enum class enumName : ENUM_INT(CREATE_ENUM_ELEMENT, elementTupleSeq) { \
+        BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH_I(enum_value_fun, enumName, elementTupleSeq)) \
+    }; \
+} namespace enums { using namespace namespaceName; \
+enum_data_fun(enumName, elementTupleSeq, __VA_ARGS__) \
+} namespace namespaceName {
+
+#define DEFINE_ENUM(enumName, enumElements) \
+    IMPL_DEFINE_ENUM(enumName, ADD_PARENTHESES(enumElements), CREATE_ENUM_ELEMENT, DO_NOTHING)
+#define DEFINE_ENUM_FLAGS(enumName, enumElements) \
+    IMPL_DEFINE_ENUM(enumName, ADD_PARENTHESES(enumElements), CREATE_FLAG_ELEMENT, DO_NOTHING)
+
+#define DEFINE_ENUM_DATA(enumName, valueType, enumElements) \
+    IMPL_DEFINE_ENUM(enumName, ADD_PARENTHESES(enumElements), CREATE_ENUM_ELEMENT, CREATE_ENUM_GET_DATA, valueType)
+#define DEFINE_ENUM_FLAGS_DATA(enumName, valueType, enumElements) \
+    IMPL_DEFINE_ENUM(enumName, ADD_PARENTHESES(enumElements), CREATE_FLAG_ELEMENT, CREATE_ENUM_GET_DATA, valueType)
+
+#define DEFINE_ENUM_TYPES(enumName, enumElements) \
+    IMPL_DEFINE_ENUM(enumName, ADD_PARENTHESES(enumElements), CREATE_ENUM_ELEMENT, CREATE_ENUM_GET_TYPE)
+
+#define DEFINE_ENUM_IN_NS(namespaceName, enumName, enumElements) \
+    IMPL_DEFINE_ENUM_IN_NS(namespaceName, enumName, ADD_PARENTHESES(enumElements), CREATE_ENUM_ELEMENT, DO_NOTHING)
+#define DEFINE_ENUM_FLAGS_IN_NS(namespaceName, enumName, enumElements) \
+    IMPL_DEFINE_ENUM_IN_NS(namespaceName, enumName, ADD_PARENTHESES(enumElements), CREATE_FLAG_ELEMENT, DO_NOTHING)
+
+#define DEFINE_ENUM_DATA_IN_NS(namespaceName, enumName, valueType, enumElements) \
+    IMPL_DEFINE_ENUM_IN_NS(namespaceName, enumName, ADD_PARENTHESES(enumElements), CREATE_ENUM_ELEMENT, CREATE_ENUM_GET_DATA, valueType)
+#define DEFINE_ENUM_FLAGS_DATA_IN_NS(namespaceName, enumName, valueType, enumElements) \
+    IMPL_DEFINE_ENUM_IN_NS(namespaceName, enumName, ADD_PARENTHESES(enumElements), CREATE_FLAG_ELEMENT, CREATE_ENUM_GET_DATA, valueType)
+
+#define DEFINE_ENUM_TYPES_IN_NS(namespaceName, enumName, enumElements) \
+    IMPL_DEFINE_ENUM_IN_NS(namespaceName, enumName, ADD_PARENTHESES(enumElements), CREATE_ENUM_ELEMENT, CREATE_ENUM_GET_TYPE)
 
 #endif

@@ -9,8 +9,8 @@
 #include "utils.h"
 
 namespace bls {
-
-    DEFINE_ENUM(token_type,
+    
+    DEFINE_ENUM_DATA_IN_NS(bls, token_type, const char *,
         (INVALID,      "Token Invalido")
         (END_OF_FILE,  "Fine File")
         (IDENTIFIER,   "Identificatore")
@@ -88,8 +88,8 @@ namespace bls {
     public:
         unexpected_token(token tok, token_type expected = token_type::INVALID)
             : parsing_error(expected == token_type::INVALID
-                ? std::format("Imprevisto '{}'", EnumData<const char *>(tok.type))
-                : std::format("Imprevisto '{}', richiesto '{}'", EnumData<const char *>(tok.type), EnumData<const char *>(expected)), tok),
+                ? std::format("Imprevisto '{}'", enums::get_data(tok.type))
+                : std::format("Imprevisto '{}', richiesto '{}'", enums::get_data(tok.type), enums::get_data(expected)), tok),
             m_expected(expected) {}
 
         token_type expected() {

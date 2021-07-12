@@ -10,3 +10,6 @@
 [submodule "external/boostlocale"]
 	path = external/boostlocale
 	url = http://github.com/salvoilmiosi/locale
+[submodule "external/magic_enum"]
+	path = external/magic_enum
+	url = https://github.com/Neargye/magic_enum

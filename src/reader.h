@@ -14,7 +14,7 @@
 
 namespace bls {
 
-DEFINE_ENUM_FLAGS(reader_flags,
+DEFINE_ENUM_FLAGS_IN_NS(bls, reader_flags,
     (HALT_ON_SETLAYOUT)
     (USE_CACHE)
     (RECURSIVE)
@@ -89,7 +89,7 @@ private:
     
     std::atomic<bool> m_running = false;
     std::atomic<bool> m_aborted = false;
-    bitset<reader_flags> m_flags;
+    enums::bitset<reader_flags> m_flags;
 
     const pdf_document *m_doc = nullptr;
 };

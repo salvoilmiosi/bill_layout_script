@@ -132,7 +132,7 @@ namespace bls {
             length = 0;
         }
 
-        void set_value(variable &&value, bitset<setvar_flags> flags) {
+        void set_value(variable &&value, enums::bitset<setvar_flags> flags) {
             if (!(flags.check(setvar_flags::FORCE)) && value.is_null()) return;
             if (flags.check(setvar_flags::OVERWRITE)) clear();
 

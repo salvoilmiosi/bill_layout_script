@@ -18,7 +18,7 @@ namespace bls {
         for (auto &box : layout) {
             output << "\n### Box " << box.name << '\n';
             if (box.mode != read_mode::DEFAULT) {
-                output << "### Mode " << box.mode << '\n';
+                output << "### Mode " << enums::to_string(box.mode) << '\n';
             }
             if (!box.flags.empty()) {
                 output << "### Flags " << box.flags << '\n';
@@ -96,7 +96,7 @@ namespace bls {
                         break;
                     } else if (auto suf = suffix(line, "### Mode")) {
                         try {
-                            current.mode = FindEnum<read_mode>(suf.value);
+                            current.mode = enums::from_string<read_mode>(suf.value);
                         } catch (std::invalid_argument) {
                             throw layout_error(std::format("Token 'Mode' non valido: {}", suf.value));
                         }
@@ -105,7 +105,7 @@ namespace bls {
                         std::string label;
                         while (ss >> label) {
                             try {
-                                current.flags.set(FindEnum<box_flags>(label));
+                                current.flags.set(enums::from_string<box_flags>(label));
                             } catch (std::invalid_argument) {
                                 throw layout_error(std::format("Token 'Flags' non valido: {}", label));
                             }

@@ -25,13 +25,14 @@ namespace detail {
 template<typename TList> using unique_types_t = typename detail::unique_types<util::type_list<>, TList>::type;
 
 namespace detail {
-    template<bls::string_enum Enum, typename ISeq> struct enum_type_list{};
-    template<bls::string_enum Enum, size_t ... Is> struct enum_type_list<Enum, std::index_sequence<Is...>> {
-        using type = util::type_list<bls::EnumType<static_cast<Enum>(Is)> ...>;
+    template<enums::type_enum Enum, typename ISeq> struct enum_type_list{};
+    template<enums::type_enum Enum, size_t ... Is> struct enum_type_list<Enum, std::index_sequence<Is...>> {
+        using type = util::type_list<typename enums::get_type_t<Enum, static_cast<Enum>(Is)> ...>;
     };
 }
 
-template<bls::string_enum Enum> using enum_type_list_t = typename detail::enum_type_list<Enum, std::make_index_sequence<bls::EnumSize<Enum>>>::type;
+template<enums::type_enum Enum> using enum_type_list_t = typename detail::enum_type_list<Enum,
+    std::make_index_sequence<enums::size<Enum>()>>::type;
 
 template<typename T> struct variant_type_list{};
 template<typename T> using variant_type_list_t = typename variant_type_list<T>::type;

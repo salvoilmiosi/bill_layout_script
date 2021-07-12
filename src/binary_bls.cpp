@@ -171,12 +171,12 @@ template<> struct binary_io<jsr_address> {
     }
 };
 
-template<typename T> struct binary_io<bitset<T>> {
-    static void write(std::ostream &output, const bitset<T> &data) {
+template<enums::flags_enum T> struct binary_io<enums::bitset<T>> {
+    static void write(std::ostream &output, const enums::bitset<T> &data) {
         writeData(output, data.data());
     }
 
-    static bitset<T> read(std::istream &input) {
+    static enums::bitset<T> read(std::istream &input) {
         return readData<std::underlying_type_t<T>>(input);
     }
 };
@@ -190,17 +190,17 @@ template<> struct binary_io<command_args> {
     }
 
     template<opcode Cmd> static constexpr command_args read_command(std::istream &input) {
-        if constexpr (std::is_void_v<EnumType<Cmd>>) {
+        if constexpr (std::is_void_v<enums::get_type_t<opcode, Cmd>>) {
             return make_command<Cmd>();
         } else {
-            return make_command<Cmd>(readData<EnumType<Cmd>>(input));
+            return make_command<Cmd>(readData<enums::get_type_t<opcode, Cmd>>(input));
         }
     }
 
     static command_args read(std::istream &input) {
         static constexpr auto command_lookup = []<size_t ... Is> (std::index_sequence<Is...>) {
             return std::array { read_command<static_cast<opcode>(Is)> ... };
-        } (std::make_index_sequence<EnumSize<opcode>>{});
+        } (std::make_index_sequence<enums::size<opcode>()>{});
 
         opcode command = readData<opcode>(input);
         return command_lookup[static_cast<size_t>(command)](input);

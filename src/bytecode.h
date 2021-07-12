@@ -9,7 +9,6 @@
 #include "exceptions.h"
 
 namespace bls {
-
     typedef uint8_t small_int;
 
     struct command_call {
@@ -22,20 +21,20 @@ namespace bls {
         command_call(function_iterator fun, int numargs) : fun(fun), numargs(numargs) {}
     };
 
-    DEFINE_ENUM(spacer_index,
-        (PAGE,      static_vector{"p", "page"})
-        (X,         static_vector{"x"})
-        (Y,         static_vector{"y"})
-        (WIDTH,     static_vector{"w", "width"})
-        (HEIGHT,    static_vector{"h", "height"})
-        (TOP,       static_vector{"t", "top"})
-        (RIGHT,     static_vector{"r", "right"})
-        (BOTTOM,    static_vector{"b", "bottom"})
-        (LEFT,      static_vector{"l", "left"})
-        (ROTATE,    static_vector{"rot", "rotate"})
+    DEFINE_ENUM_DATA_IN_NS(bls, spacer_index, static_vector<const char *>,
+        (PAGE,      "p", "page")
+        (X,         "x")
+        (Y,         "y")
+        (WIDTH,     "w", "width")
+        (HEIGHT,    "h", "height")
+        (TOP,       "t", "top")
+        (RIGHT,     "r", "right")
+        (BOTTOM,    "b", "bottom")
+        (LEFT,      "l", "left")
+        (ROTATE,    "rot", "rotate")
     )
 
-    DEFINE_ENUM(sys_index,
+    DEFINE_ENUM_DATA_IN_NS(bls, sys_index, const char *,
         (DOCFILE,   "doc_file")
         (DOCPAGES,  "doc_pages")
         (ATE,       "ate")
@@ -44,18 +43,18 @@ namespace bls {
         (TOKENIDX,  "tokenidx")
     )
 
-    template<string_enum T>
+    template<enums::data_enum T>
     T find_enum_index(std::string_view name) {
-        for (size_t i=0; i<EnumSize<T>; ++i) {
-            const auto &data = EnumData<0>(static_cast<T>(i));
+        for (T value : magic_enum::enum_values<T>()) {
+            const auto &data = enums::get_data(value);
             if constexpr (std::is_same_v<std::decay_t<decltype(data)>, const char *>) {
                 if (name == data) {
-                    return static_cast<T>(i);
+                    return value;
                 }
             } else if (std::ranges::any_of(data, [&](const char *c) {
                 return c == name;
             })) {
-                return static_cast<T>(i);
+                return value;
             }
         }
         throw std::out_of_range("Out of range");
@@ -63,10 +62,10 @@ namespace bls {
 
     struct readbox_options {
         read_mode mode;
-        bitset<box_flags> flags;
+        enums::bitset<box_flags> flags;
     };
 
-    DEFINE_ENUM_FLAGS(selvar_flags,
+    DEFINE_ENUM_FLAGS_IN_NS(bls, selvar_flags,
         (GLOBAL)
         (DYN_NAME)
         (DYN_IDX)
@@ -79,10 +78,10 @@ namespace bls {
         string_ptr name;
         small_int index = 0;
         small_int length = 1;
-        bitset<selvar_flags> flags;
+        enums::bitset<selvar_flags> flags;
     };
 
-    DEFINE_ENUM_FLAGS(setvar_flags,
+    DEFINE_ENUM_FLAGS_IN_NS(bls, setvar_flags,
         (FORCE)
         (OVERWRITE)
         (INCREASE)
@@ -95,7 +94,7 @@ namespace bls {
         small_int numargs;
     };
 
-    DEFINE_ENUM_TYPES(opcode,
+    DEFINE_ENUM_TYPES_IN_NS(bls, opcode,
         (NOP)                           // no operation
         (COMMENT, string_ptr)           // comment
         (LABEL, string_ptr)             // jump label
@@ -147,13 +146,14 @@ namespace bls {
     template<typename T> using variant_type = std::conditional_t<std::is_void_v<T>, std::monostate, T>;
 
     namespace detail {
-        template<string_enum Enum, typename ISeq> struct enum_variant{};
-        template<string_enum Enum, size_t ... Is> struct enum_variant<Enum, std::index_sequence<Is...>> {
-            using type = std::variant<variant_type<EnumType<static_cast<Enum>(Is)>> ...>;
+        template<enums::type_enum Enum, typename ISeq> struct enum_variant{};
+        template<enums::type_enum Enum, size_t ... Is> struct enum_variant<Enum, std::index_sequence<Is...>> {
+            using type = std::variant<variant_type<typename enums::get_type_t<Enum, static_cast<Enum>(Is)>> ...>;
         };
     }
 
-    template<string_enum Enum> using enum_variant = typename detail::enum_variant<Enum, std::make_index_sequence<EnumSize<Enum>>>::type;
+    template<enums::type_enum Enum> using enum_variant = typename detail::enum_variant<
+        Enum, std::make_index_sequence<enums::size<Enum>()>>::type;
 
     class command_args {
     private:
@@ -171,7 +171,7 @@ namespace bls {
             return static_cast<opcode>(m_value.index());
         }
         
-        template<opcode Cmd> requires (! std::is_void_v<EnumType<Cmd>>)
+        template<opcode Cmd> requires (! std::is_void_v<enums::get_type_t<opcode, Cmd>>)
         const auto &get_args() const {
             return std::get<static_cast<size_t>(Cmd)>(m_value);
         }

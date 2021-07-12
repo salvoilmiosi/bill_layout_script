@@ -40,6 +40,7 @@ set(bls_include_dirs
 
 add_subdirectory(external/cxxopts)
 add_subdirectory(external/json)
+add_subdirectory(external/magic_enum)
 
 set(BOOST_LOCALE_ENABLE_ICONV OFF)
 set(BOOST_LOCALE_ENABLE_ICU ON)
@@ -48,7 +49,7 @@ set(BOOST_LOCALE_ENABLE_STD OFF)
 set(BOOST_LOCALE_ENABLE_WINAPI OFF)
 add_subdirectory(external/boostlocale)
 
-set(bls_libraries PkgConfig::poppler Boost::locale)
+set(bls_libraries PkgConfig::poppler Boost::locale magic_enum::magic_enum)
 
 function(check_cpp_function TEST_FILE_NAME OUT_RESULT)
     set(TEST_FILE ".cmake/.test_${TEST_FILE_NAME}.cpp")

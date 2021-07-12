@@ -2,6 +2,7 @@
 #define __STACK_H__
 
 #include <deque>
+#include <stdexcept>
 
 namespace bls {
 
