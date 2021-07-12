@@ -190,10 +190,10 @@ template<> struct binary_io<command_args> {
     }
 
     template<opcode Cmd> static constexpr command_args read_command(std::istream &input) {
-        if constexpr (std::is_void_v<enums::get_type_t<opcode, Cmd>>) {
+        if constexpr (std::is_void_v<opcode_type<Cmd>>) {
             return make_command<Cmd>();
         } else {
-            return make_command<Cmd>(readData<enums::get_type_t<opcode, Cmd>>(input));
+            return make_command<Cmd>(readData<opcode_type<Cmd>>(input));
         }
     }
 

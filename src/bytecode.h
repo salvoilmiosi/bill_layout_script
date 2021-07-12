@@ -143,6 +143,8 @@ namespace bls {
         (HLT)                           // ferma l'esecuzione
     )
 
+    template<opcode Cmd> using opcode_type = enums::get_type_t<opcode, Cmd>;
+
     template<typename T> using variant_type = std::conditional_t<std::is_void_v<T>, std::monostate, T>;
 
     namespace detail {
@@ -171,7 +173,7 @@ namespace bls {
             return static_cast<opcode>(m_value.index());
         }
         
-        template<opcode Cmd> requires (! std::is_void_v<enums::get_type_t<opcode, Cmd>>)
+        template<opcode Cmd> requires (! std::is_void_v<opcode_type<Cmd>>)
         const auto &get_args() const {
             return std::get<static_cast<size_t>(Cmd)>(m_value);
         }
