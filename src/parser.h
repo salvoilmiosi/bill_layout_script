@@ -21,7 +21,6 @@ namespace bls {
     
     DEFINE_ENUM_FLAGS_IN_NS(bls, parser_flags,
         (ADD_COMMENTS)
-        (RECURSIVE_IMPORTS)
     )
 
     struct loop_label_pair {

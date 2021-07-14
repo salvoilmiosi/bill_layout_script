@@ -3,6 +3,7 @@
 
 #include <ctime>
 #include <string>
+#include <locale>
 
 namespace bls {
 
@@ -26,16 +27,12 @@ namespace bls {
             return m_date;
         }
 
-        std::string to_string() const {
-            return format("%Y-%m-%d");
-        }
+        std::string to_string() const;
         
-        static datetime from_string(std::string_view str) {
-            return parse_date(str, "%Y-%m-%d");
-        }
+        static datetime from_string(std::string_view str);
 
-        std::string format(const std::string &fmt_str) const;
-        static datetime parse_date(std::string_view str, const std::string &fmt_str);
+        std::string format(const std::locale &loc, const std::string &fmt_str) const;
+        static datetime parse_date(const std::locale &loc, std::string_view str, const std::string &fmt_str);
 
         static datetime from_ymd(int year, int month, int day);
 

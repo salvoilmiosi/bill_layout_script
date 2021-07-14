@@ -15,7 +15,6 @@ struct MainApp {
     std::filesystem::path output_cache;
 
     bool skip_comments;
-    bool recursive_imports;
     bool do_read_cache;
 };
 
@@ -30,7 +29,6 @@ int main(int argc, char **argv) {
         options.add_options()
             ("input-bls", "Input bls File", cxxopts::value(app.input_file))
             ("s,skip-comments", "Skip Comments", cxxopts::value(app.skip_comments))
-            ("r,recursive-imports", "Recursive Imports", cxxopts::value(app.recursive_imports))
             ("c,read-cache", "Read Cache", cxxopts::value(app.do_read_cache))
             ("o,output-cache", "Output Cache File", cxxopts::value(app.output_cache))
             ("h,help", "Print Help");
@@ -119,7 +117,6 @@ int MainApp::run() {
         if (!do_read_cache) {
             parser my_parser;
             if (!skip_comments) my_parser.add_flag(parser_flags::ADD_COMMENTS);
-            if (recursive_imports) my_parser.add_flag(parser_flags::RECURSIVE_IMPORTS);
             my_parser.read_layout(input_file, layout_box_list::from_file(input_file));
             code = std::move(my_parser).get_bytecode();
         } else {

@@ -24,6 +24,7 @@ namespace bls {
     public:
         using base = std::list<layout_box>;
         bool setlayout = false;
+        std::string language;
 
     public:
         layout_box_list() = default;
@@ -31,6 +32,7 @@ namespace bls {
         void clear() {
             base::clear();
             setlayout = false;
+            language.clear();
         }
 
         auto get_box_iterator(const layout_box *ptr) {

@@ -161,14 +161,19 @@ namespace bls {
     template<typename Function> struct check_args {};
     template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : detail::check_args<true, Ts ...> {
         static_assert(detail::check_args<true, Ts...>::valid, "Gli argomenti della funzione non sono validi");
+        static constexpr bool localized = false;
+        using types = util::type_list<Ts ...>;
     };
 
-    template<typename T, typename ... Ts> struct function_types{};
-    template<typename T, typename ... Ts> struct function_types<T(*)(Ts ...)> {
-        using type = util::type_list<Ts ...>;
+    template<typename T, typename Loc, typename ... Ts> requires std::is_same_v<std::decay_t<Loc>, std::locale>
+    struct check_args<T(*)(Loc, Ts ...)> : detail::check_args<true, Ts ...> {
+        static_assert(detail::check_args<true, Ts...>::valid, "Gli argomenti della funzione non sono validi");
+        static constexpr bool localized = true;
+        using types = util::type_list<Ts ...>;
     };
 
-    template<typename T> using function_types_t = typename function_types<T>::type;
+    template<typename T> using function_types_t = typename check_args<T>::types;
+    template<typename T> constexpr bool is_localized_v = check_args<T>::localized;
 
     template<typename TypeList, size_t I> inline decltype(auto) get_arg(arg_list &args) {
         using type = std::decay_t<util::get_nth_t<I, TypeList>>;
@@ -188,7 +193,7 @@ namespace bls {
 
     class function_handler {
     private:
-        variable (*const m_fun) (arg_list &&);
+        variable (*const m_fun) (const std::locale &loc, arg_list &&);
 
         // l'operatore unario + converte una funzione lambda senza capture
         // in puntatore a funzione. In questo modo il compilatore può
@@ -196,11 +201,15 @@ namespace bls {
 
         // function_handler rappresenta una closure che passa automaticamente gli argomenti
         // da arg_list alla funzione fun, convertendoli nei tipi giusti
-        template<typename Function> static variable call_function(arg_list &&args) {
+        template<typename Function> static variable call_function(const std::locale &loc, arg_list &&args) {
             using types = function_types_t<decltype(+Function{})>;
-            return [] <size_t ... Is> (arg_list &args, std::index_sequence<Is...>) {
-                return Function{}(get_arg<types, Is>(args) ...);
-            }(args, std::make_index_sequence<types::size>{});
+            return [] <size_t ... Is> (const std::locale &loc, arg_list &args, std::index_sequence<Is...>) {
+                if constexpr (is_localized_v<decltype(+Function{})>) {
+                    return Function{}(loc, get_arg<types, Is>(args) ...);
+                } else {
+                    return Function{}(get_arg<types, Is>(args) ...);
+                }
+            }(loc, args, std::make_index_sequence<types::size>{});
         }
 
     public:
@@ -213,8 +222,8 @@ namespace bls {
             , minargs(check_args<decltype(+fun)>::minargs)
             , maxargs(check_args<decltype(+fun)>::maxargs) {}
 
-        variable operator ()(arg_list &&args) const {
-            return m_fun(std::move(args));
+        variable operator ()(const std::locale &loc, arg_list &&args) const {
+            return m_fun(loc, std::move(args));
         }
     };
 

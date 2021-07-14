@@ -19,6 +19,11 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
         if (layout.setlayout) {
             m_code.add_line<opcode::SETLAYOUT>();
         }
+        if (layout.language.empty()) {
+            m_code.add_line<opcode::SETLANG>();
+        } else {
+            m_code.add_line<opcode::SETLANG>(layout.language + ".UTF-8");
+        }
         for (auto &box : layout) {
             read_box(box);
         }

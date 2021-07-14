@@ -14,6 +14,9 @@ namespace bls {
         if (layout.setlayout) {
             output << "### Set Layout\n";
         }
+        if (!layout.language.empty()) {
+            output << "### Language " << layout.language << '\n';
+        }
 
         for (auto &box : layout) {
             output << "\n### Box " << box.name << '\n';
@@ -114,7 +117,6 @@ namespace bls {
                         current.page = util::string_to<int>(suf.value);
                     } else if (auto suf = suffix(line, "### Rect")) {
                         util::isviewstream ss{suf.value};
-                        ss.imbue(std::locale::classic());
                         ss >> current.x >> current.y >> current.w >> current.h;
                         if (ss.fail()) {
                             throw layout_error("Formato non valido");
@@ -160,6 +162,8 @@ namespace bls {
                 } else {
                     layout.push_back(current);
                 }
+            } else if (auto suf = suffix(line, "### Language")) {
+                layout.language = suf.value;
             } else if (line == "### Set Layout") {
                 layout.setlayout = true;
             } else if (line.front() != '#') {

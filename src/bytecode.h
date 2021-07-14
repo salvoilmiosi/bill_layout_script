@@ -140,6 +140,7 @@ namespace bls {
         (ADDLAYOUT, string_ptr)         // aggiunge il nome del layout nella lista di output
         (SETCURLAYOUT, int)             // sposta il puntatore del layout corrente
         (SETLAYOUT)                     // ferma l'esecuzione se settata la flag setlayout in reader
+        (SETLANG, string_ptr)           // imposta il locale corrente
         (HLT)                           // ferma l'esecuzione
     )
 

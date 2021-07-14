@@ -17,7 +17,6 @@ namespace bls {
 DEFINE_ENUM_FLAGS_IN_NS(bls, reader_flags,
     (HALT_ON_SETLAYOUT)
     (USE_CACHE)
-    (RECURSIVE)
 )
 
 struct function_call {
@@ -80,6 +79,8 @@ private:
 
     std::vector<std::filesystem::path> m_layouts;
     decltype(m_layouts)::iterator m_current_layout;
+
+    std::locale m_current_locale;
 
     std::vector<std::string> m_notes;
 

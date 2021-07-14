@@ -7,7 +7,6 @@
 #include "parser.h"
 #include "reader.h"
 #include "utils.h"
-#include "set_language.h"
 
 using namespace bls;
 
@@ -17,21 +16,13 @@ struct MainApp {
     std::filesystem::path input_pdf;
     std::filesystem::path input_bls;
 
-    std::string selected_locale;
-
     bool show_debug = false;
     bool show_globals = false;
     bool get_layout = false;
     bool use_cache = false;
-    bool parse_recursive = false;
 };
 
 int MainApp::run() {
-    if (!set_language(selected_locale)) {
-        std::cerr << "Lingua non supportata: " << selected_locale << '\n';
-        return -1;
-    }
-
     int retcode = 0;
     tao::json::value result = tao::json::empty_object;
 
@@ -45,7 +36,6 @@ int MainApp::run() {
             my_reader.set_document(my_doc);
         }
         
-        if (parse_recursive) my_reader.add_flag(reader_flags::RECURSIVE);
         if (use_cache) my_reader.add_flag(reader_flags::USE_CACHE);
         if (get_layout) my_reader.add_flag(reader_flags::HALT_ON_SETLAYOUT);
         my_reader.add_layout(input_bls);
@@ -127,12 +117,10 @@ int main(int argc, char **argv) {
         options.add_options()
             ("input-bls", "Input bls File", cxxopts::value(app.input_bls))
             ("p,input-pdf", "Input pdf File", cxxopts::value(app.input_pdf))
-            ("l,language", "Language", cxxopts::value(app.selected_locale))
             ("d,show-debug", "Show Debug Variables", cxxopts::value(app.show_debug))
             ("g,show-globals", "Show Global Variables", cxxopts::value(app.show_globals))
             ("k,halt-setlayout", "Halt On Setlayout", cxxopts::value(app.get_layout))
             ("c,use-cache", "Use Script Cache", cxxopts::value(app.use_cache))
-            ("r,recursive-imports", "Recursive Imports", cxxopts::value(app.parse_recursive))
             ("h,help", "Print Help");
 
         options.parse_positional({"input-bls"});

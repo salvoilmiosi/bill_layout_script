@@ -13,9 +13,10 @@
 namespace bls {
 
     // Converte una stringa in numero usando il formato del locale
-    static variable parse_num(std::string_view str) {
+    static variable parse_num(const std::locale &loc, std::string_view str) {
         fixed_point num;
         util::isviewstream iss{str};
+        iss.imbue(loc);
         if (dec::fromStream(iss, num)) {
             return num;
         } else {
@@ -86,8 +87,8 @@ namespace bls {
     };
 
     // Genera la regex per parsare numeri secondo il locale selezionato
-    static std::string number_regex() {
-        auto &facet = std::use_facet<std::numpunct<char>>(std::locale());
+    static std::string number_regex(const std::locale &loc) {
+        auto &facet = std::use_facet<std::numpunct<char>>(loc);
         auto grp = facet.grouping();
         std::string ret;
         if (grp.empty()) {
@@ -105,9 +106,9 @@ namespace bls {
     };
 
     // Costruisce un oggetto std::regex
-    static std::regex create_regex(std::string regex) {
+    static std::regex create_regex(const std::locale &loc, std::string regex) {
         try {
-            util::string_replace(regex, "\\N", number_regex());
+            util::string_replace(regex, "\\N", number_regex(loc));
             return std::regex(regex, std::regex::icase);
         } catch (const std::regex_error &error) {
             throw layout_error(std::format("Espressione regolare non valida: {0}\n{1}", regex, error.what()));
@@ -142,24 +143,24 @@ namespace bls {
     };
 
     // cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
-    static std::string_view search_regex(std::string_view value, const std::string &regex, size_t index) {
+    static std::string_view search_regex(const std::locale &loc, std::string_view value, const std::string &regex, size_t index) {
         std::cmatch match;
-        if (std::regex_search(value.data(), value.data() + value.size(), match, create_regex(regex))) {
+        if (std::regex_search(value.data(), value.data() + value.size(), match, create_regex(loc, regex))) {
             if (index < match.size()) return match_to_view(match[index]);
         }
         return {value.end(), value.end()};
     }
 
     // cerca la regex in str e ritorna tutti i capture del primo valore trovato
-    static variable search_regex_captures(std::string_view value, const std::string &regex) {
+    static variable search_regex_captures(const std::locale &loc, std::string_view value, const std::string &regex) {
         std::cmatch match;
-        if (!std::regex_search(value.data(), value.data() + value.size(), match, create_regex(regex))) return variable();
+        if (!std::regex_search(value.data(), value.data() + value.size(), match, create_regex(loc, regex))) return variable();
         return util::string_join(match | std::views::drop(1) | std::views::transform(match_to_view), util::unit_separator);
     }
 
     // cerca la regex in str e ritorna i valori trovati
-    static std::string search_regex_all(std::string_view value, const std::string &regex, size_t index) {
-        auto reg = create_regex(regex);
+    static std::string search_regex_all(const std::locale &loc, std::string_view value, const std::string &regex, size_t index) {
+        auto reg = create_regex(loc, regex);
         return util::string_join(
             std::ranges::subrange(
                 std::cregex_token_iterator(value.data(), value.data() + value.size(), reg, index),
@@ -262,7 +263,7 @@ namespace bls {
 
     // Viene creata un'espressione regolare che corrisponde alla stringa di formato valido per strptime,
     // poi cerca la data in value e la parsa. Ritorna time_t=0 se c'e' errore.
-    static datetime search_date(std::string_view value, const std::string &format, std::string regex, size_t index) {
+    static datetime search_date(const std::locale &loc, std::string_view value, const std::string &format, std::string regex, size_t index) {
         if (regex.empty()) {
             regex = date_regex(format);
             index = 0;
@@ -270,17 +271,17 @@ namespace bls {
             util::string_replace(regex, "\\D", date_regex(format));
         }
 
-        if (auto search_res = search_regex(value, regex, index); !search_res.empty()) {
-            return datetime::parse_date(search_res, format);
+        if (auto search_res = search_regex(loc, value, regex, index); !search_res.empty()) {
+            return datetime::parse_date(loc, search_res, format);
         }
         return datetime();
     }
 
     const function_map function_lookup {
         {"str", [](const std::string &str) { return str; }},
-        {"num", [](const variable &var) {
+        {"num", [](const std::locale &loc, const variable &var) {
             if (var.is_number()) return var;
-            return parse_num(var.as_view());
+            return parse_num(loc, var.as_view());
         }},
         {"int", [](int a) { return a; }},
         {"bool",[](bool a) { return a; }},
@@ -305,10 +306,10 @@ namespace bls {
         {"hex", [](int num) {
             return std::format("{:x}", num);
         }},
-        {"aggregate", [](string_list list) {
+        {"aggregate", [](const std::locale &loc, string_list list) {
             variable ret;
             for (const auto &s : list) {
-                ret += parse_num(s);
+                ret += parse_num(loc, s);
             }
             return ret;
         }},
@@ -354,23 +355,23 @@ namespace bls {
         {"table_row", [](std::string_view row, string_list indices) {
             return table_row(row, indices);
         }},
-        {"search", [](std::string_view str, const std::string &regex, optional_size<1> index) -> variable {
-            return std::string(search_regex(str, regex, index));
+        {"search", [](const std::locale &loc, std::string_view str, const std::string &regex, optional_size<1> index) -> variable {
+            return std::string(search_regex(loc, str, regex, index));
         }},
-        {"searchpos", [](std::string_view str, const std::string &regex, optional_size<0> index) {
-            return search_regex(str, regex, index).begin() - str.begin();
+        {"searchpos", [](const std::locale &loc, std::string_view str, const std::string &regex, optional_size<0> index) {
+            return search_regex(loc, str, regex, index).begin() - str.begin();
         }},
-        {"searchposend", [](std::string_view str, const std::string &regex, optional_size<0> index) {
-            return search_regex(str, regex, index).end() - str.begin();
+        {"searchposend", [](const std::locale &loc, std::string_view str, const std::string &regex, optional_size<0> index) {
+            return search_regex(loc, str, regex, index).end() - str.begin();
         }},
-        {"search_all", [](std::string_view str, const std::string &regex, optional_size<1> index) {
-            return search_regex_all(str, regex, index);
+        {"search_all", [](const std::locale &loc, std::string_view str, const std::string &regex, optional_size<1> index) {
+            return search_regex_all(loc, str, regex, index);
         }},
-        {"captures", [](std::string_view str, const std::string &regex) {
-            return search_regex_captures(str, regex);
+        {"captures", [](const std::locale &loc, std::string_view str, const std::string &regex) {
+            return search_regex_captures(loc, str, regex);
         }},
-        {"matches", [](std::string_view str, const std::string &regex) {
-            return std::regex_match(str.begin(), str.end(), create_regex(regex));
+        {"matches", [](const std::locale &loc, std::string_view str, const std::string &regex) {
+            return std::regex_match(str.begin(), str.end(), create_regex(loc, regex));
         }},
         {"replace", [](std::string &&str, std::string_view from, std::string_view to) {
             return util::string_replace(str, from, to);
@@ -378,18 +379,18 @@ namespace bls {
         {"date_regex", [](std::string_view format) {
             return date_regex(format);
         }},
-        {"date", [](std::string_view str, optional<std::string> format) {
+        {"date", [](const std::locale &loc, std::string_view str, optional<std::string> format) {
             if (format.empty()) {
                 return datetime::from_string(str);
             } else {
-                return datetime::parse_date(str, format);
+                return datetime::parse_date(loc, str, format);
             }
         }},
-        {"search_date", [](std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
-            return search_date(str, format, regex, index);
+        {"search_date", [](const std::locale &loc, std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
+            return search_date(loc, str, format, regex, index);
         }},
-        {"date_format", [](datetime date, const std::string &format) {
-            return date.format(format);
+        {"date_format", [](const std::locale &loc, datetime date, const std::string &format) {
+            return date.format(loc, format);
         }},
         {"ymd", [](int year, int month, int day) {
             return datetime::from_ymd(year, month, day);
@@ -457,14 +458,14 @@ namespace bls {
         {"indexofend", [](std::string_view str, std::string_view value, optional<size_t> index) {
             return string_find_icase(str, value, index).end() - str.begin();
         }},
-        {"tolower", [](std::string_view str) {
-            return boost::locale::to_lower(str.data(), str.data() + str.size());
+        {"tolower", [](const std::locale &loc, std::string_view str) {
+            return boost::locale::to_lower(str.data(), str.data() + str.size(), loc);
         }},
-        {"toupper", [](std::string_view str) {
-            return boost::locale::to_upper(str.data(), str.data() + str.size());
+        {"toupper", [](const std::locale &loc, std::string_view str) {
+            return boost::locale::to_upper(str.data(), str.data() + str.size(), loc);
         }},
-        {"totitle", [](std::string_view str) {
-            return boost::locale::to_title(str.data(), str.data() + str.size());
+        {"totitle", [](const std::locale &loc, std::string_view str) {
+            return boost::locale::to_title(str.data(), str.data() + str.size(), loc);
         }},
         {"isempty", [](std::string_view str) {
             return str.empty();

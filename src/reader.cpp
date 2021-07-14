@@ -5,6 +5,8 @@
 #include "functions.h"
 #include "binary_bls.h"
 
+#include <boost/locale.hpp>
+
 using namespace bls;
 
 void reader::clear() {
@@ -23,6 +25,8 @@ void reader::start() {
 
     m_selected = {};
     m_current_box = {};
+
+    m_current_locale = std::locale::classic();
 
     m_program_counter = 0;
     m_table_index = 0;
@@ -175,7 +179,7 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto call_function = [&](const command_call &cmd) {
-        variable ret = cmd.fun->second(arg_list(
+        variable ret = cmd.fun->second(m_current_locale, arg_list(
             m_stack.end() - cmd.numargs,
             m_stack.end()));
         m_stack.resize(m_stack.size() - cmd.numargs);
@@ -199,6 +203,14 @@ void reader::exec_command(const command_args &cmd) {
         auto message = m_stack.pop().as_string();
         auto errcode = m_stack.pop().as_int();
         throw layout_runtime_error(message, errcode);
+    };
+
+    auto set_language = [&](const std::string &name) {
+        try {
+            m_current_locale = boost::locale::generator{}(name);
+        } catch (std::runtime_error) {
+            throw layout_error(std::format("Lingua non supportata: {}", name));
+        }
     };
 
     switch (cmd.command()) {
@@ -247,6 +259,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::ADDLAYOUT:     push_layout(*cmd.get_args<opcode::ADDLAYOUT>()); break;
     case opcode::SETCURLAYOUT   : m_current_layout = m_layouts.begin() + cmd.get_args<opcode::SETCURLAYOUT>(); break;
     case opcode::SETLAYOUT:     if (m_flags.check(reader_flags::HALT_ON_SETLAYOUT)) m_running = false; break;
+    case opcode::SETLANG:       set_language(*cmd.get_args<opcode::SETLANG>()); break;
     case opcode::HLT:           m_running = false; break;
     }
 }
@@ -260,30 +273,19 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
     };
     
     bytecode new_code;
-    auto recompile = [&] {
-        parser my_parser;
-        if (m_flags.check(reader_flags::RECURSIVE)) {
-            my_parser.add_flag(parser_flags::RECURSIVE_IMPORTS);
-        }
-        my_parser.read_layout(filename, layout_box_list::from_file(filename));
-        new_code = std::move(my_parser).get_bytecode();
-        if (m_flags.check(reader_flags::USE_CACHE)) {
-            binary::write(new_code, cache_filename);
-        }
-    };
 
     // Se settata flag USE_CACHE, leggi il file di cache e
     // ricompila solo se uno dei file importati è stato modificato.
     // Altrimenti ricompila sempre
     if (m_flags.check(reader_flags::USE_CACHE) && std::filesystem::exists(cache_filename) && !is_modified(filename)) {
         new_code = binary::read(cache_filename);
-        if (m_flags.check(reader_flags::RECURSIVE) && std::ranges::any_of(new_code, [&](const command_args &line) {
-            return line.command() == opcode::ADDLAYOUT && is_modified(*line.get_args<opcode::ADDLAYOUT>());
-        })) {
-            recompile();
-        }
     } else {
-        recompile();
+        parser my_parser;
+        my_parser.read_layout(filename, layout_box_list::from_file(filename));
+        new_code = std::move(my_parser).get_bytecode();
+        if (m_flags.check(reader_flags::USE_CACHE)) {
+            binary::write(new_code, cache_filename);
+        }
     }
 
     return add_code(std::move(new_code));
@@ -292,7 +294,7 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
 size_t reader::add_code(bytecode &&new_code) {
     size_t addr = m_code.size();
 
-    m_code.reserve(m_code.size() + 1 + new_code.size());
+    m_code.reserve(m_code.size() + 4 + new_code.size());
     m_code.add_line<opcode::NOP>();
 
     std::ranges::move(new_code, std::back_inserter(m_code));
@@ -300,6 +302,11 @@ size_t reader::add_code(bytecode &&new_code) {
         m_code.add_line<opcode::HLT>();
     } else {
         m_code.add_line<opcode::SETCURLAYOUT>(m_current_layout - m_layouts.begin());
+        if (std::has_facet<boost::locale::info>(m_current_locale)) {
+            m_code.add_line<opcode::SETLANG>(std::use_facet<boost::locale::info>(m_current_locale).name());
+        } else {
+            m_code.add_line<opcode::SETLANG>();
+        }
         m_code.add_line<opcode::RET>();
     }
     
