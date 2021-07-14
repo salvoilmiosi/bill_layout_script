@@ -27,6 +27,10 @@ namespace bls {
             return m_date;
         }
 
+        time_t data() const {
+            return m_date;
+        }
+
         std::string to_string() const;
         
         static datetime from_string(std::string_view str);
