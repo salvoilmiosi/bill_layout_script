@@ -5,7 +5,6 @@
 #include "utils.h"
 #include "fixed_point.h"
 #include "functions.h"
-#include "string_ptr.h"
 #include "exceptions.h"
 
 namespace bls {
@@ -75,7 +74,7 @@ namespace bls {
     )
 
     struct variable_selector {
-        string_ptr name;
+        std::string name;
         small_int index = 0;
         small_int length = 1;
         enums::bitset<selvar_flags> flags;
@@ -88,7 +87,7 @@ namespace bls {
         (DECREASE)
     )
 
-    typedef std::variant<ptrdiff_t, string_ptr> jump_address;
+    typedef std::variant<ptrdiff_t, std::string> jump_address;
 
     struct jsr_address : jump_address {
         small_int numargs;
@@ -96,8 +95,8 @@ namespace bls {
 
     DEFINE_ENUM_TYPES_IN_NS(bls, opcode,
         (NOP)                           // no operation
-        (COMMENT, string_ptr)           // comment
-        (LABEL, string_ptr)             // jump label
+        (COMMENT, std::string)          // comment
+        (LABEL, std::string)            // jump label
         (NEWBOX)                        // resetta current_box
         (MVBOX, spacer_index)           // stack -> current_box[index]
         (MVNBOX, spacer_index)          // -stack -> current_box[index]
@@ -112,7 +111,7 @@ namespace bls {
         (PUSHNUM, fixed_point)          // number -> stack
         (PUSHINT, big_int)              // int -> stack
         (PUSHDOUBLE, double)            // double -> stack
-        (PUSHSTR, string_ptr)           // str -> stack
+        (PUSHSTR, std::string)          // str -> stack
         (PUSHARG, small_int)            // stack -> stack
         (GETBOX, spacer_index)          // box[index] -> stack
         (GETSYS, sys_index)             // sys[index] -> stack
@@ -136,11 +135,11 @@ namespace bls {
         (RET)                           // jump to call_stack.top
         (RETVAL)                        // return to caller and push value to stack
         (RETVAR)                        // return to caller and push selected variable
-        (IMPORT, string_ptr)            // importa il file e lo esegue
-        (ADDLAYOUT, string_ptr)         // aggiunge il nome del layout nella lista di output
+        (IMPORT, std::string)           // importa il file e lo esegue
+        (ADDLAYOUT, std::string)        // aggiunge il nome del layout nella lista di output
         (SETCURLAYOUT, int)             // sposta il puntatore del layout corrente
         (SETLAYOUT)                     // ferma l'esecuzione se settata la flag setlayout in reader
-        (SETLANG, string_ptr)           // imposta il locale corrente
+        (SETLANG, std::string)          // imposta il locale corrente
         (HLT)                           // ferma l'esecuzione
     )
 
@@ -203,17 +202,17 @@ namespace bls {
             push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
         }
 
-        bytecode::const_iterator find_label(string_ptr label) {
+        bytecode::const_iterator find_label(const std::string &label) {
             return std::ranges::find_if(*this, [&](const command_args &line) {
                 return line.command() == opcode::LABEL && line.get_args<opcode::LABEL>() == label;
             });
         }
 
-        void add_label(string_ptr label) {
+        void add_label(const std::string &label) {
             if (find_label(label) == end()) {
                 add_line<opcode::LABEL>(label);
             } else {
-                throw layout_error(std::format("Etichetta goto duplicata: {}", *label));
+                throw layout_error(std::format("Etichetta goto duplicata: {}", label));
             }
         }
 

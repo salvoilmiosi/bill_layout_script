@@ -56,7 +56,7 @@ void reader::exec_command(const command_args &cmd) {
 
         m_selected = variable_ref(m_values, variable_key{
             (sel.flags.check(selvar_flags::DYN_NAME))
-                ? m_stack.pop().as_string() : *sel.name,
+                ? m_stack.pop().as_string() : sel.name,
             (sel.flags.check(selvar_flags::GLOBAL))
                 ? variable_key::global_index : m_table_index},
             sel.index, sel.length);
@@ -231,7 +231,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHNUM:       m_stack.push(cmd.get_args<opcode::PUSHNUM>()); break;
     case opcode::PUSHINT:       m_stack.push(cmd.get_args<opcode::PUSHINT>()); break;
     case opcode::PUSHDOUBLE:    m_stack.push(cmd.get_args<opcode::PUSHDOUBLE>()); break;
-    case opcode::PUSHSTR:       m_stack.push(*cmd.get_args<opcode::PUSHSTR>()); break;
+    case opcode::PUSHSTR:       m_stack.push(cmd.get_args<opcode::PUSHSTR>()); break;
     case opcode::PUSHARG:       push_function_arg(cmd.get_args<opcode::PUSHARG>()); break;
     case opcode::GETBOX:        m_stack.push(get_box_info(cmd.get_args<opcode::GETBOX>())); break;
     case opcode::GETSYS:        m_stack.push(get_sys_info(cmd.get_args<opcode::GETSYS>())); break;
@@ -255,11 +255,11 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::RET:           jump_return(variable()); break;
     case opcode::RETVAL:        jump_return(m_stack.pop()); break;
     case opcode::RETVAR:        jump_return(m_selected.get_value()); break;
-    case opcode::IMPORT:        import_layout(*cmd.get_args<opcode::IMPORT>()); break;
-    case opcode::ADDLAYOUT:     push_layout(*cmd.get_args<opcode::ADDLAYOUT>()); break;
+    case opcode::IMPORT:        import_layout(cmd.get_args<opcode::IMPORT>()); break;
+    case opcode::ADDLAYOUT:     push_layout(cmd.get_args<opcode::ADDLAYOUT>()); break;
     case opcode::SETCURLAYOUT   : m_current_layout = m_layouts.begin() + cmd.get_args<opcode::SETCURLAYOUT>(); break;
     case opcode::SETLAYOUT:     if (m_flags.check(reader_flags::HALT_ON_SETLAYOUT)) m_running = false; break;
-    case opcode::SETLANG:       set_language(*cmd.get_args<opcode::SETLANG>()); break;
+    case opcode::SETLANG:       set_language(cmd.get_args<opcode::SETLANG>()); break;
     case opcode::HLT:           m_running = false; break;
     }
 }

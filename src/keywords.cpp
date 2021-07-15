@@ -17,8 +17,8 @@ void parser::read_keyword() {
     switch (util::hash(fun_name)) {
     case "if"_h:
     case "ifnot"_h: {
-        string_ptr endif_label = make_label("endif");
-        string_ptr else_label;
+        std::string endif_label = make_label("endif");
+        std::string else_label;
         bool condition_positive = fun_name == "if";
         bool in_loop = true;
         bool add_endif = false;
@@ -66,8 +66,8 @@ void parser::read_keyword() {
         break;
     }
     case "while"_h: {
-        string_ptr while_label = make_label("while");
-        string_ptr endwhile_label = make_label("endwhile");
+        std::string while_label = make_label("while");
+        std::string endwhile_label = make_label("endwhile");
         m_loop_labels.push(loop_label_pair{while_label, endwhile_label});
         m_lexer.require(token_type::PAREN_BEGIN);
         m_code.add_label(while_label);
@@ -81,8 +81,8 @@ void parser::read_keyword() {
         break;
     }
     case "for"_h: {
-        string_ptr for_label = make_label("for");
-        string_ptr endfor_label = make_label("endfor");
+        std::string for_label = make_label("for");
+        std::string endfor_label = make_label("endfor");
         m_loop_labels.push(loop_label_pair{for_label, endfor_label});
         m_lexer.require(token_type::PAREN_BEGIN);
         if (!m_lexer.check_next(token_type::SEMICOLON)) {
@@ -175,21 +175,19 @@ void parser::read_keyword() {
         break;
     }
     case "foreach"_h: {
-        string_ptr begin_label = make_label("foreach");
-        string_ptr continue_label = make_label("foreach_continue");
-        string_ptr end_label = make_label("endforeach");
+        std::string begin_label = make_label("foreach");
+        std::string continue_label = make_label("foreach_continue");
+        std::string end_label = make_label("endforeach");
         m_loop_labels.push(loop_label_pair{continue_label, end_label});
-        bool pushed_content = false;
-        if (m_lexer.check_next(token_type::PAREN_BEGIN)) {
-            read_expression();
-            m_lexer.require(token_type::PAREN_END);
-            ++m_content_level;
-            if (auto &last = m_code.last_not_comment(); last.command() == opcode::PUSHVAR) {
-                last = make_command<opcode::PUSHREF>();
-            }
-            m_code.add_line<opcode::ADDCONTENT>();
-            pushed_content = true;
+
+        m_lexer.require(token_type::PAREN_BEGIN);
+        read_expression();
+        m_lexer.require(token_type::PAREN_END);
+        ++m_content_level;
+        if (auto &last = m_code.last_not_comment(); last.command() == opcode::PUSHVAR) {
+            last = make_command<opcode::PUSHREF>();
         }
+        m_code.add_line<opcode::ADDCONTENT>();
         m_code.add_line<opcode::SPLITVIEW>();
         m_code.add_label(begin_label);
         read_statement();
@@ -197,12 +195,8 @@ void parser::read_keyword() {
         m_code.add_line<opcode::NEXTRESULT>();
         m_code.add_line<opcode::JNTE>(begin_label);
         m_code.add_label(end_label);
-        if (pushed_content) {
-            --m_content_level;
-            m_code.add_line<opcode::POPCONTENT>();
-        } else {
-            m_code.add_line<opcode::RESETVIEW>();
-        }
+        --m_content_level;
+        m_code.add_line<opcode::POPCONTENT>();
         m_loop_labels.pop();
         break;
     }
@@ -248,17 +242,14 @@ void parser::read_keyword() {
         break;
     }
     case "step"_h: {
-        bool pushed_content = false;
-        if (m_lexer.check_next(token_type::PAREN_BEGIN)) {
-            read_expression();
-            m_lexer.require(token_type::PAREN_END);
-            ++m_content_level;
-            if (auto &last = m_code.last_not_comment(); last.command() == opcode::PUSHVAR) {
-                last = make_command<opcode::PUSHREF>();
-            }
-            m_code.add_line<opcode::ADDCONTENT>();
-            pushed_content = true;
+        m_lexer.require(token_type::PAREN_BEGIN);
+        read_expression();
+        m_lexer.require(token_type::PAREN_END);
+        ++m_content_level;
+        if (auto &last = m_code.last_not_comment(); last.command() == opcode::PUSHVAR) {
+            last = make_command<opcode::PUSHREF>();
         }
+        m_code.add_line<opcode::ADDCONTENT>();
 
         m_lexer.require(token_type::BRACE_BEGIN);
         m_code.add_line<opcode::SPLITVIEW>();
@@ -272,12 +263,8 @@ void parser::read_keyword() {
             }
         }
 
-        if (pushed_content) {
-            --m_content_level;
-            m_code.add_line<opcode::POPCONTENT>();
-        } else {
-            m_code.add_line<opcode::RESETVIEW>();
-        }
+        --m_content_level;
+        m_code.add_line<opcode::POPCONTENT>();
         break;
     }
     case "newview"_h:
