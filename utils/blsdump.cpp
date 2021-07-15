@@ -2,7 +2,8 @@
 #include <filesystem>
 #include <iomanip>
 
-#include "cxxopts.hpp"
+#include <boost/program_options.hpp>
+
 #include "parser.h"
 #include "fixed_point.h"
 #include "utils.h"
@@ -19,38 +20,43 @@ struct MainApp {
 };
 
 int main(int argc, char **argv) {
-    MainApp app;
-
     try {
-        cxxopts::Options options(argv[0], "Analyzes bls compiler output");
+        MainApp app;
 
-        options.positional_help("Input-bls-File");
+        namespace po = boost::program_options;
 
-        options.add_options()
-            ("input-bls", "Input bls File", cxxopts::value(app.input_file))
-            ("s,skip-comments", "Skip Comments", cxxopts::value(app.skip_comments))
-            ("c,read-cache", "Read Cache", cxxopts::value(app.do_read_cache))
-            ("o,output-cache", "Output Cache File", cxxopts::value(app.output_cache))
-            ("h,help", "Print Help");
+        po::options_description desc("Allowed options");
+        po::positional_options_description pos;
+        pos.add("input-bls", -1);
 
-        options.parse_positional({"input-bls"});
+        desc.add_options()
+            ("help,h", "Print Help")
+            ("input-bls", po::value(&app.input_file), "Input bls File")
+            ("skipcomments,s", po::value(&app.skip_comments), "Skip Comments")
+            ("read-cache,c", po::value(&app.do_read_cache), "Read Cache")
+            ("output-cache,o", po::value(&app.output_cache), "Output Cache File")
+        ;
 
-        auto result = options.parse(argc, argv);
-        if (result.count("help")) {
-            std::cout << options.help() << std::endl;
+        po::variables_map vm;
+        po::store(po::command_line_parser(argc, argv).
+            options(desc).positional(pos).run(), vm);
+        po::notify(vm);
+
+        if (vm.count("help")) {
+            std::cout << desc << std::endl;
             return 0;
         }
 
-        if (!result.count("input-bls")) {
-            std::cout << options.help() << std::endl;
+        if (!vm.count("input-bls")) {
+            std::cout << "Required Input bls" << std::endl;
             return 0;
         }
-    } catch (const cxxopts::OptionException &e) {
+
+        return app.run();
+    } catch (const std::exception &e) {
         std::cerr << "Errore nel parsing delle opzioni: " << e.what() << std::endl;
         return -1;
     }
-
-    return app.run();
 }
 
 using namespace bls;

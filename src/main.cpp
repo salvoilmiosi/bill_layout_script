@@ -1,14 +1,15 @@
 #include <iostream>
 #include <filesystem>
 
-#include "tao/json.hpp"
-#include "cxxopts.hpp"
+#include <boost/json.hpp>
+#include <boost/program_options.hpp>
 
 #include "parser.h"
 #include "reader.h"
 #include "utils.h"
 
 using namespace bls;
+using namespace boost;
 
 struct MainApp {
     int run();
@@ -22,9 +23,10 @@ struct MainApp {
     bool use_cache = false;
 };
 
+
 int MainApp::run() {
     int retcode = 0;
-    tao::json::value result = tao::json::empty_object;
+    json::object result;
 
     reader my_reader;
 
@@ -41,13 +43,13 @@ int MainApp::run() {
         my_reader.add_layout(input_bls);
         my_reader.start();
 
-        tao::json::value &json_values = result["values"] = tao::json::empty_array;
+        json::array json_values;
         
-        auto write_var = [](tao::json::value &table, const std::string &name, const variable &var) {
-            if (table.is_null()) table = tao::json::empty_object;
-            auto &json_arr = table[name];
-            if (json_arr.is_null()) json_arr = tao::json::empty_array;
-            json_arr.push_back(var.as_string());
+        auto write_var = [](json::value &table, const std::string &name, const variable &var) {
+            if (table.is_null()) table = json::object();
+            auto &json_arr = table.as_object()[name];
+            if (json_arr.is_null()) json_arr = json::array();
+            json_arr.as_array().emplace_back(var.as_string());
         };
 
         for (auto &[key, var] : my_reader.get_values()) {
@@ -59,33 +61,39 @@ int MainApp::run() {
                     write_var(result["globals"], key.name, var);
                 }
             } else {
-                while (json_values.get_array().size() <= key.table_index) {
-                    json_values.push_back(tao::json::empty_object);
+                while (json_values.size() <= key.table_index) {
+                    json_values.push_back(json::object());
                 }
                 write_var(json_values[key.table_index], key.name, var);
             }
         }
 
-        for (auto &v : my_reader.get_notes()) {
-            tao::json::value &notes = result["notes"];
-            if (notes.is_null()) notes = tao::json::empty_array;
-            notes.push_back(v);
+        result["values"] = json_values;
+
+        if (!my_reader.get_notes().empty()) {
+            json::array json_notes;
+            for (auto &v : my_reader.get_notes()) {
+                json_notes.emplace_back(v);
+            }
+            result["notes"] = json_notes;
         }
 
-        auto &json_layouts = result["layouts"] = tao::json::empty_array;
+        json::array json_layouts;
         for (auto &l : my_reader.get_layouts()) {
-            json_layouts.push_back(l.string());
+            json_layouts.emplace_back(l.string());
         }
+        result["layouts"] = json_layouts;
 
         result["errcode"] = 0;
     } catch (const layout_runtime_error &error) {
         result["error"] = error.what();
         result["errcode"] = error.errcode;
 
-        auto &json_layouts = result["layouts"] = tao::json::empty_array;
+        json::array json_layouts;
         for (auto &l : my_reader.get_layouts()) {
-            json_layouts.push_back(l.string());
+            json_layouts.emplace_back(l.string());
         }
+        result["layouts"] = json_layouts;
         
         retcode = 1;
     } catch (const layout_error &error) {
@@ -102,43 +110,47 @@ int MainApp::run() {
         retcode = 4;
     }
 
-    tao::json::to_stream(std::cout, result, 4);
+    std::cout << result;
     return retcode;
 }
 
 int main(int argc, char **argv) {
-    MainApp app;
-
     try {
-        cxxopts::Options options(argv[0], "Executes bls files");
+        MainApp app;
 
-        options.positional_help("Input-bls-File");
+        namespace po = program_options;
 
-        options.add_options()
-            ("input-bls", "Input bls File", cxxopts::value(app.input_bls))
-            ("p,input-pdf", "Input pdf File", cxxopts::value(app.input_pdf))
-            ("d,show-debug", "Show Debug Variables", cxxopts::value(app.show_debug))
-            ("g,show-globals", "Show Global Variables", cxxopts::value(app.show_globals))
-            ("k,halt-setlayout", "Halt On Setlayout", cxxopts::value(app.get_layout))
-            ("c,use-cache", "Use Script Cache", cxxopts::value(app.use_cache))
-            ("h,help", "Print Help");
+        po::options_description desc("Allowed options");
+        po::positional_options_description pos;
+        pos.add("input-bls", -1);
 
-        options.parse_positional({"input-bls"});
+        desc.add_options()
+            ("help,h", "Print Help")
+            ("input-bls", po::value(&app.input_bls), "Input bls File")
+            ("input-pdf,p", po::value(&app.input_pdf), "Input pdf File")
+            ("show-debug,d", po::value(&app.show_debug), "Show Debug Variables")
+            ("show-globals,g", po::value(&app.show_globals), "Show Global Variables")
+            ("halt-setlayout,k", po::value(&app.get_layout), "Halt On Setlayout")
+            ("use-cache,c", po::value(&app.use_cache), "Use Script Cache")
+        ;
 
-        auto result = options.parse(argc, argv);
-        if (result.count("help")) {
-            std::cout << options.help() << std::endl;
+        po::variables_map vm;
+        po::store(po::command_line_parser(argc, argv).
+            options(desc).positional(pos).run(), vm);
+        po::notify(vm);
+
+        if (vm.count("help")) {
+            std::cout << desc << std::endl;
             return 0;
         }
 
-        if (!result.count("input-bls")) {
-            std::cout << options.help() << std::endl;
+        if (!vm.count("input-bls")) {
+            std::cout << "Required Input bls" << std::endl;
             return 0;
         }
-    } catch (const cxxopts::OptionException &e) {
-        std::cerr << "Errore nel parsing delle opzioni: " << e.what() << std::endl;
-        return -1;
+
+        return app.run();
+    } catch (const std::exception &e) {
+        std::cerr << e.what() << '\n';
     }
-
-    return app.run();
 }

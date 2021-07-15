@@ -37,8 +37,6 @@ set(bls_include_dirs
     ${Boost_INCLUDE_DIRS}
 )
 
-add_subdirectory(external/cxxopts)
-add_subdirectory(external/json)
 add_subdirectory(external/magic_enum)
 
 set(BOOST_LOCALE_ENABLE_ICONV OFF)
@@ -81,18 +79,20 @@ endif()
 target_include_directories(bls PUBLIC ${bls_include_dirs})
 target_link_libraries(bls ${bls_libraries})
 
+find_package(Boost REQUIRED COMPONENTS program_options json)
+
 add_executable(blsexec src/main.cpp)
-target_link_libraries(blsexec bls cxxopts taocpp-json)
+target_link_libraries(blsexec bls::bls Boost::program_options Boost::json)
 
 install(TARGETS bls blsexec)
 
 set(BLS_BUILD_UTILS ON CACHE BOOL "Build BLS Utils")
 if(BLS_BUILD_UTILS)
     add_executable(blsdump utils/blsdump.cpp)
-    target_link_libraries(blsdump bls cxxopts)
+    target_link_libraries(blsdump bls::bls Boost::program_options)
 
     add_executable(blssizes utils/sizes.cpp)
-    target_link_libraries(blssizes bls)
+    target_link_libraries(blssizes bls::bls)
 
     install(TARGETS blsdump blssizes)
 endif()
