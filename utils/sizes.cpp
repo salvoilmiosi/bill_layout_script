@@ -59,9 +59,9 @@ int main() {
     type_printer<unique_types_t<enum_type_list_t<bls::opcode>>>{}();
 
     print_size<bls::variable>();
-    print_size<bls::variable_variant>();
+    print_size<bls::variable::variant_type>();
 
-    type_printer<variant_type_list_t<bls::variable_variant>>{}();
+    type_printer<variant_type_list_t<bls::variable::variant_type>>{}();
     
     return 0;
 }

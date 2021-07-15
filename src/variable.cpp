@@ -1,6 +1,7 @@
 #include "variable.h"
 
 #include "utils.h"
+#include "exceptions.h"
 
 using namespace bls;
 
@@ -22,7 +23,11 @@ std::string &variable::get_string() const {
             [](fixed_point num)         { return fixed_point_to_string(num); },
             [](big_int num)             { return util::to_string(num); },
             [](double num)              { return util::to_string(num); },
-            [](datetime date)           { return date.to_string(); }
+            [](datetime date)           { return date.to_string(); },
+            [](const std::vector<variable> &arr) {
+                return util::string_join(arr | std::views::transform(
+                [](const variable &var) { return var.as_view(); }), util::unit_separator);
+            }
         }, m_value);
     }
     return m_str;
@@ -77,13 +82,30 @@ datetime variable::as_date() const {
     }, m_value);
 }
 
+const std::vector<variable> &variable::as_array() const {
+    if (const std::vector<variable> *val = std::get_if<std::vector<variable>>(&m_value)) {
+        return *val;
+    } else {
+        throw layout_error("variabile non array");
+    }
+}
+
+std::vector<variable> &variable::as_array() {
+    if (std::vector<variable> *val = std::get_if<std::vector<variable>>(&m_value)) {
+        return *val;
+    } else {
+        throw layout_error("variabile non array");
+    }
+}
+
 bool variable::as_bool() const {
     return std::visit(util::overloaded{
         [](null_state)              { return false; },
         [&](string_state)           { return !m_str.empty(); },
         [](std::string_view str)    { return !str.empty(); },
         [](number_t auto num)       { return num != 0; },
-        [](datetime date)           { return date.is_valid(); }
+        [](datetime date)           { return date.is_valid(); },
+        [](const std::vector<variable> &arr) { return !arr.empty(); }
     }, m_value);
 }
 
@@ -93,7 +115,8 @@ bool variable::is_null() const {
         [](auto)                    { return false; },
         [&](string_state)           { return m_str.empty(); },
         [](std::string_view str)    { return str.empty(); },
-        [](datetime date)           { return !date.is_valid(); }
+        [](datetime date)           { return !date.is_valid(); },
+        [](const std::vector<variable> &arr) { return arr.empty(); }
     }, m_value);
 }
 
@@ -108,6 +131,13 @@ bool variable::is_number() const {
     return std::visit(util::overloaded{
         [](number_t auto)   { return true; },
         [](auto)            { return false; }
+    }, m_value);
+}
+
+bool variable::is_array() const {
+    return std::visit(util::overloaded{
+        [](std::vector<variable>) { return true; },
+        [](auto) { return false; }
     }, m_value);
 }
 
