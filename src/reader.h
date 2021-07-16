@@ -57,7 +57,7 @@ public:
     const auto &get_notes() const { return m_notes; }
     const auto &get_layouts() const { return m_layouts; }
     
-    size_t get_table_count() const { return m_table_index + 1; }
+    size_t get_table_count() const { return m_table_count; }
 
     void abort() {
         m_running = false;
@@ -70,6 +70,7 @@ private:
 
     variable_map m_values;
     small_int m_table_index = 0;
+    small_int m_table_count = 1;
 
     simple_stack<variable> m_stack;
     simple_stack<content_view> m_contents;

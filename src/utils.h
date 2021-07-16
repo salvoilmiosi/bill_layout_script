@@ -20,8 +20,6 @@ namespace std {
 
 namespace util {
 
-    constexpr char unit_separator = '\x1f';
-
     template<typename ... Ts> struct overloaded : Ts ... { using Ts::operator() ...; };
     template<typename ... Ts> overloaded(Ts ...) -> overloaded<Ts...>;
 

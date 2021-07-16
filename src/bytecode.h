@@ -40,6 +40,8 @@ namespace bls {
         (LAYOUT,    "layout_file")
         (LAYOUTDIR, "layout_dir")
         (TOKENIDX,  "tokenidx")
+        (CURTABLE,  "curtable")
+        (NUMTABLES, "numtables")
     )
 
     template<enums::data_enum T>
@@ -102,6 +104,7 @@ namespace bls {
         (MVNBOX, spacer_index)          // -stack -> current_box[index]
         (RDBOX, readbox_options)        // poppler.get_text(current_box) -> content_stack
         (NEXTTABLE)                     // current_table++
+        (FIRSTTABLE)                    // current_table = 0
         (SELVAR, variable_selector)     // (name, index, size, flags) -> selected
         (SETVAR, bitset<setvar_flags>)  // selected, stack -> set
         (CLEAR)                         // selected -> clear
@@ -116,20 +119,19 @@ namespace bls {
         (GETBOX, spacer_index)          // box[index] -> stack
         (GETSYS, sys_index)             // sys[index] -> stack
         (CALL, command_call)            // stack * numargs -> fun_name -> stack
-        (ADDCONTENT)                    // stack -> content_stack
-        (POPCONTENT)                    // content_stack.pop()
+        (CNTADDSTRING)                  // stack -> content_stack
+        (CNTADDLIST)                    // stack -> content_stack
+        (CNTPUSH)                       // content_stack -> view -> content_stack
+        (CNTPOP)                        // content_stack.pop()
         (SETBEGIN)                      // stack -> content_stack.top.setbegin
         (SETEND)                        // stack -> content_stack.top.setend
-        (NEWVIEW)                       // content_stack.top.newview()
-        (SPLITVIEW)                     // content_stack.top.splitview()
         (NEXTRESULT)                    // content_stack.top.nextresult()
-        (RESETVIEW)                     // content_stack.top.resetview()
         (THROWERROR)                    // stack -> throw
         (ADDNOTE)                       // stack -> notes
         (JMP, jump_address)             // unconditional jump
         (JZ, jump_address)              // stack -> jump if top == 0
         (JNZ, jump_address)             // stack -> jump if top != 0
-        (JNTE, jump_address)            // jump if content_stack.top at token end
+        (JTE, jump_address)             // jump if content_stack.top at token end
         (JSR, jsr_address)              // program_counter -> call_stack -- jump to subroutine and discard return value
         (JSRVAL, jsr_address)           // program_counter -> call_stack -- jump to subroutine
         (RET)                           // jump to call_stack.top

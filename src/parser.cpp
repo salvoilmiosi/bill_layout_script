@@ -141,7 +141,7 @@ void parser::read_box(const layout_box &box) {
     }
 
     if (!box.flags.check(box_flags::NOREAD) && !box.flags.check(box_flags::SPACER)) {
-        m_code.add_line<opcode::POPCONTENT>();
+        m_code.add_line<opcode::CNTPOP>();
     }
 }
 

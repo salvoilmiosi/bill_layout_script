@@ -111,7 +111,7 @@ void parser::read_keyword() {
     case "goto"_h: {
         auto tok = m_lexer.require(token_type::IDENTIFIER);
         for (int i=0; i<m_content_level; ++i) {
-            m_code.add_line<opcode::POPCONTENT>();
+            m_code.add_line<opcode::CNTPOP>();
         }
         m_code.add_line<opcode::JMP>(std::format("__{}_box_{}", m_parser_id, tok.value));
         m_lexer.require(token_type::SEMICOLON);
@@ -187,16 +187,16 @@ void parser::read_keyword() {
         if (auto &last = m_code.last_not_comment(); last.command() == opcode::PUSHVAR) {
             last = make_command<opcode::PUSHREF>();
         }
-        m_code.add_line<opcode::ADDCONTENT>();
-        m_code.add_line<opcode::SPLITVIEW>();
+        m_code.add_line<opcode::CNTADDLIST>();
         m_code.add_label(begin_label);
+        m_code.add_line<opcode::JTE>(end_label);
         read_statement();
         m_code.add_label(continue_label);
         m_code.add_line<opcode::NEXTRESULT>();
-        m_code.add_line<opcode::JNTE>(begin_label);
+        m_code.add_line<opcode::JMP>(begin_label);
         m_code.add_label(end_label);
         --m_content_level;
-        m_code.add_line<opcode::POPCONTENT>();
+        m_code.add_line<opcode::CNTPOP>();
         m_loop_labels.pop();
         break;
     }
@@ -208,14 +208,14 @@ void parser::read_keyword() {
         if (auto &last = m_code.last_not_comment(); last.command() == opcode::PUSHVAR) {
             last = make_command<opcode::PUSHREF>();
         }
-        m_code.add_line<opcode::ADDCONTENT>();
+        m_code.add_line<opcode::CNTADDSTRING>();
         read_statement();
         --m_content_level;
-        m_code.add_line<opcode::POPCONTENT>();
+        m_code.add_line<opcode::CNTPOP>();
         break;
     }
     case "between"_h: {
-        m_code.add_line<opcode::NEWVIEW>();
+        m_code.add_line<opcode::CNTPUSH>();
         m_lexer.require(token_type::PAREN_BEGIN);
         if (m_content_level == 0) {
             throw parsing_error("Stack contenuti vuoto", tok_name);
@@ -238,7 +238,7 @@ void parser::read_keyword() {
         }
         m_lexer.require(token_type::PAREN_END);
         read_statement();
-        m_code.add_line<opcode::RESETVIEW>();
+        m_code.add_line<opcode::CNTPOP>();
         break;
     }
     case "step"_h: {
@@ -249,10 +249,9 @@ void parser::read_keyword() {
         if (auto &last = m_code.last_not_comment(); last.command() == opcode::PUSHVAR) {
             last = make_command<opcode::PUSHREF>();
         }
-        m_code.add_line<opcode::ADDCONTENT>();
+        m_code.add_line<opcode::CNTADDLIST>();
 
         m_lexer.require(token_type::BRACE_BEGIN);
-        m_code.add_line<opcode::SPLITVIEW>();
         
         while (true) {
             read_statement();
@@ -264,13 +263,13 @@ void parser::read_keyword() {
         }
 
         --m_content_level;
-        m_code.add_line<opcode::POPCONTENT>();
+        m_code.add_line<opcode::CNTPOP>();
         break;
     }
     case "newview"_h:
-        m_code.add_line<opcode::NEWVIEW>();
+        m_code.add_line<opcode::CNTPUSH>();
         read_statement();
-        m_code.add_line<opcode::RESETVIEW>();
+        m_code.add_line<opcode::CNTPOP>();
         break;
     case "import"_h: {
         auto tok_layout_name = m_lexer.require(token_type::STRING);
@@ -316,6 +315,7 @@ void parser::read_keyword() {
             {"setbegin",    {1, make_command<opcode::SETBEGIN>()}},
             {"setend",      {1, make_command<opcode::SETEND>()}},
             {"nexttable",   {0, make_command<opcode::NEXTTABLE>()}},
+            {"firsttable",  {0, make_command<opcode::FIRSTTABLE>()}},
             {"halt",        {0, make_command<opcode::HLT>()}}
         };
 

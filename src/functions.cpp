@@ -316,8 +316,12 @@ namespace bls {
             auto view = util::string_split(str, '\n');
             return std::vector<std::string>(view.begin(), view.end());
         }},
-        {"list", [](varargs<std::string_view> args) {
-            return std::vector<std::string>(args.begin(), args.end());
+        {"list", [](varargs<variable> args) {
+            return std::vector<variable>(args.begin(), args.end());
+        }},
+        {"subitem", [](const std::vector<variable> &vec, size_t index) {
+            if (index >= vec.size()) return variable();
+            return vec[index];
         }},
         {"sum", [](varargs<fixed_point> args) {
             return std::accumulate(args.begin(), args.end(), fixed_point());

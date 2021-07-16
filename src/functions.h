@@ -47,8 +47,9 @@ namespace bls {
 
     template<typename T> struct variable_converter<std::vector<T>> {
         std::vector<T> operator()(variable &var) const {
-            auto view = var.as_array() | std::views::transform(
-                variable_converter<convert_lvalue<T>>{});
+            auto arr = std::move(var).as_array();
+            auto view = arr | std::views::transform(
+                variable_converter<convert_rvalue<T>>{});
             return {view.begin(), view.end()};
         }
     };

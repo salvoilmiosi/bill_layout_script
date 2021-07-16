@@ -36,6 +36,7 @@ namespace bls {
 
         bool is_null() const;
         bool is_string() const;
+        bool is_view() const;
         bool is_number() const;
         bool is_array() const;
 
@@ -53,8 +54,8 @@ namespace bls {
         double as_double() const;
         datetime as_date() const;
 
-        const std::vector<variable> &as_array() const;
-        std::vector<variable> &as_array();
+        const std::vector<variable> &as_array() const &;
+        std::vector<variable> as_array() &&;
 
         bool as_bool() const;
 

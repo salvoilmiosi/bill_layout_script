@@ -30,6 +30,7 @@ void reader::start() {
 
     m_program_counter = 0;
     m_table_index = 0;
+    m_table_count = 1;
 
     m_running = true;
     m_aborted = false;
@@ -165,6 +166,10 @@ void reader::exec_command(const command_args &cmd) {
             return m_current_layout->parent_path().string();
         case sys_index::TOKENIDX:
             return m_contents.top().tokenidx();
+        case sys_index::CURTABLE:
+            return m_table_index;
+        case sys_index::NUMTABLES:
+            return m_table_count;
         default:
             return variable();
         }
@@ -175,7 +180,7 @@ void reader::exec_command(const command_args &cmd) {
         m_current_box.flags = opts.flags;
 
         check_doc_ptr();
-        m_contents.push(m_doc->get_text(m_current_box));
+        m_contents.push(content_string(m_doc->get_text(m_current_box)));
     };
 
     auto call_function = [&](const command_call &cmd) {
@@ -221,7 +226,8 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::MVBOX:         move_box(cmd.get_args<opcode::MVBOX>(), m_stack.pop()); break;
     case opcode::MVNBOX:        move_box(cmd.get_args<opcode::MVNBOX>(), -m_stack.pop()); break;
     case opcode::RDBOX:         read_box(cmd.get_args<opcode::RDBOX>()); break;
-    case opcode::NEXTTABLE:     ++m_table_index; break;
+    case opcode::NEXTTABLE:     if (++m_table_index >= m_table_count) ++m_table_count; break;
+    case opcode::FIRSTTABLE:    m_table_index = 0; break;
     case opcode::SELVAR:        select_var(cmd.get_args<opcode::SELVAR>()); break;
     case opcode::SETVAR:        m_selected.set_value(m_stack.pop(), cmd.get_args<opcode::SETVAR>()); break;
     case opcode::CLEAR:         m_selected.clear_value(); break;
@@ -236,18 +242,17 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::GETBOX:        m_stack.push(get_box_info(cmd.get_args<opcode::GETBOX>())); break;
     case opcode::GETSYS:        m_stack.push(get_sys_info(cmd.get_args<opcode::GETSYS>())); break;
     case opcode::CALL:          m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
-    case opcode::ADDCONTENT:    m_contents.push(m_stack.pop()); break;
-    case opcode::POPCONTENT:    m_contents.pop(); break;
+    case opcode::CNTADDSTRING:  m_contents.emplace(content_string(m_stack.pop())); break;
+    case opcode::CNTADDLIST:    m_contents.emplace(content_list(m_stack.pop())); break;
+    case opcode::CNTPUSH:       m_contents.push(content_string(m_contents.top().view())); break;
+    case opcode::CNTPOP:        m_contents.pop(); break;
     case opcode::SETBEGIN:      m_contents.top().setbegin(m_stack.pop().as_int()); break;
     case opcode::SETEND:        m_contents.top().setend(m_stack.pop().as_int()); break;
-    case opcode::NEWVIEW:       m_contents.top().newview(); break;
-    case opcode::SPLITVIEW:     m_contents.top().splitview(); break;
     case opcode::NEXTRESULT:    m_contents.top().nextresult(); break;
-    case opcode::RESETVIEW:     m_contents.top().resetview(); break;
     case opcode::JMP:           jump_to(cmd.get_args<opcode::JMP>()); break;
     case opcode::JZ:            if(!m_stack.pop().as_bool()) jump_to(cmd.get_args<opcode::JZ>()); break;
     case opcode::JNZ:           if(m_stack.pop().as_bool()) jump_to(cmd.get_args<opcode::JNZ>()); break;
-    case opcode::JNTE:          if(!m_contents.top().tokenend()) jump_to(cmd.get_args<opcode::JNTE>()); break;
+    case opcode::JTE:           if(m_contents.top().tokenend()) jump_to(cmd.get_args<opcode::JTE>()); break;
     case opcode::JSRVAL:        jump_subroutine(cmd.get_args<opcode::JSRVAL>(), true); break;
     case opcode::JSR:           jump_subroutine(cmd.get_args<opcode::JSR>()); break;
     case opcode::THROWERROR:    throw_error(); break;
