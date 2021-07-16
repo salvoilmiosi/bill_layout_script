@@ -1,6 +1,18 @@
 #include "lexer.h"
+#include "unicode.h"
+
+#include <cassert>
 
 using namespace bls;
+
+std::string token::parse_string() {
+    assert (type == token_type::STRING || type == token_type::REGEXP);
+    try {
+        return unicode::parseQuotedString(value, type == token_type::REGEXP);
+    } catch (const std::runtime_error &error) {
+        throw parsing_error(error.what(), *this);
+    }
+}
 
 void lexer::set_script(std::string_view str) {
     m_begin = m_current = str.data();

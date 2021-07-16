@@ -1,9 +1,5 @@
-#include "lexer.h"
+#include "unicode.h"
 #include "utils.h"
-
-#include <cassert>
-
-using namespace bls;
 
 typedef std::string_view::iterator location;
 
@@ -77,20 +73,18 @@ static inline std::string codePointToUTF8(unsigned int cp) {
     return result;
 }
 
-std::string token::parse_string() {
-    assert (type == token_type::STRING || type == token_type::REGEXP);
-    
+std::string unicode::parseQuotedString(std::string_view str, bool is_regex) {
     std::string decoded;
-    location current = value.begin() + 1;
-    location end = value.end() - 1;
+    location current = str.begin() + 1;
+    location end = str.end() - 1;
     while (current != end) {
         char c = *current++;
-        if ((type == token_type::STRING && c == '"') || (type == token_type::REGEXP && c == '/')) {
+        if ((is_regex && c == '/') || (!is_regex && c == '"')) {
             break;
         }
         if (c == '\\') {
             if (current == end) {
-                throw parsing_error("Costante stringa non valida", *this);
+                throw std::runtime_error("Costante stringa non valida");
             }
             char escape = *current++;
             switch (escape) {
@@ -118,20 +112,20 @@ std::string token::parse_string() {
             case 'u': {
                 unsigned int unicode;
                 if (!decodeUnicodeCodePoint(current, end, unicode)) {
-                    throw parsing_error("Costante stringa non valida", *this);
+                    throw std::runtime_error("Costante stringa non valida");
                 }
                 decoded += codePointToUTF8(unicode);
                 break;
             }
             default:
-                if (type == token_type::STRING) {
-                    throw parsing_error("Costante stringa non valida", *this);
+                if (!is_regex) {
+                    throw std::runtime_error("Costante stringa non valida");
                 } else {
                     decoded += '\\';
                     decoded += escape;
                 }
             }
-        } else if (type == token_type::REGEXP && c == ' ') {
+        } else if (is_regex && c == ' ') {
             decoded += "(?:\\s+)";
         } else {
             decoded += c;
@@ -139,4 +133,109 @@ std::string token::parse_string() {
     }
 
     return decoded;
+}
+
+static unsigned int utf8ToCodepoint(const char*& s, const char* e) {
+    const unsigned int REPLACEMENT_CHARACTER = 0xFFFD;
+
+    unsigned int firstByte = static_cast<unsigned char>(*s);
+
+    if (firstByte < 0x80)
+        return firstByte;
+
+    if (firstByte < 0xE0) {
+        if (e - s < 2)
+            return REPLACEMENT_CHARACTER;
+
+        unsigned int calculated = ((firstByte & 0x1F) << 6) | (static_cast<unsigned int>(s[1]) & 0x3F);
+        s += 1;
+        // oversized encoded characters are invalid
+        return calculated < 0x80 ? REPLACEMENT_CHARACTER : calculated;
+    }
+
+    if (firstByte < 0xF0) {
+        if (e - s < 3)
+            return REPLACEMENT_CHARACTER;
+
+        unsigned int calculated = ((firstByte & 0x0F) << 12) | ((static_cast<unsigned int>(s[1]) & 0x3F) << 6) | (static_cast<unsigned int>(s[2]) & 0x3F);
+        s += 2;
+        // surrogates aren't valid codepoints itself
+        // shouldn't be UTF-8 encoded
+        if (calculated >= 0xD800 && calculated <= 0xDFFF)
+            return REPLACEMENT_CHARACTER;
+        // oversized encoded characters are invalid
+        return calculated < 0x800 ? REPLACEMENT_CHARACTER : calculated;
+    }
+
+    if (firstByte < 0xF8) {
+        if (e - s < 4)
+            return REPLACEMENT_CHARACTER;
+
+        unsigned int calculated = ((firstByte & 0x07) << 18) | ((static_cast<unsigned int>(s[1]) & 0x3F) << 12) | ((static_cast<unsigned int>(s[2]) & 0x3F) << 6) | (static_cast<unsigned int>(s[3]) & 0x3F);
+        s += 3;
+        // oversized encoded characters are invalid
+        return calculated < 0x10000 ? REPLACEMENT_CHARACTER : calculated;
+    }
+
+    return REPLACEMENT_CHARACTER;
+}
+
+std::string unicode::escapeString(std::string_view str) {
+    auto to_hex = [](unsigned ch) {
+        return fmt::format("\\u{:04x}", ch);
+    };
+
+    std::string result = "\"";
+    const char* end = str.data() + str.size();
+    for (const char* c = str.data(); c != end; ++c) {
+        switch (*c) {
+        case '\"':
+            result += "\\\"";
+            break;
+        case '\\':
+            result += "\\\\";
+            break;
+        case '\b':
+            result += "\\b";
+            break;
+        case '\f':
+            result += "\\f";
+            break;
+        case '\n':
+            result += "\\n";
+            break;
+        case '\r':
+            result += "\\r";
+            break;
+        case '\t':
+            result += "\\t";
+            break;
+        // case '/':
+        // Even though \/ is considered a legal escape in JSON, a bare
+        // slash is also legal, so I see no reason to escape it.
+        // (I hope I am not misunderstanding something.)
+        // blep notes: actually escaping \/ may be useful in javascript to avoid </
+        // sequence.
+        // Should add a flag to allow this compatibility mode and prevent this
+        // sequence from occurring.
+        default: {
+            unsigned codepoint = utf8ToCodepoint(c, end); // modifies `c`
+            if (codepoint < 0x20) {
+                result += to_hex(codepoint);
+            } else if (codepoint < 0x80) {
+                result += static_cast<char>(codepoint);
+            } else if (codepoint < 0x10000) {
+                // Basic Multilingual Plane
+                result += to_hex(codepoint);
+            } else {
+                // Extended Unicode. Encode 20 bits as a surrogate pair.
+                codepoint -= 0x10000;
+                result += to_hex(0xd800 + ((codepoint >> 10) & 0x3ff));
+                result += to_hex(0xdc00 + (codepoint & 0x3ff));
+            }
+        } break;
+        }
+    }
+    result += "\"";
+    return result;
 }

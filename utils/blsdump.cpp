@@ -1,6 +1,5 @@
 #include <iostream>
 #include <filesystem>
-#include <iomanip>
 
 #include <boost/program_options.hpp>
 
@@ -8,6 +7,7 @@
 #include "fixed_point.h"
 #include "utils.h"
 #include "binary_bls.h"
+#include "unicode.h"
 
 struct MainApp {
     int run();
@@ -93,7 +93,7 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<fixed_
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<std::string> &args) {
-    return out << std::quoted(args.data);
+    return out << unicode::escapeString(args.data);
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<small_int> &args) {
