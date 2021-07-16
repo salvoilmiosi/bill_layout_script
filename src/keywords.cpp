@@ -6,7 +6,7 @@ using namespace bls;
 
 void parser::read_keyword() {
     auto make_label = [&](std::string_view label) {
-        return std::format("__{}_{}_{}", m_parser_id, m_code.size(), label);
+        return fmt::format("__{}_{}_{}", m_parser_id, m_code.size(), label);
     };
 
     auto tok_name = m_lexer.require(token_type::FUNCTION);
@@ -113,7 +113,7 @@ void parser::read_keyword() {
         for (int i=0; i<m_content_level; ++i) {
             m_code.add_line<opcode::CNTPOP>();
         }
-        m_code.add_line<opcode::JMP>(std::format("__{}_box_{}", m_parser_id, tok.value));
+        m_code.add_line<opcode::JMP>(fmt::format("__{}_box_{}", m_parser_id, tok.value));
         m_lexer.require(token_type::SEMICOLON);
         break;
     }
@@ -136,7 +136,7 @@ void parser::read_keyword() {
                 break;
             case token_type::IDENTIFIER:
                 if (std::ranges::find(m_fun_args, tok.value) != m_fun_args.end()) {
-                    throw parsing_error(std::format("Argomento funzione duplicato: {}", tok.value), tok);
+                    throw parsing_error(fmt::format("Argomento funzione duplicato: {}", tok.value), tok);
                 }
                 m_fun_args.emplace_back(tok.value);
                 ++num_args;
@@ -156,8 +156,8 @@ void parser::read_keyword() {
             }
         }
         
-        std::string fun_label = std::format("__function_{}", name.value);
-        std::string endfun_label = std::format("__endfunction_{}", name.value);
+        std::string fun_label = fmt::format("__function_{}", name.value);
+        std::string endfun_label = fmt::format("__endfunction_{}", name.value);
 
         m_code.add_line<opcode::JMP>(endfun_label);
 
@@ -355,9 +355,9 @@ void parser::read_keyword() {
                 throw invalid_numargs(std::string(fun_name), it->second.numargs, it->second.numargs, tok_name);
             }
             if (it->second.has_contents && m_content_level == 0) {
-                throw parsing_error(std::format("Impossibile chiamare {}, stack contenuti vuoto", fun_name), tok_name);
+                throw parsing_error(fmt::format("Impossibile chiamare {}, stack contenuti vuoto", fun_name), tok_name);
             }
-            m_code.add_line<opcode::JSR>(std::format("__function_{}", fun_name), num_args);
+            m_code.add_line<opcode::JSR>(fmt::format("__function_{}", fun_name), num_args);
         } else {
             throw parsing_error("Parola chiave sconosciuta", tok_name);
         }

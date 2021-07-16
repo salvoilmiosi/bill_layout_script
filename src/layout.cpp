@@ -26,16 +26,16 @@ namespace bls {
             if (!box.flags.empty()) {
                 output << "### Flags " << box.flags << '\n';
             }
-            output << std::format("### Page {}\n", box.page);
-            output << std::format("### Rect {} {} {} {}\n", box.x, box.y, box.w, box.h);
+            output << fmt::format("### Page {}\n", box.page);
+            output << fmt::format("### Rect {} {} {} {}\n", box.x, box.y, box.w, box.h);
             if (!box.goto_label.empty()) {
-                output << std::format("### Goto Label {}\n", box.goto_label);
+                output << fmt::format("### Goto Label {}\n", box.goto_label);
             }
             if (!box.spacers.empty()) {
                 output << "### Spacers\n";
                 for (const auto &line : util::string_split(box.spacers, '\n')) {
                     if (line == "### End Spacers") {
-                        throw layout_error(std::format("In {}:\nInvalido Token End Spacers", box.name.empty() ? std::string("(Box senza nome)") : box.name));
+                        throw layout_error(fmt::format("In {}:\nInvalido Token End Spacers", box.name.empty() ? std::string("(Box senza nome)") : box.name));
                     } else {
                         output << line << '\n';
                     }
@@ -46,7 +46,7 @@ namespace bls {
                 output << "### Script\n";
                 for (const auto &line : util::string_split(box.script, '\n')) {
                     if (line == "### End Script") {
-                        throw layout_error(std::format("In {}:\nInvalido Token End Script", box.name.empty() ? std::string("(Box senza nome)") : box.name));
+                        throw layout_error(fmt::format("In {}:\nInvalido Token End Script", box.name.empty() ? std::string("(Box senza nome)") : box.name));
                     } else {
                         output << line << '\n';
                     }
@@ -101,7 +101,7 @@ namespace bls {
                         try {
                             current.mode = enums::from_string<read_mode>(suf.value);
                         } catch (std::invalid_argument) {
-                            throw layout_error(std::format("Token 'Mode' non valido: {}", suf.value));
+                            throw layout_error(fmt::format("Token 'Mode' non valido: {}", suf.value));
                         }
                     } else if (auto suf = suffix(line, "### Flags")) {
                         util::isviewstream ss{suf.value};
@@ -110,7 +110,7 @@ namespace bls {
                             try {
                                 current.flags.set(enums::from_string<box_flags>(label));
                             } catch (std::invalid_argument) {
-                                throw layout_error(std::format("Token 'Flags' non valido: {}", label));
+                                throw layout_error(fmt::format("Token 'Flags' non valido: {}", label));
                             }
                         }
                     } else if (auto suf = suffix(line, "### Page")) {

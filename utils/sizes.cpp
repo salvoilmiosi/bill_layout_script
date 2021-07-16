@@ -43,7 +43,7 @@ template<typename ... Ts> struct variant_type_list<std::variant<Ts...>> {
 
 template<typename T>
 void print_size(std::string name = boost::core::demangle(typeid(T).name())) {
-    std::cout << std::format("{:>3} {}\n", sizeof(T), name);
+    std::cout << fmt::format("{:>3} {}\n", sizeof(T), name);
 }
 
 template<typename T> struct type_printer{};

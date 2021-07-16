@@ -8,14 +8,14 @@
 
 #ifdef USE_FMTLIB
 #include <fmt/format.h>
-namespace std {
-    template<typename ... Ts>
-    inline auto format(Ts && ... args) {
-        return fmt::format(std::forward<Ts>(args) ...);
-    }
-}
 #else
 #include <format>
+namespace fmt {
+    template<typename ... Ts>
+    inline auto format(Ts && ... args) {
+        return std::format(std::forward<Ts>(args) ...);
+    }
+}
 #endif
 
 namespace util {
@@ -102,7 +102,7 @@ namespace util {
         T ret;
         auto result = std::from_chars(str.data(), str.data() + str.size(), ret);
         if (result.ec != std::errc()) {
-            throw std::invalid_argument(std::format("Impossibile convertire {} in numero", str));
+            throw std::invalid_argument(fmt::format("Impossibile convertire {} in numero", str));
         }
         return ret;
     }
@@ -110,7 +110,7 @@ namespace util {
     template<typename T> requires std::is_arithmetic_v<T>
     std::string to_string(T num) {
     #ifndef HAS_FLOAT_TO_CHARS
-        return std::format("{}", num);
+        return fmt::format("{}", num);
     #else
         std::array<char, 16> buffer;
         if (auto [ptr, ec] = std::to_chars(buffer.data(), buffer.data() + buffer.size(), num); ec == std::errc()) {

@@ -47,7 +47,7 @@ namespace bls {
                         ret += fmt_args[idx];
                         continue;
                     } else {
-                        throw layout_error(std::format("Stringa di formato non valida: {}", str));
+                        throw layout_error(fmt::format("Stringa di formato non valida: {}", str));
                     }
                 } else {
                     ret += FORMAT_CHAR;
@@ -96,13 +96,13 @@ namespace bls {
         } else {
             auto tho = escape_regex_char(facet.thousands_sep());
             auto it = grp.rbegin();
-            ret = std::format("\\d{{1,{0}}}(?:{1}\\d{{{0}}})*", int(*it), tho);
+            ret = fmt::format("\\d{{1,{0}}}(?:{1}\\d{{{0}}})*", int(*it), tho);
             for(++it; it != grp.rend(); ++it) {
-                ret = std::format("(?:{2}{1}\\d{{{0}}}|\\d{{1,{0}}})", int(*it), tho, ret);
+                ret = fmt::format("(?:{2}{1}\\d{{{0}}}|\\d{{1,{0}}})", int(*it), tho, ret);
             }
-            ret = std::format("(?:{}|\\d+)", ret);
+            ret = fmt::format("(?:{}|\\d+)", ret);
         }
-        return std::format("(?:-?{0}(?:{1}\\d+)?)(?!\\d)", ret, escape_regex_char(facet.decimal_point()));
+        return fmt::format("(?:-?{0}(?:{1}\\d+)?)(?!\\d)", ret, escape_regex_char(facet.decimal_point()));
     };
 
     // Costruisce un oggetto std::regex
@@ -111,7 +111,7 @@ namespace bls {
             util::string_replace(regex, "\\N", number_regex(loc));
             return std::regex(regex, std::regex::icase);
         } catch (const std::regex_error &error) {
-            throw layout_error(std::format("Espressione regolare non valida: {0}\n{1}", regex, error.what()));
+            throw layout_error(fmt::format("Espressione regolare non valida: {0}\n{1}", regex, error.what()));
         }
     }
 
@@ -170,13 +170,13 @@ namespace bls {
     template<std::ranges::input_range R>
     static std::vector<std::string> table_header(std::string_view value, R &&labels) {
         std::cmatch header_match;
-        std::regex header_regex(std::format(".*{}.*", util::string_join(labels |
+        std::regex header_regex(fmt::format(".*{}.*", util::string_join(labels |
         std::views::transform([first=true](std::string_view str) mutable {
             if (first) {
                 first = false;
                 return std::string(str);
             } else {
-                return std::format("(?:{})?", str);
+                return fmt::format("(?:{})?", str);
             }
         }), ".*")), std::regex::icase);
         if (!std::regex_search(value.data(), value.data() + value.size(), header_match, header_regex)) {
@@ -189,9 +189,9 @@ namespace bls {
                 auto match_str = match_to_view(match[0]);
                 pos = std::find_if_not(match_str.data() + match_str.size(), header_str.data() + header_str.size(), isspace);
                 if (pos == header_str.data() + header_str.size()) {
-                    return std::format("{}:-1", match_str.data() - header_str.data());
+                    return fmt::format("{}:-1", match_str.data() - header_str.data());
                 } else {
-                    return std::format("{}:{}", match_str.data() - header_str.data(), pos - match_str.data());
+                    return fmt::format("{}:{}", match_str.data() - header_str.data(), pos - match_str.data());
                 }
             } else {
                 return std::string();
@@ -303,7 +303,7 @@ namespace bls {
         {"null", []{ return variable(); }},
         {"isnull", [](const variable &var) { return var.is_null(); }},
         {"hex", [](int num) {
-            return std::format("{:x}", num);
+            return fmt::format("{:x}", num);
         }},
         {"aggregate", [](const std::locale &loc, const std::vector<std::string> list) {
             variable ret;
@@ -429,10 +429,10 @@ namespace bls {
             return util::string_trim(str);
         }},
         {"lpad", [](std::string_view str, int amount) {
-            return std::format("{0: >{1}}", str, str.size() + amount);
+            return fmt::format("{0: >{1}}", str, str.size() + amount);
         }},
         {"rpad", [](std::string_view str, int amount) {
-            return std::format("{0: <{1}}", str, str.size() + amount);
+            return fmt::format("{0: <{1}}", str, str.size() + amount);
         }},
         {"contains", [](std::string_view str, std::string_view str2) {
             return string_find_icase(str, str2, 0).begin() != str.end();

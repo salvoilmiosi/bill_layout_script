@@ -28,7 +28,7 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
             read_box(box);
         }
     } catch (const parsing_error &error) {
-        throw layout_error(std::format("{}: {}\n{}",
+        throw layout_error(fmt::format("{}: {}\n{}",
             current_box->name, error.what(),
             m_lexer.token_location_info(error.location())));
     }
@@ -40,7 +40,7 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
                     if (auto label_it = m_code.find_label(*str); label_it != m_code.end()) {
                         static_cast<jump_address &>(label) = ptrdiff_t(label_it - it);
                     } else {
-                        throw layout_error(std::format("Etichetta sconosciuta: {}", *str));
+                        throw layout_error(fmt::format("Etichetta sconosciuta: {}", *str));
                     }
                 }
             }
@@ -64,7 +64,7 @@ void parser::read_box(const layout_box &box) {
     m_lexer.set_script(box.goto_label);
     auto tok_label = m_lexer.next();
     if (tok_label.type == token_type::IDENTIFIER) {
-        m_code.add_label(std::format("__{}_box_{}", m_parser_id, tok_label.value));
+        m_code.add_label(fmt::format("__{}_box_{}", m_parser_id, tok_label.value));
         m_lexer.require(token_type::END_OF_FILE);
     } else if (tok_label.type != token_type::END_OF_FILE) {
         throw unexpected_token(tok_label, token_type::IDENTIFIER);
@@ -118,7 +118,7 @@ void parser::read_box(const layout_box &box) {
                     m_code.add_line<opcode::MVBOX>(idx);
                 }
             } catch (std::out_of_range) {
-                throw parsing_error(std::format("Flag spacer non valido: {}", tok.value), tok);
+                throw parsing_error(fmt::format("Flag spacer non valido: {}", tok.value), tok);
             }
         } else if (tok.type != token_type::END_OF_FILE) {
             throw unexpected_token(tok, token_type::IDENTIFIER);
@@ -487,7 +487,7 @@ void parser::add_enum_index_command() {
     try {
         m_code.add_line<Cmd>(find_enum_index<opcode_type<Cmd>>(tok.value));
     } catch (std::out_of_range) {
-        throw parsing_error(std::format("Argomento non valido: {}", tok.value), tok);
+        throw parsing_error(fmt::format("Argomento non valido: {}", tok.value), tok);
     }
 };
 
@@ -529,11 +529,11 @@ void parser::read_function() {
                 throw invalid_numargs(std::string(fun_name), it->second.numargs, it->second.numargs, tok_fun_name);
             }
             if (it->second.has_contents && m_content_level == 0) {
-                throw parsing_error(std::format("Impossibile chiamare {}, stack contenuti vuoto", fun_name), tok_fun_name);
+                throw parsing_error(fmt::format("Impossibile chiamare {}, stack contenuti vuoto", fun_name), tok_fun_name);
             }
-            m_code.add_line<opcode::JSRVAL>(std::format("__function_{}", fun_name), num_args);
+            m_code.add_line<opcode::JSRVAL>(fmt::format("__function_{}", fun_name), num_args);
         } else {
-            throw parsing_error(std::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
+            throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
         }
     }
     }
