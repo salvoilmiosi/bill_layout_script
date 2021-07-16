@@ -24,8 +24,8 @@ namespace bls {
     )
 
     struct loop_label_pair {
-        string_ptr continue_label;
-        string_ptr break_label;
+        std::string continue_label;
+        std::string break_label;
     };
 
     struct function_info {

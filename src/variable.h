@@ -3,20 +3,21 @@
 
 #include <variant>
 #include <string>
+#include <vector>
+
 #include "fixed_point.h"
 #include "datetime.h"
 
 namespace bls {
 
     typedef int64_t big_int;
-
     struct null_state {};
     struct string_state {};
 
-    using variable_variant = std::variant<null_state, string_state, std::string_view, fixed_point, big_int, double, datetime>;
-
     class variable {
     public:
+        using variant_type = std::variant<null_state, string_state, std::string_view, fixed_point, big_int, double, datetime, std::vector<variable>>;
+        
         variable() = default;
 
         variable(const std::string &value) : m_str(value), m_value(string_state{}) {}
@@ -30,9 +31,14 @@ namespace bls {
 
         variable(datetime value) : m_value(value) {}
 
+        template<typename T>
+        variable(const std::vector<T> &vec) : m_value(std::vector<variable>(vec.begin(), vec.end())) {}
+
         bool is_null() const;
         bool is_string() const;
+        bool is_view() const;
         bool is_number() const;
+        bool is_array() const;
 
         const std::string &as_string() const & {
             return get_string();
@@ -47,6 +53,9 @@ namespace bls {
         big_int as_int() const;
         double as_double() const;
         datetime as_date() const;
+
+        const std::vector<variable> &as_array() const &;
+        std::vector<variable> as_array() &&;
 
         bool as_bool() const;
 
@@ -71,7 +80,7 @@ namespace bls {
     private:
         mutable std::string m_str;
 
-        variable_variant m_value;
+        variant_type m_value;
 
         std::string &get_string() const;
     };

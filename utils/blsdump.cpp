@@ -81,7 +81,7 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<comman
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<variable_selector> &args) {
-    out << *args.data.name << ' ' << int(args.data.index);
+    out << args.data.name << ' ' << int(args.data.index);
     if (args.data.length != 1) {
         out << ':' << int(args.data.length);
     }
@@ -92,8 +92,8 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<fixed_
     return out << fixed_point_to_string(args.data);
 }
 
-template<> std::ostream &operator << (std::ostream &out, const print_args<string_ptr> &args) {
-    return out << std::quoted(*args.data);
+template<> std::ostream &operator << (std::ostream &out, const print_args<std::string> &args) {
+    return out << std::quoted(args.data);
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<small_int> &args) {
@@ -102,7 +102,7 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<small_
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<jump_address> &label) {
     std::visit(util::overloaded{
-        [&](string_ptr str) {
+        [&](const std::string &str) {
             out << print_args(str);
         },
         [&](ptrdiff_t addr) {
@@ -134,7 +134,7 @@ int MainApp::run() {
         }
         for (auto line = code.begin(); line != code.end(); ++line) {
             if (line->command() == opcode::COMMENT) {
-                std::cout << *line->get_args<opcode::COMMENT>();
+                std::cout << line->get_args<opcode::COMMENT>();
             } else {
                 std::cout << '\t' << line->command();
                 line->visit([&](auto args) {

@@ -11,49 +11,46 @@
 
 namespace bls {
 
-    template<typename T> T convert_var(variable &var) = delete;
+    template<typename T> struct variable_converter {};
 
-    template<> inline variable &&           convert_var(variable &var) { return std::move(var); }
-    template<> inline std::string &&        convert_var(variable &var) { return std::move(var).as_string(); }
+    #define DEFINE_CONVERTER(t, cmd) template<> struct variable_converter<t> { t operator()(variable &var) { return cmd; } };
 
-    template<> inline const variable &      convert_var(variable &var) { return var; }
-    template<> inline const std::string &   convert_var(variable &var) { return var.as_string(); }
+    DEFINE_CONVERTER(variable &&,           std::move(var))
+    DEFINE_CONVERTER(std::string &&,        std::move(var).as_string())
+    DEFINE_CONVERTER(const variable &,      var)
+    DEFINE_CONVERTER(const std::string &,   var.as_string())
+    DEFINE_CONVERTER(std::string_view,      var.as_view())
+    DEFINE_CONVERTER(fixed_point,           var.as_number())
+    DEFINE_CONVERTER(datetime,              var.as_date())
+    DEFINE_CONVERTER(size_t,                var.as_int())
+    DEFINE_CONVERTER(int,                   var.as_int())
+    DEFINE_CONVERTER(float,                 var.as_double())
+    DEFINE_CONVERTER(double,                var.as_double())
+    DEFINE_CONVERTER(bool,                  var.as_bool())
 
-    template<> inline std::string_view      convert_var(variable &var) { return var.as_view(); }
-    template<> inline fixed_point           convert_var(variable &var) { return var.as_number(); }
-    template<> inline datetime              convert_var(variable &var) { return var.as_date(); }
-    template<> inline size_t                convert_var(variable &var) { return var.as_int(); }
-    template<> inline int                   convert_var(variable &var) { return var.as_int(); }
-    template<> inline float                 convert_var(variable &var) { return var.as_double(); }
-    template<> inline double                convert_var(variable &var) { return var.as_double(); }
-    template<> inline bool                  convert_var(variable &var) { return var.as_bool(); }
-
-    using string_list = decltype(util::string_split(std::declval<std::string_view>(), util::unit_separator));
-
-    template<> inline string_list convert_var(variable &var) { return util::string_split(var.as_view(), util::unit_separator); }
+    #undef DEFINE_CONVERTER
 
     template<typename T, typename = void> struct is_convertible : std::false_type {};
-    template<typename T> struct is_convertible<T, std::void_t<decltype(convert_var<T>(std::declval<variable &>()))>> : std::true_type {};
+    template<typename T> struct is_convertible<T, std::void_t<decltype(variable_converter<T>{}(std::declval<variable&>()))>> : std::true_type {};
     template<typename T> constexpr bool is_convertible_v = is_convertible<T>::value;
 
     template<typename ... Ts> struct first_convertible {};
-    template<> struct first_convertible<> {
-        using type = void;
-    };
-    template<typename First, typename ... Ts> struct first_convertible<First, Ts...> {
-        using type = std::conditional_t<is_convertible_v<First>, First, typename first_convertible<Ts...>::type>;
-    };
     template<typename ... Ts> using first_convertible_t = typename first_convertible<Ts...>::type;
+    template<> struct first_convertible<> { using type = void; };
+    template<typename First, typename ... Ts> struct first_convertible<First, Ts...>
+        : std::conditional<is_convertible_v<First>, First, first_convertible_t<Ts...>> {};
 
     template<typename T> using convert_rvalue = first_convertible_t<
         std::add_rvalue_reference_t<std::decay_t<T>>, std::decay_t<T>>;
     template<typename T> using convert_lvalue = first_convertible_t<
         std::add_lvalue_reference_t<std::add_const_t<std::decay_t<T>>>, std::decay_t<T>>;
 
-    template<typename T>
-    struct vararg_converter {
-        decltype(auto) operator ()(variable &var) const {
-            return convert_var<convert_lvalue<T>>(var);
+    template<typename T> struct variable_converter<std::vector<T>> {
+        std::vector<T> operator()(variable &var) const {
+            auto arr = std::move(var).as_array();
+            auto view = arr | std::views::transform(
+                variable_converter<convert_rvalue<T>>{});
+            return {view.begin(), view.end()};
         }
     };
 
@@ -100,7 +97,8 @@ namespace bls {
 
     template<int Value>     using optional_int =    optional<int,    int_getter<int, Value>>;
     template<size_t Value>  using optional_size =   optional<size_t, int_getter<size_t, Value>>;
-
+    
+    template<typename T> using vararg_converter = variable_converter<convert_lvalue<T>>;
     template<typename T> using varargs_base = std::ranges::transform_view<arg_list, vararg_converter<T>>;
     template<typename T, size_t Minargs = 0> struct varargs : varargs_base<T> {
         using var_type = T;
@@ -182,12 +180,12 @@ namespace bls {
             if (I >= args.size()) {
                 return type();
             } else {
-                return type(convert_var<convert_rvalue<opt_type>>(args[I]));
+                return type(variable_converter<convert_rvalue<opt_type>>{}(args[I]));
             }
         } else if constexpr (is_varargs<std::decay_t<type>>{}) {
             return type(arg_list(args.begin() + I, args.end()));
         } else {
-            return convert_var<convert_rvalue<type>>(args[I]);
+            return variable_converter<convert_rvalue<type>>{}(args[I]);
         }
     }
 

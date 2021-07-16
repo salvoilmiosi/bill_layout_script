@@ -8,80 +8,117 @@
 #include "stack.h"
 
 namespace bls {
-
-    struct view_span {
-        size_t m_begin;
-        size_t m_end;
-        int m_index;
-        
-        constexpr size_t size() const noexcept {
-            return m_end - m_begin;
-        }
-    };
-
-    class content_view : private variable {
+    class content_string {
     private:
-        static_stack<view_span> m_spans;
+        size_t m_begin{0};
+        size_t m_end{0};
+    
+        std::variant<std::string, std::string_view> m_data;
 
+        void init(std::string_view str) {
+            m_end = str.size();
+            m_data = str;
+        }
+
+        void init(std::string &&str) {
+            m_end = str.size();
+            m_data = std::move(str);
+        }
+    
     public:
-        template<typename T>
-        content_view(T &&value) : variable(std::forward<T>(value)) {
-            m_spans.push(view_span{0, as_view().size(), 0});
+        content_string(variable &&var) {
+            if (var.is_view()) {
+                init(var.as_view());
+            } else {
+                init(std::move(var).as_string());
+            }
+        }
+
+        content_string(std::string &&str) {
+            init(std::move(str));
+        }
+
+        content_string(std::string_view str) {
+            init(str);
         }
 
         void setbegin(size_t n) noexcept {
-            m_spans.top().m_begin = std::min(
-                m_spans.top().m_begin + n,
-                m_spans.top().m_end);
+            m_begin = std::min(m_begin + n, m_end);
         }
 
         void setend(size_t n) noexcept {
-            m_spans.top().m_end = std::min(
-                m_spans.top().m_begin + n,
-                m_spans.top().m_end);
+            m_end = std::min(m_begin + n, m_end);
         }
 
-        void newview() {
-            m_spans.push(m_spans.top());
+        variable view() const {
+            const char *data = std::visit(util::overloaded{
+                [](const std::string &str) { return str.data(); },
+                [](std::string_view str) { return str.data(); }
+            }, m_data);
+            return std::string_view(data + m_begin, data + m_end);
+        }
+    };
+
+    class content_list {
+    private:
+        size_t m_index{0};
+
+        std::vector<variable> m_data;
+    
+    public:
+        content_list(variable &&var) : m_data(std::move(var).as_array()) {}
+
+        void nextresult() {
+            ++m_index;
         }
 
-        void splitview() {
-            m_spans.emplace(
-                m_spans.top().m_begin,
-                std::min(
-                    as_view().find(util::unit_separator, m_spans.top().m_begin),
-                    m_spans.top().m_end),
-                0
-            );
+        size_t tokenidx() const {
+            return m_index;
         }
 
-        void resetview() noexcept {
-            assert(m_spans.size() > 1);
-            m_spans.pop();
-        }
-        
-        void nextresult() noexcept {
-            assert(m_spans.size() > 1);
-            m_spans.top().m_begin = std::min(
-                m_spans.top().m_end + 1,
-                m_spans[m_spans.size() - 2].m_end);
-            m_spans.top().m_end = std::min(
-                as_view().find(util::unit_separator, m_spans.top().m_begin),
-                m_spans[m_spans.size() - 2].m_end);
-            ++m_spans.top().m_index;
+        bool tokenend() const {
+            return m_index >= m_data.size();
         }
 
-        int tokenidx() const noexcept {
-            return m_spans.top().m_index;
+        variable view() const {
+            if (tokenend()) return {};
+            return m_data[m_index];
+        }
+    };
+
+    class content_view {
+    private:
+        std::variant<content_string, content_list> m_data;
+
+    public:
+        content_view(content_string &&str) : m_data(std::move(str)) {}
+        content_view(content_list &&list) : m_data(std::move(list)) {}
+
+        void setbegin(size_t n) {
+            std::get<content_string>(m_data).setbegin(n);
         }
 
-        bool tokenend() const noexcept {
-            assert(m_spans.size() > 1);
-            return m_spans.top().m_begin >= m_spans[m_spans.size() - 2].m_end;
+        void setend(size_t n) {
+            std::get<content_string>(m_data).setend(n);
         }
 
-        std::string_view view() const noexcept {
-            return as_view().substr(m_spans.top().m_begin, m_spans.top().size());
+        void nextresult() {
+            std::get<content_list>(m_data).nextresult();
+        }
+
+        size_t tokenidx() const {
+            return std::get<content_list>(m_data).tokenidx();
+        }
+
+        bool tokenend() const {
+            return std::get<content_list>(m_data).tokenend();
+        }
+
+        variable view() const {
+            return std::visit(util::overloaded {
+                [](const content_string &str) { return str.view(); },
+                [](const content_list &list) { return list.view(); }
+            }, m_data);
         }
     };
 

@@ -27,9 +27,6 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
         for (auto &box : layout) {
             read_box(box);
         }
-        if (layout.setlayout) {
-            m_code.add_line<opcode::HLT>();
-        }
     } catch (const parsing_error &error) {
         throw layout_error(std::format("{}: {}\n{}",
             current_box->name, error.what(),
@@ -39,11 +36,11 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
     for (auto it = m_code.begin(); it != m_code.end(); ++it) {
         it->visit([&](auto &label) {
             if constexpr (std::is_base_of_v<jump_address, std::remove_reference_t<decltype(label)>>) {
-                if (auto *str = std::get_if<string_ptr>(&label)) {
+                if (auto *str = std::get_if<std::string>(&label)) {
                     if (auto label_it = m_code.find_label(*str); label_it != m_code.end()) {
                         static_cast<jump_address &>(label) = ptrdiff_t(label_it - it);
                     } else {
-                        throw layout_error(std::format("Etichetta sconosciuta: {}", **str));
+                        throw layout_error(std::format("Etichetta sconosciuta: {}", *str));
                     }
                 }
             }
@@ -141,7 +138,7 @@ void parser::read_box(const layout_box &box) {
     }
 
     if (!box.flags.check(box_flags::NOREAD) && !box.flags.check(box_flags::SPACER)) {
-        m_code.add_line<opcode::POPCONTENT>();
+        m_code.add_line<opcode::CNTPOP>();
     }
 }
 
