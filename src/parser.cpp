@@ -27,9 +27,6 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
         for (auto &box : layout) {
             read_box(box);
         }
-        if (layout.setlayout) {
-            m_code.add_line<opcode::HLT>();
-        }
     } catch (const parsing_error &error) {
         throw layout_error(std::format("{}: {}\n{}",
             current_box->name, error.what(),
