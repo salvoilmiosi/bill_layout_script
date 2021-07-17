@@ -77,7 +77,7 @@ void parser::read_keyword() {
         read_statement();
         m_code.add_line<opcode::JMP>(while_label);
         m_code.add_label(endwhile_label);
-        m_loop_labels.pop();
+        m_loop_labels.pop_back();
         break;
     }
     case "for"_h: {
@@ -105,7 +105,7 @@ void parser::read_keyword() {
         m_code.move_not_comments(increase_stmt_begin, increase_stmt_end);
         m_code.add_line<opcode::JMP>(for_label);
         m_code.add_label(endfor_label);
-        m_loop_labels.pop();
+        m_loop_labels.pop_back();
         break;
     }
     case "goto"_h: {
@@ -197,7 +197,7 @@ void parser::read_keyword() {
         m_code.add_label(end_label);
         --m_content_level;
         m_code.add_line<opcode::CNTPOP>();
-        m_loop_labels.pop();
+        m_loop_labels.pop_back();
         break;
     }
     case "with"_h: {

@@ -6,6 +6,7 @@
 #include "bytecode.h"
 #include "utils.h"
 #include "type_list.h"
+#include "content_view.h"
 
 namespace detail {
 
@@ -55,13 +56,19 @@ template<typename ... Ts> struct type_printer<util::type_list<Ts...>> {
 
 int main() {
     print_size<bls::command_args>();
-
     type_printer<unique_types_t<enum_type_list_t<bls::opcode>>>{}();
+
+    std::cout << '\n';
 
     print_size<bls::variable>();
     print_size<bls::variable::variant_type>();
-
     type_printer<variant_type_list_t<bls::variable::variant_type>>{}();
+
+    std::cout << '\n';
+
+    print_size<bls::content_view>();
+    print_size<bls::content_string>();
+    print_size<bls::content_list>();
     
     return 0;
 }

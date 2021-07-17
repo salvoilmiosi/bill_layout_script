@@ -10,52 +10,71 @@
 namespace bls {
     class content_string {
     private:
-        size_t m_begin{0};
-        size_t m_end{0};
-    
-        std::variant<std::string, std::string_view> m_data;
-
-        void init(std::string_view str) {
-            m_end = str.size();
-            m_data = str;
-        }
-
-        void init(std::string &&str) {
-            m_end = str.size();
-            m_data = std::move(str);
-        }
+        std::string m_str;
+        std::string_view m_view;
     
     public:
+        content_string(const std::string &str)
+            : m_str(str)
+            , m_view(m_str) {}
+        
+        content_string(std::string &&str) noexcept
+            : m_str(std::move(str))
+            , m_view(m_str) {}
+
+        content_string(std::string_view str) noexcept
+            : m_view(str) {}
+
         content_string(variable &&var) {
             if (var.is_view()) {
-                init(var.as_view());
+                *this = var.as_view();
             } else {
-                init(std::move(var).as_string());
+                *this = std::move(var).as_string();
             }
         }
 
-        content_string(std::string &&str) {
-            init(std::move(str));
+        content_string(const content_string &other) {
+            *this = other;
         }
 
-        content_string(std::string_view str) {
-            init(str);
+        content_string(content_string &&other) noexcept {
+            *this = std::move(other);
+        }
+
+        ~content_string() = default;
+        
+        content_string &operator = (const content_string &other) {
+            if (other.m_str.empty()) {
+                m_view = other.m_view;
+            } else {
+                size_t begin = other.m_view.data() - other.m_str.data();
+                m_str = other.m_str;
+                m_view = std::string_view(m_str.data() + begin, other.m_view.size());
+            }
+            return *this;
+        }
+        
+        content_string &operator = (content_string &&other) noexcept {
+            if (other.m_str.empty()) {
+                m_view = other.m_view;
+            } else {
+                size_t begin = other.m_view.data() - other.m_str.data();
+                m_str = std::move(other.m_str);
+                m_view = std::string_view(m_str.data() + begin, other.m_view.size());
+            }
+            return *this;
         }
 
         void setbegin(size_t n) noexcept {
-            m_begin = std::min(m_begin + n, m_end);
+            m_view = m_view.substr(n);
         }
 
         void setend(size_t n) noexcept {
-            m_end = std::min(m_begin + n, m_end);
+            m_view = m_view.substr(0, n);
         }
 
         variable view() const {
-            const char *data = std::visit(util::overloaded{
-                [](const std::string &str) { return str.data(); },
-                [](std::string_view str) { return str.data(); }
-            }, m_data);
-            return std::string_view(data + m_begin, data + m_end);
+            return m_view;
         }
     };
 
@@ -91,8 +110,9 @@ namespace bls {
         std::variant<content_string, content_list> m_data;
 
     public:
-        content_view(content_string &&str) : m_data(std::move(str)) {}
-        content_view(content_list &&list) : m_data(std::move(list)) {}
+        template<typename T, typename ... Ts>
+        content_view(std::in_place_type_t<T>, Ts && ... args)
+            : m_data(std::in_place_type<T>, std::forward<Ts>(args) ...) {}
 
         void setbegin(size_t n) {
             std::get<content_string>(m_data).setbegin(n);
