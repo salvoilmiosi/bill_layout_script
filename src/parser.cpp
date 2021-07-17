@@ -70,7 +70,7 @@ void parser::read_box(const layout_box &box) {
         throw unexpected_token(tok_label, token_type::IDENTIFIER);
     }
 
-    if (!box.flags.check(box_flags::NOREAD) && !box.flags.check(box_flags::SPACER)) {
+    if (!box.flags.check(box_flags::NOREAD) || box.flags.check(box_flags::SPACER)) {
         m_code.add_line<opcode::NEWBOX>();
         if (!box.flags.check(box_flags::PAGE)) {
             m_code.add_line<opcode::PUSHDOUBLE>(box.x);
