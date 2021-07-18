@@ -120,7 +120,6 @@ namespace bls {
         (CALL, command_call)            // stack * numargs -> fun_name -> stack
         (CNTADDSTRING)                  // stack -> content_stack
         (CNTADDLIST)                    // stack -> content_stack
-        (CNTPUSH)                       // content_stack -> view -> content_stack
         (CNTPOP)                        // content_stack.pop()
         (SETBEGIN)                      // stack -> content_stack.top.setbegin
         (SETEND)                        // stack -> content_stack.top.setend

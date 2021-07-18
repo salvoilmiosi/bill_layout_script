@@ -232,7 +232,8 @@ void parser::read_keyword() {
                 return is_regex ? "searchpos" : "indexof";
             }
         };
-        m_code.add_line<opcode::CNTPUSH>();
+        m_code.add_line<opcode::PUSHVIEW>();
+        m_code.add_line<opcode::CNTADDSTRING>();
         m_lexer.require(token_type::PAREN_BEGIN);
         if (m_content_level == 0) {
             throw parsing_error("Stack contenuti vuoto", tok_name);

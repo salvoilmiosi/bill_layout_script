@@ -242,7 +242,6 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::CALL:          m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
     case opcode::CNTADDSTRING:  m_contents.emplace(std::in_place_type<content_string>, m_stack.pop()); break;
     case opcode::CNTADDLIST:    m_contents.emplace(std::in_place_type<content_list>, m_stack.pop()); break;
-    case opcode::CNTPUSH:       m_contents.emplace(std::in_place_type<content_string>, m_contents.top().view()); break;
     case opcode::CNTPOP:        m_contents.pop_back(); break;
     case opcode::SETBEGIN:      m_contents.top().setbegin(m_stack.pop().as_int()); break;
     case opcode::SETEND:        m_contents.top().setend(m_stack.pop().as_int()); break;
