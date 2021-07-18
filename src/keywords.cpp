@@ -214,26 +214,77 @@ void parser::read_keyword() {
         m_code.add_line<opcode::CNTPOP>();
         break;
     }
+    case "lbetween"_h:
+    case "rbetween"_h:
+    case "lrbetween"_h:
     case "between"_h: {
+        auto index_begin_fun = [&](bool is_regex = false) {
+            if (fun_name == "lbetween" || fun_name == "lrbetween") {
+                return is_regex ? "searchpos" : "indexof";
+            } else {
+                return is_regex ? "searchposend" : "indexofend";
+            }
+        };
+        auto index_end_fun = [&](bool is_regex = false) {
+            if (fun_name == "rbetween" || fun_name == "lrbetween") {
+                return is_regex ? "searchposend" : "indexofend";
+            } else {
+                return is_regex ? "searchpos" : "indexof";
+            }
+        };
         m_code.add_line<opcode::CNTPUSH>();
         m_lexer.require(token_type::PAREN_BEGIN);
         if (m_content_level == 0) {
             throw parsing_error("Stack contenuti vuoto", tok_name);
         }
-        auto begin_str = m_lexer.require(token_type::STRING).parse_string();
-        if (!begin_str.empty()) {
+        switch(auto begin_tok = m_lexer.peek(); begin_tok.type) {
+        case token_type::SLASH:
+            begin_tok = m_lexer.require(token_type::REGEXP);
+            [[fallthrough]];
+        case token_type::STRING: {
+            m_lexer.advance(begin_tok);
+            auto begin_str = begin_tok.parse_string();
+            if (!begin_str.empty()) {
+                m_code.add_line<opcode::PUSHVIEW>();
+                m_code.add_line<opcode::PUSHSTR>(std::move(begin_str));
+                m_code.add_line<opcode::CALL>(index_begin_fun(begin_tok.type == token_type::REGEXP), 2);
+                m_code.add_line<opcode::SETBEGIN>();
+            }
+            break;
+        }
+        case token_type::FUNCTION:
             m_code.add_line<opcode::PUSHVIEW>();
-            m_code.add_line<opcode::PUSHSTR>(std::move(begin_str));
-            m_code.add_line<opcode::CALL>("indexofend", 2);
+            read_expression();
+            m_code.add_line<opcode::CALL>(index_begin_fun(), 2);
             m_code.add_line<opcode::SETBEGIN>();
+            break;
+        default:
+            throw unexpected_token(begin_tok, token_type::STRING);
         }
         if (m_lexer.check_next(token_type::COMMA)) {
-            auto end_str = m_lexer.require(token_type::STRING).parse_string();
-            if (!end_str.empty()) {
+            switch (auto end_tok = m_lexer.peek(); end_tok.type) {
+            case token_type::SLASH:
+                end_tok = m_lexer.require(token_type::REGEXP);
+                [[fallthrough]];
+            case token_type::STRING: {
+                m_lexer.advance(end_tok);
+                auto end_str = end_tok.parse_string();
+                if (!end_str.empty()) {
+                    m_code.add_line<opcode::PUSHVIEW>();
+                    m_code.add_line<opcode::PUSHSTR>(std::move(end_str));
+                    m_code.add_line<opcode::CALL>(index_end_fun(end_tok.type == token_type::REGEXP), 2);
+                    m_code.add_line<opcode::SETEND>();
+                }
+                break;
+            }
+            case token_type::FUNCTION:
                 m_code.add_line<opcode::PUSHVIEW>();
-                m_code.add_line<opcode::PUSHSTR>(std::move(end_str));
-                m_code.add_line<opcode::CALL>("indexof", 2);
+                read_expression();
+                m_code.add_line<opcode::CALL>(index_end_fun(), 2);
                 m_code.add_line<opcode::SETEND>();
+                break;
+            default:
+                throw unexpected_token(end_tok, token_type::STRING);
             }
         }
         m_lexer.require(token_type::PAREN_END);
@@ -266,11 +317,6 @@ void parser::read_keyword() {
         m_code.add_line<opcode::CNTPOP>();
         break;
     }
-    case "newview"_h:
-        m_code.add_line<opcode::CNTPUSH>();
-        read_statement();
-        m_code.add_line<opcode::CNTPOP>();
-        break;
     case "import"_h: {
         auto tok_layout_name = m_lexer.require(token_type::STRING);
         m_lexer.require(token_type::SEMICOLON);
@@ -312,8 +358,6 @@ void parser::read_keyword() {
         static const std::map<std::string, std::tuple<int, command_args>, std::less<>> simple_functions = {
             {"error",       {2, make_command<opcode::THROWERROR>()}},
             {"note",        {1, make_command<opcode::ADDNOTE>()}},
-            {"setbegin",    {1, make_command<opcode::SETBEGIN>()}},
-            {"setend",      {1, make_command<opcode::SETEND>()}},
             {"nexttable",   {0, make_command<opcode::NEXTTABLE>()}},
             {"firsttable",  {0, make_command<opcode::FIRSTTABLE>()}},
             {"halt",        {0, make_command<opcode::HLT>()}}
