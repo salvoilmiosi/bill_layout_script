@@ -58,8 +58,8 @@ void lexer::skipSpaces() {
 
 void lexer::addDebugData() {
     if (comment_callback) {
-        std::string_view script{m_current, m_end};
-        size_t begin = script.find_first_not_of(" \t\r\n");
+        std::string_view script{m_begin, m_end};
+        size_t begin = script.find_first_not_of(" \t\r\n", m_current - m_begin);
         if (begin != std::string::npos && begin != last_debug_line) {
             last_debug_line = begin;
             size_t endline = script.find_first_of("\r\n", begin);
