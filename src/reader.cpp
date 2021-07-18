@@ -178,7 +178,7 @@ void reader::exec_command(const command_args &cmd) {
         m_current_box.flags = opts.flags;
 
         check_doc_ptr();
-        m_contents.emplace(std::in_place_type<content_string>, m_doc->get_text(m_current_box));
+        m_contents.emplace(m_doc->get_text(m_current_box));
     };
 
     auto call_function = [&](const command_call &cmd) {
@@ -240,8 +240,8 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::GETBOX:        m_stack.push(get_box_info(cmd.get_args<opcode::GETBOX>())); break;
     case opcode::GETSYS:        m_stack.push(get_sys_info(cmd.get_args<opcode::GETSYS>())); break;
     case opcode::CALL:          m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
-    case opcode::CNTADDSTRING:  m_contents.emplace(std::in_place_type<content_string>, m_stack.pop()); break;
-    case opcode::CNTADDLIST:    m_contents.emplace(std::in_place_type<content_list>, m_stack.pop()); break;
+    case opcode::CNTADDSTRING:  m_contents.emplace(m_stack.pop()); break;
+    case opcode::CNTADDLIST:    m_contents.emplace(m_stack.pop().as_array()); break;
     case opcode::CNTPOP:        m_contents.pop_back(); break;
     case opcode::SETBEGIN:      m_contents.top().setbegin(m_stack.pop().as_int()); break;
     case opcode::SETEND:        m_contents.top().setend(m_stack.pop().as_int()); break;

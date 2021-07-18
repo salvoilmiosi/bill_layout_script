@@ -85,7 +85,8 @@ namespace bls {
         std::vector<variable> m_data;
     
     public:
-        content_list(variable &&var) : m_data(std::move(var).as_array()) {}
+        content_list(const std::vector<variable> &data) : m_data(data) {}
+        content_list(std::vector<variable> &&data) : m_data(std::move(data)) {}
 
         void nextresult() {
             ++m_index;
@@ -106,6 +107,19 @@ namespace bls {
         std::variant<content_string, content_list> m_data;
 
     public:
+        content_view(const std::string &str)
+            : m_data(std::in_place_type<content_string>, str) {}
+        content_view(std::string &&str)
+            : m_data(std::in_place_type<content_string>, std::move(str)) {}
+
+        content_view(variable &&var)
+            : m_data(std::in_place_type<content_string>, std::move(var)) {}
+
+        content_view(const std::vector<variable> &vec)
+            : m_data(std::in_place_type<content_list>, vec) {}
+        content_view(std::vector<variable> &&vec)
+            : m_data(std::in_place_type<content_list>, std::move(vec)) {}
+
         template<typename T, typename ... Ts>
         content_view(std::in_place_type_t<T>, Ts && ... args)
             : m_data(std::in_place_type<T>, std::forward<Ts>(args) ...) {}
