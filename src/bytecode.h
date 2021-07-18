@@ -39,7 +39,6 @@ namespace bls {
         (ATE,       "ate")
         (LAYOUT,    "layout_file")
         (LAYOUTDIR, "layout_dir")
-        (TOKENIDX,  "tokenidx")
         (CURTABLE,  "curtable")
         (NUMTABLES, "numtables")
     )

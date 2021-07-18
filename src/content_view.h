@@ -91,10 +91,6 @@ namespace bls {
             ++m_index;
         }
 
-        size_t tokenidx() const {
-            return m_index;
-        }
-
         bool tokenend() const {
             return m_index >= m_data.size();
         }
@@ -124,10 +120,6 @@ namespace bls {
 
         void nextresult() {
             std::get<content_list>(m_data).nextresult();
-        }
-
-        size_t tokenidx() const {
-            return std::get<content_list>(m_data).tokenidx();
         }
 
         bool tokenend() const {
