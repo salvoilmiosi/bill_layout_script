@@ -14,63 +14,35 @@ namespace bls {
         std::string_view m_view;
     
     public:
-        content_string(const std::string &str)
-            : m_str(str)
-            , m_view(m_str) {}
-        
-        content_string(std::string &&str) noexcept
-            : m_str(std::move(str))
-            , m_view(m_str) {}
-
-        content_string(std::string_view str) noexcept
-            : m_view(str) {}
+        content_string(const std::string &str) : m_str(str), m_view(m_str) {}
+        content_string(std::string &&str) noexcept : m_str(std::move(str)), m_view(m_str) {}
+        content_string(std::string_view str) noexcept : m_view(str) {}
 
         content_string(variable &&var) {
             if (var.is_view()) {
-                *this = var.as_view();
+                m_view = var.as_view();
             } else {
-                *this = std::move(var).as_string();
+                m_str = std::move(var).as_string();
+                m_view = m_str;
             }
         }
 
         content_string(const content_string &other) {
-            *this = other;
-        }
-
-        content_string(content_string &&other) noexcept {
-            *this = std::move(other);
-        }
-
-        ~content_string() = default;
-        
-        content_string &operator = (const content_string &other) {
             if (other.m_str.empty()) {
                 m_view = other.m_view;
             } else {
-                size_t begin = other.m_view.data() - other.m_str.data();
                 m_str = other.m_str;
-                m_view = std::string_view(m_str.data() + begin, other.m_view.size());
+                m_view = m_str;
             }
-            return *this;
         }
-        
-        content_string &operator = (content_string &&other) noexcept {
+
+        content_string(content_string &&other) {
             if (other.m_str.empty()) {
                 m_view = other.m_view;
             } else {
-                size_t begin = other.m_view.data() - other.m_str.data();
                 m_str = std::move(other.m_str);
-                m_view = std::string_view(m_str.data() + begin, other.m_view.size());
+                m_view = m_str;
             }
-            return *this;
-        }
-
-        void setbegin(size_t n) noexcept {
-            m_view = m_view.substr(n);
-        }
-
-        void setend(size_t n) noexcept {
-            m_view = m_view.substr(0, n);
         }
 
         variable view() const {
@@ -123,14 +95,6 @@ namespace bls {
         template<typename T, typename ... Ts>
         content_view(std::in_place_type_t<T>, Ts && ... args)
             : m_data(std::in_place_type<T>, std::forward<Ts>(args) ...) {}
-
-        void setbegin(size_t n) {
-            std::get<content_string>(m_data).setbegin(n);
-        }
-
-        void setend(size_t n) {
-            std::get<content_string>(m_data).setend(n);
-        }
 
         void nextresult() {
             std::get<content_list>(m_data).nextresult();

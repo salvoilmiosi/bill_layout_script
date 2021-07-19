@@ -114,6 +114,7 @@ namespace bls {
         (PUSHINT, big_int)              // int -> stack
         (PUSHDOUBLE, double)            // double -> stack
         (PUSHSTR, std::string)          // str -> stack
+        (PUSHREGEX, std::string)        // str -> stack (flag come regex)
         (PUSHARG, small_int)            // stack -> stack
         (GETBOX, spacer_index)          // box[index] -> stack
         (GETSYS, sys_index)             // sys[index] -> stack
@@ -121,8 +122,6 @@ namespace bls {
         (CNTADDSTRING)                  // stack -> content_stack
         (CNTADDLIST)                    // stack -> content_stack
         (CNTPOP)                        // content_stack.pop()
-        (SETBEGIN)                      // stack -> content_stack.top.setbegin
-        (SETEND)                        // stack -> content_stack.top.setend
         (NEXTRESULT)                    // content_stack.top.nextresult()
         (THROWERROR)                    // stack -> throw
         (ADDNOTE)                       // stack -> notes

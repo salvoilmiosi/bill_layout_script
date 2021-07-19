@@ -276,6 +276,26 @@ namespace bls {
         return datetime();
     }
 
+    static std::string_view string_between(const std::locale &loc, std::string_view str, const variable &from, const variable &to, bool outer_left, bool outer_right) {
+        auto search_range = [&](const variable &expr) -> std::string_view {
+            if (expr.is_regex()) {
+                return search_regex(loc, str, expr.as_string(), 0);
+            } else {
+                auto range = string_find_icase(str, expr.as_view(), 0);
+                return {range.begin(), range.end()};
+            }
+        };
+        if (!from.is_null()) {
+            auto from_span = search_range(from);
+            str = std::string_view(outer_left ? from_span.data() : from_span.data() + from_span.size(), str.data() + str.size());
+        }
+        if (!to.is_null()) {
+            auto to_span = search_range(to);
+            str = std::string_view(str.data(), outer_right ? to_span.data() + to_span.size() : to_span.data());
+        }
+        return str;
+    }
+
     const function_map function_lookup {
         {"str", [](const std::string &str) { return str; }},
         {"num", [](const std::locale &loc, const variable &var) {
@@ -439,6 +459,18 @@ namespace bls {
         }},
         {"substr", [](std::string_view str, size_t pos, optional_size<std::string_view::npos> count) {
             return std::string(str.substr(std::min(str.size(), pos), count));
+        }},
+        {"between", [](const std::locale &loc, std::string_view str, const variable &from, optional<variable> to) {
+            return string_between(loc, str, from, to, false, false);
+        }},
+        {"lbetween", [](const std::locale &loc, std::string_view str, const variable &from, optional<variable> to) {
+            return string_between(loc, str, from, to, true, false);
+        }},
+        {"rbetween", [](const std::locale &loc, std::string_view str, const variable &from, optional<variable> to) {
+            return string_between(loc, str, from, to, false, true);
+        }},
+        {"lrbetween", [](const std::locale &loc, std::string_view str, const variable &from, optional<variable> to) {
+            return string_between(loc, str, from, to, true, true);
         }},
         {"strcat", [](varargs<std::string_view> args) {
             return util::string_join(args);

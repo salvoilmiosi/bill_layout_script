@@ -77,7 +77,7 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<readbo
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<command_call> &args) {
-    return out << args.data.fun->first << ' ' << util::to_string(args.data.numargs);
+    return out << args.data.fun->first << ' ' << int(args.data.numargs);
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<variable_selector> &args) {
@@ -97,7 +97,7 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<std::s
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<small_int> &args) {
-    return out << util::to_string(args.data);
+    return out << int(args.data);
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<jump_address> &label) {
@@ -113,7 +113,7 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<jump_a
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<jsr_address> &args) {
-    return out << print_args(static_cast<jump_address>(args.data)) << ' ' << util::to_string(args.data.numargs);
+    return out << print_args(static_cast<jump_address>(args.data)) << ' ' << int(args.data.numargs);
 }
 
 int MainApp::run() {

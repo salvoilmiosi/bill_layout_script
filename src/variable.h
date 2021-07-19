@@ -13,15 +13,19 @@ namespace bls {
     typedef int64_t big_int;
     struct null_state {};
     struct string_state {};
+    struct regex_state {};
 
     class variable {
     public:
-        using variant_type = std::variant<null_state, string_state, std::string_view, fixed_point, big_int, double, datetime, std::vector<variable>>;
+        using variant_type = std::variant<null_state, string_state, regex_state, std::string_view, fixed_point, big_int, double, datetime, std::vector<variable>>;
         
         variable() = default;
 
         variable(const std::string &value) : m_str(value), m_value(string_state{}) {}
         variable(std::string &&value) : m_str(std::move(value)), m_value(string_state{}) {}
+
+        variable(regex_state, const std::string &value) : m_str(value), m_value(regex_state{}) {}
+        variable(regex_state, std::string &&value) : m_str(std::move(value)), m_value(regex_state{}) {}
 
         variable(std::string_view value) : m_value(value) {}
 
@@ -36,6 +40,7 @@ namespace bls {
 
         bool is_null() const;
         bool is_string() const;
+        bool is_regex() const;
         bool is_view() const;
         bool is_number() const;
         bool is_array() const;

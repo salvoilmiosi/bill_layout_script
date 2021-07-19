@@ -71,11 +71,6 @@ if(NOT HAVE_STD_FORMAT)
     endif()
 endif()
 
-check_cpp_function(charconv HAVE_FLOAT_TO_CHARS)
-if(HAVE_FLOAT_TO_CHARS)
-    target_compile_definitions(bls PUBLIC HAVE_FLOAT_TO_CHARS)
-endif()
-
 target_include_directories(bls PUBLIC ${bls_include_dirs})
 target_link_libraries(bls ${bls_libraries})
 

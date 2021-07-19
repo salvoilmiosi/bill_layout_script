@@ -236,6 +236,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHINT:       m_stack.push(cmd.get_args<opcode::PUSHINT>()); break;
     case opcode::PUSHDOUBLE:    m_stack.push(cmd.get_args<opcode::PUSHDOUBLE>()); break;
     case opcode::PUSHSTR:       m_stack.push(cmd.get_args<opcode::PUSHSTR>()); break;
+    case opcode::PUSHREGEX:     m_stack.emplace(regex_state{}, cmd.get_args<opcode::PUSHREGEX>()); break;
     case opcode::PUSHARG:       push_function_arg(cmd.get_args<opcode::PUSHARG>()); break;
     case opcode::GETBOX:        m_stack.push(get_box_info(cmd.get_args<opcode::GETBOX>())); break;
     case opcode::GETSYS:        m_stack.push(get_sys_info(cmd.get_args<opcode::GETSYS>())); break;
@@ -243,8 +244,6 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::CNTADDSTRING:  m_contents.emplace(m_stack.pop()); break;
     case opcode::CNTADDLIST:    m_contents.emplace(m_stack.pop().as_array()); break;
     case opcode::CNTPOP:        m_contents.pop_back(); break;
-    case opcode::SETBEGIN:      m_contents.top().setbegin(m_stack.pop().as_int()); break;
-    case opcode::SETEND:        m_contents.top().setend(m_stack.pop().as_int()); break;
     case opcode::NEXTRESULT:    m_contents.top().nextresult(); break;
     case opcode::JMP:           jump_to(cmd.get_args<opcode::JMP>()); break;
     case opcode::JZ:            if(!m_stack.pop().as_bool()) jump_to(cmd.get_args<opcode::JZ>()); break;

@@ -107,19 +107,6 @@ namespace util {
         return ret;
     }
 
-    template<typename T> requires std::is_arithmetic_v<T>
-    std::string to_string(T num) {
-    #ifndef HAS_FLOAT_TO_CHARS
-        return fmt::format("{}", num);
-    #else
-        std::array<char, 16> buffer;
-        if (auto [ptr, ec] = std::to_chars(buffer.data(), buffer.data() + buffer.size(), num); ec == std::errc()) {
-            return {buffer.data(), ptr};
-        }
-        return "";
-    #endif
-    }
-
 }
 
 #endif

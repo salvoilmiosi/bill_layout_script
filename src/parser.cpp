@@ -325,7 +325,7 @@ void parser::sub_expression() {
         m_code.add_line<opcode::PUSHNUM>(fixed_point(std::string(tok_first.value)));
         break;
     case token_type::SLASH: 
-        m_code.add_line<opcode::PUSHSTR>(m_lexer.require(token_type::REGEXP).parse_string());
+        m_code.add_line<opcode::PUSHREGEX>(m_lexer.require(token_type::REGEXP).parse_string());
         break;
     case token_type::STRING:
         m_lexer.advance(tok_first);

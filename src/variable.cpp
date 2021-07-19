@@ -2,17 +2,14 @@
 
 #include "utils.h"
 #include "exceptions.h"
+#include "svstream.h"
 
 using namespace bls;
 
-template<typename T, typename ... Ts> struct is_one_of : std::false_type {};
-template<typename T, typename First, typename ... Ts>
-struct is_one_of<T, First, Ts...> : std::bool_constant<is_one_of<T, Ts...>::value> {};
-template<typename T, typename ... Ts> struct is_one_of<T, T, Ts...> : std::true_type {};
-template<typename T, typename ... Ts> constexpr bool is_one_of_v = is_one_of<T, Ts...>::value;
+template<typename T, typename ... Ts> concept is_one_of = (std::same_as<T, Ts> || ...);
 
-template<typename T> concept string_t = is_one_of_v<T, string_state, std::string_view>;
-template<typename T> concept number_t = is_one_of_v<T, fixed_point, big_int, double>;
+template<typename T> concept string_t = is_one_of<T, string_state, regex_state, std::string_view>;
+template<typename T> concept number_t = is_one_of<T, fixed_point, big_int, double>;
 template<typename T> concept not_number_t = ! number_t<T>;
 
 std::string &variable::get_string() const {
@@ -21,8 +18,8 @@ std::string &variable::get_string() const {
             [](auto)                    { return std::string(); },
             [](std::string_view str)    { return std::string(str); },
             [](fixed_point num)         { return fixed_point_to_string(num); },
-            [](big_int num)             { return util::to_string(num); },
-            [](double num)              { return util::to_string(num); },
+            [](big_int num)             { return std::to_string(num); },
+            [](double num)              { return std::to_string(num); },
             [](datetime date)           { return date.to_string(); },
             [](const std::vector<variable> &arr) {
                 return util::string_join(arr | std::views::transform(
@@ -43,7 +40,12 @@ std::string_view variable::as_view() const {
 
 fixed_point variable::as_number() const {
     return std::visit(util::overloaded{
-        [&](string_t auto)      { return fixed_point(as_string()); },
+        [&](string_t auto) {
+            fixed_point ret;
+            util::isviewstream ss{as_view()};
+            dec::fromStream(ss, ret);
+            return ret;
+        },
         [](number_t auto num)   { return fixed_point(num); },
         [](auto)                { return fixed_point(0); }
     }, m_value);
@@ -51,12 +53,7 @@ fixed_point variable::as_number() const {
 
 big_int variable::as_int() const {
     return std::visit(util::overloaded{
-        [&](string_t auto) {
-            big_int num = 0;
-            auto view = as_view();
-            std::from_chars(view.data(), view.data() + view.size(), num);
-            return num;
-        },
+        [&](string_t auto)  { return util::string_to<big_int>(as_view()); },
         [](fixed_point num) { return num.getAsInteger(); },
         [](big_int num)     { return num; },
         [](double num)      { return big_int(num); },
@@ -66,7 +63,12 @@ big_int variable::as_int() const {
 
 double variable::as_double() const {
     return std::visit(util::overloaded{
-        [&](string_t auto)  { return as_number().getAsDouble(); },
+        [&](string_t auto)  {
+            double ret;
+            util::isviewstream ss{as_view()};
+            ss >> ret;
+            return ret;
+        },
         [](fixed_point num) { return num.getAsDouble(); },
         [](big_int num)     { return double(num); },
         [](double num)      { return num; },
@@ -76,7 +78,7 @@ double variable::as_double() const {
 
 datetime variable::as_date() const {
     return std::visit(util::overloaded{
-        [&](string_t auto) { return datetime::from_string(as_string()); },
+        [&](string_t auto) { return datetime::from_string(as_view()); },
         [](datetime date) { return date; },
         [](auto)            { return datetime(); }
     }, m_value);
@@ -103,6 +105,7 @@ bool variable::as_bool() const {
     return std::visit(util::overloaded{
         [](null_state)              { return false; },
         [&](string_state)           { return !m_str.empty(); },
+        [&](regex_state)            { return !m_str.empty(); },
         [](std::string_view str)    { return !str.empty(); },
         [](number_t auto num)       { return num != 0; },
         [](datetime date)           { return date.is_valid(); },
@@ -115,6 +118,7 @@ bool variable::is_null() const {
         [](null_state)              { return true; },
         [](auto)                    { return false; },
         [&](string_state)           { return m_str.empty(); },
+        [&](regex_state)            { return m_str.empty(); },
         [](std::string_view str)    { return str.empty(); },
         [](datetime date)           { return !date.is_valid(); },
         [](const std::vector<variable> &arr) { return arr.empty(); }
@@ -128,11 +132,12 @@ bool variable::is_string() const {
     }, m_value);
 }
 
+bool variable::is_regex() const {
+    return std::holds_alternative<regex_state>(m_value);
+}
+
 bool variable::is_view() const {
-    return std::visit(util::overloaded{
-        [](std::string_view) { return true; },
-        [](auto) { return false; }
-    }, m_value);
+    return std::holds_alternative<std::string_view>(m_value);
 }
 
 bool variable::is_number() const {
@@ -143,10 +148,7 @@ bool variable::is_number() const {
 }
 
 bool variable::is_array() const {
-    return std::visit(util::overloaded{
-        [](std::vector<variable>) { return true; },
-        [](auto) { return false; }
-    }, m_value);
+    return std::holds_alternative<std::vector<variable>>(m_value);
 }
 
 std::partial_ordering variable::operator <=> (const variable &other) const {
