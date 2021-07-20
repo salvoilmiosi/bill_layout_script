@@ -1,6 +1,6 @@
 [submodule "decimal_for_cpp"]
 	path = external/decimal_for_cpp
-	url = https://github.com/vpiotr/decimal_for_cpp
+	url = https://github.com/salvoilmiosi/decimal_for_cpp
 [submodule "external/boostlocale"]
 	path = external/boostlocale
 	url = http://github.com/salvoilmiosi/locale
