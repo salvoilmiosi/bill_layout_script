@@ -67,8 +67,6 @@ int main() {
     std::cout << '\n';
 
     print_size<bls::content_view>();
-    print_size<bls::content_string>();
-    print_size<bls::content_list>();
     
     return 0;
 }
