@@ -4,40 +4,36 @@ project(bill_layout_script VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_DEBUG_POSTFIX _d)
-
 if(MSVC)
     add_compile_options("/Zc:__cplusplus")
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
-set(libbls_SRCS
-src/binary_bls.cpp
-src/datetime.cpp
-src/functions.cpp
-src/keywords.cpp
-src/layout.cpp
-src/lexer.cpp
-src/parser.cpp
-src/pdf_document.cpp
-src/reader.cpp
-src/unicode.cpp
-src/variable.cpp
-)
+add_library(bls SHARED
+    src/binary_bls.cpp
+    src/datetime.cpp
+    src/functions.cpp
+    src/keywords.cpp
+    src/layout.cpp
+    src/lexer.cpp
+    src/parser.cpp
+    src/pdf_document.cpp
+    src/reader.cpp
+    src/unicode.cpp
+    src/variable.cpp)
+add_library(bls::bls ALIAS bls)
+
+target_include_directories(bls PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(poppler REQUIRED poppler-cpp>=0.88 IMPORTED_TARGET)
+target_link_libraries(bls PUBLIC PkgConfig::poppler)
 
-add_library(bls SHARED ${libbls_SRCS})
-add_library(bls::bls ALIAS bls)
-
-set(bls_include_dirs
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/external/decimal_for_cpp/include
-    ${Boost_INCLUDE_DIRS}
-)
+add_subdirectory(external/decimal_for_cpp)
+target_link_libraries(bls PUBLIC decimal_for_cpp::decimal_for_cpp)
 
 add_subdirectory(external/magic_enum)
+target_link_libraries(bls PUBLIC magic_enum::magic_enum)
 
 set(BOOST_LOCALE_ENABLE_ICONV OFF)
 set(BOOST_LOCALE_ENABLE_ICU ON)
@@ -45,8 +41,7 @@ set(BOOST_LOCALE_ENABLE_POSIX OFF)
 set(BOOST_LOCALE_ENABLE_STD OFF)
 set(BOOST_LOCALE_ENABLE_WINAPI OFF)
 add_subdirectory(external/boostlocale)
-
-set(bls_libraries PkgConfig::poppler Boost::locale magic_enum::magic_enum)
+target_link_libraries(bls PUBLIC Boost::locale)
 
 function(check_cpp_function TEST_FILE_NAME OUT_RESULT)
     set(TEST_FILE ".cmake/.test_${TEST_FILE_NAME}.cpp")
@@ -65,14 +60,11 @@ if(NOT HAVE_STD_FORMAT)
     target_compile_definitions(bls PUBLIC USE_FMTLIB)
     find_package(fmt REQUIRED)
     if (TARGET fmt::fmt-header-only)
-        list(APPEND bls_libraries fmt::fmt-header-only)
+        target_link_libraries(bls PUBLIC fmt::fmt-header-only)
     else()
-        list(APPEND bls_libraries fmt::fmt)
+        target_link_libraries(bls PUBLIC fmt::fmt)
     endif()
 endif()
-
-target_include_directories(bls PUBLIC ${bls_include_dirs})
-target_link_libraries(bls ${bls_libraries})
 
 find_package(Boost REQUIRED COMPONENTS program_options json)
 
@@ -81,7 +73,7 @@ target_link_libraries(blsexec bls::bls Boost::program_options Boost::json)
 
 install(TARGETS bls blsexec)
 
-set(BLS_BUILD_UTILS ON CACHE BOOL "Build BLS Utils")
+option(BLS_BUILD_UTILS "Build BLS Utils" ON)
 if(BLS_BUILD_UTILS)
     add_executable(blsdump utils/blsdump.cpp)
     target_link_libraries(blsdump bls::bls Boost::program_options)
