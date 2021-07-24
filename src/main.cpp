@@ -1,12 +1,12 @@
 #include <iostream>
 #include <filesystem>
 
-#include <boost/json.hpp>
 #include <boost/program_options.hpp>
 
 #include "parser.h"
 #include "reader.h"
 #include "utils.h"
+#include "json_value.h"
 
 using namespace bls;
 using namespace boost;
@@ -21,6 +21,8 @@ struct MainApp {
     bool show_globals = false;
     bool get_layout = false;
     bool use_cache = false;
+
+    unsigned indent_size = 4;
 };
 
 
@@ -110,7 +112,7 @@ int MainApp::run() {
         retcode = 4;
     }
 
-    std::cout << result;
+    json::printer(std::cout, indent_size)(result);
     return retcode;
 }
 
@@ -132,6 +134,7 @@ int main(int argc, char **argv) {
             ("show-globals,g", po::value(&app.show_globals), "Show Global Variables")
             ("halt-setlayout,k", po::value(&app.get_layout), "Halt On Setlayout")
             ("use-cache,c", po::value(&app.use_cache), "Use Script Cache")
+            ("indent-size,i", po::value(&app.indent_size), "Indentation Size")
         ;
 
         po::variables_map vm;

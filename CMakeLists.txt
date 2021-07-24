@@ -66,10 +66,10 @@ if(NOT HAVE_STD_FORMAT)
     endif()
 endif()
 
-find_package(Boost REQUIRED COMPONENTS program_options json)
+find_package(Boost REQUIRED COMPONENTS program_options)
 
 add_executable(blsexec src/main.cpp)
-target_link_libraries(blsexec bls::bls Boost::program_options Boost::json)
+target_link_libraries(blsexec bls::bls Boost::program_options)
 
 install(TARGETS bls blsexec)
 
