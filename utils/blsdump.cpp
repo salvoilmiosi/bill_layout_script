@@ -32,8 +32,8 @@ int main(int argc, char **argv) {
         desc.add_options()
             ("help,h", "Print Help")
             ("input-bls", po::value(&app.input_file), "Input bls File")
-            ("skipcomments,s", po::value(&app.skip_comments), "Skip Comments")
-            ("read-cache,c", po::value(&app.do_read_cache), "Read Cache")
+            ("skipcomments,s", po::bool_switch(&app.skip_comments), "Skip Comments")
+            ("read-cache,c", po::bool_switch(&app.do_read_cache), "Read Cache")
             ("output-cache,o", po::value(&app.output_cache), "Output Cache File")
         ;
 

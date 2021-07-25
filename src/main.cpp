@@ -25,6 +25,16 @@ struct MainApp {
     unsigned indent_size = 4;
 };
 
+static json::value variable_to_value(const variable &var) {
+    if (var.is_null()) {
+        return {};
+    } else if (var.is_array()) {
+        auto view = var.as_array() | std::views::transform(variable_to_value);
+        return json::array(view.begin(), view.end());
+    } else {
+        return var.as_string();
+    }
+}
 
 int MainApp::run() {
     int retcode = 0;
@@ -51,7 +61,7 @@ int MainApp::run() {
             if (table.is_null()) table = json::object();
             auto &json_arr = table[name];
             if (json_arr.is_null()) json_arr = json::array();
-            json_arr.emplace_back(var.as_string());
+            json_arr.emplace_back(variable_to_value(var));
         };
 
         for (auto &[key, var] : my_reader.get_values()) {
@@ -125,10 +135,10 @@ int main(int argc, char **argv) {
             ("help,h", "Print Help")
             ("input-bls", po::value(&app.input_bls), "Input bls File")
             ("input-pdf,p", po::value(&app.input_pdf), "Input pdf File")
-            ("show-debug,d", po::value(&app.show_debug), "Show Debug Variables")
-            ("show-globals,g", po::value(&app.show_globals), "Show Global Variables")
-            ("halt-setlayout,k", po::value(&app.get_layout), "Halt On Setlayout")
-            ("use-cache,c", po::value(&app.use_cache), "Use Script Cache")
+            ("show-debug,d", po::bool_switch(&app.show_debug), "Show Debug Variables")
+            ("show-globals,g", po::bool_switch(&app.show_globals), "Show Global Variables")
+            ("halt-setlayout,k", po::bool_switch(&app.get_layout), "Halt On Setlayout")
+            ("use-cache,c", po::bool_switch(&app.use_cache), "Use Script Cache")
             ("indent-size,i", po::value(&app.indent_size), "Indentation Size")
         ;
 
