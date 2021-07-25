@@ -16,6 +16,9 @@ namespace json {
         };
 
         template<typename T, typename Var> concept type_in_variant = detail::type_in_variant_helper<T, Var>::value;
+
+        template<typename ... Ts> struct overloaded : Ts ... { using Ts::operator() ...; };
+        template<typename ... Ts> overloaded(Ts ...) -> overloaded<Ts ...>;
     };
 
     class value;
@@ -42,7 +45,29 @@ namespace json {
         const object &as_object() const { return as<object>(); }
         object &as_object() { return as<object>(); }
 
-        bool is_null() { return std::holds_alternative<std::monostate>(m_data); }
+        bool is_null() const { return std::holds_alternative<std::monostate>(m_data); }
+
+        size_t size() const {
+            return std::visit<size_t>(detail::overloaded{
+                [](auto) { return 1; },
+                [](std::monostate) { return 0; },
+                [](const array &arr) { return arr.size(); },
+                [](const object &obj) { return obj.size(); }
+            }, m_data);
+        }
+
+        void push_back(const value &val) { as_array().push_back(val); }
+        void push_back(value &&val) { as_array().push_back(std::move(val)); }
+
+        template<typename ... Ts> value &emplace_back(Ts && ... args) {
+            return as_array().emplace_back(std::forward<Ts>(args) ... );
+        }
+
+        const value &operator[](size_t index) const { return as_array()[index]; }
+        value &operator[](size_t index) { return as_array()[index]; }
+
+        const value &operator[](const std::string &key) const { return as_object().at(key); }
+        value &operator[](const std::string &key) { return as_object()[key]; }
 
         template<typename StreamType>
         friend class printer;
@@ -88,8 +113,7 @@ namespace json {
             }
             if (!arr.empty()) {
                 indent.append(indent_size, ' ');
-                auto it = arr.begin();
-                for (;;) {
+                for (auto it = arr.begin();;) {
                     stream << indent;
                     (*this)(*it);
                     if (++it == arr.end()) break;
@@ -115,8 +139,7 @@ namespace json {
             }
             if (!obj.empty()) {
                 indent.append(indent_size, ' ');
-                auto it = obj.begin();
-                for (;;) {
+                for (auto it = obj.begin();;) {
                     stream << indent << unicode::escapeString(it->first) << ": ";
                     (*this)(it->second);
                     if (++it == obj.end()) break;

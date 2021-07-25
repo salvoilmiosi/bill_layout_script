@@ -45,13 +45,13 @@ int MainApp::run() {
         my_reader.add_layout(input_bls);
         my_reader.start();
 
-        json::array json_values;
+        auto &json_values = result["values"] = json::array();
         
         auto write_var = [](json::value &table, const std::string &name, const variable &var) {
             if (table.is_null()) table = json::object();
-            auto &json_arr = table.as_object()[name];
+            auto &json_arr = table[name];
             if (json_arr.is_null()) json_arr = json::array();
-            json_arr.as_array().emplace_back(var.as_string());
+            json_arr.emplace_back(var.as_string());
         };
 
         for (auto &[key, var] : my_reader.get_values()) {
@@ -70,32 +70,27 @@ int MainApp::run() {
             }
         }
 
-        result["values"] = json_values;
-
         if (!my_reader.get_notes().empty()) {
-            json::array json_notes;
+            auto &json_notes = result["notes"] = json::array();
             for (auto &v : my_reader.get_notes()) {
                 json_notes.emplace_back(v);
             }
-            result["notes"] = json_notes;
         }
 
-        json::array json_layouts;
+        auto &json_layouts = result["layouts"] = json::array();
         for (auto &l : my_reader.get_layouts()) {
             json_layouts.emplace_back(l.string());
         }
-        result["layouts"] = json_layouts;
 
         result["errcode"] = 0;
     } catch (const layout_runtime_error &error) {
         result["error"] = error.what();
         result["errcode"] = error.errcode;
 
-        json::array json_layouts;
+        auto &json_layouts = result["layouts"] = json::array();
         for (auto &l : my_reader.get_layouts()) {
             json_layouts.emplace_back(l.string());
         }
-        result["layouts"] = json_layouts;
         
         retcode = 1;
     } catch (const layout_error &error) {
