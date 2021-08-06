@@ -4,65 +4,39 @@
 
 using namespace bls;
 
-void parser::read_keyword() {
+bool parser::read_keyword() {
     auto make_label = [&](std::string_view label) {
         return fmt::format("__{}_{}_{}", m_parser_id, m_code.size(), label);
     };
 
-    auto tok_name = m_lexer.require(token_type::FUNCTION);
-    auto fun_name = tok_name.value.substr(1);
+    auto tok_fun_name = m_lexer.require(token_type::IDENTIFIER);
+    auto fun_name = tok_fun_name.value;
 
     using namespace util::literals;
 
     switch (util::hash(fun_name)) {
-    case "if"_h:
-    case "ifnot"_h: {
+    case "if"_h: {
         std::string endif_label = make_label("endif");
-        std::string else_label;
-        bool condition_positive = fun_name == "if";
-        bool in_loop = true;
-        bool add_endif = false;
-        while (in_loop) {
-            bool has_else = false;
-            else_label = make_label("else");
-            m_lexer.require(token_type::PAREN_BEGIN);
-            read_expression();
-            m_lexer.require(token_type::PAREN_END);
-            if (condition_positive) {
-                m_code.add_line<opcode::JZ>(else_label);
-            } else {
-                m_code.add_line<opcode::JNZ>(else_label);
-            }
-            read_statement();
-            auto tok_if = m_lexer.peek();
-            if (tok_if.type == token_type::FUNCTION) {
-                fun_name = tok_if.value.substr(1);
-                switch (util::hash(fun_name)) {
-                case "else"_h:
-                    m_lexer.advance(tok_if);
-                    add_endif = true;
-                    has_else = true;
-                    m_code.add_line<opcode::JMP>(endif_label);
-                    m_code.add_label(else_label);
-                    read_statement();
-                    in_loop = false;
-                    break;
-                case "elif"_h:
-                case "elifnot"_h:
-                    m_lexer.advance(tok_if);
-                    condition_positive = fun_name == "elif";
-                    add_endif = true;
-                    m_code.add_line<opcode::JMP>(endif_label);
-                    break;
-                default:
-                    in_loop = false;
-                }
-            } else {
-                in_loop = false;
-            }
-            if (!has_else) m_code.add_label(else_label);
+        std::string else_label = make_label("else");
+
+        m_lexer.require(token_type::PAREN_BEGIN);
+        read_expression();
+        m_lexer.require(token_type::PAREN_END);
+        if (auto &last = m_code.last_not_comment(); last.command() == opcode::CALL && last.get_args<opcode::CALL>().fun->first == "not") {
+            last = make_command<opcode::JNZ>(else_label);
+        } else {
+            m_code.add_line<opcode::JZ>(else_label);
         }
-        if (add_endif) m_code.add_label(endif_label);
+        read_statement();
+        if (auto tok_else = m_lexer.peek(); tok_else.type == token_type::IDENTIFIER && tok_else.value == "else") {
+            m_lexer.advance(tok_else);
+            m_code.add_line<opcode::JMP>(endif_label);
+            m_code.add_label(else_label);
+            read_statement();
+            m_code.add_label(endif_label);
+        } else {
+            m_code.add_label(else_label);
+        }
         break;
     }
     case "while"_h: {
@@ -86,7 +60,7 @@ void parser::read_keyword() {
         m_loop_labels.push(loop_label_pair{for_label, endfor_label});
         m_lexer.require(token_type::PAREN_BEGIN);
         if (!m_lexer.check_next(token_type::SEMICOLON)) {
-            sub_statement();
+            assignment_stmt();
             m_lexer.require(token_type::SEMICOLON);
         }
         m_code.add_label(for_label);
@@ -97,7 +71,7 @@ void parser::read_keyword() {
         }
         auto increase_stmt_begin = m_code.size();
         if (!m_lexer.check_next(token_type::PAREN_END)) {
-            sub_statement();
+            assignment_stmt();
             m_lexer.require(token_type::PAREN_END);
         }
         auto increase_stmt_end = m_code.size();
@@ -250,13 +224,13 @@ void parser::read_keyword() {
     case "continue"_h:
         m_lexer.require(token_type::SEMICOLON);
         if (m_loop_labels.empty()) {
-            throw parsing_error("Non in un loop", tok_name);
+            throw parsing_error("Non in un loop", tok_fun_name);
         }
         m_code.add_line<opcode::JMP>(fun_name == "break" ? m_loop_labels.top().break_label : m_loop_labels.top().continue_label);
         break;
     case "return"_h:
         if (m_function_level == 0) {
-            throw parsing_error("Non in una funzione", tok_name);
+            throw parsing_error("Non in una funzione", tok_fun_name);
         }
         if (m_lexer.check_next(token_type::SEMICOLON)) {
             m_code.add_line<opcode::RET>();
@@ -318,15 +292,17 @@ void parser::read_keyword() {
             m_lexer.require(token_type::SEMICOLON);
             
             if (it->second.numargs != num_args) {
-                throw invalid_numargs(std::string(fun_name), it->second.numargs, it->second.numargs, tok_name);
+                throw invalid_numargs(std::string(fun_name), it->second.numargs, it->second.numargs, tok_fun_name);
             }
             if (it->second.has_contents && m_content_level == 0) {
-                throw parsing_error(fmt::format("Impossibile chiamare {}, stack contenuti vuoto", fun_name), tok_name);
+                throw parsing_error(fmt::format("Impossibile chiamare {}, stack contenuti vuoto", fun_name), tok_fun_name);
             }
             m_code.add_line<opcode::JSR>(fmt::format("__function_{}", fun_name), num_args);
         } else {
-            throw parsing_error("Parola chiave sconosciuta", tok_name);
+            m_lexer.rewind(tok_fun_name);
+            return false;
         }
     }
     }
+    return true;
 }

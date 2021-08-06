@@ -95,10 +95,6 @@ token lexer::next(bool do_advance) {
     case '\0':
         tok.type = token_type::END_OF_FILE;
         break;
-    case '$':
-        tok.type = token_type::FUNCTION;
-        ok = readIdentifier();
-        break;
     case '"':
         tok.type = token_type::STRING;
         ok = readString();
@@ -160,6 +156,9 @@ token lexer::next(bool do_advance) {
         break;
     case '%':
         tok.type = token_type::PERCENT;
+        break;
+    case '$':
+        tok.type = token_type::DOLLAR;
         break;
     case '^':
         tok.type = token_type::CARET;
@@ -318,6 +317,10 @@ token lexer::check_next(token_type type) {
 void lexer::advance(token tok) {
     flushDebugData();
     m_current = tok.value.data() + tok.value.size();
+}
+
+void lexer::rewind(token tok) {
+    m_current = tok.value.data();
 }
 
 std::string lexer::token_location_info(const token &tok) {

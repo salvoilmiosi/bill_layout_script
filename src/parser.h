@@ -73,13 +73,13 @@ namespace bls {
         const layout_box *current_box = nullptr;
         
         void read_statement();
-        void sub_statement();
+        void assignment_stmt();
 
         void read_expression();
         void sub_expression();
 
-        void read_function();
-        void read_keyword();
+        bool read_function();
+        bool read_keyword();
 
         variable_prefixes read_variable(bool read_only = false);
 

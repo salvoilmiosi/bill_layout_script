@@ -18,7 +18,6 @@ namespace bls {
         (REGEXP,       "Espressione Regolare")
         (NUMBER,       "Numero")
         (INTEGER,      "Numero Intero")
-        (FUNCTION,     "Funzione")
         (SEMICOLON,    ";")
         (AMPERSAND,    "&")
         (PAREN_BEGIN,  "(")
@@ -40,6 +39,7 @@ namespace bls {
         (COLON,        ":")
         (SINGLE_QUOTE, "'")
         (PERCENT,      "%")
+        (DOLLAR,       "$")
         (CARET,        "^")
         (ASTERISK,     "*")
         (SLASH,        "/")
@@ -116,6 +116,7 @@ namespace bls {
         token check_next(token_type type);
 
         void advance(token tok);
+        void rewind(token tok);
 
         std::string token_location_info(const token &tok);
 

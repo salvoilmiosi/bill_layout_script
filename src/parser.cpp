@@ -151,24 +151,24 @@ void parser::read_statement() {
             read_statement();
         }
         break;
-    case token_type::FUNCTION:
-        read_keyword();
-        break;
     case token_type::END_OF_FILE:
         throw unexpected_token(tok_first);
     case token_type::SEMICOLON:
         m_lexer.advance(tok_first);
         break;
+    case token_type::IDENTIFIER:
+        if (read_keyword()) break;
+        [[fallthrough]];
     default:
-        sub_statement();
+        assignment_stmt();
         m_lexer.require(token_type::SEMICOLON);
     }
 }
 
-void parser::sub_statement() {
+void parser::assignment_stmt() {
     auto tok = m_lexer.peek();
-    bool dot = tok.type == token_type::DOT;
-    if (dot) {
+    bool assigncontent = tok.type == token_type::DOLLAR;
+    if (assigncontent) {
         m_lexer.advance(tok);
         if (m_content_level == 0) {
             throw parsing_error("Stack contenuti vuoto", tok);
@@ -179,7 +179,7 @@ void parser::sub_statement() {
     auto prefixes = read_variable(false);
     auto selvar_end = m_code.size();
 
-    if (dot) {
+    if (assigncontent) {
         m_code.add_line<opcode::PUSHVIEW>();
     } else {
         tok = m_lexer.next();
@@ -272,9 +272,6 @@ void parser::sub_expression() {
         read_expression();
         m_lexer.require(token_type::PAREN_END);
         break;
-    case token_type::FUNCTION:
-        read_function();
-        break;
     case token_type::NOT:
         m_lexer.advance(tok_first);
         sub_expression();
@@ -338,16 +335,17 @@ void parser::sub_expression() {
         }
         m_code.add_line<opcode::PUSHVIEW>();
         break;
-    default: {
-        auto prefixes = read_variable(true);
-        if (!prefixes.function_arg) {
-            if (prefixes.pushref) {
-                m_code.add_line<opcode::PUSHREF>();
-            } else {
-                m_code.add_line<opcode::PUSHVAR>();
+    default:
+        if (!read_function()) {
+            auto prefixes = read_variable(true);
+            if (!prefixes.function_arg) {
+                if (prefixes.pushref) {
+                    m_code.add_line<opcode::PUSHREF>();
+                } else {
+                    m_code.add_line<opcode::PUSHVAR>();
+                }
             }
         }
-    }
     }
 }
 
@@ -491,9 +489,11 @@ void parser::add_enum_index_command() {
     }
 };
 
-void parser::read_function() {
-    auto tok_fun_name = m_lexer.require(token_type::FUNCTION);
-    auto fun_name = tok_fun_name.value.substr(1);
+bool parser::read_function() {
+    auto tok_fun_name = m_lexer.check_next(token_type::IDENTIFIER);
+    if (!tok_fun_name) return false;
+
+    auto fun_name = tok_fun_name.value;
 
     using namespace util::literals;
     
@@ -502,7 +502,11 @@ void parser::read_function() {
     case "sys"_h: add_enum_index_command<opcode::GETSYS>(); break;
     default: {
         small_int num_args = 0;
-        m_lexer.require(token_type::PAREN_BEGIN);
+        if (!m_lexer.check_next(token_type::PAREN_BEGIN)) {
+            m_lexer.rewind(tok_fun_name);
+            return false;
+        }
+
         while (!m_lexer.check_next(token_type::PAREN_END)) {
             ++num_args;
             read_expression();
@@ -537,4 +541,5 @@ void parser::read_function() {
         }
     }
     }
+    return true;
 }
