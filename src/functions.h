@@ -196,61 +196,63 @@ namespace bls {
         requires std::convertible_to<typename check_args<decltype(+fun)>::return_type, ReturnType>;
     };
 
-    template<typename ReturnType>
-    class function_handler_base {
+    class function_handler {
     private:
-        ReturnType (*const m_fun) (class reader *ctx, arg_list);
+        variable (*const m_fun) (class reader *ctx, arg_list);
 
         // l'operatore unario + converte una funzione lambda senza capture
         // in puntatore a funzione. In questo modo il compilatore può
         // dedurre i tipi dei parametri della funzione tramite i template
 
-        // function_handler_base rappresenta una closure che passa automaticamente gli argomenti
+        // function_handler rappresenta una closure che passa automaticamente gli argomenti
         // da arg_list alla funzione fun, convertendoli nei tipi giusti
-        template<typename Function> static ReturnType call_function(class reader *ctx, arg_list args) {
+        template<typename Function, bool ReturnsValue> static variable call_function(class reader *ctx, arg_list args) {
             using types = function_types_t<decltype(+Function{})>;
-            return [] <size_t ... Is> (class reader *ctx, arg_list &args, std::index_sequence<Is...>) {
+            constexpr auto fun = [] <size_t ... Is> (class reader *ctx, arg_list &args, std::index_sequence<Is...>) {
                 if constexpr (has_context_v<decltype(+Function{})>) {
                     return Function{}(ctx, get_arg<types, Is>(args) ...);
                 } else {
                     return Function{}(get_arg<types, Is>(args) ...);
                 }
-            }(ctx, args, std::make_index_sequence<types::size>{});
+            };
+            if constexpr (ReturnsValue) {
+                return fun(ctx, args, std::make_index_sequence<types::size>{});
+            } else {
+                fun(ctx, args, std::make_index_sequence<types::size>{});
+                return {};
+            }
         }
 
     public:
         const size_t minargs;
         const size_t maxargs;
+        const bool returns_value;
 
-        template<valid_function_returning<ReturnType> Function>
-        function_handler_base(Function fun)
-            : m_fun(call_function<Function>)
+        template<valid_function_returning<variable> Function>
+        function_handler(Function fun)
+            : m_fun(call_function<Function, true>)
             , minargs(check_args<decltype(+fun)>::minargs)
-            , maxargs(check_args<decltype(+fun)>::maxargs) {}
+            , maxargs(check_args<decltype(+fun)>::maxargs)
+            , returns_value(true) {}
 
-        ReturnType operator ()(class reader *ctx, simple_stack<variable> &stack, size_t numargs) const {
-            if constexpr (std::is_void_v<ReturnType>) {
-                m_fun(ctx, arg_list(stack.end() - numargs, stack.end()));
-                stack.resize(stack.size() - numargs);
-            } else {
-                auto ret = m_fun(ctx, arg_list(stack.end() - numargs, stack.end()));
-                stack.resize(stack.size() - numargs);
-                return ret;
-            }
+        template<valid_function_returning<void> Function>
+        function_handler(Function fun)
+            : m_fun(call_function<Function, false>)
+            , minargs(check_args<decltype(+fun)>::minargs)
+            , maxargs(check_args<decltype(+fun)>::maxargs)
+            , returns_value(false) {}
+
+        variable operator ()(class reader *ctx, simple_stack<variable> &stack, size_t numargs) const {
+            auto ret = m_fun(ctx, arg_list(stack.end() - numargs, stack.end()));
+            stack.resize(stack.size() - numargs);
+            return ret;
         }
     };
-
-    using function_handler = function_handler_base<variable>;
-    using sys_function_handler = function_handler_base<void>;
 
     using function_map = std::map<std::string, function_handler, std::less<>>;
     using function_iterator = function_map::const_iterator;
 
-    using sys_function_map = std::map<std::string, sys_function_handler, std::less<>>;
-    using sys_function_iterator = sys_function_map::const_iterator;
-
     extern const function_map function_lookup;
-    extern const sys_function_map sys_function_lookup;
 
 }
 

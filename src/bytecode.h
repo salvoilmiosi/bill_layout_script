@@ -20,16 +20,6 @@ namespace bls {
         command_call(function_iterator fun, int numargs) : fun(fun), numargs(numargs) {}
     };
 
-    struct command_syscall {
-        sys_function_iterator fun;
-        small_int numargs;
-
-        command_syscall(std::string_view name, int numargs) : fun(sys_function_lookup.find(name)), numargs(numargs) {
-            assert(fun != sys_function_lookup.end());
-        }
-        command_syscall(sys_function_iterator fun, int numargs) : fun(fun), numargs(numargs) {}
-    };
-
     DEFINE_ENUM_DATA_IN_NS(bls, spacer_index, static_vector<const char *>,
         (PAGE,      "p", "page")
         (X,         "x")
@@ -131,7 +121,7 @@ namespace bls {
         (PUSHREGEX, std::string)        // str -> stack (flag come regex)
         (PUSHARG, small_int)            // stack -> stack
         (CALL, command_call)            // stack * numargs -> fun_name -> stack
-        (SYSCALL, command_syscall)      // stack * numargs -> sys_fun_name
+        (SYSCALL, command_call)         // stack * numargs -> fun_name
         (CNTADDSTRING)                  // stack -> content_stack
         (CNTADDLIST)                    // stack -> content_stack
         (CNTPOP)                        // content_stack.pop()

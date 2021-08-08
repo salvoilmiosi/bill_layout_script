@@ -128,7 +128,7 @@ void reader::exec_command(const command_args &cmd) {
         m_contents.emplace(m_doc->get_text(m_current_box));
     };
 
-    auto call_function = [&](const auto &cmd) {
+    auto call_function = [&](const command_call &cmd) {
         return cmd.fun->second(this, m_stack, cmd.numargs);
     };
 

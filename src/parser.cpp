@@ -526,19 +526,17 @@ void parser::read_function(token tok_fun_name, bool top_level) {
     }
     
     if (auto it = function_lookup.find(fun_name); it != function_lookup.end()) {
-        if (top_level) throw parsing_error(fmt::format("Impossibile chiamare {} dal top level", fun_name), tok_fun_name);
         const auto &fun = it->second;
         if (num_args < fun.minargs || num_args > fun.maxargs) {
             throw invalid_numargs(std::string(fun_name), fun.minargs, fun.maxargs, tok_fun_name);
         }
-        m_code.add_line<opcode::CALL>(it, num_args);
-    } else if (auto it = sys_function_lookup.find(fun_name); it != sys_function_lookup.end()) {
-        if (!top_level) throw parsing_error(fmt::format("Impossibile chiamare {} fuori dal top level", fun_name), tok_fun_name);
-        const auto &fun = it->second;
-        if (num_args < fun.minargs || num_args > fun.maxargs) {
-            throw invalid_numargs(std::string(fun_name), fun.minargs, fun.maxargs, tok_fun_name);
+        if (fun.returns_value) {
+            if (top_level) throw parsing_error(fmt::format("Impossibile chiamare {} dal top level", fun_name), tok_fun_name);
+            m_code.add_line<opcode::CALL>(it, num_args);
+        } else {
+            if (!top_level) throw parsing_error(fmt::format("Impossibile chiamare {} fuori dal top level", fun_name), tok_fun_name);
+            m_code.add_line<opcode::SYSCALL>(it, num_args);
         }
-        m_code.add_line<opcode::SYSCALL>(it, num_args);
     } else if (auto it = m_functions.find(fun_name); it != m_functions.end()) {
         const auto &fun = it->second;
         if (fun.numargs != num_args) {

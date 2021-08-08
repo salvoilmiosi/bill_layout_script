@@ -537,9 +537,7 @@ namespace bls {
         {"layout_dir", [](const reader *ctx) { return ctx->get_layout_dir().string(); }},
         {"curtable", [](const reader *ctx) { return ctx->get_table_index(); }},
         {"numtables", [](const reader *ctx) { return ctx->get_numtables(); }},
-    };
-
-    const sys_function_map sys_function_lookup {
+        
         {"error", [](int errcode, const std::string &message) {
             throw layout_runtime_error(message, errcode);
         }},
