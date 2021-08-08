@@ -538,7 +538,7 @@ namespace bls {
         {"curtable", [](const reader *ctx) { return ctx->get_table_index(); }},
         {"numtables", [](const reader *ctx) { return ctx->get_numtables(); }},
         
-        {"error", [](int errcode, const std::string &message) {
+        {"error", [](const std::string &message, optional_int<-1> errcode) {
             throw layout_runtime_error(message, errcode);
         }},
         {"note", [](reader *ctx, const std::string &message) {
