@@ -20,6 +20,16 @@ namespace bls {
         command_call(function_iterator fun, int numargs) : fun(fun), numargs(numargs) {}
     };
 
+    struct command_syscall {
+        sys_function_iterator fun;
+        small_int numargs;
+
+        command_syscall(std::string_view name, int numargs) : fun(sys_function_lookup.find(name)), numargs(numargs) {
+            assert(fun != sys_function_lookup.end());
+        }
+        command_syscall(sys_function_iterator fun, int numargs) : fun(fun), numargs(numargs) {}
+    };
+
     DEFINE_ENUM_DATA_IN_NS(bls, spacer_index, static_vector<const char *>,
         (PAGE,      "p", "page")
         (X,         "x")
@@ -31,16 +41,6 @@ namespace bls {
         (BOTTOM,    "b", "bottom")
         (LEFT,      "l", "left")
         (ROTATE,    "rot", "rotate")
-    )
-
-    DEFINE_ENUM_DATA_IN_NS(bls, sys_index, const char *,
-        (DOCFILE,   "doc_file")
-        (DOCPAGES,  "doc_pages")
-        (ATE,       "ate")
-        (LAYOUT,    "layout_file")
-        (LAYOUTDIR, "layout_dir")
-        (CURTABLE,  "curtable")
-        (NUMTABLES, "numtables")
     )
 
     template<enums::data_enum T>
@@ -118,8 +118,6 @@ namespace bls {
         (MVBOX, spacer_index)           // stack -> current_box[index]
         (MVNBOX, spacer_index)          // -stack -> current_box[index]
         (RDBOX, readbox_options)        // poppler.get_text(current_box) -> content_stack
-        (NEXTTABLE)                     // current_table++
-        (FIRSTTABLE)                    // current_table = 0
         (SELVAR, variable_selector)     // (name, index, size, flags) -> selected
         (SETVAR, bitset<setvar_flags>)  // selected, stack -> set
         (CLEAR)                         // selected -> clear
@@ -132,15 +130,12 @@ namespace bls {
         (PUSHSTR, std::string)          // str -> stack
         (PUSHREGEX, std::string)        // str -> stack (flag come regex)
         (PUSHARG, small_int)            // stack -> stack
-        (GETBOX, spacer_index)          // box[index] -> stack
-        (GETSYS, sys_index)             // sys[index] -> stack
         (CALL, command_call)            // stack * numargs -> fun_name -> stack
+        (SYSCALL, command_syscall)      // stack * numargs -> sys_fun_name
         (CNTADDSTRING)                  // stack -> content_stack
         (CNTADDLIST)                    // stack -> content_stack
         (CNTPOP)                        // content_stack.pop()
         (NEXTRESULT)                    // content_stack.top.nextresult()
-        (THROWERROR)                    // stack -> throw
-        (ADDNOTE)                       // stack -> notes
         (JMP, jump_address)             // unconditional jump
         (JZ, jump_address)              // stack -> jump if top == 0
         (JNZ, jump_address)             // stack -> jump if top != 0

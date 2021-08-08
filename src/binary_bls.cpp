@@ -119,6 +119,19 @@ template<> struct binary_io<command_call> {
     }
 };
 
+template<> struct binary_io<command_syscall> {
+    static void write(std::ostream &output, const command_syscall &args) {
+        writeData(output, args.fun->first);
+        writeData(output, args.numargs);
+    }
+
+    static command_syscall read(std::istream &input) {
+        auto name = readData<std::string>(input);
+        auto numargs = readData<small_int>(input);
+        return command_syscall(name, numargs);
+    }
+};
+
 template<> struct binary_io<variable_selector> {
     static void write(std::ostream &output, const variable_selector &args) {
         writeData(output, args.name);

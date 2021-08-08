@@ -120,59 +120,6 @@ void reader::exec_command(const command_args &cmd) {
         }
     };
 
-    auto get_box_info = [&](spacer_index idx) -> variable {
-        switch (idx) {
-        case spacer_index::PAGE:
-            return m_current_box.page;
-        case spacer_index::X:
-        case spacer_index::LEFT:
-            return m_current_box.x;
-        case spacer_index::Y:
-        case spacer_index::TOP:
-            return m_current_box.y;
-        case spacer_index::WIDTH:
-            return m_current_box.w;
-        case spacer_index::HEIGHT:
-            return m_current_box.h;
-        case spacer_index::RIGHT:
-            return m_current_box.x + m_current_box.w;
-        case spacer_index::BOTTOM:
-            return m_current_box.y + m_current_box.h;
-        default:
-            return variable();
-        }
-    };
-
-    auto check_doc_ptr = [&]() {
-        if (!m_doc) {
-            throw layout_error("Nessun documento aperto");
-        }
-    };
-
-    auto get_sys_info = [&](sys_index idx) -> variable {
-        switch (idx) {
-        case sys_index::DOCFILE:
-            check_doc_ptr();
-            return m_doc->filename().string();
-        case sys_index::DOCPAGES:
-            check_doc_ptr();
-            return m_doc->num_pages();
-        case sys_index::ATE:
-            check_doc_ptr();
-            return m_current_box.page > m_doc->num_pages();
-        case sys_index::LAYOUT:
-            return m_current_layout->string();
-        case sys_index::LAYOUTDIR:
-            return m_current_layout->parent_path().string();
-        case sys_index::CURTABLE:
-            return m_table_index;
-        case sys_index::NUMTABLES:
-            return m_table_count;
-        default:
-            return variable();
-        }
-    };
-
     auto read_box = [&](readbox_options opts) {
         m_current_box.mode = opts.mode;
         m_current_box.flags = opts.flags;
@@ -182,11 +129,19 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto call_function = [&](const command_call &cmd) {
-        variable ret = cmd.fun->second(m_current_locale, arg_list(
+        variable ret = cmd.fun->second(this, arg_list(
             m_stack.end() - cmd.numargs,
             m_stack.end()));
         m_stack.resize(m_stack.size() - cmd.numargs);
         return ret;
+    };
+
+    auto call_sys_function = [&](const command_syscall &cmd) {
+        cmd.fun->second(this, arg_list(
+            m_stack.end() - cmd.numargs,
+            m_stack.end()
+        ));
+        m_stack.resize(m_stack.size() - cmd.numargs);
     };
 
     auto import_layout = [&](const std::filesystem::path &filename) {
@@ -199,13 +154,6 @@ void reader::exec_command(const command_args &cmd) {
         m_layouts.push_back(filename);
         m_code[m_program_counter] = make_command<opcode::SETCURLAYOUT>(m_layouts.size() - 1);
         m_current_layout = m_layouts.end() - 1;
-    };
-
-    auto throw_error = [&]() {
-        m_running = false;
-        auto message = m_stack.pop().as_string();
-        auto errcode = m_stack.pop().as_int();
-        throw layout_runtime_error(message, errcode);
     };
 
     auto set_language = [&](const std::string &name) {
@@ -224,8 +172,6 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::MVBOX:         move_box(cmd.get_args<opcode::MVBOX>(), m_stack.pop()); break;
     case opcode::MVNBOX:        move_box(cmd.get_args<opcode::MVNBOX>(), -m_stack.pop()); break;
     case opcode::RDBOX:         read_box(cmd.get_args<opcode::RDBOX>()); break;
-    case opcode::NEXTTABLE:     if (++m_table_index >= m_table_count) ++m_table_count; break;
-    case opcode::FIRSTTABLE:    m_table_index = 0; break;
     case opcode::SELVAR:        select_var(cmd.get_args<opcode::SELVAR>()); break;
     case opcode::SETVAR:        m_selected.set_value(m_stack.pop(), cmd.get_args<opcode::SETVAR>()); break;
     case opcode::CLEAR:         m_selected.clear_value(); break;
@@ -238,9 +184,8 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHSTR:       m_stack.push(cmd.get_args<opcode::PUSHSTR>()); break;
     case opcode::PUSHREGEX:     m_stack.emplace(regex_state{}, cmd.get_args<opcode::PUSHREGEX>()); break;
     case opcode::PUSHARG:       push_function_arg(cmd.get_args<opcode::PUSHARG>()); break;
-    case opcode::GETBOX:        m_stack.push(get_box_info(cmd.get_args<opcode::GETBOX>())); break;
-    case opcode::GETSYS:        m_stack.push(get_sys_info(cmd.get_args<opcode::GETSYS>())); break;
     case opcode::CALL:          m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
+    case opcode::SYSCALL:       call_sys_function(cmd.get_args<opcode::SYSCALL>()); break;
     case opcode::CNTADDSTRING:  m_contents.emplace(m_stack.pop()); break;
     case opcode::CNTADDLIST:    m_contents.emplace(m_stack.pop().as_array()); break;
     case opcode::CNTPOP:        m_contents.pop_back(); break;
@@ -251,8 +196,6 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::JTE:           if(m_contents.top().tokenend()) jump_to(cmd.get_args<opcode::JTE>()); break;
     case opcode::JSRVAL:        jump_subroutine(cmd.get_args<opcode::JSRVAL>(), true); break;
     case opcode::JSR:           jump_subroutine(cmd.get_args<opcode::JSR>()); break;
-    case opcode::THROWERROR:    throw_error(); break;
-    case opcode::ADDNOTE:       m_notes.push_back(m_stack.pop().as_string()); break;
     case opcode::RET:           jump_return(variable()); break;
     case opcode::RETVAL:        jump_return(m_stack.pop()); break;
     case opcode::RETVAR:        jump_return(m_selected.get_value()); break;

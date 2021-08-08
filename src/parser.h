@@ -78,12 +78,10 @@ namespace bls {
         void read_expression();
         void sub_expression();
 
-        bool read_function();
+        bool read_function(bool top_level = false);
         bool read_keyword();
 
         variable_prefixes read_variable(bool read_only = false);
-
-        template<opcode Cmd> void add_enum_index_command();
 
     private:
         static inline int parser_counter = 0;

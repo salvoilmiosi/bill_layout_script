@@ -56,12 +56,70 @@ public:
     const auto &get_values() const { return m_values; }
     const auto &get_notes() const { return m_notes; }
     const auto &get_layouts() const { return m_layouts; }
-    
+
     size_t get_table_count() const { return m_table_count; }
 
     void abort() {
         m_running = false;
         m_aborted = true;
+    }
+
+public:
+    const std::locale &getloc() const {
+        return m_current_locale;
+    }
+
+    const pdf_rect &get_current_box() const {
+        return m_current_box;
+    }
+
+    void add_note(const std::string &note) {
+        m_notes.push_back(note);
+    }
+
+    int get_table_index() const {
+        return m_table_index;
+    }
+
+    int get_numtables() const {
+        return m_table_count;
+    }
+    
+    void nexttable() {
+        if (++m_table_index >= m_table_count) {
+            ++m_table_count;
+        }
+    }
+
+    void firsttable() {
+        m_table_index = 0;
+    }
+    
+    void check_doc_ptr() const {
+        if (!m_doc) throw layout_error("Nessun documento aperto");
+    };
+
+    bool is_ate() const {
+        check_doc_ptr();
+        return m_current_box.page > m_doc->num_pages();
+    }
+
+    int get_doc_numpages() const {
+        check_doc_ptr();
+        return m_doc->num_pages();
+    }
+
+    std::filesystem::path get_doc_filename() const {
+        check_doc_ptr();
+        return m_doc->filename();
+    }
+
+    std::filesystem::path get_layout_filename() const {
+        return *m_current_layout;
+    }
+
+    std::filesystem::path get_layout_dir() const {
+        return m_current_layout->parent_path();
     }
 
 private:

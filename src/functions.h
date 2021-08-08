@@ -158,20 +158,20 @@ namespace bls {
 
     template<typename Function> struct check_args {};
     template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : detail::check_args<true, Ts ...> {
-        static_assert(detail::check_args<true, Ts...>::valid, "Gli argomenti della funzione non sono validi");
-        static constexpr bool localized = false;
+        static constexpr bool has_context = false;
         using types = util::type_list<Ts ...>;
+        using return_type = T;
     };
 
-    template<typename T, typename Loc, typename ... Ts> requires std::is_same_v<std::decay_t<Loc>, std::locale>
-    struct check_args<T(*)(Loc, Ts ...)> : detail::check_args<true, Ts ...> {
-        static_assert(detail::check_args<true, Ts...>::valid, "Gli argomenti della funzione non sono validi");
-        static constexpr bool localized = true;
+    template<typename T, typename Reader, typename ... Ts> requires std::is_same_v<std::remove_cv_t<Reader>, class reader>
+    struct check_args<T(*)(Reader*, Ts ...)> : detail::check_args<true, Ts ...> {
+        static constexpr bool has_context = true;
         using types = util::type_list<Ts ...>;
+        using return_type = T;
     };
 
     template<typename T> using function_types_t = typename check_args<T>::types;
-    template<typename T> constexpr bool is_localized_v = check_args<T>::localized;
+    template<typename T> constexpr bool has_context_v = check_args<T>::has_context;
 
     template<typename TypeList, size_t I> inline decltype(auto) get_arg(arg_list &args) {
         using type = std::decay_t<util::get_nth_t<I, TypeList>>;
@@ -189,46 +189,61 @@ namespace bls {
         }
     }
 
-    class function_handler {
+    template<typename Function, typename ReturnType>
+    concept valid_function_returning = std::default_initializable<Function> && requires (Function fun) {
+        +fun;
+        requires check_args<decltype(+fun)>::valid;
+        requires std::convertible_to<typename check_args<decltype(+fun)>::return_type, ReturnType>;
+    };
+
+    template<typename ReturnType>
+    class function_handler_base {
     private:
-        variable (*const m_fun) (const std::locale &loc, arg_list &&);
+        ReturnType (*const m_fun) (class reader *ctx, arg_list &&);
 
         // l'operatore unario + converte una funzione lambda senza capture
         // in puntatore a funzione. In questo modo il compilatore può
         // dedurre i tipi dei parametri della funzione tramite i template
 
-        // function_handler rappresenta una closure che passa automaticamente gli argomenti
+        // function_handler_base rappresenta una closure che passa automaticamente gli argomenti
         // da arg_list alla funzione fun, convertendoli nei tipi giusti
-        template<typename Function> static variable call_function(const std::locale &loc, arg_list &&args) {
+        template<typename Function> static ReturnType call_function(class reader *ctx, arg_list &&args) {
             using types = function_types_t<decltype(+Function{})>;
-            return [] <size_t ... Is> (const std::locale &loc, arg_list &args, std::index_sequence<Is...>) {
-                if constexpr (is_localized_v<decltype(+Function{})>) {
-                    return Function{}(loc, get_arg<types, Is>(args) ...);
+            return [] <size_t ... Is> (class reader *ctx, arg_list &args, std::index_sequence<Is...>) {
+                if constexpr (has_context_v<decltype(+Function{})>) {
+                    return Function{}(ctx, get_arg<types, Is>(args) ...);
                 } else {
                     return Function{}(get_arg<types, Is>(args) ...);
                 }
-            }(loc, args, std::make_index_sequence<types::size>{});
+            }(ctx, args, std::make_index_sequence<types::size>{});
         }
 
     public:
         const size_t minargs;
         const size_t maxargs;
 
-        template<typename Function>
-        function_handler(Function fun)
+        template<valid_function_returning<ReturnType> Function>
+        function_handler_base(Function fun)
             : m_fun(call_function<Function>)
             , minargs(check_args<decltype(+fun)>::minargs)
             , maxargs(check_args<decltype(+fun)>::maxargs) {}
 
-        variable operator ()(const std::locale &loc, arg_list &&args) const {
-            return m_fun(loc, std::move(args));
+        ReturnType operator ()(class reader *ctx, arg_list &&args) const {
+            return m_fun(ctx, std::move(args));
         }
     };
+
+    using function_handler = function_handler_base<variable>;
+    using sys_function_handler = function_handler_base<void>;
 
     using function_map = std::map<std::string, function_handler, std::less<>>;
     using function_iterator = function_map::const_iterator;
 
+    using sys_function_map = std::map<std::string, sys_function_handler, std::less<>>;
+    using sys_function_iterator = sys_function_map::const_iterator;
+
     extern const function_map function_lookup;
+    extern const sys_function_map sys_function_lookup;
 
 }
 

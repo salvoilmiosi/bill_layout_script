@@ -250,59 +250,9 @@ bool parser::read_keyword() {
         m_lexer.require(token_type::SEMICOLON);
         m_code.add_line<opcode::CLEAR>();
         break;
-    default: {
-        static const std::map<std::string, std::tuple<int, command_args>, std::less<>> simple_functions = {
-            {"error",       {2, make_command<opcode::THROWERROR>()}},
-            {"note",        {1, make_command<opcode::ADDNOTE>()}},
-            {"nexttable",   {0, make_command<opcode::NEXTTABLE>()}},
-            {"firsttable",  {0, make_command<opcode::FIRSTTABLE>()}},
-            {"halt",        {0, make_command<opcode::HLT>()}}
-        };
-
-        if (auto it = simple_functions.find(fun_name); it != simple_functions.end()) {
-            int num_args = std::get<int>(it->second);
-            if (num_args > 0) {
-                m_lexer.require(token_type::PAREN_BEGIN);
-                read_expression();
-                for (--num_args; num_args > 0; --num_args) {
-                    m_lexer.require(token_type::COMMA);
-                    read_expression();
-                }
-                m_lexer.require(token_type::PAREN_END);
-            }
-            m_lexer.require(token_type::SEMICOLON);
-            m_code.push_back(std::get<command_args>(it->second));
-        } else if (auto it = m_functions.find(fun_name); it != m_functions.end()) {
-            m_lexer.require(token_type::PAREN_BEGIN);
-            small_int num_args = 0;
-            while (!m_lexer.check_next(token_type::PAREN_END)) {
-                ++num_args;
-                read_expression();
-                auto tok_comma = m_lexer.peek();
-                switch (tok_comma.type) {
-                case token_type::COMMA:
-                    m_lexer.advance(tok_comma);
-                    break;
-                case token_type::PAREN_END:
-                    break;
-                default:
-                    throw unexpected_token(tok_comma, token_type::PAREN_END);
-                }
-            }
-            m_lexer.require(token_type::SEMICOLON);
-            
-            if (it->second.numargs != num_args) {
-                throw invalid_numargs(std::string(fun_name), it->second.numargs, it->second.numargs, tok_fun_name);
-            }
-            if (it->second.has_contents && m_content_level == 0) {
-                throw parsing_error(fmt::format("Impossibile chiamare {}, stack contenuti vuoto", fun_name), tok_fun_name);
-            }
-            m_code.add_line<opcode::JSR>(fmt::format("__function_{}", fun_name), num_args);
-        } else {
-            m_lexer.rewind(tok_fun_name);
-            return false;
-        }
-    }
+    default:
+        m_lexer.rewind(tok_fun_name);
+        return false;
     }
     return true;
 }

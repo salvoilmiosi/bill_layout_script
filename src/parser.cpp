@@ -166,6 +166,8 @@ void parser::read_statement() {
 }
 
 void parser::assignment_stmt() {
+    if (read_function(true)) return;
+    
     auto tok = m_lexer.peek();
     bool assigncontent = tok.type == token_type::DOLLAR;
     if (assigncontent) {
@@ -336,14 +338,14 @@ void parser::sub_expression() {
         m_code.add_line<opcode::PUSHVIEW>();
         break;
     default:
-        if (!read_function()) {
-            auto prefixes = read_variable(true);
-            if (!prefixes.function_arg) {
-                if (prefixes.pushref) {
-                    m_code.add_line<opcode::PUSHREF>();
-                } else {
-                    m_code.add_line<opcode::PUSHVAR>();
-                }
+        if (read_function()) break;
+        
+        auto prefixes = read_variable(true);
+        if (!prefixes.function_arg) {
+            if (prefixes.pushref) {
+                m_code.add_line<opcode::PUSHREF>();
+            } else {
+                m_code.add_line<opcode::PUSHVAR>();
             }
         }
     }
@@ -478,68 +480,63 @@ variable_prefixes parser::read_variable(bool read_only) {
     return prefixes;
 }
 
-template<opcode Cmd>
-void parser::add_enum_index_command() {
-    m_lexer.require(token_type::DOT);
-    auto tok = m_lexer.require(token_type::IDENTIFIER);
-    try {
-        m_code.add_line<Cmd>(find_enum_index<opcode_type<Cmd>>(tok.value));
-    } catch (std::out_of_range) {
-        throw parsing_error(fmt::format("Argomento non valido: {}", tok.value), tok);
-    }
-};
-
-bool parser::read_function() {
+bool parser::read_function(bool top_level) {
     auto tok_fun_name = m_lexer.check_next(token_type::IDENTIFIER);
     if (!tok_fun_name) return false;
 
     auto fun_name = tok_fun_name.value;
-
-    using namespace util::literals;
     
-    switch (util::hash(fun_name)) {
-    case "box"_h: add_enum_index_command<opcode::GETBOX>(); break;
-    case "sys"_h: add_enum_index_command<opcode::GETSYS>(); break;
-    default: {
-        small_int num_args = 0;
-        if (!m_lexer.check_next(token_type::PAREN_BEGIN)) {
-            m_lexer.rewind(tok_fun_name);
-            return false;
-        }
+    small_int num_args = 0;
+    if (!m_lexer.check_next(token_type::PAREN_BEGIN)) {
+        m_lexer.rewind(tok_fun_name);
+        return false;
+    }
 
-        while (!m_lexer.check_next(token_type::PAREN_END)) {
-            ++num_args;
-            read_expression();
-            auto tok_comma = m_lexer.peek();
-            switch (tok_comma.type) {
-            case token_type::COMMA:
-                m_lexer.advance(tok_comma);
-                break;
-            case token_type::PAREN_END:
-                break;
-            default:
-                throw unexpected_token(tok_comma, token_type::PAREN_END);
-            }
-        }
-
-        if (auto it = function_lookup.find(fun_name); it != function_lookup.end()) {
-            const auto &fun = it->second;
-            if (num_args < fun.minargs || num_args > fun.maxargs) {
-                throw invalid_numargs(std::string(fun_name), fun.minargs, fun.maxargs, tok_fun_name);
-            }
-            m_code.add_line<opcode::CALL>(it, num_args);
-        } else if (auto it = m_functions.find(fun_name); it != m_functions.end()) {
-            if (it->second.numargs != num_args) {
-                throw invalid_numargs(std::string(fun_name), it->second.numargs, it->second.numargs, tok_fun_name);
-            }
-            if (it->second.has_contents && m_content_level == 0) {
-                throw parsing_error(fmt::format("Impossibile chiamare {}, stack contenuti vuoto", fun_name), tok_fun_name);
-            }
-            m_code.add_line<opcode::JSRVAL>(fmt::format("__function_{}", fun_name), num_args);
-        } else {
-            throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
+    while (!m_lexer.check_next(token_type::PAREN_END)) {
+        ++num_args;
+        read_expression();
+        auto tok_comma = m_lexer.peek();
+        switch (tok_comma.type) {
+        case token_type::COMMA:
+            m_lexer.advance(tok_comma);
+            break;
+        case token_type::PAREN_END:
+            break;
+        default:
+            throw unexpected_token(tok_comma, token_type::PAREN_END);
         }
     }
+    
+    if (auto it = function_lookup.find(fun_name); it != function_lookup.end()) {
+        if (top_level) throw parsing_error(fmt::format("Impossibile chiamare {} dal top level", fun_name), tok_fun_name);
+        const auto &fun = it->second;
+        if (num_args < fun.minargs || num_args > fun.maxargs) {
+            throw invalid_numargs(std::string(fun_name), fun.minargs, fun.maxargs, tok_fun_name);
+        }
+        m_code.add_line<opcode::CALL>(it, num_args);
+    } else if (auto it = sys_function_lookup.find(fun_name); it != sys_function_lookup.end()) {
+        if (!top_level) throw parsing_error(fmt::format("Impossibile chiamare {} fuori dal top level", fun_name), tok_fun_name);
+        const auto &fun = it->second;
+        if (num_args < fun.minargs || num_args > fun.maxargs) {
+            throw invalid_numargs(std::string(fun_name), fun.minargs, fun.maxargs, tok_fun_name);
+        }
+        m_code.add_line<opcode::SYSCALL>(it, num_args);
+    } else if (auto it = m_functions.find(fun_name); it != m_functions.end()) {
+        const auto &fun = it->second;
+        if (fun.numargs != num_args) {
+            throw invalid_numargs(std::string(fun_name), fun.numargs, fun.numargs, tok_fun_name);
+        }
+        if (fun.has_contents && m_content_level == 0) {
+            throw parsing_error(fmt::format("Impossibile chiamare {}, stack contenuti vuoto", fun_name), tok_fun_name);
+        }
+        jump_label label = fmt::format("__function_{}", fun_name);
+        if (top_level) {
+            m_code.add_line<opcode::JSR>(label, num_args);
+        } else {
+            m_code.add_line<opcode::JSRVAL>(label, num_args);
+        }
+    } else {
+        throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
     }
     return true;
 }

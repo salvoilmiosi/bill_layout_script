@@ -9,6 +9,8 @@
 #include "exceptions.h"
 #include "utils.h"
 #include "svstream.h"
+#include "reader.h"
+#include "exceptions.h"
 
 namespace bls {
 
@@ -307,9 +309,9 @@ namespace bls {
 
     const function_map function_lookup {
         {"str", [](const std::string &str) { return str; }},
-        {"num", [](const std::locale &loc, const variable &var) {
+        {"num", [](const reader *ctx, const variable &var) {
             if (var.is_number()) return var;
-            return parse_num(loc, var.as_view());
+            return parse_num(ctx->getloc(), var.as_view());
         }},
         {"int", [](int a) { return a; }},
         {"bool",[](bool a) { return a; }},
@@ -334,10 +336,10 @@ namespace bls {
         {"hex", [](int num) {
             return fmt::format("{:x}", num);
         }},
-        {"aggregate", [](const std::locale &loc, const std::vector<std::string> list) {
+        {"aggregate", [](const reader *ctx, const std::vector<std::string> list) {
             variable ret;
             for (const auto &s : list) {
-                ret += parse_num(loc, s);
+                ret += parse_num(ctx->getloc(), s);
             }
             return ret;
         }},
@@ -378,23 +380,23 @@ namespace bls {
         {"table_row", [](std::string_view row, std::vector<std::string> indices) {
             return table_row(row, indices);
         }},
-        {"search", [](const std::locale &loc, std::string_view str, const std::string &regex, optional_size<1> index) -> variable {
-            return std::string(search_regex(loc, str, regex, index));
+        {"search", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<1> index) -> variable {
+            return std::string(search_regex(ctx->getloc(), str, regex, index));
         }},
-        {"searchpos", [](const std::locale &loc, std::string_view str, const std::string &regex, optional_size<0> index) {
-            return search_regex(loc, str, regex, index).begin() - str.begin();
+        {"searchpos", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<0> index) {
+            return search_regex(ctx->getloc(), str, regex, index).begin() - str.begin();
         }},
-        {"searchposend", [](const std::locale &loc, std::string_view str, const std::string &regex, optional_size<0> index) {
-            return search_regex(loc, str, regex, index).end() - str.begin();
+        {"searchposend", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<0> index) {
+            return search_regex(ctx->getloc(), str, regex, index).end() - str.begin();
         }},
-        {"search_all", [](const std::locale &loc, std::string_view str, const std::string &regex, optional_size<1> index) {
-            return search_regex_all(loc, str, regex, index);
+        {"search_all", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<1> index) {
+            return search_regex_all(ctx->getloc(), str, regex, index);
         }},
-        {"captures", [](const std::locale &loc, std::string_view str, const std::string &regex) {
-            return search_regex_captures(loc, str, regex);
+        {"captures", [](const reader *ctx, std::string_view str, const std::string &regex) {
+            return search_regex_captures(ctx->getloc(), str, regex);
         }},
-        {"matches", [](const std::locale &loc, std::string_view str, const std::string &regex) {
-            return std::regex_match(str.begin(), str.end(), create_regex(loc, regex));
+        {"matches", [](const reader *ctx, std::string_view str, const std::string &regex) {
+            return std::regex_match(str.begin(), str.end(), create_regex(ctx->getloc(), regex));
         }},
         {"replace", [](std::string &&str, std::string_view from, std::string_view to) {
             return util::string_replace(str, from, to);
@@ -402,18 +404,18 @@ namespace bls {
         {"date_regex", [](std::string_view format) {
             return date_regex(format);
         }},
-        {"date", [](const std::locale &loc, std::string_view str, optional<std::string> format) {
+        {"date", [](const reader *ctx, std::string_view str, optional<std::string> format) {
             if (format.empty()) {
                 return datetime::from_string(str);
             } else {
-                return datetime::parse_date(loc, str, format);
+                return datetime::parse_date(ctx->getloc(), str, format);
             }
         }},
-        {"search_date", [](const std::locale &loc, std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
-            return search_date(loc, str, format, regex, index);
+        {"search_date", [](const reader *ctx, std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
+            return search_date(ctx->getloc(), str, format, regex, index);
         }},
-        {"date_format", [](const std::locale &loc, datetime date, const std::string &format) {
-            return date.format(loc, format);
+        {"date_format", [](const reader *ctx, datetime date, const std::string &format) {
+            return date.format(ctx->getloc(), format);
         }},
         {"ymd", [](int year, int month, int day) {
             return datetime::from_ymd(year, month, day);
@@ -469,17 +471,17 @@ namespace bls {
         {"substr", [](std::string_view str, size_t pos, optional_size<std::string_view::npos> count) {
             return std::string(str.substr(std::min(str.size(), pos), count));
         }},
-        {"between", [](const std::locale &loc, std::string_view str, const variable &from, optional<variable> to) {
-            return string_between<false, false>(loc, str, from, to);
+        {"between", [](const reader *ctx, std::string_view str, const variable &from, optional<variable> to) {
+            return string_between<false, false>(ctx->getloc(), str, from, to);
         }},
-        {"lbetween", [](const std::locale &loc, std::string_view str, const variable &from, optional<variable> to) {
-            return string_between<true, false>(loc, str, from, to);
+        {"lbetween", [](const reader *ctx, std::string_view str, const variable &from, optional<variable> to) {
+            return string_between<true, false>(ctx->getloc(), str, from, to);
         }},
-        {"rbetween", [](const std::locale &loc, std::string_view str, const variable &from, optional<variable> to) {
-            return string_between<false, true>(loc, str, from, to);
+        {"rbetween", [](const reader *ctx, std::string_view str, const variable &from, optional<variable> to) {
+            return string_between<false, true>(ctx->getloc(), str, from, to);
         }},
-        {"lrbetween", [](const std::locale &loc, std::string_view str, const variable &from, optional<variable> to) {
-            return string_between<true, true>(loc, str, from, to);
+        {"lrbetween", [](const reader *ctx, std::string_view str, const variable &from, optional<variable> to) {
+            return string_between<true, true>(ctx->getloc(), str, from, to);
         }},
         {"strcat", [](varargs<std::string_view> args) {
             return util::string_join(args);
@@ -493,14 +495,14 @@ namespace bls {
         {"indexofend", [](std::string_view str, std::string_view value, optional<size_t> index) {
             return string_find_icase(str, value, index).end() - str.begin();
         }},
-        {"tolower", [](const std::locale &loc, std::string_view str) {
-            return boost::locale::to_lower(str.data(), str.data() + str.size(), loc);
+        {"tolower", [](const reader *ctx, std::string_view str) {
+            return boost::locale::to_lower(str.data(), str.data() + str.size(), ctx->getloc());
         }},
-        {"toupper", [](const std::locale &loc, std::string_view str) {
-            return boost::locale::to_upper(str.data(), str.data() + str.size(), loc);
+        {"toupper", [](const reader *ctx, std::string_view str) {
+            return boost::locale::to_upper(str.data(), str.data() + str.size(), ctx->getloc());
         }},
-        {"totitle", [](const std::locale &loc, std::string_view str) {
-            return boost::locale::to_title(str.data(), str.data() + str.size(), loc);
+        {"totitle", [](const reader *ctx, std::string_view str) {
+            return boost::locale::to_title(str.data(), str.data() + str.size(), ctx->getloc());
         }},
         {"isempty", [](std::string_view str) {
             return str.empty();
@@ -514,12 +516,41 @@ namespace bls {
             }
             return variable();
         }},
-        {"readfile", [](const std::string &filename) -> variable {
-            std::ifstream ifs(filename);
+        {"readfile", [](const reader *ctx, const std::string &filename) -> variable {
+            std::ifstream ifs(ctx->get_layout_dir() / filename);
             if (ifs.fail()) return {};
             return std::string{
                 std::istreambuf_iterator<char>(ifs),
                 std::istreambuf_iterator<char>()};
         }},
+        {"box_page", [](const reader *ctx) { return ctx->get_current_box().page; }},
+        {"box_width", [](const reader *ctx) { return ctx->get_current_box().w; }},
+        {"box_height", [](const reader *ctx) { return ctx->get_current_box().h; }},
+        {"box_left", [](const reader *ctx) { return ctx->get_current_box().x; }},
+        {"box_top", [](const reader *ctx) { return ctx->get_current_box().y; }},
+        {"box_right", [](const reader *ctx) { return ctx->get_current_box().x + ctx->get_current_box().w; }},
+        {"box_bottom", [](const reader *ctx) { return ctx->get_current_box().y + ctx->get_current_box().h; }},
+        {"ate", [](const reader *ctx) { return ctx->is_ate(); }},
+        {"doc_numpages", [](const reader *ctx) { return ctx->get_doc_numpages(); }},
+        {"doc_filename", [](const reader *ctx) { return ctx->get_doc_filename().string(); }},
+        {"layout_filename", [](const reader *ctx) { return ctx->get_layout_filename().string(); }},
+        {"layout_dir", [](const reader *ctx) { return ctx->get_layout_dir().string(); }},
+        {"curtable", [](const reader *ctx) { return ctx->get_table_index(); }},
+        {"numtables", [](const reader *ctx) { return ctx->get_numtables(); }},
+    };
+
+    const sys_function_map sys_function_lookup {
+        {"error", [](int errcode, const std::string &message) {
+            throw layout_runtime_error(message, errcode);
+        }},
+        {"note", [](reader *ctx, const std::string &message) {
+            ctx->add_note(message);
+        }},
+        {"nexttable", [](reader *ctx) {
+            ctx->nexttable();
+        }},
+        {"firsttable", [](reader *ctx) {
+            ctx->firsttable();
+        }}
     };
 }
