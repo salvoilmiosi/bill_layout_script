@@ -5,7 +5,7 @@
 using namespace bls;
 
 bool parser::read_keyword() {
-    auto make_label = [&](std::string_view label) {
+    auto make_label = [&](std::string_view label) -> jump_label {
         return fmt::format("__{}_{}_{}", m_parser_id, m_code.size(), label);
     };
 
@@ -16,8 +16,8 @@ bool parser::read_keyword() {
 
     switch (util::hash(fun_name)) {
     case "if"_h: {
-        std::string endif_label = make_label("endif");
-        std::string else_label = make_label("else");
+        auto endif_label = make_label("endif");
+        auto else_label = make_label("else");
 
         m_lexer.require(token_type::PAREN_BEGIN);
         read_expression();
@@ -40,8 +40,8 @@ bool parser::read_keyword() {
         break;
     }
     case "while"_h: {
-        std::string while_label = make_label("while");
-        std::string endwhile_label = make_label("endwhile");
+        auto while_label = make_label("while");
+        auto endwhile_label = make_label("endwhile");
         m_loop_labels.push(loop_label_pair{while_label, endwhile_label});
         m_lexer.require(token_type::PAREN_BEGIN);
         m_code.add_label(while_label);
@@ -55,8 +55,8 @@ bool parser::read_keyword() {
         break;
     }
     case "for"_h: {
-        std::string for_label = make_label("for");
-        std::string endfor_label = make_label("endfor");
+        auto for_label = make_label("for");
+        auto endfor_label = make_label("endfor");
         m_loop_labels.push(loop_label_pair{for_label, endfor_label});
         m_lexer.require(token_type::PAREN_BEGIN);
         if (!m_lexer.check_next(token_type::SEMICOLON)) {
@@ -149,9 +149,9 @@ bool parser::read_keyword() {
         break;
     }
     case "foreach"_h: {
-        std::string begin_label = make_label("foreach");
-        std::string continue_label = make_label("foreach_continue");
-        std::string end_label = make_label("endforeach");
+        auto begin_label = make_label("foreach");
+        auto continue_label = make_label("foreach_continue");
+        auto end_label = make_label("endforeach");
         m_loop_labels.push(loop_label_pair{continue_label, end_label});
 
         m_lexer.require(token_type::PAREN_BEGIN);

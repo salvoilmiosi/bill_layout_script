@@ -72,12 +72,16 @@ template<typename T> std::ostream &operator << (std::ostream &out, const print_a
     return out << args.data;
 }
 
+template<> std::ostream &operator << (std::ostream &out, const print_args<small_int> &args) {
+    return out << int(args.data);
+}
+
 template<> std::ostream &operator << (std::ostream &out, const print_args<readbox_options> &args) {
     return out << args.data.mode << ' ' << args.data.flags;
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<command_call> &args) {
-    return out << args.data.fun->first << ' ' << int(args.data.numargs);
+    return out << args.data.fun->first << ' ' << print_args(args.data.numargs);
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<variable_selector> &args) {
@@ -96,24 +100,20 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<std::s
     return out << unicode::escapeString(args.data);
 }
 
-template<> std::ostream &operator << (std::ostream &out, const print_args<small_int> &args) {
-    return out << int(args.data);
+template<> std::ostream &operator << (std::ostream &out, const print_args<jump_label> &args) {
+    return out << args.data;
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<jump_address> &label) {
-    std::visit(util::overloaded{
-        [&](const std::string &str) {
-            out << print_args(str);
-        },
-        [&](ptrdiff_t addr) {
-            out << addr;
-        }
-    }, label.data);
-    return out;
+    if (!label.data.label.empty()) {
+        return out << print_args(label.data.label);
+    } else {
+        return out << label.data.address;
+    }
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<jsr_address> &args) {
-    return out << print_args(static_cast<jump_address>(args.data)) << ' ' << int(args.data.numargs);
+    return out << print_args<jump_address>(args.data) << ' ' << print_args(args.data.numargs);
 }
 
 int MainApp::run() {
@@ -137,17 +137,16 @@ int MainApp::run() {
                 std::cout << line->get_args<opcode::COMMENT>();
             } else {
                 std::cout << '\t' << line->command();
-                line->visit([&](auto args) {
-                    if constexpr (std::is_base_of_v<jump_address, decltype(args)>) {
-                        auto &addr = static_cast<jump_address &>(args);
-                        if (auto *diff = std::get_if<ptrdiff_t>(&addr)) {
-                            auto it_label = line + *diff;
+                line->visit([&]<typename T>(T &args) {
+                    if constexpr (std::is_base_of_v<jump_address, T>) {
+                        if (args.label.empty()) {
+                            auto it_label = line + args.address;
                             if (it_label->command() == opcode::LABEL) {
-                                addr = it_label->get_args<opcode::LABEL>();
+                                args.label = it_label->template get_args<opcode::LABEL>();
                             }
                         }
                     }
-                    if constexpr (! std::is_same_v<std::monostate, decltype(args)>) {
+                    if constexpr (! std::is_same_v<std::monostate, T>) {
                         std::cout << ' ' << print_args(args);
                     }
                 });

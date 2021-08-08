@@ -137,27 +137,39 @@ template<> struct binary_io<variable_selector> {
     }
 };
 
+template<> struct binary_io<jump_label> {
+    static void write(std::ostream &output, const jump_label &addr) {
+        writeData<std::string>(output, addr);
+    }
+
+    static jump_label read(std::istream &input) {
+        return readData<std::string>(input);
+    }
+};
+
 template<> struct binary_io<jump_address> {
-    static void write(std::ostream &output, const jump_address &label) {
-        writeData<int16_t>(output, std::get<ptrdiff_t>(label));
+    static void write(std::ostream &output, const jump_address &addr) {
+        writeData(output, addr.address);
     }
 
     static jump_address read(std::istream &input) {
-        return static_cast<ptrdiff_t>(readData<int16_t>(input));
+        jump_address ret;
+        readData(input, ret.address);
+        return ret;
     }
 };
 
 template<> struct binary_io<jsr_address> {
     static void write(std::ostream &output, const jsr_address &addr) {
-        writeData<jump_address>(output, addr);
+        writeData(output, addr.address);
         writeData(output, addr.numargs);
     }
 
     static jsr_address read(std::istream &input) {
-        jsr_address addr;
-        static_cast<jump_address>(addr) = readData<jump_address>(input);
-        readData(input, addr.numargs);
-        return addr;
+        jsr_address ret;
+        readData(input, ret.address);
+        readData(input, ret.numargs);
+        return ret;
     }
 };
 

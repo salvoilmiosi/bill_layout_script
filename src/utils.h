@@ -23,6 +23,12 @@ namespace util {
     template<typename ... Ts> struct overloaded : Ts ... { using Ts::operator() ...; };
     template<typename ... Ts> overloaded(Ts ...) -> overloaded<Ts...>;
 
+    template<typename T> struct strong_typedef : T {
+        using T::T;
+        strong_typedef(const T &x) : T(x) {}
+        strong_typedef(T &&x) : T(std::move(x)) {}
+    };
+
     // restituisce l'hash di una stringa
     constexpr size_t hash(std::string_view str) {
         size_t ret = 5381;

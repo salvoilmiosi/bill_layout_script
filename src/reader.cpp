@@ -72,7 +72,7 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto jump_to = [&](const jump_address &label) {
-        m_program_counter += std::get<ptrdiff_t>(label);
+        m_program_counter += label.address;
     };
 
     auto jump_subroutine = [&](const jsr_address &address, bool nodiscard = false) {
@@ -190,7 +190,7 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto import_layout = [&](const std::filesystem::path &filename) {
-        jsr_address addr{ptrdiff_t(add_layout(filename) - m_program_counter), 0};
+        jsr_address addr{add_layout(filename) - m_program_counter, 0};
         m_code[m_program_counter] = make_command<opcode::JSR>(addr);
         jump_subroutine(addr);
     };

@@ -34,13 +34,13 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
     }
 
     for (auto it = m_code.begin(); it != m_code.end(); ++it) {
-        it->visit([&](auto &label) {
-            if constexpr (std::is_base_of_v<jump_address, std::remove_reference_t<decltype(label)>>) {
-                if (auto *str = std::get_if<std::string>(&label)) {
-                    if (auto label_it = m_code.find_label(*str); label_it != m_code.end()) {
-                        static_cast<jump_address &>(label) = ptrdiff_t(label_it - it);
+        it->visit([&](auto &addr) {
+            if constexpr (std::is_base_of_v<jump_address, std::remove_reference_t<decltype(addr)>>) {
+                if (!addr.address) {
+                    if (auto label_it = m_code.find_label(addr.label); label_it != m_code.end()) {
+                        addr.address = label_it - it;
                     } else {
-                        throw layout_error(fmt::format("Etichetta sconosciuta: {}", *str));
+                        throw layout_error(fmt::format("Etichetta sconosciuta: {}", addr.label));
                     }
                 }
             }

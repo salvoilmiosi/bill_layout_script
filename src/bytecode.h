@@ -88,16 +88,32 @@ namespace bls {
         (DECREASE)
     )
 
-    typedef std::variant<ptrdiff_t, std::string> jump_address;
+    using jump_label = util::strong_typedef<std::string>;
+
+    struct jump_address {
+        jump_label label;
+        int16_t address = 0;
+
+        jump_address() = default;
+        jump_address(const jump_label &label) : label(label) {}
+        jump_address(jump_label &&label) : label(std::move(label)) {}
+        jump_address(int16_t address) : address(address) {}
+    };
 
     struct jsr_address : jump_address {
-        small_int numargs;
+        small_int numargs = 0;
+
+        jsr_address() = default;
+        
+        template<typename U>
+        jsr_address(U &&addr, small_int numargs)
+            : jump_address(std::forward<U>(addr)), numargs(numargs) {} 
     };
 
     DEFINE_ENUM_TYPES_IN_NS(bls, opcode,
         (NOP)                           // no operation
         (COMMENT, std::string)          // comment
-        (LABEL, std::string)            // jump label
+        (LABEL, jump_label)             // jump label
         (NEWBOX)                        // resetta current_box
         (MVBOX, spacer_index)           // stack -> current_box[index]
         (MVNBOX, spacer_index)          // -stack -> current_box[index]
@@ -201,13 +217,13 @@ namespace bls {
             push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
         }
 
-        bytecode::const_iterator find_label(const std::string &label) {
+        bytecode::const_iterator find_label(const jump_label &label) {
             return std::ranges::find_if(*this, [&](const command_args &line) {
                 return line.command() == opcode::LABEL && line.get_args<opcode::LABEL>() == label;
             });
         }
 
-        void add_label(const std::string &label) {
+        void add_label(const jump_label &label) {
             if (find_label(label) == end()) {
                 add_line<opcode::LABEL>(label);
             } else {
