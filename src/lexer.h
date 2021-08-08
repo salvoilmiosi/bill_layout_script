@@ -116,7 +116,6 @@ namespace bls {
         token check_next(token_type type);
 
         void advance(token tok);
-        void rewind(token tok);
 
         std::string token_location_info(const token &tok);
 

@@ -9,13 +9,15 @@ bool parser::read_keyword() {
         return fmt::format("__{}_{}_{}", m_parser_id, m_code.size(), label);
     };
 
-    auto tok_fun_name = m_lexer.require(token_type::IDENTIFIER);
+    auto tok_fun_name = m_lexer.peek();
+    assert(tok_fun_name.type == token_type::IDENTIFIER);
     auto fun_name = tok_fun_name.value;
 
     using namespace util::literals;
 
     switch (util::hash(fun_name)) {
     case "if"_h: {
+        m_lexer.advance(tok_fun_name);
         auto endif_label = make_label("endif");
         auto else_label = make_label("else");
 
@@ -40,6 +42,7 @@ bool parser::read_keyword() {
         break;
     }
     case "while"_h: {
+        m_lexer.advance(tok_fun_name);
         auto while_label = make_label("while");
         auto endwhile_label = make_label("endwhile");
         m_loop_labels.push(loop_label_pair{while_label, endwhile_label});
@@ -55,6 +58,7 @@ bool parser::read_keyword() {
         break;
     }
     case "for"_h: {
+        m_lexer.advance(tok_fun_name);
         auto for_label = make_label("for");
         auto endfor_label = make_label("endfor");
         m_loop_labels.push(loop_label_pair{for_label, endfor_label});
@@ -83,6 +87,7 @@ bool parser::read_keyword() {
         break;
     }
     case "goto"_h: {
+        m_lexer.advance(tok_fun_name);
         auto tok = m_lexer.require(token_type::IDENTIFIER);
         for (int i=0; i<m_content_level; ++i) {
             m_code.add_line<opcode::CNTPOP>();
@@ -92,6 +97,7 @@ bool parser::read_keyword() {
         break;
     }
     case "function"_h: {
+        m_lexer.advance(tok_fun_name);
         ++m_function_level;
         bool has_content = false;
         auto name = m_lexer.require(token_type::IDENTIFIER);
@@ -149,6 +155,7 @@ bool parser::read_keyword() {
         break;
     }
     case "foreach"_h: {
+        m_lexer.advance(tok_fun_name);
         auto begin_label = make_label("foreach");
         auto continue_label = make_label("foreach_continue");
         auto end_label = make_label("endforeach");
@@ -175,6 +182,7 @@ bool parser::read_keyword() {
         break;
     }
     case "with"_h: {
+        m_lexer.advance(tok_fun_name);
         m_lexer.require(token_type::PAREN_BEGIN);
         read_expression();
         m_lexer.require(token_type::PAREN_END);
@@ -189,6 +197,7 @@ bool parser::read_keyword() {
         break;
     }
     case "step"_h: {
+        m_lexer.advance(tok_fun_name);
         m_lexer.require(token_type::PAREN_BEGIN);
         read_expression();
         m_lexer.require(token_type::PAREN_END);
@@ -214,6 +223,7 @@ bool parser::read_keyword() {
         break;
     }
     case "import"_h: {
+        m_lexer.advance(tok_fun_name);
         auto tok_layout_name = m_lexer.require(token_type::STRING);
         m_lexer.require(token_type::SEMICOLON);
         auto imported_file = m_path.parent_path() / (tok_layout_name.parse_string() + ".bls");
@@ -222,6 +232,7 @@ bool parser::read_keyword() {
     }
     case "break"_h:
     case "continue"_h:
+        m_lexer.advance(tok_fun_name);
         m_lexer.require(token_type::SEMICOLON);
         if (m_loop_labels.empty()) {
             throw parsing_error("Non in un loop", tok_fun_name);
@@ -229,6 +240,7 @@ bool parser::read_keyword() {
         m_code.add_line<opcode::JMP>(fun_name == "break" ? m_loop_labels.top().break_label : m_loop_labels.top().continue_label);
         break;
     case "return"_h:
+        m_lexer.advance(tok_fun_name);
         if (m_function_level == 0) {
             throw parsing_error("Non in una funzione", tok_fun_name);
         }
@@ -246,12 +258,12 @@ bool parser::read_keyword() {
         }
         break;
     case "clear"_h:
-        read_variable(false);
+        m_lexer.advance(tok_fun_name);
+        read_variable_and_prefixes(false);
         m_lexer.require(token_type::SEMICOLON);
         m_code.add_line<opcode::CLEAR>();
         break;
     default:
-        m_lexer.rewind(tok_fun_name);
         return false;
     }
     return true;

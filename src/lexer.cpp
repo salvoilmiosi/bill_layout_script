@@ -319,10 +319,6 @@ void lexer::advance(token tok) {
     m_current = tok.value.data() + tok.value.size();
 }
 
-void lexer::rewind(token tok) {
-    m_current = tok.value.data();
-}
-
 std::string lexer::token_location_info(const token &tok) {
     size_t numline = 1;
     size_t loc = 1;

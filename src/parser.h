@@ -15,6 +15,7 @@ namespace bls {
     struct variable_prefixes {
         enums::bitset<setvar_flags> flags;
         command_args call;
+        bool pushref;
     };
     
     DEFINE_ENUM_FLAGS_IN_NS(bls, parser_flags,
@@ -76,10 +77,11 @@ namespace bls {
         void read_expression();
         void sub_expression();
 
-        bool read_function(bool top_level = false);
+        void read_function(token tok_fun_name, bool top_level);
         bool read_keyword();
 
-        variable_prefixes read_variable(bool read_only = false);
+        variable_prefixes read_variable_and_prefixes(bool read_only);
+        variable_prefixes read_variable(token tok_var_name, bool read_only, variable_prefixes prefixes = {}, variable_selector selvar = {});
 
     private:
         static inline int parser_counter = 0;
