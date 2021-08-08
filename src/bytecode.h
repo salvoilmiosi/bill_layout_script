@@ -14,8 +14,8 @@ namespace bls {
         function_iterator fun;
         small_int numargs;
 
-        command_call(std::string_view name, int numargs) : fun(function_lookup.find(name)), numargs(numargs) {
-            assert(fun != function_lookup.end());
+        command_call(std::string_view name, int numargs) : fun(function_lookup::find(name)), numargs(numargs) {
+            assert(function_lookup::valid(fun));
         }
         command_call(function_iterator fun, int numargs) : fun(fun), numargs(numargs) {}
     };

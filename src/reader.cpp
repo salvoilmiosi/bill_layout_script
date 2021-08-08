@@ -26,7 +26,7 @@ void reader::start() {
     m_selected = {};
     m_current_box = {};
 
-    m_current_locale = std::locale::classic();
+    m_locale = std::locale::classic();
 
     m_program_counter = 0;
     m_table_index = 0;
@@ -124,8 +124,7 @@ void reader::exec_command(const command_args &cmd) {
         m_current_box.mode = opts.mode;
         m_current_box.flags = opts.flags;
 
-        check_doc_ptr();
-        m_contents.emplace(m_doc->get_text(m_current_box));
+        m_contents.emplace(get_document().get_text(m_current_box));
     };
 
     auto call_function = [&](const command_call &cmd) {
@@ -146,7 +145,7 @@ void reader::exec_command(const command_args &cmd) {
 
     auto set_language = [&](const std::string &name) {
         try {
-            m_current_locale = boost::locale::generator{}(name);
+            m_locale = boost::locale::generator{}(name);
         } catch (std::runtime_error) {
             throw layout_error(fmt::format("Lingua non supportata: {}", name));
         }
@@ -234,8 +233,8 @@ size_t reader::add_code(bytecode &&new_code) {
         m_code.add_line<opcode::HLT>();
     } else {
         m_code.add_line<opcode::SETCURLAYOUT>(m_current_layout - m_layouts.begin());
-        if (std::has_facet<boost::locale::info>(m_current_locale)) {
-            m_code.add_line<opcode::SETLANG>(std::use_facet<boost::locale::info>(m_current_locale).name());
+        if (std::has_facet<boost::locale::info>(m_locale)) {
+            m_code.add_line<opcode::SETLANG>(std::use_facet<boost::locale::info>(m_locale).name());
         } else {
             m_code.add_line<opcode::SETLANG>();
         }

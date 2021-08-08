@@ -252,7 +252,14 @@ namespace bls {
     using function_map = std::map<std::string, function_handler, std::less<>>;
     using function_iterator = function_map::const_iterator;
 
-    extern const function_map function_lookup;
+    class function_lookup {
+    private:
+        static const function_map functions;
+
+    public:
+        static function_iterator find(std::string_view name) { return functions.find(name); }
+        static bool valid(function_iterator it) { return it != functions.end(); }
+    };
 
 }
 

@@ -525,7 +525,7 @@ void parser::read_function(token tok_fun_name, bool top_level) {
         }
     }
     
-    if (auto it = function_lookup.find(fun_name); it != function_lookup.end()) {
+    if (auto it = function_lookup::find(fun_name); function_lookup::valid(it)) {
         const auto &fun = it->second;
         if (num_args < fun.minargs || num_args > fun.maxargs) {
             throw invalid_numargs(std::string(fun_name), fun.minargs, fun.maxargs, tok_fun_name);

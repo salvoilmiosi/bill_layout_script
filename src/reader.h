@@ -41,6 +41,14 @@ public:
     }
 
     void set_document(pdf_document &&doc) = delete;
+    
+    const pdf_document &get_document() const {
+        if (m_doc) {
+            return *m_doc;
+        } else {
+            throw layout_error("Nessun documento aperto");
+        }
+    }
 
     // ritorna l'indirizzo del codice aggiunto
     size_t add_layout(const std::filesystem::path &filename);
@@ -64,66 +72,9 @@ public:
         m_aborted = true;
     }
 
-public:
-    const std::locale &getloc() const {
-        return m_current_locale;
-    }
-
-    const pdf_rect &get_current_box() const {
-        return m_current_box;
-    }
-
-    void add_note(const std::string &note) {
-        m_notes.push_back(note);
-    }
-
-    int get_table_index() const {
-        return m_table_index;
-    }
-
-    int get_numtables() const {
-        return m_table_count;
-    }
-    
-    void nexttable() {
-        if (++m_table_index >= m_table_count) {
-            ++m_table_count;
-        }
-    }
-
-    void firsttable() {
-        m_table_index = 0;
-    }
-    
-    void check_doc_ptr() const {
-        if (!m_doc) throw layout_error("Nessun documento aperto");
-    };
-
-    bool is_ate() const {
-        check_doc_ptr();
-        return m_current_box.page > m_doc->num_pages();
-    }
-
-    int get_doc_numpages() const {
-        check_doc_ptr();
-        return m_doc->num_pages();
-    }
-
-    std::filesystem::path get_doc_filename() const {
-        check_doc_ptr();
-        return m_doc->filename();
-    }
-
-    std::filesystem::path get_layout_filename() const {
-        return *m_current_layout;
-    }
-
-    std::filesystem::path get_layout_dir() const {
-        return m_current_layout->parent_path();
-    }
-
 private:
     void exec_command(const command_args &cmd);
+
     bytecode m_code;
 
     variable_map m_values;
@@ -139,7 +90,7 @@ private:
     std::vector<std::filesystem::path> m_layouts;
     decltype(m_layouts)::iterator m_current_layout;
 
-    std::locale m_current_locale;
+    std::locale m_locale;
 
     std::vector<std::string> m_notes;
 
@@ -152,6 +103,8 @@ private:
     enums::bitset<reader_flags> m_flags;
 
     const pdf_document *m_doc = nullptr;
+
+    friend class function_lookup;
 };
 
 }
