@@ -339,21 +339,15 @@ void parser::sub_expression() {
         break;
     default:
         if (read_function()) break;
-        
-        auto prefixes = read_variable(true);
-        if (!prefixes.function_arg) {
-            if (prefixes.pushref) {
-                m_code.add_line<opcode::PUSHREF>();
-            } else {
-                m_code.add_line<opcode::PUSHVAR>();
-            }
-        }
+        read_variable(true);
     }
 }
 
 variable_prefixes parser::read_variable(bool read_only) {
     variable_prefixes prefixes;
     variable_selector selvar;
+
+    bool pushref = false;
 
     token tok_prefix;
 
@@ -387,8 +381,8 @@ variable_prefixes parser::read_variable(bool read_only) {
 
     auto add_pushref = [&]() {
         if (!read_only) throw parsing_error("Non in contesto di sola lettura", tok_prefix);
-        if (!prefixes.pushref) {
-            prefixes.pushref = true;
+        if (!pushref) {
+            pushref = true;
         } else {
             throw parsing_error("Prefisso duplicato", tok_prefix);
         }
@@ -423,7 +417,6 @@ variable_prefixes parser::read_variable(bool read_only) {
     if (read_only) {
         if (auto it = std::ranges::find(m_fun_args, selvar.name); it != m_fun_args.end()) {
             m_code.add_line<opcode::PUSHARG>(it - m_fun_args.begin());
-            prefixes.function_arg = true;
             return prefixes;
         }
     }
@@ -476,6 +469,13 @@ variable_prefixes parser::read_variable(bool read_only) {
     }
 
     m_code.add_line<opcode::SELVAR>(selvar);
+    if (read_only) {
+        if (pushref) {
+            m_code.add_line<opcode::PUSHREF>();
+        } else {
+            m_code.add_line<opcode::PUSHVAR>();
+        }
+    }
 
     return prefixes;
 }

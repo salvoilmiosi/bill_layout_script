@@ -15,8 +15,6 @@ namespace bls {
     struct variable_prefixes {
         enums::bitset<setvar_flags> flags;
         command_args call;
-        bool function_arg:1 = false;
-        bool pushref:1 = false;
     };
     
     DEFINE_ENUM_FLAGS_IN_NS(bls, parser_flags,
