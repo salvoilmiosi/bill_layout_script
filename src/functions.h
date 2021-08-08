@@ -199,7 +199,7 @@ namespace bls {
     template<typename ReturnType>
     class function_handler_base {
     private:
-        ReturnType (*const m_fun) (class reader *ctx, arg_list &&);
+        ReturnType (*const m_fun) (class reader *ctx, arg_list);
 
         // l'operatore unario + converte una funzione lambda senza capture
         // in puntatore a funzione. In questo modo il compilatore può
@@ -207,7 +207,7 @@ namespace bls {
 
         // function_handler_base rappresenta una closure che passa automaticamente gli argomenti
         // da arg_list alla funzione fun, convertendoli nei tipi giusti
-        template<typename Function> static ReturnType call_function(class reader *ctx, arg_list &&args) {
+        template<typename Function> static ReturnType call_function(class reader *ctx, arg_list args) {
             using types = function_types_t<decltype(+Function{})>;
             return [] <size_t ... Is> (class reader *ctx, arg_list &args, std::index_sequence<Is...>) {
                 if constexpr (has_context_v<decltype(+Function{})>) {
@@ -228,8 +228,15 @@ namespace bls {
             , minargs(check_args<decltype(+fun)>::minargs)
             , maxargs(check_args<decltype(+fun)>::maxargs) {}
 
-        ReturnType operator ()(class reader *ctx, arg_list &&args) const {
-            return m_fun(ctx, std::move(args));
+        ReturnType operator ()(class reader *ctx, simple_stack<variable> &stack, size_t numargs) const {
+            if constexpr (std::is_void_v<ReturnType>) {
+                m_fun(ctx, arg_list(stack.end() - numargs, stack.end()));
+                stack.resize(stack.size() - numargs);
+            } else {
+                auto ret = m_fun(ctx, arg_list(stack.end() - numargs, stack.end()));
+                stack.resize(stack.size() - numargs);
+                return ret;
+            }
         }
     };
 

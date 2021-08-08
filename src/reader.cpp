@@ -128,20 +128,8 @@ void reader::exec_command(const command_args &cmd) {
         m_contents.emplace(m_doc->get_text(m_current_box));
     };
 
-    auto call_function = [&](const command_call &cmd) {
-        variable ret = cmd.fun->second(this, arg_list(
-            m_stack.end() - cmd.numargs,
-            m_stack.end()));
-        m_stack.resize(m_stack.size() - cmd.numargs);
-        return ret;
-    };
-
-    auto call_sys_function = [&](const command_syscall &cmd) {
-        cmd.fun->second(this, arg_list(
-            m_stack.end() - cmd.numargs,
-            m_stack.end()
-        ));
-        m_stack.resize(m_stack.size() - cmd.numargs);
+    auto call_function = [&](const auto &cmd) {
+        return cmd.fun->second(this, m_stack, cmd.numargs);
     };
 
     auto import_layout = [&](const std::filesystem::path &filename) {
@@ -185,7 +173,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHREGEX:     m_stack.emplace(regex_state{}, cmd.get_args<opcode::PUSHREGEX>()); break;
     case opcode::PUSHARG:       push_function_arg(cmd.get_args<opcode::PUSHARG>()); break;
     case opcode::CALL:          m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
-    case opcode::SYSCALL:       call_sys_function(cmd.get_args<opcode::SYSCALL>()); break;
+    case opcode::SYSCALL:       call_function(cmd.get_args<opcode::SYSCALL>()); break;
     case opcode::CNTADDSTRING:  m_contents.emplace(m_stack.pop()); break;
     case opcode::CNTADDLIST:    m_contents.emplace(m_stack.pop().as_array()); break;
     case opcode::CNTPOP:        m_contents.pop_back(); break;
