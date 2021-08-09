@@ -32,13 +32,13 @@ namespace bls {
 
     template<typename T, typename = void> struct is_convertible : std::false_type {};
     template<typename T> struct is_convertible<T, std::void_t<decltype(variable_converter<T>{}(std::declval<variable&>()))>> : std::true_type {};
-    template<typename T> constexpr bool is_convertible_v = is_convertible<T>::value;
 
     template<typename ... Ts> struct first_convertible {};
     template<typename ... Ts> using first_convertible_t = typename first_convertible<Ts...>::type;
-    template<> struct first_convertible<> { using type = void; };
-    template<typename First, typename ... Ts> struct first_convertible<First, Ts...>
-        : std::conditional<is_convertible_v<First>, First, first_convertible_t<Ts...>> {};
+    template<typename First, typename ... Ts> struct first_convertible<First, Ts...> : first_convertible<Ts...> {};
+    template<typename First, typename ... Ts> requires is_convertible<First>::value struct first_convertible<First, Ts...> {
+        using type = First;
+    };
 
     template<typename T> using convert_rvalue = first_convertible_t<
         std::add_rvalue_reference_t<std::decay_t<T>>, std::decay_t<T>>;
@@ -106,7 +106,8 @@ namespace bls {
         varargs(U &&obj) : varargs_base<T>(std::forward<U>(obj), vararg_converter<T>{}) {}
     };
 
-    template<typename T> struct is_variable : std::bool_constant<! std::is_void_v<convert_rvalue<T>>> {};
+    template<typename T, typename = void> struct is_variable : std::false_type {};
+    template<typename T> struct is_variable<T, std::void_t<convert_rvalue<T>>> : std::true_type {};
 
     template<typename T> struct is_optional : std::false_type {};
     template<typename T, typename Getter> struct is_optional<optional<T, Getter>> : std::bool_constant<is_variable<T>{}> {};
@@ -114,15 +115,9 @@ namespace bls {
     template<typename T> struct is_varargs : std::false_type {};
     template<typename T, size_t Minargs> struct is_varargs<varargs<T, Minargs>> : std::bool_constant<is_variable<T>{}> {};
 
+    class reader;
+
     namespace detail {
-        template<bool Req, typename ... Ts> struct check_args {};
-        template<bool Req> struct check_args<Req> {
-            static constexpr bool minargs = 0;
-            static constexpr bool maxargs = 0;
-
-            static constexpr bool valid = true;
-        };
-
         template<typename T> struct vararg_minargs {
             static constexpr size_t value = 0;
         };
@@ -133,15 +128,26 @@ namespace bls {
 
         template<typename T> constexpr size_t vararg_minargs_v = vararg_minargs<T>::value;
 
-        template<bool Req, typename First, typename ... Ts>
-        class check_args<Req, First, Ts ...> {
+        template<bool Req, typename ReturnType, typename ... Ts> struct check_args_helper {};
+        template<bool Req, typename ReturnType> struct check_args_helper<Req, ReturnType> {
+            static constexpr bool minargs = 0;
+            static constexpr bool maxargs = 0;
+
+            static constexpr bool valid = true;
+
+            using return_type = ReturnType;
+            using types = util::type_list<>;
+        };
+
+        template<bool Req, typename ReturnType, typename First, typename ... Ts>
+        class check_args_helper<Req, ReturnType, First, Ts ...> {
         private:
             static constexpr bool var = is_variable<std::decay_t<First>>{};
             static constexpr bool opt = is_optional<std::decay_t<First>>{};
             static constexpr bool vec = is_varargs<std::decay_t<First>>{};
 
             // Req indica se il parametro precedente non era opt
-            using recursive = check_args<Req ? var : !opt, Ts ...>;
+            using recursive = check_args_helper<Req ? var : !opt, ReturnType, Ts ...>;
 
         public:
             // Conta il numero di tipi che non sono opzionali
@@ -153,25 +159,31 @@ namespace bls {
             // true solo se i tipi degli argomenti seguono il pattern (var*N, opt*M, [vec])
             // Tutti gli argomenti opzionali devono essere dopo quelli richiesti
             static constexpr bool valid = vec ? sizeof...(Ts) == 0 && (Req || vararg_minargs_v<First> == 0) : (Req || opt) && recursive::valid;
+
+            using return_type = ReturnType;
+            using types = util::type_list<First, Ts ...>;
+        };
+
+        template<typename Function> struct check_args {};
+
+        template<typename ReturnType, typename Reader, typename ... Ts> requires std::is_same_v<std::remove_cv_t<Reader>, reader>
+        struct check_args<ReturnType(*)(Reader*, Ts ...)> : check_args_helper<true, ReturnType, Ts ...> {
+            static constexpr bool has_context = true;
+        };
+
+        template<typename ReturnType, typename ... Ts>
+        struct check_args<ReturnType(*)(Ts ...)> : check_args_helper<true, ReturnType, Ts ...> {
+            static constexpr bool has_context = false;
         };
     }
 
-    template<typename Function> struct check_args {};
-    template<typename T, typename ... Ts> struct check_args<T(*)(Ts ...)> : detail::check_args<true, Ts ...> {
-        static constexpr bool has_context = false;
-        using types = util::type_list<Ts ...>;
-        using return_type = T;
-    };
+    template<typename Function> using check_args = detail::check_args<decltype(+Function{})>;
 
-    template<typename T, typename Reader, typename ... Ts> requires std::is_same_v<std::remove_cv_t<Reader>, class reader>
-    struct check_args<T(*)(Reader*, Ts ...)> : detail::check_args<true, Ts ...> {
-        static constexpr bool has_context = true;
-        using types = util::type_list<Ts ...>;
-        using return_type = T;
-    };
-
-    template<typename T> using function_types_t = typename check_args<T>::types;
-    template<typename T> constexpr bool has_context_v = check_args<T>::has_context;
+    template<typename Function> using function_return_type_t = typename check_args<Function>::return_type;
+    template<typename Function> using function_types_t = typename check_args<Function>::types;
+    template<typename Function> constexpr size_t function_minargs_v = check_args<Function>::minargs;
+    template<typename Function> constexpr size_t function_maxargs_v = check_args<Function>::maxargs;
+    template<typename Function> constexpr bool function_has_context_v = check_args<Function>::has_context;
 
     template<typename TypeList, size_t I> inline decltype(auto) get_arg(arg_list &args) {
         using type = std::decay_t<util::get_nth_t<I, TypeList>>;
@@ -189,12 +201,13 @@ namespace bls {
         }
     }
 
-    template<typename Function, typename ReturnType>
-    concept valid_function_returning = std::default_initializable<Function> && requires (Function fun) {
-        +fun;
-        requires check_args<decltype(+fun)>::valid;
-        requires std::convertible_to<typename check_args<decltype(+fun)>::return_type, ReturnType>;
-    };
+    template<typename T>
+    concept valid_return_type = std::is_void_v<T> || std::convertible_to<T, variable>;
+
+    template<typename T>
+    concept valid_function = std::default_initializable<T>
+        && check_args<T>::valid
+        && valid_return_type<function_return_type_t<T>>;
 
     class function_handler {
     private:
@@ -206,16 +219,16 @@ namespace bls {
 
         // function_handler rappresenta una closure che passa automaticamente gli argomenti
         // da arg_list alla funzione fun, convertendoli nei tipi giusti
-        template<typename Function, bool ReturnsValue> static variable call_function(class reader *ctx, arg_list args) {
-            using types = function_types_t<decltype(+Function{})>;
+        template<typename Function> static variable call_function(class reader *ctx, arg_list args) {
+            using types = function_types_t<Function>;
             constexpr auto fun = [] <size_t ... Is> (class reader *ctx, arg_list &args, std::index_sequence<Is...>) {
-                if constexpr (has_context_v<decltype(+Function{})>) {
+                if constexpr (function_has_context_v<Function>) {
                     return Function{}(ctx, get_arg<types, Is>(args) ...);
                 } else {
                     return Function{}(get_arg<types, Is>(args) ...);
                 }
             };
-            if constexpr (ReturnsValue) {
+            if constexpr (!std::is_void_v<function_return_type_t<Function>>) {
                 return fun(ctx, args, std::make_index_sequence<types::size>{});
             } else {
                 fun(ctx, args, std::make_index_sequence<types::size>{});
@@ -228,19 +241,12 @@ namespace bls {
         const size_t maxargs;
         const bool returns_value;
 
-        template<valid_function_returning<variable> Function>
-        function_handler(Function fun)
-            : m_fun(call_function<Function, true>)
-            , minargs(check_args<decltype(+fun)>::minargs)
-            , maxargs(check_args<decltype(+fun)>::maxargs)
-            , returns_value(true) {}
-
-        template<valid_function_returning<void> Function>
-        function_handler(Function fun)
-            : m_fun(call_function<Function, false>)
-            , minargs(check_args<decltype(+fun)>::minargs)
-            , maxargs(check_args<decltype(+fun)>::maxargs)
-            , returns_value(false) {}
+        template<valid_function Function>
+        function_handler(Function)
+            : m_fun(call_function<Function>)
+            , minargs(function_minargs_v<Function>)
+            , maxargs(function_maxargs_v<Function>)
+            , returns_value(!std::is_void_v<function_return_type_t<Function>>) {}
 
         variable operator ()(class reader *ctx, simple_stack<variable> &stack, size_t numargs) const {
             auto ret = m_fun(ctx, arg_list(stack.end() - numargs, stack.end()));
