@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <charconv>
 #include <ranges>
+#include <map>
 
 #ifdef USE_FMTLIB
 #include <fmt/format.h>
@@ -28,6 +29,21 @@ namespace util {
         strong_typedef(const T &x) : T(x) {}
         strong_typedef(T &&x) : T(std::move(x)) {}
     };
+
+#ifdef USE_UNORDERED_MAP
+    struct string_hash {
+        using hash_type = std::hash<std::string_view>;
+        using is_transparent = void;
+    
+        size_t operator()(const char* str) const        { return hash_type{}(str); }
+        size_t operator()(std::string_view str) const   { return hash_type{}(str); }
+        size_t operator()(std::string const& str) const { return hash_type{}(str); }
+    };
+
+    template<typename T> using string_map = std::unordered_map<std::string, T, string_hash, std::equal_to<>>;
+#else
+    template<typename T> using string_map = std::map<std::string, T, std::less<>>;
+#endif
 
     // divide una stringa per separatore
     template<std::ranges::input_range R>

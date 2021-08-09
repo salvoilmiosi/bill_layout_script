@@ -111,7 +111,7 @@ namespace bls {
 
         simple_stack<loop_label_pair> m_loop_labels;
         std::vector<std::string> m_fun_args;
-        std::map<std::string, function_info, std::less<>> m_functions;
+        util::string_map<function_info> m_functions;
         int m_content_level = 0;
         int m_function_level = 0;
 

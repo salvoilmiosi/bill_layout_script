@@ -255,7 +255,7 @@ namespace bls {
         }
     };
 
-    using function_map = std::map<std::string, function_handler, std::less<>>;
+    using function_map = util::string_map<function_handler>;
     using function_iterator = function_map::const_iterator;
 
     class function_lookup {

@@ -66,6 +66,11 @@ if(NOT HAVE_STD_FORMAT)
     endif()
 endif()
 
+check_cpp_function(map USE_UNORDERED_MAP)
+if(USE_UNORDERED_MAP)
+    target_compile_definitions(bls PUBLIC USE_UNORDERED_MAP)
+endif()
+
 find_package(Boost REQUIRED COMPONENTS program_options)
 
 add_executable(blsexec src/main.cpp)
