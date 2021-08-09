@@ -29,21 +29,6 @@ namespace util {
         strong_typedef(T &&x) : T(std::move(x)) {}
     };
 
-    // restituisce l'hash di una stringa
-    constexpr size_t hash(std::string_view str) {
-        size_t ret = 5381;
-        for (size_t ch : str) {
-            ret = ret * 33 + ch;
-        }
-        return ret;
-    }
-
-    inline namespace literals {
-        constexpr size_t operator "" _h (const char *str, size_t size) {
-            return util::hash(std::string_view(str, size));
-        }
-    }
-
     // divide una stringa per separatore
     template<std::ranges::input_range R>
     inline auto string_split(std::string_view str, R &&separator) {
