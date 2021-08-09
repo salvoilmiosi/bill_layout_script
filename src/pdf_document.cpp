@@ -63,9 +63,9 @@ std::string pdf_document::get_text(const pdf_rect &rect) const {
             ;
         });
         if (flags.check(box_flags::TRIM)) {
-            return util::string_trim({arr.begin(), arr.end()});
+            return util::string_trim(arr | util::range_to<std::string_view>);
         } else {
-            return {arr.begin(), arr.end()};
+            return arr | util::range_to<std::string>;
         }
     };
 

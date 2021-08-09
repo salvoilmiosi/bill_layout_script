@@ -157,16 +157,16 @@ namespace bls {
     static std::vector<std::string> search_regex_captures(const std::locale &loc, std::string_view value, const std::string &regex) {
         std::cmatch match;
         if (!std::regex_search(value.data(), value.data() + value.size(), match, create_regex(loc, regex))) return {};
-        return {match.begin() + 1, match.end()};
+        return match | std::views::drop(1) | util::range_to<std::vector<std::string>>;
     }
 
     // cerca la regex in str e ritorna i valori trovati
     static std::vector<std::string> search_regex_all(const std::locale &loc, std::string_view value, const std::string &regex, size_t index) {
         auto reg = create_regex(loc, regex);
-        auto view = std::ranges::subrange(
+        return std::ranges::subrange(
             std::cregex_token_iterator(value.data(), value.data() + value.size(), reg, index),
-            std::cregex_token_iterator());
-        return {view.begin(), view.end()};
+            std::cregex_token_iterator())
+            | util::range_to<std::vector<std::string>>;
     }
 
     template<std::ranges::input_range R>
@@ -185,7 +185,7 @@ namespace bls {
             return {};
         }
         auto header_str = match_to_view(header_match[0]);
-        auto view = labels | std::views::transform([&, pos = header_str.data()](std::string_view label) mutable {
+        return labels | std::views::transform([&, pos = header_str.data()](std::string_view label) mutable {
             std::cmatch match;
             if (std::regex_search(&*pos, header_str.data() + header_str.size(), match, std::regex(label.begin(), label.end(), std::regex::icase))) {
                 auto match_str = match_to_view(match[0]);
@@ -198,12 +198,11 @@ namespace bls {
             } else {
                 return std::string();
             }
-        });
-        return {view.begin(), view.end()};
+        }) | util::range_to_vector;
     }
 
     static std::vector<std::string> table_row(std::string_view row, const std::vector<std::string> &indices) {
-        auto view = indices | std::views::transform([&](std::string_view str) {
+        return indices | std::views::transform([&](std::string_view str) {
             std::cmatch match;
             if (std::regex_match(str.data(), str.data() + str.size(), match, std::regex("(\\d+):(-?\\d+)"))) {
                 size_t begin = util::string_to<int>(match.str(1));
@@ -213,8 +212,7 @@ namespace bls {
                 }
             }
             return std::string_view();
-        });
-        return {view.begin(), view.end()};
+        }) | util::range_to<std::vector<std::string>>;
     }
 
     // Prende un formato per strptime e lo converte in una regex corrispondente
@@ -284,8 +282,7 @@ namespace bls {
             if (expr.is_regex()) {
                 return search_regex(loc, str, expr.as_string(), 0);
             } else {
-                auto range = string_find_icase(str, expr.as_view(), 0);
-                return {range.begin(), range.end()};
+                return string_find_icase(str, expr.as_view(), 0) | util::range_to<std::string_view>;
             }
         };
         if (!from.is_null()) {
@@ -342,15 +339,14 @@ namespace bls {
             });
         }},
         {"lines", [](std::string_view str) {
-            auto view = util::string_split(str, '\n')
+            return util::string_split(str, '\n')
                 | std::views::transform(util::string_trim)
                 | std::views::filter([](const std::string &s) {
                     return !s.empty();
-                });
-            return std::vector<std::string>(view.begin(), view.end());
+                }) | util::range_to_vector;
         }},
         {"list", [](varargs<variable> args) {
-            return std::vector<variable>(args.begin(), args.end());
+            return args | util::range_to_vector;
         }},
         {"subitem", [](const std::vector<variable> &vec, size_t index) {
             if (index >= vec.size()) return variable();

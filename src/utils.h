@@ -45,6 +45,22 @@ namespace util {
     template<typename T> using string_map = std::map<std::string, T, std::less<>>;
 #endif
 
+    template<typename Container> struct range_to_tag {};
+    template<typename Container> static constexpr range_to_tag<Container> range_to;
+
+    template<std::ranges::input_range R, typename Container>
+    inline Container operator | (R &&range, range_to_tag<Container>) {
+        return {range.begin(), range.end()};
+    }
+
+    struct range_to_vector_tag {};
+    static constexpr range_to_vector_tag range_to_vector;
+
+    template<std::ranges::input_range R>
+    inline auto operator | (R &&range, range_to_vector_tag) {
+        return range | range_to<std::vector<std::ranges::range_value_t<R>>>;
+    }
+
     // divide una stringa per separatore
     template<std::ranges::input_range R>
     inline auto string_split(std::string_view str, R &&separator) {
@@ -83,12 +99,12 @@ namespace util {
 
     // elimina gli spazi in eccesso a inizio e fine stringa
     inline std::string string_trim(std::string_view str) {
-        auto view = str
+        return str
             | std::views::drop_while(isspace)
             | std::views::reverse
             | std::views::drop_while(isspace)
-            | std::views::reverse;
-        return {view.begin(), view.end()};
+            | std::views::reverse
+            | util::range_to<std::string>;
     }
 
     // sostituisce tutte le occorrenze di una stringa in un'altra

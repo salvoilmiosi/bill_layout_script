@@ -29,8 +29,9 @@ static json::value variable_to_value(const variable &var) {
     if (var.is_null()) {
         return {};
     } else if (var.is_array()) {
-        auto view = var.as_array() | std::views::transform(variable_to_value);
-        return json::array(view.begin(), view.end());
+        return var.as_array()
+            | std::views::transform(variable_to_value)
+            | util::range_to<json::array>;
     } else {
         return var.as_string();
     }
