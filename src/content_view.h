@@ -10,7 +10,7 @@
 namespace bls {
     class content_view {
     private:
-        size_t m_index{0};
+        size_t m_index = 0;
         std::vector<variable> m_data;
 
     public:
@@ -35,6 +35,10 @@ namespace bls {
 
         content_view(const std::vector<variable> &vec) : m_data(vec) {}
         content_view(std::vector<variable> &&vec) : m_data(std::move(vec)) {}
+
+        size_t index() const {
+            return m_index;
+        }
 
         void nextresult() {
             ++m_index;

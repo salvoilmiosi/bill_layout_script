@@ -336,15 +336,17 @@ namespace bls {
         {"hex", [](int num) {
             return fmt::format("{:x}", num);
         }},
-        {"aggregate", [](const reader *ctx, const std::vector<std::string> list) {
-            variable ret;
-            for (const auto &s : list) {
-                ret += parse_num(ctx->m_locale, s);
-            }
-            return ret;
+        {"aggregate", [](const reader *ctx, const std::vector<std::string> &list) {
+            return std::transform_reduce(list.begin(), list.end(), variable(), std::plus<>(), [&](const std::string &s) {
+                return parse_num(ctx->m_locale, s);
+            });
         }},
-        {"lines", [](std::string &&str) {
-            auto view = util::string_split(str, '\n');
+        {"lines", [](std::string_view str) {
+            auto view = util::string_split(str, '\n')
+                | std::views::transform(util::string_trim)
+                | std::views::filter([](const std::string &s) {
+                    return !s.empty();
+                });
             return std::vector<std::string>(view.begin(), view.end());
         }},
         {"list", [](varargs<variable> args) {
@@ -355,7 +357,7 @@ namespace bls {
             return vec[index];
         }},
         {"sum", [](varargs<fixed_point> args) {
-            return std::accumulate(args.begin(), args.end(), fixed_point());
+            return std::reduce(args.begin(), args.end());
         }},
         {"trunc", [](fixed_point num, int decimal_places) {
             int pow = dec::dec_utils<dec::def_round_policy>::pow10(decimal_places);
@@ -537,6 +539,13 @@ namespace bls {
         {"doc_numpages", [](const reader *ctx) { return ctx->get_document().num_pages(); }},
         {"doc_filename", [](const reader *ctx) { return ctx->get_document().filename().string(); }},
         {"ate", [](const reader *ctx) { return ctx->m_current_box.page > ctx->get_document().num_pages(); }},
+        {"curindex", [](const reader *ctx) -> variable{
+            if (ctx->m_contents.empty()) {
+                return {};
+            } else {
+                return ctx->m_contents.top().index();
+            }
+        }},
         
         {"error", [](const std::string &message, optional_int<-1> errcode) {
             throw layout_runtime_error(message, errcode);
