@@ -132,28 +132,30 @@ namespace bls {
             length = 0;
         }
 
-        void set_value(variable &&value, enums::bitset<setvar_flags> flags) {
-            if (!(flags.check(setvar_flags::FORCE)) && value.is_null()) return;
-            if (flags.check(setvar_flags::OVERWRITE)) clear();
-
+        void set_value(variable &&value) {
+            if (value.is_null()) return;
             resize(index + length);
-
             auto it = std::next(begin(), index);
-
-            if (flags.check(setvar_flags::INCREASE)) {
-                std::for_each_n(it, length, [&](auto &var) {
-                    var.second += value;
-                });
-            } else if (flags.check(setvar_flags::DECREASE)) {
-                std::for_each_n(it, length, [&](auto &var) {
-                    var.second -= value;
-                });
-            } else {
-                for (int n = length; n > 1; ++it, --n) {
-                    it->second.assign(value);
-                }
-                it->second.assign(std::move(value));
+            for (int n = length; n > 1; ++it, --n) {
+                it->second.assign(value);
             }
+            it->second.assign(std::move(value));
+        }
+
+        void inc_value(const variable &value) {
+            if (value.is_null()) return;
+            resize(index + length);
+            std::for_each_n(std::next(begin(), index), length, [&](auto &var) {
+                var.second += value;
+            });
+        }
+
+        void dec_value(const variable &value) {
+            if (value.is_null()) return;
+            resize(index + length);
+            std::for_each_n(std::next(begin(), index), length, [&](auto &var) {
+                var.second -= value;
+            });
         }
     };
 

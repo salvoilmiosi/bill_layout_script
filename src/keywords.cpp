@@ -285,5 +285,5 @@ void parser::parse_set_stmt() {
     if (prefixes.call.command() != opcode::NOP) {
         m_code.push_back(prefixes.call);
     }
-    m_code.add_line<opcode::SETVAR>(prefixes.flags);
+    m_code.add_line<opcode::SETVAR>();
 }

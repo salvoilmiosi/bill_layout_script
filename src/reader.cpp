@@ -160,7 +160,9 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::MVNBOX:        move_box(cmd.get_args<opcode::MVNBOX>(), -m_stack.pop()); break;
     case opcode::RDBOX:         read_box(cmd.get_args<opcode::RDBOX>()); break;
     case opcode::SELVAR:        select_var(cmd.get_args<opcode::SELVAR>()); break;
-    case opcode::SETVAR:        m_selected.set_value(m_stack.pop(), cmd.get_args<opcode::SETVAR>()); break;
+    case opcode::SETVAR:        m_selected.set_value(m_stack.pop()); break;
+    case opcode::INCVAR:        m_selected.inc_value(m_stack.pop()); break;
+    case opcode::DECVAR:        m_selected.dec_value(m_stack.pop()); break;
     case opcode::CLEAR:         m_selected.clear_value(); break;
     case opcode::PUSHVAR:       m_stack.push(m_selected.get_value()); break;
     case opcode::PUSHREF:       m_stack.push(m_selected.get_value_ref()); break;

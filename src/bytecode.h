@@ -54,13 +54,6 @@ namespace bls {
         enums::bitset<selvar_flags> flags;
     };
 
-    DEFINE_ENUM_FLAGS_IN_NS(bls, setvar_flags,
-        (FORCE)
-        (OVERWRITE)
-        (INCREASE)
-        (DECREASE)
-    )
-
     using jump_label = util::strong_typedef<std::string>;
 
     struct jump_address {
@@ -92,7 +85,9 @@ namespace bls {
         (MVNBOX, spacer_index)          // -stack -> current_box[index]
         (RDBOX, readbox_options)        // poppler.get_text(current_box) -> content_stack
         (SELVAR, variable_selector)     // (name, index, size, flags) -> selected
-        (SETVAR, bitset<setvar_flags>)  // selected, stack -> set
+        (SETVAR)                        // stack -> selected = stack
+        (INCVAR)                        // stack -> selected += stack
+        (DECVAR)                        // stack -> selected -= stack
         (CLEAR)                         // selected -> clear
         (PUSHVAR)                       // selected -> stack
         (PUSHREF)                       // selected.str_view -> stack

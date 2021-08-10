@@ -187,7 +187,7 @@ void parser::assignment_stmt() {
             read_function(tok, true);
             return;
         } else {
-            prefixes = read_variable(tok, false);
+            read_variable(variable_selector{std::string(tok.value)}, false);
         }
         break;
     default:
@@ -195,25 +195,28 @@ void parser::assignment_stmt() {
     }
     auto selvar_end = m_code.size();
 
+    command_args assign_cmd;
+
     tok = m_lexer.next();
     switch (tok.type) {
-    case token_type::SUB_ASSIGN:
-        prefixes.flags.set(setvar_flags::DECREASE);
+    case token_type::ADD_ASSIGN:
+        assign_cmd = make_command<opcode::INCVAR>();
         read_expression();
         break;
-    case token_type::ADD_ASSIGN:
-        prefixes.flags.set(setvar_flags::INCREASE);
+    case token_type::SUB_ASSIGN:
+        assign_cmd = make_command<opcode::DECVAR>();
         read_expression();
         break;
     case token_type::ADD_ONE:
-        prefixes.flags.set(setvar_flags::INCREASE);
+        assign_cmd = make_command<opcode::INCVAR>();
         m_code.add_line<opcode::PUSHINT>(1);
         break;
     case token_type::SUB_ONE:
-        prefixes.flags.set(setvar_flags::DECREASE);
+        assign_cmd = make_command<opcode::DECVAR>();
         m_code.add_line<opcode::PUSHINT>(1);
         break;
     case token_type::ASSIGN:
+        assign_cmd = make_command<opcode::SETVAR>();
         read_expression();
         break;
     default:
@@ -225,7 +228,7 @@ void parser::assignment_stmt() {
     }
 
     m_code.move_not_comments(selvar_begin, selvar_end);
-    m_code.add_line<opcode::SETVAR>(prefixes.flags);
+    m_code.push_back(assign_cmd);
 }
 
 void parser::read_expression() {
@@ -351,12 +354,16 @@ void parser::sub_expression() {
         m_lexer.advance(tok_first);
         if (m_lexer.peek().type == token_type::PAREN_BEGIN) {
             read_function(tok_first, false);
+        } else if (auto it = std::ranges::find(m_fun_args, tok_first.value); it != m_fun_args.end()) {
+            m_code.add_line<opcode::PUSHARG>(it - m_fun_args.begin());
         } else {
-            read_variable(tok_first, true);
+            read_variable(variable_selector{std::string(tok_first.value)}, true);
+            m_code.add_line<opcode::PUSHVAR>();
         }
         break;
     default:
         read_variable_and_prefixes(true);
+        m_code.add_line<opcode::PUSHVAR>();
     }
 }
 
@@ -364,18 +371,7 @@ static parsing_error read_only_error(const token &tok) {
     return parsing_error("Contesto di sola lettura", tok);
 };
 
-variable_prefixes parser::read_variable(token tok_var_name, bool read_only, variable_prefixes prefixes, variable_selector selvar) {
-    if (!selvar.flags.check(selvar_flags::DYN_NAME)) {
-        selvar.name = tok_var_name.value;
-    }
-
-    if (read_only) {
-        if (auto it = std::ranges::find(m_fun_args, selvar.name); it != m_fun_args.end()) {
-            m_code.add_line<opcode::PUSHARG>(it - m_fun_args.begin());
-            return prefixes;
-        }
-    }
-
+void parser::read_variable(variable_selector selvar, bool read_only) {
     if (m_lexer.check_next(token_type::BRACKET_BEGIN)) { // variable[
         token tok = m_lexer.peek();
         switch (tok.type) {
@@ -424,15 +420,6 @@ variable_prefixes parser::read_variable(token tok_var_name, bool read_only, vari
     }
 
     m_code.add_line<opcode::SELVAR>(selvar);
-    if (read_only) {
-        if (prefixes.pushref) {
-            m_code.add_line<opcode::PUSHREF>();
-        } else {
-            m_code.add_line<opcode::PUSHVAR>();
-        }
-    }
-
-    return prefixes;
 }
 
 variable_prefixes parser::read_variable_and_prefixes(bool read_only) {
@@ -446,16 +433,6 @@ variable_prefixes parser::read_variable_and_prefixes(bool read_only) {
         out.set(flags);
     };
 
-    auto add_flags = util::overloaded {
-        [&](selvar_flags flags) {
-            add_flags_to(selvar.flags, flags);
-        },
-        [&](setvar_flags flags) {
-            if (read_only) throw read_only_error(current_token);
-            add_flags_to(prefixes.flags, flags);
-        }
-    };
-
     auto add_function_call = [&](std::string_view fun_name) {
         if (read_only) throw read_only_error(current_token);
         if (prefixes.call.command() == opcode::NOP) {
@@ -465,22 +442,10 @@ variable_prefixes parser::read_variable_and_prefixes(bool read_only) {
         }
     };
 
-    auto add_pushref = [&]() {
-        if (!read_only) throw parsing_error("Non in contesto di sola lettura", current_token);
-        if (!prefixes.pushref) {
-            prefixes.pushref = true;
-        } else {
-            throw parsing_error("Prefisso duplicato", current_token);
-        }
-    };
-
     while (true) {
         current_token = m_lexer.next();
         switch (current_token.type) {
-        case token_type::KW_GLOBAL:     add_flags(selvar_flags::GLOBAL); break;
-        case token_type::KW_OVERWRITE:  add_flags(setvar_flags::OVERWRITE); break;
-        case token_type::KW_FORCE:      add_flags(setvar_flags::FORCE); break;
-        case token_type::KW_REF:        add_pushref(); break;
+        case token_type::KW_GLOBAL:     add_flags_to(selvar.flags, selvar_flags::GLOBAL); break;
         case token_type::PERCENT:       add_function_call("num"); break;
         case token_type::CARET:         add_function_call("aggregate"); break;
         case token_type::SINGLE_QUOTE:  add_function_call("totitle"); break;
@@ -488,8 +453,9 @@ variable_prefixes parser::read_variable_and_prefixes(bool read_only) {
             read_expression();
             m_lexer.require(token_type::BRACKET_END);
             selvar.flags.set(selvar_flags::DYN_NAME);
-            [[fallthrough]];
+            goto exit_loop;
         case token_type::IDENTIFIER:
+            selvar.name = current_token.value;
             goto exit_loop;
         default:
             throw unexpected_token(current_token, token_type::IDENTIFIER);
@@ -497,7 +463,8 @@ variable_prefixes parser::read_variable_and_prefixes(bool read_only) {
     }
     exit_loop:
 
-    return read_variable(current_token, read_only, std::move(prefixes), std::move(selvar));
+    read_variable(selvar, read_only);
+    return prefixes;
 }
 
 void parser::read_function(token tok_fun_name, bool top_level) {

@@ -30,9 +30,6 @@ namespace bls {
         (KW_CLEAR,      "clear")
         (KW_SET,        "set")
         (KW_GLOBAL,     "global")
-        (KW_OVERWRITE,  "overwrite")
-        (KW_FORCE,      "force")
-        (KW_REF,        "ref")
         (STRING,        "Stringa")
         (REGEXP,        "Espressione Regolare")
         (NUMBER,        "Numero")
@@ -86,10 +83,7 @@ namespace bls {
         {"return",      token_type::KW_RETURN},
         {"clear",       token_type::KW_CLEAR},
         {"set",         token_type::KW_SET},
-        {"global",      token_type::KW_GLOBAL},
-        {"overwrite",   token_type::KW_OVERWRITE},
-        {"force",       token_type::KW_FORCE},
-        {"ref",         token_type::KW_REF}
+        {"global",      token_type::KW_GLOBAL}
     };
 
     struct token {
