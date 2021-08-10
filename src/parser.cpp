@@ -97,8 +97,7 @@ void parser::read_box(const layout_box &box) {
     while(true) {
         auto tok = m_lexer.next();
         if (tok.type == token_type::IDENTIFIER) {
-            try {
-                auto idx = find_enum_index<spacer_index>(tok.value);
+            if (auto idx = enums::find_enum_index<spacer_index>(tok.value); idx != enums::invalid_enum_value<spacer_index>) {
                 bool negative = false;
                 auto tok_sign = m_lexer.next();
                 switch (tok_sign.type) {
@@ -117,7 +116,7 @@ void parser::read_box(const layout_box &box) {
                 } else {
                     m_code.add_line<opcode::MVBOX>(idx);
                 }
-            } catch (std::out_of_range) {
+            } else {
                 throw parsing_error(fmt::format("Flag spacer non valido: {}", tok.value), tok);
             }
         } else if (tok.type != token_type::END_OF_FILE) {
@@ -156,9 +155,20 @@ void parser::read_statement() {
     case token_type::SEMICOLON:
         m_lexer.advance(tok_first);
         break;
-    case token_type::IDENTIFIER:
-        if (read_keyword()) break;
-        [[fallthrough]];
+    case token_type::KW_IF:         parse_if_stmt(); break;
+    case token_type::KW_WHILE:      parse_while_stmt(); break;
+    case token_type::KW_FOR:        parse_for_stmt(); break;
+    case token_type::KW_GOTO:       parse_goto_stmt(); break;
+    case token_type::KW_FUNCTION:   parse_function_stmt(); break;
+    case token_type::KW_FOREACH:    parse_foreach_stmt(); break;
+    case token_type::KW_WITH:       parse_with_stmt(); break;
+    case token_type::KW_STEP:       parse_step_stmt(); break;
+    case token_type::KW_IMPORT:     parse_import_stmt(); break;
+    case token_type::KW_BREAK:      parse_break_stmt(); break;
+    case token_type::KW_CONTINUE:   parse_continue_stmt(); break;
+    case token_type::KW_RETURN:     parse_return_stmt(); break;
+    case token_type::KW_CLEAR:      parse_clear_stmt(); break;
+    case token_type::KW_SET:        parse_set_stmt(); break;
     default:
         assignment_stmt();
         m_lexer.require(token_type::SEMICOLON);
@@ -168,8 +178,6 @@ void parser::read_statement() {
 void parser::assignment_stmt() {
     auto selvar_begin = m_code.size();
     variable_prefixes prefixes;
-
-    bool assigncontent = false;
 
     auto tok = m_lexer.peek();
     switch(tok.type) {
@@ -182,45 +190,34 @@ void parser::assignment_stmt() {
             prefixes = read_variable(tok, false);
         }
         break;
-    case token_type::DOLLAR:
-        m_lexer.advance(tok);
-        if (m_content_level == 0) {
-            throw parsing_error("Stack contenuti vuoto", tok);
-        }
-        assigncontent = true;
-        [[fallthrough]];
     default:
         prefixes = read_variable_and_prefixes(false);
     }
     auto selvar_end = m_code.size();
 
-    if (assigncontent) {
-        m_code.add_line<opcode::PUSHVIEW>();
-    } else {
-        tok = m_lexer.next();
-        switch (tok.type) {
-        case token_type::SUB_ASSIGN:
-            prefixes.flags.set(setvar_flags::DECREASE);
-            read_expression();
-            break;
-        case token_type::ADD_ASSIGN:
-            prefixes.flags.set(setvar_flags::INCREASE);
-            read_expression();
-            break;
-        case token_type::ADD_ONE:
-            prefixes.flags.set(setvar_flags::INCREASE);
-            m_code.add_line<opcode::PUSHINT>(1);
-            break;
-        case token_type::SUB_ONE:
-            prefixes.flags.set(setvar_flags::DECREASE);
-            m_code.add_line<opcode::PUSHINT>(1);
-            break;
-        case token_type::ASSIGN:
-            read_expression();
-            break;
-        default:
-            throw unexpected_token(tok, token_type::ASSIGN);
-        }
+    tok = m_lexer.next();
+    switch (tok.type) {
+    case token_type::SUB_ASSIGN:
+        prefixes.flags.set(setvar_flags::DECREASE);
+        read_expression();
+        break;
+    case token_type::ADD_ASSIGN:
+        prefixes.flags.set(setvar_flags::INCREASE);
+        read_expression();
+        break;
+    case token_type::ADD_ONE:
+        prefixes.flags.set(setvar_flags::INCREASE);
+        m_code.add_line<opcode::PUSHINT>(1);
+        break;
+    case token_type::SUB_ONE:
+        prefixes.flags.set(setvar_flags::DECREASE);
+        m_code.add_line<opcode::PUSHINT>(1);
+        break;
+    case token_type::ASSIGN:
+        read_expression();
+        break;
+    default:
+        throw unexpected_token(tok, token_type::ASSIGN);
     }
 
     if (prefixes.call.command() != opcode::NOP) {
@@ -480,13 +477,13 @@ variable_prefixes parser::read_variable_and_prefixes(bool read_only) {
     while (true) {
         current_token = m_lexer.next();
         switch (current_token.type) {
-        case token_type::ASTERISK:      add_flags(selvar_flags::GLOBAL); break;
-        case token_type::TILDE:         add_flags(setvar_flags::OVERWRITE); break;
-        case token_type::NOT:           add_flags(setvar_flags::FORCE); break;
+        case token_type::KW_GLOBAL:     add_flags(selvar_flags::GLOBAL); break;
+        case token_type::KW_OVERWRITE:  add_flags(setvar_flags::OVERWRITE); break;
+        case token_type::KW_FORCE:      add_flags(setvar_flags::FORCE); break;
+        case token_type::KW_REF:        add_pushref(); break;
         case token_type::PERCENT:       add_function_call("num"); break;
         case token_type::CARET:         add_function_call("aggregate"); break;
         case token_type::SINGLE_QUOTE:  add_function_call("totitle"); break;
-        case token_type::AMPERSAND:     add_pushref(); break;
         case token_type::BRACKET_BEGIN:
             read_expression();
             m_lexer.require(token_type::BRACKET_END);

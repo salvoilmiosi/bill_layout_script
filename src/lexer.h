@@ -9,52 +9,88 @@
 #include "utils.h"
 
 namespace bls {
-    
+
     DEFINE_ENUM_DATA_IN_NS(bls, token_type, const char *,
-        (INVALID,      "Token Invalido")
-        (END_OF_FILE,  "Fine File")
-        (IDENTIFIER,   "Identificatore")
-        (STRING,       "Stringa")
-        (REGEXP,       "Espressione Regolare")
-        (NUMBER,       "Numero")
-        (INTEGER,      "Numero Intero")
-        (SEMICOLON,    ";")
-        (AMPERSAND,    "&")
-        (PAREN_BEGIN,  "(")
-        (PAREN_END,    ")")
-        (COMMA,        ",")
-        (DOT,          ".")
-        (PIPE,         "|")
-        (BRACKET_BEGIN,"[")
-        (BRACKET_END,  "]")
-        (BRACE_BEGIN,  "{")
-        (BRACE_END,    "}")
-        (ASSIGN,       "=")
-        (ADD_ASSIGN,   "+=")
-        (SUB_ASSIGN,   "-=")
-        (ADD_ONE,      "++")
-        (SUB_ONE,      "--")
-        (CONTENT,      "@")
-        (TILDE,        "~")
-        (COLON,        ":")
-        (SINGLE_QUOTE, "'")
-        (PERCENT,      "%")
-        (DOLLAR,       "$")
-        (CARET,        "^")
-        (ASTERISK,     "*")
-        (SLASH,        "/")
-        (PLUS,         "+")
-        (MINUS,        "-")
-        (AND,          "&&")
-        (OR,           "||")
-        (NOT,          "!")
-        (EQUALS,       "==")
-        (NOT_EQUALS,   "!=")
-        (GREATER,      ">")
-        (LESS,         "<")
-        (GREATER_EQ,   ">=")
-        (LESS_EQ,      "<=")
+        (INVALID,       "Token Invalido")
+        (END_OF_FILE,   "Fine File")
+        (IDENTIFIER,    "Identificatore")
+        (KW_IF,         "if")
+        (KW_ELSE,       "else")
+        (KW_WHILE,      "while")
+        (KW_FOR,        "for")
+        (KW_GOTO,       "goto")
+        (KW_FUNCTION,   "function")
+        (KW_FOREACH,    "foreach")
+        (KW_WITH,       "with")
+        (KW_STEP,       "step")
+        (KW_IMPORT,     "import")
+        (KW_BREAK,      "break")
+        (KW_CONTINUE,   "continue")
+        (KW_RETURN,     "return")
+        (KW_CLEAR,      "clear")
+        (KW_SET,        "set")
+        (KW_GLOBAL,     "global")
+        (KW_OVERWRITE,  "overwrite")
+        (KW_FORCE,      "force")
+        (KW_REF,        "ref")
+        (STRING,        "Stringa")
+        (REGEXP,        "Espressione Regolare")
+        (NUMBER,        "Numero")
+        (INTEGER,       "Numero Intero")
+        (SEMICOLON,     ";")
+        (PAREN_BEGIN,   "(")
+        (PAREN_END,     ")")
+        (COMMA,         ",")
+        (BRACKET_BEGIN, "[")
+        (BRACKET_END,   "]")
+        (BRACE_BEGIN,   "{")
+        (BRACE_END,     "}")
+        (ASSIGN,        "=")
+        (ADD_ASSIGN,    "+=")
+        (SUB_ASSIGN,    "-=")
+        (ADD_ONE,       "++")
+        (SUB_ONE,       "--")
+        (CONTENT,       "@")
+        (COLON,         ":")
+        (SINGLE_QUOTE,  "'")
+        (PERCENT,       "%")
+        (CARET,         "^")
+        (ASTERISK,      "*")
+        (SLASH,         "/")
+        (PLUS,          "+")
+        (MINUS,         "-")
+        (AND,           "&&")
+        (OR,            "||")
+        (NOT,           "!")
+        (EQUALS,        "==")
+        (NOT_EQUALS,    "!=")
+        (GREATER,       ">")
+        (LESS,          "<")
+        (GREATER_EQ,    ">=")
+        (LESS_EQ,       "<=")
     )
+
+    static const util::string_map<token_type> keyword_tokens {
+        {"if",          token_type::KW_IF},
+        {"else",        token_type::KW_ELSE},
+        {"while",       token_type::KW_WHILE},
+        {"for",         token_type::KW_FOR},
+        {"goto",        token_type::KW_GOTO},
+        {"function",    token_type::KW_FUNCTION},
+        {"foreach",     token_type::KW_FOREACH},
+        {"with",        token_type::KW_WITH},
+        {"step",        token_type::KW_STEP},
+        {"import",      token_type::KW_IMPORT},
+        {"break",       token_type::KW_BREAK},
+        {"continue",    token_type::KW_CONTINUE},
+        {"return",      token_type::KW_RETURN},
+        {"clear",       token_type::KW_CLEAR},
+        {"set",         token_type::KW_SET},
+        {"global",      token_type::KW_GLOBAL},
+        {"overwrite",   token_type::KW_OVERWRITE},
+        {"force",       token_type::KW_FORCE},
+        {"ref",         token_type::KW_REF}
+    };
 
     struct token {
         token_type type;

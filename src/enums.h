@@ -2,9 +2,9 @@
 #define __ENUMS_H__
 
 #include <boost/preprocessor.hpp>
+#include <algorithm>
 #include <string>
-#include <tuple>
-#include <stdexcept>
+#include <map>
 
 #include "magic_enum.hpp"
 
@@ -33,7 +33,7 @@ namespace enums {
 
     template<typename T> concept data_enum = is_data_enum<T>::value;
 
-    template<data_enum T> constexpr data_type_t<T> get_data(T value) = delete;
+    template<data_enum T> const data_type_t<T> &get_data(T value) = delete;
 
     template<is_enum T, T Enum> struct get_type{};
     template<is_enum T, T Enum> using get_type_t = typename get_type<T, Enum>::type;
@@ -56,19 +56,35 @@ namespace enums {
         return magic_enum::enum_count<T>();
     }
 
+    template<is_enum T> constexpr T invalid_enum_value = static_cast<T>(std::numeric_limits<std::underlying_type_t<T>>::max());
+
     template<is_enum T> constexpr T from_string(std::string_view str) {
         if (auto value = magic_enum::enum_cast<T>(str)) {
             return value.value();
         } else {
-            std::string err = "[Invalid";
-            err += magic_enum::enum_type_name<T>();
-            err += "]";
-            throw std::runtime_error(err);
+            return invalid_enum_value<T>;
         }
     }
 
     template<is_enum T> constexpr std::string_view to_string(T value) {
         return magic_enum::enum_name(value);
+    }
+
+    template<data_enum T>
+    T find_enum_index(std::string_view name) {
+        auto is_name = [&](std::string_view str) {
+            return name == str;
+        };
+        const auto &values = magic_enum::enum_values<T>();
+        if (auto it = std::ranges::find_if(values,
+            [&](const auto &data) {
+                if constexpr (std::equality_comparable_with<std::string_view, data_type_t<T>>) {
+                    return is_name(data);
+                } else {
+                    return std::ranges::any_of(data, is_name);
+                }
+            }, get_data<T>); it != values.end()) return *it;
+        return invalid_enum_value<T>;
     }
 
     template<flags_enum T>
@@ -146,21 +162,19 @@ std::ostream &operator << (std::ostream &out, const T &value) {
 
 #define ENUM_INT(enum_value_fun, elementTupleSeq) enums::sized_int_t<enum_value_fun##_MAX_VALUE(BOOST_PP_SEQ_SIZE(elementTupleSeq))>
 
-#define GENERATE_DEFAULT_CASE(enumName) throw std::runtime_error("[Invalid " BOOST_PP_STRINGIZE(enumName) "]");
-
 #define UNROLL_ELEMENT_VALUE(elementTuple) \
     BOOST_PP_IF(BOOST_PP_EQUAL(BOOST_PP_TUPLE_SIZE(elementTuple), 1), DO_NOTHING, STRIP_PARENS) \
     (STRIP_PARENS_ARGS BOOST_PP_TUPLE_POP_FRONT(elementTuple))
 
-#define GENERATE_CASE_GET_DATA(r, enumName, elementTuple) case enumName::ENUM_ELEMENT_NAME(elementTuple): return { UNROLL_ELEMENT_VALUE(elementTuple) };
+#define GENERATE_CASE_GET_DATA(r, enumName, elementTuple) { enumName::ENUM_ELEMENT_NAME(elementTuple), { UNROLL_ELEMENT_VALUE(elementTuple) }},
 
 #define CREATE_ENUM_GET_DATA(enumName, elementTupleSeq, valueType) \
 template<> struct data_type<enumName> { using type = valueType; }; \
-template<> constexpr valueType get_data<enumName>(enumName value) { \
-    switch(value) { \
+template<> inline const data_type_t<enumName> &get_data<enumName>(enumName value) { \
+    static const std::map<enumName, valueType> data { \
         BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_GET_DATA, enumName, elementTupleSeq) \
-        default: GENERATE_DEFAULT_CASE(enumName) \
-    } \
+    }; \
+    return data.at(value); \
 }
 
 #define GENERATE_GET_TYPE_BASE(enumName) \

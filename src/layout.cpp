@@ -98,18 +98,18 @@ namespace bls {
                         fail = false;
                         break;
                     } else if (auto suf = suffix(line, "### Mode")) {
-                        try {
-                            current.mode = enums::from_string<read_mode>(suf.value);
-                        } catch (std::invalid_argument) {
+                        if (auto it = enums::from_string<read_mode>(suf.value); it != enums::invalid_enum_value<read_mode>) {
+                            current.mode = it;
+                        } else {
                             throw layout_error(fmt::format("Token 'Mode' non valido: {}", suf.value));
                         }
                     } else if (auto suf = suffix(line, "### Flags")) {
                         util::isviewstream ss{suf.value};
                         std::string label;
                         while (ss >> label) {
-                            try {
-                                current.flags.set(enums::from_string<box_flags>(label));
-                            } catch (std::invalid_argument) {
+                            if (auto it = enums::from_string<box_flags>(label); it != enums::invalid_enum_value<box_flags>) {
+                                current.flags.set(it);
+                            } else {
                                 throw layout_error(fmt::format("Token 'Flags' non valido: {}", label));
                             }
                         }

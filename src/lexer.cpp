@@ -119,9 +119,6 @@ token lexer::next(bool do_advance) {
             tok.type = token_type::NUMBER;
         }
         break;
-    case '.':
-        tok.type = token_type::DOT;
-        break;
     case '\'':
         tok.type = token_type::SINGLE_QUOTE;
         break;
@@ -157,9 +154,6 @@ token lexer::next(bool do_advance) {
     case '%':
         tok.type = token_type::PERCENT;
         break;
-    case '$':
-        tok.type = token_type::DOLLAR;
-        break;
     case '^':
         tok.type = token_type::CARET;
         break;
@@ -174,7 +168,7 @@ token lexer::next(bool do_advance) {
             nextChar();
             tok.type = token_type::AND;
         } else {
-            tok.type = token_type::AMPERSAND;
+            ok = false;
         }
         break;
     case '|':
@@ -182,7 +176,7 @@ token lexer::next(bool do_advance) {
             nextChar();
             tok.type = token_type::OR;
         } else {
-            tok.type = token_type::PIPE;
+            ok = false;
         }
         break;
     case '!':
@@ -195,9 +189,6 @@ token lexer::next(bool do_advance) {
         break;
     case '@':
         tok.type = token_type::CONTENT;
-        break;
-    case '~':
-        tok.type = token_type::TILDE;
         break;
     case ':':
         tok.type = token_type::COLON;
@@ -267,8 +258,12 @@ token lexer::next(bool do_advance) {
     case 'y': case 'Y':
     case 'z': case 'Z':
     case '_':
-        tok.type = token_type::IDENTIFIER;
         ok = readIdentifier();
+        if (auto it = keyword_tokens.find(std::string_view{start, m_current}); it != keyword_tokens.end()) {
+            tok.type = it->second;
+        } else {
+            tok.type = token_type::IDENTIFIER;
+        }
         break;
     default:
         ok = false;

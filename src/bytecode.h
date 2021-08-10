@@ -33,23 +33,6 @@ namespace bls {
         (ROTATE,    "rot", "rotate")
     )
 
-    template<enums::data_enum T>
-    T find_enum_index(std::string_view name) {
-        for (T value : magic_enum::enum_values<T>()) {
-            const auto &data = enums::get_data(value);
-            if constexpr (std::is_same_v<std::decay_t<decltype(data)>, const char *>) {
-                if (name == data) {
-                    return value;
-                }
-            } else if (std::ranges::any_of(data, [&](const char *c) {
-                return c == name;
-            })) {
-                return value;
-            }
-        }
-        throw std::out_of_range("Out of range");
-    }
-
     struct readbox_options {
         read_mode mode;
         enums::bitset<box_flags> flags;

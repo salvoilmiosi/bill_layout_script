@@ -8,7 +8,9 @@ jump_label parser::make_label(std::string_view label) {
     return fmt::format("__{}_{}_{}", m_parser_id, m_code.size(), label);
 };
 
-void parser::parse_if_stmt(token) {
+void parser::parse_if_stmt() {
+    m_lexer.require(token_type::KW_IF);
+
     auto endif_label = make_label("endif");
     auto else_label = make_label("else");
 
@@ -21,8 +23,7 @@ void parser::parse_if_stmt(token) {
         m_code.add_line<opcode::JZ>(else_label);
     }
     read_statement();
-    if (auto tok_else = m_lexer.peek(); tok_else.type == token_type::IDENTIFIER && tok_else.value == "else") {
-        m_lexer.advance(tok_else);
+    if (m_lexer.check_next(token_type::KW_ELSE)) {
         m_code.add_line<opcode::JMP>(endif_label);
         m_code.add_label(else_label);
         read_statement();
@@ -32,7 +33,9 @@ void parser::parse_if_stmt(token) {
     }
 };
 
-void parser::parse_while_stmt(token) {
+void parser::parse_while_stmt() {
+    m_lexer.require(token_type::KW_WHILE);
+
     auto while_label = make_label("while");
     auto endwhile_label = make_label("endwhile");
     m_loop_labels.push(loop_label_pair{while_label, endwhile_label});
@@ -47,7 +50,9 @@ void parser::parse_while_stmt(token) {
     m_loop_labels.pop_back();
 };
 
-void parser::parse_for_stmt(token) {
+void parser::parse_for_stmt() {
+    m_lexer.require(token_type::KW_FOR);
+
     auto for_label = make_label("for");
     auto endfor_label = make_label("endfor");
     m_loop_labels.push(loop_label_pair{for_label, endfor_label});
@@ -75,7 +80,9 @@ void parser::parse_for_stmt(token) {
     m_loop_labels.pop_back();
 };
 
-void parser::parse_goto_stmt(token) {
+void parser::parse_goto_stmt() {
+    m_lexer.require(token_type::KW_GOTO);
+
     auto tok = m_lexer.require(token_type::IDENTIFIER);
     for (int i=0; i<m_content_level; ++i) {
         m_code.add_line<opcode::CNTPOP>();
@@ -84,10 +91,15 @@ void parser::parse_goto_stmt(token) {
     m_lexer.require(token_type::SEMICOLON);
 };
 
-void parser::parse_function_stmt(token) {
+void parser::parse_function_stmt() {
+    m_lexer.require(token_type::KW_FUNCTION);
+
     ++m_function_level;
     bool has_content = false;
     auto name = m_lexer.require(token_type::IDENTIFIER);
+    if (function_lookup::valid(function_lookup::find(name.value)) || m_functions.contains(name.value)) {
+        throw parsing_error(fmt::format("Impossibile sovrascrivere funzione {}", name.value), name);
+    }
     m_lexer.require(token_type::PAREN_BEGIN);
     small_int num_args = 0;
     while (!m_lexer.check_next(token_type::PAREN_END)) {
@@ -141,7 +153,9 @@ void parser::parse_function_stmt(token) {
     --m_function_level;
 };
 
-void parser::parse_foreach_stmt(token) {
+void parser::parse_foreach_stmt() {
+    m_lexer.require(token_type::KW_FOREACH);
+
     auto begin_label = make_label("foreach");
     auto continue_label = make_label("foreach_continue");
     auto end_label = make_label("endforeach");
@@ -167,7 +181,8 @@ void parser::parse_foreach_stmt(token) {
     m_loop_labels.pop_back();
 };
 
-void parser::parse_with_stmt(token) {
+void parser::parse_with_stmt() {
+    m_lexer.require(token_type::KW_WITH);
     m_lexer.require(token_type::PAREN_BEGIN);
     read_expression();
     m_lexer.require(token_type::PAREN_END);
@@ -181,7 +196,8 @@ void parser::parse_with_stmt(token) {
     m_code.add_line<opcode::CNTPOP>();
 };
 
-void parser::parse_step_stmt(token) {
+void parser::parse_step_stmt() {
+    m_lexer.require(token_type::KW_STEP);
     m_lexer.require(token_type::PAREN_BEGIN);
     read_expression();
     m_lexer.require(token_type::PAREN_END);
@@ -206,14 +222,16 @@ void parser::parse_step_stmt(token) {
     m_code.add_line<opcode::CNTPOP>();
 };
 
-void parser::parse_import_stmt(token) {
+void parser::parse_import_stmt() {
+    m_lexer.require(token_type::KW_IMPORT);
     auto tok_layout_name = m_lexer.require(token_type::STRING);
     m_lexer.require(token_type::SEMICOLON);
     auto imported_file = m_path.parent_path() / (tok_layout_name.parse_string() + ".bls");
     m_code.add_line<opcode::IMPORT>(imported_file.string());
 };
 
-void parser::parse_break_stmt(token tok_fun_name) {
+void parser::parse_break_stmt() {
+    auto tok_fun_name = m_lexer.require(token_type::KW_BREAK);
     m_lexer.require(token_type::SEMICOLON);
     if (m_loop_labels.empty()) {
         throw parsing_error("Non in un loop", tok_fun_name);
@@ -221,7 +239,8 @@ void parser::parse_break_stmt(token tok_fun_name) {
     m_code.add_line<opcode::JMP>(m_loop_labels.top().break_label);
 };
 
-void parser::parse_continue_stmt(token tok_fun_name) {
+void parser::parse_continue_stmt() {
+    auto tok_fun_name = m_lexer.require(token_type::KW_CONTINUE);
     m_lexer.require(token_type::SEMICOLON);
     if (m_loop_labels.empty()) {
         throw parsing_error("Non in un loop", tok_fun_name);
@@ -229,7 +248,8 @@ void parser::parse_continue_stmt(token tok_fun_name) {
     m_code.add_line<opcode::JMP>(m_loop_labels.top().continue_label);
 };
 
-void parser::parse_return_stmt(token tok_fun_name) {
+void parser::parse_return_stmt() {
+    auto tok_fun_name = m_lexer.require(token_type::KW_RETURN);
     if (m_function_level == 0) {
         throw parsing_error("Non in una funzione", tok_fun_name);
     }
@@ -247,37 +267,23 @@ void parser::parse_return_stmt(token tok_fun_name) {
     }
 };
 
-void parser::parse_clear_stmt(token) {
+void parser::parse_clear_stmt() {
+    m_lexer.require(token_type::KW_CLEAR);
     read_variable_and_prefixes(false);
     m_lexer.require(token_type::SEMICOLON);
     m_code.add_line<opcode::CLEAR>();
 };
 
-
-bool parser::read_keyword() {
-    static const util::string_map<void (parser::*)(token)> keyword_map {
-        {"if",          &parser::parse_if_stmt},
-        {"while",       &parser::parse_while_stmt},
-        {"for",         &parser::parse_for_stmt},
-        {"goto",        &parser::parse_goto_stmt},
-        {"function",    &parser::parse_function_stmt},
-        {"foreach",     &parser::parse_foreach_stmt},
-        {"with",        &parser::parse_with_stmt},
-        {"step",        &parser::parse_step_stmt},
-        {"import",      &parser::parse_import_stmt},
-        {"break",       &parser::parse_break_stmt},
-        {"continue",    &parser::parse_continue_stmt},
-        {"return",      &parser::parse_return_stmt},
-        {"clear",       &parser::parse_clear_stmt}
-    };
-
-    auto tok_fun_name = m_lexer.peek();
-    assert(tok_fun_name.type == token_type::IDENTIFIER);
-    if (auto it = keyword_map.find(tok_fun_name.value); it!=keyword_map.end()) {
-        m_lexer.advance(tok_fun_name);
-        (this->*(it->second))(tok_fun_name);
-        return true;
-    } else {
-        return false;
+void parser::parse_set_stmt() {
+    auto tok_fun_name = m_lexer.require(token_type::KW_SET);
+    if (m_content_level == 0) {
+        throw parsing_error("Stack contenuti vuoto", tok_fun_name);
     }
+    auto prefixes = read_variable_and_prefixes(false);
+    m_lexer.require(token_type::SEMICOLON);
+    m_code.add_line<opcode::PUSHVIEW>();
+    if (prefixes.call.command() != opcode::NOP) {
+        m_code.push_back(prefixes.call);
+    }
+    m_code.add_line<opcode::SETVAR>(prefixes.flags);
 }

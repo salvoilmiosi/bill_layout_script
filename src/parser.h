@@ -78,23 +78,23 @@ namespace bls {
         void sub_expression();
 
         void read_function(token tok_fun_name, bool top_level);
-        bool read_keyword();
 
         jump_label make_label(std::string_view label);
 
-        void parse_if_stmt(token tok_fun_name);
-        void parse_while_stmt(token tok_fun_name);
-        void parse_for_stmt(token tok_fun_name);
-        void parse_goto_stmt(token tok_fun_name);
-        void parse_function_stmt(token tok_fun_name);
-        void parse_foreach_stmt(token tok_fun_name);
-        void parse_with_stmt(token tok_fun_name);
-        void parse_step_stmt(token tok_fun_name);
-        void parse_import_stmt(token tok_fun_name);
-        void parse_break_stmt(token tok_fun_name);
-        void parse_continue_stmt(token tok_fun_name);
-        void parse_return_stmt(token tok_fun_name);
-        void parse_clear_stmt(token tok_fun_name);
+        void parse_if_stmt();
+        void parse_while_stmt();
+        void parse_for_stmt();
+        void parse_goto_stmt();
+        void parse_function_stmt();
+        void parse_foreach_stmt();
+        void parse_with_stmt();
+        void parse_step_stmt();
+        void parse_import_stmt();
+        void parse_break_stmt();
+        void parse_continue_stmt();
+        void parse_return_stmt();
+        void parse_clear_stmt();
+        void parse_set_stmt();
 
         variable_prefixes read_variable_and_prefixes(bool read_only);
         variable_prefixes read_variable(token tok_var_name, bool read_only, variable_prefixes prefixes = {}, variable_selector selvar = {});
