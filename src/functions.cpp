@@ -341,9 +341,8 @@ namespace bls {
         {"lines", [](std::string_view str) {
             return util::string_split(str, '\n')
                 | std::views::transform(util::string_trim)
-                | std::views::filter([](const std::string &s) {
-                    return !s.empty();
-                }) | util::range_to_vector;
+                | std::views::filter(std::not_fn(&std::string::empty))
+                | util::range_to_vector;
         }},
         {"list", [](varargs<variable> args) {
             return args | util::range_to_vector;
@@ -509,9 +508,7 @@ namespace bls {
             return string_format(format, args);
         }},
         {"coalesce", [](varargs<variable> args) {
-            for (const auto &arg : args) {
-                if (!arg.is_null()) return arg;
-            }
+            if (auto it = std::ranges::find_if_not(args, &variable::is_null); it != args.end()) return *it;
             return variable();
         }},
         {"readfile", [](const reader *ctx, const std::string &filename) -> variable {
@@ -521,20 +518,20 @@ namespace bls {
                 std::istreambuf_iterator<char>(ifs),
                 std::istreambuf_iterator<char>()};
         }},
-        {"box_page", [](const reader *ctx) { return ctx->m_current_box.page; }},
-        {"box_width", [](const reader *ctx) { return ctx->m_current_box.w; }},
-        {"box_height", [](const reader *ctx) { return ctx->m_current_box.h; }},
-        {"box_left", [](const reader *ctx) { return ctx->m_current_box.x; }},
-        {"box_top", [](const reader *ctx) { return ctx->m_current_box.y; }},
-        {"box_right", [](const reader *ctx) { return ctx->m_current_box.x + ctx->m_current_box.w; }},
-        {"box_bottom", [](const reader *ctx) { return ctx->m_current_box.y + ctx->m_current_box.h; }},
+        {"box_page",        [](const reader *ctx) { return ctx->m_current_box.page; }},
+        {"box_width",       [](const reader *ctx) { return ctx->m_current_box.w; }},
+        {"box_height",      [](const reader *ctx) { return ctx->m_current_box.h; }},
+        {"box_left",        [](const reader *ctx) { return ctx->m_current_box.x; }},
+        {"box_top",         [](const reader *ctx) { return ctx->m_current_box.y; }},
+        {"box_right",       [](const reader *ctx) { return ctx->m_current_box.x + ctx->m_current_box.w; }},
+        {"box_bottom",      [](const reader *ctx) { return ctx->m_current_box.y + ctx->m_current_box.h; }},
         {"layout_filename", [](const reader *ctx) { return ctx->m_current_layout->string(); }},
-        {"layout_dir", [](const reader *ctx) { return ctx->m_current_layout->parent_path().string(); }},
-        {"curtable", [](const reader *ctx) { return ctx->m_table_index; }},
-        {"numtables", [](const reader *ctx) { return ctx->m_table_count; }},
-        {"doc_numpages", [](const reader *ctx) { return ctx->get_document().num_pages(); }},
-        {"doc_filename", [](const reader *ctx) { return ctx->get_document().filename().string(); }},
-        {"ate", [](const reader *ctx) { return ctx->m_current_box.page > ctx->get_document().num_pages(); }},
+        {"layout_dir",      [](const reader *ctx) { return ctx->m_current_layout->parent_path().string(); }},
+        {"curtable",        [](const reader *ctx) { return ctx->m_table_index; }},
+        {"numtables",       [](const reader *ctx) { return ctx->m_table_count; }},
+        {"doc_numpages",    [](const reader *ctx) { return ctx->get_document().num_pages(); }},
+        {"doc_filename",    [](const reader *ctx) { return ctx->get_document().filename().string(); }},
+        {"ate",             [](const reader *ctx) { return ctx->m_current_box.page > ctx->get_document().num_pages(); }},
         {"curindex", [](const reader *ctx) -> variable{
             if (ctx->m_contents.empty()) {
                 return {};
