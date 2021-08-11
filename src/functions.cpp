@@ -527,8 +527,8 @@ namespace bls {
         {"box_bottom",      [](const reader *ctx) { return ctx->m_current_box.y + ctx->m_current_box.h; }},
         {"layout_filename", [](const reader *ctx) { return ctx->m_current_layout->string(); }},
         {"layout_dir",      [](const reader *ctx) { return ctx->m_current_layout->parent_path().string(); }},
-        {"curtable",        [](const reader *ctx) { return ctx->m_table_index; }},
-        {"numtables",       [](const reader *ctx) { return ctx->m_table_count; }},
+        {"curtable",        [](const reader *ctx) { return std::ranges::distance(ctx->m_values.begin(), ctx->m_current_table); }},
+        {"numtables",       [](const reader *ctx) { return ctx->m_values.size(); }},
         {"doc_numpages",    [](const reader *ctx) { return ctx->get_document().num_pages(); }},
         {"doc_filename",    [](const reader *ctx) { return ctx->get_document().filename().string(); }},
         {"ate",             [](const reader *ctx) { return ctx->m_current_box.page > ctx->get_document().num_pages(); }},
@@ -547,12 +547,13 @@ namespace bls {
             ctx->m_notes.push_back(message);
         }},
         {"nexttable", [](reader *ctx) {
-            if (++ctx->m_table_index >= ctx->m_table_count) {
-                ++ctx->m_table_count;
+            if (std::next(ctx->m_current_table) == ctx->m_values.end()) {
+                ctx->m_values.emplace_back();
             }
+            ++ctx->m_current_table;
         }},
         {"firsttable", [](reader *ctx) {
-            ctx->m_table_index = 0;
+            ctx->m_current_table = ctx->m_values.begin();
         }}
     };
 }

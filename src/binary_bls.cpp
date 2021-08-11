@@ -119,24 +119,6 @@ template<> struct binary_io<command_call> {
     }
 };
 
-template<> struct binary_io<variable_selector> {
-    static void write(std::ostream &output, const variable_selector &args) {
-        writeData(output, args.name);
-        writeData(output, args.index);
-        writeData(output, args.length);
-        writeData(output, args.flags);
-    }
-
-    static variable_selector read(std::istream &input) {
-        variable_selector sel;
-        readData(input, sel.name);
-        readData(input, sel.index);
-        readData(input, sel.length);
-        readData(input, sel.flags);
-        return sel;
-    }
-};
-
 template<> struct binary_io<jump_label> {
     static void write(std::ostream &output, const jump_label &addr) {
         writeData<std::string>(output, addr);

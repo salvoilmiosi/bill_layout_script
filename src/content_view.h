@@ -8,12 +8,15 @@
 #include "stack.h"
 
 namespace bls {
+
     class content_view {
     private:
         size_t m_index = 0;
         std::vector<variable> m_data;
 
     public:
+        struct as_array{};
+
         content_view(const std::string &str) : m_data({str}) {}
         content_view(std::string &&str) : m_data({std::move(str)}) {}
 
@@ -33,8 +36,12 @@ namespace bls {
             }
         }
 
-        content_view(const std::vector<variable> &vec) : m_data(vec) {}
-        content_view(std::vector<variable> &&vec) : m_data(std::move(vec)) {}
+        content_view(as_array, const variable &vec) {
+            if (vec.is_array()) m_data = vec.as_array();
+        }
+        content_view(as_array, variable &&vec) {
+            if (vec.is_array()) m_data = std::move(vec.as_array());
+        }
 
         size_t index() const {
             return m_index;

@@ -55,30 +55,25 @@ int MainApp::run() {
         if (get_layout) my_reader.add_flag(reader_flags::HALT_ON_SETLAYOUT);
         my_reader.add_layout(input_bls);
         my_reader.start();
-
-        auto &json_values = result["values"] = json::array();
         
-        auto write_var = [](json::value &table, const std::string &name, const variable &var) {
-            if (table.is_null()) table = json::object();
-            auto &json_arr = table[name];
-            if (json_arr.is_null()) json_arr = json::array();
-            json_arr.emplace_back(variable_to_value(var));
+        auto write_table = [&](const variable_map &table) {
+            json::object out;
+            for (const auto &[key, var] : table) {
+                if (!show_debug && key.front() == '_') {
+                    continue;
+                }
+                out[key] = variable_to_value(var);
+            }
+            return out;
         };
 
-        for (auto &[key, var] : my_reader.get_values()) {
-            if (key.name.front() == '_' && !show_debug) {
-                continue;
-            }
-            if (key.table_index == variable_key::global_index) {
-                if (show_globals) {
-                    write_var(result["globals"], key.name, var);
-                }
-            } else {
-                while (json_values.size() <= key.table_index) {
-                    json_values.push_back(json::object());
-                }
-                write_var(json_values[key.table_index], key.name, var);
-            }
+        auto &json_values = result["values"] = json::array();
+        for (const auto &table : my_reader.get_values()) {
+            json_values.as_array().push_back(write_table(table));
+        }
+
+        if (show_globals) {
+            result["globals"] = write_table(my_reader.get_globals());
         }
 
         if (!my_reader.get_notes().empty()) {

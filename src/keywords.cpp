@@ -269,7 +269,7 @@ void parser::parse_return_stmt() {
 
 void parser::parse_clear_stmt() {
     m_lexer.require(token_type::KW_CLEAR);
-    read_variable_and_prefixes(false);
+    read_variable_name(true);
     m_lexer.require(token_type::SEMICOLON);
     m_code.add_line<opcode::CLEAR>();
 };
@@ -279,7 +279,7 @@ void parser::parse_set_stmt() {
     if (m_content_level == 0) {
         throw parsing_error("Stack contenuti vuoto", tok_fun_name);
     }
-    auto prefixes = read_variable_and_prefixes(false);
+    auto prefixes = read_variable(false);
     m_lexer.require(token_type::SEMICOLON);
     m_code.add_line<opcode::PUSHVIEW>();
     if (prefixes.call.command() != opcode::NOP) {

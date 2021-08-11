@@ -17,20 +17,22 @@ void reader::clear() {
 
 void reader::start() {
     m_values.clear();
+    m_globals.clear();
     m_notes.clear();
     m_layouts.clear();
     m_stack.clear();
     m_contents.clear();
     m_calls.clear();
+    m_selected.clear();
 
-    m_selected = {};
+    m_values.emplace_back();
+    m_current_table = m_values.begin();
+
     m_current_box = {};
 
     m_locale = std::locale::classic();
 
     m_program_counter = 0;
-    m_table_index = 0;
-    m_table_count = 1;
 
     m_running = true;
     m_aborted = false;
@@ -47,30 +49,6 @@ void reader::start() {
 }
 
 void reader::exec_command(const command_args &cmd) {
-    auto select_var = [&](variable_selector sel) {
-        if (sel.flags.check(selvar_flags::DYN_LEN)) {
-            sel.length = m_stack.pop().as_int();
-        }
-        if (sel.flags.check(selvar_flags::DYN_IDX)) {
-            sel.index = m_stack.pop().as_int();
-        }
-
-        m_selected = variable_ref(m_values, variable_key{
-            (sel.flags.check(selvar_flags::DYN_NAME))
-                ? m_stack.pop().as_string() : sel.name,
-            (sel.flags.check(selvar_flags::GLOBAL))
-                ? variable_key::global_index : m_table_index},
-            sel.index, sel.length);
-
-        if (sel.flags.check(selvar_flags::EACH)) {
-            m_selected.index = 0;
-            m_selected.length = m_selected.size();
-        }
-        if (sel.flags.check(selvar_flags::APPEND)) {
-            m_selected.index = m_selected.size();
-        }
-    };
-
     auto jump_to = [&](const jump_address &label) {
         m_program_counter += label.address;
     };
@@ -159,13 +137,23 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::MVBOX:         move_box(cmd.get_args<opcode::MVBOX>(), m_stack.pop()); break;
     case opcode::MVNBOX:        move_box(cmd.get_args<opcode::MVNBOX>(), -m_stack.pop()); break;
     case opcode::RDBOX:         read_box(cmd.get_args<opcode::RDBOX>()); break;
-    case opcode::SELVAR:        select_var(cmd.get_args<opcode::SELVAR>()); break;
-    case opcode::SETVAR:        m_selected.set_value(m_stack.pop()); break;
-    case opcode::INCVAR:        m_selected.inc_value(m_stack.pop()); break;
-    case opcode::DECVAR:        m_selected.dec_value(m_stack.pop()); break;
-    case opcode::CLEAR:         m_selected.clear_value(); break;
-    case opcode::PUSHVAR:       m_stack.push(m_selected.get_value()); break;
-    case opcode::PUSHREF:       m_stack.push(m_selected.get_value_ref()); break;
+    case opcode::SELVAR:        m_selected.emplace_back(cmd.get_args<opcode::SELVAR>(), *m_current_table); break;
+    case opcode::SELVARDYN:     m_selected.emplace_back(m_stack.pop().as_string(), *m_current_table); break;
+    case opcode::SELGLOBAL:     m_selected.emplace_back(cmd.get_args<opcode::SELGLOBAL>(), m_globals); break;
+    case opcode::SELGLOBALDYN:  m_selected.emplace_back(m_stack.pop().as_string(), m_globals); break;
+    case opcode::SELINDEX:      m_selected.top().add_index(cmd.get_args<opcode::SELINDEX>()); break;
+    case opcode::SELINDEXDYN:   m_selected.top().add_index(m_stack.pop().as_int()); break;
+    case opcode::SELSIZE:       m_selected.top().set_size(cmd.get_args<opcode::SELSIZE>()); break;
+    case opcode::SELSIZEDYN:    m_selected.top().set_size(m_stack.pop().as_int()); break;
+    case opcode::SELAPPEND:     m_selected.top().add_append(); break;
+    case opcode::SELEACH:       m_selected.top().add_each(); break;
+    case opcode::SETVAR:        m_selected.pop().set_value(m_stack.pop()); break;
+    case opcode::FORCEVAR:      m_selected.pop().force_value(m_stack.pop()); break;
+    case opcode::INCVAR:        m_selected.pop().inc_value(m_stack.pop()); break;
+    case opcode::DECVAR:        m_selected.pop().dec_value(m_stack.pop()); break;
+    case opcode::CLEAR:         m_selected.pop().clear_value(); break;
+    case opcode::PUSHVAR:       m_stack.push(m_selected.pop().get_value()); break;
+    case opcode::PUSHREF:       m_stack.push(m_selected.pop().get_value_ref()); break;
     case opcode::PUSHVIEW:      m_stack.push(m_contents.top().view()); break;
     case opcode::PUSHNUM:       m_stack.push(cmd.get_args<opcode::PUSHNUM>()); break;
     case opcode::PUSHINT:       m_stack.push(cmd.get_args<opcode::PUSHINT>()); break;
@@ -176,7 +164,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::CALL:          m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
     case opcode::SYSCALL:       call_function(cmd.get_args<opcode::SYSCALL>()); break;
     case opcode::CNTADDSTRING:  m_contents.emplace(m_stack.pop()); break;
-    case opcode::CNTADDLIST:    m_contents.emplace(m_stack.pop().as_array()); break;
+    case opcode::CNTADDLIST:    m_contents.emplace(content_view::as_array{}, m_stack.pop()); break;
     case opcode::CNTPOP:        m_contents.pop_back(); break;
     case opcode::NEXTRESULT:    m_contents.top().nextresult(); break;
     case opcode::JMP:           jump_to(cmd.get_args<opcode::JMP>()); break;
@@ -187,7 +175,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::JSR:           jump_subroutine(cmd.get_args<opcode::JSR>()); break;
     case opcode::RET:           jump_return(variable()); break;
     case opcode::RETVAL:        jump_return(m_stack.pop()); break;
-    case opcode::RETVAR:        jump_return(m_selected.get_value()); break;
+    case opcode::RETVAR:        jump_return(m_selected.pop().get_value()); break;
     case opcode::IMPORT:        import_layout(cmd.get_args<opcode::IMPORT>()); break;
     case opcode::ADDLAYOUT:     push_layout(cmd.get_args<opcode::ADDLAYOUT>()); break;
     case opcode::SETCURLAYOUT   : m_current_layout = m_layouts.begin() + cmd.get_args<opcode::SETCURLAYOUT>(); break;

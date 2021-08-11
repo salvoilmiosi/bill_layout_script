@@ -176,7 +176,6 @@ void parser::read_statement() {
 }
 
 void parser::assignment_stmt() {
-    auto selvar_begin = m_code.size();
     variable_prefixes prefixes;
 
     auto tok = m_lexer.peek();
@@ -187,13 +186,13 @@ void parser::assignment_stmt() {
             read_function(tok, true);
             return;
         } else {
-            read_variable(variable_selector{std::string(tok.value)}, false);
+            m_code.add_line<opcode::SELVAR>(tok.value);
+            read_variable_indices(false);
         }
         break;
     default:
-        prefixes = read_variable_and_prefixes(false);
+        prefixes = read_variable(false);
     }
-    auto selvar_end = m_code.size();
 
     command_args assign_cmd;
 
@@ -227,7 +226,6 @@ void parser::assignment_stmt() {
         m_code.push_back(prefixes.call);
     }
 
-    m_code.move_not_comments(selvar_begin, selvar_end);
     m_code.push_back(assign_cmd);
 }
 
@@ -357,12 +355,13 @@ void parser::sub_expression() {
         } else if (auto it = std::ranges::find(m_fun_args, tok_first.value); it != m_fun_args.end()) {
             m_code.add_line<opcode::PUSHARG>(it - m_fun_args.begin());
         } else {
-            read_variable(variable_selector{std::string(tok_first.value)}, true);
+            m_code.add_line<opcode::SELVAR>(tok_first.value);
+            read_variable_indices(true);
             m_code.add_line<opcode::PUSHVAR>();
         }
         break;
     default:
-        read_variable_and_prefixes(true);
+        read_variable(true);
         m_code.add_line<opcode::PUSHVAR>();
     }
 }
@@ -371,69 +370,24 @@ static parsing_error read_only_error(const token &tok) {
     return parsing_error("Contesto di sola lettura", tok);
 };
 
-void parser::read_variable(variable_selector selvar, bool read_only) {
-    if (m_lexer.check_next(token_type::BRACKET_BEGIN)) { // variable[
-        token tok = m_lexer.peek();
-        switch (tok.type) {
-        case token_type::COLON: {
-            if (read_only) throw read_only_error(tok);
-            m_lexer.advance(tok);
-            tok = m_lexer.peek();
-            switch (tok.type) {
-            case token_type::BRACKET_END:
-                selvar.flags.set(selvar_flags::EACH); // variable[:]
-                break;
-            case token_type::INTEGER: // variable[:N] -- append N times
-                m_lexer.advance(tok);
-                selvar.flags.set(selvar_flags::APPEND);
-                selvar.length = util::string_to<int>(tok.value);
-                break;
-            default:
-                read_expression();
-                selvar.flags.set(selvar_flags::APPEND);
-                selvar.flags.set(selvar_flags::DYN_LEN);
-            }
-            break;
-        }
-        case token_type::BRACKET_END:
-            if (read_only) throw read_only_error(tok);
-            selvar.flags.set(selvar_flags::APPEND); // variable[] -- append
-            break;
-        default:
-            if (tok = m_lexer.check_next(token_type::INTEGER)) { // variable[N]
-                selvar.index = util::string_to<int>(tok.value);
-            } else {
-                read_expression();
-                selvar.flags.set(selvar_flags::DYN_IDX);
-            }
-            if (tok = m_lexer.check_next(token_type::COLON)) { // variable[N:M] -- M times after index N
-                if (read_only) throw read_only_error(tok);
-                if (tok = m_lexer.check_next(token_type::INTEGER)) {
-                    selvar.length = util::string_to<int>(tok.value);
-                } else {
-                    read_expression();
-                    selvar.flags.set(selvar_flags::DYN_LEN);
-                }
-            }
-        }
-        m_lexer.require(token_type::BRACKET_END);
-    }
-
-    m_code.add_line<opcode::SELVAR>(selvar);
+variable_prefixes parser::read_variable(bool read_only) {
+    auto prefixes = read_variable_name(read_only);
+    read_variable_indices(read_only);
+    return prefixes;
 }
 
-variable_prefixes parser::read_variable_and_prefixes(bool read_only) {
+variable_prefixes parser::read_variable_name(bool read_only) {
     variable_prefixes prefixes;
-    variable_selector selvar;
+    bool isglobal = false;
 
     token current_token;
 
-    auto add_flags_to = [&](auto &out, auto flags) {
-        if (out.check(flags)) throw parsing_error("Prefisso duplicato", current_token);
-        out.set(flags);
+    auto set_global = [&] {
+        if (isglobal) throw parsing_error("Prefisso global duplicato", current_token);
+        isglobal = true;
     };
 
-    auto add_function_call = [&](std::string_view fun_name) {
+    auto set_function_call = [&](std::string_view fun_name) {
         if (read_only) throw read_only_error(current_token);
         if (prefixes.call.command() == opcode::NOP) {
             prefixes.call = make_command<opcode::CALL>(fun_name, 1);
@@ -445,26 +399,84 @@ variable_prefixes parser::read_variable_and_prefixes(bool read_only) {
     while (true) {
         current_token = m_lexer.next();
         switch (current_token.type) {
-        case token_type::KW_GLOBAL:     add_flags_to(selvar.flags, selvar_flags::GLOBAL); break;
-        case token_type::PERCENT:       add_function_call("num"); break;
-        case token_type::CARET:         add_function_call("aggregate"); break;
-        case token_type::SINGLE_QUOTE:  add_function_call("totitle"); break;
+        case token_type::KW_GLOBAL:     set_global(); break;
+        case token_type::PERCENT:       set_function_call("num"); break;
+        case token_type::CARET:         set_function_call("aggregate"); break;
+        case token_type::SINGLE_QUOTE:  set_function_call("totitle"); break;
         case token_type::BRACKET_BEGIN:
             read_expression();
             m_lexer.require(token_type::BRACKET_END);
-            selvar.flags.set(selvar_flags::DYN_NAME);
-            goto exit_loop;
+            if (isglobal) {
+                m_code.add_line<opcode::SELGLOBALDYN>();
+            } else {
+                m_code.add_line<opcode::SELVARDYN>();
+            }
+            return prefixes;
         case token_type::IDENTIFIER:
-            selvar.name = current_token.value;
-            goto exit_loop;
+            if (isglobal) {
+                m_code.add_line<opcode::SELGLOBAL>(current_token.value);
+            } else {
+                m_code.add_line<opcode::SELVAR>(current_token.value);
+            }
+            return prefixes;
         default:
             throw unexpected_token(current_token, token_type::IDENTIFIER);
         }
     }
-    exit_loop:
+}
 
-    read_variable(selvar, read_only);
-    return prefixes;
+void parser::read_variable_indices(bool read_only) {
+    bool in_loop = true;
+    while (in_loop && m_lexer.check_next(token_type::BRACKET_BEGIN)) { // variable[
+        token tok = m_lexer.peek();
+        switch (tok.type) {
+        case token_type::COLON: {
+            if (read_only) throw read_only_error(tok);
+            m_lexer.advance(tok);
+            tok = m_lexer.peek();
+            switch (tok.type) {
+            case token_type::BRACKET_END:
+                m_code.add_line<opcode::SELEACH>(); // variable[:]
+                in_loop = false;
+                break;
+            case token_type::INTEGER: // variable[:N] -- append N times
+                m_lexer.advance(tok);
+                m_code.add_line<opcode::SELAPPEND>();
+                m_code.add_line<opcode::SELSIZE>(util::string_to<int>(tok.value));
+                in_loop = false;
+                break;
+            default:
+                m_code.add_line<opcode::SELAPPEND>();
+                read_expression();
+                m_code.add_line<opcode::SELSIZEDYN>();
+            }
+            break;
+        }
+        case token_type::BRACKET_END:
+            if (read_only) throw read_only_error(tok);
+            m_code.add_line<opcode::SELAPPEND>();
+            break;
+        default:
+            if (tok = m_lexer.check_next(token_type::INTEGER)) { // variable[N]
+                m_code.add_line<opcode::SELINDEX>(util::string_to<int>(tok.value));
+            } else {
+                read_expression();
+                m_code.add_line<opcode::SELINDEXDYN>();
+            }
+            if (tok = m_lexer.check_next(token_type::COLON)) { // variable[N:M] -- M times after index N
+                if (read_only) throw read_only_error(tok);
+                if (tok = m_lexer.check_next(token_type::INTEGER)) {
+                    m_code.add_line<opcode::SELSIZE>(util::string_to<int>(tok.value));
+                } else {
+                    read_expression();
+                    m_code.add_line<opcode::SELSIZEDYN>();
+                }
+                in_loop = false;
+                break;
+            }
+        }
+        m_lexer.require(token_type::BRACKET_END);
+    }
 }
 
 void parser::read_function(token tok_fun_name, bool top_level) {

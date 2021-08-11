@@ -84,20 +84,19 @@ datetime variable::as_date() const {
     }, m_value);
 }
 
-const std::vector<variable> &variable::as_array() const & {
-    static std::vector<variable> EMPTY_VECTOR;
-    if (const std::vector<variable> *val = std::get_if<std::vector<variable>>(&m_value)) {
+std::vector<variable> &variable::as_array() {
+    if (std::vector<variable> *val = std::get_if<std::vector<variable>>(&m_value)) {
         return *val;
     } else {
-        return EMPTY_VECTOR;
+        throw layout_error("Impossibile convertire variabile in array");
     }
 }
 
-std::vector<variable> variable::as_array() && {
-    if (std::vector<variable> *val = std::get_if<std::vector<variable>>(&m_value)) {
-        return std::move(*val);
+const std::vector<variable> &variable::as_array() const {
+    if (const std::vector<variable> *val = std::get_if<std::vector<variable>>(&m_value)) {
+        return *val;
     } else {
-        return {};
+        throw layout_error("Impossibile convertire variabile in array");
     }
 }
 

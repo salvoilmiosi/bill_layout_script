@@ -59,8 +59,8 @@ namespace bls {
         double as_double() const;
         datetime as_date() const;
 
-        const std::vector<variable> &as_array() const &;
-        std::vector<variable> as_array() &&;
+        std::vector<variable> &as_array();
+        const std::vector<variable> &as_array() const;
 
         bool as_bool() const;
 

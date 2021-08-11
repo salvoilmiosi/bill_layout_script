@@ -4,10 +4,11 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <list>
 #include <atomic>
 
 #include "variable.h"
-#include "variable_ref.h"
+#include "variable_selector.h"
 #include "bytecode.h"
 #include "stack.h"
 #include "content_view.h"
@@ -62,10 +63,9 @@ public:
     void start();
 
     const auto &get_values() const { return m_values; }
+    const auto &get_globals() const { return m_globals; }
     const auto &get_notes() const { return m_notes; }
     const auto &get_layouts() const { return m_layouts; }
-
-    size_t get_table_count() const { return m_table_count; }
 
     void abort() {
         m_running = false;
@@ -77,15 +77,15 @@ private:
 
     bytecode m_code;
 
-    variable_map m_values;
-    small_int m_table_index = 0;
-    small_int m_table_count = 1;
+    std::list<variable_map> m_values;
+    decltype(m_values)::iterator m_current_table;
+
+    variable_map m_globals;
 
     simple_stack<variable> m_stack;
     simple_stack<content_view> m_contents;
     simple_stack<function_call> m_calls;
-
-    variable_ref m_selected;
+    simple_stack<variable_selector> m_selected;
 
     std::vector<std::filesystem::path> m_layouts;
     decltype(m_layouts)::iterator m_current_layout;

@@ -84,14 +84,6 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<comman
     return out << args.data.fun->first << ' ' << print_args(args.data.numargs);
 }
 
-template<> std::ostream &operator << (std::ostream &out, const print_args<variable_selector> &args) {
-    out << args.data.name << ' ' << int(args.data.index);
-    if (args.data.length != 1) {
-        out << ':' << int(args.data.length);
-    }
-    return out << ' ' << args.data.flags;
-}
-
 template<> std::ostream &operator << (std::ostream &out, const print_args<fixed_point> &args) {
     return out << fixed_point_to_string(args.data);
 }

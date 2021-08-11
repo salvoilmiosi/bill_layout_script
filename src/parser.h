@@ -94,8 +94,9 @@ namespace bls {
         void parse_clear_stmt();
         void parse_set_stmt();
 
-        variable_prefixes read_variable_and_prefixes(bool read_only);
-        void read_variable(variable_selector selvar, bool read_only);
+        variable_prefixes read_variable(bool read_only);
+        variable_prefixes read_variable_name(bool read_only);
+        void read_variable_indices(bool read_only);
 
     private:
         static inline int parser_counter = 0;

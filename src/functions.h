@@ -47,9 +47,13 @@ namespace bls {
 
     template<typename T> struct variable_converter<std::vector<T>> {
         std::vector<T> operator()(variable &var) const {
-            auto arr = std::move(var).as_array();
-            return arr | std::views::transform(variable_converter<convert_rvalue<T>>{})
-                | util::range_to_vector;
+            if (var.is_array()) {
+                return var.as_array()
+                    | std::views::transform(variable_converter<convert_rvalue<T>>{})
+                    | util::range_to_vector;
+            } else {
+                return {};
+            }
         }
     };
 
