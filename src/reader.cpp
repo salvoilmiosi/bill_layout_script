@@ -178,7 +178,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::RETVAR:        jump_return(m_selected.pop().get_value()); break;
     case opcode::IMPORT:        import_layout(cmd.get_args<opcode::IMPORT>()); break;
     case opcode::ADDLAYOUT:     push_layout(cmd.get_args<opcode::ADDLAYOUT>()); break;
-    case opcode::SETCURLAYOUT   : m_current_layout = m_layouts.begin() + cmd.get_args<opcode::SETCURLAYOUT>(); break;
+    case opcode::SETCURLAYOUT:  m_current_layout = m_layouts.begin() + cmd.get_args<opcode::SETCURLAYOUT>(); break;
     case opcode::SETLAYOUT:     if (m_flags.check(reader_flags::HALT_ON_SETLAYOUT)) m_running = false; break;
     case opcode::SETLANG:       set_language(cmd.get_args<opcode::SETLANG>()); break;
     case opcode::HLT:           m_running = false; break;

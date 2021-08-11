@@ -67,26 +67,21 @@ int MainApp::run() {
             return out;
         };
 
-        auto &json_values = result["values"] = json::array();
-        for (const auto &table : my_reader.get_values()) {
-            json_values.as_array().push_back(write_table(table));
-        }
+        result["values"] = my_reader.get_values()
+            | std::views::transform(write_table)
+            | util::range_to<json::array>;
 
         if (show_globals) {
             result["globals"] = write_table(my_reader.get_globals());
         }
 
         if (!my_reader.get_notes().empty()) {
-            auto &json_notes = result["notes"] = json::array();
-            for (auto &v : my_reader.get_notes()) {
-                json_notes.emplace_back(v);
-            }
+            result["notes"] = my_reader.get_notes() | util::range_to<json::array>;
         }
 
-        auto &json_layouts = result["layouts"] = json::array();
-        for (auto &l : my_reader.get_layouts()) {
-            json_layouts.emplace_back(l.string());
-        }
+        result["layouts"] = my_reader.get_layouts()
+            | std::views::transform([](const std::filesystem::path &path) { return path.string(); })
+            | util::range_to<json::array>;
 
         result["errcode"] = 0;
     } catch (const layout_runtime_error &error) {
