@@ -191,7 +191,12 @@ token lexer::next(bool do_advance) {
         tok.type = token_type::CONTENT;
         break;
     case ':':
-        tok.type = token_type::COLON;
+        if (*m_current == '=') {
+            nextChar();
+            tok.type = token_type::FORCE_ASSIGN;
+        } else {
+            tok.type = token_type::COLON;
+        }
         break;
     case '+':
         if (*m_current == '=') {

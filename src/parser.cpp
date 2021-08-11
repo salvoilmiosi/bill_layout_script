@@ -194,39 +194,45 @@ void parser::assignment_stmt() {
         prefixes = read_variable(false);
     }
 
-    command_args assign_cmd;
+    auto add_prefix_call = [&] {
+        if (prefixes.call.command() != opcode::NOP) {
+            m_code.push_back(prefixes.call);
+        }
+    };
 
     tok = m_lexer.next();
     switch (tok.type) {
     case token_type::ADD_ASSIGN:
-        assign_cmd = make_command<opcode::INCVAR>();
         read_expression();
+        add_prefix_call();
+        m_code.add_line<opcode::INCVAR>();
         break;
     case token_type::SUB_ASSIGN:
-        assign_cmd = make_command<opcode::DECVAR>();
         read_expression();
+        add_prefix_call();
+        m_code.add_line<opcode::DECVAR>();
         break;
     case token_type::ADD_ONE:
-        assign_cmd = make_command<opcode::INCVAR>();
         m_code.add_line<opcode::PUSHINT>(1);
+        m_code.add_line<opcode::INCVAR>();
         break;
     case token_type::SUB_ONE:
-        assign_cmd = make_command<opcode::DECVAR>();
         m_code.add_line<opcode::PUSHINT>(1);
+        m_code.add_line<opcode::DECVAR>();
+        break;
+    case token_type::FORCE_ASSIGN:
+        read_expression();
+        add_prefix_call();
+        m_code.add_line<opcode::FORCEVAR>();
         break;
     case token_type::ASSIGN:
-        assign_cmd = make_command<opcode::SETVAR>();
         read_expression();
+        add_prefix_call();
+        m_code.add_line<opcode::SETVAR>();
         break;
     default:
         throw unexpected_token(tok, token_type::ASSIGN);
     }
-
-    if (prefixes.call.command() != opcode::NOP) {
-        m_code.push_back(prefixes.call);
-    }
-
-    m_code.push_back(assign_cmd);
 }
 
 void parser::read_expression() {

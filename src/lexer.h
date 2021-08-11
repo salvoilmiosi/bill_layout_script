@@ -43,6 +43,7 @@ namespace bls {
         (BRACE_BEGIN,   "{")
         (BRACE_END,     "}")
         (ASSIGN,        "=")
+        (FORCE_ASSIGN,  ":=")
         (ADD_ASSIGN,    "+=")
         (SUB_ASSIGN,    "-=")
         (ADD_ONE,       "++")
