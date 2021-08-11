@@ -170,7 +170,7 @@ namespace bls {
     }
 
     template<std::ranges::input_range R>
-    static std::vector<std::string> table_header(std::string_view value, R &&labels) {
+    static std::vector<variable> table_header(std::string_view value, R &&labels) {
         std::cmatch header_match;
         std::regex header_regex(fmt::format(".*{}.*", util::string_join(labels |
         std::views::transform([first=true](std::string_view str) mutable {
@@ -185,29 +185,28 @@ namespace bls {
             return {};
         }
         auto header_str = match_to_view(header_match[0]);
-        return labels | std::views::transform([&, pos = header_str.data()](std::string_view label) mutable {
+        return labels | std::views::transform([&, pos = header_str.data()](std::string_view label) mutable -> variable {
             std::cmatch match;
             if (std::regex_search(&*pos, header_str.data() + header_str.size(), match, std::regex(label.begin(), label.end(), std::regex::icase))) {
                 auto match_str = match_to_view(match[0]);
                 pos = std::find_if_not(match_str.data() + match_str.size(), header_str.data() + header_str.size(), isspace);
                 if (pos == header_str.data() + header_str.size()) {
-                    return fmt::format("{}:-1", match_str.data() - header_str.data());
+                    return std::vector{match_str.data() - header_str.data(), -1ll};
                 } else {
-                    return fmt::format("{}:{}", match_str.data() - header_str.data(), pos - match_str.data());
+                    return std::vector{match_str.data() - header_str.data(), pos - match_str.data()};
                 }
             } else {
-                return std::string();
+                return {};
             }
         }) | util::range_to_vector;
     }
 
-    static std::vector<std::string> table_row(std::string_view row, const std::vector<std::string> &indices) {
-        return indices | std::views::transform([&](std::string_view str) {
-            std::cmatch match;
-            if (std::regex_match(str.data(), str.data() + str.size(), match, std::regex("(\\d+):(-?\\d+)"))) {
-                size_t begin = util::string_to<int>(match.str(1));
+    static std::vector<std::string> table_row(std::string_view row, const std::vector<std::vector<int>> &indices) {
+        return indices | std::views::transform([&](const std::vector<int> &idx) {
+            if (idx.size() == 2) {
+                size_t begin = idx[0];
                 if (begin < row.size()) {
-                    size_t len = util::string_to<int>(match.str(2));
+                    size_t len = idx[1];
                     return row.substr(begin, len);
                 }
             }
@@ -374,7 +373,7 @@ namespace bls {
         {"table_header", [](std::string_view header, varargs<std::string_view> labels) {
             return table_header(header, labels);
         }},
-        {"table_row", [](std::string_view row, std::vector<std::string> indices) {
+        {"table_row", [](std::string_view row, std::vector<std::vector<int>> indices) {
             return table_row(row, indices);
         }},
         {"search", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<1> index) -> variable {
