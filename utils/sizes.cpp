@@ -28,7 +28,7 @@ template<typename TList> using unique_types_t = typename detail::unique_types<ut
 namespace detail {
     template<enums::type_enum Enum, typename ISeq> struct enum_type_list{};
     template<enums::type_enum Enum, size_t ... Is> struct enum_type_list<Enum, std::index_sequence<Is...>> {
-        using type = util::type_list<typename enums::get_type_t<Enum, static_cast<Enum>(Is)> ...>;
+        using type = util::type_list<typename enums::get_type_t<static_cast<Enum>(Is)> ...>;
     };
 }
 

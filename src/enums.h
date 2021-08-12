@@ -35,8 +35,8 @@ namespace enums {
 
     template<data_enum T> const data_type_t<T> &get_data(T value) = delete;
 
-    template<is_enum T, T Enum> struct get_type{};
-    template<is_enum T, T Enum> using get_type_t = typename get_type<T, Enum>::type;
+    template<is_enum auto Enum> struct get_type{};
+    template<is_enum auto Enum> using get_type_t = typename get_type<Enum>::type;
 
     template<is_enum T> struct is_type_enum : std::false_type {};
 
@@ -179,10 +179,10 @@ template<> inline const data_type_t<enumName> &get_data<enumName>(enumName value
 
 #define GENERATE_GET_TYPE_BASE(enumName) \
 template<> struct is_type_enum<enumName> : std::true_type {}; \
-template<enumName Enum> struct get_type<enumName, Enum> { using type = void; }; \
+template<enumName Enum> struct get_type<Enum> { using type = void; }; \
 
 #define GENERATE_GET_TYPE_STRUCT(enumName, elementTuple) \
-    template<> struct get_type<enumName, enumName::ENUM_ELEMENT_NAME(elementTuple)> { using type = BOOST_PP_TUPLE_ELEM(1, elementTuple); };
+    template<> struct get_type<enumName::ENUM_ELEMENT_NAME(elementTuple)> { using type = BOOST_PP_TUPLE_ELEM(1, elementTuple); };
 
 #define GENERATE_CASE_GET_TYPE(r, enumName, elementTuple) \
     BOOST_PP_IF(BOOST_PP_EQUAL(BOOST_PP_TUPLE_SIZE(elementTuple), 1), \

@@ -115,14 +115,12 @@ namespace bls {
         (HLT)                           // ferma l'esecuzione
     )
 
-    template<opcode Cmd> using opcode_type = enums::get_type_t<opcode, Cmd>;
-
     template<typename T> using variant_type = std::conditional_t<std::is_void_v<T>, std::monostate, T>;
 
     namespace detail {
         template<enums::type_enum Enum, typename ISeq> struct enum_variant{};
         template<enums::type_enum Enum, size_t ... Is> struct enum_variant<Enum, std::index_sequence<Is...>> {
-            using type = std::variant<variant_type<typename enums::get_type_t<Enum, static_cast<Enum>(Is)>> ...>;
+            using type = std::variant<variant_type<enums::get_type_t<static_cast<Enum>(Is)>> ...>;
         };
     }
 
@@ -145,7 +143,7 @@ namespace bls {
             return static_cast<opcode>(m_value.index());
         }
         
-        template<opcode Cmd> requires (! std::is_void_v<opcode_type<Cmd>>)
+        template<opcode Cmd> requires (! std::is_void_v<enums::get_type_t<Cmd>>)
         const auto &get_args() const {
             return std::get<static_cast<size_t>(Cmd)>(m_value);
         }
