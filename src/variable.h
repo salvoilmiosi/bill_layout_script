@@ -38,6 +38,11 @@ namespace bls {
         template<typename T>
         variable(const std::vector<T> &vec) : m_value(std::vector<variable>(vec.begin(), vec.end())) {}
 
+        template<typename T>
+        variable(std::vector<T> &&vec) : m_value(std::vector<variable>(
+            std::make_move_iterator(vec.begin()), std::make_move_iterator(vec.end())
+        )) {}
+
         bool is_null() const;
         bool is_string() const;
         bool is_regex() const;
