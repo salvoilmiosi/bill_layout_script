@@ -47,7 +47,7 @@ public:
         if (m_doc) {
             return *m_doc;
         } else {
-            throw layout_error("Nessun documento aperto");
+            throw layout_error(intl::format("NO_DOCUMENT_OPEN"));
         }
     }
 

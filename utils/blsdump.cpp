@@ -25,16 +25,16 @@ int main(int argc, char **argv) {
 
         namespace po = boost::program_options;
 
-        po::options_description desc("Allowed options");
+        po::options_description desc(intl::format("OPTIONS"));
         po::positional_options_description pos;
         pos.add("input-bls", -1);
 
         desc.add_options()
-            ("help,h", "Print Help")
-            ("input-bls", po::value(&app.input_file), "Input bls File")
-            ("skipcomments,s", po::bool_switch(&app.skip_comments), "Skip Comments")
-            ("read-cache,c", po::bool_switch(&app.do_read_cache), "Read Cache")
-            ("output-cache,o", po::value(&app.output_cache), "Output Cache File")
+            ("help,h", intl::format("PRINT_HELP").c_str())
+            ("input-bls", po::value(&app.input_file), intl::format("BLS_INPUT_FILE").c_str())
+            ("skipcomments,s", po::bool_switch(&app.skip_comments), intl::format("SKIP_COMMENTS").c_str())
+            ("read-cache,c", po::bool_switch(&app.do_read_cache), intl::format("READ_CACHE").c_str())
+            ("output-cache,o", po::value(&app.output_cache), intl::format("OUT_CACHE_FILE").c_str())
         ;
 
         po::variables_map vm;
@@ -48,13 +48,13 @@ int main(int argc, char **argv) {
         }
 
         if (!vm.count("input-bls")) {
-            std::cout << "Required Input bls" << std::endl;
+            std::cout << intl::format("REQUIRED_INPUT_BLS") << std::endl;
             return 0;
         }
 
         return app.run();
     } catch (const std::exception &e) {
-        std::cerr << "Errore nel parsing delle opzioni: " << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
         return -1;
     }
 }

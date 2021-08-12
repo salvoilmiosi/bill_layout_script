@@ -35,7 +35,7 @@ namespace bls {
                 output << "### Spacers\n";
                 for (const auto &line : util::string_split(box.spacers, '\n')) {
                     if (line == "### End Spacers") {
-                        throw layout_error(fmt::format("In {}:\nInvalido Token End Spacers", box.name.empty() ? std::string("(Box senza nome)") : box.name));
+                        throw layout_error(intl::format("INVALID_TOKEN_END_SPACERS"));
                     } else {
                         output << line << '\n';
                     }
@@ -46,7 +46,7 @@ namespace bls {
                 output << "### Script\n";
                 for (const auto &line : util::string_split(box.script, '\n')) {
                     if (line == "### End Script") {
-                        throw layout_error(fmt::format("In {}:\nInvalido Token End Script", box.name.empty() ? std::string("(Box senza nome)") : box.name));
+                        throw layout_error(intl::format("INVALID_TOKEN_END_SCRIPT"));
                     } else {
                         output << line << '\n';
                     }
@@ -101,7 +101,7 @@ namespace bls {
                         if (auto it = enums::from_string<read_mode>(suf.value); it != enums::invalid_enum_value<read_mode>) {
                             current.mode = it;
                         } else {
-                            throw layout_error(fmt::format("Token 'Mode' non valido: {}", suf.value));
+                            throw layout_error(intl::format("INVALID_TOKEN_MODE", suf.value));
                         }
                     } else if (auto suf = suffix(line, "### Flags")) {
                         util::isviewstream ss{suf.value};
@@ -110,7 +110,7 @@ namespace bls {
                             if (auto it = enums::from_string<box_flags>(label); it != enums::invalid_enum_value<box_flags>) {
                                 current.flags.set(it);
                             } else {
-                                throw layout_error(fmt::format("Token 'Flags' non valido: {}", label));
+                                throw layout_error(intl::format("INVALID_TOKEN_FLAGS", label));
                             }
                         }
                     } else if (auto suf = suffix(line, "### Page")) {
@@ -119,7 +119,7 @@ namespace bls {
                         util::isviewstream ss{suf.value};
                         ss >> current.x >> current.y >> current.w >> current.h;
                         if (ss.fail()) {
-                            throw layout_error("Formato non valido");
+                            throw layout_error(intl::format("INVALID_TOKEN_RECT"));
                         }
                     } else if (auto suf = suffix(line, "### Goto Label")) {
                         current.goto_label = suf.value;
@@ -136,7 +136,7 @@ namespace bls {
                             current.spacers += line;
                         }
                         if (fail) {
-                            throw layout_error("Token End Spacers non trovato");
+                            throw layout_error(intl::format("TOKEN_END_SPACERS_NOT_FOUND"));
                         }
                     } else if (line == "### Script") {
                         bool fail = true;
@@ -151,14 +151,14 @@ namespace bls {
                             current.script += line;
                         }
                         if (fail) {
-                            throw layout_error("Token End Script non trovato");
+                            throw layout_error(intl::format("TOKEN_END_SCRIPT_NOT_FOUND"));
                         }
                     } else if (line.front() != '#') {
-                        throw layout_error("Token non valido");
+                        throw layout_error(intl::format("INVALID_TOKEN", line));
                     }
                 }
                 if (fail) {
-                    throw layout_error("Token End Box non trovato");
+                    throw layout_error(intl::format("TOKEN_END_BOX_NOT_FOUND"));
                 } else {
                     layout.push_back(current);
                 }
@@ -167,7 +167,7 @@ namespace bls {
             } else if (line == "### Set Layout") {
                 layout.setlayout = true;
             } else if (line.front() != '#') {
-                throw layout_error("Token non valido");
+                throw layout_error(intl::format("INVALID_TOKEN", line));
             }
         }
 

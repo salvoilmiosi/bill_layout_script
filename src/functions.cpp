@@ -49,7 +49,7 @@ namespace bls {
                         ret += fmt_args[idx];
                         continue;
                     } else {
-                        throw layout_error(fmt::format("Stringa di formato non valida: {}", str));
+                        throw layout_error(intl::format("INVALID_FORMAT_STRING", str));
                     }
                 } else {
                     ret += FORMAT_CHAR;
@@ -113,7 +113,7 @@ namespace bls {
             util::string_replace(regex, "\\N", number_regex(loc));
             return std::regex(regex, std::regex::icase);
         } catch (const std::regex_error &error) {
-            throw layout_error(fmt::format("Espressione regolare non valida: {0}\n{1}", regex, error.what()));
+            throw layout_error(intl::format("INVALID_REGEXP", regex, error.what()));
         }
     }
 
@@ -249,7 +249,7 @@ namespace bls {
                     ret += '%';
                     break;
                 default:
-                    throw std::invalid_argument("Stringa formato data non valida");
+                    throw std::invalid_argument(intl::format("INVALID_DATE_FORMAT"));
                 }
             } else {
                 ret += escape_regex_char(*it);

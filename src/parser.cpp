@@ -40,7 +40,7 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
                     if (auto label_it = m_code.find_label(addr.label); label_it != m_code.end()) {
                         addr.address = label_it - it;
                     } else {
-                        throw layout_error(fmt::format("Etichetta sconosciuta: {}", addr.label));
+                        throw layout_error(intl::format("Etichetta sconosciuta: {}", addr.label));
                     }
                 }
             }
@@ -117,7 +117,7 @@ void parser::read_box(const layout_box &box) {
                     m_code.add_line<opcode::MVBOX>(idx);
                 }
             } else {
-                throw parsing_error(fmt::format("Flag spacer non valido: {}", tok.value), tok);
+                throw parsing_error(intl::format("INVALID_SPACER_FLAG", tok.value), tok);
             }
         } else if (tok.type != token_type::END_OF_FILE) {
             throw unexpected_token(tok, token_type::IDENTIFIER);
@@ -350,7 +350,7 @@ void parser::sub_expression() {
     case token_type::CONTENT:
         m_lexer.advance(tok_first);
         if (m_content_level == 0) {
-            throw parsing_error("Stack contenuti vuoto", tok_first);
+            throw parsing_error(intl::format("EMPTY_CONTENT_STACK"), tok_first);
         }
         m_code.add_line<opcode::PUSHVIEW>();
         break;
@@ -372,10 +372,6 @@ void parser::sub_expression() {
     }
 }
 
-static parsing_error read_only_error(const token &tok) {
-    return parsing_error("Contesto di sola lettura", tok);
-};
-
 variable_prefixes parser::read_variable(bool read_only) {
     auto prefixes = read_variable_name(read_only);
     read_variable_indices(read_only);
@@ -389,16 +385,16 @@ variable_prefixes parser::read_variable_name(bool read_only) {
     token current_token;
 
     auto set_global = [&] {
-        if (isglobal) throw parsing_error("Prefisso global duplicato", current_token);
+        if (isglobal) throw parsing_error(intl::format("DUPLICATE_GLOBAL_PREFIX"), current_token);
         isglobal = true;
     };
 
     auto set_function_call = [&](std::string_view fun_name) {
-        if (read_only) throw read_only_error(current_token);
+        if (read_only) throw parsing_error(intl::format("READ_ONLY_ERROR"), current_token);
         if (prefixes.call.command() == opcode::NOP) {
             prefixes.call = make_command<opcode::CALL>(fun_name, 1);
         } else {
-            throw parsing_error("Ammesso solo un prefisso di funzione", current_token);
+            throw parsing_error(intl::format("DUPLICATE_CALL_PREFIX"), current_token);
         }
     };
 
@@ -437,7 +433,7 @@ void parser::read_variable_indices(bool read_only) {
         token tok = m_lexer.peek();
         switch (tok.type) {
         case token_type::COLON: {
-            if (read_only) throw read_only_error(tok);
+            if (read_only) throw parsing_error(intl::format("READ_ONLY_ERROR"), tok);
             m_lexer.advance(tok);
             tok = m_lexer.peek();
             switch (tok.type) {
@@ -459,7 +455,7 @@ void parser::read_variable_indices(bool read_only) {
             break;
         }
         case token_type::BRACKET_END:
-            if (read_only) throw read_only_error(tok);
+            if (read_only) throw parsing_error(intl::format("READ_ONLY_ERROR"), tok);
             m_code.add_line<opcode::SELAPPEND>();
             break;
         default:
@@ -470,7 +466,7 @@ void parser::read_variable_indices(bool read_only) {
                 m_code.add_line<opcode::SELINDEXDYN>();
             }
             if (tok = m_lexer.check_next(token_type::COLON)) { // variable[N:M] -- M times after index N
-                if (read_only) throw read_only_error(tok);
+                if (read_only) throw parsing_error(intl::format("READ_ONLY_ERROR"), tok);
                 if (tok = m_lexer.check_next(token_type::INTEGER)) {
                     m_code.add_line<opcode::SELSIZE>(util::string_to<int>(tok.value));
                 } else {
@@ -513,10 +509,10 @@ void parser::read_function(token tok_fun_name, bool top_level) {
             throw invalid_numargs(std::string(fun_name), fun.minargs, fun.maxargs, tok_fun_name);
         }
         if (fun.returns_value) {
-            if (top_level) throw parsing_error(fmt::format("Impossibile chiamare {} dal top level", fun_name), tok_fun_name);
+            if (top_level) throw parsing_error(intl::format("CANT_CALL_FROM_TOP_LEVEL", fun_name), tok_fun_name);
             m_code.add_line<opcode::CALL>(it, num_args);
         } else {
-            if (!top_level) throw parsing_error(fmt::format("Impossibile chiamare {} fuori dal top level", fun_name), tok_fun_name);
+            if (!top_level) throw parsing_error(intl::format("CANT_CALL_OUT_OF_TOP_LEVEL", fun_name), tok_fun_name);
             m_code.add_line<opcode::SYSCALL>(it, num_args);
         }
     } else if (auto it = m_functions.find(fun_name); it != m_functions.end()) {
@@ -525,7 +521,7 @@ void parser::read_function(token tok_fun_name, bool top_level) {
             throw invalid_numargs(std::string(fun_name), fun.numargs, fun.numargs, tok_fun_name);
         }
         if (fun.has_contents && m_content_level == 0) {
-            throw parsing_error(fmt::format("Impossibile chiamare {}, stack contenuti vuoto", fun_name), tok_fun_name);
+            throw parsing_error(intl::format("CANT_CALL_EMPTY_CONTENT_STACK", fun_name), tok_fun_name);
         }
         jump_label label = fmt::format("__function_{}", fun_name);
         if (top_level) {
@@ -534,6 +530,6 @@ void parser::read_function(token tok_fun_name, bool top_level) {
             m_code.add_line<opcode::JSRVAL>(label, num_args);
         }
     } else {
-        throw parsing_error(fmt::format("Funzione sconosciuta: {}", fun_name), tok_fun_name);
+        throw parsing_error(intl::format("UNKNOWN_FUNCTION", fun_name), tok_fun_name);
     }
 }

@@ -7,17 +7,7 @@
 #include <ranges>
 #include <map>
 
-#ifdef USE_FMTLIB
-#include <fmt/format.h>
-#else
-#include <format>
-namespace fmt {
-    template<typename ... Ts>
-    inline auto format(Ts && ... args) {
-        return std::format(std::forward<Ts>(args) ...);
-    }
-}
-#endif
+#include "translations.h"
 
 namespace util {
 
@@ -125,7 +115,7 @@ namespace util {
         T ret;
         auto result = std::from_chars(str.data(), str.data() + str.size(), ret);
         if (result.ec != std::errc()) {
-            throw std::invalid_argument(fmt::format("Impossibile convertire {} in numero", str));
+            throw std::invalid_argument(intl::format("COULD_NOT_CONVERT_TO_NUMBER", str));
         }
         return ret;
     }

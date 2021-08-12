@@ -88,7 +88,7 @@ std::vector<variable> &variable::as_array() {
     if (std::vector<variable> *val = std::get_if<std::vector<variable>>(&m_value)) {
         return *val;
     } else {
-        throw layout_error("Impossibile convertire variabile in array");
+        throw layout_error(intl::format("CANT_CONVERT_VARIABLE_TO_ARRAY"));
     }
 }
 
@@ -96,7 +96,7 @@ const std::vector<variable> &variable::as_array() const {
     if (const std::vector<variable> *val = std::get_if<std::vector<variable>>(&m_value)) {
         return *val;
     } else {
-        throw layout_error("Impossibile convertire variabile in array");
+        throw layout_error(intl::format("CANT_CONVERT_VARIABLE_TO_ARRAY"));
     }
 }
 

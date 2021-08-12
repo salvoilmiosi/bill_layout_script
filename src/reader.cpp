@@ -125,7 +125,7 @@ void reader::exec_command(const command_args &cmd) {
         try {
             m_locale = boost::locale::generator{}(name);
         } catch (std::runtime_error) {
-            throw layout_error(fmt::format("Lingua non supportata: {}", name));
+            throw layout_error(intl::format("UNSUPPORTED_LANGUAGE", name));
         }
     };
 

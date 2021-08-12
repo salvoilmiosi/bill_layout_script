@@ -98,7 +98,7 @@ void parser::parse_function_stmt() {
     bool has_content = false;
     auto name = m_lexer.require(token_type::IDENTIFIER);
     if (function_lookup::valid(function_lookup::find(name.value)) || m_functions.contains(name.value)) {
-        throw parsing_error(fmt::format("Impossibile sovrascrivere funzione {}", name.value), name);
+        throw parsing_error(intl::format("DUPLICATE_FUNCTION_NAME", name.value), name);
     }
     m_lexer.require(token_type::PAREN_BEGIN);
     small_int num_args = 0;
@@ -115,7 +115,7 @@ void parser::parse_function_stmt() {
             break;
         case token_type::IDENTIFIER:
             if (std::ranges::find(m_fun_args, tok.value) != m_fun_args.end()) {
-                throw parsing_error(fmt::format("Argomento funzione duplicato: {}", tok.value), tok);
+                throw parsing_error(intl::format("DUPLICATE_FUNCTION_ARG_NAME", tok.value), tok);
             }
             m_fun_args.emplace_back(tok.value);
             ++num_args;
@@ -234,7 +234,7 @@ void parser::parse_break_stmt() {
     auto tok_fun_name = m_lexer.require(token_type::KW_BREAK);
     m_lexer.require(token_type::SEMICOLON);
     if (m_loop_labels.empty()) {
-        throw parsing_error("Non in un loop", tok_fun_name);
+        throw parsing_error(intl::format("NOT_IN_A_LOOP"), tok_fun_name);
     }
     m_code.add_line<opcode::JMP>(m_loop_labels.top().break_label);
 };
@@ -243,7 +243,7 @@ void parser::parse_continue_stmt() {
     auto tok_fun_name = m_lexer.require(token_type::KW_CONTINUE);
     m_lexer.require(token_type::SEMICOLON);
     if (m_loop_labels.empty()) {
-        throw parsing_error("Non in un loop", tok_fun_name);
+        throw parsing_error(intl::format("NOT_IN_A_LOOP"), tok_fun_name);
     }
     m_code.add_line<opcode::JMP>(m_loop_labels.top().continue_label);
 };
@@ -251,7 +251,7 @@ void parser::parse_continue_stmt() {
 void parser::parse_return_stmt() {
     auto tok_fun_name = m_lexer.require(token_type::KW_RETURN);
     if (m_function_level == 0) {
-        throw parsing_error("Non in una funzione", tok_fun_name);
+        throw parsing_error(intl::format("NOT_IN_A_FUNCTION"), tok_fun_name);
     }
     if (m_lexer.check_next(token_type::SEMICOLON)) {
         m_code.add_line<opcode::RET>();
@@ -277,7 +277,7 @@ void parser::parse_clear_stmt() {
 void parser::parse_set_stmt() {
     auto tok_fun_name = m_lexer.require(token_type::KW_SET);
     if (m_content_level == 0) {
-        throw parsing_error("Stack contenuti vuoto", tok_fun_name);
+        throw parsing_error(intl::format("EMPTY_CONTENT_STACK"), tok_fun_name);
     }
     auto prefixes = read_variable(false);
     m_lexer.require(token_type::SEMICOLON);

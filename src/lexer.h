@@ -119,8 +119,8 @@ namespace bls {
     public:
         unexpected_token(token tok, token_type expected = token_type::INVALID)
             : parsing_error(expected == token_type::INVALID
-                ? fmt::format("Imprevisto '{}'", enums::get_data(tok.type))
-                : fmt::format("Imprevisto '{}', richiesto '{}'", enums::get_data(tok.type), enums::get_data(expected)), tok),
+                ? intl::format("UNEXPECTED_TOKEN", enums::get_data(tok.type))
+                : intl::format("UNEXPECTED_TOKEN_REQUIRED", enums::get_data(tok.type), enums::get_data(expected)), tok),
             m_expected(expected) {}
 
         token_type expected() {

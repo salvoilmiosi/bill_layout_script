@@ -103,7 +103,7 @@ int MainApp::run() {
         result["errcode"] = -1;
         retcode = 3;
     } catch (...) {
-        result["error"] = "Errore sconosciuto";
+        result["error"] = intl::format("UNKNOWN_ERROR");
         result["errcode"] = -1;
         retcode = 4;
     }
@@ -118,19 +118,19 @@ int main(int argc, char **argv) {
 
         namespace po = program_options;
 
-        po::options_description desc("Allowed options");
+        po::options_description desc(intl::format("OPTIONS"));
         po::positional_options_description pos;
         pos.add("input-bls", -1);
 
         desc.add_options()
-            ("help,h", "Print Help")
-            ("input-bls", po::value(&app.input_bls), "Input bls File")
-            ("input-pdf,p", po::value(&app.input_pdf), "Input pdf File")
-            ("show-debug,d", po::bool_switch(&app.show_debug), "Show Debug Variables")
-            ("show-globals,g", po::bool_switch(&app.show_globals), "Show Global Variables")
-            ("halt-setlayout,k", po::bool_switch(&app.get_layout), "Halt On Setlayout")
-            ("use-cache,c", po::bool_switch(&app.use_cache), "Use Script Cache")
-            ("indent-size,i", po::value(&app.indent_size), "Indentation Size")
+            ("help,h", intl::format("PRINT_HELP").c_str())
+            ("input-bls", po::value(&app.input_bls), intl::format("BLS_INPUT_FILE").c_str())
+            ("input-pdf,p", po::value(&app.input_pdf), intl::format("PDF_INPUT_FILE").c_str())
+            ("show-debug,d", po::bool_switch(&app.show_debug), intl::format("SHOW_DEBUG_VARIABLES").c_str())
+            ("show-globals,g", po::bool_switch(&app.show_globals), intl::format("SHOW_GLOBAL_VARIABLES").c_str())
+            ("halt-setlayout", po::bool_switch(&app.get_layout), intl::format("HALT_ON_SETLAYOUT").c_str())
+            ("use-cache,c", po::bool_switch(&app.use_cache), intl::format("USE_CACHE").c_str())
+            ("indent-size", po::value(&app.indent_size), intl::format("INDENTATION_SIZE").c_str())
         ;
 
         po::variables_map vm;
@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
         }
 
         if (!vm.count("input-bls")) {
-            std::cout << "Required Input bls" << std::endl;
+            std::cout << intl::format("REQUIRED_INPUT_BLS") << std::endl;
             return 0;
         }
 
