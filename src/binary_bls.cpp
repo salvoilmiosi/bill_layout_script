@@ -120,12 +120,10 @@ template<> struct binary_io<command_call> {
 };
 
 template<> struct binary_io<jump_label> {
-    static void write(std::ostream &output, const jump_label &addr) {
-        writeData<std::string>(output, addr);
-    }
+    static void write(std::ostream &output, const jump_label &addr) {}
 
     static jump_label read(std::istream &input) {
-        return readData<std::string>(input);
+        return {};
     }
 };
 
