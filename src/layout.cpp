@@ -26,10 +26,10 @@ namespace bls {
             if (!box.flags.empty()) {
                 output << "### Flags " << box.flags << '\n';
             }
-            output << fmt::format("### Page {}\n", box.page);
-            output << fmt::format("### Rect {} {} {} {}\n", box.x, box.y, box.w, box.h);
+            output << std::format("### Page {}\n", box.page);
+            output << std::format("### Rect {} {} {} {}\n", box.x, box.y, box.w, box.h);
             if (!box.goto_label.empty()) {
-                output << fmt::format("### Goto Label {}\n", box.goto_label);
+                output << std::format("### Goto Label {}\n", box.goto_label);
             }
             if (!box.spacers.empty()) {
                 output << "### Spacers\n";

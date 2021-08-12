@@ -28,7 +28,7 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
             read_box(box);
         }
     } catch (const parsing_error &error) {
-        throw layout_error(fmt::format("{}: {}\n{}",
+        throw layout_error(std::format("{}: {}\n{}",
             current_box->name, error.what(),
             m_lexer.token_location_info(error.location())));
     }
@@ -64,7 +64,7 @@ void parser::read_box(const layout_box &box) {
     m_lexer.set_script(box.goto_label);
     auto tok_label = m_lexer.next();
     if (tok_label.type == token_type::IDENTIFIER) {
-        m_code.add_label(fmt::format("__{}_box_{}", m_parser_id, tok_label.value));
+        m_code.add_label(std::format("__{}_box_{}", m_parser_id, tok_label.value));
         m_lexer.require(token_type::END_OF_FILE);
     } else if (tok_label.type != token_type::END_OF_FILE) {
         throw unexpected_token(tok_label, token_type::IDENTIFIER);
@@ -523,7 +523,7 @@ void parser::read_function(token tok_fun_name, bool top_level) {
         if (fun.has_contents && m_content_level == 0) {
             throw parsing_error(intl::format("CANT_CALL_EMPTY_CONTENT_STACK", fun_name), tok_fun_name);
         }
-        jump_label label = fmt::format("__function_{}", fun_name);
+        jump_label label = std::format("__function_{}", fun_name);
         if (top_level) {
             m_code.add_line<opcode::JSR>(label, num_args);
         } else {

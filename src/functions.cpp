@@ -98,13 +98,13 @@ namespace bls {
         } else {
             auto tho = escape_regex_char(facet.thousands_sep());
             auto it = grp.rbegin();
-            ret = fmt::format("\\d{{1,{0}}}(?:{1}\\d{{{0}}})*", int(*it), tho);
+            ret = std::format("\\d{{1,{0}}}(?:{1}\\d{{{0}}})*", int(*it), tho);
             for(++it; it != grp.rend(); ++it) {
-                ret = fmt::format("(?:{2}{1}\\d{{{0}}}|\\d{{1,{0}}})", int(*it), tho, ret);
+                ret = std::format("(?:{2}{1}\\d{{{0}}}|\\d{{1,{0}}})", int(*it), tho, ret);
             }
-            ret = fmt::format("(?:{}|\\d+)", ret);
+            ret = std::format("(?:{}|\\d+)", ret);
         }
-        return fmt::format("(?:-?{0}(?:{1}\\d+)?)(?!\\d)", ret, escape_regex_char(facet.decimal_point()));
+        return std::format("(?:-?{0}(?:{1}\\d+)?)(?!\\d)", ret, escape_regex_char(facet.decimal_point()));
     };
 
     // Costruisce un oggetto std::regex
@@ -172,13 +172,13 @@ namespace bls {
     template<std::ranges::input_range R>
     static std::vector<variable> table_header(std::string_view value, R &&labels) {
         std::cmatch header_match;
-        std::regex header_regex(fmt::format(".*{}.*", util::string_join(labels |
+        std::regex header_regex(std::format(".*{}.*", util::string_join(labels |
         std::views::transform([first=true](std::string_view str) mutable {
             if (first) {
                 first = false;
                 return std::string(str);
             } else {
-                return fmt::format("(?:{})?", str);
+                return std::format("(?:{})?", str);
             }
         }), ".*")), std::regex::icase);
         if (!std::regex_search(value.data(), value.data() + value.size(), header_match, header_regex)) {
@@ -330,7 +330,7 @@ namespace bls {
         {"null", []{ return variable(); }},
         {"isnull", [](const variable &var) { return var.is_null(); }},
         {"hex", [](int num) {
-            return fmt::format("{:x}", num);
+            return std::format("{:x}", num);
         }},
         {"aggregate", [](const reader *ctx, const std::vector<std::string> &list) {
             return std::transform_reduce(list.begin(), list.end(), variable(), std::plus<>(), [&](const std::string &s) {
@@ -456,10 +456,10 @@ namespace bls {
             return util::string_trim(str);
         }},
         {"lpad", [](std::string_view str, int amount) {
-            return fmt::format("{0: >{1}}", str, str.size() + amount);
+            return std::format("{0: >{1}}", str, str.size() + amount);
         }},
         {"rpad", [](std::string_view str, int amount) {
-            return fmt::format("{0: <{1}}", str, str.size() + amount);
+            return std::format("{0: <{1}}", str, str.size() + amount);
         }},
         {"contains", [](std::string_view str, std::string_view str2) {
             return string_find_icase(str, str2, 0).begin() != str.end();

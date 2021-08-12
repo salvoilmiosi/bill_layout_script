@@ -5,7 +5,7 @@
 using namespace bls;
 
 jump_label parser::make_label(std::string_view label) {
-    return fmt::format("__{}_{}_{}", m_parser_id, m_code.size(), label);
+    return std::format("__{}_{}_{}", m_parser_id, m_code.size(), label);
 };
 
 void parser::parse_if_stmt() {
@@ -87,7 +87,7 @@ void parser::parse_goto_stmt() {
     for (int i=0; i<m_content_level; ++i) {
         m_code.add_line<opcode::CNTPOP>();
     }
-    m_code.add_line<opcode::JMP>(fmt::format("__{}_box_{}", m_parser_id, tok.value));
+    m_code.add_line<opcode::JMP>(std::format("__{}_box_{}", m_parser_id, tok.value));
     m_lexer.require(token_type::SEMICOLON);
 };
 
@@ -135,8 +135,8 @@ void parser::parse_function_stmt() {
         }
     }
     
-    std::string fun_label = fmt::format("__function_{}", name.value);
-    std::string endfun_label = fmt::format("__endfunction_{}", name.value);
+    std::string fun_label = std::format("__function_{}", name.value);
+    std::string endfun_label = std::format("__endfunction_{}", name.value);
 
     m_code.add_line<opcode::JMP>(endfun_label);
 

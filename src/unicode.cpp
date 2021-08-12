@@ -182,7 +182,7 @@ static unsigned int utf8ToCodepoint(const char*& s, const char* e) {
 
 std::string unicode::escapeString(std::string_view str) {
     auto to_hex = [](unsigned ch) {
-        return fmt::format("\\u{:04x}", ch);
+        return std::format("\\u{:04x}", ch);
     };
 
     std::string result = "\"";

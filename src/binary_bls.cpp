@@ -69,7 +69,7 @@ template<typename T> void readData(std::istream &input, T &out) {
 template<> struct binary_io<std::string> {
     static void write(std::ostream &output, const std::string &str) {
         writeData<string_size>(output, str.size());
-        output.write(str.c_str(), str.size());
+        output.write(str.data(), str.size());
     }
 
     static std::string read(std::istream &input) {
