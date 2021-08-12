@@ -527,6 +527,7 @@ namespace bls {
         {"layout_filename", [](const reader *ctx) { return ctx->m_current_layout->string(); }},
         {"layout_dir",      [](const reader *ctx) { return ctx->m_current_layout->parent_path().string(); }},
         {"curtable",        [](const reader *ctx) { return std::ranges::distance(ctx->m_values.begin(), ctx->m_current_table); }},
+        {"islasttable",     [](const reader *ctx) { return std::next(ctx->m_current_table) == ctx->m_values.end(); }},
         {"numtables",       [](const reader *ctx) { return ctx->m_values.size(); }},
         {"doc_numpages",    [](const reader *ctx) { return ctx->get_document().num_pages(); }},
         {"doc_filename",    [](const reader *ctx) { return ctx->get_document().filename().string(); }},
@@ -550,6 +551,9 @@ namespace bls {
                 ctx->m_values.emplace_back();
             }
             ++ctx->m_current_table;
+        }},
+        {"cleartable", [](reader *ctx) {
+            ctx->m_current_table->clear();
         }},
         {"firsttable", [](reader *ctx) {
             ctx->m_current_table = ctx->m_values.begin();
