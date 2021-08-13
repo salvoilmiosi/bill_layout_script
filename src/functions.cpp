@@ -201,13 +201,12 @@ namespace bls {
         }) | util::range_to_vector;
     }
 
-    static std::vector<std::string> table_row(std::string_view row, const std::vector<std::vector<int>> &indices) {
-        return indices | std::views::transform([&](const std::vector<int> &idx) {
+    static std::vector<std::string> table_row(std::string_view row, vector_view<vector_view<int>> indices) {
+        return indices | std::views::transform([&](vector_view<int> idx) {
             if (idx.size() == 2) {
                 size_t begin = idx[0];
                 if (begin < row.size()) {
-                    size_t len = idx[1];
-                    return row.substr(begin, len);
+                    return row.substr(begin, idx[1]);
                 }
             }
             return std::string_view();
@@ -332,7 +331,7 @@ namespace bls {
         {"hex", [](int num) {
             return std::format("{:x}", num);
         }},
-        {"aggregate", [](const reader *ctx, const std::vector<std::string> &list) {
+        {"aggregate", [](const reader *ctx, vector_view<std::string> list) {
             return std::transform_reduce(list.begin(), list.end(), variable(), std::plus<>(), [&](const std::string &s) {
                 return parse_num(ctx->m_locale, s);
             });
@@ -346,7 +345,7 @@ namespace bls {
         {"list", [](varargs<variable> args) {
             return args | util::range_to_vector;
         }},
-        {"subitem", [](const std::vector<variable> &vec, size_t index) {
+        {"subitem", [](vector_view<variable> vec, size_t index) {
             if (index >= vec.size()) return variable();
             return vec[index];
         }},
@@ -373,7 +372,7 @@ namespace bls {
         {"table_header", [](std::string_view header, varargs<std::string_view> labels) {
             return table_header(header, labels);
         }},
-        {"table_row", [](std::string_view row, std::vector<std::vector<int>> indices) {
+        {"table_row", [](std::string_view row, vector_view<vector_view<int>> indices) {
             return table_row(row, indices);
         }},
         {"search", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<1> index) -> variable {
@@ -394,7 +393,7 @@ namespace bls {
         {"matches", [](const reader *ctx, std::string_view str, const std::string &regex) {
             return std::regex_match(str.begin(), str.end(), create_regex(ctx->m_locale, regex));
         }},
-        {"replace", [](std::string &&str, std::string_view from, std::string_view to) {
+        {"replace", [](std::string str, std::string_view from, std::string_view to) {
             return util::string_replace(str, from, to);
         }},
         {"date_regex", [](std::string_view format) {

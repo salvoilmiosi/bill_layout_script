@@ -2,6 +2,7 @@
 #define __FUNCTIONS_H__
 
 #include <ranges>
+#include <span>
 #include <map>
 
 #include "variable.h"
@@ -46,21 +47,12 @@ namespace bls {
         }
     };
 
-    template<typename T> struct variable_converter<std::vector<T>> {
-        std::vector<T> operator()(const variable &var) const {
-            if (!var.is_array()) return {};
-            return var.as_array()
-                | std::views::transform(variable_converter<T>{})
-                | util::range_to<std::vector<T>>;
-        }
+    template<typename T> using vector_view = std::ranges::transform_view<std::span<const variable>, variable_converter<T>>;
 
-        std::vector<T> operator()(variable &&var) const {
+    template<typename T> struct variable_converter<vector_view<T>> {
+        vector_view<T> operator()(const variable &var) const {
             if (!var.is_array()) return {};
-            return var.as_array()
-                | std::views::transform([](variable &var) {
-                    return variable_converter<T>{}(std::move(var));
-                })
-                | util::range_to<std::vector<T>>;
+            return std::ranges::transform_view(std::span{var.as_array()}, variable_converter<T>{});
         }
     };
 
