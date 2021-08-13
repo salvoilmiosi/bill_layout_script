@@ -4,10 +4,8 @@
 #include <boost/program_options.hpp>
 
 #include "parser.h"
-#include "fixed_point.h"
-#include "utils.h"
 #include "binary_bls.h"
-#include "unicode.h"
+#include "bytecode_printer.h"
 
 struct MainApp {
     int run();
@@ -61,53 +59,6 @@ int main(int argc, char **argv) {
 
 using namespace bls;
 
-template<typename T> struct print_args {
-    const T &data;
-    print_args(const T &data) : data(data) {}
-};
-
-template<typename T> print_args(T) -> print_args<T>;
-
-template<typename T> std::ostream &operator << (std::ostream &out, const print_args<T> &args) {
-    return out << args.data;
-}
-
-template<> std::ostream &operator << (std::ostream &out, const print_args<small_int> &args) {
-    return out << int(args.data);
-}
-
-template<> std::ostream &operator << (std::ostream &out, const print_args<readbox_options> &args) {
-    return out << args.data.mode << ' ' << args.data.flags;
-}
-
-template<> std::ostream &operator << (std::ostream &out, const print_args<command_call> &args) {
-    return out << args.data.fun->first << ' ' << print_args(args.data.numargs);
-}
-
-template<> std::ostream &operator << (std::ostream &out, const print_args<fixed_point> &args) {
-    return out << fixed_point_to_string(args.data);
-}
-
-template<> std::ostream &operator << (std::ostream &out, const print_args<std::string> &args) {
-    return out << unicode::escapeString(args.data);
-}
-
-template<> std::ostream &operator << (std::ostream &out, const print_args<jump_label> &args) {
-    return out << args.data;
-}
-
-template<> std::ostream &operator << (std::ostream &out, const print_args<jump_address> &label) {
-    if (!label.data.label.empty()) {
-        return out << print_args(label.data.label);
-    } else {
-        return out << label.data.address;
-    }
-}
-
-template<> std::ostream &operator << (std::ostream &out, const print_args<jsr_address> &args) {
-    return out << print_args<jump_address>(args.data) << ' ' << print_args(args.data.numargs);
-}
-
 int MainApp::run() {
     try {
         bytecode code;
@@ -143,7 +94,7 @@ int MainApp::run() {
                     }
                 });
             }
-            std::cout << std::endl;
+            std::cout << '\n';
         }
     } catch (const std::exception &error) {
         std::cerr << error.what() << std::endl;
