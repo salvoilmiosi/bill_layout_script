@@ -113,15 +113,6 @@ namespace bls {
             }
             return empty_variable;
         }
-
-        variable get_value_ref() const {
-            const variable &var = get_value();
-            if (var.is_string()) {
-                return var.as_view();
-            } else {
-                return var;
-            }
-        }
     };
 }
 

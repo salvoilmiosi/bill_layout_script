@@ -165,9 +165,6 @@ void parser::parse_foreach_stmt() {
     read_expression();
     m_lexer.require(token_type::PAREN_END);
     ++m_content_level;
-    if (auto &last = m_code.last_not_comment(); last.command() == opcode::PUSHVAR) {
-        last = make_command<opcode::PUSHREF>();
-    }
     m_code.add_line<opcode::CNTADDLIST>();
     m_code.add_label(begin_label);
     m_code.add_line<opcode::JTE>(end_label);
@@ -187,9 +184,6 @@ void parser::parse_with_stmt() {
     read_expression();
     m_lexer.require(token_type::PAREN_END);
     ++m_content_level;
-    if (auto &last = m_code.last_not_comment(); last.command() == opcode::PUSHVAR) {
-        last = make_command<opcode::PUSHREF>();
-    }
     m_code.add_line<opcode::CNTADDSTRING>();
     read_statement();
     --m_content_level;
@@ -202,9 +196,6 @@ void parser::parse_step_stmt() {
     read_expression();
     m_lexer.require(token_type::PAREN_END);
     ++m_content_level;
-    if (auto &last = m_code.last_not_comment(); last.command() == opcode::PUSHVAR) {
-        last = make_command<opcode::PUSHREF>();
-    }
     m_code.add_line<opcode::CNTADDLIST>();
 
     m_lexer.require(token_type::BRACE_BEGIN);

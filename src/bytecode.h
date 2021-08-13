@@ -84,7 +84,6 @@ namespace bls {
         (DECVAR)                        // stack -> selected -= stack
         (CLEAR)                         // selected -> clear
         (PUSHVAR)                       // selected -> stack
-        (PUSHREF)                       // selected.str_view -> stack
         (PUSHVIEW)                      // content_stack -> stack
         (PUSHNUM, fixed_point)          // number -> stack
         (PUSHINT, big_int)              // int -> stack
