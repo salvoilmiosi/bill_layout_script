@@ -22,8 +22,7 @@ std::string &variable::get_string() const {
             [](double num)              { return std::to_string(num); },
             [](datetime date)           { return date.to_string(); },
             [](const std::vector<variable> &arr) {
-                return util::string_join(arr | std::views::transform(
-                [](const variable &var) { return var.as_view(); }), ", ");
+                return std::format("[{}]", util::string_join(arr | std::views::transform(&variable::as_view), ", "));
             }
         }, m_value);
     }
