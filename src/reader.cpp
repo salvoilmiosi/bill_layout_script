@@ -57,8 +57,8 @@ void reader::exec_command(const command_args &cmd) {
         jump_to(address);
     };
 
-    auto get_function_arg = [&](small_int idx) -> variable & {
-        return m_calls.top().args[idx];
+    auto get_function_arg = [&](small_int idx) {
+        return m_calls.top().args[idx].as_pointer();
     };
 
     auto jump_return = [&](variable ret_value) {
@@ -140,6 +140,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SELVARDYN:     m_selected.emplace_back(m_stack.pop().as_string(), *m_current_table); break;
     case opcode::SELGLOBAL:     m_selected.emplace_back(cmd.get_args<opcode::SELGLOBAL>(), m_globals); break;
     case opcode::SELGLOBALDYN:  m_selected.emplace_back(m_stack.pop().as_string(), m_globals); break;
+    case opcode::SELFUNARG:     m_selected.emplace_back(get_function_arg(cmd.get_args<opcode::SELFUNARG>())); break;
     case opcode::SELINDEX:      m_selected.top().add_index(cmd.get_args<opcode::SELINDEX>()); break;
     case opcode::SELINDEXDYN:   m_selected.top().add_index(m_stack.pop().as_int()); break;
     case opcode::SELSIZE:       m_selected.top().set_size(cmd.get_args<opcode::SELSIZE>()); break;
@@ -158,7 +159,6 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHDOUBLE:    m_stack.push(cmd.get_args<opcode::PUSHDOUBLE>()); break;
     case opcode::PUSHSTR:       m_stack.push(cmd.get_args<opcode::PUSHSTR>()); break;
     case opcode::PUSHREGEX:     m_stack.emplace(cmd.get_args<opcode::PUSHREGEX>(), as_regex_tag); break;
-    case opcode::PUSHARG:       m_stack.push(get_function_arg(cmd.get_args<opcode::PUSHARG>()).as_pointer()); break;
     case opcode::CALL:          m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
     case opcode::SYSCALL:       call_function(cmd.get_args<opcode::SYSCALL>()); break;
     case opcode::CNTADDSTRING:  m_contents.emplace(m_stack.pop(), false); break;
@@ -172,8 +172,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::JSRVAL:        jump_subroutine(cmd.get_args<opcode::JSRVAL>(), true); break;
     case opcode::JSR:           jump_subroutine(cmd.get_args<opcode::JSR>()); break;
     case opcode::RET:           jump_return(variable()); break;
-    case opcode::RETVAL:        jump_return(m_stack.pop()); break;
-    case opcode::RETARG:        jump_return(std::move(get_function_arg(cmd.get_args<opcode::RETARG>()))); break;
+    case opcode::RETVAL:        jump_return(m_stack.pop().deref()); break;
     case opcode::IMPORT:        import_layout(cmd.get_args<opcode::IMPORT>()); break;
     case opcode::ADDLAYOUT:     push_layout(cmd.get_args<opcode::ADDLAYOUT>()); break;
     case opcode::SETCURLAYOUT:  m_current_layout = m_layouts.begin() + cmd.get_args<opcode::SETCURLAYOUT>(); break;

@@ -348,10 +348,6 @@ namespace bls {
         {"list", [](varargs<variable> args) {
             return args | util::range_to_vector;
         }},
-        {"subitem", [](vector_view<variable> vec, size_t index) {
-            if (index >= vec.size()) return variable();
-            return vec[index];
-        }},
         {"sum", [](varargs<fixed_point> args) {
             return std::reduce(args.begin(), args.end());
         }},

@@ -358,10 +358,12 @@ void parser::sub_expression() {
         m_lexer.advance(tok_first);
         if (m_lexer.peek().type == token_type::PAREN_BEGIN) {
             read_function(tok_first, false);
-        } else if (auto it = std::ranges::find(m_fun_args, tok_first.value); it != m_fun_args.end()) {
-            m_code.add_line<opcode::PUSHARG>(it - m_fun_args.begin());
         } else {
-            m_code.add_line<opcode::SELVAR>(tok_first.value);
+            if (auto it = std::ranges::find(m_fun_args, tok_first.value); it != m_fun_args.end()) {
+                m_code.add_line<opcode::SELFUNARG>(it - m_fun_args.begin());
+            } else {
+                m_code.add_line<opcode::SELVAR>(tok_first.value);
+            }
             read_variable_indices(true);
             m_code.add_line<opcode::PUSHVAR>();
         }
