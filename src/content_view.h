@@ -1,7 +1,7 @@
 #ifndef __CONTENT_VIEW_H__
 #define __CONTENT_VIEW_H__
 
-#include <cassert>
+#include <span>
 
 #include "variable.h"
 #include "utils.h"
@@ -11,60 +11,72 @@ namespace bls {
 
     class content_view {
     private:
-        size_t m_index = 0;
         variable m_data;
 
-        void init(const variable &var, bool as_array) {
+        std::span<const variable> m_span;
+        std::span<const variable>::iterator m_current;
+
+    public:
+        content_view(const std::string &str)
+            : m_data(str)
+            , m_span(&m_data, 1)
+            , m_current(m_span.begin()) {}
+
+        content_view(std::string &&str)
+            : m_data(std::move(str))
+            , m_span(&m_data, 1)
+            , m_current(m_span.begin()) {}
+
+        content_view(const variable &var, bool as_array) {
             if (as_array && var.is_array()) {
                 m_data = var;
-            } else if (var.is_view() || var.is_pointer()) {
-                m_data = std::vector{var.as_view()};
+                m_span = m_data.deref().as_array();
             } else {
-                m_data = std::vector{var.as_string()};
+                if (var.is_view() || var.is_pointer()) {
+                    m_data = var.as_view();
+                } else {
+                    m_data = var.as_string();
+                }
+                m_span = std::span(&m_data, 1);
             }
+            m_current = m_span.begin();
         }
 
-        void init(variable &&var, bool as_array) {
+        content_view(variable &&var, bool as_array) {
             if (as_array && var.is_array()) {
                 if (var.is_pointer()) {
                     m_data = var;
+                    m_span = m_data.deref().as_array();
                 } else {
                     m_data = std::move(var);
+                    m_span = m_data.as_array();
                 }
-            } else if (var.is_view() || var.is_pointer()) {
-                m_data = std::vector{var.as_view()};
             } else {
-                m_data = std::vector{std::move(var).as_string()};
+                if (var.is_view() || var.is_pointer()) {
+                    m_data = var.as_view();
+                } else {
+                    m_data = std::move(var).as_string();
+                }
+                m_span = std::span(&m_data, 1);
             }
+            m_current = m_span.begin();
         }
 
-    public:
-        content_view(const std::string &str) : m_data(std::vector{str}) {}
-        content_view(std::string &&str) : m_data(std::vector{std::move(str)}) {}
-
-        content_view(const variable &var, bool as_array) { init(var, as_array); }
-        content_view(variable &&var, bool as_array) { init(std::move(var), as_array); }
-
         size_t index() const {
-            return m_index;
+            return m_current - m_span.begin();
         }
 
         void nextresult() {
-            ++m_index;
+            ++m_current;
         }
 
         bool tokenend() const {
-            return m_index >= m_data.as_array().size();
+            return m_current >= m_span.end();
         }
 
         variable view() const {
             if (tokenend()) return {};
-            const auto &var = m_data.as_array()[m_index];
-            if (var.is_string()) {
-                return var.as_view();
-            } else {
-                return var.as_pointer();
-            }
+            return m_current->as_pointer();
         }
     };
 
