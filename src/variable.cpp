@@ -227,25 +227,22 @@ variable &variable::operator = (variable &&other) {
 
 void variable::assign(const variable &other) {
     std::visit(util::overloaded{
-        [&](auto) {
+        [&](const auto &value) {
             m_str.reset();
-            m_value = other.m_value;
+            m_value = value;
         },
         [&](string_state view) {
             m_str = std::make_unique<std::string>(view);
             m_value = string_state(*m_str, view.flags);
-        },
-        [&](const variable *ptr) {
-            *this = *ptr;
         }
-    }, other.m_value);
+    }, other.deref().m_value);
 }
 
 void variable::assign(variable &&other) {
     std::visit(util::overloaded{
-        [&](auto) {
+        [&](auto &value) {
             m_str.reset();
-            m_value = std::move(other.m_value);
+            m_value = std::move(value);
         },
         [&](string_state view) {
             if (other.m_str) {
