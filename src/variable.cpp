@@ -318,57 +318,36 @@ variable variable::operator -() const {
     }, deref().m_value);
 }
 
+template<typename F>
+struct operator_caller {
+    variable operator()(auto, auto) const { return {}; }
+
+    auto operator()(auto lhs, number_t auto rhs) const {
+        return F{}(number_converter<decltype(rhs)>{}(lhs), rhs);
+    }
+    auto operator()(number_t auto lhs, auto rhs) const {
+        return F{}(lhs, number_converter<decltype(lhs)>{}(rhs));
+    }
+    auto operator()(number_t auto lhs, fixed_point rhs) const {
+        return F{}(fixed_point(lhs), rhs);
+    }
+    auto operator()(number_t auto lhs, number_t auto rhs) const {
+        return F{}(lhs, rhs);
+    }
+};
+
 variable variable::operator -(const variable &other) const {
-    return std::visit<variable>(util::overloaded{
-        [](auto, auto) {
-            return variable();
-        },
-        [](auto lhs, number_t auto num) {
-            return number_converter<decltype(num)>{}(lhs) - num;
-        },
-        [](number_t auto num1, fixed_point num2) {
-            return fixed_point(num1) - num2;
-        },
-        [](number_t auto num1, number_t auto num2) {
-            return num1 - num2;
-        }
-    }, deref().m_value, other.deref().m_value);
+    return std::visit<variable>(operator_caller<std::minus<>>{}, deref().m_value, other.deref().m_value);
 }
 
-variable &variable::operator -= (const variable &rhs) {
-    return *this = *this - rhs;
+variable &variable::operator -= (const variable &other) {
+    return *this = *this - other;
 }
 
 variable variable::operator * (const variable &other) const {
-    return std::visit<variable>(util::overloaded{
-        [](auto, auto) {
-            return variable();
-        },
-        [](auto lhs, number_t auto num) {
-            return number_converter<decltype(num)>{}(lhs) * num;
-        },
-        [](number_t auto num1, fixed_point num2) {
-            return fixed_point(num1) * num2;
-        },
-        [](number_t auto num1, number_t auto num2) {
-            return num1 * num2;
-        }
-    }, deref().m_value, other.deref().m_value);
+    return std::visit<variable>(operator_caller<std::multiplies<>>{}, deref().m_value, other.deref().m_value);
 }
 
 variable variable::operator / (const variable &other) const {
-    return std::visit<variable>(util::overloaded{
-        [](auto, auto) {
-            return variable();
-        },
-        [](auto lhs, number_t auto num) {
-            return number_converter<decltype(num)>{}(lhs) / num;
-        },
-        [](number_t auto num1, fixed_point num2) {
-            return fixed_point(num1) / num2;
-        },
-        [](number_t auto num1, number_t auto num2) {
-            return num1 / num2;
-        }
-    }, deref().m_value, other.deref().m_value);
+    return std::visit<variable>(operator_caller<std::divides<>>{}, deref().m_value, other.deref().m_value);
 }
