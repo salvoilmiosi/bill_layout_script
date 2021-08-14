@@ -90,7 +90,7 @@ namespace bls {
         (PUSHDOUBLE, double)            // double -> stack
         (PUSHSTR, std::string)          // str -> stack
         (PUSHREGEX, std::string)        // str -> stack (flag come regex)
-        (PUSHARG, small_int)            // stack -> stack
+        (PUSHARG, small_int)            // stack (function argument) -> stack (pointer)
         (CALL, command_call)            // stack * numargs -> fun_name -> stack
         (SYSCALL, command_call)         // stack * numargs -> fun_name
         (CNTADDSTRING)                  // stack -> content_stack
@@ -105,7 +105,7 @@ namespace bls {
         (JSRVAL, jsr_address)           // program_counter -> call_stack -- jump to subroutine
         (RET)                           // jump to call_stack.top
         (RETVAL)                        // return to caller and push value to stack
-        (RETVAR)                        // return to caller and push selected variable
+        (RETARG, small_int)             // stack (function argument) -> stack
         (IMPORT, std::string)           // importa il file e lo esegue
         (ADDLAYOUT, std::string)        // aggiunge il nome del layout nella lista di output
         (SETCURLAYOUT, int)             // sposta il puntatore del layout corrente

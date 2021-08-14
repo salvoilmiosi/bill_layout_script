@@ -29,11 +29,11 @@ namespace bls {
 
     template<> struct variable_converter<variable> {
         const variable &operator()(const variable &var) const {
-            return var;
+            return var.deref();
         }
 
-        variable &&operator()(variable &&var) const {
-            return std::move(var);
+        variable operator()(variable &&var) const {
+            return std::move(var).deref();
         }
     };
 
@@ -42,7 +42,7 @@ namespace bls {
             return var.as_string();
         }
 
-        std::string &&operator()(variable &&var) const {
+        std::string operator()(variable &&var) const {
             return std::move(var).as_string();
         }
     };

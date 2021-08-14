@@ -11,13 +11,14 @@
 namespace bls {
 
     typedef int64_t big_int;
+
     struct null_state {};
     struct string_state {};
     struct regex_state {};
 
     class variable {
     public:
-        using variant_type = std::variant<null_state, string_state, regex_state, std::string_view, fixed_point, big_int, double, datetime, std::vector<variable>>;
+        using variant_type = std::variant<null_state, string_state, regex_state, std::string_view, fixed_point, big_int, double, datetime, std::vector<variable>, const variable *>;
         
         variable() = default;
 
@@ -43,31 +44,32 @@ namespace bls {
             std::make_move_iterator(vec.begin()), std::make_move_iterator(vec.end())
         )) {}
 
+        variable(const variable *ptr) : m_value(ptr) {}
+
         bool is_null() const;
+        bool is_pointer() const;
         bool is_string() const;
         bool is_regex() const;
         bool is_view() const;
         bool is_number() const;
         bool is_array() const;
 
-        const std::string &as_string() const & {
-            return get_string();
-        }
+        const std::string &as_string() const &;
+        std::string as_string() &&;
 
-        std::string &&as_string() && {
-            return std::move(get_string());
-        }
+        std::vector<variable> &as_array();
+        const std::vector<variable> &as_array() const;
+
+        const variable &deref() const &;
+        variable deref() &&;
 
         std::string_view as_view() const;
         fixed_point as_number() const;
         big_int as_int() const;
         double as_double() const;
         datetime as_date() const;
-
-        std::vector<variable> &as_array();
-        const std::vector<variable> &as_array() const;
-
         bool as_bool() const;
+        const variable *as_pointer() const;
 
         std::partial_ordering operator <=> (const variable &other) const;
         

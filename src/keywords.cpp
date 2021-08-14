@@ -249,9 +249,8 @@ void parser::parse_return_stmt() {
     } else {
         read_expression();
         m_lexer.require(token_type::SEMICOLON);
-        auto &last = m_code.last_not_comment();
-        if (last.command() == opcode::PUSHVAR) {
-            last = make_command<opcode::RETVAR>();
+        if (auto &last = m_code.last_not_comment(); last.command() == opcode::PUSHARG) {
+            last = make_command<opcode::RETARG>(last.get_args<opcode::PUSHARG>());
         } else {
             m_code.add_line<opcode::RETVAL>();
         }

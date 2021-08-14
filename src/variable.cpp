@@ -29,12 +29,46 @@ std::string &variable::get_string() const {
     return m_str;
 }
 
+const std::string &variable::as_string() const & {
+    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
+        return (*ptr)->as_string();
+    } else {
+        return get_string();
+    }
+}
+
+std::string variable::as_string() && {
+    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
+        return (*ptr)->as_string();
+    } else {
+        return std::move(get_string());
+    }
+}
+
+std::vector<variable> &variable::as_array() {
+    if (auto *val = std::get_if<std::vector<variable>>(&m_value)) {
+        return *val;
+    } else {
+        throw layout_error(intl::format("CANT_CONVERT_VARIABLE_TO_ARRAY"));
+    }
+}
+
+const std::vector<variable> &variable::as_array() const {
+    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
+        return (*ptr)->as_array();
+    } else if (auto *val = std::get_if<std::vector<variable>>(&m_value)) {
+        return *val;
+    } else {
+        throw layout_error(intl::format("CANT_CONVERT_VARIABLE_TO_ARRAY"));
+    }
+}
+
 std::string_view variable::as_view() const {
-    return std::visit(util::overloaded{
-        [&](auto)                   { return std::string_view(as_string()); },
-        [](std::string_view str)    { return str; },
-        [](null_state)              { return std::string_view(); }
-    }, m_value);
+    if (auto *view = std::get_if<std::string_view>(&m_value)) {
+        return *view;
+    } else {
+        return as_string();
+    }
 }
 
 fixed_point variable::as_number() const {
@@ -46,7 +80,8 @@ fixed_point variable::as_number() const {
             return ret;
         },
         [](number_t auto num)   { return fixed_point(num); },
-        [](auto)                { return fixed_point(0); }
+        [](auto)                { return fixed_point(0); },
+        [](const variable *ptr)    { return ptr->as_number(); },
     }, m_value);
 }
 
@@ -56,7 +91,8 @@ big_int variable::as_int() const {
         [](fixed_point num) { return num.getAsInteger(); },
         [](big_int num)     { return num; },
         [](double num)      { return big_int(num); },
-        [](auto)            { return big_int(0); }
+        [](auto)            { return big_int(0); },
+        [](const variable *ptr) { return ptr->as_int(); },
     }, m_value);
 }
 
@@ -71,7 +107,8 @@ double variable::as_double() const {
         [](fixed_point num) { return num.getAsDouble(); },
         [](big_int num)     { return double(num); },
         [](double num)      { return num; },
-        [](auto)            { return 0.0; }
+        [](auto)            { return 0.0; },
+        [](const variable *ptr) { return ptr->as_double(); },
     }, m_value);
 }
 
@@ -79,24 +116,9 @@ datetime variable::as_date() const {
     return std::visit(util::overloaded{
         [&](string_t auto) { return datetime::from_string(as_view()); },
         [](datetime date) { return date; },
-        [](auto)            { return datetime(); }
+        [](auto)            { return datetime(); },
+        [](const variable *ptr) { return ptr->as_date(); },
     }, m_value);
-}
-
-std::vector<variable> &variable::as_array() {
-    if (std::vector<variable> *val = std::get_if<std::vector<variable>>(&m_value)) {
-        return *val;
-    } else {
-        throw layout_error(intl::format("CANT_CONVERT_VARIABLE_TO_ARRAY"));
-    }
-}
-
-const std::vector<variable> &variable::as_array() const {
-    if (const std::vector<variable> *val = std::get_if<std::vector<variable>>(&m_value)) {
-        return *val;
-    } else {
-        throw layout_error(intl::format("CANT_CONVERT_VARIABLE_TO_ARRAY"));
-    }
 }
 
 bool variable::as_bool() const {
@@ -107,8 +129,33 @@ bool variable::as_bool() const {
         [](std::string_view str)    { return !str.empty(); },
         [](number_t auto num)       { return num != 0; },
         [](datetime date)           { return date.is_valid(); },
-        [](const std::vector<variable> &arr) { return !arr.empty(); }
+        [](const std::vector<variable> &arr) { return !arr.empty(); },
+        [](const variable *ptr)        { return ptr->as_bool(); },
     }, m_value);
+}
+
+const variable *variable::as_pointer() const {
+    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
+        return *ptr;
+    } else {
+        return this;
+    }
+}
+
+const variable &variable::deref() const & {
+    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
+        return (*ptr)->deref();
+    } else {
+        return *this;
+    }
+}
+
+variable variable::deref() && {
+    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
+        return (*ptr)->deref();
+    } else {
+        return std::move(*this);
+    }
 }
 
 bool variable::is_null() const {
@@ -119,34 +166,53 @@ bool variable::is_null() const {
         [&](regex_state)            { return m_str.empty(); },
         [](std::string_view str)    { return str.empty(); },
         [](datetime date)           { return !date.is_valid(); },
-        [](const std::vector<variable> &arr) { return arr.empty(); }
+        [](const std::vector<variable> &arr) { return arr.empty(); },
+        [](const variable *ptr)        { return ptr->is_null(); },
     }, m_value);
+}
+
+bool variable::is_pointer() const {
+    return std::holds_alternative<const variable *>(m_value);
 }
 
 bool variable::is_string() const {
     return std::visit(util::overloaded{
         [](string_t auto)   { return true; },
-        [](auto)            { return false; }
+        [](auto)            { return false; },
+        [](const variable *ptr) { return ptr->is_string(); },
     }, m_value);
 }
 
 bool variable::is_regex() const {
-    return std::holds_alternative<regex_state>(m_value);
+    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
+        return (*ptr)->is_regex();
+    } else {
+        return std::holds_alternative<regex_state>(m_value);
+    }
 }
 
 bool variable::is_view() const {
-    return std::holds_alternative<std::string_view>(m_value);
+    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
+        return (*ptr)->is_view();
+    } else {
+        return std::holds_alternative<std::string_view>(m_value);
+    }
 }
 
 bool variable::is_number() const {
     return std::visit(util::overloaded{
         [](number_t auto)   { return true; },
-        [](auto)            { return false; }
+        [](auto)            { return false; },
+        [](const variable *ptr) { return ptr->is_number(); }
     }, m_value);
 }
 
 bool variable::is_array() const {
-    return std::holds_alternative<std::vector<variable>>(m_value);
+    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
+        return (*ptr)->is_array();
+    } else {
+        return std::holds_alternative<std::vector<variable>>(m_value);
+    }
 }
 
 std::partial_ordering variable::operator <=> (const variable &other) const {
@@ -169,6 +235,10 @@ std::partial_ordering variable::operator <=> (const variable &other) const {
         [&](datetime dt, string_t auto)             { return dt <=> other.as_date(); },
         [&](string_t auto, datetime dt)             { return as_date() <=> dt; },
 
+        [&](const variable *lhs, auto)                 { return *lhs <=> other; },
+        [&](auto, const variable *rhs)                 { return *this <=> *rhs; },
+        [](const variable *lhs, const variable *rhs)      { return *lhs <=> *rhs; },
+
         [](null_state, null_state)                  { return std::partial_ordering::equivalent; },
         [](auto, auto)                              { return std::partial_ordering::unordered; }
     }, m_value, other.m_value);
@@ -183,6 +253,9 @@ void variable::assign(const variable &other) {
         [&](std::string_view value) {
             m_str = value;
             m_value = string_state{};
+        },
+        [&](const variable *ptr) {
+            assign(*ptr);
         }
     }, other.m_value);
 }
@@ -196,23 +269,30 @@ void variable::assign(variable &&other) {
         [&](std::string_view value) {
             m_str = value;
             m_value = string_state{};
+        },
+        [&](const variable *ptr) {
+            assign(*ptr);
         }
     }, other.m_value);
 }
 
-variable &variable::operator += (const variable &rhs) {
+variable &variable::operator += (const variable &other) {
     std::visit(util::overloaded{
         [](null_state, null_state) {},
         [](auto, null_state) {},
+        [](const variable *, null_state) {},
         [&](null_state, auto) {
-            *this = rhs;
+            *this = other;
+        },
+        [&](null_state, const variable *rhs) {
+            *this = *rhs;
         },
         [&](auto, auto) {
-            get_string().append(rhs.as_view());
+            get_string().append(other.as_view());
             m_value = string_state{};
         },
         [&](null_state, string_t auto) {
-            m_str = rhs.as_view();
+            m_str = other.as_view();
             m_value = string_state{};
         },
         [&](number_t auto num1, number_t auto num2) {
@@ -220,8 +300,17 @@ variable &variable::operator += (const variable &rhs) {
         },
         [&](number_t auto num1, fixed_point num2) {
             *this = fixed_point(num1) + num2;
+        },
+        [&](const variable *lhs, auto) {
+            *this = *lhs + other;
+        },
+        [&](auto, const variable *rhs) {
+            *this += *rhs;
+        },
+        [&](const variable *lhs, const variable *rhs) {
+            *this = *lhs + *rhs;
         }
-    }, m_value, rhs.m_value);
+    }, m_value, other.m_value);
     return *this;
 }
 

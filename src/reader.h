@@ -9,6 +9,7 @@
 
 #include "variable.h"
 #include "variable_selector.h"
+#include "functions.h"
 #include "bytecode.h"
 #include "stack.h"
 #include "content_view.h"
@@ -21,10 +22,9 @@ DEFINE_ENUM_FLAGS_IN_NS(bls, reader_flags,
 )
 
 struct function_call {
+    arg_list args;
     size_t return_addr;
-    small_int first_arg;
-    small_int numargs;
-    bool nodiscard;
+    bool getretvalue;
 };
 
 struct reader_aborted{};

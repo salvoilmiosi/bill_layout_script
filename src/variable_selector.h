@@ -106,12 +106,12 @@ namespace bls {
             m_current_map.erase(m_name);
         }
 
-        const variable &get_value() const {
-            static const variable empty_variable;
+        variable get_value() const {
             if (auto var = get_variable_const()) {
-                return *var;
+                return var;
+            } else {
+                return variable();
             }
-            return empty_variable;
         }
     };
 }

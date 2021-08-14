@@ -2,7 +2,6 @@
 
 #include "utils.h"
 #include "parser.h"
-#include "functions.h"
 #include "binary_bls.h"
 
 #include <boost/locale.hpp>
@@ -53,21 +52,21 @@ void reader::exec_command(const command_args &cmd) {
         m_program_counter += label.address;
     };
 
-    auto jump_subroutine = [&](const jsr_address &address, bool nodiscard = false) {
-        m_calls.push(function_call{m_program_counter, small_int(m_stack.size() - address.numargs), address.numargs, nodiscard});
+    auto jump_subroutine = [&](const jsr_address &address, bool getretvalue = false) {
+        m_calls.emplace(arg_list(m_stack.end() - address.numargs, m_stack.end()), m_program_counter, getretvalue);
         jump_to(address);
     };
 
-    auto push_function_arg = [&](small_int idx) {
-        m_stack.push(m_stack[m_calls.top().first_arg + idx]);
+    auto get_function_arg = [&](small_int idx) -> variable & {
+        return m_calls.top().args[idx];
     };
 
-    auto jump_return = [&](auto &&ret_value) {
+    auto jump_return = [&](variable ret_value) {
         auto fun_call = m_calls.pop();
         m_program_counter = fun_call.return_addr;
-        m_stack.resize(m_stack.size() - fun_call.numargs);
-        if (fun_call.nodiscard) {
-            m_stack.push(std::forward<decltype(ret_value)>(ret_value));
+        m_stack.resize(m_stack.size() - fun_call.args.size());
+        if (fun_call.getretvalue) {
+            m_stack.push(std::move(ret_value));
         }
     };
 
@@ -159,11 +158,11 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHDOUBLE:    m_stack.push(cmd.get_args<opcode::PUSHDOUBLE>()); break;
     case opcode::PUSHSTR:       m_stack.push(cmd.get_args<opcode::PUSHSTR>()); break;
     case opcode::PUSHREGEX:     m_stack.emplace(regex_state{}, cmd.get_args<opcode::PUSHREGEX>()); break;
-    case opcode::PUSHARG:       push_function_arg(cmd.get_args<opcode::PUSHARG>()); break;
+    case opcode::PUSHARG:       m_stack.push(get_function_arg(cmd.get_args<opcode::PUSHARG>()).as_pointer()); break;
     case opcode::CALL:          m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
     case opcode::SYSCALL:       call_function(cmd.get_args<opcode::SYSCALL>()); break;
-    case opcode::CNTADDSTRING:  m_contents.emplace(m_stack.pop()); break;
-    case opcode::CNTADDLIST:    m_contents.emplace(content_view::as_array{}, m_stack.pop()); break;
+    case opcode::CNTADDSTRING:  m_contents.emplace(m_stack.pop(), false); break;
+    case opcode::CNTADDLIST:    m_contents.emplace(m_stack.pop(), true); break;
     case opcode::CNTPOP:        m_contents.pop_back(); break;
     case opcode::NEXTRESULT:    m_contents.top().nextresult(); break;
     case opcode::JMP:           jump_to(cmd.get_args<opcode::JMP>()); break;
@@ -174,7 +173,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::JSR:           jump_subroutine(cmd.get_args<opcode::JSR>()); break;
     case opcode::RET:           jump_return(variable()); break;
     case opcode::RETVAL:        jump_return(m_stack.pop()); break;
-    case opcode::RETVAR:        jump_return(m_selected.pop().get_value()); break;
+    case opcode::RETARG:        jump_return(std::move(get_function_arg(cmd.get_args<opcode::RETARG>()))); break;
     case opcode::IMPORT:        import_layout(cmd.get_args<opcode::IMPORT>()); break;
     case opcode::ADDLAYOUT:     push_layout(cmd.get_args<opcode::ADDLAYOUT>()); break;
     case opcode::SETCURLAYOUT:  m_current_layout = m_layouts.begin() + cmd.get_args<opcode::SETCURLAYOUT>(); break;
