@@ -153,23 +153,26 @@ namespace bls {
     }
 
     // cerca la regex in str e ritorna tutti i capture del primo valore trovato
-    static std::vector<std::string> search_regex_captures(const std::locale &loc, std::string_view value, const std::string &regex) {
+    static variable search_regex_captures(const std::locale &loc, std::string_view value, const std::string &regex) {
         std::cmatch match;
         if (!std::regex_search(value.data(), value.data() + value.size(), match, create_regex(loc, regex))) return {};
-        return match | std::views::drop(1) | util::range_to<std::vector<std::string>>;
+        return match | std::views::drop(1)
+            | std::views::transform(&std::csub_match::str)
+            | util::range_to<std::vector<variable>>;
     }
 
     // cerca la regex in str e ritorna i valori trovati
-    static std::vector<std::string> search_regex_all(const std::locale &loc, std::string_view value, const std::string &regex, size_t index) {
+    static auto search_regex_all(const std::locale &loc, std::string_view value, const std::string &regex, size_t index) {
         auto reg = create_regex(loc, regex);
         return std::ranges::subrange(
             std::cregex_token_iterator(value.data(), value.data() + value.size(), reg, index),
             std::cregex_token_iterator())
-            | util::range_to<std::vector<std::string>>;
+                | std::views::transform(&std::csub_match::str)
+                | util::range_to<std::vector<variable>>;
     }
 
     template<std::ranges::input_range R>
-    static std::vector<variable> table_header(std::string_view value, R &&labels) {
+    static variable table_header(std::string_view value, R &&labels) {
         std::cmatch header_match;
         std::regex header_regex(std::format(".*{}.*", util::string_join(labels |
         std::views::transform([first=true](std::string_view str) mutable {
@@ -190,26 +193,26 @@ namespace bls {
                 auto match_str = match_to_view(match[0]);
                 pos = std::find_if_not(match_str.data() + match_str.size(), header_str.data() + header_str.size(), isspace);
                 if (pos == header_str.data() + header_str.size()) {
-                    return std::vector{match_str.data() - header_str.data(), -1ll};
+                    return std::vector<variable>{match_str.data() - header_str.data(), -1ll};
                 } else {
-                    return std::vector{match_str.data() - header_str.data(), pos - match_str.data()};
+                    return std::vector<variable>{match_str.data() - header_str.data(), pos - match_str.data()};
                 }
             } else {
                 return {};
             }
-        }) | util::range_to_vector;
+        }) | util::range_to<std::vector<variable>>;
     }
 
-    static std::vector<std::string> table_row(std::string_view row, vector_view<vector_view<int>> indices) {
-        return indices | std::views::transform([&](vector_view<int> idx) {
+    static auto table_row(std::string_view row, vector_view<vector_view<int>> indices) {
+        return indices | std::views::transform([&](vector_view<int> idx) -> variable {
             if (idx.size() == 2) {
                 size_t begin = idx[0];
                 if (begin < row.size()) {
-                    return row.substr(begin, idx[1]);
+                    return std::string(row.substr(begin, idx[1]));
                 }
             }
-            return std::string_view();
-        }) | util::range_to<std::vector<std::string>>;
+            return {};
+        }) | util::range_to<std::vector<variable>>;
     }
 
     // Prende un formato per strptime e lo converte in una regex corrispondente

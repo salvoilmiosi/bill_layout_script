@@ -35,19 +35,11 @@ std::string variable::as_string() && {
 }
 
 std::vector<variable> &variable::as_array() {
-    if (auto *val = std::get_if<std::vector<variable>>(&m_value)) {
-        return *val;
-    } else {
-        throw layout_error(intl::format("CANT_CONVERT_VARIABLE_TO_ARRAY"));
-    }
+    return std::get<std::vector<variable>>(m_value);
 }
 
 const std::vector<variable> &variable::as_array() const {
-    if (auto *val = std::get_if<std::vector<variable>>(&deref().m_value)) {
-        return *val;
-    } else {
-        throw layout_error(intl::format("CANT_CONVERT_VARIABLE_TO_ARRAY"));
-    }
+    return std::get<std::vector<variable>>(deref().m_value);
 }
 
 string_state variable::as_view() const {

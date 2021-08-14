@@ -39,7 +39,7 @@ namespace bls {
                 if (!var->is_array()) *var = std::vector<variable>();
                 auto &arr = var->as_array();
                 arr.resize(std::max(arr.size(), size_t(m_indices[i] + (i + 1 == m_indices.size() ? m_size : 1))));
-                var = var->as_array().data() + m_indices[i];
+                var = arr.data() + m_indices[i];
             }
             return var;
         }

@@ -55,6 +55,9 @@ namespace bls {
 
         variable(datetime value) : m_value(value) {}
 
+        variable(const std::vector<variable> &vec) : m_value(vec) {}
+        variable(std::vector<variable> &&vec) : m_value(std::move(vec)) {}
+
         template<typename T>
         variable(const std::vector<T> &vec) : m_value(std::vector<variable>(vec.begin(), vec.end())) {}
 
