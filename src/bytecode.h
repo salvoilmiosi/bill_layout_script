@@ -72,6 +72,8 @@ namespace bls {
         (SELVARDYN)
         (SELGLOBAL, std::string)
         (SELGLOBALDYN)
+        (SELFUNVAR, std::string)
+        (SELFUNVARDYN)
         (SELFUNARG, small_int)
         (SELINDEX, small_int)
         (SELINDEXDYN)

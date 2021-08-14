@@ -382,13 +382,20 @@ variable_prefixes parser::read_variable(bool read_only) {
 
 variable_prefixes parser::read_variable_name(bool read_only) {
     variable_prefixes prefixes;
-    bool isglobal = false;
+
+    enum class variable_type {
+        VALUES,
+        GLOBAL,
+        FUNCTION_BLOCK
+    } var_type = variable_type::VALUES;
 
     token current_token;
 
-    auto set_global = [&] {
-        if (isglobal) throw parsing_error(intl::format("DUPLICATE_GLOBAL_PREFIX"), current_token);
-        isglobal = true;
+    auto set_var_type = [&](variable_type type) {
+        if (var_type != variable_type::VALUES) {
+            throw parsing_error(intl::format("DUPLICATE_VAR_TYPE_PREFIX"), current_token);
+        }
+        var_type = type;
     };
 
     auto set_function_call = [&](std::string_view fun_name) {
@@ -403,24 +410,30 @@ variable_prefixes parser::read_variable_name(bool read_only) {
     while (true) {
         current_token = m_lexer.next();
         switch (current_token.type) {
-        case token_type::KW_GLOBAL:     set_global(); break;
+        case token_type::KW_GLOBAL:     set_var_type(variable_type::GLOBAL); break;
+        case token_type::DOLLAR:
+            if (m_function_level == 0) {
+                throw parsing_error(intl::format("NOT_IN_A_FUNCTION"), current_token);
+            }
+            set_var_type(variable_type::FUNCTION_BLOCK);
+            break;
         case token_type::PERCENT:       set_function_call("num"); break;
         case token_type::CARET:         set_function_call("aggregate"); break;
         case token_type::SINGLE_QUOTE:  set_function_call("totitle"); break;
         case token_type::BRACKET_BEGIN:
             read_expression();
             m_lexer.require(token_type::BRACKET_END);
-            if (isglobal) {
-                m_code.add_line<opcode::SELGLOBALDYN>();
-            } else {
-                m_code.add_line<opcode::SELVARDYN>();
+            switch (var_type) {
+            case variable_type::VALUES: m_code.add_line<opcode::SELVARDYN>(); break;
+            case variable_type::GLOBAL: m_code.add_line<opcode::SELGLOBALDYN>(); break;
+            case variable_type::FUNCTION_BLOCK: m_code.add_line<opcode::SELFUNVARDYN>(); break;
             }
             return prefixes;
         case token_type::IDENTIFIER:
-            if (isglobal) {
-                m_code.add_line<opcode::SELGLOBAL>(current_token.value);
-            } else {
-                m_code.add_line<opcode::SELVAR>(current_token.value);
+            switch (var_type) {
+            case variable_type::VALUES: m_code.add_line<opcode::SELVAR>(current_token.value); break;
+            case variable_type::GLOBAL: m_code.add_line<opcode::SELGLOBAL>(current_token.value); break;
+            case variable_type::FUNCTION_BLOCK: m_code.add_line<opcode::SELFUNVAR>(current_token.value); break;
             }
             return prefixes;
         default:

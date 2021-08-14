@@ -25,6 +25,7 @@ struct function_call {
     arg_list args;
     size_t return_addr;
     bool getretvalue;
+    variable_map vars;
 };
 
 struct reader_aborted{};

@@ -34,6 +34,7 @@ namespace bls {
         (REGEXP,        "Espressione Regolare")
         (NUMBER,        "Numero")
         (INTEGER,       "Numero Intero")
+        (DOLLAR,        "$")
         (SEMICOLON,     ";")
         (PAREN_BEGIN,   "(")
         (PAREN_END,     ")")
