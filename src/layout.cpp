@@ -2,7 +2,6 @@
 
 #include "fixed_point.h"
 #include "utils.h"
-#include "svstream.h"
 
 #include <iostream>
 #include <fstream>

@@ -157,7 +157,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHINT:       m_stack.push(cmd.get_args<opcode::PUSHINT>()); break;
     case opcode::PUSHDOUBLE:    m_stack.push(cmd.get_args<opcode::PUSHDOUBLE>()); break;
     case opcode::PUSHSTR:       m_stack.push(cmd.get_args<opcode::PUSHSTR>()); break;
-    case opcode::PUSHREGEX:     m_stack.emplace(regex_state{}, cmd.get_args<opcode::PUSHREGEX>()); break;
+    case opcode::PUSHREGEX:     m_stack.emplace(cmd.get_args<opcode::PUSHREGEX>(), as_regex_tag); break;
     case opcode::PUSHARG:       m_stack.push(get_function_arg(cmd.get_args<opcode::PUSHARG>()).as_pointer()); break;
     case opcode::CALL:          m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
     case opcode::SYSCALL:       call_function(cmd.get_args<opcode::SYSCALL>()); break;

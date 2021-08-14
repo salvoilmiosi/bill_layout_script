@@ -4,6 +4,7 @@
 #include <variant>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "fixed_point.h"
 #include "datetime.h"
@@ -12,23 +13,41 @@ namespace bls {
 
     typedef int64_t big_int;
 
-    struct null_state {};
-    struct string_state {};
-    struct regex_state {};
+    struct string_flags {
+        bool is_regex;
+    };
+
+    static constexpr string_flags as_string_tag{false};
+    static constexpr string_flags as_regex_tag{true};
+
+    struct string_state : std::string_view {
+        string_state(std::string_view str, string_flags flags = as_string_tag)
+            : std::string_view(str), flags(flags) {}
+        
+        string_flags flags;
+    };
 
     class variable {
     public:
-        using variant_type = std::variant<null_state, string_state, regex_state, std::string_view, fixed_point, big_int, double, datetime, std::vector<variable>, const variable *>;
+        using variant_type = std::variant<std::monostate, string_state, fixed_point, big_int, double, datetime, std::vector<variable>, const variable *>;
         
         variable() = default;
 
-        variable(const std::string &value) : m_str(value), m_value(string_state{}) {}
-        variable(std::string &&value) : m_str(std::move(value)), m_value(string_state{}) {}
+        variable(const variable &var);
+        variable(variable &&var);
 
-        variable(regex_state, const std::string &value) : m_str(value), m_value(regex_state{}) {}
-        variable(regex_state, std::string &&value) : m_str(std::move(value)), m_value(regex_state{}) {}
+        ~variable() = default;
 
-        variable(std::string_view value) : m_value(value) {}
+        variable(const std::string &value, string_flags state = as_string_tag)
+            : m_str(std::make_unique<std::string>(value))
+            , m_value(string_state(*m_str, state)) {}
+
+        variable(std::string &&value, string_flags state = as_string_tag)
+            : m_str(std::make_unique<std::string>(std::move(value)))
+            , m_value(string_state(*m_str, state)) {}
+
+        variable(std::string_view value, string_flags state = as_string_tag)
+            : m_value(string_state(value, state)) {}
 
         variable(fixed_point value) : m_value(value) {}
         variable(std::integral auto value) : m_value(big_int(value)) {}
@@ -63,7 +82,7 @@ namespace bls {
         const variable &deref() const &;
         variable deref() &&;
 
-        std::string_view as_view() const;
+        string_state as_view() const;
         fixed_point as_number() const;
         big_int as_int() const;
         double as_double() const;
@@ -76,6 +95,9 @@ namespace bls {
         bool operator == (const variable &other) const {
             return std::partial_ordering::equivalent == *this <=> other;
         }
+
+        variable &operator = (const variable &other);
+        variable &operator = (variable &&other);
 
         void assign(const variable &other);
         void assign(variable &&other);
@@ -90,7 +112,7 @@ namespace bls {
         variable operator / (const variable &rhs) const;
 
     private:
-        mutable std::string m_str;
+        mutable std::unique_ptr<std::string> m_str;
 
         variant_type m_value;
 

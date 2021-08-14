@@ -8,7 +8,6 @@
 
 #include "exceptions.h"
 #include "utils.h"
-#include "svstream.h"
 #include "reader.h"
 #include "exceptions.h"
 

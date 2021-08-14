@@ -2,39 +2,28 @@
 
 #include "utils.h"
 #include "exceptions.h"
-#include "svstream.h"
 
 using namespace bls;
 
-template<typename T, typename ... Ts> concept is_one_of = (std::same_as<T, Ts> || ...);
-
-template<typename T> concept string_t = is_one_of<T, string_state, regex_state, std::string_view>;
-template<typename T> concept number_t = is_one_of<T, fixed_point, big_int, double>;
-template<typename T> concept not_number_t = ! number_t<T>;
-
 std::string &variable::get_string() const {
-    if (m_str.empty()) {
-        m_str = std::visit(util::overloaded{
+    if (!m_str) {
+        m_str = std::make_unique<std::string>(std::visit(util::overloaded{
             [](auto)                    { return std::string(); },
-            [](std::string_view str)    { return std::string(str); },
+            [](string_state str)        { return std::string(str); },
             [](fixed_point num)         { return fixed_point_to_string(num); },
-            [](big_int num)             { return std::to_string(num); },
-            [](double num)              { return std::to_string(num); },
+            [](std::integral auto num)  { return std::to_string(num); },
+            [](std::floating_point auto num) { return std::to_string(num); },
             [](datetime date)           { return date.to_string(); },
             [](const std::vector<variable> &arr) {
                 return std::format("[{}]", util::string_join(arr | std::views::transform(&variable::as_view), ", "));
             }
-        }, m_value);
+        }, m_value));
     }
-    return m_str;
+    return *m_str;
 }
 
 const std::string &variable::as_string() const & {
-    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
-        return (*ptr)->as_string();
-    } else {
-        return get_string();
-    }
+    return deref().get_string();
 }
 
 std::string variable::as_string() && {
@@ -54,89 +43,81 @@ std::vector<variable> &variable::as_array() {
 }
 
 const std::vector<variable> &variable::as_array() const {
-    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
-        return (*ptr)->as_array();
-    } else if (auto *val = std::get_if<std::vector<variable>>(&m_value)) {
+    if (auto *val = std::get_if<std::vector<variable>>(&deref().m_value)) {
         return *val;
     } else {
         throw layout_error(intl::format("CANT_CONVERT_VARIABLE_TO_ARRAY"));
     }
 }
 
-std::string_view variable::as_view() const {
-    if (auto *view = std::get_if<std::string_view>(&m_value)) {
+string_state variable::as_view() const {
+    if (auto *view = std::get_if<string_state>(&deref().m_value)) {
         return *view;
     } else {
-        return as_string();
+        return std::string_view(as_string());
     }
 }
 
+template<typename T> struct number_converter{};
+
+template<> struct number_converter<fixed_point> {
+    fixed_point operator()(string_state str) const { return util::string_to<fixed_point>(str); }
+    fixed_point operator()(std::integral auto num) const { return fixed_point(num); }
+    fixed_point operator()(std::floating_point auto num) const { return fixed_point(num); }
+    fixed_point operator()(fixed_point num) const { return num; }
+    fixed_point operator()(auto) const { return {}; }
+};
+
+template<std::integral T> struct number_converter<T> {
+    T operator()(string_state str) const { return util::string_to<T>(str); }
+    T operator()(fixed_point num) const { return num.getAsInteger(); }
+    T operator()(std::convertible_to<T> auto num) const { return num; }
+    T operator()(auto) const { return {}; }
+};
+
+template<std::floating_point T> struct number_converter<T> {
+    T operator()(string_state str) const { return util::string_to<T>(str); }
+    T operator()(fixed_point num) const { return num.getAsDouble(); }
+    T operator()(std::convertible_to<T> auto num) const { return num; }
+    T operator()(auto) const { return {}; }
+};
+
+template<typename T> concept number_t = std::invocable<number_converter<T>, string_state>;
+
 fixed_point variable::as_number() const {
-    return std::visit(util::overloaded{
-        [&](string_t auto) {
-            fixed_point ret;
-            util::isviewstream ss{as_view()};
-            dec::fromStream(ss, ret);
-            return ret;
-        },
-        [](number_t auto num)   { return fixed_point(num); },
-        [](auto)                { return fixed_point(0); },
-        [](const variable *ptr)    { return ptr->as_number(); },
-    }, m_value);
+    return std::visit(number_converter<fixed_point>{}, deref().m_value);
 }
 
 big_int variable::as_int() const {
-    return std::visit(util::overloaded{
-        [&](string_t auto)  { return util::string_to<big_int>(as_view()); },
-        [](fixed_point num) { return num.getAsInteger(); },
-        [](big_int num)     { return num; },
-        [](double num)      { return big_int(num); },
-        [](auto)            { return big_int(0); },
-        [](const variable *ptr) { return ptr->as_int(); },
-    }, m_value);
+    return std::visit(number_converter<big_int>{}, deref().m_value);
 }
 
 double variable::as_double() const {
-    return std::visit(util::overloaded{
-        [&](string_t auto)  {
-            double ret;
-            util::isviewstream ss{as_view()};
-            ss >> ret;
-            return ret;
-        },
-        [](fixed_point num) { return num.getAsDouble(); },
-        [](big_int num)     { return double(num); },
-        [](double num)      { return num; },
-        [](auto)            { return 0.0; },
-        [](const variable *ptr) { return ptr->as_double(); },
-    }, m_value);
+    return std::visit(number_converter<double>{}, deref().m_value);
 }
 
 datetime variable::as_date() const {
     return std::visit(util::overloaded{
-        [&](string_t auto) { return datetime::from_string(as_view()); },
-        [](datetime date) { return date; },
-        [](auto)            { return datetime(); },
-        [](const variable *ptr) { return ptr->as_date(); },
-    }, m_value);
+        [](string_state str)    { return datetime::from_string(str); },
+        [](datetime date)       { return date; },
+        [](auto)                { return datetime(); },
+    }, deref().m_value);
 }
 
 bool variable::as_bool() const {
     return std::visit(util::overloaded{
-        [](null_state)              { return false; },
-        [&](string_state)           { return !m_str.empty(); },
-        [&](regex_state)            { return !m_str.empty(); },
-        [](std::string_view str)    { return !str.empty(); },
-        [](number_t auto num)       { return num != 0; },
-        [](datetime date)           { return date.is_valid(); },
-        [](const std::vector<variable> &arr) { return !arr.empty(); },
-        [](const variable *ptr)        { return ptr->as_bool(); },
-    }, m_value);
+        [](std::monostate)      { return false; },
+        [](auto)                { return true; },
+        [](string_state str)    { return !str.empty(); },
+        [](number_t auto num)   { return num != 0; },
+        [](datetime date)       { return date.is_valid(); },
+        [](const std::vector<variable> &arr) { return !arr.empty(); }
+    }, deref().m_value);
 }
 
 const variable *variable::as_pointer() const {
     if (auto *ptr = std::get_if<const variable *>(&m_value)) {
-        return *ptr;
+        return (*ptr)->as_pointer();
     } else {
         return this;
     }
@@ -160,15 +141,12 @@ variable variable::deref() && {
 
 bool variable::is_null() const {
     return std::visit(util::overloaded{
-        [](null_state)              { return true; },
-        [](auto)                    { return false; },
-        [&](string_state)           { return m_str.empty(); },
-        [&](regex_state)            { return m_str.empty(); },
-        [](std::string_view str)    { return str.empty(); },
-        [](datetime date)           { return !date.is_valid(); },
-        [](const std::vector<variable> &arr) { return arr.empty(); },
-        [](const variable *ptr)        { return ptr->is_null(); },
-    }, m_value);
+        [](std::monostate)      { return true; },
+        [](auto)                { return false; },
+        [](string_state str)    { return str.empty(); },
+        [](datetime date)       { return !date.is_valid(); },
+        [](const std::vector<variable> &arr) { return arr.empty(); }
+    }, deref().m_value);
 }
 
 bool variable::is_pointer() const {
@@ -176,86 +154,97 @@ bool variable::is_pointer() const {
 }
 
 bool variable::is_string() const {
-    return std::visit(util::overloaded{
-        [](string_t auto)   { return true; },
-        [](auto)            { return false; },
-        [](const variable *ptr) { return ptr->is_string(); },
-    }, m_value);
+    return std::holds_alternative<string_state>(deref().m_value);
 }
 
 bool variable::is_regex() const {
-    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
-        return (*ptr)->is_regex();
-    } else {
-        return std::holds_alternative<regex_state>(m_value);
-    }
+    auto *view = std::get_if<string_state>(&deref().m_value);
+    return view && view->flags.is_regex;
 }
 
 bool variable::is_view() const {
-    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
-        return (*ptr)->is_view();
-    } else {
-        return std::holds_alternative<std::string_view>(m_value);
-    }
+    const auto &var = deref();
+    return std::holds_alternative<string_state>(var.m_value) && ! var.m_str;
 }
 
 bool variable::is_number() const {
     return std::visit(util::overloaded{
         [](number_t auto)   { return true; },
-        [](auto)            { return false; },
-        [](const variable *ptr) { return ptr->is_number(); }
-    }, m_value);
+        [](auto)            { return false; }
+    }, deref().m_value);
 }
 
 bool variable::is_array() const {
-    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
-        return (*ptr)->is_array();
-    } else {
-        return std::holds_alternative<std::vector<variable>>(m_value);
-    }
+    return std::holds_alternative<std::vector<variable>>(deref().m_value);
 }
 
 std::partial_ordering variable::operator <=> (const variable &other) const {
     return std::visit<std::partial_ordering>(util::overloaded{
-        [&](string_t auto, string_t auto)           { return as_view() <=> other.as_view(); },
+        [](string_state lhs, string_state rhs)      { return lhs <=> rhs; },
 
-        [&](string_t auto, null_state)              { return as_view() <=> ""; },
-        [&](null_state, string_t auto)              { return "" <=> other.as_view(); },
+        [](string_state lhs, std::monostate)        { return lhs <=> ""; },
+        [](std::monostate, string_state rhs)        { return "" <=> rhs; },
         
         [](number_t auto num1, number_t auto num2)  { return num1 <=> num2; },
 
-        [&](string_t auto, number_t auto num)       { return as_number() <=> num; },
-        [&](number_t auto num, string_t auto)       { return num <=> other.as_number(); },
+        [](string_state lhs, number_t auto num)     { return util::string_to<fixed_point>(lhs) <=> num; },
+        [](number_t auto num, string_state rhs)     { return num <=> util::string_to<fixed_point>(rhs); },
 
-        [](number_t auto num, null_state)           { return num <=> 0; },
-        [](null_state, number_t auto num)           { return 0 <=> num; },
+        [](number_t auto num, std::monostate)       { return num <=> 0; },
+        [](std::monostate, number_t auto num)       { return 0 <=> num; },
         
         [](datetime dt1, datetime dt2)              { return dt1 <=> dt2; },
         
-        [&](datetime dt, string_t auto)             { return dt <=> other.as_date(); },
-        [&](string_t auto, datetime dt)             { return as_date() <=> dt; },
+        [](datetime dt, string_state str)           { return dt <=> datetime::from_string(str); },
+        [](string_state str, datetime dt)           { return datetime::from_string(str) <=> dt; },
 
-        [&](const variable *lhs, auto)                 { return *lhs <=> other; },
-        [&](auto, const variable *rhs)                 { return *this <=> *rhs; },
-        [](const variable *lhs, const variable *rhs)      { return *lhs <=> *rhs; },
-
-        [](null_state, null_state)                  { return std::partial_ordering::equivalent; },
+        [](std::monostate, std::monostate)          { return std::partial_ordering::equivalent; },
         [](auto, auto)                              { return std::partial_ordering::unordered; }
-    }, m_value, other.m_value);
+    }, deref().m_value, other.deref().m_value);
+}
+
+variable::variable(const variable &other) {
+    *this = other;
+}
+
+variable::variable(variable &&other) {
+    *this = std::move(other);
+}
+
+variable &variable::operator = (const variable &other) {
+    if (auto *view = std::get_if<string_state>(&other.m_value); view && other.m_str) {
+        m_str = std::make_unique<std::string>(*view);
+        m_value = string_state(*m_str, view->flags);
+    } else {
+        m_str.reset();
+        m_value = other.m_value;
+    }
+    return *this;
+}
+
+variable &variable::operator = (variable &&other) {
+    if (auto *view = std::get_if<string_state>(&other.m_value); view && other.m_str) {
+        m_str = std::move(other.m_str);
+        m_value = string_state(*m_str, view->flags);
+    } else {
+        m_str.reset();
+        m_value = std::move(other.m_value);
+    }
+    return *this;
 }
 
 void variable::assign(const variable &other) {
     std::visit(util::overloaded{
         [&](auto) {
-            m_str = other.m_str;
+            m_str.reset();
             m_value = other.m_value;
         },
-        [&](std::string_view value) {
-            m_str = value;
-            m_value = string_state{};
+        [&](string_state view) {
+            m_str = std::make_unique<std::string>(view);
+            m_value = string_state(*m_str, view.flags);
         },
         [&](const variable *ptr) {
-            assign(*ptr);
+            *this = *ptr;
         }
     }, other.m_value);
 }
@@ -263,12 +252,16 @@ void variable::assign(const variable &other) {
 void variable::assign(variable &&other) {
     std::visit(util::overloaded{
         [&](auto) {
-            m_str = std::move(other.m_str);
+            m_str.reset();
             m_value = std::move(other.m_value);
         },
-        [&](std::string_view value) {
-            m_str = value;
-            m_value = string_state{};
+        [&](string_state view) {
+            if (other.m_str) {
+                m_str = std::move(other.m_str);
+            } else {
+                m_str = std::make_unique<std::string>(view);
+            }
+            m_value = string_state(*m_str, view.flags);
         },
         [&](const variable *ptr) {
             assign(*ptr);
@@ -278,22 +271,22 @@ void variable::assign(variable &&other) {
 
 variable &variable::operator += (const variable &other) {
     std::visit(util::overloaded{
-        [](null_state, null_state) {},
-        [](auto, null_state) {},
-        [](const variable *, null_state) {},
-        [&](null_state, auto) {
+        [](std::monostate, std::monostate) {},
+        [](auto, std::monostate) {},
+        [](const variable *, std::monostate) {},
+        [&](std::monostate, auto) {
             *this = other;
         },
-        [&](null_state, const variable *rhs) {
+        [&](std::monostate, const variable *rhs) {
             *this = *rhs;
         },
         [&](auto, auto) {
             get_string().append(other.as_view());
-            m_value = string_state{};
+            m_value = string_state(*m_str);
         },
-        [&](null_state, string_t auto) {
-            m_str = other.as_view();
-            m_value = string_state{};
+        [&](std::monostate, string_state view) {
+            m_str = std::make_unique<std::string>(view);
+            m_value = string_state(*m_str, view.flags);
         },
         [&](number_t auto num1, number_t auto num2) {
             *this = num1 + num2;
@@ -321,31 +314,25 @@ variable variable::operator +(const variable &rhs) const {
 
 variable variable::operator -() const {
     return std::visit<variable>(util::overloaded{
-        [](null_state) {
+        [](std::monostate) {
             return variable();
         },
         [](number_t auto n) {
             return -n;
         },
-        [&](auto) {
-            return -as_number();
+        [](auto v) {
+            return -number_converter<fixed_point>{}(v);
         }
-    }, m_value);
+    }, deref().m_value);
 }
 
-variable variable::operator -(const variable &rhs) const {
+variable variable::operator -(const variable &other) const {
     return std::visit<variable>(util::overloaded{
         [](auto, auto) {
             return variable();
         },
-        [&](not_number_t auto, fixed_point num) {
-            return as_number() - num;
-        },
-        [&](not_number_t auto, big_int num) {
-            return as_int() - num;
-        },
-        [&](not_number_t auto, double num) {
-            return as_double() - num;
+        [](auto lhs, number_t auto num) {
+            return number_converter<decltype(num)>{}(lhs) - num;
         },
         [](number_t auto num1, fixed_point num2) {
             return fixed_point(num1) - num2;
@@ -353,26 +340,20 @@ variable variable::operator -(const variable &rhs) const {
         [](number_t auto num1, number_t auto num2) {
             return num1 - num2;
         }
-    }, m_value, rhs.m_value);
+    }, deref().m_value, other.deref().m_value);
 }
 
 variable &variable::operator -= (const variable &rhs) {
     return *this = *this - rhs;
 }
 
-variable variable::operator * (const variable &rhs) const {
+variable variable::operator * (const variable &other) const {
     return std::visit<variable>(util::overloaded{
         [](auto, auto) {
             return variable();
         },
-        [&](not_number_t auto, fixed_point num) {
-            return as_number() * num;
-        },
-        [&](not_number_t auto, big_int num) {
-            return as_int() * num;
-        },
-        [&](not_number_t auto, double num) {
-            return as_double() * num;
+        [](auto lhs, number_t auto num) {
+            return number_converter<decltype(num)>{}(lhs) * num;
         },
         [](number_t auto num1, fixed_point num2) {
             return fixed_point(num1) * num2;
@@ -380,22 +361,16 @@ variable variable::operator * (const variable &rhs) const {
         [](number_t auto num1, number_t auto num2) {
             return num1 * num2;
         }
-    }, m_value, rhs.m_value);
+    }, deref().m_value, other.deref().m_value);
 }
 
-variable variable::operator / (const variable &rhs) const {
+variable variable::operator / (const variable &other) const {
     return std::visit<variable>(util::overloaded{
         [](auto, auto) {
             return variable();
         },
-        [&](not_number_t auto, fixed_point num) {
-            return as_number() / num;
-        },
-        [&](not_number_t auto, big_int num) {
-            return as_int() / num;
-        },
-        [&](not_number_t auto, double num) {
-            return as_double() / num;
+        [](auto lhs, number_t auto num) {
+            return number_converter<decltype(num)>{}(lhs) / num;
         },
         [](number_t auto num1, fixed_point num2) {
             return fixed_point(num1) / num2;
@@ -403,5 +378,5 @@ variable variable::operator / (const variable &rhs) const {
         [](number_t auto num1, number_t auto num2) {
             return num1 / num2;
         }
-    }, m_value, rhs.m_value);
+    }, deref().m_value, other.deref().m_value);
 }

@@ -8,6 +8,7 @@
 #include <map>
 
 #include "translations.h"
+#include "svstream.h"
 
 namespace util {
 
@@ -111,6 +112,14 @@ namespace util {
     }
 
     template<typename T>
+    T string_to(std::string_view str) {
+        T ret;
+        isviewstream ss{str};
+        ss >> ret;
+        return ret;
+    }
+
+    template<std::integral T>
     constexpr T string_to(std::string_view str) {
         T ret;
         auto result = std::from_chars(str.data(), str.data() + str.size(), ret);
