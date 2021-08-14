@@ -302,6 +302,7 @@ namespace bls {
     }
 
     const function_map function_lookup::functions {
+        {"copy", [](const variable &var) { return var; }},
         {"str", [](const std::string &str) { return str; }},
         {"num", [](const reader *ctx, const variable &var) {
             if (var.is_number()) return var;
