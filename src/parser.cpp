@@ -168,7 +168,6 @@ void parser::read_statement() {
     case token_type::KW_CONTINUE:   parse_continue_stmt(); break;
     case token_type::KW_RETURN:     parse_return_stmt(); break;
     case token_type::KW_CLEAR:      parse_clear_stmt(); break;
-    case token_type::KW_SET:        parse_set_stmt(); break;
     default:
         assignment_stmt();
         m_lexer.require(token_type::SEMICOLON);
@@ -176,8 +175,6 @@ void parser::read_statement() {
 }
 
 void parser::assignment_stmt() {
-    variable_prefixes prefixes;
-
     auto tok = m_lexer.peek();
     switch(tok.type) {
     case token_type::IDENTIFIER:
@@ -191,25 +188,17 @@ void parser::assignment_stmt() {
         }
         break;
     default:
-        prefixes = read_variable(false);
+        read_variable(false);
     }
-
-    auto add_prefix_call = [&] {
-        if (prefixes.call.command() != opcode::NOP) {
-            m_code.push_back(prefixes.call);
-        }
-    };
 
     tok = m_lexer.next();
     switch (tok.type) {
     case token_type::ADD_ASSIGN:
         read_expression();
-        add_prefix_call();
         m_code.add_line<opcode::INCVAR>();
         break;
     case token_type::SUB_ASSIGN:
         read_expression();
-        add_prefix_call();
         m_code.add_line<opcode::DECVAR>();
         break;
     case token_type::ADD_ONE:
@@ -222,12 +211,10 @@ void parser::assignment_stmt() {
         break;
     case token_type::FORCE_ASSIGN:
         read_expression();
-        add_prefix_call();
         m_code.add_line<opcode::FORCEVAR>();
         break;
     case token_type::ASSIGN:
         read_expression();
-        add_prefix_call();
         m_code.add_line<opcode::SETVAR>();
         break;
     default:
@@ -374,70 +361,40 @@ void parser::sub_expression() {
     }
 }
 
-variable_prefixes parser::read_variable(bool read_only) {
-    auto prefixes = read_variable_name(read_only);
+void parser::read_variable(bool read_only) {
+    read_variable_name(read_only);
     read_variable_indices(read_only);
-    return prefixes;
 }
 
-variable_prefixes parser::read_variable_name(bool read_only) {
-    variable_prefixes prefixes;
-
+void parser::read_variable_name(bool read_only) {
     enum class variable_type {
         VALUES,
         GLOBAL,
-        FUNCTION_BLOCK
+        LOCAL
     } var_type = variable_type::VALUES;
 
-    token current_token;
-
-    auto set_var_type = [&](variable_type type) {
-        if (var_type != variable_type::VALUES) {
-            throw parsing_error(intl::format("DUPLICATE_VAR_TYPE_PREFIX"), current_token);
+    if (m_lexer.check_next(token_type::KW_GLOBAL)) {
+        var_type = variable_type::GLOBAL;
+    } else if (auto tok = m_lexer.check_next(token_type::DOLLAR)) {
+        if (m_function_level == 0) {
+            throw parsing_error(intl::format("NOT_IN_A_FUNCTION"), tok);
         }
-        var_type = type;
-    };
+        var_type = variable_type::LOCAL;
+    }
 
-    auto set_function_call = [&](std::string_view fun_name) {
-        if (read_only) throw parsing_error(intl::format("READ_ONLY_ERROR"), current_token);
-        if (prefixes.call.command() == opcode::NOP) {
-            prefixes.call = make_command<opcode::CALL>(fun_name, 1);
-        } else {
-            throw parsing_error(intl::format("DUPLICATE_CALL_PREFIX"), current_token);
+    if (m_lexer.check_next(token_type::BRACKET_BEGIN)) {
+        read_expression();
+        m_lexer.require(token_type::BRACKET_END);
+        switch (var_type) {
+        case variable_type::VALUES: m_code.add_line<opcode::SELVARDYN>(); break;
+        case variable_type::GLOBAL: m_code.add_line<opcode::SELGLOBALDYN>(); break;
+        case variable_type::LOCAL: m_code.add_line<opcode::SELLOCALDYN>(); break;
         }
-    };
-
-    while (true) {
-        current_token = m_lexer.next();
-        switch (current_token.type) {
-        case token_type::KW_GLOBAL:     set_var_type(variable_type::GLOBAL); break;
-        case token_type::DOLLAR:
-            if (m_function_level == 0) {
-                throw parsing_error(intl::format("NOT_IN_A_FUNCTION"), current_token);
-            }
-            set_var_type(variable_type::FUNCTION_BLOCK);
-            break;
-        case token_type::PERCENT:       set_function_call("num"); break;
-        case token_type::CARET:         set_function_call("aggregate"); break;
-        case token_type::SINGLE_QUOTE:  set_function_call("totitle"); break;
-        case token_type::BRACKET_BEGIN:
-            read_expression();
-            m_lexer.require(token_type::BRACKET_END);
-            switch (var_type) {
-            case variable_type::VALUES: m_code.add_line<opcode::SELVARDYN>(); break;
-            case variable_type::GLOBAL: m_code.add_line<opcode::SELGLOBALDYN>(); break;
-            case variable_type::FUNCTION_BLOCK: m_code.add_line<opcode::SELFUNVARDYN>(); break;
-            }
-            return prefixes;
-        case token_type::IDENTIFIER:
-            switch (var_type) {
-            case variable_type::VALUES: m_code.add_line<opcode::SELVAR>(current_token.value); break;
-            case variable_type::GLOBAL: m_code.add_line<opcode::SELGLOBAL>(current_token.value); break;
-            case variable_type::FUNCTION_BLOCK: m_code.add_line<opcode::SELFUNVAR>(current_token.value); break;
-            }
-            return prefixes;
-        default:
-            throw unexpected_token(current_token, token_type::IDENTIFIER);
+    } else if (auto tok = m_lexer.require(token_type::IDENTIFIER)) {
+        switch (var_type) {
+        case variable_type::VALUES: m_code.add_line<opcode::SELVAR>(tok.value); break;
+        case variable_type::GLOBAL: m_code.add_line<opcode::SELGLOBAL>(tok.value); break;
+        case variable_type::LOCAL: m_code.add_line<opcode::SELLOCAL>(tok.value); break;
         }
     }
 }
@@ -499,7 +456,7 @@ void parser::read_variable_indices(bool read_only) {
 void parser::read_function(token tok_fun_name, bool top_level) {
     assert(tok_fun_name.type == token_type::IDENTIFIER);
     m_lexer.require(token_type::PAREN_BEGIN);
-
+    
     auto fun_name = tok_fun_name.value;
     small_int num_args = 0;
 

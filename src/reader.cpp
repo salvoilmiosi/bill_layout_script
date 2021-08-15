@@ -140,8 +140,8 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SELVARDYN:     m_selected.emplace_back(m_stack.pop().as_string(), *m_current_table); break;
     case opcode::SELGLOBAL:     m_selected.emplace_back(cmd.get_args<opcode::SELGLOBAL>(), m_globals); break;
     case opcode::SELGLOBALDYN:  m_selected.emplace_back(m_stack.pop().as_string(), m_globals); break;
-    case opcode::SELFUNVAR:     m_selected.emplace_back(cmd.get_args<opcode::SELFUNVAR>(), m_calls.top().vars); break;
-    case opcode::SELFUNVARDYN:  m_selected.emplace_back(m_stack.pop().as_string(), m_calls.top().vars); break;
+    case opcode::SELLOCAL:      m_selected.emplace_back(cmd.get_args<opcode::SELLOCAL>(), m_calls.top().vars); break;
+    case opcode::SELLOCALDYN:   m_selected.emplace_back(m_stack.pop().as_string(), m_calls.top().vars); break;
     case opcode::SELFUNARG:     m_selected.emplace_back(get_function_arg(cmd.get_args<opcode::SELFUNARG>())); break;
     case opcode::SELINDEX:      m_selected.top().add_index(cmd.get_args<opcode::SELINDEX>()); break;
     case opcode::SELINDEXDYN:   m_selected.top().add_index(m_stack.pop().as_int()); break;

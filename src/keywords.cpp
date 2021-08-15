@@ -259,17 +259,3 @@ void parser::parse_clear_stmt() {
     m_lexer.require(token_type::SEMICOLON);
     m_code.add_line<opcode::CLEAR>();
 };
-
-void parser::parse_set_stmt() {
-    auto tok_fun_name = m_lexer.require(token_type::KW_SET);
-    if (m_content_level == 0) {
-        throw parsing_error(intl::format("EMPTY_CONTENT_STACK"), tok_fun_name);
-    }
-    auto prefixes = read_variable(false);
-    m_lexer.require(token_type::SEMICOLON);
-    m_code.add_line<opcode::PUSHVIEW>();
-    if (prefixes.call.command() != opcode::NOP) {
-        m_code.push_back(prefixes.call);
-    }
-    m_code.add_line<opcode::SETVAR>();
-}

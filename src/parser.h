@@ -12,10 +12,6 @@
 
 namespace bls {
 
-    struct variable_prefixes {
-        command_args call;
-    };
-    
     DEFINE_ENUM_FLAGS_IN_NS(bls, parser_flags,
         (ADD_COMMENTS)
     )
@@ -92,10 +88,9 @@ namespace bls {
         void parse_continue_stmt();
         void parse_return_stmt();
         void parse_clear_stmt();
-        void parse_set_stmt();
 
-        variable_prefixes read_variable(bool read_only);
-        variable_prefixes read_variable_name(bool read_only);
+        void read_variable(bool read_only);
+        void read_variable_name(bool read_only);
         void read_variable_indices(bool read_only);
 
     private:

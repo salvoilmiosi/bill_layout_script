@@ -28,7 +28,6 @@ namespace bls {
         (KW_CONTINUE,   "continue")
         (KW_RETURN,     "return")
         (KW_CLEAR,      "clear")
-        (KW_SET,        "set")
         (KW_GLOBAL,     "global")
         (STRING,        "Stringa")
         (REGEXP,        "Espressione Regolare")
@@ -51,9 +50,6 @@ namespace bls {
         (SUB_ONE,       "--")
         (CONTENT,       "@")
         (COLON,         ":")
-        (SINGLE_QUOTE,  "'")
-        (PERCENT,       "%")
-        (CARET,         "^")
         (ASTERISK,      "*")
         (SLASH,         "/")
         (PLUS,          "+")
@@ -84,7 +80,6 @@ namespace bls {
         {"continue",    token_type::KW_CONTINUE},
         {"return",      token_type::KW_RETURN},
         {"clear",       token_type::KW_CLEAR},
-        {"set",         token_type::KW_SET},
         {"global",      token_type::KW_GLOBAL}
     };
 

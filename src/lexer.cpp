@@ -122,9 +122,6 @@ token lexer::next(bool do_advance) {
     case '$':
         tok.type = token_type::DOLLAR;
         break;
-    case '\'':
-        tok.type = token_type::SINGLE_QUOTE;
-        break;
     case ',':
         tok.type = token_type::COMMA;
         break;
@@ -153,12 +150,6 @@ token lexer::next(bool do_advance) {
         } else {
             tok.type = token_type::ASSIGN;
         }
-        break;
-    case '%':
-        tok.type = token_type::PERCENT;
-        break;
-    case '^':
-        tok.type = token_type::CARET;
         break;
     case '*':
         tok.type = token_type::ASTERISK;
