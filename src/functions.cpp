@@ -153,22 +153,17 @@ namespace bls {
     }
 
     // cerca la regex in str e ritorna tutti i capture del primo valore trovato
-    static variable search_regex_captures(const std::locale &loc, std::string_view value, const std::string &regex) {
+    static auto search_regex_captures(const std::locale &loc, std::string_view value, const std::string &regex) {
         std::cmatch match;
-        if (!std::regex_search(value.data(), value.data() + value.size(), match, create_regex(loc, regex))) return {};
-        return match | std::views::drop(1)
-            | std::views::transform(&std::csub_match::str)
-            | util::range_to<std::vector<variable>>;
+        std::regex_search(value.data(), value.data() + value.size(), match, create_regex(loc, regex));
+        return match;
     }
 
     // cerca la regex in str e ritorna i valori trovati
-    static auto search_regex_all(const std::locale &loc, std::string_view value, const std::string &regex, size_t index) {
-        auto reg = create_regex(loc, regex);
+    static auto search_regex_all(std::string_view value, const std::regex &regex, size_t index) {
         return std::ranges::subrange(
-            std::cregex_token_iterator(value.data(), value.data() + value.size(), reg, index),
-            std::cregex_token_iterator())
-                | std::views::transform(&std::csub_match::str)
-                | util::range_to<std::vector<variable>>;
+            std::cregex_token_iterator(value.data(), value.data() + value.size(), regex, index),
+            std::cregex_token_iterator());
     }
 
     template<std::ranges::input_range R>
@@ -200,10 +195,10 @@ namespace bls {
             } else {
                 return {};
             }
-        }) | util::range_to<std::vector<variable>>;
+        });
     }
 
-    static auto table_row(std::string_view row, vector_view<vector_view<int>> indices) {
+    static variable table_row(std::string_view row, vector_view<vector_view<int>> indices) {
         return indices | std::views::transform([&](vector_view<int> idx) -> variable {
             if (idx.size() == 2) {
                 size_t begin = idx[0];
@@ -212,7 +207,7 @@ namespace bls {
                 }
             }
             return {};
-        }) | util::range_to<std::vector<variable>>;
+        });
     }
 
     // Prende un formato per strptime e lo converte in una regex corrispondente
@@ -334,22 +329,16 @@ namespace bls {
         {"hex", [](int num) {
             return std::format("{:x}", num);
         }},
-        {"aggregate", [](const reader *ctx, vector_view<std::string> list) {
-            return std::transform_reduce(list.begin(), list.end(), variable(), std::plus<>(), [&](const std::string &s) {
-                return parse_num(ctx->m_locale, s);
-            });
-        }},
-        {"lines", [](std::string_view str) {
+        {"lines", [](std::string_view str) -> variable {
             return util::string_split(str, '\n')
                 | std::views::transform(util::string_trim)
-                | std::views::filter(std::not_fn(&std::string::empty))
-                | util::range_to_vector;
+                | std::views::filter(std::not_fn(&std::string::empty));
         }},
-        {"list", [](varargs<variable> args) {
-            return args | util::range_to_vector;
+        {"list", [](varargs<variable> args) -> variable {
+            return args;
         }},
-        {"sum", [](varargs<fixed_point> args) {
-            return std::reduce(args.begin(), args.end());
+        {"sum", [](vector_view<fixed_point> args) {
+            return std::reduce(args.begin(), args.end(), variable());
         }},
         {"trunc", [](fixed_point num, int decimal_places) {
             int pow = dec::dec_utils<dec::def_round_policy>::pow10(decimal_places);
@@ -377,17 +366,41 @@ namespace bls {
         {"search", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<1> index) -> variable {
             return std::string(search_regex(ctx->m_locale, str, regex, index));
         }},
+        {"search_num", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<1> index) -> variable {
+            return parse_num(ctx->m_locale, search_regex(ctx->m_locale, str, regex, index));
+        }},
         {"searchpos", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<0> index) {
             return search_regex(ctx->m_locale, str, regex, index).begin() - str.begin();
         }},
         {"searchposend", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<0> index) {
             return search_regex(ctx->m_locale, str, regex, index).end() - str.begin();
         }},
-        {"search_all", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<1> index) {
-            return search_regex_all(ctx->m_locale, str, regex, index);
+        {"search_all", [](const reader *ctx, std::string_view str, const std::string &regex_str, optional_size<1> index) -> variable {
+            auto regex = create_regex(ctx->m_locale, regex_str);
+            return search_regex_all(str, regex, index) | std::views::transform(&std::csub_match::str);
         }},
-        {"captures", [](const reader *ctx, std::string_view str, const std::string &regex) {
-            return search_regex_captures(ctx->m_locale, str, regex);
+        {"search_num_all", [](const reader *ctx, std::string_view str, const std::string &regex_str, optional_size<1> index) -> variable {
+            auto regex = create_regex(ctx->m_locale, regex_str);
+            return search_regex_all(str, regex, index)
+                | std::views::transform(match_to_view)
+                | std::views::transform([&](std::string_view str) {
+                    return parse_num(ctx->m_locale, str);
+                });
+        }},
+        {"captures", [](const reader *ctx, std::string_view str, const std::string &regex) -> variable {
+            auto match = search_regex_captures(ctx->m_locale, str, regex);
+            return match
+                | std::views::drop(1)
+                | std::views::transform(&std::csub_match::str);
+        }},
+        {"captures_num", [](const reader *ctx, std::string_view str, const std::string &regex) -> variable {
+            auto match = search_regex_captures(ctx->m_locale, str, regex);
+            return match
+                | std::views::drop(1)
+                | std::views::transform(match_to_view)
+                | std::views::transform([&](std::string_view str) {
+                    return parse_num(ctx->m_locale, str);
+                });
         }},
         {"matches", [](const reader *ctx, std::string_view str, const std::string &regex) {
             return std::regex_match(str.begin(), str.end(), create_regex(ctx->m_locale, regex));
@@ -482,6 +495,9 @@ namespace bls {
         }},
         {"strlen", [](std::string_view str) {
             return str.size();
+        }},
+        {"size", [](vector_view<variable> vec) {
+            return vec.size();
         }},
         {"indexof", [](std::string_view str, std::string_view value, optional<size_t> index) {
             return string_find_icase(str, value, index).begin() - str.begin();

@@ -59,12 +59,15 @@ namespace bls {
         variable(std::vector<variable> &&vec) : m_value(std::move(vec)) {}
 
         template<typename T>
-        variable(const std::vector<T> &vec) : m_value(std::vector<variable>(vec.begin(), vec.end())) {}
+        variable(const std::vector<T> &vec) : m_value(std::in_place_type<std::vector<variable>>, vec.begin(), vec.end()) {}
 
         template<typename T>
-        variable(std::vector<T> &&vec) : m_value(std::vector<variable>(
+        variable(std::vector<T> &&vec) : m_value(std::in_place_type<std::vector<variable>>,
             std::make_move_iterator(vec.begin()), std::make_move_iterator(vec.end())
-        )) {}
+        ) {}
+
+        template<std::ranges::input_range T> requires std::ranges::enable_view<T>
+        variable(T range) : m_value(std::in_place_type<std::vector<variable>>, range.begin(), range.end()) {}
 
         variable(const variable *ptr) : m_value(ptr) {}
 
