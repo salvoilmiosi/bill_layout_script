@@ -17,6 +17,7 @@ namespace bls {
     #define DEFINE_CONVERTER(t, cmd) template<> struct variable_converter<t> { t operator()(const variable &var) const { return cmd; } };
 
     DEFINE_CONVERTER(std::string_view,  var.as_view())
+    DEFINE_CONVERTER(string_state,      var.as_view())
     DEFINE_CONVERTER(fixed_point,       var.as_number())
     DEFINE_CONVERTER(datetime,          var.as_date())
     DEFINE_CONVERTER(size_t,            var.as_int())

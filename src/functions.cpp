@@ -13,15 +13,32 @@
 
 namespace bls {
 
+    inline auto match_to_view(const std::csub_match &m) {
+        return std::string_view(m.first, m.second);
+    };
+
     // Converte una stringa in numero usando il formato del locale
-    static variable parse_num(const std::locale &loc, std::string_view str) {
-        fixed_point num;
-        util::isviewstream iss{str};
-        iss.imbue(loc);
-        if (dec::fromStream(iss, num)) {
-            return num;
-        } else {
-            return variable();
+    struct num_parser {
+        const std::locale &loc;
+        
+        variable operator()(std::string_view str) const {
+            fixed_point num;
+            util::isviewstream iss{str};
+            iss.imbue(loc);
+            if (dec::fromStream(iss, num)) {
+                return num;
+            } else {
+                return {};
+            }
+        }
+
+        variable operator()(const variable &var) const {
+            if (var.is_null() || var.is_number()) return var;
+            return (*this)(var.as_view());
+        }
+
+        variable operator()(const std::csub_match &m) const {
+            return (*this)(match_to_view(m));
         }
     };
 
@@ -139,10 +156,6 @@ namespace bls {
         return ret;
     }
 
-    inline auto match_to_view(const std::csub_match &m) {
-        return std::string_view(m.first, m.second);
-    };
-
     // cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
     static std::string_view search_regex(const std::locale &loc, std::string_view value, const std::string &regex, size_t index) {
         std::cmatch match;
@@ -160,7 +173,7 @@ namespace bls {
     }
 
     // cerca la regex in str e ritorna i valori trovati
-    static auto search_regex_all(std::string_view value, const std::regex &regex, size_t index) {
+    static auto search_regex_matches(std::string_view value, const std::regex &regex, size_t index) {
         return std::ranges::subrange(
             std::cregex_token_iterator(value.data(), value.data() + value.size(), regex, index),
             std::cregex_token_iterator());
@@ -272,15 +285,15 @@ namespace bls {
     }
 
     template<bool OuterLeft, bool OuterRight>
-    static std::string_view string_between(const std::locale &loc, std::string_view str, const variable &from, const variable &to) {
-        auto search_range = [&](const variable &expr) -> std::string_view {
-            if (expr.is_regex()) {
-                return search_regex(loc, str, expr.as_string(), 0);
+    static std::string_view string_between(const std::locale &loc, std::string_view str, string_state from, string_state to) {
+        auto search_range = [&](string_state expr) -> std::string_view {
+            if (expr.flags.is_regex) {
+                return search_regex(loc, str, std::string(expr), 0);
             } else {
-                return string_find_icase(str, expr.as_view(), 0) | util::range_to<std::string_view>;
+                return string_find_icase(str, expr, 0) | util::range_to<std::string_view>;
             }
         };
-        if (!from.is_null()) {
+        if (!from.empty()) {
             auto from_span = search_range(from);
             if constexpr (OuterLeft) {
                 str = std::string_view(from_span.data(), str.data() + str.size());
@@ -288,7 +301,7 @@ namespace bls {
                 str = std::string_view(from_span.data() + from_span.size(), str.data() + str.size());
             }
         }
-        if (!to.is_null()) {
+        if (!to.empty()) {
             auto to_span = search_range(to);
             if constexpr (OuterRight) {
                 str = std::string_view(str.data(), to_span.data() + to_span.size());
@@ -303,8 +316,10 @@ namespace bls {
         {"copy", [](const variable &var) { return var; }},
         {"str", [](const std::string &str) { return str; }},
         {"num", [](const reader *ctx, const variable &var) {
-            if (var.is_number()) return var;
-            return parse_num(ctx->m_locale, var.as_view());
+            return num_parser{ctx->m_locale}(var);
+        }},
+        {"nums", [](const reader *ctx, vector_view<variable> vars) -> variable {
+            return vars | std::views::transform(num_parser{ctx->m_locale});
         }},
         {"int", [](int a) { return a; }},
         {"bool",[](bool a) { return a; }},
@@ -367,7 +382,7 @@ namespace bls {
             return std::string(search_regex(ctx->m_locale, str, regex, index));
         }},
         {"search_num", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<1> index) -> variable {
-            return parse_num(ctx->m_locale, search_regex(ctx->m_locale, str, regex, index));
+            return num_parser{ctx->m_locale}(search_regex(ctx->m_locale, str, regex, index));
         }},
         {"searchpos", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<0> index) {
             return search_regex(ctx->m_locale, str, regex, index).begin() - str.begin();
@@ -375,17 +390,14 @@ namespace bls {
         {"searchposend", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<0> index) {
             return search_regex(ctx->m_locale, str, regex, index).end() - str.begin();
         }},
-        {"search_all", [](const reader *ctx, std::string_view str, const std::string &regex_str, optional_size<1> index) -> variable {
+        {"matches", [](const reader *ctx, std::string_view str, const std::string &regex_str, optional_size<1> index) -> variable {
             auto regex = create_regex(ctx->m_locale, regex_str);
-            return search_regex_all(str, regex, index) | std::views::transform(&std::csub_match::str);
+            return search_regex_matches(str, regex, index) | std::views::transform(&std::csub_match::str);
         }},
-        {"search_num_all", [](const reader *ctx, std::string_view str, const std::string &regex_str, optional_size<1> index) -> variable {
+        {"matches_num", [](const reader *ctx, std::string_view str, const std::string &regex_str, optional_size<1> index) -> variable {
             auto regex = create_regex(ctx->m_locale, regex_str);
-            return search_regex_all(str, regex, index)
-                | std::views::transform(match_to_view)
-                | std::views::transform([&](std::string_view str) {
-                    return parse_num(ctx->m_locale, str);
-                });
+            return search_regex_matches(str, regex, index)
+                | std::views::transform(num_parser{ctx->m_locale});
         }},
         {"captures", [](const reader *ctx, std::string_view str, const std::string &regex) -> variable {
             auto match = search_regex_captures(ctx->m_locale, str, regex);
@@ -397,12 +409,9 @@ namespace bls {
             auto match = search_regex_captures(ctx->m_locale, str, regex);
             return match
                 | std::views::drop(1)
-                | std::views::transform(match_to_view)
-                | std::views::transform([&](std::string_view str) {
-                    return parse_num(ctx->m_locale, str);
-                });
+                | std::views::transform(num_parser{ctx->m_locale});
         }},
-        {"matches", [](const reader *ctx, std::string_view str, const std::string &regex) {
+        {"ismatch", [](const reader *ctx, std::string_view str, const std::string &regex) {
             return std::regex_match(str.begin(), str.end(), create_regex(ctx->m_locale, regex));
         }},
         {"replace", [](std::string str, std::string_view from, std::string_view to) {
@@ -478,16 +487,16 @@ namespace bls {
         {"substr", [](std::string_view str, size_t pos, optional_size<std::string_view::npos> count) {
             return std::string(str.substr(std::min(str.size(), pos), count));
         }},
-        {"between", [](const reader *ctx, std::string_view str, const variable &from, optional<variable> to) {
+        {"between", [](const reader *ctx, std::string_view str, string_state from, optional<string_state> to) {
             return string_between<false, false>(ctx->m_locale, str, from, to);
         }},
-        {"lbetween", [](const reader *ctx, std::string_view str, const variable &from, optional<variable> to) {
+        {"lbetween", [](const reader *ctx, std::string_view str, string_state from, optional<string_state> to) {
             return string_between<true, false>(ctx->m_locale, str, from, to);
         }},
-        {"rbetween", [](const reader *ctx, std::string_view str, const variable &from, optional<variable> to) {
+        {"rbetween", [](const reader *ctx, std::string_view str, string_state from, optional<string_state> to) {
             return string_between<false, true>(ctx->m_locale, str, from, to);
         }},
-        {"lrbetween", [](const reader *ctx, std::string_view str, const variable &from, optional<variable> to) {
+        {"lrbetween", [](const reader *ctx, std::string_view str, string_state from, optional<string_state> to) {
             return string_between<true, true>(ctx->m_locale, str, from, to);
         }},
         {"strcat", [](varargs<std::string_view> args) {

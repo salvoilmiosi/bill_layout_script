@@ -21,6 +21,8 @@ namespace bls {
     static constexpr string_flags as_regex_tag{true};
 
     struct string_state : std::string_view {
+        string_state() = default;
+
         string_state(std::string_view str, string_flags flags = as_string_tag)
             : std::string_view(str), flags(flags) {}
         
