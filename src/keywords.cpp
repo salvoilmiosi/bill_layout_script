@@ -101,27 +101,36 @@ void parser::parse_function_stmt() {
         throw parsing_error(intl::format("DUPLICATE_FUNCTION_NAME", name.value), name);
     }
     m_lexer.require(token_type::PAREN_BEGIN);
-    small_int num_args = 0;
+    
+    std::string fun_label = std::format("__function_{}", name.value);
+    std::string endfun_label = std::format("__endfunction_{}", name.value);
+
+    m_code.add_line<opcode::JMP>(endfun_label);
+    m_code.add_label(fun_label);
+
+    std::set<std::string_view> args;
     while (!m_lexer.check_next(token_type::PAREN_END)) {
         auto tok = m_lexer.next();
         switch (tok.type) {
         case token_type::CONTENT:
-            if (num_args == 0 && !has_content) {
+            if (args.empty() && !has_content) {
                 has_content = true;
                 ++m_content_level;
             } else {
                 throw unexpected_token(tok, token_type::IDENTIFIER);
             }
             break;
-        case token_type::IDENTIFIER:
-            if (std::ranges::find(m_fun_args, tok.value) != m_fun_args.end()) {
+        case token_type::DOLLAR: {
+            auto tok = m_lexer.require(token_type::IDENTIFIER);
+            if (args.insert(tok.value).second) {
+                m_code.add_line<opcode::SELLOCAL>(tok.value);
+            } else {
                 throw parsing_error(intl::format("DUPLICATE_FUNCTION_ARG_NAME", tok.value), tok);
             }
-            m_fun_args.emplace_back(tok.value);
-            ++num_args;
             break;
+        }
         default:
-            throw unexpected_token(tok, token_type::IDENTIFIER);
+            throw unexpected_token(tok);
         }
         tok = m_lexer.peek();
         switch (tok.type) {
@@ -134,19 +143,15 @@ void parser::parse_function_stmt() {
             throw unexpected_token(tok, token_type::PAREN_END);
         }
     }
-    
-    std::string fun_label = std::format("__function_{}", name.value);
-    std::string endfun_label = std::format("__endfunction_{}", name.value);
 
-    m_code.add_line<opcode::JMP>(endfun_label);
-
-    m_code.add_label(fun_label);
-    m_functions.emplace(std::string(name.value), function_info{num_args, has_content});
+    m_functions.emplace(std::string(name.value), function_info{small_int(args.size()), has_content});
+    for (auto _ : args) {
+        m_code.add_line<opcode::SETVAR>();
+    }
 
     read_statement();
     m_code.add_line<opcode::RET>();
     m_code.add_label(endfun_label);
-    m_fun_args.resize(m_fun_args.size() - num_args);
     if (has_content) {
         --m_content_level;
     }

@@ -346,11 +346,7 @@ void parser::sub_expression() {
         if (m_lexer.peek().type == token_type::PAREN_BEGIN) {
             read_function(tok_first, false);
         } else {
-            if (auto it = std::ranges::find(m_fun_args, tok_first.value); it != m_fun_args.end()) {
-                m_code.add_line<opcode::SELFUNARG>(it - m_fun_args.begin());
-            } else {
-                m_code.add_line<opcode::SELVAR>(tok_first.value);
-            }
+            m_code.add_line<opcode::SELVAR>(tok_first.value);
             read_variable_indices(true);
             m_code.add_line<opcode::PUSHVAR>();
         }

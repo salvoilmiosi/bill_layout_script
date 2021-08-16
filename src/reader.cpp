@@ -53,21 +53,28 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto jump_subroutine = [&](const jsr_address &address, bool getretvalue = false) {
-        m_calls.emplace(arg_list(m_stack.end() - address.numargs, m_stack.end()), m_program_counter, getretvalue);
+        m_calls.emplace(m_program_counter, getretvalue);
         jump_to(address);
     };
 
-    auto get_function_arg = [&](small_int idx) {
-        return m_calls.top().args[idx].as_pointer();
+    auto jump_return = [&] {
+        const auto &fun_call = m_calls.pop();
+        m_program_counter = fun_call.return_addr;
+        if (fun_call.getretvalue) {
+            m_stack.emplace();
+        }
     };
 
-    auto jump_return = [&](variable ret_value) {
-        auto fun_call = m_calls.pop();
+    auto jump_return_value = [&] {
+        const auto &fun_call = m_calls.top();
         m_program_counter = fun_call.return_addr;
-        m_stack.resize(m_stack.size() - fun_call.args.size());
+
         if (fun_call.getretvalue) {
-            m_stack.push(std::move(ret_value));
+            m_stack.top() = m_stack.top().deref();
+        } else {
+            m_stack.pop();
         }
+        m_calls.pop();
     };
 
     auto move_box = [&](spacer_index idx, variable &&amt) {
@@ -142,7 +149,6 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SELGLOBALDYN:  m_selected.emplace_back(m_stack.pop().as_string(), m_globals); break;
     case opcode::SELLOCAL:      m_selected.emplace_back(cmd.get_args<opcode::SELLOCAL>(), m_calls.top().vars); break;
     case opcode::SELLOCALDYN:   m_selected.emplace_back(m_stack.pop().as_string(), m_calls.top().vars); break;
-    case opcode::SELFUNARG:     m_selected.emplace_back(get_function_arg(cmd.get_args<opcode::SELFUNARG>())); break;
     case opcode::SELINDEX:      m_selected.top().add_index(cmd.get_args<opcode::SELINDEX>()); break;
     case opcode::SELINDEXDYN:   m_selected.top().add_index(m_stack.pop().as_int()); break;
     case opcode::SELSIZE:       m_selected.top().set_size(cmd.get_args<opcode::SELSIZE>()); break;
@@ -173,8 +179,8 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::JTE:           if(m_contents.top().tokenend()) jump_to(cmd.get_args<opcode::JTE>()); break;
     case opcode::JSRVAL:        jump_subroutine(cmd.get_args<opcode::JSRVAL>(), true); break;
     case opcode::JSR:           jump_subroutine(cmd.get_args<opcode::JSR>()); break;
-    case opcode::RET:           jump_return(variable()); break;
-    case opcode::RETVAL:        jump_return(m_stack.pop().deref()); break;
+    case opcode::RET:           jump_return(); break;
+    case opcode::RETVAL:        jump_return_value(); break;
     case opcode::IMPORT:        import_layout(cmd.get_args<opcode::IMPORT>()); break;
     case opcode::ADDLAYOUT:     push_layout(cmd.get_args<opcode::ADDLAYOUT>()); break;
     case opcode::SETCURLAYOUT:  m_current_layout = m_layouts.begin() + cmd.get_args<opcode::SETCURLAYOUT>(); break;

@@ -22,10 +22,13 @@ DEFINE_ENUM_FLAGS_IN_NS(bls, reader_flags,
 )
 
 struct function_call {
-    arg_list args;
+    variable_map vars;
     size_t return_addr;
     bool getretvalue;
-    variable_map vars;
+
+    function_call(size_t return_addr, bool getretvalue)
+        : return_addr(return_addr)
+        , getretvalue(getretvalue) {}
 };
 
 struct reader_aborted{};

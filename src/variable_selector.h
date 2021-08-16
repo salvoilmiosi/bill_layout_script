@@ -12,43 +12,19 @@ namespace bls {
 
     using variable_map = util::string_map<variable>;
 
-    struct variable_map_and_name {
-        variable_map *container;
-        std::string name;
-
-        const variable *find() const {
-            auto it = container->find(name);
-            if (it == container->end()) return nullptr;
-            return &it->second;
-        }
-
-        variable *find() {
-            return &(*container)[name];
-        }
-
-        void clear() {
-            container->erase(name);
-        }
-    };
-
     class variable_selector {
     private:
-        std::variant<variable_map_and_name, const variable *> select_args;
+        variable_map &m_current_map;
+        std::string m_name;
 
         std::vector<small_int> m_indices;
         small_int m_size = 1;
 
     private:
         const variable *get_variable_const() const {
-            const variable *var = std::visit(util::overloaded {
-                [](const variable_map_and_name &args) {
-                    return args.find();
-                },
-                [](const variable *var) {
-                    return var;
-                }
-            }, select_args);
-            if (!var) return nullptr;
+            auto it = m_current_map.find(m_name);
+            if (it == m_current_map.end()) return nullptr;
+            const variable *var = &it->second;
             for (small_int i : m_indices) {
                 if (!var->is_array()) return nullptr;
                 const auto &arr = var->as_array();
@@ -59,7 +35,7 @@ namespace bls {
         }
 
         variable *get_variable() {
-            variable *var = std::get<variable_map_and_name>(select_args).find();
+            variable *var = &m_current_map[m_name];
             for (int i=0; i<m_indices.size(); ++i) {
                 if (!var->is_array()) *var = std::vector<variable>();
                 auto &arr = var->as_array();
@@ -71,10 +47,8 @@ namespace bls {
 
     public:
         variable_selector(std::string name, variable_map &map)
-            : select_args(variable_map_and_name{&map, std::move(name)}) {}
-
-        variable_selector(const variable *var)
-            : select_args(var) {}
+            : m_current_map(map)
+            , m_name(std::move(name)) {}
 
         void add_index(small_int index) {
             m_indices.push_back(index);
@@ -129,7 +103,7 @@ namespace bls {
         }
 
         void clear_value() {
-            std::get<variable_map_and_name>(select_args).clear();
+            m_current_map.erase(m_name);
         }
 
         variable get_value() const {

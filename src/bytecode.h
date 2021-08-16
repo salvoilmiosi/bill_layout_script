@@ -74,7 +74,6 @@ namespace bls {
         (SELGLOBALDYN)
         (SELLOCAL, std::string)
         (SELLOCALDYN)
-        (SELFUNARG, small_int)
         (SELINDEX, small_int)
         (SELINDEXDYN)
         (SELAPPEND)
