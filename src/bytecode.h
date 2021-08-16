@@ -50,16 +50,6 @@ namespace bls {
         jump_address(int16_t address) : address(address) {}
     };
 
-    struct jsr_address : jump_address {
-        small_int numargs = 0;
-
-        jsr_address() = default;
-        
-        template<typename U>
-        jsr_address(U &&addr, small_int numargs)
-            : jump_address(std::forward<U>(addr)), numargs(numargs) {} 
-    };
-
     DEFINE_ENUM_TYPES_IN_NS(bls, opcode,
         (NOP)                           // no operation
         (COMMENT, std::string)          // comment
@@ -102,8 +92,8 @@ namespace bls {
         (JZ, jump_address)              // stack -> jump if top == 0
         (JNZ, jump_address)             // stack -> jump if top != 0
         (JTE, jump_address)             // jump if content_stack.top at token end
-        (JSR, jsr_address)              // program_counter -> call_stack -- jump to subroutine and discard return value
-        (JSRVAL, jsr_address)           // program_counter -> call_stack -- jump to subroutine
+        (JSR, jump_address)             // program_counter -> call_stack -- jump to subroutine and discard return value
+        (JSRVAL, jump_address)          // program_counter -> call_stack -- jump to subroutine
         (RET)                           // jump to call_stack.top
         (RETVAL)                        // return to caller and push value to stack
         (IMPORT, std::string)           // importa il file e lo esegue
@@ -111,7 +101,6 @@ namespace bls {
         (SETCURLAYOUT, int)             // sposta il puntatore del layout corrente
         (SETLAYOUT)                     // ferma l'esecuzione se settata la flag setlayout in reader
         (SETLANG, std::string)          // imposta il locale corrente
-        (HLT)                           // ferma l'esecuzione
     )
 
     template<typename T> using variant_type = std::conditional_t<std::is_void_v<T>, std::monostate, T>;

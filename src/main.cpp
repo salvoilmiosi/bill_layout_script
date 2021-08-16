@@ -17,8 +17,6 @@ struct MainApp {
     std::filesystem::path input_pdf;
     std::filesystem::path input_bls;
 
-    bool show_debug = false;
-    bool show_globals = false;
     bool get_layout = false;
     bool use_cache = false;
 
@@ -59,9 +57,6 @@ int MainApp::run() {
         auto write_table = [&](const variable_map &table) {
             json::object out;
             for (const auto &[key, var] : table) {
-                if (!show_debug && key.front() == '_') {
-                    continue;
-                }
                 out[key] = variable_to_value(var);
             }
             return out;
@@ -70,10 +65,6 @@ int MainApp::run() {
         result["values"] = my_reader.get_values()
             | std::views::transform(write_table)
             | util::range_to<json::array>;
-
-        if (show_globals) {
-            result["globals"] = write_table(my_reader.get_globals());
-        }
 
         if (!my_reader.get_notes().empty()) {
             result["notes"] = my_reader.get_notes() | util::range_to<json::array>;
@@ -126,8 +117,6 @@ int main(int argc, char **argv) {
             ("help,h", intl::format("PRINT_HELP").c_str())
             ("input-bls", po::value(&app.input_bls), intl::format("BLS_INPUT_FILE").c_str())
             ("input-pdf,p", po::value(&app.input_pdf), intl::format("PDF_INPUT_FILE").c_str())
-            ("show-debug,d", po::bool_switch(&app.show_debug), intl::format("SHOW_DEBUG_VARIABLES").c_str())
-            ("show-globals,g", po::bool_switch(&app.show_globals), intl::format("SHOW_GLOBAL_VARIABLES").c_str())
             ("halt-setlayout", po::bool_switch(&app.get_layout), intl::format("HALT_ON_SETLAYOUT").c_str())
             ("use-cache,c", po::bool_switch(&app.use_cache), intl::format("USE_CACHE").c_str())
             ("indent-size", po::value(&app.indent_size), intl::format("INDENTATION_SIZE").c_str())

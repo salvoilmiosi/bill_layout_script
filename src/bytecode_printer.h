@@ -58,10 +58,6 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<jump_a
     }
 }
 
-template<> std::ostream &operator << (std::ostream &out, const print_args<jsr_address> &args) {
-    return out << print_args<jump_address>(*args) << ' ' << print_args(args->numargs);
-}
-
 template<> std::ostream &operator << (std::ostream &out, const print_args<command_args> &line) {
     out << '\t' << print_args(line->command());
     line->visit([&](const auto &args) {

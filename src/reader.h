@@ -26,7 +26,7 @@ struct function_call {
     size_t return_addr;
     bool getretvalue;
 
-    function_call(size_t return_addr, bool getretvalue)
+    function_call(size_t return_addr, bool getretvalue = false)
         : return_addr(return_addr)
         , getretvalue(getretvalue) {}
 };
@@ -67,7 +67,6 @@ public:
     void start();
 
     const auto &get_values() const { return m_values; }
-    const auto &get_globals() const { return m_globals; }
     const auto &get_notes() const { return m_notes; }
     const auto &get_layouts() const { return m_layouts; }
 
@@ -101,6 +100,7 @@ private:
     pdf_rect m_current_box;
 
     size_t m_program_counter;
+    size_t m_program_counter_next;
     
     std::atomic<bool> m_running = false;
     std::atomic<bool> m_aborted = false;

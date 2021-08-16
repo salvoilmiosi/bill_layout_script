@@ -21,24 +21,28 @@ void reader::start() {
     m_layouts.clear();
     m_stack.clear();
     m_contents.clear();
-    m_calls.clear();
     m_selected.clear();
 
     m_values.emplace_back();
     m_current_table = m_values.begin();
+
+    m_calls.clear();
+    m_calls.emplace(std::numeric_limits<decltype(m_program_counter)>::max());
 
     m_current_box = {};
 
     m_locale = std::locale::classic();
 
     m_program_counter = 0;
+    m_program_counter_next = 0;
 
     m_running = true;
     m_aborted = false;
 
     while (m_running && m_program_counter < m_code.size()) {
+        m_program_counter_next = m_program_counter + 1;
         exec_command(m_code[m_program_counter]);
-        ++m_program_counter;
+        m_program_counter = m_program_counter_next;
     }
     if (m_aborted) {
         throw reader_aborted{};
@@ -49,17 +53,18 @@ void reader::start() {
 
 void reader::exec_command(const command_args &cmd) {
     auto jump_to = [&](const jump_address &label) {
-        m_program_counter += label.address;
+        m_program_counter_next = m_program_counter + label.address;
     };
 
-    auto jump_subroutine = [&](const jsr_address &address, bool getretvalue = false) {
-        m_calls.emplace(m_program_counter, getretvalue);
+    auto jump_subroutine = [&](const jump_address &address, bool getretvalue = false) {
+        m_calls.emplace(m_program_counter + 1, getretvalue);
         jump_to(address);
     };
 
     auto jump_return = [&] {
         const auto &fun_call = m_calls.pop();
-        m_program_counter = fun_call.return_addr;
+        m_program_counter_next = fun_call.return_addr;
+
         if (fun_call.getretvalue) {
             m_stack.emplace();
         }
@@ -67,7 +72,7 @@ void reader::exec_command(const command_args &cmd) {
 
     auto jump_return_value = [&] {
         const auto &fun_call = m_calls.top();
-        m_program_counter = fun_call.return_addr;
+        m_program_counter_next = fun_call.return_addr;
 
         if (fun_call.getretvalue) {
             m_stack.top() = m_stack.top().deref();
@@ -116,7 +121,7 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto import_layout = [&](const std::filesystem::path &filename) {
-        jsr_address addr{add_layout(filename) - m_program_counter, 0};
+        jump_address addr = add_layout(filename) - m_program_counter;
         m_code[m_program_counter] = make_command<opcode::JSR>(addr);
         jump_subroutine(addr);
     };
@@ -186,7 +191,6 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SETCURLAYOUT:  m_current_layout = m_layouts.begin() + cmd.get_args<opcode::SETCURLAYOUT>(); break;
     case opcode::SETLAYOUT:     if (m_flags.check(reader_flags::HALT_ON_SETLAYOUT)) m_running = false; break;
     case opcode::SETLANG:       set_language(cmd.get_args<opcode::SETLANG>()); break;
-    case opcode::HLT:           m_running = false; break;
     }
 }
 
@@ -218,23 +222,15 @@ size_t reader::add_layout(const std::filesystem::path &filename) {
 }
 
 size_t reader::add_code(bytecode &&new_code) {
-    size_t addr = m_code.size();
-
-    m_code.reserve(m_code.size() + 4 + new_code.size());
-    m_code.add_line<opcode::NOP>();
-
-    std::ranges::move(new_code, std::back_inserter(m_code));
-    if (addr == 0) {
-        m_code.add_line<opcode::HLT>();
-    } else {
-        m_code.add_line<opcode::SETCURLAYOUT>(m_current_layout - m_layouts.begin());
+    if (!m_code.empty()) {
+        new_code.add_line<opcode::SETCURLAYOUT>(m_current_layout - m_layouts.begin());
         if (std::has_facet<boost::locale::info>(m_locale)) {
-            m_code.add_line<opcode::SETLANG>(std::use_facet<boost::locale::info>(m_locale).name());
+            new_code.add_line<opcode::SETLANG>(std::use_facet<boost::locale::info>(m_locale).name());
         } else {
-            m_code.add_line<opcode::SETLANG>();
+            new_code.add_line<opcode::SETLANG>();
         }
-        m_code.add_line<opcode::RET>();
     }
-    
-    return addr;
+    new_code.add_line<opcode::RET>();
+
+    return m_code.insert(m_code.end(), std::make_move_iterator(new_code.begin()), std::make_move_iterator(new_code.end())) - m_code.begin();
 }

@@ -246,9 +246,6 @@ void parser::parse_continue_stmt() {
 
 void parser::parse_return_stmt() {
     auto tok_fun_name = m_lexer.require(token_type::KW_RETURN);
-    if (m_function_level == 0) {
-        throw parsing_error(intl::format("NOT_IN_A_FUNCTION"), tok_fun_name);
-    }
     if (m_lexer.check_next(token_type::SEMICOLON)) {
         m_code.add_line<opcode::RET>();
     } else {

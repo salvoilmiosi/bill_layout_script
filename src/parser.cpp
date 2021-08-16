@@ -372,9 +372,6 @@ void parser::read_variable_name(bool read_only) {
     if (m_lexer.check_next(token_type::KW_GLOBAL)) {
         var_type = variable_type::GLOBAL;
     } else if (auto tok = m_lexer.check_next(token_type::DOLLAR)) {
-        if (m_function_level == 0) {
-            throw parsing_error(intl::format("NOT_IN_A_FUNCTION"), tok);
-        }
         var_type = variable_type::LOCAL;
     }
 
@@ -493,9 +490,9 @@ void parser::read_function(token tok_fun_name, bool top_level) {
         }
         jump_label label = std::format("__function_{}", fun_name);
         if (top_level) {
-            m_code.add_line<opcode::JSR>(label, num_args);
+            m_code.add_line<opcode::JSR>(label);
         } else {
-            m_code.add_line<opcode::JSRVAL>(label, num_args);
+            m_code.add_line<opcode::JSRVAL>(label);
         }
     } else {
         throw parsing_error(intl::format("UNKNOWN_FUNCTION", fun_name), tok_fun_name);

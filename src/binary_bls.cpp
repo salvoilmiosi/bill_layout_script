@@ -139,20 +139,6 @@ template<> struct binary_io<jump_address> {
     }
 };
 
-template<> struct binary_io<jsr_address> {
-    static void write(std::ostream &output, const jsr_address &addr) {
-        writeData(output, addr.address);
-        writeData(output, addr.numargs);
-    }
-
-    static jsr_address read(std::istream &input) {
-        jsr_address ret;
-        readData(input, ret.address);
-        readData(input, ret.numargs);
-        return ret;
-    }
-};
-
 template<enums::flags_enum T> struct binary_io<enums::bitset<T>> {
     static void write(std::ostream &output, const enums::bitset<T> &data) {
         writeData(output, data.data());
