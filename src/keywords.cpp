@@ -189,7 +189,7 @@ void parser::parse_with_stmt() {
     read_expression();
     m_lexer.require(token_type::PAREN_END);
     ++m_content_level;
-    m_code.add_line<opcode::CNTADDSTRING>();
+    m_code.add_line<opcode::CNTADD>();
     read_statement();
     --m_content_level;
     m_code.add_line<opcode::CNTPOP>();

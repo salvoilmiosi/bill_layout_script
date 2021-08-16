@@ -86,7 +86,7 @@ namespace bls {
         (PUSHREGEX, std::string)        // str -> stack (flag come regex)
         (CALL, command_call)            // stack * numargs -> fun_name -> stack
         (SYSCALL, command_call)         // stack * numargs -> fun_name
-        (CNTADDSTRING)                  // stack -> content_stack
+        (CNTADD)                        // stack -> content_stack
         (CNTADDLIST)                    // stack -> content_stack
         (CNTPOP)                        // content_stack.pop()
         (NEXTRESULT)                    // content_stack.top.nextresult()

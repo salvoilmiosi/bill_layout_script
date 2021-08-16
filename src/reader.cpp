@@ -192,8 +192,8 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::PUSHREGEX:     m_stack.emplace(cmd.get_args<opcode::PUSHREGEX>(), as_regex_tag); break;
     case opcode::CALL:          m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
     case opcode::SYSCALL:       call_function(cmd.get_args<opcode::SYSCALL>()); break;
-    case opcode::CNTADDSTRING:  m_contents.emplace(m_stack.pop(), false); break;
-    case opcode::CNTADDLIST:    m_contents.emplace(m_stack.pop(), true); break;
+    case opcode::CNTADD:        m_contents.emplace(m_stack.pop()); break;
+    case opcode::CNTADDLIST:    m_contents.emplace(m_stack.pop(), as_array_tag); break;
     case opcode::CNTPOP:        m_contents.pop_back(); break;
     case opcode::NEXTRESULT:    m_contents.top().nextresult(); break;
     case opcode::JMP:           jump_to(cmd.get_args<opcode::JMP>()); break;
