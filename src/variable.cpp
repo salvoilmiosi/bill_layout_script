@@ -14,7 +14,7 @@ std::string &variable::get_string() const {
             [](std::integral auto num)  { return std::to_string(num); },
             [](std::floating_point auto num) { return std::to_string(num); },
             [](datetime date)           { return date.to_string(); },
-            [](const std::vector<variable> &arr) {
+            [](const variable_array &arr) {
                 return std::format("[{}]", util::string_join(arr | std::views::transform(&variable::as_view), ", "));
             }
         }, m_value));
@@ -27,19 +27,19 @@ const std::string &variable::as_string() const & {
 }
 
 std::string variable::as_string() && {
-    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
+    if (auto *ptr = std::get_if<variable_ptr>(&m_value)) {
         return (*ptr)->as_string();
     } else {
         return std::move(get_string());
     }
 }
 
-std::vector<variable> &variable::as_array() {
-    return std::get<std::vector<variable>>(m_value);
+variable_array &variable::as_array() {
+    return std::get<variable_array>(m_value);
 }
 
-const std::vector<variable> &variable::as_array() const {
-    return std::get<std::vector<variable>>(deref().m_value);
+const variable_array &variable::as_array() const {
+    return std::get<variable_array>(deref().m_value);
 }
 
 string_state variable::as_view() const {
@@ -103,12 +103,12 @@ bool variable::as_bool() const {
         [](string_state str)    { return !str.empty(); },
         [](number_t auto num)   { return num != 0; },
         [](datetime date)       { return date.is_valid(); },
-        [](const std::vector<variable> &arr) { return !arr.empty(); }
+        [](const variable_array &arr) { return !arr.empty(); }
     }, deref().m_value);
 }
 
-const variable *variable::as_pointer() const {
-    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
+variable_ptr variable::as_pointer() const {
+    if (auto *ptr = std::get_if<variable_ptr>(&m_value)) {
         return (*ptr)->as_pointer();
     } else {
         return this;
@@ -116,7 +116,7 @@ const variable *variable::as_pointer() const {
 }
 
 const variable &variable::deref() const & {
-    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
+    if (auto *ptr = std::get_if<variable_ptr>(&m_value)) {
         return (*ptr)->deref();
     } else {
         return *this;
@@ -124,7 +124,7 @@ const variable &variable::deref() const & {
 }
 
 variable variable::deref() && {
-    if (auto *ptr = std::get_if<const variable *>(&m_value)) {
+    if (auto *ptr = std::get_if<variable_ptr>(&m_value)) {
         return (*ptr)->deref();
     } else {
         return std::move(*this);
@@ -137,12 +137,12 @@ bool variable::is_null() const {
         [](auto)                { return false; },
         [](string_state str)    { return str.empty(); },
         [](datetime date)       { return !date.is_valid(); },
-        [](const std::vector<variable> &arr) { return arr.empty(); }
+        [](const variable_array &arr) { return arr.empty(); }
     }, deref().m_value);
 }
 
 bool variable::is_pointer() const {
-    return std::holds_alternative<const variable *>(m_value);
+    return std::holds_alternative<variable_ptr>(m_value);
 }
 
 bool variable::is_string() const {
@@ -167,7 +167,7 @@ bool variable::is_number() const {
 }
 
 bool variable::is_array() const {
-    return std::holds_alternative<std::vector<variable>>(deref().m_value);
+    return std::holds_alternative<variable_array>(deref().m_value);
 }
 
 std::partial_ordering variable::operator <=> (const variable &other) const {
@@ -252,7 +252,7 @@ void variable::assign(variable &&other) {
             }
             m_value = string_state(*m_str, view.flags);
         },
-        [&](const variable *ptr) {
+        [&](variable_ptr ptr) {
             assign(*ptr);
         }
     }, other.m_value);
@@ -262,11 +262,11 @@ variable &variable::operator += (const variable &other) {
     std::visit(util::overloaded{
         [](std::monostate, std::monostate) {},
         [](auto, std::monostate) {},
-        [](const variable *, std::monostate) {},
+        [](variable_ptr, std::monostate) {},
         [&](std::monostate, auto) {
             *this = other;
         },
-        [&](std::monostate, const variable *rhs) {
+        [&](std::monostate, variable_ptr rhs) {
             *this = *rhs;
         },
         [&](auto, auto) {
@@ -283,13 +283,16 @@ variable &variable::operator += (const variable &other) {
         [&](number_t auto num1, fixed_point num2) {
             *this = fixed_point(num1) + num2;
         },
-        [&](const variable *lhs, auto) {
+        [&](variable_array &arr, const variable_array &rhs) {
+            arr.insert(arr.end(), rhs.begin(), rhs.end());
+        },
+        [&](variable_ptr lhs, auto) {
             *this = *lhs + other;
         },
-        [&](auto, const variable *rhs) {
+        [&](auto, variable_ptr rhs) {
             *this += *rhs;
         },
-        [&](const variable *lhs, const variable *rhs) {
+        [&](variable_ptr lhs, variable_ptr rhs) {
             *this = *lhs + *rhs;
         }
     }, m_value, other.m_value);

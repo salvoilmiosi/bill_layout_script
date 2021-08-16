@@ -201,9 +201,9 @@ namespace bls {
                 auto match_str = match_to_view(match[0]);
                 pos = std::find_if_not(match_str.data() + match_str.size(), header_str.data() + header_str.size(), isspace);
                 if (pos == header_str.data() + header_str.size()) {
-                    return std::vector<variable>{match_str.data() - header_str.data(), -1ll};
+                    return variable_array{match_str.data() - header_str.data(), -1};
                 } else {
-                    return std::vector<variable>{match_str.data() - header_str.data(), pos - match_str.data()};
+                    return variable_array{match_str.data() - header_str.data(), pos - match_str.data()};
                 }
             } else {
                 return {};

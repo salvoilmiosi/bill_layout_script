@@ -21,10 +21,10 @@ namespace bls {
         small_int m_size = 1;
 
     private:
-        const variable *get_variable_const() const {
+        variable_ptr get_variable_const() const {
             auto it = m_current_map.find(m_name);
             if (it == m_current_map.end()) return nullptr;
-            const variable *var = &it->second;
+            variable_ptr var = &it->second;
             for (small_int i : m_indices) {
                 if (!var->is_array()) return nullptr;
                 const auto &arr = var->as_array();
@@ -37,7 +37,7 @@ namespace bls {
         variable *get_variable() {
             variable *var = &m_current_map[m_name];
             for (int i=0; i<m_indices.size(); ++i) {
-                if (!var->is_array()) *var = std::vector<variable>();
+                if (!var->is_array()) *var = variable_array();
                 auto &arr = var->as_array();
                 arr.resize(std::max(arr.size(), size_t(m_indices[i] + (i + 1 == m_indices.size() ? m_size : 1))));
                 var = arr.data() + m_indices[i];

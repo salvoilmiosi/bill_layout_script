@@ -29,9 +29,14 @@ namespace bls {
         string_flags flags;
     };
 
+    class variable;
+
+    using variable_array = std::vector<variable>;
+    using variable_ptr = const variable *;
+
     class variable {
     public:
-        using variant_type = std::variant<std::monostate, string_state, fixed_point, big_int, double, datetime, std::vector<variable>, const variable *>;
+        using variant_type = std::variant<std::monostate, string_state, fixed_point, big_int, double, datetime, variable_array, variable_ptr>;
         
         variable() = default;
 
@@ -57,21 +62,21 @@ namespace bls {
 
         variable(datetime value) : m_value(value) {}
 
-        variable(const std::vector<variable> &vec) : m_value(vec) {}
-        variable(std::vector<variable> &&vec) : m_value(std::move(vec)) {}
+        variable(const variable_array &vec) : m_value(vec) {}
+        variable(variable_array &&vec) : m_value(std::move(vec)) {}
 
         template<typename T>
-        variable(const std::vector<T> &vec) : m_value(std::in_place_type<std::vector<variable>>, vec.begin(), vec.end()) {}
+        variable(const std::vector<T> &vec) : m_value(std::in_place_type<variable_array>, vec.begin(), vec.end()) {}
 
         template<typename T>
-        variable(std::vector<T> &&vec) : m_value(std::in_place_type<std::vector<variable>>,
+        variable(std::vector<T> &&vec) : m_value(std::in_place_type<variable_array>,
             std::make_move_iterator(vec.begin()), std::make_move_iterator(vec.end())
         ) {}
 
         template<std::ranges::input_range T> requires std::ranges::enable_view<T>
-        variable(T range) : m_value(std::in_place_type<std::vector<variable>>, range.begin(), range.end()) {}
+        variable(T range) : m_value(std::in_place_type<variable_array>, range.begin(), range.end()) {}
 
-        variable(const variable *ptr) : m_value(ptr) {}
+        variable(variable_ptr ptr) : m_value(ptr) {}
 
         bool is_null() const;
         bool is_pointer() const;
@@ -84,8 +89,8 @@ namespace bls {
         const std::string &as_string() const &;
         std::string as_string() &&;
 
-        std::vector<variable> &as_array();
-        const std::vector<variable> &as_array() const;
+        variable_array &as_array();
+        const variable_array &as_array() const;
 
         const variable &deref() const &;
         variable deref() &&;
@@ -96,7 +101,7 @@ namespace bls {
         double as_double() const;
         datetime as_date() const;
         bool as_bool() const;
-        const variable *as_pointer() const;
+        variable_ptr as_pointer() const;
 
         std::partial_ordering operator <=> (const variable &other) const;
         
