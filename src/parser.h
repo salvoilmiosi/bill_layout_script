@@ -72,6 +72,8 @@ namespace bls {
         void sub_expression();
 
         void read_function(token tok_fun_name, bool top_level);
+        void read_variable_name();
+        void read_variable_indices();
 
         jump_label make_label(std::string_view label);
 
@@ -88,10 +90,6 @@ namespace bls {
         void parse_continue_stmt();
         void parse_return_stmt();
         void parse_clear_stmt();
-
-        void read_variable(bool read_only);
-        void read_variable_name(bool read_only);
-        void read_variable_indices(bool read_only);
 
     private:
         static inline int parser_counter = 0;

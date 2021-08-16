@@ -140,6 +140,22 @@ void reader::exec_command(const command_args &cmd) {
         }
     };
 
+    auto get_subitem = [&](small_int idx) {
+        auto &var = m_stack.top();
+        if (var.is_array()) {
+            const auto &arr = var.deref().as_array();
+            if (arr.size() > idx) {
+                if (var.is_pointer()) {
+                    var = arr[idx].as_pointer();
+                } else {
+                    var = arr[idx];
+                }
+                return;
+            }
+        }
+        var = variable();
+    };
+
     switch (cmd.command()) {
     case opcode::NOP:
     case opcode::COMMENT:
@@ -165,6 +181,8 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::INCVAR:        m_selected.pop().inc_value(m_stack.pop()); break;
     case opcode::DECVAR:        m_selected.pop().dec_value(m_stack.pop()); break;
     case opcode::CLEAR:         m_selected.pop().clear_value(); break;
+    case opcode::SUBITEM:       get_subitem(cmd.get_args<opcode::SUBITEM>()); break;
+    case opcode::SUBITEMDYN:    get_subitem(m_stack.pop().as_int()); break;
     case opcode::PUSHVAR:       m_stack.push(m_selected.pop().get_value()); break;
     case opcode::PUSHVIEW:      m_stack.push(m_contents.top().view()); break;
     case opcode::PUSHNUM:       m_stack.push(cmd.get_args<opcode::PUSHNUM>()); break;

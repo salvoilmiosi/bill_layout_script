@@ -184,11 +184,12 @@ void parser::assignment_stmt() {
             return;
         } else {
             m_code.add_line<opcode::SELVAR>(tok.value);
-            read_variable_indices(false);
+            read_variable_indices();
         }
         break;
     default:
-        read_variable(false);
+        read_variable_name();
+        read_variable_indices();
     }
 
     tok = m_lexer.next();
@@ -347,22 +348,26 @@ void parser::sub_expression() {
             read_function(tok_first, false);
         } else {
             m_code.add_line<opcode::SELVAR>(tok_first.value);
-            read_variable_indices(true);
             m_code.add_line<opcode::PUSHVAR>();
         }
         break;
     default:
-        read_variable(true);
+        read_variable_name();
         m_code.add_line<opcode::PUSHVAR>();
+    }
+    
+    while (m_lexer.check_next(token_type::BRACKET_BEGIN)) {
+        if (token tok = m_lexer.check_next(token_type::INTEGER)) {
+            m_code.add_line<opcode::SUBITEM>(util::string_to<small_int>(tok.value));
+        } else {
+            read_expression();
+            m_code.add_line<opcode::SUBITEMDYN>();
+        }
+        m_lexer.require(token_type::BRACKET_END);
     }
 }
 
-void parser::read_variable(bool read_only) {
-    read_variable_name(read_only);
-    read_variable_indices(read_only);
-}
-
-void parser::read_variable_name(bool read_only) {
+void parser::read_variable_name() {
     enum class variable_type {
         VALUES,
         GLOBAL,
@@ -392,13 +397,12 @@ void parser::read_variable_name(bool read_only) {
     }
 }
 
-void parser::read_variable_indices(bool read_only) {
+void parser::read_variable_indices() {
     bool in_loop = true;
     while (in_loop && m_lexer.check_next(token_type::BRACKET_BEGIN)) { // variable[
         token tok = m_lexer.peek();
         switch (tok.type) {
         case token_type::COLON: {
-            if (read_only) throw parsing_error(intl::format("READ_ONLY_ERROR"), tok);
             m_lexer.advance(tok);
             tok = m_lexer.peek();
             switch (tok.type) {
@@ -409,7 +413,7 @@ void parser::read_variable_indices(bool read_only) {
             case token_type::INTEGER: // variable[:N] -- append N times
                 m_lexer.advance(tok);
                 m_code.add_line<opcode::SELAPPEND>();
-                m_code.add_line<opcode::SELSIZE>(util::string_to<int>(tok.value));
+                m_code.add_line<opcode::SELSIZE>(util::string_to<small_int>(tok.value));
                 in_loop = false;
                 break;
             default:
@@ -420,20 +424,18 @@ void parser::read_variable_indices(bool read_only) {
             break;
         }
         case token_type::BRACKET_END:
-            if (read_only) throw parsing_error(intl::format("READ_ONLY_ERROR"), tok);
             m_code.add_line<opcode::SELAPPEND>();
             break;
         default:
             if (tok = m_lexer.check_next(token_type::INTEGER)) { // variable[N]
-                m_code.add_line<opcode::SELINDEX>(util::string_to<int>(tok.value));
+                m_code.add_line<opcode::SELINDEX>(util::string_to<small_int>(tok.value));
             } else {
                 read_expression();
                 m_code.add_line<opcode::SELINDEXDYN>();
             }
             if (tok = m_lexer.check_next(token_type::COLON)) { // variable[N:M] -- M times after index N
-                if (read_only) throw parsing_error(intl::format("READ_ONLY_ERROR"), tok);
                 if (tok = m_lexer.check_next(token_type::INTEGER)) {
-                    m_code.add_line<opcode::SELSIZE>(util::string_to<int>(tok.value));
+                    m_code.add_line<opcode::SELSIZE>(util::string_to<small_int>(tok.value));
                 } else {
                     read_expression();
                     m_code.add_line<opcode::SELSIZEDYN>();

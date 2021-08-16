@@ -75,6 +75,8 @@ namespace bls {
         (INCVAR)                        // stack -> selected += stack
         (DECVAR)                        // stack -> selected -= stack
         (CLEAR)                         // selected -> clear
+        (SUBITEM, small_int)
+        (SUBITEMDYN)
         (PUSHVAR)                       // selected -> stack
         (PUSHVIEW)                      // content_stack -> stack
         (PUSHNUM, fixed_point)          // number -> stack

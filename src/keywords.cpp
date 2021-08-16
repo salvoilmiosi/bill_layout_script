@@ -257,7 +257,7 @@ void parser::parse_return_stmt() {
 
 void parser::parse_clear_stmt() {
     m_lexer.require(token_type::KW_CLEAR);
-    read_variable_name(true);
+    read_variable_name();
     m_lexer.require(token_type::SEMICOLON);
     m_code.add_line<opcode::CLEAR>();
 };
