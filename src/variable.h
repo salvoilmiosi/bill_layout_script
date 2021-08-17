@@ -130,8 +130,6 @@ namespace bls {
         mutable std::unique_ptr<std::string> m_str;
 
         variant_type m_value;
-
-        std::string &get_string() const;
     };
 
 }
