@@ -32,19 +32,11 @@ namespace bls {
         const variable &operator()(const variable &var) const {
             return var.deref();
         }
-
-        variable operator()(variable &&var) const {
-            return std::move(var).deref();
-        }
     };
 
     template<> struct variable_converter<std::string> {
         const std::string &operator()(const variable &var) const {
             return var.as_string();
-        }
-
-        std::string operator()(variable &&var) const {
-            return std::move(var).as_string();
         }
     };
 
@@ -98,10 +90,9 @@ namespace bls {
     template<int Value>     using optional_int =    optional<int,    int_getter<int, Value>>;
     template<size_t Value>  using optional_size =   optional<size_t, int_getter<size_t, Value>>;
 
-    using arg_list = std::ranges::subrange<typename simple_stack<variable>::iterator>;
-    using arg_clist = std::ranges::subrange<typename simple_stack<variable>::const_iterator>;
+    using arg_list = std::ranges::subrange<typename simple_stack<variable>::const_iterator>;
     
-    template<typename T> using varargs_base = std::ranges::transform_view<arg_clist, variable_converter<T>>;
+    template<typename T> using varargs_base = std::ranges::transform_view<arg_list, variable_converter<T>>;
     template<typename T, size_t Minargs = 0> struct varargs : varargs_base<T> {
         using var_type = T;
         template<typename U>
@@ -214,9 +205,9 @@ namespace bls {
                     return type(variable_converter<opt_type>{}(args[I]));
                 }
             } else if constexpr (is_varargs<std::decay_t<type>>{}) {
-                return type(arg_clist(args.begin() + I, args.end()));
+                return type(arg_list(args.begin() + I, args.end()));
             } else {
-                return variable_converter<type>{}(std::move(args[I]));
+                return variable_converter<type>{}(args[I]);
             }
         }
 
