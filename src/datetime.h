@@ -5,6 +5,8 @@
 #include <string>
 #include <locale>
 
+#include "utils.h"
+
 namespace bls {
 
     class datetime {
@@ -48,5 +50,11 @@ namespace bls {
     };
 
 }
+
+namespace util {
+    template<> inline bls::datetime string_to(std::string_view str) {
+        return bls::datetime::from_string(str);
+    }
+};
 
 #endif

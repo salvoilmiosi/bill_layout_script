@@ -63,28 +63,34 @@ string_state variable::as_view() const {
     }
 }
 
-template<typename T> struct number_converter{};
-
-template<> struct number_converter<fixed_point> {
-    fixed_point operator()(string_state str) const { return util::string_to<fixed_point>(str); }
-    fixed_point operator()(std::integral auto num) const { return fixed_point(num); }
-    fixed_point operator()(std::floating_point auto num) const { return fixed_point(num); }
-    fixed_point operator()(fixed_point num) const { return num; }
-    fixed_point operator()(auto) const { return {}; }
+template<typename T> concept convertible_from_string = requires(std::string_view str) {
+    { util::string_to<T>(str) } -> std::convertible_to<T>;
 };
 
-template<std::integral T> struct number_converter<T> {
-    T operator()(string_state str) const { return util::string_to<T>(str); }
+template<typename T> struct basic_converter{
+    T operator()(string_state str) const requires convertible_from_string<T> { return util::string_to<T>(str); }
+    T operator()(const T &obj) const { return obj; }
+    T operator()(auto) const { return T{}; }
+};
+
+template<typename T> struct number_converter_base : basic_converter<T> {
+    using basic_converter<T>::operator();
+    T operator()(std::integral auto num) const { return T(num); }
+    T operator()(std::floating_point auto num) const { return T(num); }
+};
+
+template<typename T> struct number_converter {};
+
+template<> struct number_converter<fixed_point> : number_converter_base<fixed_point> {
+    using number_converter_base<fixed_point>::operator();
+};
+template<std::integral T> struct number_converter<T> : number_converter_base<T> {
+    using number_converter_base<T>::operator();
     T operator()(fixed_point num) const { return num.getAsInteger(); }
-    T operator()(std::convertible_to<T> auto num) const { return num; }
-    T operator()(auto) const { return {}; }
 };
-
-template<std::floating_point T> struct number_converter<T> {
-    T operator()(string_state str) const { return util::string_to<T>(str); }
+template<std::floating_point T> struct number_converter<T> : number_converter_base<T> {
+    using number_converter_base<T>::operator();
     T operator()(fixed_point num) const { return num.getAsDouble(); }
-    T operator()(std::convertible_to<T> auto num) const { return num; }
-    T operator()(auto) const { return {}; }
 };
 
 template<typename T> concept number_t = std::invocable<number_converter<T>, string_state>;
@@ -102,22 +108,7 @@ double variable::as_double() const {
 }
 
 datetime variable::as_date() const {
-    return std::visit(util::overloaded{
-        [](string_state str)    { return datetime::from_string(str); },
-        [](datetime date)       { return date; },
-        [](auto)                { return datetime(); },
-    }, deref().m_value);
-}
-
-bool variable::as_bool() const {
-    return std::visit(util::overloaded{
-        [](std::monostate)      { return false; },
-        [](auto)                { return true; },
-        [](string_state str)    { return !str.empty(); },
-        [](number_t auto num)   { return num != 0; },
-        [](datetime date)       { return date.is_valid(); },
-        [](const variable_array &arr) { return !arr.empty(); }
-    }, deref().m_value);
+    return std::visit(basic_converter<datetime>{}, deref().m_value);
 }
 
 variable_ptr variable::as_pointer() const {
@@ -144,14 +135,23 @@ variable variable::deref() && {
     }
 }
 
-bool variable::is_null() const {
+struct null_checker {
+    bool operator()(auto) const             { return false; }
+    bool operator()(std::monostate) const   { return true; }
+    bool operator()(string_state str) const { return str.empty(); }
+    bool operator()(datetime date) const    { return !date.is_valid(); }
+    bool operator()(const variable_array &arr) const { return arr.empty(); }
+};
+
+bool variable::is_true() const {
     return std::visit(util::overloaded{
-        [](std::monostate)      { return true; },
-        [](auto)                { return false; },
-        [](string_state str)    { return str.empty(); },
-        [](datetime date)       { return !date.is_valid(); },
-        [](const variable_array &arr) { return arr.empty(); }
+        [](const auto &value) { return !null_checker{}(value); },
+        [](const number_t auto &num) { return num != 0; }
     }, deref().m_value);
+}
+
+bool variable::is_null() const {
+    return std::visit(null_checker{}, deref().m_value);
 }
 
 bool variable::is_pointer() const {
@@ -183,22 +183,6 @@ bool variable::is_array() const {
     return std::holds_alternative<variable_array>(deref().m_value);
 }
 
-template<typename T> struct string_converter_to {};
-template<number_t T> struct string_converter_to<T> {
-    auto operator()(std::string_view str) const {
-        return number_converter<T>{}(str);
-    }
-};
-template<> struct string_converter_to<datetime> {
-    auto operator()(std::string_view str) const {
-        return datetime::from_string(str);
-    }
-};
-
-template<typename T> concept convertible_from_string = requires(std::string_view str) {
-    { string_converter_to<T>{}(str) } -> std::convertible_to<T>;
-};
-
 template<typename T> concept not_monostate = ! std::same_as<T, std::monostate>;
 
 std::partial_ordering variable::operator <=> (const variable &other) const {
@@ -210,8 +194,8 @@ std::partial_ordering variable::operator <=> (const variable &other) const {
         [] <not_monostate T> (const T &lhs, std::monostate) { return lhs <=> T{}; },
         [] <not_monostate T> (std::monostate, const T &rhs) { return T{} <=> rhs; },
 
-        [] <convertible_from_string T> (const T &lhs, string_state rhs) { return lhs <=> string_converter_to<T>{}(rhs); },
-        [] <convertible_from_string T> (string_state lhs, const T &rhs) { return string_converter_to<T>{}(lhs) <=> rhs; },
+        [] <convertible_from_string T> (const T &lhs, string_state rhs) { return lhs <=> util::string_to<T>(rhs); },
+        [] <convertible_from_string T> (string_state lhs, const T &rhs) { return util::string_to<T>(lhs) <=> rhs; },
 
         [](const auto &, const auto &) { return std::partial_ordering::unordered; }
     }, deref().m_value, other.deref().m_value);

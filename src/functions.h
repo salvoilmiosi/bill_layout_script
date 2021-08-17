@@ -24,7 +24,7 @@ namespace bls {
     DEFINE_CONVERTER(int,               var.as_int())
     DEFINE_CONVERTER(float,             var.as_double())
     DEFINE_CONVERTER(double,            var.as_double())
-    DEFINE_CONVERTER(bool,              var.as_bool())
+    DEFINE_CONVERTER(bool,              var.is_true())
 
     #undef DEFINE_CONVERTER
 

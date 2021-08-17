@@ -111,7 +111,13 @@ namespace util {
         return str;
     }
 
-    template<typename T>
+    template<typename T> T string_to(std::string_view str) = delete;
+
+    template<typename T> concept istream_readable = requires(T x, std::istream stream) {
+        stream >> x;
+    };
+    
+    template<istream_readable T> requires (! std::integral<T>)
     T string_to(std::string_view str) {
         T ret;
         isviewstream ss{str};

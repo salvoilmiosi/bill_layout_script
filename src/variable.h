@@ -83,6 +83,7 @@ namespace bls {
 
         variable(variable_ptr ptr) : m_value(ptr) {}
 
+        bool is_true() const;
         bool is_null() const;
         bool is_pointer() const;
         bool is_string() const;
@@ -105,7 +106,6 @@ namespace bls {
         big_int as_int() const;
         double as_double() const;
         datetime as_date() const;
-        bool as_bool() const;
         variable_ptr as_pointer() const;
 
         std::partial_ordering operator <=> (const variable &other) const;

@@ -197,8 +197,8 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::CNTPOP:        m_contents.pop_back(); break;
     case opcode::NEXTRESULT:    m_contents.top().nextresult(); break;
     case opcode::JMP:           jump_to(cmd.get_args<opcode::JMP>()); break;
-    case opcode::JZ:            if(!m_stack.pop().as_bool()) jump_to(cmd.get_args<opcode::JZ>()); break;
-    case opcode::JNZ:           if(m_stack.pop().as_bool()) jump_to(cmd.get_args<opcode::JNZ>()); break;
+    case opcode::JZ:            if(!m_stack.pop().is_true()) jump_to(cmd.get_args<opcode::JZ>()); break;
+    case opcode::JNZ:           if(m_stack.pop().is_true()) jump_to(cmd.get_args<opcode::JNZ>()); break;
     case opcode::JTE:           if(m_contents.top().tokenend()) jump_to(cmd.get_args<opcode::JTE>()); break;
     case opcode::JSRVAL:        jump_subroutine(cmd.get_args<opcode::JSRVAL>(), true); break;
     case opcode::JSR:           jump_subroutine(cmd.get_args<opcode::JSR>()); break;
