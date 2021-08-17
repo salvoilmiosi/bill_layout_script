@@ -40,10 +40,15 @@ namespace bls {
         
         variable() = default;
 
-        variable(const variable &var);
-        variable(variable &&var);
+        variable(const variable &var) {
+            *this = var;
+        }
+        variable(variable &&var) = default;
 
         ~variable() = default;
+
+        variable &operator = (const variable &other);
+        variable &operator = (variable &&other) = default;
 
         variable(const std::string &value, string_flags state = as_string_tag)
             : m_str(std::make_unique<std::string>(value))
@@ -108,9 +113,6 @@ namespace bls {
         bool operator == (const variable &other) const {
             return std::partial_ordering::equivalent == *this <=> other;
         }
-
-        variable &operator = (const variable &other);
-        variable &operator = (variable &&other);
 
         void assign(const variable &other);
         void assign(variable &&other);

@@ -195,14 +195,6 @@ std::partial_ordering variable::operator <=> (const variable &other) const {
     }, deref().m_value, other.deref().m_value);
 }
 
-variable::variable(const variable &other) {
-    *this = other;
-}
-
-variable::variable(variable &&other) {
-    *this = std::move(other);
-}
-
 variable &variable::operator = (const variable &other) {
     if (auto *view = std::get_if<string_state>(&other.m_value); view && other.m_str) {
         m_str = std::make_unique<std::string>(*view);
@@ -210,17 +202,6 @@ variable &variable::operator = (const variable &other) {
     } else {
         m_str.reset();
         m_value = other.m_value;
-    }
-    return *this;
-}
-
-variable &variable::operator = (variable &&other) {
-    if (auto *view = std::get_if<string_state>(&other.m_value); view && other.m_str) {
-        m_str = std::move(other.m_str);
-        m_value = string_state(*m_str, view->flags);
-    } else {
-        m_str.reset();
-        m_value = std::move(other.m_value);
     }
     return *this;
 }
