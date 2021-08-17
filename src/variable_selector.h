@@ -12,37 +12,37 @@ namespace bls {
 
     using variable_map = util::string_map<variable>;
 
+    struct selector_index {
+        small_int index = 0;
+        small_int size = 1;
+        bool append:1 = false;
+        bool each:1 = false;
+    };
+
     class variable_selector {
     private:
         variable_map &m_current_map;
         std::string m_name;
 
-        std::vector<small_int> m_indices;
-        small_int m_size = 1;
+        std::vector<selector_index> m_indices;
 
     private:
-        variable_ptr get_variable_const() const {
-            auto it = m_current_map.find(m_name);
-            if (it == m_current_map.end()) return nullptr;
-            variable_ptr var = &it->second;
-            for (small_int i : m_indices) {
-                if (!var->is_array()) return nullptr;
-                const auto &arr = var->as_array();
-                if (i >= arr.size()) return nullptr;
-                var = arr.data() + i;
-            }
-            return var;
-        }
-
-        variable *get_variable() {
+        std::span<variable> get_variable_span() {
             variable *var = &m_current_map[m_name];
-            for (int i=0; i<m_indices.size(); ++i) {
+            size_t len = 1;
+            for (auto index : m_indices) {
                 if (!var->is_array()) *var = variable_array();
                 auto &arr = var->as_array();
-                arr.resize(std::max(arr.size(), size_t(m_indices[i] + (i + 1 == m_indices.size() ? m_size : 1))));
-                var = arr.data() + m_indices[i];
+                if (index.append) {
+                    index.index = arr.size();
+                } else if (index.each) {
+                    index.size = arr.size();
+                }
+                arr.resize(std::max(arr.size(), size_t(index.index + index.size)));
+                var = arr.data() + index.index;
+                len = index.size;
             }
-            return var;
+            return std::span(var, len);
         }
 
     public:
@@ -51,28 +51,19 @@ namespace bls {
             , m_name(std::move(name)) {}
 
         void add_index(small_int index) {
-            m_indices.push_back(index);
+            m_indices.emplace_back(index, 1);
         }
 
         void set_size(small_int size) {
-            m_size = size;
+            m_indices.back().size = size;
         }
 
         void add_append() {
-            if (auto var = get_variable_const(); var && var->is_array()) {
-                m_indices.push_back(var->as_array().size());
-            } else {
-                m_indices.push_back(0);
-            }
+            m_indices.emplace_back(0, 1, true);
         }
 
         void add_each() {
-            if (auto var = get_variable_const(); var && var->is_array()) {
-                m_indices.push_back(0);
-                m_size = var->as_array().size();
-            } else {
-                m_size = 0;
-            }
+            m_indices.emplace_back(0, 1, false, true);
         }
 
     public:
@@ -81,25 +72,25 @@ namespace bls {
         }
 
         void force_value(variable &&value) {
-            variable *var = get_variable();
-            for (int n = m_size; n > 1; ++var, --n) {
-                var->assign(value);
-            }
-            var->assign(std::move(value));
+            std::span<variable> vars = get_variable_span();
+            std::for_each_n(vars.begin(), vars.size() - 1, [&](variable &var) {
+                var.assign(value);
+            });
+            vars.back().assign(std::move(value));
         }
 
         void inc_value(const variable &value) {
             if (value.is_null()) return;
-            std::for_each_n(get_variable(), m_size, [&](variable &var) {
+            for (variable &var : get_variable_span()) {
                 var += value;
-            });
+            }
         }
 
         void dec_value(const variable &value) {
             if (value.is_null()) return;
-            std::for_each_n(get_variable(), m_size, [&](variable &var) {
+            for (variable &var : get_variable_span()) {
                 var -= value;
-            });
+            }
         }
 
         void clear_value() {
@@ -107,11 +98,9 @@ namespace bls {
         }
 
         variable get_value() const {
-            if (auto var = get_variable_const()) {
-                return var;
-            } else {
-                return variable();
-            }
+            auto it = m_current_map.find(m_name);
+            if (it == m_current_map.end()) return variable();
+            return it->second.as_pointer();
         }
     };
 }
