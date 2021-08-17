@@ -321,6 +321,9 @@ namespace bls {
         {"nums", [](const reader *ctx, vector_view<variable> vars) -> variable {
             return vars | std::views::transform(num_parser{ctx->m_locale});
         }},
+        {"neg", [](const reader *ctx, const variable &var) {
+            return -num_parser{ctx->m_locale}(var);
+        }},
         {"int", [](int a) { return a; }},
         {"bool",[](bool a) { return a; }},
         {"eq",  [](const variable &a, const variable &b) { return a == b; }},
@@ -335,7 +338,6 @@ namespace bls {
         {"mul", [](const variable &a, const variable &b) { return a * b; }},
         {"div", [](const variable &a, const variable &b) { return a / b; }},
         {"abs", [](const variable &a) { return a > 0 ? a : -a; }},
-        {"neg", [](const variable &a) { return -a; }},
         {"not", [](bool a) { return !a; }},
         {"and", [](bool a, bool b) { return a && b; }},
         {"or",  [](bool a, bool b) { return a || b; }},
