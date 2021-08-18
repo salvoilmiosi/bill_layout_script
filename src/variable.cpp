@@ -2,12 +2,24 @@
 
 #include "utils.h"
 #include "exceptions.h"
+#include "type_list.h"
 
 using namespace bls;
 
+template<typename T> static constexpr auto variant_type_name = variable::variant_type_names[
+    util::type_list_indexof_v<T, util::variant_type_list_t<variable::variant_type>>];
+
+template<typename T1, typename T2>
+static inline auto make_conversion_error() {
+    return bls::conversion_error(intl::format("CANT_CONVERT_TYPE_TO_TYPE", intl::format(variant_type_name<T1>), intl::format(variant_type_name<T2>)));
+}
+
 struct string_converter {
-    std::string operator()(auto) const {
-        return {};
+    std::string operator()(auto value) const {
+        throw make_conversion_error<decltype(value), string_state>();
+    }
+    std::string operator()(std::monostate) const {
+        return std::string();
     }
     std::string operator()(string_state str) const {
         return std::string(str);
@@ -70,7 +82,8 @@ template<typename T> concept convertible_from_string = requires(std::string_view
 template<typename T> struct basic_converter{
     T operator()(string_state str) const requires convertible_from_string<T> { return util::string_to<T>(str); }
     T operator()(const T &obj) const { return obj; }
-    T operator()(auto) const { return T{}; }
+    T operator()(auto value) const { throw make_conversion_error<decltype(value), T>(); }
+    T operator()(std::monostate) const requires std::default_initializable<T> { return T{}; }
 };
 
 template<typename T> struct number_converter_base : basic_converter<T> {
@@ -184,6 +197,7 @@ bool variable::is_array() const {
 }
 
 template<typename T> concept not_monostate = ! std::same_as<T, std::monostate>;
+template<typename T> concept comparable_with_null = not_monostate<T> && std::default_initializable<T>;
 
 std::partial_ordering variable::operator <=> (const variable &other) const {
     return std::visit<std::partial_ordering>(util::overloaded{
@@ -191,8 +205,8 @@ std::partial_ordering variable::operator <=> (const variable &other) const {
             return lhs <=> rhs;
         },
 
-        [] <not_monostate T> (const T &lhs, std::monostate) { return lhs <=> T{}; },
-        [] <not_monostate T> (std::monostate, const T &rhs) { return T{} <=> rhs; },
+        [] <comparable_with_null T> (const T &lhs, std::monostate) { return lhs <=> T{}; },
+        [] <comparable_with_null T> (std::monostate, const T &rhs) { return T{} <=> rhs; },
 
         [] <convertible_from_string T> (const T &lhs, string_state rhs) { return lhs <=> util::string_to<T>(rhs); },
         [] <convertible_from_string T> (string_state lhs, const T &rhs) { return util::string_to<T>(lhs) <=> rhs; },

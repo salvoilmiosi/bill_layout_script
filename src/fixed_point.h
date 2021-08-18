@@ -6,6 +6,7 @@
 
 #include "decimal.h"
 #include "utils.h"
+#include "exceptions.h"
 
 #include <string>
 
@@ -32,7 +33,7 @@ namespace util {
         if (dec::fromStream(iss, num)) {
             return num;
         } else {
-            throw std::invalid_argument(intl::format("COULD_NOT_CONVERT_TO_NUMBER", str));
+            throw bls::conversion_error(intl::format("CANT_PARSE_NUMBER", str));
         }
     }
 }

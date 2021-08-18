@@ -1,6 +1,7 @@
 #include "datetime.h"
 
 #include "svstream.h"
+#include "exceptions.h"
 
 #include <boost/locale.hpp>
 #include <sstream>
@@ -22,7 +23,7 @@ datetime datetime::parse_date(const std::locale &loc, std::string_view str, cons
     datetime ret;
     ss >> boost::locale::as::ftime(fmt_str) >> ret.m_date;
     if (ss.fail()) {
-        throw std::invalid_argument(intl::format("COULD_NOT_PARSE_DATE", str));
+        throw conversion_error(intl::format("CANT_PARSE_DATE", str));
     }
     return ret;
 }

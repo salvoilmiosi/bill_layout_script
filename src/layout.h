@@ -54,7 +54,7 @@ namespace bls {
             layout_box_list ret;
             std::ifstream ifs(filename);
             if (!ifs) {
-                throw layout_error(intl::format("COULD_NOT_OPEN_FILE", filename.string()));
+                throw layout_error(intl::format("CANT_OPEN_FILE", filename.string()));
             }
             ifs >> ret;
             return ret;
@@ -63,7 +63,7 @@ namespace bls {
         void save_file(const std::filesystem::path &filename) {
             std::ofstream ofs(filename);
             if (!ofs) {
-                throw layout_error(intl::format("COULD_NOT_SAVE_FILE", filename.string()));
+                throw layout_error(intl::format("CANT_SAVE_FILE", filename.string()));
             }
             ofs << *this;
         }

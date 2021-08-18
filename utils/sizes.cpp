@@ -35,13 +35,6 @@ namespace detail {
 template<enums::type_enum Enum> using enum_type_list_t = typename detail::enum_type_list<Enum,
     std::make_index_sequence<enums::size<Enum>()>>::type;
 
-template<typename T> struct variant_type_list{};
-template<typename T> using variant_type_list_t = typename variant_type_list<T>::type;
-
-template<typename ... Ts> struct variant_type_list<std::variant<Ts...>> {
-    using type = util::type_list<Ts...>;
-};
-
 template<typename T>
 void print_size(std::string name = boost::core::demangle(typeid(T).name())) {
     std::cout << std::format("{:>3} {}\n", sizeof(T), name);
@@ -62,7 +55,7 @@ int main() {
 
     print_size<bls::variable>();
     print_size<bls::variable::variant_type>();
-    type_printer<variant_type_list_t<bls::variable::variant_type>>{}();
+    type_printer<util::variant_type_list_t<bls::variable::variant_type>>{}();
 
     std::cout << '\n';
 

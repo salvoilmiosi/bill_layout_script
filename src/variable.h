@@ -37,6 +37,10 @@ namespace bls {
     class variable {
     public:
         using variant_type = std::variant<std::monostate, string_state, fixed_point, big_int, double, datetime, variable_array, variable_ptr>;
+
+        static constexpr auto variant_type_names = std::array{
+            "TYPE_NULL", "TYPE_STRING", "TYPE_NUMBER", "TYPE_INT", "TYPE_FLOAT", "TYPE_DATE", "TYPE_ARRAY", "TYPE_POINTER"
+        };
         
         variable() = default;
 

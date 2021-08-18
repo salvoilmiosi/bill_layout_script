@@ -9,6 +9,7 @@
 
 #include "translations.h"
 #include "svstream.h"
+#include "exceptions.h"
 
 namespace util {
 
@@ -123,7 +124,7 @@ namespace util {
         isviewstream ss{str};
         ss >> ret;
         if (ss.fail()) {
-            throw std::invalid_argument(intl::format("COULD_NOT_CONVERT_TO_NUMBER", str));
+            throw bls::conversion_error(intl::format("CANT_PARSE_NUMBER", str));
         }
         return ret;
     }
@@ -133,7 +134,7 @@ namespace util {
         T ret;
         auto result = std::from_chars(str.data(), str.data() + str.size(), ret);
         if (result.ec != std::errc()) {
-            throw std::invalid_argument(intl::format("COULD_NOT_CONVERT_TO_NUMBER", str));
+            throw bls::conversion_error(intl::format("CANT_PARSE_NUMBER", str));
         }
         return ret;
     }

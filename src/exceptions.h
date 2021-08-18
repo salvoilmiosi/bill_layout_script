@@ -11,6 +11,11 @@ namespace bls {
         layout_error(T &&message) : std::runtime_error(std::forward<T>(message)) {}
     };
 
+    struct conversion_error : std::runtime_error {
+        template<typename T>
+        conversion_error(T &&message) : std::runtime_error(std::forward<T>(message)) {}
+    };
+
     struct layout_runtime_error : std::runtime_error {
         int errcode;
 
