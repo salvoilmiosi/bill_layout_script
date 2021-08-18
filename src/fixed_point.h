@@ -5,8 +5,9 @@
 #define DEC_ALLOW_SPACESHIP_OPER 1
 
 #include "decimal.h"
+#include "utils.h"
+
 #include <string>
-#include <ranges>
 
 namespace bls {
 
@@ -22,6 +23,18 @@ namespace bls {
         return str;
     }
 
+}
+
+namespace util {
+    template<> inline bls::fixed_point string_to(std::string_view str) {
+        bls::fixed_point num;
+        isviewstream iss{str};
+        if (dec::fromStream(iss, num)) {
+            return num;
+        } else {
+            throw std::invalid_argument(intl::format("COULD_NOT_CONVERT_TO_NUMBER", str));
+        }
+    }
 }
 
 #endif

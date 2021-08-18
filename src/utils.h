@@ -113,19 +113,22 @@ namespace util {
 
     template<typename T> T string_to(std::string_view str) = delete;
 
-    template<typename T> concept istream_readable = requires(T x, std::istream stream) {
-        stream >> x;
+    template<typename T> concept from_chars_readable = requires(T x, std::string_view str) {
+        std::from_chars(str.data(), str.data() + str.size(), x);
     };
     
-    template<istream_readable T> requires (! std::integral<T>)
+    template<std::floating_point T> requires (! from_chars_readable<T>)
     T string_to(std::string_view str) {
         T ret;
         isviewstream ss{str};
         ss >> ret;
+        if (ss.fail()) {
+            throw std::invalid_argument(intl::format("COULD_NOT_CONVERT_TO_NUMBER", str));
+        }
         return ret;
     }
 
-    template<std::integral T>
+    template<from_chars_readable T>
     constexpr T string_to(std::string_view str) {
         T ret;
         auto result = std::from_chars(str.data(), str.data() + str.size(), ret);

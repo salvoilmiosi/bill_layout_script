@@ -21,6 +21,9 @@ datetime datetime::parse_date(const std::locale &loc, std::string_view str, cons
     ss.imbue(loc);
     datetime ret;
     ss >> boost::locale::as::ftime(fmt_str) >> ret.m_date;
+    if (ss.fail()) {
+        throw std::invalid_argument(intl::format("COULD_NOT_PARSE_DATE", str));
+    }
     return ret;
 }
 
