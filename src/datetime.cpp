@@ -20,12 +20,12 @@ std::string datetime::format(const std::locale &loc, const std::string &fmt_str)
 datetime datetime::parse_date(const std::locale &loc, std::string_view str, const std::string &fmt_str) {
     util::isviewstream ss{str};
     ss.imbue(loc);
-    datetime ret;
-    ss >> boost::locale::as::ftime(fmt_str) >> ret.m_date;
+    time_t ret;
+    ss >> boost::locale::as::ftime(fmt_str) >> ret;
     if (ss.fail()) {
         throw conversion_error(intl::format("CANT_PARSE_DATE", str));
     }
-    return ret;
+    return datetime(ret);
 }
 
 static inline const std::locale &generate_base_loc() {
@@ -46,7 +46,7 @@ datetime datetime::from_ymd(int year, int month, int day) {
     t.set(boost::locale::period::year(), year);
     t.set(boost::locale::period::month(), month - 1);
     t.set(boost::locale::period::day(), day);
-    return time_t(t.time());
+    return datetime(t.time());
 }
 
 void datetime::set_day(int day) {

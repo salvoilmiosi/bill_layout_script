@@ -11,11 +11,10 @@ namespace bls {
 
     class datetime {
     private:
-        time_t m_date{0};
+        time_t m_date;
 
     public:
-        datetime() = default;
-        datetime(time_t date) : m_date{date} {}
+        explicit datetime(time_t date) : m_date{date} {}
         
         auto operator <=> (const datetime &rhs) const {
             return m_date <=> rhs.m_date;

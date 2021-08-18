@@ -115,7 +115,7 @@ namespace bls {
         std::partial_ordering operator <=> (const variable &other) const;
         
         bool operator == (const variable &other) const {
-            return std::partial_ordering::equivalent == *this <=> other;
+            return 0 == *this <=> other;
         }
 
         void assign(const variable &other);

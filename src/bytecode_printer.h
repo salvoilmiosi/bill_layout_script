@@ -43,7 +43,7 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<comman
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<fixed_point> &args) {
-    return out << fixed_point_to_string(*args);
+    return out << decimal_to_string(*args);
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<std::string> &args) {

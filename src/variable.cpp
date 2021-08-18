@@ -25,7 +25,7 @@ struct string_converter {
         return std::string(str);
     }
     std::string operator()(fixed_point num) const {
-        return fixed_point_to_string(num);
+        return decimal_to_string(num);
     }
     std::string operator()(std::integral auto num) const {
         return std::to_string(num);
@@ -197,22 +197,52 @@ bool variable::is_array() const {
 }
 
 template<typename T> concept not_monostate = ! std::same_as<T, std::monostate>;
-template<typename T> concept comparable_with_null = not_monostate<T> && std::default_initializable<T>;
+
+template<typename T> concept comparable_with_null = not_monostate<T>
+    && std::three_way_comparable<T>
+    && std::default_initializable<T>;
+
+template<typename T> concept comparable_with_string = convertible_from_string<T>
+    && std::three_way_comparable<T>;
+
+template<typename T, typename U> concept simple_comparable_with = requires(T lhs, U rhs) {
+    lhs <=> rhs;
+};
+
+struct variable_comparator {
+    template<typename Lhs, typename Rhs>
+    std::partial_ordering operator()(const Lhs &, const Rhs &) const {
+        throw make_conversion_error<Lhs, Rhs>();
+    }
+
+    template<typename Lhs, simple_comparable_with<Lhs> Rhs>
+    std::partial_ordering operator()(const Lhs &lhs, const Rhs &rhs) const {
+        return lhs <=> rhs;
+    }
+
+    template<comparable_with_null T>
+    std::partial_ordering operator()(std::monostate, const T &rhs) {
+        return T{} <=> rhs;
+    }
+
+    template<comparable_with_null T>
+    std::partial_ordering operator()(const T &lhs, std::monostate) {
+        return lhs <=> T{};
+    }
+
+    template<comparable_with_string T>
+    std::partial_ordering operator()(string_state lhs, const T &rhs) {
+        return util::string_to<T>(lhs) <=> rhs;
+    }
+
+    template<comparable_with_string T>
+    std::partial_ordering operator()(const T &lhs, string_state rhs) {
+        return lhs <=> util::string_to<T>(rhs);
+    }
+};
 
 std::partial_ordering variable::operator <=> (const variable &other) const {
-    return std::visit<std::partial_ordering>(util::overloaded{
-        [] <typename Lhs, std::three_way_comparable_with<Lhs> Rhs> (const Lhs &lhs, const Rhs &rhs) {
-            return lhs <=> rhs;
-        },
-
-        [] <comparable_with_null T> (const T &lhs, std::monostate) { return lhs <=> T{}; },
-        [] <comparable_with_null T> (std::monostate, const T &rhs) { return T{} <=> rhs; },
-
-        [] <convertible_from_string T> (const T &lhs, string_state rhs) { return lhs <=> util::string_to<T>(rhs); },
-        [] <convertible_from_string T> (string_state lhs, const T &rhs) { return util::string_to<T>(lhs) <=> rhs; },
-
-        [](const auto &, const auto &) { return std::partial_ordering::unordered; }
-    }, deref().m_value, other.deref().m_value);
+    return std::visit(variable_comparator{}, deref().m_value, other.deref().m_value);
 }
 
 variable &variable::operator = (const variable &other) {

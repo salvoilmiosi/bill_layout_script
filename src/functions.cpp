@@ -270,7 +270,7 @@ namespace bls {
 
     // Viene creata un'espressione regolare che corrisponde alla stringa di formato valido per strptime,
     // poi cerca la data in value e la parsa. Ritorna time_t=0 se c'e' errore.
-    static datetime search_date(const std::locale &loc, std::string_view value, const std::string &format, std::string regex, size_t index) {
+    static variable search_date(const std::locale &loc, std::string_view value, const std::string &format, std::string regex, size_t index) {
         if (regex.empty()) {
             regex = date_regex(format);
             index = 0;
@@ -281,7 +281,7 @@ namespace bls {
         if (auto search_res = search_regex(loc, value, regex, index); !search_res.empty()) {
             return datetime::parse_date(loc, search_res, format);
         }
-        return datetime();
+        return {};
     }
 
     template<bool OuterLeft, bool OuterRight>
