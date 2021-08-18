@@ -367,6 +367,9 @@ namespace bls {
         {"min", [](varargs<variable, 1> args) {
             return *std::ranges::min_element(args);
         }},
+        {"clamp", [](const variable &value, const variable &low, const variable &high) {
+            return std::clamp(value, low, high);
+        }},
         {"percent", [](const std::string &str) {
             if (!str.empty()) {
                 return variable(str + "%");
