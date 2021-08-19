@@ -59,6 +59,7 @@ namespace bls {
         
         void read_statement();
         void assignment_stmt();
+        void read_tie_assignment();
 
         void read_expression();
         void sub_expression();
