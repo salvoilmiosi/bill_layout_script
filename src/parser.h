@@ -77,7 +77,6 @@ namespace bls {
         void parse_function_stmt();
         void parse_foreach_stmt();
         void parse_with_stmt();
-        void parse_step_stmt();
         void parse_import_stmt();
         void parse_break_stmt();
         void parse_continue_stmt();

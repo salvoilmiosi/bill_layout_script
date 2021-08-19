@@ -23,7 +23,6 @@ namespace bls {
         (KW_FUNCTION,   "function")
         (KW_FOREACH,    "foreach")
         (KW_WITH,       "with")
-        (KW_STEP,       "step")
         (KW_IMPORT,     "import")
         (KW_BREAK,      "break")
         (KW_CONTINUE,   "continue")
@@ -75,7 +74,6 @@ namespace bls {
         {"function",    token_type::KW_FUNCTION},
         {"foreach",     token_type::KW_FOREACH},
         {"with",        token_type::KW_WITH},
-        {"step",        token_type::KW_STEP},
         {"import",      token_type::KW_IMPORT},
         {"break",       token_type::KW_BREAK},
         {"continue",    token_type::KW_CONTINUE},

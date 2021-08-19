@@ -158,7 +158,6 @@ void parser::read_statement() {
     case token_type::KW_FUNCTION:   parse_function_stmt(); break;
     case token_type::KW_FOREACH:    parse_foreach_stmt(); break;
     case token_type::KW_WITH:       parse_with_stmt(); break;
-    case token_type::KW_STEP:       parse_step_stmt(); break;
     case token_type::KW_IMPORT:     parse_import_stmt(); break;
     case token_type::KW_BREAK:      parse_break_stmt(); break;
     case token_type::KW_CONTINUE:   parse_continue_stmt(); break;

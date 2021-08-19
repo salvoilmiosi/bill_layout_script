@@ -195,29 +195,6 @@ void parser::parse_with_stmt() {
     m_code.add_line<opcode::CNTPOP>();
 };
 
-void parser::parse_step_stmt() {
-    m_lexer.require(token_type::KW_STEP);
-    m_lexer.require(token_type::PAREN_BEGIN);
-    read_expression();
-    m_lexer.require(token_type::PAREN_END);
-    ++m_content_level;
-    m_code.add_line<opcode::CNTADDLIST>();
-
-    m_lexer.require(token_type::BRACE_BEGIN);
-    
-    while (true) {
-        read_statement();
-        if (! m_lexer.check_next(token_type::BRACE_END)) {
-            m_code.add_line<opcode::NEXTRESULT>();
-        } else {
-            break;
-        }
-    }
-
-    --m_content_level;
-    m_code.add_line<opcode::CNTPOP>();
-};
-
 void parser::parse_import_stmt() {
     m_lexer.require(token_type::KW_IMPORT);
     auto tok_layout_name = m_lexer.require(token_type::STRING);
