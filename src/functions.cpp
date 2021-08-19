@@ -166,10 +166,12 @@ namespace bls {
     }
 
     // cerca la regex in str e ritorna tutti i capture del primo valore trovato
-    static auto search_regex_captures(const std::locale &loc, std::string_view value, const std::string &regex) {
+    static std::cmatch search_regex_captures(const std::locale &loc, std::string_view value, const std::string &regex) {
         std::cmatch match;
-        std::regex_search(value.data(), value.data() + value.size(), match, create_regex(loc, regex));
-        return match;
+        if (std::regex_search(value.data(), value.data() + value.size(), match, create_regex(loc, regex))) {
+            return match;
+        }
+        return {};
     }
 
     // cerca la regex in str e ritorna i valori trovati
@@ -434,6 +436,15 @@ namespace bls {
         }},
         {"search_date", [](const reader *ctx, std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
             return search_date(ctx->m_locale, str, format, regex, index);
+        }},
+        {"search_month", [](const reader *ctx, std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
+            variable var = search_date(ctx->m_locale, str, format, regex, index);
+            if (!var.is_null()) {
+                datetime date = var.as_date();
+                date.set_day(1);
+                return variable(date);
+            }
+            return variable();
         }},
         {"date_format", [](const reader *ctx, datetime date, const std::string &format) {
             return date.format(ctx->m_locale, format);
