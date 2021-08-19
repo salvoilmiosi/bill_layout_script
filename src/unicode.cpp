@@ -84,7 +84,7 @@ std::string unicode::parseQuotedString(std::string_view str, bool is_regex) {
         }
         if (c == '\\') {
             if (current == end) {
-                throw std::runtime_error(intl::format("INVALID_STRING_CONSTANT"));
+                throw std::invalid_argument(intl::format("INVALID_STRING_CONSTANT"));
             }
             char escape = *current++;
             switch (escape) {
@@ -112,14 +112,14 @@ std::string unicode::parseQuotedString(std::string_view str, bool is_regex) {
             case 'u': {
                 unsigned int unicode;
                 if (!decodeUnicodeCodePoint(current, end, unicode)) {
-                    throw std::runtime_error(intl::format("INVALID_STRING_CONSTANT"));
+                    throw std::invalid_argument(intl::format("INVALID_STRING_CONSTANT"));
                 }
                 decoded += codePointToUTF8(unicode);
                 break;
             }
             default:
                 if (!is_regex) {
-                    throw std::runtime_error(intl::format("INVALID_STRING_CONSTANT"));
+                    throw std::invalid_argument(intl::format("INVALID_STRING_CONSTANT"));
                 } else {
                     decoded += '\\';
                     decoded += escape;

@@ -66,11 +66,6 @@ namespace bls {
         std::vector<std::unique_ptr<poppler::page>> m_pages;
     };
 
-    struct pdf_error : std::runtime_error {
-        template<typename T>
-        pdf_error(T &&message) : std::runtime_error(std::forward<T>(message)) {}
-    };
-
 }
 
 #endif // __PDF_DOCUMENT_H__

@@ -94,34 +94,22 @@ namespace bls {
         std::string parse_string();
     };
 
-    class parsing_error : public std::runtime_error {
-    protected:
-        token m_location;
+    struct token_error : public std::runtime_error {
+        const token location;
 
-    public:
         template<typename T>
-        parsing_error(T &&message, token location) :
-            std::runtime_error(std::forward<T>(message)), m_location(location) {}
-
-        token location() const noexcept {
-            return m_location;
-        }
+        token_error(T &&message, token location) :
+            std::runtime_error(std::forward<T>(message)), location(location) {}
     };
 
-    class unexpected_token : public parsing_error {
-    protected:
-        token_type m_expected;
+    struct unexpected_token : public token_error {
+        token_type expected;
 
-    public:
         unexpected_token(token tok, token_type expected = token_type::INVALID)
-            : parsing_error(expected == token_type::INVALID
+            : token_error(expected == token_type::INVALID
                 ? intl::format("UNEXPECTED_TOKEN", enums::get_data(tok.type))
                 : intl::format("UNEXPECTED_TOKEN_REQUIRED", enums::get_data(tok.type), enums::get_data(expected)), tok),
-            m_expected(expected) {}
-
-        token_type expected() {
-            return m_expected;
-        }
+            expected(expected) {}
     };
 
     class lexer {
@@ -149,18 +137,19 @@ namespace bls {
     private:
         std::function<void(const std::string &)> comment_callback;
 
-        size_t last_debug_line;
-        simple_stack<std::string> debug_lines;
+        simple_stack<std::string> comment_lines;
 
         const char *m_begin;
         const char *m_current;
         const char *m_end;
 
+        const char *m_line_end;
+        int m_line_count;
+
         char nextChar();
         void skipSpaces();
         
-        void addDebugData();
-        void flushDebugData();
+        void onLineStart();
 
         bool readIdentifier();
         bool readString();

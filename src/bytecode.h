@@ -38,6 +38,7 @@ namespace bls {
         enums::bitset<box_flags> flags;
     };
 
+    using comment_string = util::strong_typedef<std::string>;
     using jump_label = util::strong_typedef<std::string>;
 
     struct jump_address {
@@ -52,7 +53,8 @@ namespace bls {
 
     DEFINE_ENUM_TYPES_IN_NS(bls, opcode,
         (NOP)                           // no operation
-        (COMMENT, std::string)          // comment
+        (BOXNAME, comment_string)       // comment
+        (COMMENT, comment_string)       // comment
         (LABEL, jump_label)             // jump label
         (NEWBOX)                        // resetta current_box
         (MVBOX, spacer_index)           // stack -> current_box[index]
@@ -168,12 +170,12 @@ namespace bls {
             });
         }
 
-        void add_label(const jump_label &label) {
+        bool add_label(const jump_label &label) {
             if (find_label(label) == end()) {
                 add_line<opcode::LABEL>(label);
-            } else {
-                throw layout_error(intl::format("DUPLICATE_GOTO_LABEL", label));
+                return true;
             }
+            return false;
         }
 
         void move_not_comments(size_t pos_begin, size_t pos_end) {

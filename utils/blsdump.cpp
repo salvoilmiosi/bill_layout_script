@@ -13,7 +13,6 @@ struct MainApp {
     std::filesystem::path input_file;
     std::filesystem::path output_cache;
 
-    bool skip_comments;
     bool do_read_cache;
 };
 
@@ -30,7 +29,6 @@ int main(int argc, char **argv) {
         desc.add_options()
             ("help,h", intl::format("PRINT_HELP").c_str())
             ("input-bls", po::value(&app.input_file), intl::format("BLS_INPUT_FILE").c_str())
-            ("skipcomments,s", po::bool_switch(&app.skip_comments), intl::format("SKIP_COMMENTS").c_str())
             ("read-cache,c", po::bool_switch(&app.do_read_cache), intl::format("READ_CACHE").c_str())
             ("output-cache,o", po::value(&app.output_cache), intl::format("OUT_CACHE_FILE").c_str())
         ;
@@ -65,7 +63,6 @@ int MainApp::run() {
 
         if (!do_read_cache) {
             parser my_parser;
-            if (!skip_comments) my_parser.add_flag(parser_flags::ADD_COMMENTS);
             my_parser.read_layout(input_file, layout_box_list::from_file(input_file));
             code = std::move(my_parser).get_bytecode();
         } else {
@@ -76,11 +73,11 @@ int MainApp::run() {
             binary::write(code, output_cache);
         }
         for (auto line = code.begin(); line != code.end(); ++line) {
-            if (line->command() == opcode::COMMENT) {
-                std::cout << line->get_args<opcode::COMMENT>();
-            } else {
-                std::cout << '\t' << line->command();
-                line->visit([&]<typename T>(T &args) {
+            line->visit([&]<typename T>(T &args) {
+                if constexpr (std::is_same_v<comment_string, T>) {
+                    std::cout << print_args(args);
+                } else {
+                    std::cout << '\t' << line->command();
                     if constexpr (std::is_base_of_v<jump_address, T>) {
                         if (args.label.empty()) {
                             auto it_label = line + args.address;
@@ -92,8 +89,8 @@ int MainApp::run() {
                     if constexpr (! std::is_same_v<std::monostate, T>) {
                         std::cout << ' ' << print_args(args);
                     }
-                });
-            }
+                }
+            });
             std::cout << '\n';
         }
     } catch (const std::exception &error) {

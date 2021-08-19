@@ -12,10 +12,6 @@
 
 namespace bls {
 
-    DEFINE_ENUM_FLAGS_IN_NS(bls, parser_flags,
-        (ADD_COMMENTS)
-    )
-
     struct loop_label_pair {
         std::string continue_label;
         std::string break_label;
@@ -26,7 +22,7 @@ namespace bls {
         bool has_contents;
     };
 
-    class invalid_numargs : public parsing_error {
+    class invalid_numargs : public token_error {
     private:
         static std::string get_message(const std::string &fun_name, size_t minargs, size_t maxargs) {
             if (maxargs == std::numeric_limits<size_t>::max()) {
@@ -40,16 +36,12 @@ namespace bls {
 
     public:
         invalid_numargs(const std::string &fun_name, size_t minargs, size_t maxargs, token &tok)
-            : parsing_error(get_message(fun_name, minargs, maxargs), tok) {}
+            : token_error(get_message(fun_name, minargs, maxargs), tok) {}
     };
 
     class parser {
     public:
         parser() : m_parser_id(parser_counter++) {}
-
-        void add_flag(parser_flags flag) {
-            m_flags.set(flag);
-        }
 
         void read_layout(const std::filesystem::path &path, const layout_box_list &layout);
 
@@ -60,7 +52,7 @@ namespace bls {
         auto &&get_bytecode() && {
             return std::move(m_code);
         }
-
+        
     private:
         void read_box(const layout_box &box);
         const layout_box *current_box = nullptr;
@@ -105,8 +97,6 @@ namespace bls {
         util::string_map<function_info> m_functions;
         int m_content_level = 0;
         int m_function_level = 0;
-
-        enums::bitset<parser_flags> m_flags;
 
         friend class lexer;
     };

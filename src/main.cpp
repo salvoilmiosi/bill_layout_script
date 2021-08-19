@@ -36,7 +36,7 @@ static json::value variable_to_value(const variable &var) {
 }
 
 int MainApp::run() {
-    int retcode = 0;
+    int retcode = 1;
     json::object result;
 
     reader my_reader;
@@ -75,7 +75,8 @@ int MainApp::run() {
             | util::range_to<json::array>;
 
         result["errcode"] = 0;
-    } catch (const layout_runtime_error &error) {
+        retcode = 0;
+    } catch (const scripted_error &error) {
         result["error"] = error.what();
         result["errcode"] = error.errcode;
 
@@ -83,20 +84,12 @@ int MainApp::run() {
         for (auto &l : my_reader.get_layouts()) {
             json_layouts.emplace_back(l.string());
         }
-        
-        retcode = 1;
-    } catch (const layout_error &error) {
-        result["error"] = error.what();
-        result["errcode"] = -1;
-        retcode = 2;
     } catch (const std::exception &error) {
         result["error"] = error.what();
         result["errcode"] = -1;
-        retcode = 3;
     } catch (...) {
         result["error"] = intl::format("UNKNOWN_ERROR");
-        result["errcode"] = -1;
-        retcode = 4;
+        result["errcode"] = -2;
     }
 
     json::printer(std::cout, indent_size)(result);

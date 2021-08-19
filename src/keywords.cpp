@@ -98,7 +98,7 @@ void parser::parse_function_stmt() {
     bool has_content = false;
     auto name = m_lexer.require(token_type::IDENTIFIER);
     if (function_lookup::valid(function_lookup::find(name.value)) || m_functions.contains(name.value)) {
-        throw parsing_error(intl::format("DUPLICATE_FUNCTION_NAME", name.value), name);
+        throw token_error(intl::format("DUPLICATE_FUNCTION_NAME", name.value), name);
     }
     m_lexer.require(token_type::PAREN_BEGIN);
     
@@ -125,7 +125,7 @@ void parser::parse_function_stmt() {
             if (args.insert(tok.value).second) {
                 m_code.add_line<opcode::SELLOCAL>(tok.value);
             } else {
-                throw parsing_error(intl::format("DUPLICATE_FUNCTION_ARG_NAME", tok.value), tok);
+                throw token_error(intl::format("DUPLICATE_FUNCTION_ARG_NAME", tok.value), tok);
             }
             break;
         }
@@ -230,7 +230,7 @@ void parser::parse_break_stmt() {
     auto tok_fun_name = m_lexer.require(token_type::KW_BREAK);
     m_lexer.require(token_type::SEMICOLON);
     if (m_loop_labels.empty()) {
-        throw parsing_error(intl::format("NOT_IN_A_LOOP"), tok_fun_name);
+        throw token_error(intl::format("NOT_IN_A_LOOP"), tok_fun_name);
     }
     m_code.add_line<opcode::JMP>(m_loop_labels.top().break_label);
 };
@@ -239,7 +239,7 @@ void parser::parse_continue_stmt() {
     auto tok_fun_name = m_lexer.require(token_type::KW_CONTINUE);
     m_lexer.require(token_type::SEMICOLON);
     if (m_loop_labels.empty()) {
-        throw parsing_error(intl::format("NOT_IN_A_LOOP"), tok_fun_name);
+        throw token_error(intl::format("NOT_IN_A_LOOP"), tok_fun_name);
     }
     m_code.add_line<opcode::JMP>(m_loop_labels.top().continue_label);
 };

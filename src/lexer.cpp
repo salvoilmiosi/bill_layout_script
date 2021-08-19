@@ -9,18 +9,17 @@ std::string token::parse_string() {
     assert (type == token_type::STRING || type == token_type::REGEXP);
     try {
         return unicode::parseQuotedString(value, type == token_type::REGEXP);
-    } catch (const std::runtime_error &error) {
-        throw parsing_error(error.what(), *this);
+    } catch (const std::invalid_argument &error) {
+        throw token_error(error.what(), *this);
     }
 }
 
 void lexer::set_script(std::string_view str) {
-    m_begin = m_current = str.data();
+    m_begin = m_line_end = m_current = str.data();
     m_end = m_begin + str.size();
 
-    last_debug_line = -1;
-    addDebugData();
-    flushDebugData();
+    m_line_count = 0;
+    onLineStart();
 }
 
 char lexer::nextChar() {
@@ -36,7 +35,7 @@ void lexer::skipSpaces() {
         case '\r':
         case '\n':
             comment = false;
-            addDebugData();
+            onLineStart();
             [[fallthrough]];
         case ' ':
         case '\t':
@@ -56,35 +55,40 @@ void lexer::skipSpaces() {
     }
 }
 
-void lexer::addDebugData() {
-    if (comment_callback) {
-        std::string_view script{m_begin, m_end};
-        size_t begin = script.find_first_not_of(" \t\r\n", m_current - m_begin);
-        if (begin != std::string::npos && begin != last_debug_line) {
-            last_debug_line = begin;
-            size_t endline = script.find_first_of("\r\n", begin);
-            auto line = script.substr(begin, endline == std::string_view::npos ? std::string_view::npos : endline - begin);
-            debug_lines.push_back(std::string(line));
+std::string lexer::token_location_info(const token &tok) {
+    const char *tok_line_begin = m_begin;
+    const char *tok_line_end = tok.value.data();
+    size_t tok_line_count = 1;
+    for (const char *c = m_begin; c != tok_line_end; ++c) {
+        if (*c == '\n') {
+            tok_line_begin = c + 1;
+            ++tok_line_count;
         }
     }
+    for (; tok_line_end != m_end && *tok_line_end != '\n'; ++tok_line_end);
+    return std::format("Ln {0}\n{1}\n{2}{4:~<{3}}",
+        tok_line_count, std::string_view{tok_line_begin, tok_line_end},
+        std::string(tok.value.data() - tok_line_begin, '-'), std::max(size_t(1), tok.value.size()), '^'
+    );
 }
 
-void lexer::flushDebugData() {
-    if (comment_callback) {
-        for (auto &line : debug_lines) {
-            comment_callback(line);
-        }
+void lexer::onLineStart() {
+    ++m_line_count;
+    
+    auto m_line_begin = m_line_end;
+    for (; m_line_end != m_end && *m_line_end != '\n'; ++m_line_end);
+    for (; m_line_begin != m_line_end && isspace(*m_line_begin); ++m_line_begin);
+    std::string_view line{m_line_begin, m_line_end};
+    if (!line.empty() && comment_callback) {
+        comment_lines.push_back(std::format("{0}: {1}", m_line_count, line));
     }
-    debug_lines.clear();
+    ++m_line_end;
 }
 
 token lexer::next(bool do_advance) {
     token tok;
 
     skipSpaces();
-    if (do_advance) {
-        flushDebugData();
-    }
     
     auto start = m_current;
 
@@ -272,7 +276,9 @@ token lexer::next(bool do_advance) {
     if (!ok) tok.type = token_type::INVALID;
     tok.value = std::string_view(start, m_current);
 
-    if (!do_advance) {
+    if (do_advance) {
+        advance(tok);
+    } else {
         m_current = start;
     }
     return tok;
@@ -309,32 +315,14 @@ token lexer::check_next(token_type type) {
 }
 
 void lexer::advance(token tok) {
-    flushDebugData();
-    m_current = tok.value.data() + tok.value.size();
-}
-
-std::string lexer::token_location_info(const token &tok) {
-    size_t numline = 1;
-    size_t loc = 1;
-    bool found = false;
-    std::string line;
-    for (auto c = m_begin; c != m_end; ++c) {
-        if (*c != '\n') line += *c;
-        if (c == tok.value.data()) {
-            found = true;
-        }
-        if (!found) {
-            ++loc;
-            if (*c == '\n') {
-                ++numline;
-                loc = 1;
-                line.clear();
-            }
-        } else if (*c == '\n') {
-            break;
+    if (comment_callback) {
+        for (auto &line : comment_lines) {
+            comment_callback(line);
         }
     }
-    return std::format("{0}\n{3:->{2}}\nLn {1}, Col {2}", line, numline, loc, '^');
+    comment_lines.clear();
+
+    m_current = tok.value.data() + tok.value.size();
 }
 
 bool lexer::readIdentifier() {

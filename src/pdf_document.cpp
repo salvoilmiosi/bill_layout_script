@@ -32,12 +32,12 @@ void pdf_rect::rotate(int amt) {
 void pdf_document::open(const std::filesystem::path &filename) {
     std::ifstream ifs(filename, std::ios::in | std::ios::binary);
     if (ifs.fail()) {
-        throw pdf_error(intl::format("CANT_OPEN_FILE", filename.string()));
+        throw file_error(intl::format("CANT_OPEN_FILE", filename.string()));
     }
     std::vector<char> file_data{std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>()};
     m_document.reset(poppler::document::load_from_data(&file_data));
     if (!m_document) {
-        throw pdf_error(intl::format("INVALID_PDF_DOCUMENT"));
+        throw file_error(intl::format("INVALID_PDF_DOCUMENT"));
     }
 
     m_filename = filename;

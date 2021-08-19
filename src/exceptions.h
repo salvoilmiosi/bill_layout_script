@@ -6,22 +6,32 @@
 
 namespace bls {
 
+    struct file_error : std::runtime_error {
+        using std::runtime_error::runtime_error;
+    };
+
+    struct parsing_error : std::runtime_error {
+        using std::runtime_error::runtime_error;
+    };
+
     struct layout_error : std::runtime_error {
-        template<typename T>
-        layout_error(T &&message) : std::runtime_error(std::forward<T>(message)) {}
+        using std::runtime_error::runtime_error;
     };
 
-    struct conversion_error : std::runtime_error {
-        template<typename T>
-        conversion_error(T &&message) : std::runtime_error(std::forward<T>(message)) {}
+    struct conversion_error : layout_error {
+        using layout_error::layout_error;
     };
 
-    struct layout_runtime_error : std::runtime_error {
+    struct reader_error : std::runtime_error {
+        using std::runtime_error::runtime_error;
+    };
+
+    struct scripted_error : reader_error {
         int errcode;
 
         template<typename T>
-        layout_runtime_error(T &&message, int errcode)
-            : std::runtime_error(std::forward<T>(message))
+        scripted_error(T &&message, int errcode)
+            : reader_error(std::forward<T>(message))
             , errcode(errcode) {}
     };
 

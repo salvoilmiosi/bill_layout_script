@@ -258,7 +258,7 @@ namespace bls {
                     ret += '%';
                     break;
                 default:
-                    throw std::invalid_argument(intl::format("INVALID_DATE_FORMAT"));
+                    throw layout_error(intl::format("INVALID_DATE_FORMAT"));
                 }
             } else {
                 ret += escape_regex_char(*it);
@@ -569,7 +569,7 @@ namespace bls {
         }},
         
         {"error", [](const std::string &message, optional_int<-1> errcode) {
-            throw layout_runtime_error(message, errcode);
+            throw scripted_error(message, errcode);
         }},
         {"note", [](reader *ctx, const std::string &message) {
             ctx->m_notes.push_back(message);
