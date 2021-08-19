@@ -46,8 +46,8 @@ void reader::start() {
             m_program_counter = m_program_counter_next;
         }
     } catch (const layout_error &err) {
-        throw reader_error(std::format("{0}: {1}\n{2}",
-            m_box_name, m_last_line,
+        throw reader_error(std::format("{0}: Ln {1}\n{2}\n{3}",
+            m_box_name, m_last_line.line, m_last_line.comment,
             err.what()));
     }
     if (m_aborted) {
@@ -165,7 +165,7 @@ void reader::exec_command(const command_args &cmd) {
     switch (cmd.command()) {
     case opcode::NOP:
     case opcode::LABEL:         break;
-    case opcode::BOXNAME:       m_box_name = cmd.get_args<opcode::BOXNAME>(); break;
+    case opcode::BOXNAME:       m_box_name = cmd.get_args<opcode::BOXNAME>().comment; break;
     case opcode::COMMENT:       m_last_line = cmd.get_args<opcode::COMMENT>(); break;
     case opcode::NEWBOX:        m_current_box = {}; break;
     case opcode::MVBOX:         move_box(cmd.get_args<opcode::MVBOX>(), m_stack.pop()); break;

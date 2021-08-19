@@ -51,11 +51,20 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<std::s
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<jump_address> &label) {
-    if (!label.data.label.empty()) {
-        return out << print_args(label.data.label);
+    if (!label->label.empty()) {
+        return out << print_args(label->label);
     } else {
-        return out << label.data.address;
+        return out << label->address;
     }
+}
+
+template<> std::ostream &operator << (std::ostream &out, const print_args<comment_line> &line) {
+    if (line->line) {
+        out << line->line << ": ";
+    } else {
+        out << "### Box ";
+    }
+    return out << line->comment;
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<command_args> &line) {

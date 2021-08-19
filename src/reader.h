@@ -93,8 +93,8 @@ private:
     std::vector<std::filesystem::path> m_layouts;
     decltype(m_layouts)::iterator m_current_layout;
 
-    comment_string m_box_name;
-    comment_string m_last_line;
+    std::string m_box_name;
+    comment_line m_last_line;
 
     std::locale m_locale;
 

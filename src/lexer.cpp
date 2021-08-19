@@ -80,7 +80,7 @@ void lexer::onLineStart() {
     for (; m_line_begin != m_line_end && isspace(*m_line_begin); ++m_line_begin);
     std::string_view line{m_line_begin, m_line_end};
     if (!line.empty() && comment_callback) {
-        comment_lines.push_back(std::format("{0}: {1}", m_line_count, line));
+        comment_lines.emplace_back(std::string(line), m_line_count);
     }
     ++m_line_end;
 }
@@ -317,7 +317,7 @@ token lexer::check_next(token_type type) {
 void lexer::advance(token tok) {
     if (comment_callback) {
         for (auto &line : comment_lines) {
-            comment_callback(line);
+            comment_callback(std::move(line));
         }
     }
     comment_lines.clear();

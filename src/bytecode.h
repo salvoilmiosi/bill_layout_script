@@ -38,7 +38,10 @@ namespace bls {
         enums::bitset<box_flags> flags;
     };
 
-    using comment_string = util::strong_typedef<std::string>;
+    struct comment_line {
+        std::string comment;
+        int line;
+    };
     using jump_label = util::strong_typedef<std::string>;
 
     struct jump_address {
@@ -53,8 +56,8 @@ namespace bls {
 
     DEFINE_ENUM_TYPES_IN_NS(bls, opcode,
         (NOP)                           // no operation
-        (BOXNAME, comment_string)       // comment
-        (COMMENT, comment_string)       // comment
+        (BOXNAME, comment_line)         // comment
+        (COMMENT, comment_line)         // comment
         (LABEL, jump_label)             // jump label
         (NEWBOX)                        // resetta current_box
         (MVBOX, spacer_index)           // stack -> current_box[index]

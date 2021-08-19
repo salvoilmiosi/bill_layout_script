@@ -74,7 +74,7 @@ int MainApp::run() {
         }
         for (auto line = code.begin(); line != code.end(); ++line) {
             line->visit([&]<typename T>(T &args) {
-                if constexpr (std::is_same_v<comment_string, T>) {
+                if constexpr (std::is_same_v<comment_line, T>) {
                     std::cout << print_args(args);
                 } else {
                     std::cout << '\t' << line->command();

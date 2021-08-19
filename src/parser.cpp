@@ -85,8 +85,8 @@ void parser::read_box(const layout_box &box) {
     }
     m_content_level = 0;
 
-    m_lexer.set_comment_callback([this](const std::string &line){
-        m_code.add_line<opcode::COMMENT>(line);
+    m_lexer.set_comment_callback([this](comment_line line){
+        m_code.add_line<opcode::COMMENT>(std::move(line));
     });
     m_lexer.set_script(box.spacers);
 

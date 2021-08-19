@@ -80,6 +80,20 @@ template<> struct binary_io<std::string> {
     }
 };
 
+template<> struct binary_io<comment_line> {
+    static void write(std::ostream &output, const comment_line &line) {
+        writeData(output, line.comment);
+        writeData(output, line.line);
+    }
+
+    static comment_line read(std::istream &input) {
+        comment_line ret;
+        readData(input, ret.comment);
+        readData(input, ret.line);
+        return ret;
+    }
+};
+
 template<> struct binary_io<fixed_point> {
     static void write(std::ostream &output, const fixed_point &num) {
         writeData<dec::int64>(output, num.getUnbiased());
