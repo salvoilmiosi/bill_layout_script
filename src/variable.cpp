@@ -198,10 +198,6 @@ bool variable::is_array() const {
 
 template<typename T> concept not_monostate = ! std::same_as<T, std::monostate>;
 
-template<typename T> concept comparable_with_null = not_monostate<T>
-    && std::three_way_comparable<T>
-    && std::default_initializable<T>;
-
 template<typename T> concept comparable_with_string = convertible_from_string<T>
     && std::three_way_comparable<T>;
 
@@ -220,14 +216,14 @@ struct variable_comparator {
         return lhs <=> rhs;
     }
 
-    template<comparable_with_null T>
+    template<not_monostate T>
     std::partial_ordering operator()(std::monostate, const T &rhs) {
-        return T{} <=> rhs;
+        return null_checker{}(rhs) ? std::partial_ordering::equivalent : std::partial_ordering::unordered;
     }
 
-    template<comparable_with_null T>
+    template<not_monostate T>
     std::partial_ordering operator()(const T &lhs, std::monostate) {
-        return lhs <=> T{};
+        return null_checker{}(lhs) ? std::partial_ordering::equivalent : std::partial_ordering::unordered;
     }
 
     template<comparable_with_string T>
