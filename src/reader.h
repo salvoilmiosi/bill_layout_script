@@ -17,7 +17,7 @@
 namespace bls {
 
 DEFINE_ENUM_FLAGS_IN_NS(bls, reader_flags,
-    (HALT_ON_SETLAYOUT)
+    (FIND_LAYOUT)
     (USE_CACHE)
 )
 

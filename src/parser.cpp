@@ -16,8 +16,8 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
     
     try {
         m_code.add_line<opcode::ADDLAYOUT>(std::filesystem::canonical(path).string());
-        if (layout.setlayout) {
-            m_code.add_line<opcode::SETLAYOUT>();
+        if (layout.find_layout_flag) {
+            m_code.add_line<opcode::FOUNDLAYOUT>();
         }
         if (layout.language.empty()) {
             m_code.add_line<opcode::SETLANG>();

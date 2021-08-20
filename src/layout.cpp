@@ -10,8 +10,8 @@ namespace bls {
 
     std::ostream &operator << (std::ostream &output, const layout_box_list &layout) {
         output << "### Bill Layout Script\n";
-        if (layout.setlayout) {
-            output << "### Set Layout\n";
+        if (layout.find_layout_flag) {
+            output << "### Flag Find Layout\n";
         }
         if (!layout.language.empty()) {
             output << "### Language " << layout.language << '\n';
@@ -163,8 +163,8 @@ namespace bls {
                 }
             } else if (auto suf = suffix(line, "### Language")) {
                 layout.language = suf.value;
-            } else if (line == "### Set Layout") {
-                layout.setlayout = true;
+            } else if (line == "### Flag Find Layout") {
+                layout.find_layout_flag = true;
             } else if (line.front() != '#') {
                 throw parsing_error(intl::format("INVALID_TOKEN", line));
             }

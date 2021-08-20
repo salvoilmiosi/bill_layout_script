@@ -23,7 +23,7 @@ namespace bls {
     class layout_box_list : public std::list<layout_box> {
     public:
         using base = std::list<layout_box>;
-        bool setlayout = false;
+        bool find_layout_flag = false;
         std::string language;
 
     public:
@@ -31,7 +31,7 @@ namespace bls {
 
         void clear() {
             base::clear();
-            setlayout = false;
+            find_layout_flag = false;
             language.clear();
         }
 

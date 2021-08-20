@@ -107,8 +107,8 @@ namespace bls {
         (IMPORT, std::string)           // importa il file e lo esegue
         (ADDLAYOUT, std::string)        // aggiunge il nome del layout nella lista di output
         (SETCURLAYOUT, small_int)       // sposta il puntatore del layout corrente
-        (SETLAYOUT)                     // ferma l'esecuzione se settata la flag setlayout in reader
         (SETLANG, std::string)          // imposta il locale corrente
+        (FOUNDLAYOUT)                   // ferma l'esecuzione se settata la flag find layout in reader
     )
 
     template<typename T> using variant_type = std::conditional_t<std::is_void_v<T>, std::monostate, T>;

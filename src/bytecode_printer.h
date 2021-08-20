@@ -62,7 +62,7 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<commen
     if (line->line) {
         out << line->line << ": ";
     } else {
-        out << "### Box ";
+        out << "# ";
     }
     return out << line->comment;
 }

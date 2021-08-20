@@ -280,7 +280,7 @@ void reader::exec_command(const command_args &cmd) {
         CMDFUN(IMPORT, const std::string &path)     { import_layout(path); },
         CMDFUN(ADDLAYOUT, const std::string &path)  { push_layout(path); },
         CMDFUN(SETCURLAYOUT, small_int idx)         { m_current_layout = m_layouts.begin() + idx; },
-        CMDFUN(SETLAYOUT)                           { if (m_flags.check(reader_flags::HALT_ON_SETLAYOUT)) m_running = false; },
         CMDFUN(SETLANG, const std::string &lang)    { set_language(lang); },
+        CMDFUN(FOUNDLAYOUT)                         { if (m_flags.check(reader_flags::FIND_LAYOUT)) m_running = false; },
     }, cmd);
 }
