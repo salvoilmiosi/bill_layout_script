@@ -67,6 +67,14 @@ namespace bls {
         }
 
     public:
+        void fwd_value(variable &&value) {
+            std::span<variable> vars = get_variable_span();
+            std::for_each_n(vars.begin(), vars.size() - 1, [&](variable &var) {
+                var = value;
+            });
+            vars.back() = std::move(value);
+        }
+
         void set_value(variable &&value) {
             if (!value.is_null()) force_value(std::move(value));
         }

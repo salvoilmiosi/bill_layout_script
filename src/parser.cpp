@@ -83,7 +83,6 @@ void parser::read_box(const layout_box &box) {
         m_code.add_line<opcode::PUSHINT>(box.page);
         m_code.add_line<opcode::MVBOX>(spacer_index::PAGE);
     }
-    m_content_level = 0;
 
     m_lexer.set_comment_callback([this](comment_line line){
         m_code.add_line<opcode::COMMENT>(std::move(line));
@@ -133,6 +132,7 @@ void parser::read_box(const layout_box &box) {
     }
 
     if (!box.flags.check(box_flags::NOREAD) && !box.flags.check(box_flags::SPACER)) {
+        --m_content_level;
         m_code.add_line<opcode::CNTPOP>();
     }
 }
@@ -528,9 +528,6 @@ void parser::read_function(token tok_fun_name, bool top_level) {
         const auto &fun = it->second;
         if (fun.numargs != num_args) {
             throw invalid_numargs(std::string(fun_name), fun.numargs, fun.numargs, tok_fun_name);
-        }
-        if (fun.has_contents && m_content_level == 0) {
-            throw token_error(intl::format("CANT_CALL_EMPTY_CONTENT_STACK", fun_name), tok_fun_name);
         }
         jump_label label = std::format("__function_{}", fun_name);
         if (top_level) {

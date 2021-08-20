@@ -75,10 +75,11 @@ namespace bls {
         (SELEACH)
         (SELSIZE, small_int)
         (SELSIZEDYN)
-        (SETVAR)                        // stack -> selected = stack
+        (FWDVAR)                        // stack -> selected = stack (forward)
+        (SETVAR)                        // stack -> selected = stack (copy if not null)
         (FORCEVAR)                      // stack -> selected = stack (force)
-        (INCVAR)                        // stack -> selected += stack
-        (DECVAR)                        // stack -> selected -= stack
+        (INCVAR)                        // stack -> selected += stack (if not null)
+        (DECVAR)                        // stack -> selected -= stack (if not null)
         (CLEAR)                         // selected -> clear
         (SUBITEM, small_int)
         (SUBITEMDYN)

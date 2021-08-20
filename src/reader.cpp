@@ -68,7 +68,7 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto jump_return = [&] {
-        const auto &fun_call = m_calls.pop();
+        auto fun_call = m_calls.pop();
         m_program_counter_next = fun_call.return_addr;
 
         if (fun_call.getretvalue) {
@@ -77,15 +77,12 @@ void reader::exec_command(const command_args &cmd) {
     };
 
     auto jump_return_value = [&] {
-        const auto &fun_call = m_calls.top();
+        auto fun_call = m_calls.pop();
         m_program_counter_next = fun_call.return_addr;
 
-        if (fun_call.getretvalue) {
-            m_stack.top() = m_stack.top().deref();
-        } else {
+        if (!fun_call.getretvalue) {
             m_stack.pop();
         }
-        m_calls.pop();
     };
 
     auto move_box = [&](spacer_index idx, variable &&amt) {
@@ -183,6 +180,7 @@ void reader::exec_command(const command_args &cmd) {
     case opcode::SELSIZEDYN:    m_selected.top().set_size(m_stack.pop().as_int()); break;
     case opcode::SELAPPEND:     m_selected.top().add_append(); break;
     case opcode::SELEACH:       m_selected.top().add_each(); break;
+    case opcode::FWDVAR:        m_selected.pop().fwd_value(m_stack.pop()); break;
     case opcode::SETVAR:        m_selected.pop().set_value(m_stack.pop()); break;
     case opcode::FORCEVAR:      m_selected.pop().force_value(m_stack.pop()); break;
     case opcode::INCVAR:        m_selected.pop().inc_value(m_stack.pop()); break;

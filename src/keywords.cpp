@@ -38,7 +38,7 @@ void parser::parse_while_stmt() {
 
     auto while_label = make_label("while");
     auto endwhile_label = make_label("endwhile");
-    m_loop_labels.push(loop_label_pair{while_label, endwhile_label});
+    m_loop_stack.emplace(while_label, endwhile_label, m_content_level);
     m_lexer.require(token_type::PAREN_BEGIN);
     m_code.add_label(while_label);
     read_expression();
@@ -47,7 +47,7 @@ void parser::parse_while_stmt() {
     read_statement();
     m_code.add_line<opcode::JMP>(while_label);
     m_code.add_label(endwhile_label);
-    m_loop_labels.pop_back();
+    m_loop_stack.pop_back();
 };
 
 void parser::parse_for_stmt() {
@@ -55,7 +55,7 @@ void parser::parse_for_stmt() {
 
     auto for_label = make_label("for");
     auto endfor_label = make_label("endfor");
-    m_loop_labels.push(loop_label_pair{for_label, endfor_label});
+    m_loop_stack.emplace(for_label, endfor_label, m_content_level);
     m_lexer.require(token_type::PAREN_BEGIN);
     if (!m_lexer.check_next(token_type::SEMICOLON)) {
         assignment_stmt();
@@ -77,7 +77,7 @@ void parser::parse_for_stmt() {
     m_code.move_not_comments(increase_stmt_begin, increase_stmt_end);
     m_code.add_line<opcode::JMP>(for_label);
     m_code.add_label(endfor_label);
-    m_loop_labels.pop_back();
+    m_loop_stack.pop_back();
 };
 
 void parser::parse_goto_stmt() {
@@ -94,27 +94,27 @@ void parser::parse_goto_stmt() {
 void parser::parse_function_stmt() {
     m_lexer.require(token_type::KW_FUNCTION);
 
-    ++m_function_level;
-    bool has_content = false;
     auto name = m_lexer.require(token_type::IDENTIFIER);
     if (function_lookup::valid(function_lookup::find(name.value)) || m_functions.contains(name.value)) {
         throw token_error(intl::format("DUPLICATE_FUNCTION_NAME", name.value), name);
     }
     m_lexer.require(token_type::PAREN_BEGIN);
     
-    std::string fun_label = std::format("__function_{}", name.value);
-    std::string endfun_label = std::format("__endfunction_{}", name.value);
+    jump_label fun_label = std::format("__function_{}", name.value);
+    jump_label endfun_label = std::format("__endfunction_{}", name.value);
 
     m_code.add_line<opcode::JMP>(endfun_label);
     m_code.add_label(fun_label);
+
+    auto old_content_level = m_content_level;
+    m_content_level = 0;
 
     std::set<std::string_view> args;
     while (!m_lexer.check_next(token_type::PAREN_END)) {
         auto tok = m_lexer.next();
         switch (tok.type) {
         case token_type::CONTENT:
-            if (args.empty() && !has_content) {
-                has_content = true;
+            if (args.empty() && m_content_level == 0) {
                 ++m_content_level;
             } else {
                 throw unexpected_token(tok, token_type::IDENTIFIER);
@@ -144,18 +144,22 @@ void parser::parse_function_stmt() {
         }
     }
 
-    m_functions.emplace(std::string(name.value), function_info{small_int(args.size()), has_content});
+    m_functions.emplace(std::string(name.value), function_info{small_int(args.size() + m_content_level)});
     for (auto _ : args) {
-        m_code.add_line<opcode::SETVAR>();
+        m_code.add_line<opcode::FWDVAR>();
+    }
+    if (m_content_level > 0) {
+        m_code.add_line<opcode::CNTADD>();
     }
 
     read_statement();
+
+    if (m_content_level > 0) {
+        m_code.add_line<opcode::CNTPOP>();
+    }
     m_code.add_line<opcode::RET>();
     m_code.add_label(endfun_label);
-    if (has_content) {
-        --m_content_level;
-    }
-    --m_function_level;
+    m_content_level = old_content_level;
 };
 
 void parser::parse_foreach_stmt() {
@@ -164,7 +168,7 @@ void parser::parse_foreach_stmt() {
     auto begin_label = make_label("foreach");
     auto continue_label = make_label("foreach_continue");
     auto end_label = make_label("endforeach");
-    m_loop_labels.push(loop_label_pair{continue_label, end_label});
+    m_loop_stack.emplace(continue_label, end_label, m_content_level);
 
     m_lexer.require(token_type::PAREN_BEGIN);
     read_expression();
@@ -180,7 +184,7 @@ void parser::parse_foreach_stmt() {
     m_code.add_label(end_label);
     --m_content_level;
     m_code.add_line<opcode::CNTPOP>();
-    m_loop_labels.pop_back();
+    m_loop_stack.pop_back();
 };
 
 void parser::parse_with_stmt() {
@@ -206,29 +210,46 @@ void parser::parse_import_stmt() {
 void parser::parse_break_stmt() {
     auto tok_fun_name = m_lexer.require(token_type::KW_BREAK);
     m_lexer.require(token_type::SEMICOLON);
-    if (m_loop_labels.empty()) {
+    if (m_loop_stack.empty()) {
         throw token_error(intl::format("NOT_IN_A_LOOP"), tok_fun_name);
     }
-    m_code.add_line<opcode::JMP>(m_loop_labels.top().break_label);
+    for (int i = m_loop_stack.top().entry_content_level; i < m_content_level; ++i) {
+        m_code.add_line<opcode::CNTPOP>();
+    }
+    m_code.add_line<opcode::JMP>(m_loop_stack.top().break_label);
 };
 
 void parser::parse_continue_stmt() {
     auto tok_fun_name = m_lexer.require(token_type::KW_CONTINUE);
     m_lexer.require(token_type::SEMICOLON);
-    if (m_loop_labels.empty()) {
+    if (m_loop_stack.empty()) {
         throw token_error(intl::format("NOT_IN_A_LOOP"), tok_fun_name);
     }
-    m_code.add_line<opcode::JMP>(m_loop_labels.top().continue_label);
+    for (int i = m_loop_stack.top().entry_content_level; i < m_content_level; ++i) {
+        m_code.add_line<opcode::CNTPOP>();
+    }
+    m_code.add_line<opcode::JMP>(m_loop_stack.top().continue_label);
 };
 
 void parser::parse_return_stmt() {
     auto tok_fun_name = m_lexer.require(token_type::KW_RETURN);
     if (m_lexer.check_next(token_type::SEMICOLON)) {
+        for (int i = 0; i < m_content_level; ++i) {
+            m_code.add_line<opcode::CNTPOP>();
+        }
         m_code.add_line<opcode::RET>();
     } else {
         read_expression();
-        m_lexer.require(token_type::SEMICOLON);
+        switch (m_code.last_not_comment().command()) {
+        case opcode::PUSHVAR:
+        case opcode::PUSHVIEW:
+            m_code.add_line<opcode::CALL>("copy", 1);
+        }
+        for (int i = 0; i < m_content_level; ++i) {
+            m_code.add_line<opcode::CNTPOP>();
+        }
         m_code.add_line<opcode::RETVAL>();
+        m_lexer.require(token_type::SEMICOLON);
     }
 };
 

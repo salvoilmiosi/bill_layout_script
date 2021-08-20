@@ -12,14 +12,14 @@
 
 namespace bls {
 
-    struct loop_label_pair {
+    struct loop_state {
         std::string continue_label;
         std::string break_label;
+        int entry_content_level;
     };
 
     struct function_info {
         small_int numargs;
-        bool has_contents;
     };
 
     class invalid_numargs : public token_error {
@@ -93,10 +93,9 @@ namespace bls {
         lexer m_lexer;
         bytecode m_code;
 
-        simple_stack<loop_label_pair> m_loop_labels;
+        simple_stack<loop_state> m_loop_stack;
         util::string_map<function_info> m_functions;
         int m_content_level = 0;
-        int m_function_level = 0;
 
         friend class lexer;
     };
