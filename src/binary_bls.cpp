@@ -56,8 +56,6 @@ template<typename T> void writeData(std::ostream &output, const T &data) {
     binary_io<T>::write(output, data);
 }
 
-template<> void writeData<std::monostate>(std::ostream &, const std::monostate &) {}
-
 template<typename T> T readData(std::istream &input) {
     return binary_io<T>::read(input);
 }
@@ -166,9 +164,12 @@ template<enums::flags_enum T> struct binary_io<enums::bitset<T>> {
 template<> struct binary_io<command_args> {
     static void write(std::ostream &output, const command_args &cmd) {
         writeData(output, cmd.command());
-        cmd.visit([&](auto && data) {
-            writeData(output, data);
-        });
+        visit_command(util::overloaded{
+            []<opcode Cmd>(command_tag<Cmd>) {},
+            [&]<opcode Cmd>(command_tag<Cmd>, const auto &data) {
+                writeData(output, data);
+            }
+        }, cmd);
     }
 
     template<opcode Cmd> static constexpr command_args read_command(std::istream &input) {

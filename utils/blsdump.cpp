@@ -73,24 +73,30 @@ int MainApp::run() {
             binary::write(code, output_cache);
         }
         for (auto line = code.begin(); line != code.end(); ++line) {
-            line->visit([&]<typename T>(T &args) {
-                if constexpr (std::is_same_v<comment_line, T>) {
-                    std::cout << print_args(args);
-                } else {
-                    std::cout << '\t' << line->command();
-                    if constexpr (std::is_base_of_v<jump_address, T>) {
-                        if (args.label.empty()) {
-                            auto it_label = line + args.address;
-                            if (it_label->command() == opcode::LABEL) {
-                                args.label = it_label->template get_args<opcode::LABEL>();
-                            }
+            visit_command(util::overloaded{
+                [](command_tag<opcode::BOXNAME>, const std::string &line) {
+                    std::cout << "### " << line;
+                },
+                [](command_tag<opcode::COMMENT>, const comment_line &line) {
+                    std::cout << print_args(line);
+                },
+                []<opcode Cmd>(command_tag<Cmd>) {
+                    std::cout << '\t' << Cmd;
+                },
+                [&]<opcode Cmd>(command_tag<Cmd>, jump_address &addr) {
+                    std::cout << '\t' << Cmd;
+                    if (addr.label.empty()) {
+                        auto it_label = line + addr.address;
+                        if (it_label->command() == opcode::LABEL) {
+                            addr.label = it_label->template get_args<opcode::LABEL>();
                         }
                     }
-                    if constexpr (! std::is_same_v<std::monostate, T>) {
-                        std::cout << ' ' << print_args(args);
-                    }
+                    std::cout << ' ' << print_args(addr);
+                },
+                []<opcode Cmd>(command_tag<Cmd>, const auto &args) {
+                    std::cout << '\t' << Cmd << ' ' << print_args(args);
                 }
-            });
+            }, *line);
             std::cout << '\n';
         }
     } catch (const std::exception &error) {

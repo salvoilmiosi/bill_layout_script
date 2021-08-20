@@ -34,8 +34,10 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
     }
 
     for (auto it = m_code.begin(); it != m_code.end(); ++it) {
-        it->visit([&](auto &addr) {
-            if constexpr (std::is_base_of_v<jump_address, std::remove_reference_t<decltype(addr)>>) {
+        visit_command(util::overloaded{
+            []<opcode Cmd>(command_tag<Cmd>) {},
+            []<opcode Cmd>(command_tag<Cmd>, auto &) {},
+            [&]<opcode Cmd>(command_tag<Cmd>, jump_address &addr) {
                 if (!addr.address) {
                     if (auto label_it = m_code.find_label(addr.label); label_it != m_code.end()) {
                         addr.address = label_it - it;
@@ -44,7 +46,7 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
                     }
                 }
             }
-        });
+        }, *it);
     }
 }
 

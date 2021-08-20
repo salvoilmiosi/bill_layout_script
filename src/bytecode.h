@@ -56,7 +56,7 @@ namespace bls {
 
     DEFINE_ENUM_TYPES_IN_NS(bls, opcode,
         (NOP)                           // no operation
-        (BOXNAME, comment_line)         // comment
+        (BOXNAME, std::string)          // set box name
         (COMMENT, comment_line)         // comment
         (LABEL, jump_label)             // jump label
         (NEWBOX)                        // resetta current_box
@@ -144,14 +144,31 @@ namespace bls {
             return std::get<static_cast<size_t>(Cmd)>(m_value);
         }
 
-        template<typename Visitor> auto visit(Visitor func) const {
-            return std::visit(func, m_value);
-        }
-
-        template<typename Visitor> auto visit(Visitor func) {
-            return std::visit(func, m_value);
+        template<opcode Cmd> requires (! std::is_void_v<enums::get_type_t<Cmd>>)
+        auto &get_args() {
+            return std::get<static_cast<size_t>(Cmd)>(m_value);
         }
     };
+
+    template<opcode Cmd> struct command_tag {};
+
+    template<typename Command, opcode Cmd, typename Function> requires std::same_as<std::remove_const_t<Command>, command_args>
+    static inline void call_command_fun(Function &fun, Command &cmd) {
+        if constexpr (std::is_void_v<enums::get_type_t<Cmd>>) {
+            fun(command_tag<Cmd>{});
+        } else {
+            fun(command_tag<Cmd>{}, cmd.template get_args<Cmd>());
+        }
+    }
+
+    template<typename Command, typename Function> requires std::same_as<std::remove_const_t<Command>, command_args>
+    void visit_command(Function &&fun, Command &cmd) {
+        static constexpr auto command_vtable = []<size_t ... Is>(std::index_sequence<Is...>) {
+            return std::array{ call_command_fun<Command, static_cast<opcode>(Is), Function> ... };
+        }(std::make_index_sequence<enums::size<opcode>()>{});
+
+        command_vtable[static_cast<size_t>(cmd.command())](fun, cmd);
+    }
 
     template<opcode Cmd, typename ... Ts>
     command_args make_command(Ts && ... args) {

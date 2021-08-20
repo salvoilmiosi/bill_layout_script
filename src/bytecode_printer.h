@@ -59,21 +59,17 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<jump_a
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<comment_line> &line) {
-    if (line->line) {
-        out << line->line << ": ";
-    } else {
-        out << "# ";
-    }
-    return out << line->comment;
+    return out << line->line << ": " << line->comment;
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<command_args> &line) {
     out << '\t' << print_args(line->command());
-    line->visit([&](const auto &args) {
-        if constexpr (! std::is_same_v<std::monostate, std::decay_t<decltype(args)>>) {
+    visit_command(util::overloaded{
+        []<opcode Cmd>(command_tag<Cmd>) {},
+        [&]<opcode Cmd>(command_tag<Cmd>, const auto &args) {
             out << ' ' << print_args(args);
         }
-    });
+    }, *line);
     return out;
 }
 

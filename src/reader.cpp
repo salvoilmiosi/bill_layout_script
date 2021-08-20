@@ -199,26 +199,6 @@ size_t reader::add_code(bytecode &&new_code) {
     return m_code.insert(m_code.end(), std::make_move_iterator(new_code.begin()), std::make_move_iterator(new_code.end())) - m_code.begin();
 }
 
-template<opcode Cmd> struct command_tag {};
-
-template<opcode Cmd, typename Function>
-static inline void call_command_fun(Function &fun, const command_args &cmd) {
-    if constexpr (std::is_void_v<enums::get_type_t<Cmd>>) {
-        fun(command_tag<Cmd>{});
-    } else {
-        fun(command_tag<Cmd>{}, cmd.get_args<Cmd>());
-    }
-}
-
-template<typename Function>
-inline void visit_command(Function &&fun, const command_args &cmd) {
-    static constexpr auto command_vtable = []<size_t ... Is>(std::index_sequence<Is...>) {
-        return std::array{ call_command_fun<static_cast<opcode>(Is), Function> ... };
-    }(std::make_index_sequence<enums::size<opcode>()>{});
-
-    command_vtable[static_cast<size_t>(cmd.command())](fun, cmd);
-}
-
 #define CMDFUN_TYPE(cmd, type) [this](command_tag<opcode::cmd>, type)
 #define CMDFUN_VOID(cmd) [this](command_tag<opcode::cmd>)
 
@@ -230,7 +210,7 @@ void reader::exec_command(const command_args &cmd) {
     visit_command(util::overloaded{
         CMDFUN(NOP) {},
         CMDFUN(LABEL, jump_label) {},
-        CMDFUN(BOXNAME, const comment_line &line)   { m_box_name = line.comment; },
+        CMDFUN(BOXNAME, const std::string &name)    { m_box_name = name; },
         CMDFUN(COMMENT, const comment_line &line)   { m_last_line = line; },
         CMDFUN(NEWBOX)                              { m_current_box = {}; },
         CMDFUN(MVBOX, spacer_index idx)             { move_box(idx, m_stack.pop()); },
