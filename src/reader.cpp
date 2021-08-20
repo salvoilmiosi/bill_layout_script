@@ -57,164 +57,105 @@ void reader::start() {
     m_running = false;
 }
 
-void reader::exec_command(const command_args &cmd) {
-    auto jump_to = [&](const jump_address &label) {
-        m_program_counter_next = m_program_counter + label.address;
-    };
+void reader::jump_to(const jump_address &address) {
+    m_program_counter_next = m_program_counter + address.address;
+}
 
-    auto jump_subroutine = [&](const jump_address &address, bool getretvalue = false) {
-        m_calls.emplace(m_program_counter + 1, getretvalue);
-        jump_to(address);
-    };
+void reader::jump_subroutine(const jump_address &address, bool getretvalue) {
+    m_calls.emplace(m_program_counter + 1, getretvalue);
+    jump_to(address);
+}
 
-    auto jump_return = [&] {
-        auto fun_call = m_calls.pop();
-        m_program_counter_next = fun_call.return_addr;
+void reader::jump_return() {
+    auto fun_call = m_calls.pop();
+    m_program_counter_next = fun_call.return_addr;
 
-        if (fun_call.getretvalue) {
-            m_stack.emplace();
-        }
-    };
-
-    auto jump_return_value = [&] {
-        auto fun_call = m_calls.pop();
-        m_program_counter_next = fun_call.return_addr;
-
-        if (!fun_call.getretvalue) {
-            m_stack.pop();
-        }
-    };
-
-    auto move_box = [&](spacer_index idx, variable &&amt) {
-        switch (idx) {
-        case spacer_index::PAGE:
-            m_current_box.page += amt.as_int(); break;
-        case spacer_index::ROTATE:
-            m_current_box.rotate(amt.as_int()); break;
-        case spacer_index::X:
-            m_current_box.x += amt.as_double(); break;
-        case spacer_index::Y:
-            m_current_box.y += amt.as_double(); break;
-        case spacer_index::WIDTH:
-        case spacer_index::RIGHT:
-            m_current_box.w += amt.as_double(); break;
-        case spacer_index::HEIGHT:
-        case spacer_index::BOTTOM:
-            m_current_box.h += amt.as_double(); break;
-        case spacer_index::TOP:
-            m_current_box.y += amt.as_double();
-            m_current_box.h -= amt.as_double();
-            break;
-        case spacer_index::LEFT:
-            m_current_box.x += amt.as_double();
-            m_current_box.w -= amt.as_double();
-            break;
-        }
-    };
-
-    auto read_box = [&](readbox_options opts) {
-        m_current_box.mode = opts.mode;
-        m_current_box.flags = opts.flags;
-
-        m_contents.emplace(get_document().get_text(m_current_box));
-    };
-
-    auto call_function = [&](const command_call &cmd) {
-        return cmd.fun->second(this, m_stack, cmd.numargs);
-    };
-
-    auto import_layout = [&](const std::filesystem::path &filename) {
-        jump_address addr = add_layout(filename) - m_program_counter;
-        m_code[m_program_counter] = make_command<opcode::JSR>(addr);
-        jump_subroutine(addr);
-    };
-
-    auto push_layout = [&](const std::filesystem::path &filename) {
-        m_layouts.push_back(filename);
-        m_code[m_program_counter] = make_command<opcode::SETCURLAYOUT>(m_layouts.size() - 1);
-        m_current_layout = m_layouts.end() - 1;
-    };
-
-    auto set_language = [&](const std::string &name) {
-        try {
-            m_locale = boost::locale::generator{}(name);
-        } catch (std::runtime_error) {
-            throw layout_error(intl::format("UNSUPPORTED_LANGUAGE", name));
-        }
-    };
-
-    auto get_subitem = [&](small_int idx) {
-        auto &var = m_stack.top();
-        if (var.is_array()) {
-            const auto &arr = var.deref().as_array();
-            if (arr.size() > idx) {
-                if (var.is_pointer()) {
-                    var = arr[idx].as_pointer();
-                } else {
-                    var = arr[idx];
-                }
-                return;
-            }
-        }
-        var = variable();
-    };
-
-    switch (cmd.command()) {
-    case opcode::NOP:
-    case opcode::LABEL:         break;
-    case opcode::BOXNAME:       m_box_name = cmd.get_args<opcode::BOXNAME>().comment; break;
-    case opcode::COMMENT:       m_last_line = cmd.get_args<opcode::COMMENT>(); break;
-    case opcode::NEWBOX:        m_current_box = {}; break;
-    case opcode::MVBOX:         move_box(cmd.get_args<opcode::MVBOX>(), m_stack.pop()); break;
-    case opcode::MVNBOX:        move_box(cmd.get_args<opcode::MVNBOX>(), -m_stack.pop()); break;
-    case opcode::RDBOX:         read_box(cmd.get_args<opcode::RDBOX>()); break;
-    case opcode::SELVAR:        m_selected.emplace_back(cmd.get_args<opcode::SELVAR>(), *m_current_table); break;
-    case opcode::SELVARDYN:     m_selected.emplace_back(m_stack.pop().as_string(), *m_current_table); break;
-    case opcode::SELGLOBAL:     m_selected.emplace_back(cmd.get_args<opcode::SELGLOBAL>(), m_globals); break;
-    case opcode::SELGLOBALDYN:  m_selected.emplace_back(m_stack.pop().as_string(), m_globals); break;
-    case opcode::SELLOCAL:      m_selected.emplace_back(cmd.get_args<opcode::SELLOCAL>(), m_calls.top().vars); break;
-    case opcode::SELLOCALDYN:   m_selected.emplace_back(m_stack.pop().as_string(), m_calls.top().vars); break;
-    case opcode::SELINDEX:      m_selected.top().add_index(cmd.get_args<opcode::SELINDEX>()); break;
-    case opcode::SELINDEXDYN:   m_selected.top().add_index(m_stack.pop().as_int()); break;
-    case opcode::SELSIZE:       m_selected.top().set_size(cmd.get_args<opcode::SELSIZE>()); break;
-    case opcode::SELSIZEDYN:    m_selected.top().set_size(m_stack.pop().as_int()); break;
-    case opcode::SELAPPEND:     m_selected.top().add_append(); break;
-    case opcode::SELEACH:       m_selected.top().add_each(); break;
-    case opcode::FWDVAR:        m_selected.pop().fwd_value(m_stack.pop()); break;
-    case opcode::SETVAR:        m_selected.pop().set_value(m_stack.pop()); break;
-    case opcode::FORCEVAR:      m_selected.pop().force_value(m_stack.pop()); break;
-    case opcode::INCVAR:        m_selected.pop().inc_value(m_stack.pop()); break;
-    case opcode::DECVAR:        m_selected.pop().dec_value(m_stack.pop()); break;
-    case opcode::CLEAR:         m_selected.pop().clear_value(); break;
-    case opcode::SUBITEM:       get_subitem(cmd.get_args<opcode::SUBITEM>()); break;
-    case opcode::SUBITEMDYN:    get_subitem(m_stack.pop().as_int()); break;
-    case opcode::PUSHVAR:       m_stack.push(m_selected.pop().get_value()); break;
-    case opcode::PUSHVIEW:      m_stack.push(m_contents.top().view()); break;
-    case opcode::PUSHNUM:       m_stack.push(cmd.get_args<opcode::PUSHNUM>()); break;
-    case opcode::PUSHINT:       m_stack.push(cmd.get_args<opcode::PUSHINT>()); break;
-    case opcode::PUSHDOUBLE:    m_stack.push(cmd.get_args<opcode::PUSHDOUBLE>()); break;
-    case opcode::PUSHSTR:       m_stack.push(cmd.get_args<opcode::PUSHSTR>()); break;
-    case opcode::PUSHREGEX:     m_stack.emplace(cmd.get_args<opcode::PUSHREGEX>(), as_regex_tag); break;
-    case opcode::CALL:          m_stack.push(call_function(cmd.get_args<opcode::CALL>())); break;
-    case opcode::SYSCALL:       call_function(cmd.get_args<opcode::SYSCALL>()); break;
-    case opcode::CNTADD:        m_contents.emplace(m_stack.pop()); break;
-    case opcode::CNTADDLIST:    m_contents.emplace(m_stack.pop(), as_array_tag); break;
-    case opcode::CNTPOP:        m_contents.pop_back(); break;
-    case opcode::NEXTRESULT:    m_contents.top().nextresult(); break;
-    case opcode::JMP:           jump_to(cmd.get_args<opcode::JMP>()); break;
-    case opcode::JZ:            if(!m_stack.pop().is_true()) jump_to(cmd.get_args<opcode::JZ>()); break;
-    case opcode::JNZ:           if(m_stack.pop().is_true()) jump_to(cmd.get_args<opcode::JNZ>()); break;
-    case opcode::JTE:           if(m_contents.top().tokenend()) jump_to(cmd.get_args<opcode::JTE>()); break;
-    case opcode::JSRVAL:        jump_subroutine(cmd.get_args<opcode::JSRVAL>(), true); break;
-    case opcode::JSR:           jump_subroutine(cmd.get_args<opcode::JSR>()); break;
-    case opcode::RET:           jump_return(); break;
-    case opcode::RETVAL:        jump_return_value(); break;
-    case opcode::IMPORT:        import_layout(cmd.get_args<opcode::IMPORT>()); break;
-    case opcode::ADDLAYOUT:     push_layout(cmd.get_args<opcode::ADDLAYOUT>()); break;
-    case opcode::SETCURLAYOUT:  m_current_layout = m_layouts.begin() + cmd.get_args<opcode::SETCURLAYOUT>(); break;
-    case opcode::SETLAYOUT:     if (m_flags.check(reader_flags::HALT_ON_SETLAYOUT)) m_running = false; break;
-    case opcode::SETLANG:       set_language(cmd.get_args<opcode::SETLANG>()); break;
+    if (fun_call.getretvalue) {
+        m_stack.emplace();
     }
+}
+
+void reader::jump_return_value() {
+    auto fun_call = m_calls.pop();
+    m_program_counter_next = fun_call.return_addr;
+
+    if (!fun_call.getretvalue) {
+        m_stack.pop();
+    }
+}
+
+void reader::move_box(spacer_index idx, const variable &amt) {
+    switch (idx) {
+    case spacer_index::PAGE:
+        m_current_box.page += amt.as_int(); break;
+    case spacer_index::ROTATE:
+        m_current_box.rotate(amt.as_int()); break;
+    case spacer_index::X:
+        m_current_box.x += amt.as_double(); break;
+    case spacer_index::Y:
+        m_current_box.y += amt.as_double(); break;
+    case spacer_index::WIDTH:
+    case spacer_index::RIGHT:
+        m_current_box.w += amt.as_double(); break;
+    case spacer_index::HEIGHT:
+    case spacer_index::BOTTOM:
+        m_current_box.h += amt.as_double(); break;
+    case spacer_index::TOP:
+        m_current_box.y += amt.as_double();
+        m_current_box.h -= amt.as_double();
+        break;
+    case spacer_index::LEFT:
+        m_current_box.x += amt.as_double();
+        m_current_box.w -= amt.as_double();
+        break;
+    }
+}
+
+std::string reader::read_box(readbox_options opts) {
+    m_current_box.mode = opts.mode;
+    m_current_box.flags = opts.flags;
+
+    return get_document().get_text(m_current_box);
+};
+
+variable reader::call_function(const command_call &call) {
+    return call.fun->second(this, m_stack, call.numargs);
+}
+
+void reader::import_layout(const std::string &path) {
+    jump_address addr = add_layout(path) - m_program_counter;
+    m_code[m_program_counter] = make_command<opcode::JSR>(addr);
+    jump_subroutine(addr);
+}
+
+void reader::push_layout(const std::string &path) {
+    m_layouts.push_back(path);
+    m_code[m_program_counter] = make_command<opcode::SETCURLAYOUT>(m_layouts.size() - 1);
+    m_current_layout = m_layouts.end() - 1;
+}
+
+void reader::set_language(const std::string &lang) {
+    try {
+        m_locale = boost::locale::generator{}(lang);
+    } catch (std::runtime_error) {
+        throw layout_error(intl::format("UNSUPPORTED_LANGUAGE", lang));
+    }
+}
+
+void reader::stack_top_to_subitem(small_int idx) {
+    auto &var = m_stack.top();
+    if (var.is_array()) {
+        const auto &arr = var.deref().as_array();
+        if (arr.size() > idx) {
+            if (var.is_pointer()) {
+                var = arr[idx].as_pointer();
+            } else {
+                var = arr[idx];
+            }
+            return;
+        }
+    }
+    var = variable();
 }
 
 size_t reader::add_layout(const std::filesystem::path &filename) {
@@ -256,4 +197,90 @@ size_t reader::add_code(bytecode &&new_code) {
     new_code.add_line<opcode::RET>();
 
     return m_code.insert(m_code.end(), std::make_move_iterator(new_code.begin()), std::make_move_iterator(new_code.end())) - m_code.begin();
+}
+
+template<opcode Cmd> struct command_tag {};
+
+template<opcode Cmd, typename Function>
+static inline void call_command_fun(Function &fun, const command_args &cmd) {
+    if constexpr (std::is_void_v<enums::get_type_t<Cmd>>) {
+        fun(command_tag<Cmd>{});
+    } else {
+        fun(command_tag<Cmd>{}, cmd.get_args<Cmd>());
+    }
+}
+
+template<typename Function>
+inline void visit_command(Function &&fun, const command_args &cmd) {
+    static constexpr auto command_vtable = []<size_t ... Is>(std::index_sequence<Is...>) {
+        return std::array{ call_command_fun<static_cast<opcode>(Is), Function> ... };
+    }(std::make_index_sequence<enums::size<opcode>()>{});
+
+    command_vtable[static_cast<size_t>(cmd.command())](fun, cmd);
+}
+
+#define CMDFUN_TYPE(cmd, type) [this](command_tag<opcode::cmd>, type)
+#define CMDFUN_VOID(cmd) [this](command_tag<opcode::cmd>)
+
+#define GET_3RD(a, b, c, ...) c
+#define CMDFUN_CHOOSER(...) GET_3RD(__VA_ARGS__, CMDFUN_TYPE, CMDFUN_VOID)
+#define CMDFUN(...) CMDFUN_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
+
+void reader::exec_command(const command_args &cmd) {
+    visit_command(util::overloaded{
+        CMDFUN(NOP) {},
+        CMDFUN(LABEL, jump_label) {},
+        CMDFUN(BOXNAME, const comment_line &line)   { m_box_name = line.comment; },
+        CMDFUN(COMMENT, const comment_line &line)   { m_last_line = line; },
+        CMDFUN(NEWBOX)                              { m_current_box = {}; },
+        CMDFUN(MVBOX, spacer_index idx)             { move_box(idx, m_stack.pop()); },
+        CMDFUN(MVNBOX, spacer_index idx)            { move_box(idx, -m_stack.pop()); },
+        CMDFUN(RDBOX, readbox_options opts)         { m_contents.emplace(read_box(opts)); },
+        CMDFUN(SELVAR, const std::string &name)     { m_selected.emplace(name, *m_current_table); },
+        CMDFUN(SELVARDYN)                           { m_selected.emplace(m_stack.pop().as_string(), *m_current_table); },
+        CMDFUN(SELGLOBAL, const std::string &name)  { m_selected.emplace(name, m_globals); },
+        CMDFUN(SELGLOBALDYN)                        { m_selected.emplace(m_stack.pop().as_string(), m_globals); },
+        CMDFUN(SELLOCAL, const std::string &name)   { m_selected.emplace(name, m_calls.top().vars); },
+        CMDFUN(SELLOCALDYN)                         { m_selected.emplace(m_stack.pop().as_string(), m_globals); },
+        CMDFUN(SELINDEX, small_int idx)             { m_selected.top().add_index(idx); },
+        CMDFUN(SELINDEXDYN)                         { m_selected.top().add_index(m_stack.pop().as_int()); },
+        CMDFUN(SELSIZE, small_int size)             { m_selected.top().set_size(size); },
+        CMDFUN(SELSIZEDYN)                          { m_selected.top().set_size(m_stack.pop().as_int()); },
+        CMDFUN(SELAPPEND)                           { m_selected.top().add_append(); },
+        CMDFUN(SELEACH)                             { m_selected.top().add_each(); },
+        CMDFUN(FWDVAR)                              { m_selected.pop().fwd_value(m_stack.pop()); },
+        CMDFUN(SETVAR)                              { m_selected.pop().set_value(m_stack.pop()); },
+        CMDFUN(FORCEVAR)                            { m_selected.pop().force_value(m_stack.pop()); },
+        CMDFUN(INCVAR)                              { m_selected.pop().inc_value(m_stack.pop()); },
+        CMDFUN(DECVAR)                              { m_selected.pop().dec_value(m_stack.pop()); },
+        CMDFUN(CLEAR)                               { m_selected.pop().clear_value(); },
+        CMDFUN(SUBITEM, small_int idx)              { stack_top_to_subitem(idx); },
+        CMDFUN(SUBITEMDYN)                          { stack_top_to_subitem(m_stack.pop().as_int()); },
+        CMDFUN(PUSHVAR)                             { m_stack.push(m_selected.pop().get_value()); },
+        CMDFUN(PUSHVIEW)                            { m_stack.push(m_contents.top().view()); },
+        CMDFUN(PUSHNUM, fixed_point num)            { m_stack.push(num); },
+        CMDFUN(PUSHINT, big_int num)                { m_stack.push(num); },
+        CMDFUN(PUSHDOUBLE, double num)              { m_stack.push(num); },
+        CMDFUN(PUSHSTR, const std::string &str)     { m_stack.push(str); },
+        CMDFUN(PUSHREGEX, const std::string &str)   { m_stack.emplace(str, as_regex_tag); },
+        CMDFUN(CALL, const command_call &call)      { m_stack.push(call_function(call)); },
+        CMDFUN(SYSCALL, const command_call &call)   { call_function(call); },
+        CMDFUN(CNTADD)                              { m_contents.emplace(m_stack.pop()); },
+        CMDFUN(CNTADDLIST)                          { m_contents.emplace(m_stack.pop(), as_array_tag); },
+        CMDFUN(CNTPOP)                              { m_contents.pop_back(); },
+        CMDFUN(NEXTRESULT)                          { m_contents.top().nextresult(); },
+        CMDFUN(JMP, const jump_address &address)    { jump_to(address); },
+        CMDFUN(JZ, const jump_address &address)     { if(!m_stack.pop().is_true()) jump_to(address); },
+        CMDFUN(JNZ, const jump_address &address)    { if(m_stack.pop().is_true()) jump_to(address); },
+        CMDFUN(JTE, const jump_address &address)    { if(m_contents.top().tokenend()) jump_to(address); },
+        CMDFUN(JSR, const jump_address &address)    { jump_subroutine(address); },
+        CMDFUN(JSRVAL, const jump_address &address) { jump_subroutine(address, true); },
+        CMDFUN(RET)                                 { jump_return(); },
+        CMDFUN(RETVAL)                              { jump_return_value(); },
+        CMDFUN(IMPORT, const std::string &path)     { import_layout(path); },
+        CMDFUN(ADDLAYOUT, const std::string &path)  { push_layout(path); },
+        CMDFUN(SETCURLAYOUT, small_int idx)         { m_current_layout = m_layouts.begin() + idx; },
+        CMDFUN(SETLAYOUT)                           { if (m_flags.check(reader_flags::HALT_ON_SETLAYOUT)) m_running = false; },
+        CMDFUN(SETLANG, const std::string &lang)    { set_language(lang); },
+    }, cmd);
 }

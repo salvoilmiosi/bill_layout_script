@@ -63,26 +63,26 @@ namespace bls {
         (MVBOX, spacer_index)           // stack -> current_box[index]
         (MVNBOX, spacer_index)          // -stack -> current_box[index]
         (RDBOX, readbox_options)        // poppler.get_text(current_box) -> content_stack
-        (SELVAR, std::string)
-        (SELVARDYN)
-        (SELGLOBAL, std::string)
-        (SELGLOBALDYN)
-        (SELLOCAL, std::string)
-        (SELLOCALDYN)
-        (SELINDEX, small_int)
-        (SELINDEXDYN)
-        (SELAPPEND)
-        (SELEACH)
-        (SELSIZE, small_int)
-        (SELSIZEDYN)
+        (SELVAR, std::string)           // name -> selected (current_table)
+        (SELVARDYN)                     // stack -> selected (current_table)
+        (SELGLOBAL, std::string)        // name -> selected (globals)
+        (SELGLOBALDYN)                  // stack -> selected (globals)
+        (SELLOCAL, std::string)         // name -> selected (calls.top.vars)
+        (SELLOCALDYN)                   // stack -> selected (calls.top.vars)
+        (SELINDEX, small_int)           // index -> selected.add_index
+        (SELINDEXDYN)                   // stack -> selected.add_index
+        (SELAPPEND)                     // selected.add_append
+        (SELEACH)                       // selected.add_each
+        (SELSIZE, small_int)            // size -> selected.set_size
+        (SELSIZEDYN)                    // stack -> selected.set_size
         (FWDVAR)                        // stack -> selected = stack (forward)
         (SETVAR)                        // stack -> selected = stack (copy if not null)
         (FORCEVAR)                      // stack -> selected = stack (force)
         (INCVAR)                        // stack -> selected += stack (if not null)
         (DECVAR)                        // stack -> selected -= stack (if not null)
         (CLEAR)                         // selected -> clear
-        (SUBITEM, small_int)
-        (SUBITEMDYN)
+        (SUBITEM, small_int)            // stack.top = stack.top[index]
+        (SUBITEMDYN)                    // stack -> stack.top = stack.top[stack]
         (PUSHVAR)                       // selected -> stack
         (PUSHVIEW)                      // content_stack -> stack
         (PUSHNUM, fixed_point)          // number -> stack
@@ -106,7 +106,7 @@ namespace bls {
         (RETVAL)                        // return to caller and push value to stack
         (IMPORT, std::string)           // importa il file e lo esegue
         (ADDLAYOUT, std::string)        // aggiunge il nome del layout nella lista di output
-        (SETCURLAYOUT, int)             // sposta il puntatore del layout corrente
+        (SETCURLAYOUT, small_int)       // sposta il puntatore del layout corrente
         (SETLAYOUT)                     // ferma l'esecuzione se settata la flag setlayout in reader
         (SETLANG, std::string)          // imposta il locale corrente
     )
