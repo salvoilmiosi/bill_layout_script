@@ -152,22 +152,40 @@ namespace bls {
 
     template<opcode Cmd> struct command_tag {};
 
-    template<typename Command, opcode Cmd, typename Function> requires std::same_as<std::remove_const_t<Command>, command_args>
-    static inline void call_command_fun(Function &fun, Command &cmd) {
+    template<typename ReturnType, typename Command, opcode Cmd, typename Function>
+    requires std::same_as<std::remove_const_t<Command>, command_args>
+    static inline ReturnType call_command_fun(Function &fun, Command &cmd) {
         if constexpr (std::is_void_v<enums::get_type_t<Cmd>>) {
-            fun(command_tag<Cmd>{});
+            return std::invoke(fun, command_tag<Cmd>{});
         } else {
-            fun(command_tag<Cmd>{}, cmd.template get_args<Cmd>());
+            return std::invoke(fun, command_tag<Cmd>{}, cmd.template get_args<Cmd>());
         }
     }
 
-    template<typename Command, typename Function> requires std::same_as<std::remove_const_t<Command>, command_args>
-    void visit_command(Function &&fun, Command &cmd) {
+    template<typename ReturnType, typename Command, typename Function>
+    requires std::same_as<std::remove_const_t<Command>, command_args>
+    ReturnType visit_command(Function &&fun, Command &cmd) {
         static constexpr auto command_vtable = []<size_t ... Is>(std::index_sequence<Is...>) {
-            return std::array{ call_command_fun<Command, static_cast<opcode>(Is), Function> ... };
+            return std::array{ call_command_fun<ReturnType, Command, static_cast<opcode>(Is), Function> ... };
         }(std::make_index_sequence<enums::size<opcode>()>{});
 
-        command_vtable[static_cast<size_t>(cmd.command())](fun, cmd);
+        return command_vtable[static_cast<size_t>(cmd.command())](fun, cmd);
+    }
+    
+    template<opcode Cmd, typename Function> struct command_return_type {
+        using type = std::invoke_result_t<Function, command_tag<Cmd>, std::add_lvalue_reference_t<enums::get_type_t<Cmd>>>;
+    };
+    template<opcode Cmd, typename Function> requires std::is_void_v<enums::get_type_t<Cmd>>
+    struct command_return_type<Cmd, Function> {
+        using type = std::invoke_result_t<Function, command_tag<Cmd>>;
+    };
+    template<opcode Cmd, typename Function> using command_return_type_t = typename command_return_type<Cmd, Function>::type;
+
+    template<typename Command, typename Function>
+    requires std::same_as<std::remove_const_t<Command>, command_args>
+    decltype(auto) visit_command(Function &&fun, Command &cmd) {
+        using return_type = command_return_type_t<static_cast<opcode>(0), Function>;
+        return visit_command<return_type>(std::move(fun), cmd);
     }
 
     template<opcode Cmd, typename ... Ts>
