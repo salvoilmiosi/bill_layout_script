@@ -76,17 +76,14 @@ public:
     }
 
 private:
-    void jump_to(const jump_address &address);
-    void jump_subroutine(const jump_address &address, bool getretvalue = false);
-    void jump_return();
-    void jump_return_value();
-    void move_box(spacer_index idx, const variable &amt);
-    std::string read_box(readbox_options opts);
-    variable call_function(const command_call &call);
-    void import_layout(const std::string &path);
-    void push_layout(const std::string &path);
-    void set_language(const std::string &lang);
-    void stack_top_to_subitem(small_int idx);
+    void jump_to(const jump_address &address) {
+        m_program_counter_next = m_program_counter + address.address;
+    }
+
+    void jump_subroutine(const jump_address &address, bool getretvalue = false) {
+        m_calls.emplace(m_program_counter + 1, getretvalue);
+        jump_to(address);
+    }
 
     void exec_command(const command_args &cmd);
 
