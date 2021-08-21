@@ -100,16 +100,17 @@ namespace util {
     }
 
     // sostituisce tutte le occorrenze di una stringa in un'altra
-    inline std::string &string_replace(std::string &str, std::string_view from, std::string_view to) {
+    inline std::string string_replace(std::string_view str, std::string_view from, std::string_view to) {
+        std::string ret(str);
         size_t index = 0;
         while (true) {
-            index = str.find(from, index);
+            index = ret.find(from, index);
             if (index == std::string::npos) break;
 
-            str.replace(index, from.size(), to);
+            ret.replace(index, from.size(), to);
             index += to.size();
         }
-        return str;
+        return ret;
     }
 
     template<typename T> T string_to(std::string_view str) = delete;

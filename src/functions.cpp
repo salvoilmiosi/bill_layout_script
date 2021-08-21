@@ -103,7 +103,7 @@ namespace bls {
         default:    return std::string(&c, 1);
         }
     };
-
+    
     // Genera la regex per parsare numeri secondo il locale selezionato
     static std::string number_regex(const std::locale &loc) {
         auto &facet = std::use_facet<std::numpunct<char>>(loc);
@@ -124,13 +124,17 @@ namespace bls {
     };
 
     // Costruisce un oggetto std::regex
-    static std::regex create_regex(const std::locale &loc, std::string regex) {
+    static std::regex create_regex(std::string_view regex) {
         try {
-            util::string_replace(regex, "\\N", number_regex(loc));
-            return std::regex(regex, std::regex::icase);
+            return std::regex(regex.data(), regex.data() + regex.size(), std::regex::icase);
         } catch (const std::regex_error &error) {
             throw layout_error(intl::format("INVALID_REGEXP", regex, error.what()));
         }
+    }
+
+    // Crea un oggetto regex dove \N corrisponde ad un numero
+    static std::regex create_number_regex(const std::locale &loc, std::string_view regex) {
+        return create_regex(util::string_replace(regex, "\\N", number_regex(loc)));
     }
 
     // Cerca la posizione di str2 in str senza fare differenza tra maiuscole e minuscole
@@ -157,18 +161,18 @@ namespace bls {
     }
 
     // cerca la regex in str e ritorna il primo valore trovato, oppure stringa vuota
-    static std::string_view search_regex(const std::locale &loc, std::string_view value, const std::string &regex, size_t index) {
+    static std::string_view search_regex(std::string_view value, const std::regex &regex, size_t index) {
         std::cmatch match;
-        if (std::regex_search(value.data(), value.data() + value.size(), match, create_regex(loc, regex))) {
+        if (std::regex_search(value.data(), value.data() + value.size(), match, regex)) {
             if (index < match.size()) return match_to_view(match[index]);
         }
         return {value.end(), value.end()};
     }
 
     // cerca la regex in str e ritorna tutti i capture del primo valore trovato
-    static std::cmatch search_regex_captures(const std::locale &loc, std::string_view value, const std::string &regex) {
+    static std::cmatch search_regex_captures(std::string_view value, const std::regex &regex) {
         std::cmatch match;
-        if (std::regex_search(value.data(), value.data() + value.size(), match, create_regex(loc, regex))) {
+        if (std::regex_search(value.data(), value.data() + value.size(), match, regex)) {
             return match;
         }
         return {};
@@ -199,7 +203,7 @@ namespace bls {
         auto header_str = match_to_view(header_match[0]);
         return labels | std::views::transform([&, pos = header_str.data()](std::string_view label) mutable -> variable {
             std::cmatch match;
-            if (std::regex_search(&*pos, header_str.data() + header_str.size(), match, std::regex(label.begin(), label.end(), std::regex::icase))) {
+            if (std::regex_search(pos, header_str.data() + header_str.size(), match, create_regex(label))) {
                 auto match_str = match_to_view(match[0]);
                 pos = std::find_if_not(match_str.data() + match_str.size(), header_str.data() + header_str.size(), isspace);
                 if (pos == header_str.data() + header_str.size()) {
@@ -272,25 +276,26 @@ namespace bls {
 
     // Viene creata un'espressione regolare che corrisponde alla stringa di formato valido per strptime,
     // poi cerca la data in value e la parsa. Ritorna time_t=0 se c'e' errore.
-    static variable search_date(const std::locale &loc, std::string_view value, const std::string &format, std::string regex, size_t index) {
+    static variable search_date(const std::locale &loc, std::string_view value, const std::string &format, std::string_view regex, size_t index) {
+        std::string regex_str;
         if (regex.empty()) {
-            regex = date_regex(format);
+            regex_str = date_regex(format);
             index = 0;
         } else {
-            util::string_replace(regex, "\\D", date_regex(format));
+            regex_str = util::string_replace(regex, "\\D", date_regex(format));
         }
 
-        if (auto search_res = search_regex(loc, value, regex, index); !search_res.empty()) {
+        if (auto search_res = search_regex(value, create_regex(regex_str), index); !search_res.empty()) {
             return datetime::parse_date(loc, search_res, format);
         }
         return {};
     }
 
     template<bool OuterLeft, bool OuterRight>
-    static std::string_view string_between(const std::locale &loc, std::string_view str, string_state from, string_state to) {
+    static std::string_view string_between(std::string_view str, string_state from, string_state to) {
         auto search_range = [&](string_state expr) -> std::string_view {
             if (expr.flags.is_regex) {
-                return search_regex(loc, str, std::string(expr), 0);
+                return search_regex(str, create_regex(expr), 0);
             } else {
                 return string_find_icase(str, expr, 0) | util::range_to<std::string_view>;
             }
@@ -372,9 +377,9 @@ namespace bls {
         {"clamp", [](const variable &value, const variable &low, const variable &high) {
             return std::clamp(value, low, high);
         }},
-        {"percent", [](const std::string &str) {
+        {"percent", [](std::string_view str) {
             if (!str.empty()) {
-                return variable(str + "%");
+                return variable(std::string(str) + "%");
             } else {
                 return variable();
             }
@@ -385,43 +390,46 @@ namespace bls {
         {"table_row", [](std::string_view row, vector_view<vector_view<int>> indices) {
             return table_row(row, indices);
         }},
-        {"search", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<1> index) -> variable {
-            return std::string(search_regex(ctx->m_locale, str, regex, index));
+        {"number_regex", [](const reader *ctx) {
+            return number_regex(ctx->m_locale);
         }},
-        {"search_num", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<1> index) -> variable {
-            return num_parser{ctx->m_locale}(search_regex(ctx->m_locale, str, regex, index));
+        {"search", [](std::string_view str, std::string_view regex, optional_size<1> index) -> variable {
+            return std::string(search_regex(str, create_regex(regex), index));
         }},
-        {"searchpos", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<0> index) {
-            return search_regex(ctx->m_locale, str, regex, index).begin() - str.begin();
+        {"search_num", [](const reader *ctx, std::string_view str, std::string_view regex, optional_size<1> index) -> variable {
+            return num_parser{ctx->m_locale}(search_regex(str, create_number_regex(ctx->m_locale, regex), index));
         }},
-        {"searchposend", [](const reader *ctx, std::string_view str, const std::string &regex, optional_size<0> index) {
-            return search_regex(ctx->m_locale, str, regex, index).end() - str.begin();
+        {"searchpos", [](std::string_view str, std::string_view regex, optional_size<0> index) {
+            return search_regex(str, create_regex(regex), index).begin() - str.begin();
         }},
-        {"matches", [](const reader *ctx, std::string_view str, const std::string &regex_str, optional_size<1> index) -> variable {
-            auto regex = create_regex(ctx->m_locale, regex_str);
+        {"searchposend", [](std::string_view str, std::string_view regex, optional_size<0> index) {
+            return search_regex(str, create_regex(regex), index).end() - str.begin();
+        }},
+        {"matches", [](std::string_view str, std::string_view regex_str, optional_size<1> index) -> variable {
+            auto regex = create_regex(regex_str);
             return search_regex_matches(str, regex, index) | std::views::transform(&std::csub_match::str);
         }},
-        {"matches_num", [](const reader *ctx, std::string_view str, const std::string &regex_str, optional_size<1> index) -> variable {
-            auto regex = create_regex(ctx->m_locale, regex_str);
+        {"matches_num", [](const reader *ctx, std::string_view str, std::string_view regex_str, optional_size<1> index) -> variable {
+            auto regex = create_number_regex(ctx->m_locale, regex_str);
             return search_regex_matches(str, regex, index)
                 | std::views::transform(num_parser{ctx->m_locale});
         }},
-        {"captures", [](const reader *ctx, std::string_view str, const std::string &regex) -> variable {
-            auto match = search_regex_captures(ctx->m_locale, str, regex);
+        {"captures", [](std::string_view str, std::string_view regex_str) -> variable {
+            auto match = search_regex_captures(str, create_regex(regex_str));
             return match
                 | std::views::drop(1)
                 | std::views::transform(&std::csub_match::str);
         }},
-        {"captures_num", [](const reader *ctx, std::string_view str, const std::string &regex) -> variable {
-            auto match = search_regex_captures(ctx->m_locale, str, regex);
+        {"captures_num", [](const reader *ctx, std::string_view str, std::string_view regex_str) -> variable {
+            auto match = search_regex_captures(str, create_number_regex(ctx->m_locale, regex_str));
             return match
                 | std::views::drop(1)
                 | std::views::transform(num_parser{ctx->m_locale});
         }},
-        {"ismatch", [](const reader *ctx, std::string_view str, const std::string &regex) {
-            return std::regex_match(str.begin(), str.end(), create_regex(ctx->m_locale, regex));
+        {"ismatch", [](std::string_view str, std::string_view regex) {
+            return std::regex_match(str.begin(), str.end(), create_regex(regex));
         }},
-        {"replace", [](std::string str, std::string_view from, std::string_view to) {
+        {"replace", [](std::string_view str, std::string_view from, std::string_view to) {
             return util::string_replace(str, from, to);
         }},
         {"date_regex", [](std::string_view format) {
@@ -434,10 +442,10 @@ namespace bls {
                 return datetime::parse_date(ctx->m_locale, str, format);
             }
         }},
-        {"search_date", [](const reader *ctx, std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
+        {"search_date", [](const reader *ctx, std::string_view str, const std::string &format, optional<std::string_view> regex, optional_size<1> index) {
             return search_date(ctx->m_locale, str, format, regex, index);
         }},
-        {"search_month", [](const reader *ctx, std::string_view str, const std::string &format, optional<std::string> regex, optional_size<1> index) {
+        {"search_month", [](const reader *ctx, std::string_view str, const std::string &format, optional<std::string_view> regex, optional_size<1> index) {
             variable var = search_date(ctx->m_locale, str, format, regex, index);
             if (!var.is_null()) {
                 datetime date = var.as_date();
@@ -503,17 +511,17 @@ namespace bls {
         {"substr", [](std::string_view str, size_t pos, optional_size<std::string_view::npos> count) {
             return std::string(str.substr(std::min(str.size(), pos), count));
         }},
-        {"between", [](const reader *ctx, std::string_view str, string_state from, optional<string_state> to) {
-            return string_between<false, false>(ctx->m_locale, str, from, to);
+        {"between", [](std::string_view str, string_state from, optional<string_state> to) {
+            return string_between<false, false>(str, from, to);
         }},
-        {"lbetween", [](const reader *ctx, std::string_view str, string_state from, optional<string_state> to) {
-            return string_between<true, false>(ctx->m_locale, str, from, to);
+        {"lbetween", [](std::string_view str, string_state from, optional<string_state> to) {
+            return string_between<true, false>(str, from, to);
         }},
-        {"rbetween", [](const reader *ctx, std::string_view str, string_state from, optional<string_state> to) {
-            return string_between<false, true>(ctx->m_locale, str, from, to);
+        {"rbetween", [](std::string_view str, string_state from, optional<string_state> to) {
+            return string_between<false, true>(str, from, to);
         }},
-        {"lrbetween", [](const reader *ctx, std::string_view str, string_state from, optional<string_state> to) {
-            return string_between<true, true>(ctx->m_locale, str, from, to);
+        {"lrbetween", [](std::string_view str, string_state from, optional<string_state> to) {
+            return string_between<true, true>(str, from, to);
         }},
         {"strcat", [](varargs<std::string_view> args) {
             return util::string_join(args);
@@ -549,8 +557,8 @@ namespace bls {
             if (auto it = std::ranges::find_if_not(args, &variable::is_null); it != args.end()) return *it;
             return variable();
         }},
-        {"readfile", [](const reader *ctx, const std::string &filename) -> variable {
-            std::ifstream ifs(ctx->m_current_layout->parent_path() / filename);
+        {"readfile", [](const reader *ctx, std::string_view filename) -> variable {
+            std::ifstream ifs(ctx->m_current_layout->parent_path() / std::filesystem::path(filename.begin(), filename.end()));
             if (ifs.fail()) return {};
             return std::string{
                 std::istreambuf_iterator<char>(ifs),
@@ -579,11 +587,11 @@ namespace bls {
             }
         }},
         
-        {"error", [](const std::string &message, optional_int<-1> errcode) {
-            throw scripted_error(message, errcode);
+        {"error", [](std::string_view message, optional_int<-1> errcode) {
+            throw scripted_error(std::string(message), errcode);
         }},
-        {"note", [](reader *ctx, const std::string &message) {
-            ctx->m_notes.push_back(message);
+        {"note", [](reader *ctx, std::string_view message) {
+            ctx->m_notes.push_back(std::string(message));
         }},
         {"nexttable", [](reader *ctx) {
             if (std::next(ctx->m_current_table) == ctx->m_values.end()) {
