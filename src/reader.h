@@ -91,7 +91,7 @@ private:
     bytecode m_code;
 
     std::list<variable_map> m_values;
-    decltype(m_values)::iterator m_current_table;
+    std::list<variable_map>::iterator m_current_table;
 
     variable_map m_globals;
 
@@ -101,10 +101,10 @@ private:
     simple_stack<variable_selector> m_selected;
 
     std::vector<std::filesystem::path> m_layouts;
-    decltype(m_layouts)::iterator m_current_layout;
+    std::vector<std::filesystem::path>::iterator m_current_layout;
 
-    std::string m_box_name;
-    comment_line m_last_line;
+    const std::string *m_box_name;
+    const comment_line *m_last_line;
 
     std::locale m_locale;
 

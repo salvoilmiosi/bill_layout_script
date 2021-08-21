@@ -29,6 +29,9 @@ void reader::start() {
     m_calls.clear();
     m_calls.emplace(std::numeric_limits<decltype(m_program_counter)>::max());
 
+    m_box_name = nullptr;
+    m_last_line = nullptr;
+
     m_current_box = {};
 
     m_locale = std::locale::classic();
@@ -46,9 +49,13 @@ void reader::start() {
             m_program_counter = m_program_counter_next;
         }
     } catch (const layout_error &err) {
-        throw reader_error(std::format("{0}: Ln {1}\n{2}\n{3}",
-            m_box_name, m_last_line.line, m_last_line.comment,
-            err.what()));
+        if (m_box_name && m_last_line) {
+            throw reader_error(std::format("{0}: Ln {1}\n{2}\n{3}",
+                *m_box_name, m_last_line->line, m_last_line->comment,
+                err.what()));
+        } else {
+            throw reader_error(err.what());
+        }
     }
     if (m_aborted) {
         throw reader_aborted{};
@@ -145,10 +152,10 @@ void reader::exec_command(const command_args &cmd) {
         [](command_tag<opcode::NOP>) {},
         [](command_tag<opcode::LABEL>, jump_label) {},
         [this](command_tag<opcode::BOXNAME>, const std::string &name) {
-            m_box_name = name;
+            m_box_name = &name;
         },
         [this](command_tag<opcode::COMMENT>, const comment_line &line) {
-            m_last_line = line;
+            m_last_line = &line;
         },
         [this](command_tag<opcode::NEWBOX>) {
             m_current_box = {};
