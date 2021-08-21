@@ -172,21 +172,19 @@ template<> struct binary_io<command_args> {
         }, cmd);
     }
 
-    template<opcode Cmd> static constexpr command_args read_command(std::istream &input) {
-        if constexpr (std::is_void_v<enums::get_type_t<Cmd>>) {
-            return make_command<Cmd>();
-        } else {
-            return make_command<Cmd>(readData<enums::get_type_t<Cmd>>(input));
-        }
-    }
-
     static command_args read(std::istream &input) {
-        static constexpr auto command_lookup = []<size_t ... Is> (std::index_sequence<Is...>) {
-            return std::array { read_command<static_cast<opcode>(Is)> ... };
+        static constexpr auto read_vtable = []<size_t ... Is> (std::index_sequence<Is...>) {
+            return std::array{ +[](std::istream &input) {
+                constexpr opcode Cmd = static_cast<opcode>(Is);
+                if constexpr (std::is_void_v<enums::get_type_t<Cmd>>) {
+                    return make_command<Cmd>();
+                } else {
+                    return make_command<Cmd>(readData<enums::get_type_t<Cmd>>(input));
+                }
+            } ... };
         } (std::make_index_sequence<enums::size<opcode>()>{});
 
-        opcode command = readData<opcode>(input);
-        return command_lookup[static_cast<size_t>(command)](input);
+        return read_vtable[readData<std::underlying_type_t<opcode>>(input)](input);
     }
 };
 
