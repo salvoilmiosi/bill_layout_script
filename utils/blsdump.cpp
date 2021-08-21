@@ -80,6 +80,9 @@ int MainApp::run() {
                 [](command_tag<opcode::COMMENT>, const comment_line &line) {
                     std::cout << print_args(line);
                 },
+                [](command_tag<opcode::LABEL>, const jump_label &label) {
+                    std::cout << print_args(label) << ':';
+                },
                 []<opcode Cmd>(command_tag<Cmd>) {
                     std::cout << '\t' << Cmd;
                 },
