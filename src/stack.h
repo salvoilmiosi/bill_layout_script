@@ -8,6 +8,21 @@ namespace bls {
 
     constexpr size_t default_stack_size = 8;
 
+    template<typename Container> class back_popper {
+    private:
+        Container *m_container;
+
+    public:
+        back_popper(Container *container) : m_container(container) {}
+        ~back_popper() { m_container->pop_back(); }
+
+        auto &operator *() { return m_container->back(); }
+        const auto &operator *() const { return m_container->back(); }
+
+        auto *operator ->() { return &m_container->back(); }
+        const auto *operator ->() const { return &m_container->back(); }
+    };
+
     template<typename T, typename Container = std::deque<T>> struct simple_stack : public Container {
         using base = Container;
         
@@ -24,10 +39,8 @@ namespace bls {
             return base::emplace_back(std::forward<Ts>(values) ...);
         }
 
-        constexpr T pop() {
-            T ret = std::move(base::back());
-            base::pop_back();
-            return ret;
+        auto pop() {
+            return back_popper(this);
         }
     };
 

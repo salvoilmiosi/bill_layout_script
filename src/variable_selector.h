@@ -46,7 +46,7 @@ namespace bls {
         }
 
     public:
-        variable_selector(std::string name, variable_map &map)
+        variable_selector(variable_map &map, std::string name)
             : m_current_map(map)
             , m_name(std::move(name)) {}
 

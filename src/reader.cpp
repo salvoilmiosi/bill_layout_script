@@ -154,10 +154,10 @@ void reader::exec_command(const command_args &cmd) {
             m_current_box = {};
         },
         [this](command_tag<opcode::MVBOX>, spacer_index idx) {
-            move_box(m_current_box, idx, m_stack.pop());
+            move_box(m_current_box, idx, *m_stack.pop());
         },
         [this](command_tag<opcode::MVNBOX>, spacer_index idx) {
-            move_box(m_current_box, idx, -m_stack.pop());
+            move_box(m_current_box, idx, -(*m_stack.pop()));
         },
         [this](command_tag<opcode::RDBOX>, readbox_options opts) {
             m_current_box.mode = opts.mode;
@@ -165,34 +165,34 @@ void reader::exec_command(const command_args &cmd) {
             m_contents.emplace(get_document().get_text(m_current_box));
         },
         [this](command_tag<opcode::SELVAR>, const std::string &name) {
-            m_selected.emplace(name, *m_current_table);
+            m_selected.emplace(*m_current_table, name);
         },
         [this](command_tag<opcode::SELVARDYN>) {
-            m_selected.emplace(m_stack.pop().as_string(), *m_current_table);
+            m_selected.emplace(*m_current_table, std::move(*m_stack.pop()).as_string());
         },
         [this](command_tag<opcode::SELGLOBAL>, const std::string &name) {
-            m_selected.emplace(name, m_globals);
+            m_selected.emplace(m_globals, name);
         },
         [this](command_tag<opcode::SELGLOBALDYN>) {
-            m_selected.emplace(m_stack.pop().as_string(), m_globals);
+            m_selected.emplace(m_globals, std::move(*m_stack.pop()).as_string());
         },
         [this](command_tag<opcode::SELLOCAL>, const std::string &name) {
-            m_selected.emplace(name, m_calls.top().vars);
+            m_selected.emplace(m_calls.top().vars, name);
         },
         [this](command_tag<opcode::SELLOCALDYN>) {
-            m_selected.emplace(m_stack.pop().as_string(), m_globals);
+            m_selected.emplace(m_calls.top().vars, std::move(*m_stack.pop()).as_string());
         },
         [this](command_tag<opcode::SELINDEX>, small_int idx) {
             m_selected.top().add_index(idx);
         },
         [this](command_tag<opcode::SELINDEXDYN>) {
-            m_selected.top().add_index(m_stack.pop().as_int());
+            m_selected.top().add_index(m_stack.pop()->as_int());
         },
         [this](command_tag<opcode::SELSIZE>, small_int size) {
             m_selected.top().set_size(size);
         },
         [this](command_tag<opcode::SELSIZEDYN>) {
-            m_selected.top().set_size(m_stack.pop().as_int());
+            m_selected.top().set_size(m_stack.pop()->as_int());
         },
         [this](command_tag<opcode::SELAPPEND>) {
             m_selected.top().add_append();
@@ -201,32 +201,32 @@ void reader::exec_command(const command_args &cmd) {
             m_selected.top().add_each();
         },
         [this](command_tag<opcode::FWDVAR>) {
-            m_selected.pop().fwd_value(m_stack.pop());
+            m_selected.pop()->fwd_value(std::move(*m_stack.pop()));
         },
         [this](command_tag<opcode::SETVAR>) {
-            m_selected.pop().set_value(m_stack.pop());
+            m_selected.pop()->set_value(std::move(*m_stack.pop()));
         },
         [this](command_tag<opcode::FORCEVAR>) {
-            m_selected.pop().force_value(m_stack.pop());
+            m_selected.pop()->force_value(std::move(*m_stack.pop()));
         },
         [this](command_tag<opcode::INCVAR>) {
-            m_selected.pop().inc_value(m_stack.pop());
+            m_selected.pop()->inc_value(*m_stack.pop());
         },
         [this](command_tag<opcode::DECVAR>) {
-            m_selected.pop().dec_value(m_stack.pop());
+            m_selected.pop()->dec_value(*m_stack.pop());
         },
         [this](command_tag<opcode::CLEAR>) {
-            m_selected.pop().clear_value();
+            m_selected.pop()->clear_value();
         },
         [this](command_tag<opcode::SUBITEM>, small_int idx) {
             to_subitem(m_stack.top(), idx);
         },
         [this](command_tag<opcode::SUBITEMDYN>) {
-            small_int idx = m_stack.pop().as_int();
+            small_int idx = m_stack.pop()->as_int();
             to_subitem(m_stack.top(), idx);
         },
         [this](command_tag<opcode::PUSHVAR>) {
-            m_stack.push(m_selected.pop().get_value());
+            m_stack.push(m_selected.pop()->get_value());
         },
         [this](command_tag<opcode::PUSHVIEW>) {
             m_stack.push(m_contents.top().view());
@@ -253,13 +253,13 @@ void reader::exec_command(const command_args &cmd) {
             call.fun->second(this, m_stack, call.numargs);
         },
         [this](command_tag<opcode::CNTADD>) {
-            m_contents.emplace(m_stack.pop());
+            m_contents.emplace(std::move(*m_stack.pop()));
         },
         [this](command_tag<opcode::CNTADDLIST>) {
-            m_contents.emplace(m_stack.pop(), as_array_tag);
+            m_contents.emplace(std::move(*m_stack.pop()), as_array_tag);
         },
         [this](command_tag<opcode::CNTPOP>) {
-            m_contents.pop_back();
+            m_contents.pop();
         },
         [this](command_tag<opcode::NEXTRESULT>) {
             m_contents.top().nextresult();
@@ -268,12 +268,12 @@ void reader::exec_command(const command_args &cmd) {
             jump_to(address);
         },
         [this](command_tag<opcode::JZ>, const jump_address &address) {
-            if (!m_stack.pop().is_true()) {
+            if (!m_stack.pop()->is_true()) {
                 jump_to(address);
             }
         },
         [this](command_tag<opcode::JNZ>, const jump_address &address) {
-            if (m_stack.pop().is_true()) {
+            if (m_stack.pop()->is_true()) {
                 jump_to(address);
             }
         },
@@ -289,22 +289,20 @@ void reader::exec_command(const command_args &cmd) {
             jump_subroutine(address, true);
         },
         [this](command_tag<opcode::RET>) {
-            const auto &fun_call = m_calls.top();
-            m_program_counter_next = fun_call.return_addr;
+            auto fun_call = m_calls.pop();
+            m_program_counter_next = fun_call->return_addr;
 
-            if (fun_call.getretvalue) {
+            if (fun_call->getretvalue) {
                 m_stack.emplace();
             }
-            m_calls.pop_back();
         },
         [this](command_tag<opcode::RETVAL>) {
-            const auto &fun_call = m_calls.top();
-            m_program_counter_next = fun_call.return_addr;
+            auto fun_call = m_calls.pop();
+            m_program_counter_next = fun_call->return_addr;
 
-            if (!fun_call.getretvalue) {
-                m_stack.pop_back();
+            if (!fun_call->getretvalue) {
+                m_stack.pop();
             }
-            m_calls.pop_back();
         },
         [this](command_tag<opcode::IMPORT>, const std::string &path) {
             jump_address addr = add_layout(path) - m_program_counter;
