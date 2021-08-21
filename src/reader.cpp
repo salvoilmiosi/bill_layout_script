@@ -241,10 +241,10 @@ void reader::exec_command(const command_args &cmd) {
             m_stack.push(num);
         },
         [this](command_tag<opcode::PUSHSTR>, const std::string &str) {
-            m_stack.push(str);
+            m_stack.push(std::string_view(str));
         },
         [this](command_tag<opcode::PUSHREGEX>, const std::string &str) {
-            m_stack.emplace(str, as_regex_tag);
+            m_stack.emplace(std::string_view(str), as_regex_tag);
         },
         [this](command_tag<opcode::CALL>, const command_call &call) {
             m_stack.push(call.fun->second(this, m_stack, call.numargs));
