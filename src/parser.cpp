@@ -10,44 +10,56 @@
 
 using namespace bls;
 
+static parsing_error make_parsing_error(const layout_box &box, const token_error &error, const lexer &lexer) {
+    return parsing_error(std::format("{0}: {1}\n{2}",
+        box.name, lexer.token_location_info(error.location), error.what()));
+}
+
 void parser::read_layout(const std::filesystem::path &path, const layout_box_list &layout) {
     m_path = path;
-    m_layout = &layout;
     
-    try {
-        m_code.add_line<opcode::ADDLAYOUT>(std::filesystem::canonical(path).string());
-        if (layout.find_layout_flag) {
-            m_code.add_line<opcode::FOUNDLAYOUT>();
-        }
-        if (layout.language.empty()) {
-            m_code.add_line<opcode::SETLANG>();
-        } else {
-            m_code.add_line<opcode::SETLANG>(layout.language + ".UTF-8");
-        }
-        for (auto &box : layout) {
-            read_box(box);
-        }
-    } catch (const token_error &error) {
-        throw parsing_error(std::format("{0}: {1}\n{2}",
-            current_box->name, m_lexer.token_location_info(error.location),
-            error.what()));
+    m_code.add_line<opcode::ADDLAYOUT>(std::filesystem::canonical(path).string());
+    if (layout.find_layout_flag) {
+        m_code.add_line<opcode::FOUNDLAYOUT>();
     }
-
-    for (auto it = m_code.begin(); it != m_code.end(); ++it) {
-        visit_command(util::overloaded{
-            []<opcode Cmd>(command_tag<Cmd>) {},
-            []<opcode Cmd>(command_tag<Cmd>, auto &) {},
-            [&]<opcode Cmd>(command_tag<Cmd>, jump_address &addr) {
-                if (!addr.address) {
-                    if (auto label_it = m_code.find_label(addr.label); label_it != m_code.end()) {
-                        addr.address = label_it - it;
-                    } else {
-                        throw parsing_error(intl::format("Etichetta sconosciuta: {}", addr.label));
-                    }
+    if (layout.language.empty()) {
+        m_code.add_line<opcode::SETLANG>();
+    } else {
+        m_code.add_line<opcode::SETLANG>(layout.language + ".UTF-8");
+    }
+    for (const layout_box &box : layout) {
+        try {
+            if (auto tok = read_goto_label(box)) {
+                if (m_goto_labels.contains(tok.value)) {
+                    throw token_error(intl::format("DUPLICATE_GOTO_LABEL", tok.value), tok);
+                } else {
+                    m_goto_labels.emplace(std::string(tok.value), m_code.make_label(tok.value));
                 }
             }
-        }, *it);
+        } catch (const token_error &error) {
+            throw make_parsing_error(box, error, m_lexer);
+        }
     }
+    for (const layout_box &box : layout) {
+        try {
+            read_box(box);
+        } catch (const token_error &error) {
+            throw make_parsing_error(box, error, m_lexer);
+        }
+    }
+}
+
+token parser::read_goto_label(const layout_box &box) {
+    m_lexer.set_comment_callback(nullptr);
+    m_lexer.set_script(box.goto_label);
+    auto tok_label = m_lexer.next();
+    if (tok_label.type == token_type::IDENTIFIER) {
+        m_lexer.require(token_type::END_OF_FILE);
+        return tok_label;
+    } else if (tok_label.type != token_type::END_OF_FILE) {
+        throw unexpected_token(tok_label, token_type::IDENTIFIER);
+    }
+    return {};
 }
 
 void parser::read_box(const layout_box &box) {
@@ -55,20 +67,11 @@ void parser::read_box(const layout_box &box) {
         return;
     }
     
-    m_code.add_line<opcode::BOXNAME>(box.name);
-    current_box = &box;
-
-    m_lexer.set_comment_callback(nullptr);
-    m_lexer.set_script(box.goto_label);
-    auto tok_label = m_lexer.next();
-    if (tok_label.type == token_type::IDENTIFIER) {
-        if (!m_code.add_label(std::format("__{}_box_{}", m_parser_id, tok_label.value))) {
-            throw token_error(intl::format("DUPLICATE_GOTO_LABEL", tok_label.value), tok_label);
-        }
-        m_lexer.require(token_type::END_OF_FILE);
-    } else if (tok_label.type != token_type::END_OF_FILE) {
-        throw unexpected_token(tok_label, token_type::IDENTIFIER);
+    if (token tok = read_goto_label(box)) {
+        m_code.add_label(m_goto_labels.at(std::string(tok.value)));
     }
+    
+    m_code.add_line<opcode::BOXNAME>(box.name);
 
     if (!box.flags.check(box_flags::NOREAD) || box.flags.check(box_flags::SPACER)) {
         m_code.add_line<opcode::NEWBOX>();
@@ -225,14 +228,14 @@ void parser::assignment_stmt() {
 
 void parser::read_tie_assignment() {
     m_lexer.require(token_type::PAREN_BEGIN);
-    size_t begin = m_code.size();
+    auto var_begin = std::prev(m_code.end());
     size_t num_vars = 0;
     while (!m_lexer.check_next(token_type::PAREN_END)) {
         ++num_vars;
-        size_t end = m_code.size();
+        auto var_end = std::prev(m_code.end());
         read_variable_name();
         read_variable_indices();
-        m_code.move_not_comments(begin, end);
+        m_code.splice(m_code.end(), m_code, std::next(var_begin), std::next(var_end));
         auto tok_comma = m_lexer.peek();
         switch (tok_comma.type) {
         case token_type::COMMA:
@@ -531,11 +534,10 @@ void parser::read_function(token tok_fun_name, bool top_level) {
         if (fun.numargs != num_args) {
             throw invalid_numargs(std::string(fun_name), fun.numargs, fun.numargs, tok_fun_name);
         }
-        jump_label label = std::format("__function_{}", fun_name);
         if (top_level) {
-            m_code.add_line<opcode::JSR>(label);
+            m_code.add_line<opcode::JSR>(fun.node);
         } else {
-            m_code.add_line<opcode::JSRVAL>(label);
+            m_code.add_line<opcode::JSRVAL>(fun.node);
         }
     } else {
         throw token_error(intl::format("UNKNOWN_FUNCTION", fun_name), tok_fun_name);

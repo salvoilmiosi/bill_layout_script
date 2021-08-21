@@ -131,7 +131,7 @@ namespace bls {
 
         void advance(token tok);
 
-        std::string token_location_info(const token &tok);
+        std::string token_location_info(const token &tok) const;
 
     private:
         std::function<void(comment_line)> comment_callback;

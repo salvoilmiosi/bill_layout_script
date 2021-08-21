@@ -1,6 +1,8 @@
 #ifndef __BYTECODE_H__
 #define __BYTECODE_H__
 
+#include <list>
+
 #include "pdf_document.h"
 #include "utils.h"
 #include "fixed_point.h"
@@ -42,23 +44,15 @@ namespace bls {
         std::string comment;
         int line;
     };
-    using jump_label = util::strong_typedef<std::string>;
 
-    struct jump_address {
-        jump_label label;
-        int16_t address = 0;
-
-        jump_address() = default;
-        jump_address(const jump_label &label) : label(label) {}
-        jump_address(jump_label &&label) : label(std::move(label)) {}
-        jump_address(int16_t address) : address(address) {}
-    };
+    using command_list_base = std::list<class command_args>;
+    using command_node = command_list_base::iterator;
 
     DEFINE_ENUM_TYPES_IN_NS(bls, opcode,
         (NOP)                           // no operation
+        (LABEL, std::string)            // jump label
         (BOXNAME, std::string)          // set box name
         (COMMENT, comment_line)         // comment
-        (LABEL, jump_label)             // jump label
         (NEWBOX)                        // resetta current_box
         (MVBOX, spacer_index)           // stack -> current_box[index]
         (MVNBOX, spacer_index)          // -stack -> current_box[index]
@@ -96,12 +90,12 @@ namespace bls {
         (CNTADDLIST)                    // stack -> content_stack
         (CNTPOP)                        // content_stack.pop()
         (NEXTRESULT)                    // content_stack.top.nextresult()
-        (JMP, jump_address)             // unconditional jump
-        (JZ, jump_address)              // stack -> jump if top == 0
-        (JNZ, jump_address)             // stack -> jump if top != 0
-        (JTE, jump_address)             // jump if content_stack.top at token end
-        (JSR, jump_address)             // program_counter -> call_stack -- jump to subroutine and discard return value
-        (JSRVAL, jump_address)          // program_counter -> call_stack -- jump to subroutine
+        (JMP, command_node)             // unconditional jump
+        (JZ, command_node)              // stack -> jump if top == 0
+        (JNZ, command_node)             // stack -> jump if top != 0
+        (JTE, command_node)             // jump if content_stack.top at token end
+        (JSR, command_node)             // program_counter -> call_stack -- jump to subroutine and discard return value
+        (JSRVAL, command_node)          // program_counter -> call_stack -- jump to subroutine
         (RET)                           // jump to call_stack.top
         (RETVAL)                        // return to caller and push value to stack
         (IMPORT, std::string)           // importa il file e lo esegue
@@ -190,42 +184,10 @@ namespace bls {
         return command_args(std::in_place_index<static_cast<size_t>(Cmd)>, std::forward<Ts>(args) ...);
     }
 
-    struct bytecode : std::vector<command_args> {
-        bytecode() {
-            reserve(4096);
-        }
-
+    struct command_list : command_list_base {
         template<opcode Cmd, typename ... Ts>
         void add_line(Ts && ... args) {
             push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
-        }
-
-        bytecode::const_iterator find_label(const jump_label &label) {
-            return std::ranges::find_if(*this, [&](const command_args &line) {
-                return line.command() == opcode::LABEL && line.get_args<opcode::LABEL>() == label;
-            });
-        }
-
-        bool add_label(const jump_label &label) {
-            if (find_label(label) == end()) {
-                add_line<opcode::LABEL>(label);
-                return true;
-            }
-            return false;
-        }
-
-        void move_not_comments(size_t pos_begin, size_t pos_end) {
-            auto it_begin = begin() + pos_begin;
-            auto it_end = begin() + pos_end;
-            std::rotate(std::find_if_not(it_begin, it_end, [](const command_args &cmd) {
-                return cmd.command() == opcode::COMMENT;
-            }), it_end, end());
-        }
-
-        command_args &last_not_comment() {
-            return *std::find_if_not(rbegin(), rend(), [](const command_args &cmd) {
-                return cmd.command() == opcode::COMMENT;
-            });
         }
     };
 

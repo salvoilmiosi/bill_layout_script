@@ -10,7 +10,6 @@ if(MSVC)
 endif()
 
 add_library(bls SHARED
-    src/binary_bls.cpp
     src/datetime.cpp
     src/functions.cpp
     src/keywords.cpp
@@ -81,7 +80,7 @@ install(TARGETS bls blsexec)
 option(BLS_BUILD_UTILS "Build BLS Utils" ON)
 if(BLS_BUILD_UTILS)
     add_executable(blsdump utils/blsdump.cpp)
-    target_link_libraries(blsdump bls::bls Boost::program_options)
+    target_link_libraries(blsdump bls::bls)
 
     add_executable(blssizes utils/sizes.cpp)
     target_link_libraries(blssizes bls::bls)

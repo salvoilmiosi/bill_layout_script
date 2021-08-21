@@ -11,17 +11,6 @@
 #include "utils.h"
 
 namespace bls {
-
-    struct loop_state {
-        std::string continue_label;
-        std::string break_label;
-        int entry_content_level;
-    };
-
-    struct function_info {
-        small_int numargs;
-    };
-
     class invalid_numargs : public token_error {
     private:
         static std::string get_message(const std::string &fun_name, size_t minargs, size_t maxargs) {
@@ -39,23 +28,47 @@ namespace bls {
             : token_error(get_message(fun_name, minargs, maxargs), tok) {}
     };
 
-    class parser {
-    public:
-        parser() : m_parser_id(parser_counter++) {}
+    struct loop_state {
+        command_node continue_node;
+        command_node break_node;
+        int entry_content_level;
+    };
 
-        void read_layout(const std::filesystem::path &path, const layout_box_list &layout);
+    struct function_info {
+        command_node node;
+        small_int numargs;
+    };
 
-        const auto &get_bytecode() const & {
-            return m_code;
+    struct parser_code : command_list {
+        command_list unadded_labels;
+
+        command_node make_label(std::string_view name = "") {
+            static int label_count = 0;
+            return unadded_labels.emplace(unadded_labels.end(),
+                make_command<opcode::LABEL>(name.empty() ? std::format("__{}", label_count++) : std::string(name), 0));
         }
 
-        auto &&get_bytecode() && {
-            return std::move(m_code);
+        void add_label(command_node node) {
+            splice(end(), unadded_labels, node);
         }
         
+        command_args &last_not_comment() {
+            return *std::find_if_not(rbegin(), rend(), [](const command_args &cmd) {
+                return cmd.command() == opcode::COMMENT;
+            });
+        }
+    };
+
+    class parser {
+    public:
+        void read_layout(const std::filesystem::path &path, const layout_box_list &layout);
+
+        const auto &get_code() const { return m_code; }
+        auto &get_code() { return m_code; }
+        
     private:
+        token read_goto_label(const layout_box &box);
         void read_box(const layout_box &box);
-        const layout_box *current_box = nullptr;
         
         void read_statement();
         void assignment_stmt();
@@ -67,8 +80,6 @@ namespace bls {
         void read_function(token tok_fun_name, bool top_level);
         void read_variable_name();
         void read_variable_indices();
-
-        jump_label make_label(std::string_view label);
 
         void parse_if_stmt();
         void parse_while_stmt();
@@ -84,17 +95,14 @@ namespace bls {
         void parse_clear_stmt();
 
     private:
-        static inline int parser_counter = 0;
-        int m_parser_id;
-
-        const layout_box_list *m_layout = nullptr;
         std::filesystem::path m_path;
 
         lexer m_lexer;
-        bytecode m_code;
+        parser_code m_code;
 
         simple_stack<loop_state> m_loop_stack;
         util::string_map<function_info> m_functions;
+        util::string_map<command_node> m_goto_labels;
         int m_content_level = 0;
 
         friend class lexer;

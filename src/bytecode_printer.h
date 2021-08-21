@@ -50,12 +50,11 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<std::s
     return out << unicode::escapeString(*args);
 }
 
-template<> std::ostream &operator << (std::ostream &out, const print_args<jump_address> &label) {
-    if (!label->label.empty()) {
-        return out << print_args(label->label);
-    } else {
-        return out << label->address;
+template<> std::ostream &operator << (std::ostream &out, const print_args<command_node> &label) {
+    if ((*label)->command() == opcode::LABEL) {
+        out << (*label)->template get_args<opcode::LABEL>();
     }
+    return out;
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<comment_line> &line) {
@@ -63,11 +62,21 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<commen
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<command_args> &line) {
-    out << '\t' << print_args(line->command());
     visit_command(util::overloaded{
-        []<opcode Cmd>(command_tag<Cmd>) {},
+        [&](command_tag<opcode::LABEL>, const std::string &line) {
+            out << line << ':';
+        },
+        [&](command_tag<opcode::BOXNAME>, const std::string &line) {
+            out << "### " << line;
+        },
+        [&](command_tag<opcode::COMMENT>, const comment_line &line) {
+            out << print_args(line);
+        },
+        [&]<opcode Cmd>(command_tag<Cmd>) {
+            out << '\t' << print_args(Cmd);
+        },
         [&]<opcode Cmd>(command_tag<Cmd>, const auto &args) {
-            out << ' ' << print_args(args);
+            out << '\t' << print_args(Cmd) << ' ' << print_args(args);
         }
     }, *line);
     return out;

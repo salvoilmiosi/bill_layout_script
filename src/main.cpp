@@ -18,7 +18,6 @@ struct MainApp {
     std::filesystem::path input_bls;
 
     bool find_layout = false;
-    bool use_cache = false;
 
     unsigned indent_size = 4;
 };
@@ -49,7 +48,6 @@ int MainApp::run() {
             my_reader.set_document(my_doc);
         }
         
-        if (use_cache) my_reader.add_flag(reader_flags::USE_CACHE);
         if (find_layout) my_reader.add_flag(reader_flags::FIND_LAYOUT);
         my_reader.add_layout(input_bls);
         my_reader.start();
@@ -110,7 +108,6 @@ int main(int argc, char **argv) {
             ("help,h", intl::format("PRINT_HELP").c_str())
             ("input-bls", po::value(&app.input_bls), intl::format("BLS_INPUT_FILE").c_str())
             ("input-pdf,p", po::value(&app.input_pdf), intl::format("PDF_INPUT_FILE").c_str())
-            ("use-cache,c", po::bool_switch(&app.use_cache), intl::format("USE_CACHE").c_str())
             ("find-layout", po::bool_switch(&app.find_layout), intl::format("FIND_LAYOUT").c_str())
             ("indent-size", po::value(&app.indent_size), intl::format("INDENTATION_SIZE").c_str())
         ;

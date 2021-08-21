@@ -55,7 +55,7 @@ void lexer::skipSpaces() {
     }
 }
 
-std::string lexer::token_location_info(const token &tok) {
+std::string lexer::token_location_info(const token &tok) const {
     const char *tok_line_begin = m_begin;
     const char *tok_line_end = tok.value.data();
     size_t tok_line_count = 1;

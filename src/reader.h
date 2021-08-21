@@ -18,15 +18,16 @@ namespace bls {
 
 DEFINE_ENUM_FLAGS_IN_NS(bls, reader_flags,
     (FIND_LAYOUT)
-    (USE_CACHE)
 )
 
 struct function_call {
     variable_map vars;
-    size_t return_addr;
+    command_node return_addr;
     bool getretvalue;
 
-    function_call(size_t return_addr, bool getretvalue = false)
+    function_call() : getretvalue(false) {}
+
+    function_call(command_node return_addr, bool getretvalue = false)
         : return_addr(return_addr)
         , getretvalue(getretvalue) {}
 };
@@ -56,8 +57,8 @@ public:
     }
 
     // ritorna l'indirizzo del codice aggiunto
-    size_t add_layout(const std::filesystem::path &filename);
-    size_t add_code(bytecode &&new_code);
+    command_node add_layout(const std::filesystem::path &filename);
+    command_node add_code(command_list &&new_code);
 
     void add_flag(reader_flags flag) {
         m_flags.set(flag);
@@ -76,19 +77,19 @@ public:
     }
 
 private:
-    void jump_to(const jump_address &address) {
-        m_program_counter_next = m_program_counter + address.address;
+    void jump_to(command_node node) {
+        m_program_counter_next = node;
     }
 
-    void jump_subroutine(const jump_address &address, bool getretvalue = false) {
-        m_calls.emplace(m_program_counter + 1, getretvalue);
-        jump_to(address);
+    void jump_subroutine(command_node node, bool getretvalue = false) {
+        m_calls.emplace(std::next(m_program_counter), getretvalue);
+        jump_to(node);
     }
 
     void exec_command(const command_args &cmd);
 
 private:
-    bytecode m_code;
+    command_list m_code;
 
     std::list<variable_map> m_values;
     std::list<variable_map>::iterator m_current_table;
@@ -112,8 +113,8 @@ private:
 
     pdf_rect m_current_box;
 
-    size_t m_program_counter;
-    size_t m_program_counter_next;
+    command_node m_program_counter;
+    command_node m_program_counter_next;
     
     std::atomic<bool> m_running = false;
     std::atomic<bool> m_aborted = false;
