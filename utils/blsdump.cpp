@@ -14,8 +14,9 @@ int main(int argc, char **argv) {
     try {
         std::filesystem::path input_file = argv[1];
         
-        for (const auto &line : parser{}.read_layout(input_file, layout_box_list::from_file(input_file))) {
-            std::cout << print_args(line) << '\n';
+        auto code = parser{}.read_layout(input_file, layout_box_list::from_file(input_file));
+        for (auto it = code.begin(); it != code.end(); ++it) {
+            std::cout << bytecode_printer(code, it) << '\n';
         }
     } catch (const std::exception &error) {
         std::cerr << error.what() << std::endl;
