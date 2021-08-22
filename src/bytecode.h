@@ -66,9 +66,6 @@ namespace bls {
         (SELINDEX, size_t)              // index -> selected.add_index
         (SELINDEXDYN)                   // stack -> selected.add_index
         (SELAPPEND)                     // selected.add_append
-        (SELEACH)                       // selected.add_each
-        (SELSIZE, size_t)               // size -> selected.set_size
-        (SELSIZEDYN)                    // stack -> selected.set_size
         (FWDVAR)                        // stack -> selected = stack (forward)
         (SETVAR)                        // stack -> selected = stack (copy if not null)
         (FORCEVAR)                      // stack -> selected = stack (force)

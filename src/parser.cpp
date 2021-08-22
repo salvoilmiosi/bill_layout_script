@@ -451,53 +451,17 @@ void parser::read_variable_name() {
 }
 
 void parser::read_variable_indices() {
-    bool in_loop = true;
-    while (in_loop && m_lexer.check_next(token_type::BRACKET_BEGIN)) { // variable[
-        token tok = m_lexer.peek();
-        switch (tok.type) {
-        case token_type::COLON: {
-            m_lexer.advance(tok);
-            tok = m_lexer.peek();
-            switch (tok.type) {
-            case token_type::BRACKET_END:
-                m_code.add_line<opcode::SELEACH>(); // variable[:]
-                in_loop = false;
-                break;
-            case token_type::INTEGER: // variable[:N] -- append N times
-                m_lexer.advance(tok);
-                m_code.add_line<opcode::SELAPPEND>();
-                m_code.add_line<opcode::SELSIZE>(util::string_to<size_t>(tok.value));
-                in_loop = false;
-                break;
-            default:
-                m_code.add_line<opcode::SELAPPEND>();
-                read_expression();
-                m_code.add_line<opcode::SELSIZEDYN>();
-            }
-            break;
-        }
-        case token_type::BRACKET_END:
+    while (m_lexer.check_next(token_type::BRACKET_BEGIN)) {
+        if (m_lexer.check_next(token_type::BRACKET_END)) { // variable[]
             m_code.add_line<opcode::SELAPPEND>();
-            break;
-        default:
-            if (tok = m_lexer.check_next(token_type::INTEGER)) { // variable[N]
-                m_code.add_line<opcode::SELINDEX>(util::string_to<size_t>(tok.value));
-            } else {
-                read_expression();
-                m_code.add_line<opcode::SELINDEXDYN>();
-            }
-            if (tok = m_lexer.check_next(token_type::COLON)) { // variable[N:M] -- M times after index N
-                if (tok = m_lexer.check_next(token_type::INTEGER)) {
-                    m_code.add_line<opcode::SELSIZE>(util::string_to<size_t>(tok.value));
-                } else {
-                    read_expression();
-                    m_code.add_line<opcode::SELSIZEDYN>();
-                }
-                in_loop = false;
-                break;
-            }
+        } else if (auto tok = m_lexer.check_next(token_type::INTEGER)) { // variable[int]
+            m_code.add_line<opcode::SELINDEX>(util::string_to<size_t>(tok.value));
+            m_lexer.require(token_type::BRACKET_END);
+        } else { // variable[expr]
+            read_expression();
+            m_code.add_line<opcode::SELINDEXDYN>();
+            m_lexer.require(token_type::BRACKET_END);
         }
-        m_lexer.require(token_type::BRACKET_END);
     }
 }
 

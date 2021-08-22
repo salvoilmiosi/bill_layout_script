@@ -177,17 +177,8 @@ void reader::exec_command(const command_args &cmd) {
         [this](command_tag<opcode::SELINDEXDYN>) {
             m_selected.top().add_index(m_stack.pop()->as_int());
         },
-        [this](command_tag<opcode::SELSIZE>, size_t size) {
-            m_selected.top().set_size(size);
-        },
-        [this](command_tag<opcode::SELSIZEDYN>) {
-            m_selected.top().set_size(m_stack.pop()->as_int());
-        },
         [this](command_tag<opcode::SELAPPEND>) {
             m_selected.top().add_append();
-        },
-        [this](command_tag<opcode::SELEACH>) {
-            m_selected.top().add_each();
         },
         [this](command_tag<opcode::FWDVAR>) {
             m_selected.pop()->fwd_value(std::move(*m_stack.pop()));
