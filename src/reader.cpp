@@ -124,6 +124,7 @@ command_node reader::add_code(command_list &&new_code) {
     new_code.remove_if(is_label);
 
     auto loc = new_code.begin();
+    m_code.string_data.splice(m_code.string_data.end(), std::move(new_code.string_data));
     m_code.splice(m_code.end(), std::move(new_code));
     return loc;
 }

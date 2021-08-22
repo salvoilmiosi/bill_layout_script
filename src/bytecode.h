@@ -44,21 +44,24 @@ namespace bls {
 
     using command_list_base = std::list<class command_args>;
     using command_node = command_list_base::iterator;
+    
+    using string_container = std::list<std::string>;
+    using string_ptr = string_container::const_iterator;
 
     DEFINE_ENUM_TYPES_IN_NS(bls, opcode,
         (NOP)                           // no operation
         (LABEL, command_label)          // command label
-        (BOXNAME, std::string)          // set box name
-        (COMMENT, std::string)          // comment
+        (BOXNAME, string_ptr)           // set box name
+        (COMMENT, string_ptr)           // comment
         (NEWBOX)                        // resetta current_box
         (MVBOX, spacer_index)           // stack -> current_box[index]
         (MVNBOX, spacer_index)          // -stack -> current_box[index]
         (RDBOX, readbox_options)        // poppler.get_text(current_box) -> content_stack
-        (SELVAR, std::string)           // name -> selected (current_table)
+        (SELVAR, string_ptr)            // name -> selected (current_table)
         (SELVARDYN)                     // stack -> selected (current_table)
-        (SELGLOBAL, std::string)        // name -> selected (globals)
+        (SELGLOBAL, string_ptr)         // name -> selected (globals)
         (SELGLOBALDYN)                  // stack -> selected (globals)
-        (SELLOCAL, std::string)         // name -> selected (calls.top.vars)
+        (SELLOCAL, string_ptr)          // name -> selected (calls.top.vars)
         (SELLOCALDYN)                   // stack -> selected (calls.top.vars)
         (SELINDEX, size_t)              // index -> selected.add_index
         (SELINDEXDYN)                   // stack -> selected.add_index
@@ -79,8 +82,8 @@ namespace bls {
         (PUSHNUM, fixed_point)          // number -> stack
         (PUSHINT, int64_t)              // int -> stack
         (PUSHDOUBLE, double)            // double -> stack
-        (PUSHSTR, std::string)          // str -> stack
-        (PUSHREGEX, std::string)        // str -> stack (flag come regex)
+        (PUSHSTR, string_ptr)           // str -> stack
+        (PUSHREGEX, string_ptr)         // str -> stack (flag come regex)
         (CALL, command_call)            // stack * numargs -> fun_name -> stack
         (SYSCALL, command_call)         // stack * numargs -> fun_name
         (CNTADD)                        // stack -> content_stack
@@ -95,9 +98,9 @@ namespace bls {
         (JSRVAL, command_node)          // program_counter -> call_stack -- jump to subroutine
         (RET)                           // jump to call_stack.top
         (RETVAL)                        // return to caller and push value to stack
-        (IMPORT, std::string)           // importa il file e lo esegue
-        (SETPATH, std::string)          // aggiunge il percorso del layout nella lista di output
-        (SETLANG, std::string)          // imposta il locale corrente
+        (IMPORT, string_ptr)            // importa il file e lo esegue
+        (SETPATH, string_ptr)           // aggiunge il percorso del layout nella lista di output
+        (SETLANG, string_ptr)           // imposta il locale corrente
         (FOUNDLAYOUT)                   // ferma l'esecuzione se settata la flag find layout in reader
     )
 
@@ -150,6 +153,8 @@ namespace bls {
                 constexpr opcode Cmd = static_cast<opcode>(Is);
                 if constexpr (std::is_void_v<enums::get_type_t<Cmd>>) {
                     return std::invoke(fun, command_tag<Cmd>{});
+                } else if constexpr (std::is_same_v<enums::get_type_t<Cmd>, string_ptr>) {
+                    return std::invoke(fun, command_tag<Cmd>{}, *cmd.template get_args<Cmd>());
                 } else {
                     return std::invoke(fun, command_tag<Cmd>{}, cmd.template get_args<Cmd>());
                 }
@@ -161,6 +166,10 @@ namespace bls {
     
     template<opcode Cmd, typename Function> struct command_return_type {
         using type = std::invoke_result_t<Function, command_tag<Cmd>, std::add_lvalue_reference_t<enums::get_type_t<Cmd>>>;
+    };
+    template<opcode Cmd, typename Function> requires std::is_same_v<enums::get_type_t<Cmd>, string_ptr>
+    struct command_return_type<Cmd, Function> {
+        using type = std::invoke_result_t<Function, command_tag<Cmd>, const std::string &>;
     };
     template<opcode Cmd, typename Function> requires std::is_void_v<enums::get_type_t<Cmd>>
     struct command_return_type<Cmd, Function> {
@@ -181,9 +190,21 @@ namespace bls {
     }
 
     struct command_list : command_list_base {
+        string_container string_data;
+
+        template<opcode Cmd, typename ... Ts>
+        command_args new_line(Ts && ... args) {
+            return make_command<Cmd>(std::forward<Ts>(args) ... );
+        }
+
+        template<opcode Cmd, typename ... Ts> requires std::is_same_v<enums::get_type_t<Cmd>, string_ptr>
+        command_args new_line(Ts && ... args) {
+            return make_command<Cmd>(string_data.emplace(string_data.end(), std::forward<Ts>(args) ... ));
+        }
+
         template<opcode Cmd, typename ... Ts>
         void add_line(Ts && ... args) {
-            push_back(make_command<Cmd>(std::forward<Ts>(args) ... ));
+            push_back(new_line<Cmd>(std::forward<Ts>(args) ... ));
         }
     };
 
