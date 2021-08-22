@@ -319,6 +319,25 @@ namespace bls {
         return str;
     }
 
+    template<typename Function>
+    variable_array zip(vector_view<variable> lhs, vector_view<variable> rhs, Function &&fun) {
+        variable_array ret;
+        size_t len = std::max(lhs.size(), rhs.size());
+        ret.reserve(len);
+        for (size_t i=0; i<len; ++i) {
+            if (i < lhs.size()) {
+                if (i < rhs.size()) {
+                    ret.push_back(fun(lhs[i], rhs[i]));
+                } else {
+                    ret.push_back(fun(lhs[i], variable()));
+                }
+            } else {
+                ret.push_back(fun(variable(), rhs[i]));
+            }
+        }
+        return ret;
+    }
+
     const function_map function_lookup::functions {
         {"copy", [](const variable &var) { return var; }},
         {"str", [](const std::string &str) { return str; }},
@@ -360,6 +379,12 @@ namespace bls {
         }},
         {"list", [](varargs<variable> args) -> variable {
             return args;
+        }},
+        {"zip_add", [](vector_view<variable> lhs, vector_view<variable> rhs) {
+            return zip(lhs, rhs, std::plus<>{});
+        }},
+        {"zip_sub", [](vector_view<variable> lhs, vector_view<variable> rhs) {
+            return zip(lhs, rhs, std::minus<>{});
         }},
         {"sum", [](vector_view<fixed_point> args) {
             return std::reduce(args.begin(), args.end(), variable());
