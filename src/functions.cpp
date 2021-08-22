@@ -377,6 +377,12 @@ namespace bls {
         {"clamp", [](const variable &value, const variable &low, const variable &high) {
             return std::clamp(value, low, high);
         }},
+        {"repeated", [](const variable &value, size_t num) {
+            return variable_array(num, value);
+        }},
+        {"range", [](vector_view<variable> vec, size_t index, size_t size) -> variable {
+            return vec | std::views::drop(index) | std::views::take(size);
+        }},
         {"percent", [](std::string_view str) {
             if (!str.empty()) {
                 return variable(std::string(str) + "%");
