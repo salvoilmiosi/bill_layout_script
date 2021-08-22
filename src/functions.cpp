@@ -402,7 +402,8 @@ namespace bls {
         {"clamp", [](const variable &value, const variable &low, const variable &high) {
             return std::clamp(value, low, high);
         }},
-        {"repeated", [](const variable &value, size_t num) {
+        {"repeated", [](const variable &value, size_t num) -> variable {
+            if (value.is_null()) return {};
             return variable_array(num, value);
         }},
         {"range", [](vector_view<variable> vec, size_t index, size_t size) -> variable {
