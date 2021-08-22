@@ -68,7 +68,6 @@ namespace bls {
         
         void read_statement();
         void assignment_stmt();
-        void read_tie_assignment();
 
         void read_expression();
         void sub_expression();
@@ -89,6 +88,7 @@ namespace bls {
         void parse_continue_stmt();
         void parse_return_stmt();
         void parse_clear_stmt();
+        void parse_tie_stmt();
 
     private:
         std::filesystem::path m_path;

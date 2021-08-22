@@ -261,3 +261,48 @@ void parser::parse_clear_stmt() {
     m_lexer.require(token_type::SEMICOLON);
     m_code.add_line<opcode::CLEAR>();
 };
+
+void parser::parse_tie_stmt() {
+    m_lexer.require(token_type::KW_TIE);
+    m_lexer.require(token_type::PAREN_BEGIN);
+    auto var_begin = std::prev(m_code.end());
+    size_t num_vars = 0;
+    while (!m_lexer.check_next(token_type::PAREN_END)) {
+        ++num_vars;
+        auto var_end = std::prev(m_code.end());
+        read_variable_name();
+        read_variable_indices();
+        m_code.splice(m_code.end(), m_code, std::next(var_begin), std::next(var_end));
+        auto tok_comma = m_lexer.peek();
+        switch (tok_comma.type) {
+        case token_type::COMMA:
+            m_lexer.advance(tok_comma);
+            break;
+        case token_type::PAREN_END:
+            break;
+        default:
+            throw unexpected_token(tok_comma, token_type::PAREN_END);
+        }
+    }
+
+    command_args op_cmd;
+    token tok = m_lexer.next();
+    switch(tok.type) {
+    case token_type::ASSIGN:        op_cmd = make_command<opcode::SETVAR>(); break;
+    case token_type::FORCE_ASSIGN:  op_cmd = make_command<opcode::FORCEVAR>(); break;
+    case token_type::ADD_ASSIGN:    op_cmd = make_command<opcode::INCVAR>(); break;
+    case token_type::SUB_ASSIGN:    op_cmd = make_command<opcode::DECVAR>(); break;
+    default:
+        throw unexpected_token(tok, token_type::ASSIGN);
+    }
+    read_expression();
+    m_code.add_line<opcode::CNTADDLIST>();
+    for(size_t i=0; i<num_vars; ++i) {
+        m_code.add_line<opcode::PUSHVIEW>();
+        m_code.push_back(op_cmd);
+        if (i != num_vars - 1) {
+            m_code.add_line<opcode::NEXTRESULT>();
+        }
+    }
+    m_code.add_line<opcode::CNTPOP>();
+}

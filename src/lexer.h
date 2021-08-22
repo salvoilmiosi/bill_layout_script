@@ -29,6 +29,7 @@ namespace bls {
         (KW_RETURN,     "return")
         (KW_CLEAR,      "clear")
         (KW_GLOBAL,     "global")
+        (KW_TIE,        "tie")
         (STRING,        "Stringa")
         (REGEXP,        "Espressione Regolare")
         (NUMBER,        "Numero")
@@ -79,7 +80,8 @@ namespace bls {
         {"continue",    token_type::KW_CONTINUE},
         {"return",      token_type::KW_RETURN},
         {"clear",       token_type::KW_CLEAR},
-        {"global",      token_type::KW_GLOBAL}
+        {"global",      token_type::KW_GLOBAL},
+        {"tie",         token_type::KW_TIE}
     };
 
     struct token {
