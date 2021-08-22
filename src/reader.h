@@ -70,6 +70,7 @@ public:
     const auto &get_values() const { return m_values; }
     const auto &get_notes() const { return m_notes; }
     const auto &get_layouts() const { return m_layouts; }
+    const auto &get_current_layout() const { return *m_current_layout; }
 
     void abort() {
         m_running = false;
@@ -101,11 +102,11 @@ private:
     simple_stack<function_call> m_calls;
     simple_stack<variable_selector> m_selected;
 
-    std::vector<std::filesystem::path> m_layouts;
-    std::vector<std::filesystem::path>::iterator m_current_layout;
+    std::set<std::filesystem::path> m_layouts;
+    std::set<std::filesystem::path>::const_iterator m_current_layout;
 
     const std::string *m_box_name;
-    const comment_line *m_last_line;
+    const std::string *m_last_line;
 
     std::locale m_locale;
 

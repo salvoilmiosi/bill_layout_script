@@ -15,31 +15,33 @@ static parsing_error make_parsing_error(const layout_box &box, const token_error
         box.name, lexer.token_location_info(error.location), error.what()));
 }
 
-void parser::read_layout(const std::filesystem::path &path, const layout_box_list &layout) {
-    m_path = path;
-    
-    m_code.add_line<opcode::ADDLAYOUT>(std::filesystem::canonical(path).string());
+command_list parser::read_layout(const std::filesystem::path &path, const layout_box_list &layout) {
+    m_path = std::filesystem::canonical(path);
+    m_code.add_line<opcode::SETPATH>(m_path.string());
+
     if (layout.find_layout_flag) {
         m_code.add_line<opcode::FOUNDLAYOUT>();
     }
-    if (layout.language.empty()) {
-        m_code.add_line<opcode::SETLANG>();
-    } else {
-        m_code.add_line<opcode::SETLANG>(layout.language + ".UTF-8");
+    
+    if (!layout.language.empty()) {
+        m_lang = layout.language + ".UTF-8";
     }
+    m_code.add_line<opcode::SETLANG>(m_lang);
+
     for (const layout_box &box : layout) {
         try {
             if (auto tok = read_goto_label(box)) {
                 if (m_goto_labels.contains(tok.value)) {
                     throw token_error(intl::format("DUPLICATE_GOTO_LABEL", tok.value), tok);
                 } else {
-                    m_goto_labels.emplace(std::string(tok.value), m_code.make_label(tok.value));
+                    m_goto_labels.emplace(std::string(tok.value), m_code.make_label());
                 }
             }
         } catch (const token_error &error) {
             throw make_parsing_error(box, error, m_lexer);
         }
     }
+
     for (const layout_box &box : layout) {
         try {
             read_box(box);
@@ -47,6 +49,10 @@ void parser::read_layout(const std::filesystem::path &path, const layout_box_lis
             throw make_parsing_error(box, error, m_lexer);
         }
     }
+    
+    m_code.add_line<opcode::RET>();
+
+    return std::move(m_code);
 }
 
 token parser::read_goto_label(const layout_box &box) {
@@ -89,7 +95,7 @@ void parser::read_box(const layout_box &box) {
         m_code.add_line<opcode::MVBOX>(spacer_index::PAGE);
     }
 
-    m_lexer.set_comment_callback([this](comment_line line){
+    m_lexer.set_comment_callback([this](std::string line){
         m_code.add_line<opcode::COMMENT>(std::move(line));
     });
     m_lexer.set_script(box.spacers);
@@ -337,7 +343,7 @@ void parser::sub_expression() {
         switch (tok_num.type) {
         case token_type::INTEGER:
             m_lexer.advance(tok_num);
-            m_code.add_line<opcode::PUSHINT>(util::string_to<big_int>(tok_num.value));
+            m_code.add_line<opcode::PUSHINT>(util::string_to<int64_t>(tok_num.value));
             break;
         case token_type::NUMBER:
             m_lexer.advance(tok_num);
@@ -355,7 +361,7 @@ void parser::sub_expression() {
         switch (tok_num.type) {
         case token_type::INTEGER:
             m_lexer.advance(tok_num);
-            m_code.add_line<opcode::PUSHINT>(-util::string_to<big_int>(tok_num.value));
+            m_code.add_line<opcode::PUSHINT>(-util::string_to<int64_t>(tok_num.value));
             break;
         case token_type::NUMBER:
             m_lexer.advance(tok_num);
@@ -369,7 +375,7 @@ void parser::sub_expression() {
     }
     case token_type::INTEGER:
         m_lexer.advance(tok_first);
-        m_code.add_line<opcode::PUSHINT>(util::string_to<big_int>(tok_first.value));
+        m_code.add_line<opcode::PUSHINT>(util::string_to<int64_t>(tok_first.value));
         break;
     case token_type::NUMBER:
         m_lexer.advance(tok_first);
@@ -405,7 +411,7 @@ void parser::sub_expression() {
     
     while (m_lexer.check_next(token_type::BRACKET_BEGIN)) {
         if (token tok = m_lexer.check_next(token_type::INTEGER)) {
-            m_code.add_line<opcode::SUBITEM>(util::string_to<small_int>(tok.value));
+            m_code.add_line<opcode::SUBITEM>(util::string_to<size_t>(tok.value));
         } else {
             read_expression();
             m_code.add_line<opcode::SUBITEMDYN>();
@@ -460,7 +466,7 @@ void parser::read_variable_indices() {
             case token_type::INTEGER: // variable[:N] -- append N times
                 m_lexer.advance(tok);
                 m_code.add_line<opcode::SELAPPEND>();
-                m_code.add_line<opcode::SELSIZE>(util::string_to<small_int>(tok.value));
+                m_code.add_line<opcode::SELSIZE>(util::string_to<size_t>(tok.value));
                 in_loop = false;
                 break;
             default:
@@ -475,14 +481,14 @@ void parser::read_variable_indices() {
             break;
         default:
             if (tok = m_lexer.check_next(token_type::INTEGER)) { // variable[N]
-                m_code.add_line<opcode::SELINDEX>(util::string_to<small_int>(tok.value));
+                m_code.add_line<opcode::SELINDEX>(util::string_to<size_t>(tok.value));
             } else {
                 read_expression();
                 m_code.add_line<opcode::SELINDEXDYN>();
             }
             if (tok = m_lexer.check_next(token_type::COLON)) { // variable[N:M] -- M times after index N
                 if (tok = m_lexer.check_next(token_type::INTEGER)) {
-                    m_code.add_line<opcode::SELSIZE>(util::string_to<small_int>(tok.value));
+                    m_code.add_line<opcode::SELSIZE>(util::string_to<size_t>(tok.value));
                 } else {
                     read_expression();
                     m_code.add_line<opcode::SELSIZEDYN>();
@@ -500,7 +506,7 @@ void parser::read_function(token tok_fun_name, bool top_level) {
     m_lexer.require(token_type::PAREN_BEGIN);
     
     auto fun_name = tok_fun_name.value;
-    small_int num_args = 0;
+    size_t num_args = 0;
 
     while (!m_lexer.check_next(token_type::PAREN_END)) {
         ++num_args;

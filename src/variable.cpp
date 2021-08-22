@@ -112,8 +112,8 @@ fixed_point variable::as_number() const {
     return std::visit(number_converter<fixed_point>{}, deref().m_value);
 }
 
-big_int variable::as_int() const {
-    return std::visit(number_converter<big_int>{}, deref().m_value);
+int64_t variable::as_int() const {
+    return std::visit(number_converter<int64_t>{}, deref().m_value);
 }
 
 double variable::as_double() const {

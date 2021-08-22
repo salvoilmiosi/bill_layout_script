@@ -11,8 +11,6 @@
 
 namespace bls {
 
-    typedef int64_t big_int;
-
     struct string_flags {
         bool is_regex;
     };
@@ -36,7 +34,7 @@ namespace bls {
 
     class variable {
     public:
-        using variant_type = std::variant<std::monostate, string_state, fixed_point, big_int, double, datetime, variable_array, variable_ptr>;
+        using variant_type = std::variant<std::monostate, string_state, fixed_point, int64_t, double, datetime, variable_array, variable_ptr>;
 
         static constexpr auto variant_type_names = std::array{
             "TYPE_NULL", "TYPE_STRING", "TYPE_NUMBER", "TYPE_INT", "TYPE_FLOAT", "TYPE_DATE", "TYPE_ARRAY", "TYPE_POINTER"
@@ -66,7 +64,7 @@ namespace bls {
             : m_value(string_state(value, state)) {}
 
         variable(fixed_point value) : m_value(value) {}
-        variable(std::integral auto value) : m_value(big_int(value)) {}
+        variable(std::integral auto value) : m_value(int64_t(value)) {}
         variable(std::floating_point auto value) : m_value(double(value)) {}
 
         variable(datetime value) : m_value(value) {}
@@ -107,7 +105,7 @@ namespace bls {
 
         string_state as_view() const;
         fixed_point as_number() const;
-        big_int as_int() const;
+        int64_t as_int() const;
         double as_double() const;
         datetime as_date() const;
         variable_ptr as_pointer() const;

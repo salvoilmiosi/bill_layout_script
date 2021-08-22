@@ -100,7 +100,7 @@ void parser::parse_function_stmt() {
     }
     m_lexer.require(token_type::PAREN_BEGIN);
     
-    auto fun_label = m_code.make_label(name.value);
+    auto fun_label = m_code.make_label();
     auto endfun_label = m_code.make_label();
 
     m_code.add_line<opcode::JMP>(endfun_label);
@@ -144,7 +144,7 @@ void parser::parse_function_stmt() {
         }
     }
 
-    m_functions.emplace(std::string(name.value), function_info{fun_label, small_int(args.size() + m_content_level)});
+    m_functions.emplace(std::string(name.value), function_info{fun_label, args.size() + m_content_level});
     for (auto _ : args) {
         m_code.add_line<opcode::FWDVAR>();
     }
@@ -205,6 +205,8 @@ void parser::parse_import_stmt() {
     m_lexer.require(token_type::SEMICOLON);
     auto imported_file = m_path.parent_path() / (tok_layout_name.parse_string() + ".bls");
     m_code.add_line<opcode::IMPORT>(imported_file.string());
+    m_code.add_line<opcode::SETPATH>(m_path.string());
+    m_code.add_line<opcode::SETLANG>(m_lang);
 };
 
 void parser::parse_break_stmt() {

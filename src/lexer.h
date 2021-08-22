@@ -134,8 +134,8 @@ namespace bls {
         std::string token_location_info(const token &tok) const;
 
     private:
-        std::function<void(comment_line)> comment_callback;
-        simple_stack<comment_line> comment_lines;
+        std::function<void(std::string)> comment_callback;
+        simple_stack<std::string> comment_lines;
 
         const char *m_begin;
         const char *m_current;

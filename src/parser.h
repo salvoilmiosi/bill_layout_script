@@ -36,16 +36,15 @@ namespace bls {
 
     struct function_info {
         command_node node;
-        small_int numargs;
+        size_t numargs;
     };
 
     struct parser_code : command_list {
         command_list unadded_labels;
 
-        command_node make_label(std::string_view name = "") {
+        command_node make_label() {
             static int label_count = 0;
-            return unadded_labels.emplace(unadded_labels.end(),
-                make_command<opcode::LABEL>(name.empty() ? std::format("__{}", label_count++) : std::string(name), 0));
+            return unadded_labels.emplace(unadded_labels.end(), make_command<opcode::LABEL>(label_count++));
         }
 
         void add_label(command_node node) {
@@ -61,10 +60,7 @@ namespace bls {
 
     class parser {
     public:
-        void read_layout(const std::filesystem::path &path, const layout_box_list &layout);
-
-        const auto &get_code() const { return m_code; }
-        auto &get_code() { return m_code; }
+        command_list read_layout(const std::filesystem::path &path, const layout_box_list &layout);
         
     private:
         token read_goto_label(const layout_box &box);
@@ -96,6 +92,7 @@ namespace bls {
 
     private:
         std::filesystem::path m_path;
+        std::string m_lang;
 
         lexer m_lexer;
         parser_code m_code;

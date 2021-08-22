@@ -30,10 +30,6 @@ template<enums::is_enum T> std::ostream &operator << (std::ostream &out, const p
     return out << enums::to_string(*args);
 }
 
-template<> std::ostream &operator << (std::ostream &out, const print_args<small_int> &args) {
-    return out << int(*args);
-}
-
 template<> std::ostream &operator << (std::ostream &out, const print_args<readbox_options> &args) {
     return out << print_args(args->mode) << ' ' << print_args(args->flags);
 }
@@ -50,27 +46,27 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<std::s
     return out << unicode::escapeString(*args);
 }
 
-template<> std::ostream &operator << (std::ostream &out, const print_args<command_node> &label) {
-    if ((*label)->command() == opcode::LABEL) {
-        out << (*label)->template get_args<opcode::LABEL>();
+template<> std::ostream &operator << (std::ostream &out, const print_args<command_label> &label) {
+    return out << "__" << label->id;
+}
+
+template<> std::ostream &operator << (std::ostream &out, const print_args<command_node> &node) {
+    if ((*node)->command() == opcode::LABEL) {
+        out << print_args((*node)->template get_args<opcode::LABEL>());
     }
     return out;
 }
 
-template<> std::ostream &operator << (std::ostream &out, const print_args<comment_line> &line) {
-    return out << line->line << ": " << line->comment;
-}
-
 template<> std::ostream &operator << (std::ostream &out, const print_args<command_args> &line) {
     visit_command(util::overloaded{
-        [&](command_tag<opcode::LABEL>, const std::string &line) {
-            out << line << ':';
+        [&](command_tag<opcode::LABEL>, const command_label &line) {
+            out << print_args(line) << ':';
         },
         [&](command_tag<opcode::BOXNAME>, const std::string &line) {
             out << "### " << line;
         },
-        [&](command_tag<opcode::COMMENT>, const comment_line &line) {
-            out << print_args(line);
+        [&](command_tag<opcode::COMMENT>, const std::string &line) {
+            out << line;
         },
         [&]<opcode Cmd>(command_tag<Cmd>) {
             out << '\t' << print_args(Cmd);

@@ -10,11 +10,9 @@
 #include "exceptions.h"
 
 namespace bls {
-    typedef uint8_t small_int;
-
     struct command_call {
         function_iterator fun;
-        small_int numargs;
+        size_t numargs;
 
         command_call(std::string_view name, int numargs) : fun(function_lookup::find(name)), numargs(numargs) {
             assert(function_lookup::valid(fun));
@@ -40,9 +38,8 @@ namespace bls {
         enums::bitset<box_flags> flags;
     };
 
-    struct comment_line {
-        std::string comment;
-        int line;
+    struct command_label {
+        int id;
     };
 
     using command_list_base = std::list<class command_args>;
@@ -50,9 +47,9 @@ namespace bls {
 
     DEFINE_ENUM_TYPES_IN_NS(bls, opcode,
         (NOP)                           // no operation
-        (LABEL, std::string)            // jump label
+        (LABEL, command_label)          // command label
         (BOXNAME, std::string)          // set box name
-        (COMMENT, comment_line)         // comment
+        (COMMENT, std::string)          // comment
         (NEWBOX)                        // resetta current_box
         (MVBOX, spacer_index)           // stack -> current_box[index]
         (MVNBOX, spacer_index)          // -stack -> current_box[index]
@@ -63,11 +60,11 @@ namespace bls {
         (SELGLOBALDYN)                  // stack -> selected (globals)
         (SELLOCAL, std::string)         // name -> selected (calls.top.vars)
         (SELLOCALDYN)                   // stack -> selected (calls.top.vars)
-        (SELINDEX, small_int)           // index -> selected.add_index
+        (SELINDEX, size_t)              // index -> selected.add_index
         (SELINDEXDYN)                   // stack -> selected.add_index
         (SELAPPEND)                     // selected.add_append
         (SELEACH)                       // selected.add_each
-        (SELSIZE, small_int)            // size -> selected.set_size
+        (SELSIZE, size_t)               // size -> selected.set_size
         (SELSIZEDYN)                    // stack -> selected.set_size
         (FWDVAR)                        // stack -> selected = stack (forward)
         (SETVAR)                        // stack -> selected = stack (copy if not null)
@@ -75,12 +72,12 @@ namespace bls {
         (INCVAR)                        // stack -> selected += stack (if not null)
         (DECVAR)                        // stack -> selected -= stack (if not null)
         (CLEAR)                         // selected -> clear
-        (SUBITEM, small_int)            // stack.top = stack.top[index]
+        (SUBITEM, size_t)               // stack.top = stack.top[index]
         (SUBITEMDYN)                    // stack -> stack.top = stack.top[stack]
         (PUSHVAR)                       // selected -> stack
         (PUSHVIEW)                      // content_stack -> stack
         (PUSHNUM, fixed_point)          // number -> stack
-        (PUSHINT, big_int)              // int -> stack
+        (PUSHINT, int64_t)              // int -> stack
         (PUSHDOUBLE, double)            // double -> stack
         (PUSHSTR, std::string)          // str -> stack
         (PUSHREGEX, std::string)        // str -> stack (flag come regex)
@@ -99,8 +96,7 @@ namespace bls {
         (RET)                           // jump to call_stack.top
         (RETVAL)                        // return to caller and push value to stack
         (IMPORT, std::string)           // importa il file e lo esegue
-        (ADDLAYOUT, std::string)        // aggiunge il nome del layout nella lista di output
-        (SETCURLAYOUT, small_int)       // sposta il puntatore del layout corrente
+        (SETPATH, std::string)          // aggiunge il percorso del layout nella lista di output
         (SETLANG, std::string)          // imposta il locale corrente
         (FOUNDLAYOUT)                   // ferma l'esecuzione se settata la flag find layout in reader
     )

@@ -13,8 +13,8 @@ namespace bls {
     using variable_map = util::string_map<variable>;
 
     struct selector_index {
-        small_int index = 0;
-        small_int size = 1;
+        size_t index = 0;
+        size_t size = 1;
         bool append:1 = false;
         bool each:1 = false;
     };
@@ -38,7 +38,7 @@ namespace bls {
                 } else if (index.each) {
                     index.size = arr.size();
                 }
-                arr.resize(std::max(arr.size(), size_t(index.index + index.size)));
+                arr.resize(std::max(arr.size(), index.index + index.size));
                 var = arr.data() + index.index;
                 len = index.size;
             }
@@ -50,11 +50,11 @@ namespace bls {
             : m_current_map(map)
             , m_name(std::move(name)) {}
 
-        void add_index(small_int index) {
+        void add_index(size_t index) {
             m_indices.emplace_back(index, 1);
         }
 
-        void set_size(small_int size) {
+        void set_size(size_t size) {
             m_indices.back().size = size;
         }
 

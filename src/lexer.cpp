@@ -80,7 +80,7 @@ void lexer::onLineStart() {
     for (; m_line_begin != m_line_end && isspace(*m_line_begin); ++m_line_begin);
     std::string_view line{m_line_begin, m_line_end};
     if (!line.empty() && comment_callback) {
-        comment_lines.emplace_back(std::string(line), m_line_count);
+        comment_lines.push_back(std::format("{}: {}", m_line_count, line));
     }
     ++m_line_end;
 }

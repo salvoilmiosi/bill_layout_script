@@ -78,10 +78,9 @@ int MainApp::run() {
         result["error"] = error.what();
         result["errcode"] = error.errcode;
 
-        auto &json_layouts = result["layouts"] = json::array();
-        for (auto &l : my_reader.get_layouts()) {
-            json_layouts.emplace_back(l.string());
-        }
+        result["layouts"] = my_reader.get_layouts()
+            | std::views::transform([](const std::filesystem::path &path) { return path.string(); })
+            | util::range_to<json::array>;
     } catch (const std::exception &error) {
         result["error"] = error.what();
         result["errcode"] = -1;

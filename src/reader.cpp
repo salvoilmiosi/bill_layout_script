@@ -49,9 +49,7 @@ void reader::start() {
         }
     } catch (const layout_error &err) {
         if (m_box_name && m_last_line) {
-            throw reader_error(std::format("{0}: Ln {1}\n{2}\n{3}",
-                *m_box_name, m_last_line->line, m_last_line->comment,
-                err.what()));
+            throw reader_error(std::format("{}: {}\n{}", *m_box_name, *m_last_line, err.what()));
         } else {
             throw reader_error(err.what());
         }
@@ -90,7 +88,7 @@ static void move_box(pdf_rect &box, spacer_index idx, const variable &amt) {
     }
 }
 
-static void to_subitem(variable &var, small_int idx) {
+static void to_subitem(variable &var, size_t idx) {
     if (var.is_array()) {
         const auto &arr = var.deref().as_array();
         if (arr.size() > idx) {
@@ -106,21 +104,24 @@ static void to_subitem(variable &var, small_int idx) {
 }
 
 command_node reader::add_layout(const std::filesystem::path &filename) {
-    parser my_parser;
-    my_parser.read_layout(filename, layout_box_list::from_file(filename));
-    return add_code(std::move(my_parser.get_code()));
+    return add_code(parser{}.read_layout(filename, layout_box_list::from_file(filename)));
 }
 
+static constexpr auto is_label = [](const command_args &cmd) {
+    return cmd.command() == opcode::LABEL;
+};
+
 command_node reader::add_code(command_list &&new_code) {
-    if (!m_code.empty()) {
-        new_code.add_line<opcode::SETCURLAYOUT>(m_current_layout - m_layouts.begin());
-        if (std::has_facet<boost::locale::info>(m_locale)) {
-            new_code.add_line<opcode::SETLANG>(std::use_facet<boost::locale::info>(m_locale).name());
-        } else {
-            new_code.add_line<opcode::SETLANG>();
-        }
+    for (command_args &line : new_code) {
+        visit_command(util::overloaded{
+            []<opcode Cmd>(command_tag<Cmd>) {},
+            []<opcode Cmd>(command_tag<Cmd>, auto &) {},
+            []<opcode Cmd>(command_tag<Cmd>, command_node &node) {
+                for (; is_label(*node); ++node);
+            }
+        }, line);
     }
-    new_code.add_line<opcode::RET>();
+    new_code.remove_if(is_label);
 
     auto loc = new_code.begin();
     m_code.splice(m_code.end(), std::move(new_code));
@@ -134,7 +135,7 @@ void reader::exec_command(const command_args &cmd) {
         [this](command_tag<opcode::BOXNAME>, const std::string &name) {
             m_box_name = &name;
         },
-        [this](command_tag<opcode::COMMENT>, const comment_line &line) {
+        [this](command_tag<opcode::COMMENT>, const std::string &line) {
             m_last_line = &line;
         },
         [this](command_tag<opcode::NEWBOX>) {
@@ -169,13 +170,13 @@ void reader::exec_command(const command_args &cmd) {
         [this](command_tag<opcode::SELLOCALDYN>) {
             m_selected.emplace(m_calls.top().vars, std::move(*m_stack.pop()).as_string());
         },
-        [this](command_tag<opcode::SELINDEX>, small_int idx) {
+        [this](command_tag<opcode::SELINDEX>, size_t idx) {
             m_selected.top().add_index(idx);
         },
         [this](command_tag<opcode::SELINDEXDYN>) {
             m_selected.top().add_index(m_stack.pop()->as_int());
         },
-        [this](command_tag<opcode::SELSIZE>, small_int size) {
+        [this](command_tag<opcode::SELSIZE>, size_t size) {
             m_selected.top().set_size(size);
         },
         [this](command_tag<opcode::SELSIZEDYN>) {
@@ -205,11 +206,11 @@ void reader::exec_command(const command_args &cmd) {
         [this](command_tag<opcode::CLEAR>) {
             m_selected.pop()->clear_value();
         },
-        [this](command_tag<opcode::SUBITEM>, small_int idx) {
+        [this](command_tag<opcode::SUBITEM>, size_t idx) {
             to_subitem(m_stack.top(), idx);
         },
         [this](command_tag<opcode::SUBITEMDYN>) {
-            small_int idx = m_stack.pop()->as_int();
+            size_t idx = m_stack.pop()->as_int();
             to_subitem(m_stack.top(), idx);
         },
         [this](command_tag<opcode::PUSHVAR>) {
@@ -221,7 +222,7 @@ void reader::exec_command(const command_args &cmd) {
         [this](command_tag<opcode::PUSHNUM>, fixed_point num) {
             m_stack.push(num);
         },
-        [this](command_tag<opcode::PUSHINT>, big_int num) {
+        [this](command_tag<opcode::PUSHINT>, int64_t num) {
             m_stack.push(num);
         },
         [this](command_tag<opcode::PUSHDOUBLE>, double num) {
@@ -303,13 +304,8 @@ void reader::exec_command(const command_args &cmd) {
             *m_program_counter = make_command<opcode::JSR>(node);
             jump_subroutine(node);
         },
-        [this](command_tag<opcode::ADDLAYOUT>, const std::string &path) {
-            m_layouts.push_back(path);
-            *m_program_counter = make_command<opcode::SETCURLAYOUT>(m_layouts.size() - 1);
-            m_current_layout = m_layouts.end() - 1;
-        },
-        [this](command_tag<opcode::SETCURLAYOUT>, small_int idx) {
-            m_current_layout = m_layouts.begin() + idx;
+        [this](command_tag<opcode::SETPATH>, const std::string &path) {
+            m_current_layout = m_layouts.emplace(path).first;
         },
         [this](command_tag<opcode::SETLANG>, const std::string &lang) {
             try {
