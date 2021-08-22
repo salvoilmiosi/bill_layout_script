@@ -35,7 +35,7 @@ template<> std::ostream &operator << (std::ostream &out, const print_args<readbo
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<command_call> &args) {
-    return out << args->fun->first << ' ' << print_args(args->numargs);
+    return out << (*args)->first;
 }
 
 template<> std::ostream &operator << (std::ostream &out, const print_args<fixed_point> &args) {

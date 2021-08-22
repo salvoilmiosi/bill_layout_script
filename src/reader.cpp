@@ -226,11 +226,14 @@ void reader::exec_command(const command_args &cmd) {
         [this](command_tag<opcode::PUSHREGEX>, const std::string &str) {
             m_stack.emplace(std::string_view(str), as_regex_tag);
         },
+        [this](command_tag<opcode::CALLARGS>, size_t numargs) {
+            m_numargs = numargs;
+        },
         [this](command_tag<opcode::CALL>, const command_call &call) {
-            m_stack.push(call.fun->second(this, m_stack, call.numargs));
+            m_stack.push(do_function_call(call));
         },
         [this](command_tag<opcode::SYSCALL>, const command_call &call) {
-            call.fun->second(this, m_stack, call.numargs);
+            do_function_call(call);
         },
         [this](command_tag<opcode::CNTADD>) {
             m_contents.emplace(std::move(*m_stack.pop()));

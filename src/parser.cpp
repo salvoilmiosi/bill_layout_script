@@ -236,7 +236,7 @@ void parser::read_expression() {
         int precedence;
 
         operator_precedence(std::string_view fun_name, int precedence)
-            : command(make_command<opcode::CALL>(fun_name, 2))
+            : command(make_command<opcode::CALL>(fun_name))
             , precedence(precedence) {}
     };
     static const std::map<token_type, operator_precedence> operators = {
@@ -289,7 +289,7 @@ void parser::sub_expression() {
     case token_type::NOT:
         m_lexer.advance(tok_first);
         sub_expression();
-        m_code.add_line<opcode::CALL>("not", 1);
+        m_code.add_line<opcode::CALL>("not");
         break;
     case token_type::PLUS: {
         m_lexer.advance(tok_first);
@@ -305,7 +305,7 @@ void parser::sub_expression() {
             break;
         default:
             sub_expression();
-            m_code.add_line<opcode::CALL>("num", 1);
+            m_code.add_line<opcode::CALL>("num");
         }
         break;
     }
@@ -323,7 +323,7 @@ void parser::sub_expression() {
             break;
         default:
             sub_expression();
-            m_code.add_line<opcode::CALL>("neg", 1);
+            m_code.add_line<opcode::CALL>("neg");
         }
         break;
     }
@@ -446,12 +446,15 @@ void parser::read_function(token tok_fun_name, bool top_level) {
         if (num_args < fun.minargs || num_args > fun.maxargs) {
             throw invalid_numargs(std::string(fun_name), fun.minargs, fun.maxargs, tok_fun_name);
         }
+        if (fun.minargs != fun.maxargs) {
+            m_code.add_line<opcode::CALLARGS>(num_args);
+        }
         if (fun.returns_value) {
             if (top_level) throw token_error(intl::format("CANT_CALL_FROM_TOP_LEVEL", fun_name), tok_fun_name);
-            m_code.add_line<opcode::CALL>(it, num_args);
+            m_code.add_line<opcode::CALL>(it);
         } else {
             if (!top_level) throw token_error(intl::format("CANT_CALL_OUT_OF_TOP_LEVEL", fun_name), tok_fun_name);
-            m_code.add_line<opcode::SYSCALL>(it, num_args);
+            m_code.add_line<opcode::SYSCALL>(it);
         }
     } else if (auto it = m_functions.find(fun_name); it != m_functions.end()) {
         const auto &fun = it->second;

@@ -87,6 +87,13 @@ private:
         jump_to(node);
     }
 
+    variable do_function_call(const command_call &call) {
+        if (call->second.minargs == call->second.maxargs) {
+            m_numargs = call->second.minargs;
+        }
+        return call->second(this, m_stack, m_numargs);
+    }
+
     void exec_command(const command_args &cmd);
 
 private:
@@ -107,6 +114,7 @@ private:
 
     const std::string *m_box_name;
     const std::string *m_last_line;
+    size_t m_numargs;
 
     std::locale m_locale;
 

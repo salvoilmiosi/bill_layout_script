@@ -13,7 +13,7 @@ void parser::parse_if_stmt() {
     m_lexer.require(token_type::PAREN_BEGIN);
     read_expression();
     m_lexer.require(token_type::PAREN_END);
-    if (auto &last = m_code.last_not_comment(); last.command() == opcode::CALL && last.get_args<opcode::CALL>().fun->first == "not") {
+    if (auto &last = m_code.last_not_comment(); last.command() == opcode::CALL && last.get_args<opcode::CALL>()->first == "not") {
         last = make_command<opcode::JNZ>(else_label);
     } else {
         m_code.add_line<opcode::JZ>(else_label);
@@ -245,7 +245,7 @@ void parser::parse_return_stmt() {
         switch (m_code.last_not_comment().command()) {
         case opcode::PUSHVAR:
         case opcode::PUSHVIEW:
-            m_code.add_line<opcode::CALL>("copy", 1);
+            m_code.add_line<opcode::CALL>("copy");
         }
         for (int i = 0; i < m_content_level; ++i) {
             m_code.add_line<opcode::CNTPOP>();

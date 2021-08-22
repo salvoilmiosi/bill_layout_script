@@ -10,14 +10,11 @@
 #include "exceptions.h"
 
 namespace bls {
-    struct command_call {
-        function_iterator fun;
-        size_t numargs;
-
-        command_call(std::string_view name, int numargs) : fun(function_lookup::find(name)), numargs(numargs) {
-            assert(function_lookup::valid(fun));
+    struct command_call : function_iterator {
+        command_call(function_iterator fun) : function_iterator(fun) {}
+        command_call(std::string_view name) : function_iterator(function_lookup::find(name)) {
+            assert(function_lookup::valid(*this));
         }
-        command_call(function_iterator fun, int numargs) : fun(fun), numargs(numargs) {}
     };
 
     DEFINE_ENUM_DATA_IN_NS(bls, spacer_index, static_vector<const char *>,
@@ -81,6 +78,7 @@ namespace bls {
         (PUSHDOUBLE, double)            // double -> stack
         (PUSHSTR, string_ptr)           // str -> stack
         (PUSHREGEX, string_ptr)         // str -> stack (flag come regex)
+        (CALLARGS, size_t)              // sets numargs
         (CALL, command_call)            // stack * numargs -> fun_name -> stack
         (SYSCALL, command_call)         // stack * numargs -> fun_name
         (CNTADD)                        // stack -> content_stack
