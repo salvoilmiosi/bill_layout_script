@@ -108,10 +108,10 @@ namespace json {
 
         StreamType &operator()(const array &arr) {
             stream << '[';
-            if (indent_size > 0) {
-                stream << '\n';
-            }
             if (!arr.empty()) {
+                if (indent_size > 0) {
+                    stream << '\n';
+                }
                 indent.append(indent_size, ' ');
                 for (auto it = arr.begin();;) {
                     stream << indent;
@@ -124,20 +124,21 @@ namespace json {
                     }
                 }
                 indent.resize(indent.size() - indent_size);
+                if (indent_size > 0) {
+                    stream << '\n';
+                }
+                stream << indent;   
             }
-            if (indent_size > 0) {
-                stream << '\n';
-            }
-            stream << indent << ']';
+            stream << ']';
             return stream;
         }
 
         StreamType &operator()(const object &obj) {
             stream << '{';
-            if (indent_size > 0) {
-                stream << '\n';
-            }
             if (!obj.empty()) {
+                if (indent_size > 0) {
+                    stream << '\n';
+                }
                 indent.append(indent_size, ' ');
                 for (auto it = obj.begin();;) {
                     stream << indent << unicode::escapeString(it->first) << ": ";
@@ -150,11 +151,12 @@ namespace json {
                     }
                 }
                 indent.resize(indent.size() - indent_size);
+                if (indent_size > 0) {
+                    stream << '\n';
+                }
+                stream << indent;  
             }
-            if (indent_size > 0) {
-                stream << '\n';
-            }
-            stream << indent << '}';
+            stream << '}';
             return stream;
         }
     };
