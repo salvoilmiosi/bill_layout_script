@@ -27,6 +27,9 @@ struct string_converter {
     std::string operator()(fixed_point num) const {
         return decimal_to_string(num);
     }
+    std::string operator()(bool value) const {
+        return value ? "true" : "false";
+    }
     std::string operator()(std::integral auto num) const {
         return std::to_string(num);
     }

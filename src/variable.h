@@ -34,10 +34,10 @@ namespace bls {
 
     class variable {
     public:
-        using variant_type = std::variant<std::monostate, string_state, fixed_point, int64_t, double, datetime, variable_array, variable_ptr>;
+        using variant_type = std::variant<std::monostate, string_state, fixed_point, bool, int64_t, double, datetime, variable_array, variable_ptr>;
 
         static constexpr auto variant_type_names = std::array{
-            "TYPE_NULL", "TYPE_STRING", "TYPE_NUMBER", "TYPE_INT", "TYPE_FLOAT", "TYPE_DATE", "TYPE_ARRAY", "TYPE_POINTER"
+            "TYPE_NULL", "TYPE_STRING", "TYPE_NUMBER", "TYPE_BOOL", "TYPE_INT", "TYPE_FLOAT", "TYPE_DATE", "TYPE_ARRAY", "TYPE_POINTER"
         };
         
         variable() = default;
@@ -66,6 +66,7 @@ namespace bls {
         variable(fixed_point value) : m_value(value) {}
         variable(std::integral auto value) : m_value(int64_t(value)) {}
         variable(std::floating_point auto value) : m_value(double(value)) {}
+        variable(bool value) : m_value(value) {}
 
         variable(datetime value) : m_value(value) {}
 

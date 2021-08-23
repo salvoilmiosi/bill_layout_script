@@ -214,6 +214,9 @@ void reader::exec_command(const command_args &cmd) {
         [this](command_tag<opcode::PUSHNUM>, fixed_point num) {
             m_stack.push(num);
         },
+        [this](command_tag<opcode::PUSHBOOL>, bool value) {
+            m_stack.push(value);
+        },
         [this](command_tag<opcode::PUSHINT>, int64_t num) {
             m_stack.push(num);
         },

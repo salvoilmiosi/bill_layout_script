@@ -31,6 +31,10 @@ namespace bls {
             return out << call->first;
         }
 
+        std::ostream &operator()(bool value) {
+            return out << std::boolalpha << value << std::noboolalpha;
+        }
+
         std::ostream &operator()(fixed_point num) {
             return out << decimal_to_string(num);
         }

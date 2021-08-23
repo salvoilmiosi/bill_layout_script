@@ -327,6 +327,14 @@ void parser::sub_expression() {
         }
         break;
     }
+    case token_type::KW_TRUE:
+        m_lexer.advance(tok_first);
+        m_code.add_line<opcode::PUSHBOOL>(true);
+        break;
+    case token_type::KW_FALSE:
+        m_lexer.advance(tok_first);
+        m_code.add_line<opcode::PUSHBOOL>(false);
+        break;
     case token_type::INTEGER:
         m_lexer.advance(tok_first);
         m_code.add_line<opcode::PUSHINT>(util::string_to<int64_t>(tok_first.value));

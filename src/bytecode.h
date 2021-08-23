@@ -74,6 +74,7 @@ namespace bls {
         (PUSHVAR)                       // selected -> stack
         (PUSHVIEW)                      // content_stack -> stack
         (PUSHNUM, fixed_point)          // number -> stack
+        (PUSHBOOL, bool)                // bool -> stack
         (PUSHINT, int64_t)              // int -> stack
         (PUSHDOUBLE, double)            // double -> stack
         (PUSHSTR, string_ptr)           // str -> stack
