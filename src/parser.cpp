@@ -32,7 +32,7 @@ command_list parser::read_layout(const std::filesystem::path &path, const layout
         try {
             if (auto tok = read_goto_label(box)) {
                 if (m_goto_labels.contains(tok.value)) {
-                    throw token_error(intl::format("DUPLICATE_GOTO_LABEL", tok.value), tok);
+                    throw token_error(intl::translate("DUPLICATE_GOTO_LABEL", tok.value), tok);
                 } else {
                     m_goto_labels.emplace(std::string(tok.value), m_code.make_label());
                 }
@@ -123,7 +123,7 @@ void parser::read_box(const layout_box &box) {
                     m_code.add_line<opcode::MVBOX>(idx);
                 }
             } else {
-                throw token_error(intl::format("INVALID_SPACER_FLAG", tok.value), tok);
+                throw token_error(intl::translate("INVALID_SPACER_FLAG", tok.value), tok);
             }
         } else if (tok.type != token_type::END_OF_FILE) {
             throw unexpected_token(tok, token_type::IDENTIFIER);
@@ -353,7 +353,7 @@ void parser::sub_expression() {
     case token_type::CONTENT:
         m_lexer.advance(tok_first);
         if (m_content_level == 0) {
-            throw token_error(intl::format("EMPTY_CONTENT_STACK"), tok_first);
+            throw token_error(intl::translate("EMPTY_CONTENT_STACK"), tok_first);
         }
         m_code.add_line<opcode::PUSHVIEW>();
         break;
@@ -458,10 +458,10 @@ void parser::read_function(token tok_fun_name, bool top_level) {
             m_code.add_line<opcode::CALLARGS>(num_args);
         }
         if (fun.returns_value) {
-            if (top_level) throw token_error(intl::format("CANT_CALL_FROM_TOP_LEVEL", fun_name), tok_fun_name);
+            if (top_level) throw token_error(intl::translate("CANT_CALL_FROM_TOP_LEVEL", fun_name), tok_fun_name);
             m_code.add_line<opcode::CALL>(it);
         } else {
-            if (!top_level) throw token_error(intl::format("CANT_CALL_OUT_OF_TOP_LEVEL", fun_name), tok_fun_name);
+            if (!top_level) throw token_error(intl::translate("CANT_CALL_OUT_OF_TOP_LEVEL", fun_name), tok_fun_name);
             m_code.add_line<opcode::SYSCALL>(it);
         }
     } else if (auto it = m_functions.find(fun_name); it != m_functions.end()) {
@@ -475,6 +475,6 @@ void parser::read_function(token tok_fun_name, bool top_level) {
             m_code.add_line<opcode::JSRVAL>(fun.node);
         }
     } else {
-        throw token_error(intl::format("UNKNOWN_FUNCTION", fun_name), tok_fun_name);
+        throw token_error(intl::translate("UNKNOWN_FUNCTION", fun_name), tok_fun_name);
     }
 }

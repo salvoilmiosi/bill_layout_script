@@ -11,7 +11,7 @@ template<typename T> static constexpr auto variant_type_name = variable::variant
 
 template<typename T1, typename T2>
 static inline auto make_conversion_error() {
-    return bls::conversion_error(intl::format("CANT_CONVERT_TYPE_TO_TYPE", intl::format(variant_type_name<T1>), intl::format(variant_type_name<T2>)));
+    return bls::conversion_error(intl::translate("CANT_CONVERT_TYPE_TO_TYPE", intl::translate(variant_type_name<T1>), intl::translate(variant_type_name<T2>)));
 }
 
 struct string_converter {

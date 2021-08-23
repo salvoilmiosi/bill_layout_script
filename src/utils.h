@@ -125,7 +125,7 @@ namespace util {
         isviewstream ss{str};
         ss >> ret;
         if (ss.fail()) {
-            throw bls::conversion_error(intl::format("CANT_PARSE_NUMBER", str));
+            throw bls::conversion_error(intl::translate("CANT_PARSE_NUMBER", str));
         }
         return ret;
     }
@@ -135,7 +135,7 @@ namespace util {
         T ret;
         auto result = std::from_chars(str.data(), str.data() + str.size(), ret);
         if (result.ec != std::errc()) {
-            throw bls::conversion_error(intl::format("CANT_PARSE_NUMBER", str));
+            throw bls::conversion_error(intl::translate("CANT_PARSE_NUMBER", str));
         }
         return ret;
     }

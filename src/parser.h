@@ -15,11 +15,11 @@ namespace bls {
     private:
         static std::string get_message(const std::string &fun_name, size_t minargs, size_t maxargs) {
             if (maxargs == std::numeric_limits<size_t>::max()) {
-                return intl::format("FUNCTION_REQUIRES_ARGS_LEAST", fun_name, minargs);
+                return intl::translate("FUNCTION_REQUIRES_ARGS_LEAST", fun_name, minargs);
             } else if (minargs == maxargs) {
-                return intl::format("FUNCTION_REQUIRES_ARGS_EXACT", fun_name, minargs);
+                return intl::translate("FUNCTION_REQUIRES_ARGS_EXACT", fun_name, minargs);
             } else {
-                return intl::format("FUNCTION_REQUIRES_ARGSS_RANGE", fun_name, minargs, maxargs);
+                return intl::translate("FUNCTION_REQUIRES_ARGSS_RANGE", fun_name, minargs, maxargs);
             }
         }
 

@@ -86,7 +86,7 @@ void parser::parse_goto_stmt() {
     if (auto it = m_goto_labels.find(tok.value); it != m_goto_labels.end()) {
         m_code.add_line<opcode::JMP>(it->second);
     } else {
-        throw token_error(intl::format("UNKNOWN_LABEL", tok.value), tok);
+        throw token_error(intl::translate("UNKNOWN_LABEL", tok.value), tok);
     }
     m_lexer.require(token_type::SEMICOLON);
 };
@@ -96,7 +96,7 @@ void parser::parse_function_stmt() {
 
     auto name = m_lexer.require(token_type::IDENTIFIER);
     if (function_lookup::valid(function_lookup::find(name.value)) || m_functions.contains(name.value)) {
-        throw token_error(intl::format("DUPLICATE_FUNCTION_NAME", name.value), name);
+        throw token_error(intl::translate("DUPLICATE_FUNCTION_NAME", name.value), name);
     }
     m_lexer.require(token_type::PAREN_BEGIN);
     
@@ -125,7 +125,7 @@ void parser::parse_function_stmt() {
             if (args.insert(tok.value).second) {
                 m_code.add_line<opcode::SELLOCAL>(tok.value);
             } else {
-                throw token_error(intl::format("DUPLICATE_FUNCTION_ARG_NAME", tok.value), tok);
+                throw token_error(intl::translate("DUPLICATE_FUNCTION_ARG_NAME", tok.value), tok);
             }
             break;
         }
@@ -213,7 +213,7 @@ void parser::parse_break_stmt() {
     auto tok_fun_name = m_lexer.require(token_type::KW_BREAK);
     m_lexer.require(token_type::SEMICOLON);
     if (m_loop_stack.empty()) {
-        throw token_error(intl::format("NOT_IN_A_LOOP"), tok_fun_name);
+        throw token_error(intl::translate("NOT_IN_A_LOOP"), tok_fun_name);
     }
     for (int i = m_loop_stack.top().entry_content_level; i < m_content_level; ++i) {
         m_code.add_line<opcode::CNTPOP>();
@@ -225,7 +225,7 @@ void parser::parse_continue_stmt() {
     auto tok_fun_name = m_lexer.require(token_type::KW_CONTINUE);
     m_lexer.require(token_type::SEMICOLON);
     if (m_loop_stack.empty()) {
-        throw token_error(intl::format("NOT_IN_A_LOOP"), tok_fun_name);
+        throw token_error(intl::translate("NOT_IN_A_LOOP"), tok_fun_name);
     }
     for (int i = m_loop_stack.top().entry_content_level; i < m_content_level; ++i) {
         m_code.add_line<opcode::CNTPOP>();

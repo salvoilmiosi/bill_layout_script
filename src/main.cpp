@@ -85,7 +85,7 @@ int MainApp::run() {
         result["error"] = error.what();
         result["errcode"] = -1;
     } catch (...) {
-        result["error"] = intl::format("UNKNOWN_ERROR");
+        result["error"] = intl::translate("UNKNOWN_ERROR");
         result["errcode"] = -2;
     }
 
@@ -99,16 +99,16 @@ int main(int argc, char **argv) {
 
         namespace po = program_options;
 
-        po::options_description desc(intl::format("OPTIONS"));
+        po::options_description desc(intl::translate("OPTIONS"));
         po::positional_options_description pos;
         pos.add("input-bls", -1);
 
         desc.add_options()
-            ("help,h", intl::format("PRINT_HELP").c_str())
-            ("input-bls", po::value(&app.input_bls), intl::format("BLS_INPUT_FILE").c_str())
-            ("input-pdf,p", po::value(&app.input_pdf), intl::format("PDF_INPUT_FILE").c_str())
-            ("find-layout", po::bool_switch(&app.find_layout), intl::format("FIND_LAYOUT").c_str())
-            ("indent-size", po::value(&app.indent_size), intl::format("INDENTATION_SIZE").c_str())
+            ("help,h", intl::translate("PRINT_HELP").c_str())
+            ("input-bls", po::value(&app.input_bls), intl::translate("BLS_INPUT_FILE").c_str())
+            ("input-pdf,p", po::value(&app.input_pdf), intl::translate("PDF_INPUT_FILE").c_str())
+            ("find-layout", po::bool_switch(&app.find_layout), intl::translate("FIND_LAYOUT").c_str())
+            ("indent-size", po::value(&app.indent_size), intl::translate("INDENTATION_SIZE").c_str())
         ;
 
         po::variables_map vm;
@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
         }
 
         if (!vm.count("input-bls")) {
-            std::cout << intl::format("REQUIRED_INPUT_BLS") << std::endl;
+            std::cout << intl::translate("REQUIRED_INPUT_BLS") << std::endl;
             return 0;
         }
 

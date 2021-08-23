@@ -309,7 +309,7 @@ void reader::exec_command(const command_args &cmd) {
             try {
                 m_locale = boost::locale::generator{}(lang);
             } catch (std::runtime_error) {
-                throw layout_error(intl::format("UNSUPPORTED_LANGUAGE", lang));
+                throw layout_error(intl::translate("UNSUPPORTED_LANGUAGE", lang));
             }
         },
         [this](command_tag<opcode::FOUNDLAYOUT>) {

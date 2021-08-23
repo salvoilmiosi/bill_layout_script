@@ -51,7 +51,7 @@ namespace util {
         if (dec::fromStream(iss, num)) {
             return num;
         } else {
-            throw bls::conversion_error(intl::format("CANT_PARSE_NUMBER", str));
+            throw bls::conversion_error(intl::translate("CANT_PARSE_NUMBER", str));
         }
     }
 }

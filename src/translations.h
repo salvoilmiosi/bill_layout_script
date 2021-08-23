@@ -30,7 +30,7 @@ namespace intl {
     const std::locale &messages_locale();
 
     template<typename ... Ts>
-    std::string format(const char *fmt_str, Ts && ... args) {
+    std::string translate(const char *fmt_str, Ts && ... args) {
         try {
             return std::vformat(boost::locale::gettext(fmt_str, messages_locale()),
                 std::make_format_args(std::forward<Ts>(args) ...));
@@ -40,8 +40,8 @@ namespace intl {
     }
 
     template<typename ... Ts>
-    std::string format(const std::string &fmt_str, Ts && ... args) {
-        return format(fmt_str.c_str(), std::forward<Ts>(args) ...);
+    std::string translate(const std::string &fmt_str, Ts && ... args) {
+        return translate(fmt_str.c_str(), std::forward<Ts>(args) ...);
     }
 }
 

@@ -65,7 +65,7 @@ namespace bls {
                         ret += fmt_args[idx];
                         continue;
                     } else {
-                        throw layout_error(intl::format("INVALID_FORMAT_STRING", str));
+                        throw layout_error(intl::translate("INVALID_FORMAT_STRING", str));
                     }
                 } else {
                     ret += FORMAT_CHAR;
@@ -128,7 +128,7 @@ namespace bls {
         try {
             return std::regex(regex.data(), regex.data() + regex.size(), std::regex::icase);
         } catch (const std::regex_error &error) {
-            throw layout_error(intl::format("INVALID_REGEXP", regex, error.what()));
+            throw layout_error(intl::translate("INVALID_REGEXP", regex, error.what()));
         }
     }
 
@@ -264,7 +264,7 @@ namespace bls {
                     ret += '%';
                     break;
                 default:
-                    throw layout_error(intl::format("INVALID_DATE_FORMAT"));
+                    throw layout_error(intl::translate("INVALID_DATE_FORMAT"));
                 }
             } else {
                 ret += escape_regex_char(*it);

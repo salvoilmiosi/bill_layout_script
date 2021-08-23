@@ -23,7 +23,7 @@ datetime datetime::parse_date(const std::locale &loc, std::string_view str, cons
     time_t ret;
     ss >> boost::locale::as::ftime(fmt_str) >> ret;
     if (ss.fail()) {
-        throw conversion_error(intl::format("CANT_PARSE_DATE", str));
+        throw conversion_error(intl::translate("CANT_PARSE_DATE", str));
     }
     return datetime(ret);
 }
