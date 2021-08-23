@@ -1,0 +1,462 @@
+#
+msgid ""
+msgstr ""
+"Language: it_IT\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "INVALID_FORMAT_STRING"
+msgstr "Stringa di formato non valida: {}"
+
+msgid "INVALID_REGEXP"
+msgstr "Espressione regolare non valida: {0}\n{1}"
+
+msgid "INVALID_DATE_FORMAT"
+msgstr "Stringa formato data non valida"
+
+msgid "DUPLICATE_FUNCTION_NAME"
+msgstr "Nome funzione duplicata: {}"
+
+msgid "DUPLICATE_FUNCTION_ARG_NAME"
+msgstr "Argomento funzione duplicato: {}"
+
+msgid "NOT_IN_A_LOOP"
+msgstr "Non in un loop"
+
+msgid "EMPTY_CONTENT_STACK"
+msgstr "Stack contenuti vuoto"
+
+msgid "INVALID_TOKEN_END_SPACERS"
+msgstr "Token 'End Spacers' non valido"
+
+msgid "INVALID_TOKEN_END_SCRIPT"
+msgstr "Token 'End Script' non valido"
+
+msgid "INVALID_TOKEN_MODE"
+msgstr "Token 'Mode' non valido: {}"
+
+msgid "INVALID_TOKEN_FLAGS"
+msgstr "Token 'Flags' non valido: {}"
+
+msgid "INVALID_TOKEN_RECT"
+msgstr "Token 'Rect' non valido"
+
+msgid "TOKEN_END_SPACERS_NOT_FOUND"
+msgstr "Token 'End Spacers' non trovato"
+
+msgid "TOKEN_END_SCRIPT_NOT_FOUND"
+msgstr "Token 'End Script' non trovato"
+
+msgid "INVALID_TOKEN"
+msgstr "Token non valido: {}"
+
+msgid "TOKEN_END_BOX_NOT_FOUND"
+msgstr "Token 'End Box' non trovato"
+
+msgid "UNKNOWN_ERROR"
+msgstr "Errore sconosciuto"
+
+msgid "OPTIONS"
+msgstr "Opzioni"
+
+msgid "PRINT_HELP"
+msgstr "Aiuto"
+
+msgid "BLS_INPUT_FILE"
+msgstr "File di input bls"
+
+msgid "PDF_INPUT_FILE"
+msgstr "File di input pdf"
+
+msgid "FIND_LAYOUT"
+msgstr "Ferma esecuzione a layout trovato"
+
+msgid "INDENTATION_SIZE"
+msgstr "Dimensioni indentazione"
+
+msgid "REQUIRED_INPUT_BLS"
+msgstr "Richiesto input bls"
+
+msgid "UNKNOWN_LABEL"
+msgstr "Etichetta sconosciuta: {}"
+
+msgid "CANT_CALL_FROM_TOP_LEVEL"
+msgstr "Impossibile chiamare {} dal top level"
+
+msgid "CANT_CALL_OUT_OF_TOP_LEVEL"
+msgstr "Impossibile chiamare {} fuori dal top level"
+
+msgid "UNKNOWN_FUNCTION"
+msgstr "Funzione sconosciuta: {}"
+
+msgid "CANT_OPEN_FILE"
+msgstr "Impossibile aprire il file {}"
+
+msgid "INVALID_PDF_DOCUMENT"
+msgstr "Documento pdf invalido"
+
+msgid "bls::read_mode::DEFAULT"
+msgstr "Default"
+
+msgid "bls::read_mode::LAYOUT"
+msgstr "Layout"
+
+msgid "bls::read_mode::RAW"
+msgstr "Grezza"
+
+msgid "bls::box_flags::DISABLED"
+msgstr "Disabilita"
+
+msgid "bls::box_flags::PAGE"
+msgstr "Leggi Pagina"
+
+msgid "bls::box_flags::NOREAD"
+msgstr "Nessuna Lettura"
+
+msgid "bls::box_flags::SPACER"
+msgstr "Spaziatore"
+
+msgid "bls::box_flags::TRIM"
+msgstr "Taglia Spazi"
+
+msgid "UNSUPPORTED_LANGUAGE"
+msgstr "Lingua non supportata: {}"
+
+msgid "INVALID_STRING_CONSTANT"
+msgstr "Costante stringa non valida"
+
+msgid "DUPLICATE_GOTO_LABEL"
+msgstr "Etichetta goto duplicata: {}"
+
+msgid "CANT_SAVE_FILE"
+msgstr "Impossibile salvare il file {}"
+
+msgid "UNEXPECTED_TOKEN"
+msgstr "Imprevisto '{}'"
+
+msgid "UNEXPECTED_TOKEN_REQUIRED"
+msgstr "Imprevisto '{}', richiesto '{}'"
+
+msgid "FUNCTION_REQUIRES_ARGS_LEAST"
+msgstr "La funzione {0} richiede almeno {1} argomenti"
+
+msgid "FUNCTION_REQUIRES_ARGS_EXACT"
+msgstr "La funzione {0} richiede {1} argomenti"
+
+msgid "FUNCTION_REQUIRES_ARGSS_RANGE"
+msgstr "La funzione {0} richiede {1}-{2} argomenti"
+
+msgid "NO_DOCUMENT_OPEN"
+msgstr "Nessun documento aperto"
+
+msgid "CANT_PARSE_NUMBER"
+msgstr "Impossibile leggere {} come numero"
+
+msgid "CANT_PARSE_DATE"
+msgstr "Impossibile leggere {} come data"
+
+msgid "CANT_CONVERT_TYPE_TO_TYPE"
+msgstr "Impossibile convertire {} in {}"
+
+msgid "TYPE_NULL"
+msgstr "null"
+
+msgid "TYPE_STRING"
+msgstr "stringa"
+
+msgid "TYPE_NUMBER"
+msgstr "numero decimale"
+
+msgid "TYPE_BOOL"
+msgstr "booleano"
+
+msgid "TYPE_INT"
+msgstr "numero intero"
+
+msgid "TYPE_FLOAT"
+msgstr "numero a virgola mobile"
+
+msgid "TYPE_DATE"
+msgstr "data"
+
+msgid "TYPE_ARRAY"
+msgstr "lista"
+
+msgid "TYPE_POINTER"
+msgstr "Puntatore"
+
+msgid "EDIT_BOX"
+msgstr "Modifica Rettangolo"
+
+msgid "BOX_NAME"
+msgstr "Nome:"
+
+msgid "BOX_MODE"
+msgstr "Modalità:"
+
+msgid "BOX_FLAGS"
+msgstr "Flag:"
+
+msgid "BOX_GOTO_LABEL"
+msgstr "Etichetta:"
+
+msgid "BOX_SPACERS"
+msgstr "Spaziatori:"
+
+msgid "BOX_SCRIPT"
+msgstr "Script:"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Annulla"
+
+msgid "Apply"
+msgstr "Applica"
+
+msgid "Test"
+msgstr "Test"
+
+msgid "TEST_OUTPUT"
+msgstr "Risultato della lettura"
+
+msgid "SAVE_CHANGES_DIALOG"
+msgstr "Salvare le modifiche?"
+
+msgid "PROGRAM_NAME"
+msgstr "Bill Layout Script"
+
+msgid "OPEN_LAYOUT_DIALOG"
+msgstr "Apri File di Layout"
+
+msgid "SAVE_LAYOUT_DIALOG"
+msgstr "Salva File di Layout"
+
+msgid "OPEN_CONTROL_SCRIPT_DIALOG"
+msgstr "Apri script di controllo"
+
+msgid "Layout files"
+msgstr "File layout"
+
+msgid "PDF files"
+msgstr "File PDF"
+
+msgid "All files"
+msgstr "Tutti i file"
+
+msgid "DIALOG_TEST_READ_MODE"
+msgstr "Modalità di lettura:"
+
+msgid "DIALOG_TEST_READ_TITLE"
+msgstr "Test Lettura Rettangolo"
+
+msgid "CANT_FIND_LAYOUT"
+msgstr "Impossibile trovare il layout"
+
+msgid "OPEN_PDF_DIALOG"
+msgstr "Apri File PDF"
+
+msgid "CHANGE_BOX_PAGE"
+msgstr "Cambia pagina di rettangolo"
+
+msgid "BOX_PAGE_LABEL"
+msgstr "Pagina di rettangolo:"
+
+msgid "MENU_NEW"
+msgstr "&Nuovo\tCtrl-N"
+
+msgid "MENU_NEW_HINT"
+msgstr "Crea un Nuovo Layout"
+
+msgid "MENU_OPEN"
+msgstr "&Apri...\tCtrl-O"
+
+msgid "MENU_OPEN_HINT"
+msgstr "Apri un Layout"
+
+msgid "MENU_RECENT"
+msgstr "Apri &Recenti"
+
+msgid "MENU_SAVE"
+msgstr "&Salva\tCtrl-S"
+
+msgid "MENU_SAVE_HINT"
+msgstr "Salva il Layout"
+
+msgid "MENU_SAVEAS"
+msgstr "Sa&lva con nome...\tCtrl-Shift-S"
+
+msgid "MENU_SAVEAS_HINT"
+msgstr "Salva il Layout con nome..."
+
+msgid "MENU_LOAD_PDF"
+msgstr "Carica &PDF\tCtrl-L"
+
+msgid "MENU_LOAD_PDF_HINT"
+msgstr "Carica un file PDF"
+
+msgid "MENU_RECENT_PDF"
+msgstr "PDF Recenti..."
+
+msgid "MENU_CLOSE"
+msgstr "&Chiudi\tCtrl-W"
+
+msgid "MENU_CLOSE_HINT"
+msgstr "Chiudi la finestra"
+
+msgid "MENU_FILE"
+msgstr "&File"
+
+msgid "MENU_UNDO"
+msgstr "&Annulla\tCtrl-Z"
+
+msgid "MENU_UNDO_HINT"
+msgstr "Annulla l'ultima operazione"
+
+msgid "MENU_REDO"
+msgstr "&Ripeti\tCtrl-Y"
+
+msgid "MENU_REDO_HINT"
+msgstr "Ripeti l'ultima operazione"
+
+msgid "MENU_CUT"
+msgstr "&Taglia\tCtrl-X"
+
+msgid "MENU_CUT_HINT"
+msgstr "Taglia la selezione"
+
+msgid "MENU_COPY"
+msgstr "&Copia\tCtrl-C"
+
+msgid "MENU_COPY_HINY"
+msgstr "Copia la selezione"
+
+msgid "MENU_PASTE"
+msgstr "&Incolla\tCtrl-V"
+
+msgid "MENU_PASTE_HINT"
+msgstr "Incolla nella selezione"
+
+msgid "MENU_DELETE"
+msgstr "&Cancella Selezione\tDel"
+
+msgid "MENU_DELETE_HINT"
+msgstr "Cancella il rettangolo selezionato"
+
+msgid "MENU_EDIT"
+msgstr "&Modifica"
+
+msgid "MENU_EDITCONTROL"
+msgstr "Modifica &script di controllo"
+
+msgid "MENU_EDITOR"
+msgstr "&Editor"
+
+msgid "TOOL_NEW"
+msgstr "Nuovo"
+
+msgid "TOOL_OPEN"
+msgstr "Apri"
+
+msgid "TOOL_SAVE"
+msgstr "Salva"
+
+msgid "TOOL_UNDO"
+msgstr "Annulla"
+
+msgid "TOOL_REDO"
+msgstr "Ripeti"
+
+msgid "TOOL_CUT"
+msgstr "Taglia"
+
+msgid "TOOL_COPY"
+msgstr "Copia"
+
+msgid "TOOL_PASTE"
+msgstr "Incolla"
+
+msgid "TOOL_LOAD_PDF"
+msgstr "Carica PDF"
+
+msgid "TOOL_FIND_LAYOUT"
+msgstr "Trova Layout"
+
+msgid "TOOL_READDATA"
+msgstr "Avvia Lettura"
+
+msgid "TOOL_LAYOUT_OPTIONS"
+msgstr "Opzioni Layout"
+
+msgid "TOOL_ROTATE"
+msgstr "Ruota Immagine"
+
+msgid "TOOL_PAGE"
+msgstr "Pagina"
+
+msgid "TOOL_SCALE"
+msgstr "Scala"
+
+msgid "TOOL_SELECT"
+msgstr "Seleziona"
+
+msgid "TOOL_NEWBOX"
+msgstr "Nuovo rettangolo"
+
+msgid "TOOL_DELETEBOX"
+msgstr "Cancella rettangolo"
+
+msgid "TOOL_RESIZE"
+msgstr "Ridimensiona rettangolo"
+
+msgid "TOOL_TEST"
+msgstr "Test rettangolo"
+
+msgid "TOOL_MOVEPAGE"
+msgstr "Sposta tra pagine"
+
+msgid "TOOL_MOVEUP"
+msgstr "Muovi su"
+
+msgid "TOOL_MOVEDOWN"
+msgstr "Muovi giù"
+
+msgid "UNNAMED_BOX"
+msgstr "(Senza nome)"
+
+msgid "LAYOUT_OPTIONS_DIALOG_TITLE"
+msgstr "Cambia Opzioni Di Layout"
+
+msgid "FIND_LAYOUT_CHECKBOX"
+msgstr "Flag per Trova Layout"
+
+msgid "SYSTEM_LANGUAGE"
+msgstr "Lingua di sistema"
+
+msgid "READER_DATA_OUTPUT"
+msgstr "Lettura Dati"
+
+msgid "TOOL_UPDATE"
+msgstr "Aggiorna"
+
+msgid "LAYOUT_ERROR"
+msgstr "Errore di Layout"
+
+msgid "LAYOUT_NOTES"
+msgstr "Note di Layout"
+
+msgid "LAYOUT_FATAL_ERROR"
+msgstr "Errore Fatale"
+
+msgid "LAYOUT_ERROR_CODE"
+msgstr "Errore di Layout (Codice {})"
+
+msgid "VARIABLE_NAME"
+msgstr "Nome"
+
+msgid "VARIABLE_VALUE"
+msgstr "Valore"
+
+msgid "TABLE_NUMBER"
+msgstr "Tabella {}"

@@ -27,24 +27,12 @@ namespace std {
 #endif
 
 namespace intl {
-    static const std::locale &get_transl_locale() {
-        static const struct translation_locale {
-            std::locale loc;
-            translation_locale() {
-                boost::locale::generator gen;
-                gen.categories(boost::locale::message_facet);
-                gen.add_messages_path(".");
-                gen.add_messages_domain("bls");
-                loc = gen("");
-            }
-        } loc;
-        return loc.loc;
-    }
+    const std::locale &messages_locale();
 
     template<typename ... Ts>
     std::string format(const char *fmt_str, Ts && ... args) {
         try {
-            return std::vformat(boost::locale::gettext(fmt_str, get_transl_locale()),
+            return std::vformat(boost::locale::gettext(fmt_str, messages_locale()),
                 std::make_format_args(std::forward<Ts>(args) ...));
         } catch (std::format_error) {
             return fmt_str;

@@ -18,9 +18,14 @@ add_library(bls SHARED
     src/parser.cpp
     src/pdf_document.cpp
     src/reader.cpp
+    src/translations.cpp
     src/unicode.cpp
-    src/variable.cpp)
+    src/variable.cpp
+)
 add_library(bls::bls ALIAS bls)
+
+add_subdirectory(messages)
+target_link_libraries(bls PUBLIC translation_obj)
 
 target_include_directories(bls PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
