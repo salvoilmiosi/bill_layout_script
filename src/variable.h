@@ -99,6 +99,7 @@ namespace bls {
         }
 
         bool is_true() const;
+        bool is_empty() const;
         bool is_null() const;
         bool is_pointer() const;
         bool is_number() const;

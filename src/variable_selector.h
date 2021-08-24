@@ -53,7 +53,7 @@ namespace bls {
         }
 
         void set_value(variable &&value) {
-            if (!value.is_null()) get_variable()->assign(std::move(value));
+            if (!value.is_empty()) get_variable()->assign(std::move(value));
         }
 
         void force_value(variable &&value) {
@@ -61,11 +61,11 @@ namespace bls {
         }
 
         void inc_value(const variable &value) {
-            if (!value.is_null()) *get_variable() += value;
+            if (!value.is_empty()) *get_variable() += value;
         }
 
         void dec_value(const variable &value) {
-            if (!value.is_null()) *get_variable() -= value;
+            if (!value.is_empty()) *get_variable() -= value;
         }
 
         void clear_value() {

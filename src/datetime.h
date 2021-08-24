@@ -24,10 +24,6 @@ namespace bls {
             return m_date == rhs.m_date;
         }
 
-        bool is_valid() const {
-            return m_date;
-        }
-
         time_t data() const {
             return m_date;
         }

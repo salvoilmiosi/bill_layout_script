@@ -22,6 +22,7 @@ namespace bls {
         const std::locale &loc;
         
         variable operator()(std::string_view str) const {
+            if (str.empty()) return {};
             fixed_point num;
             util::isviewstream iss{str};
             iss.imbue(loc);
@@ -340,6 +341,7 @@ namespace bls {
 
     const function_map function_lookup::functions {
         {"copy", [](const variable &var) { return var; }},
+        {"type", [](const variable &var) { return enums::to_string(var.type()); }},
         {"str", [](const std::string &str) { return str; }},
         {"num", [](const reader *ctx, const variable &var) {
             return num_parser{ctx->m_locale}(var);
@@ -369,6 +371,7 @@ namespace bls {
         {"or",  [](bool a, bool b) { return a || b; }},
         {"null", []{ return variable(); }},
         {"isnull", [](const variable &var) { return var.is_null(); }},
+        {"isempty", [](const variable &var) { return var.is_empty(); }},
         {"hex", [](int num) {
             return std::format("{:x}", num);
         }},
@@ -426,7 +429,11 @@ namespace bls {
             return number_regex(ctx->m_locale);
         }},
         {"search", [](std::string_view str, std::string_view regex, optional_size<1> index) -> variable {
-            return std::string(search_regex(str, create_regex(regex), index));
+            if (auto res = search_regex(str, create_regex(regex), index); !res.empty()) {
+                return std::string(res);
+            } else {
+                return {};
+            }
         }},
         {"search_num", [](const reader *ctx, std::string_view str, std::string_view regex, optional_size<1> index) -> variable {
             return num_parser{ctx->m_locale}(search_regex(str, create_number_regex(ctx->m_locale, regex), index));
@@ -578,9 +585,6 @@ namespace bls {
         }},
         {"totitle", [](const reader *ctx, std::string_view str) {
             return boost::locale::to_title(str.data(), str.data() + str.size(), ctx->m_locale);
-        }},
-        {"isempty", [](std::string_view str) {
-            return str.empty();
         }},
         {"format", [](std::string_view format, varargs<std::string_view> args) {
             return string_format(format, args);

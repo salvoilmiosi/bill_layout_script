@@ -153,23 +153,26 @@ variable variable::deref() && {
     }
 }
 
-struct null_checker {
+struct empty_checker {
     bool operator()(auto) const             { return false; }
     bool operator()(std::monostate) const   { return true; }
     bool operator()(string_state str) const { return str.empty(); }
-    bool operator()(datetime date) const    { return !date.is_valid(); }
     bool operator()(const variable_array &arr) const { return arr.empty(); }
 };
 
 bool variable::is_true() const {
     return std::visit(util::overloaded{
-        [](const auto &value) { return !null_checker{}(value); },
+        [](const auto &value) { return !empty_checker{}(value); },
         [](const number_t auto &num) { return num != 0; }
     }, deref().m_value);
 }
 
+bool variable::is_empty() const {
+    return std::visit(empty_checker{}, deref().m_value);
+}
+
 bool variable::is_null() const {
-    return std::visit(null_checker{}, deref().m_value);
+    return std::holds_alternative<std::monostate>(m_value);
 }
 
 bool variable::is_pointer() const {
@@ -207,14 +210,12 @@ struct variable_comparator {
         return lhs <=> rhs;
     }
 
-    template<not_monostate T>
-    std::partial_ordering operator()(std::monostate, const T &rhs) {
-        return null_checker{}(rhs) ? std::partial_ordering::equivalent : std::partial_ordering::unordered;
+    std::partial_ordering operator()(std::monostate, const not_monostate auto &) {
+        return std::partial_ordering::unordered;
     }
 
-    template<not_monostate T>
-    std::partial_ordering operator()(const T &lhs, std::monostate) {
-        return null_checker{}(lhs) ? std::partial_ordering::equivalent : std::partial_ordering::unordered;
+    std::partial_ordering operator()(const not_monostate auto &, std::monostate) {
+        return std::partial_ordering::unordered;
     }
 
     template<comparable_with_string T>
