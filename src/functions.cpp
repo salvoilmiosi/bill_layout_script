@@ -407,7 +407,7 @@ namespace bls {
             return variable_array(num, value);
         }},
         {"range", [](vector_view<variable> vec, size_t index, size_t size) -> variable {
-            return vec | std::views::drop(index) | std::views::take(size);
+            return std::ranges::take_view(std::ranges::drop_view(vec, index), size);
         }},
         {"percent", [](std::string_view str) {
             if (!str.empty()) {
