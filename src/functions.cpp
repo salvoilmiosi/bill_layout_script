@@ -128,7 +128,7 @@ namespace bls {
         try {
             return std::regex(regex.data(), regex.data() + regex.size(), std::regex::icase);
         } catch (const std::regex_error &error) {
-            throw layout_error(intl::translate("INVALID_REGEXP", regex, error.what()));
+            throw layout_error(std::format("{}\n{}\n{}", intl::translate("INVALID_REGEXP"), regex, error.what()));
         }
     }
 

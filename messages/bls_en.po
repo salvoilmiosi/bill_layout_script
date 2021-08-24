@@ -1,99 +1,623 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
+"Project-Id-Version: Bill Layout Script 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-08-24 02:23+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Salvo Miosi <salvo.ilmiosi@gmail.com>\n"
+"Language-Team: Salvo Miosi <salvo.ilmiosi@gmail.com>\n"
 "Language: en_US\n"
+"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "INVALID_FORMAT_STRING"
-msgstr "Invalid Format String: {}"
+#: layout_editor/src/editor.cpp:239 layout_editor/src/editor.cpp:319
+#: layout_editor/src/editor_evt.cpp:30 layout_editor/src/editor_evt.cpp:161
+msgid "All files"
+msgstr "All files"
 
-msgid "INVALID_REGEXP"
-msgstr "Invalid Regular Expression: {0}\n{1}"
+#: layout_editor/src/box_dialog.cpp:183
+msgid "Apply"
+msgstr "Apply"
 
-msgid "INVALID_DATE_FORMAT"
-msgstr "Invalid Date Format String"
-
-msgid "DUPLICATE_FUNCTION_NAME"
-msgstr "Duplicate Function Name: {}"
-
-msgid "DUPLICATE_FUNCTION_ARG_NAME"
-msgstr "Duplicate Function Argument: {}"
-
-msgid "NOT_IN_A_LOOP"
-msgstr "Not In A Loop"
-
-msgid "EMPTY_CONTENT_STACK"
-msgstr "Empty Content Stack"
-
-msgid "INVALID_TOKEN_END_SPACERS"
-msgstr "Invalid 'End Spacers' token"
-
-msgid "INVALID_TOKEN_END_SCRIPT"
-msgstr "Invalid 'End Script' token"
-
-msgid "INVALID_TOKEN_MODE"
-msgstr "Invalid 'Mode' token: {}"
-
-msgid "INVALID_TOKEN_FLAGS"
-msgstr "Invalid 'Flags' token: {}"
-
-msgid "INVALID_TOKEN_RECT"
-msgstr "Invalid 'Rect' token"
-
-msgid "TOKEN_END_SPACERS_NOT_FOUND"
-msgstr "Token 'End Spacers' not found"
-
-msgid "TOKEN_END_SCRIPT_NOT_FOUND"
-msgstr "Token 'End Script' not found"
-
-msgid "INVALID_TOKEN"
-msgstr "Invalid token: {}"
-
-msgid "TOKEN_END_BOX_NOT_FOUND"
-msgstr "Token 'End Box' not found"
-
-msgid "UNKNOWN_ERROR"
-msgstr "Unknown Error"
-
-msgid "OPTIONS"
-msgstr "Options"
-
-msgid "PRINT_HELP"
-msgstr "Help"
-
+#: bill_layout_script/src/main.cpp:108
 msgid "BLS_INPUT_FILE"
 msgstr "BLS Input File"
 
-msgid "PDF_INPUT_FILE"
-msgstr "PDF Input File"
+#: layout_editor/src/box_dialog.cpp:159
+msgid "BOX_FLAGS"
+msgstr "Flags:"
 
-msgid "FIND_LAYOUT"
-msgstr "Stop execution when a layout is found"
+#: layout_editor/src/box_dialog.cpp:170
+msgid "BOX_GOTO_LABEL"
+msgstr "Label:"
 
-msgid "INDENTATION_SIZE"
-msgstr "Indentation Size"
+#: layout_editor/src/box_dialog.cpp:158
+msgid "BOX_MODE"
+msgstr "Mode:"
 
-msgid "REQUIRED_INPUT_BLS"
-msgstr "BLS File Required"
+#: layout_editor/src/box_dialog.cpp:131
+msgid "BOX_NAME"
+msgstr "Name:"
 
-msgid "UNKNOWN_LABEL"
-msgstr "Unknown label: {}"
+#: layout_editor/src/move_page_dialog.cpp:25
+msgid "BOX_PAGE_LABEL"
+msgstr "Box page:"
 
+#: layout_editor/src/box_dialog.cpp:172
+msgid "BOX_SCRIPT"
+msgstr "Script:"
+
+#: layout_editor/src/box_dialog.cpp:171
+msgid "BOX_SPACERS"
+msgstr "Spacers:"
+
+#: bill_layout_script/src/parser.cpp:461
 msgid "CANT_CALL_FROM_TOP_LEVEL"
 msgstr "Cannot call {} from top level"
 
+#: bill_layout_script/src/parser.cpp:464
 msgid "CANT_CALL_OUT_OF_TOP_LEVEL"
 msgstr "Cannot call {} out of top level"
 
-msgid "UNKNOWN_FUNCTION"
-msgstr "Unknown function: {}"
+#: bill_layout_script/src/variable.cpp:14
+msgid "CANT_CONVERT_TYPE_TO_TYPE"
+msgstr "Cannot convert {} to {}"
 
+msgid "CANT_FIND_LAYOUT"
+msgstr "Cannot find layout"
+
+#: bill_layout_script/src/layout.h:57
+#: bill_layout_script/src/pdf_document.cpp:35 layout_editor/src/editor.cpp:231
 msgid "CANT_OPEN_FILE"
 msgstr "Cannot open file {}"
 
+#: bill_layout_script/src/datetime.cpp:26
+msgid "CANT_PARSE_DATE"
+msgstr "Cannot parse {} as a date"
+
+#: bill_layout_script/src/fixed_point.h:54 bill_layout_script/src/utils.h:128
+#: bill_layout_script/src/utils.h:138
+msgid "CANT_PARSE_NUMBER"
+msgstr "Cannot parse {} as a number"
+
+#: bill_layout_script/src/layout.h:66
+msgid "CANT_SAVE_FILE"
+msgstr "Impossibile salvare il file {}"
+
+#: layout_editor/src/move_page_dialog.cpp:19
+msgid "CHANGE_BOX_PAGE"
+msgstr "Change Box Page"
+
+#: layout_editor/src/box_dialog.cpp:182
+#: layout_editor/src/layout_options_dialog.cpp:46
+#: layout_editor/src/move_page_dialog.cpp:36
+msgid "Cancel"
+msgstr "Cancel"
+
+#: layout_editor/src/box_editor_panel.cpp:210
+msgid "DIALOG_TEST_READ_MODE"
+msgstr "Read mode:"
+
+#: layout_editor/src/box_editor_panel.cpp:210
+msgid "DIALOG_TEST_READ_TITLE"
+msgstr "Box Read Test"
+
+#: bill_layout_script/src/keywords.cpp:128
+msgid "DUPLICATE_FUNCTION_ARG_NAME"
+msgstr "Duplicate Function Argument: {}"
+
+#: bill_layout_script/src/keywords.cpp:99
+msgid "DUPLICATE_FUNCTION_NAME"
+msgstr "Duplicate Function Name: {}"
+
+#: bill_layout_script/src/parser.cpp:35
+msgid "DUPLICATE_GOTO_LABEL"
+msgstr "Duplicate label: {}"
+
+#: layout_editor/src/box_dialog.cpp:114
+msgid "EDIT_BOX"
+msgstr "Edit Box"
+
+#: bill_layout_script/src/parser.cpp:356
+msgid "EMPTY_CONTENT_STACK"
+msgstr "Empty Content Stack"
+
+#: bill_layout_script/src/main.cpp:110
+msgid "FIND_LAYOUT"
+msgstr "Stop execution when a layout is found"
+
+#: layout_editor/src/layout_options_dialog.cpp:17
+msgid "FIND_LAYOUT_CHECKBOX"
+msgstr "Flag for Find Layout"
+
+#: bill_layout_script/src/parser.h:22
+msgid "FUNCTION_REQUIRES_ARGSS_RANGE"
+msgstr "Function {0} requires {1}-{2} arguments"
+
+#: bill_layout_script/src/parser.h:20
+msgid "FUNCTION_REQUIRES_ARGS_EXACT"
+msgstr "Function {0} requires at least {1} arguments"
+
+#: bill_layout_script/src/parser.h:18
+msgid "FUNCTION_REQUIRES_ARGS_LEAST"
+msgstr "Function {0} requires at least {1} arguments"
+
+#: bill_layout_script/src/main.cpp:111
+msgid "INDENTATION_SIZE"
+msgstr "Indentation Size"
+
+#: bill_layout_script/src/functions.cpp:267
+msgid "INVALID_DATE_FORMAT"
+msgstr "Invalid Date Format String"
+
+#: bill_layout_script/src/functions.cpp:68
+msgid "INVALID_FORMAT_STRING"
+msgstr "Invalid Format String: {}"
+
+#: bill_layout_script/src/pdf_document.cpp:40
 msgid "INVALID_PDF_DOCUMENT"
 msgstr "Invalid PDF document"
+
+#: bill_layout_script/src/functions.cpp:131
+msgid "INVALID_REGEXP"
+msgstr "Invalid Regular Expression"
+
+#: bill_layout_script/src/parser.cpp:126
+msgid "INVALID_SPACER_FLAG"
+msgstr "Invalid spacer flag"
+
+#: bill_layout_script/src/unicode.cpp:87 bill_layout_script/src/unicode.cpp:115
+#: bill_layout_script/src/unicode.cpp:122
+msgid "INVALID_STRING_CONSTANT"
+msgstr "Invalid string constant"
+
+#: bill_layout_script/src/layout.cpp:156 bill_layout_script/src/layout.cpp:169
+msgid "INVALID_TOKEN"
+msgstr "Invalid token: {}"
+
+#: bill_layout_script/src/layout.cpp:48
+msgid "INVALID_TOKEN_END_SCRIPT"
+msgstr "Invalid 'End Script' token"
+
+#: bill_layout_script/src/layout.cpp:37
+msgid "INVALID_TOKEN_END_SPACERS"
+msgstr "Invalid 'End Spacers' token"
+
+#: bill_layout_script/src/layout.cpp:112
+msgid "INVALID_TOKEN_FLAGS"
+msgstr "Invalid 'Flags' token: {}"
+
+#: bill_layout_script/src/layout.cpp:103
+msgid "INVALID_TOKEN_MODE"
+msgstr "Invalid 'Mode' token: {}"
+
+#: bill_layout_script/src/layout.cpp:121
+msgid "INVALID_TOKEN_RECT"
+msgstr "Invalid 'Rect' token"
+
+#: layout_editor/src/output_dialog.cpp:56
+msgid "LAYOUT_ERROR"
+msgstr "Layout Error"
+
+#: layout_editor/src/output_dialog.cpp:132
+msgid "LAYOUT_ERROR_CODE"
+msgstr "layout Error (Code {})"
+
+#: layout_editor/src/output_dialog.cpp:130
+msgid "LAYOUT_FATAL_ERROR"
+msgstr "Fatal Error"
+
+#: layout_editor/src/output_dialog.cpp:128
+msgid "LAYOUT_NOTES"
+msgstr "Layout Notes"
+
+#: layout_editor/src/layout_options_dialog.cpp:14
+msgid "LAYOUT_OPTIONS_DIALOG_TITLE"
+msgstr "Change Layout Options"
+
+#: layout_editor/src/editor.cpp:239 layout_editor/src/editor.cpp:319
+#: layout_editor/src/editor_evt.cpp:30
+msgid "Layout files"
+msgstr "Layout files"
+
+#: layout_editor/src/editor.cpp:115
+msgid "MENU_CLOSE"
+msgstr "&Close\tCtrl-W"
+
+#: layout_editor/src/editor.cpp:115
+msgid "MENU_CLOSE_HINT"
+msgstr "Close the window"
+
+#: layout_editor/src/editor.cpp:123
+msgid "MENU_COPY"
+msgstr "&Copy\tCtrl-C"
+
+#: layout_editor/src/editor.cpp:123
+msgid "MENU_COPY_HINT"
+msgstr ""
+
+msgid "MENU_COPY_HINY"
+msgstr "Copies selection"
+
+#: layout_editor/src/editor.cpp:122
+msgid "MENU_CUT"
+msgstr "&Cut\tCtrl-X"
+
+#: layout_editor/src/editor.cpp:122
+msgid "MENU_CUT_HINT"
+msgstr "Cuts selection"
+
+#: layout_editor/src/editor.cpp:126
+msgid "MENU_DELETE"
+msgstr "&Delete\tDel"
+
+#: layout_editor/src/editor.cpp:126
+msgid "MENU_DELETE_HINT"
+msgstr "Deletes selection"
+
+#: layout_editor/src/editor.cpp:127
+msgid "MENU_EDIT"
+msgstr "&Edit"
+
+#: layout_editor/src/editor.cpp:130
+msgid "MENU_EDITCONTROL"
+msgstr "Edit &control script"
+
+#: layout_editor/src/editor.cpp:132
+msgid "MENU_EDITOR"
+msgstr "&Editor"
+
+#: layout_editor/src/editor.cpp:116
+msgid "MENU_FILE"
+msgstr "&File"
+
+#: layout_editor/src/editor.cpp:112
+msgid "MENU_LOAD_PDF"
+msgstr "Load &PDF\tCtrl-L"
+
+#: layout_editor/src/editor.cpp:112
+msgid "MENU_LOAD_PDF_HINT"
+msgstr "Load a PDF file"
+
+#: layout_editor/src/editor.cpp:106
+msgid "MENU_NEW"
+msgstr "&New\tCtrl-N"
+
+#: layout_editor/src/editor.cpp:106
+msgid "MENU_NEW_HINT"
+msgstr "Create new layout"
+
+#: layout_editor/src/editor.cpp:107
+msgid "MENU_OPEN"
+msgstr "&Open...\tCtrl-O"
+
+#: layout_editor/src/editor.cpp:107
+msgid "MENU_OPEN_HINT"
+msgstr "Open a layout"
+
+#: layout_editor/src/editor.cpp:124
+msgid "MENU_PASTE"
+msgstr "&Paste\tCtrl-V"
+
+#: layout_editor/src/editor.cpp:124
+msgid "MENU_PASTE_HINT"
+msgstr "Pastes onto selection"
+
+#: layout_editor/src/editor.cpp:108
+msgid "MENU_RECENT"
+msgstr "&Recent layouts..."
+
+#: layout_editor/src/editor.cpp:113
+msgid "MENU_RECENT_PDF"
+msgstr "Recent PDFs…"
+
+#: layout_editor/src/editor.cpp:120
+msgid "MENU_REDO"
+msgstr "&Redo\tCtrl-Y"
+
+#: layout_editor/src/editor.cpp:120
+msgid "MENU_REDO_HINT"
+msgstr "Redo last operation"
+
+#: layout_editor/src/editor.cpp:109
+msgid "MENU_SAVE"
+msgstr "&Save\tCtrl-S"
+
+#: layout_editor/src/editor.cpp:110
+msgid "MENU_SAVEAS"
+msgstr "Sa&ve as...\tCtrl-Shift-S"
+
+#: layout_editor/src/editor.cpp:110
+msgid "MENU_SAVEAS_HINT"
+msgstr "Save Layout as..."
+
+#: layout_editor/src/editor.cpp:109
+msgid "MENU_SAVE_HINT"
+msgstr "Save the layout"
+
+#: layout_editor/src/editor.cpp:119
+msgid "MENU_UNDO"
+msgstr "&Undo\tCtrl-Z"
+
+#: layout_editor/src/editor.cpp:119
+msgid "MENU_UNDO_HINT"
+msgstr "Undo last operation"
+
+#: bill_layout_script/src/keywords.cpp:216
+#: bill_layout_script/src/keywords.cpp:228
+msgid "NOT_IN_A_LOOP"
+msgstr "Not In A Loop"
+
+#: bill_layout_script/src/reader.h:55
+msgid "NO_DOCUMENT_OPEN"
+msgstr "No document open"
+
+#: layout_editor/src/box_dialog.cpp:181
+#: layout_editor/src/layout_options_dialog.cpp:45
+#: layout_editor/src/move_page_dialog.cpp:35 layout_editor/src/text_dialog.h:23
+msgid "OK"
+msgstr "OK"
+
+#: layout_editor/src/editor.cpp:318
+msgid "OPEN_CONTROL_SCRIPT_DIALOG"
+msgstr "Open Control Script"
+
+#: layout_editor/src/editor_evt.cpp:29
+msgid "OPEN_LAYOUT_DIALOG"
+msgstr "Open Layout File"
+
+#: layout_editor/src/editor_evt.cpp:160
+msgid "OPEN_PDF_DIALOG"
+msgstr "Open PDF file"
+
+#: bill_layout_script/src/main.cpp:102
+msgid "OPTIONS"
+msgstr "Options"
+
+#: layout_editor/src/editor_evt.cpp:161
+msgid "PDF files"
+msgstr "PDF files"
+
+#: bill_layout_script/src/main.cpp:109 layout_editor/src/main.cpp:41
+msgid "PDF_INPUT_FILE"
+msgstr "PDF Input File"
+
+#: bill_layout_script/src/main.cpp:107
+msgid "PRINT_HELP"
+msgstr "Help"
+
+#: layout_editor/src/box_dialog.cpp:272 layout_editor/src/editor.cpp:86
+#: layout_editor/src/editor.cpp:231 layout_editor/src/editor.cpp:250
+#: layout_editor/src/editor.cpp:259 layout_editor/src/editor.cpp:311
+#: layout_editor/src/editor_evt.cpp:148
+msgid "PROGRAM_NAME"
+msgstr "Bill Layout Script"
+
+#: layout_editor/src/output_dialog.cpp:33
+msgid "READER_DATA_OUTPUT"
+msgstr "Reader Data Output"
+
+#: bill_layout_script/src/main.cpp:125
+msgid "REQUIRED_INPUT_BLS"
+msgstr "BLS File Required"
+
+#: layout_editor/src/box_dialog.cpp:272 layout_editor/src/editor.cpp:259
+msgid "SAVE_CHANGES_DIALOG"
+msgstr "Save changes?"
+
+#: layout_editor/src/editor.cpp:238
+msgid "SAVE_LAYOUT_DIALOG"
+msgstr "Save Layout File"
+
+#: layout_editor/src/layout_options_dialog.cpp:27
+msgid "SYSTEM_LANGUAGE"
+msgstr "System Language"
+
+#: layout_editor/src/output_dialog.cpp:142
+msgid "TABLE_NUMBER"
+msgstr "Table {}"
+
+#: layout_editor/src/box_dialog.cpp:191
+#: layout_editor/src/box_editor_panel.cpp:20
+msgid "TEST_OUTPUT"
+msgstr "Test Output"
+
+#: bill_layout_script/src/layout.cpp:160
+msgid "TOKEN_END_BOX_NOT_FOUND"
+msgstr "Token 'End Box' not found"
+
+#: bill_layout_script/src/layout.cpp:153
+msgid "TOKEN_END_SCRIPT_NOT_FOUND"
+msgstr "Token 'End Script' not found"
+
+#: bill_layout_script/src/layout.cpp:138
+msgid "TOKEN_END_SPACERS_NOT_FOUND"
+msgstr "Token 'End Spacers' not found"
+
+#: layout_editor/src/editor.cpp:150
+msgid "TOOL_COPY"
+msgstr "Copy"
+
+#: layout_editor/src/editor.cpp:149
+msgid "TOOL_CUT"
+msgstr "Cut"
+
+#: layout_editor/src/editor.cpp:181
+msgid "TOOL_DELETEBOX"
+msgstr "Delete Box"
+
+#: layout_editor/src/editor.cpp:156
+msgid "TOOL_FIND_LAYOUT"
+msgstr "Find Layout"
+
+#: layout_editor/src/editor.cpp:158
+msgid "TOOL_LAYOUT_OPTIONS"
+msgstr "Layout Options"
+
+#: layout_editor/src/editor.cpp:155
+msgid "TOOL_LOAD_PDF"
+msgstr "Load PDF"
+
+#: layout_editor/src/editor.cpp:189
+msgid "TOOL_MOVEDOWN"
+msgstr "Move Down"
+
+#: layout_editor/src/editor.cpp:184
+msgid "TOOL_MOVEPAGE"
+msgstr "Move Box Between Pages"
+
+#: layout_editor/src/editor.cpp:188
+msgid "TOOL_MOVEUP"
+msgstr "Move Up"
+
+#: layout_editor/src/editor.cpp:138
+msgid "TOOL_NEW"
+msgstr "New"
+
+#: layout_editor/src/editor.cpp:180
+msgid "TOOL_NEWBOX"
+msgstr "New Box"
+
+#: layout_editor/src/editor.cpp:139
+msgid "TOOL_OPEN"
+msgstr "Open"
+
+#: layout_editor/src/editor.cpp:165
+msgid "TOOL_PAGE"
+msgstr "Page"
+
+#: layout_editor/src/editor.cpp:151
+msgid "TOOL_PASTE"
+msgstr "Paste"
+
+#: layout_editor/src/editor.cpp:157
+msgid "TOOL_READDATA"
+msgstr "Read Data"
+
+#: layout_editor/src/editor.cpp:145
+msgid "TOOL_REDO"
+msgstr "Redo"
+
+#: layout_editor/src/editor.cpp:182
+msgid "TOOL_RESIZE"
+msgstr "Resize Box"
+
+#: layout_editor/src/editor.cpp:162
+msgid "TOOL_ROTATE"
+msgstr "Rotate Image"
+
+#: layout_editor/src/editor.cpp:140
+msgid "TOOL_SAVE"
+msgstr "Save"
+
+#: layout_editor/src/editor.cpp:168
+msgid "TOOL_SCALE"
+msgstr "Scale"
+
+#: layout_editor/src/editor.cpp:179
+msgid "TOOL_SELECT"
+msgstr "Select"
+
+#: layout_editor/src/editor.cpp:183
+msgid "TOOL_TEST"
+msgstr "Test Box"
+
+#: layout_editor/src/editor.cpp:144
+msgid "TOOL_UNDO"
+msgstr "Undo"
+
+#: layout_editor/src/output_dialog.cpp:40
+msgid "TOOL_UPDATE"
+msgstr "Update"
+
+msgid "TYPE_ARRAY"
+msgstr "list"
+
+msgid "TYPE_BOOL"
+msgstr "boolean"
+
+msgid "TYPE_DATE"
+msgstr "date"
+
+msgid "TYPE_FLOAT"
+msgstr "float"
+
+msgid "TYPE_INT"
+msgstr "integer"
+
+msgid "TYPE_NULL"
+msgstr "null"
+
+msgid "TYPE_NUMBER"
+msgstr "decimal"
+
+msgid "TYPE_POINTER"
+msgstr "pointer"
+
+msgid "TYPE_STRING"
+msgstr "string"
+
+#: layout_editor/src/box_dialog.cpp:184
+msgid "Test"
+msgstr "Test"
+
+#: bill_layout_script/src/lexer.h:115
+msgid "UNEXPECTED_TOKEN"
+msgstr "Unexpected '{}'"
+
+#: bill_layout_script/src/lexer.h:116
+msgid "UNEXPECTED_TOKEN_REQUIRED"
+msgstr "Unexpected '{}', required '{}'"
+
+#: bill_layout_script/src/main.cpp:88
+msgid "UNKNOWN_ERROR"
+msgstr "Unknown Error"
+
+#: bill_layout_script/src/parser.cpp:478
+msgid "UNKNOWN_FUNCTION"
+msgstr "Unknown function: {}"
+
+#: bill_layout_script/src/keywords.cpp:89
+msgid "UNKNOWN_LABEL"
+msgstr "Unknown label: {}"
+
+#: layout_editor/src/editor.cpp:277
+msgid "UNNAMED_BOX"
+msgstr "(Unnamed)"
+
+#: bill_layout_script/src/reader.cpp:312
+msgid "UNSUPPORTED_LANGUAGE"
+msgstr "Language not supported: {}"
+
+#: layout_editor/src/output_dialog.cpp:46
+msgid "VARIABLE_NAME"
+msgstr "Name"
+
+#: layout_editor/src/output_dialog.cpp:47
+msgid "VARIABLE_VALUE"
+msgstr "Value"
+
+msgid "bls::box_flags::DISABLED"
+msgstr "Disabled"
+
+msgid "bls::box_flags::NOREAD"
+msgstr "No Read"
+
+msgid "bls::box_flags::PAGE"
+msgstr "Read Page"
+
+msgid "bls::box_flags::SPACER"
+msgstr "No Spacer"
+
+msgid "bls::box_flags::TRIM"
+msgstr "Trim Spaces"
 
 msgid "bls::read_mode::DEFAULT"
 msgstr "Default"
@@ -103,360 +627,3 @@ msgstr "Layout"
 
 msgid "bls::read_mode::RAW"
 msgstr "Raw"
-
-msgid "bls::box_flags::DISABLED"
-msgstr "Disabled"
-
-msgid "bls::box_flags::PAGE"
-msgstr "Read Page"
-
-msgid "bls::box_flags::NOREAD"
-msgstr "No Read"
-
-msgid "bls::box_flags::SPACER"
-msgstr "No Spacer"
-
-msgid "bls::box_flags::TRIM"
-msgstr "Trim Spaces"
-
-msgid "UNSUPPORTED_LANGUAGE"
-msgstr "Language not supported: {}"
-
-msgid "INVALID_STRING_CONSTANT"
-msgstr "Invalid string constant"
-
-msgid "DUPLICATE_GOTO_LABEL"
-msgstr "Duplicate label: {}"
-
-msgid "CANT_SAVE_FILE"
-msgstr "Impossibile salvare il file {}"
-
-msgid "UNEXPECTED_TOKEN"
-msgstr "Unexpected '{}'"
-
-msgid "UNEXPECTED_TOKEN_REQUIRED"
-msgstr "Unexpected '{}', required '{}'"
-
-msgid "FUNCTION_REQUIRES_ARGS_LEAST"
-msgstr "Function {0} requires at least {1} arguments"
-
-msgid "FUNCTION_REQUIRES_ARGS_EXACT"
-msgstr "Function {0} requires at least {1} arguments"
-
-msgid "FUNCTION_REQUIRES_ARGSS_RANGE"
-msgstr "Function {0} requires {1}-{2} arguments"
-
-msgid "NO_DOCUMENT_OPEN"
-msgstr "No document open"
-
-msgid "CANT_PARSE_NUMBER"
-msgstr "Cannot parse {} as a number"
-
-msgid "CANT_PARSE_DATE"
-msgstr "Cannot parse {} as a date"
-
-msgid "CANT_CONVERT_TYPE_TO_TYPE"
-msgstr "Cannot convert {} to {}"
-
-msgid "TYPE_NULL"
-msgstr "null"
-
-msgid "TYPE_STRING"
-msgstr "string"
-
-msgid "TYPE_NUMBER"
-msgstr "decimal"
-
-msgid "TYPE_BOOL"
-msgstr "boolean"
-
-msgid "TYPE_INT"
-msgstr "integer"
-
-msgid "TYPE_FLOAT"
-msgstr "float"
-
-msgid "TYPE_DATE"
-msgstr "date"
-
-msgid "TYPE_ARRAY"
-msgstr "list"
-
-msgid "TYPE_POINTER"
-msgstr "pointer"
-
-msgid "EDIT_BOX"
-msgstr "Edit Box"
-
-msgid "BOX_NAME"
-msgstr "Name:"
-
-msgid "BOX_MODE"
-msgstr "Mode:"
-
-msgid "BOX_FLAGS"
-msgstr "Flags:"
-
-msgid "BOX_GOTO_LABEL"
-msgstr "Label:"
-
-msgid "BOX_SPACERS"
-msgstr "Spacers:"
-
-msgid "BOX_SCRIPT"
-msgstr "Script:"
-
-msgid "OK"
-msgstr "OK"
-
-msgid "Cancel"
-msgstr "Cancel"
-
-msgid "Apply"
-msgstr "Apply"
-
-msgid "Test"
-msgstr "Test"
-
-msgid "TEST_OUTPUT"
-msgstr "Test Output"
-
-msgid "SAVE_CHANGES_DIALOG"
-msgstr "Save changes?"
-
-msgid "PROGRAM_NAME"
-msgstr "Bill Layout Script"
-
-msgid "OPEN_LAYOUT_DIALOG"
-msgstr "Open Layout File"
-
-msgid "SAVE_LAYOUT_DIALOG"
-msgstr "Save Layout File"
-
-msgid "OPEN_CONTROL_SCRIPT_DIALOG"
-msgstr "Open Control Script"
-
-msgid "Layout files"
-msgstr "Layout files"
-
-msgid "PDF files"
-msgstr "PDF files"
-
-msgid "All files"
-msgstr "All files"
-
-msgid "DIALOG_TEST_READ_MODE"
-msgstr "Read mode:"
-
-msgid "DIALOG_TEST_READ_TITLE"
-msgstr "Box Read Test"
-
-msgid "CANT_FIND_LAYOUT"
-msgstr "Cannot find layout"
-
-msgid "OPEN_PDF_DIALOG"
-msgstr "Open PDF file"
-
-msgid "CHANGE_BOX_PAGE"
-msgstr "Change Box Page"
-
-msgid "BOX_PAGE_LABEL"
-msgstr "Box page:"
-
-msgid "MENU_NEW"
-msgstr "&New\tCtrl-N"
-
-msgid "MENU_NEW_HINT"
-msgstr "Create new layout"
-
-msgid "MENU_OPEN"
-msgstr "&Open...\tCtrl-O"
-
-msgid "MENU_OPEN_HINT"
-msgstr "Open a layout"
-
-msgid "MENU_RECENT"
-msgstr "&Recent layouts..."
-
-msgid "MENU_SAVE"
-msgstr "&Save\tCtrl-S"
-
-msgid "MENU_SAVE_HINT"
-msgstr "Save the layout"
-
-msgid "MENU_SAVEAS"
-msgstr "Sa&ve as...\tCtrl-Shift-S"
-
-msgid "MENU_SAVEAS_HINT"
-msgstr "Save Layout as..."
-
-msgid "MENU_LOAD_PDF"
-msgstr "Load &PDF\tCtrl-L"
-
-msgid "MENU_LOAD_PDF_HINT"
-msgstr "Load a PDF file"
-
-msgid "MENU_RECENT_PDF"
-msgstr "Recent PDFs…"
-
-msgid "MENU_CLOSE"
-msgstr "&Close\tCtrl-W"
-
-msgid "MENU_CLOSE_HINT"
-msgstr "Close the window"
-
-msgid "MENU_FILE"
-msgstr "&File"
-
-msgid "MENU_UNDO"
-msgstr "&Undo\tCtrl-Z"
-
-msgid "MENU_UNDO_HINT"
-msgstr "Undo last operation"
-
-msgid "MENU_REDO"
-msgstr "&Redo\tCtrl-Y"
-
-msgid "MENU_REDO_HINT"
-msgstr "Redo last operation"
-
-msgid "MENU_CUT"
-msgstr "&Cut\tCtrl-X"
-
-msgid "MENU_CUT_HINT"
-msgstr "Cuts selection"
-
-msgid "MENU_COPY"
-msgstr "&Copy\tCtrl-C"
-
-msgid "MENU_COPY_HINY"
-msgstr "Copies selection"
-
-msgid "MENU_PASTE"
-msgstr "&Paste\tCtrl-V"
-
-msgid "MENU_PASTE_HINT"
-msgstr "Pastes onto selection"
-
-msgid "MENU_DELETE"
-msgstr "&Delete\tDel"
-
-msgid "MENU_DELETE_HINT"
-msgstr "Deletes selection"
-
-msgid "MENU_EDIT"
-msgstr "&Edit"
-
-msgid "MENU_EDITCONTROL"
-msgstr "Edit &control script"
-
-msgid "MENU_EDITOR"
-msgstr "&Editor"
-
-msgid "TOOL_NEW"
-msgstr "New"
-
-msgid "TOOL_OPEN"
-msgstr "Open"
-
-msgid "TOOL_SAVE"
-msgstr "Save"
-
-msgid "TOOL_UNDO"
-msgstr "Undo"
-
-msgid "TOOL_REDO"
-msgstr "Redo"
-
-msgid "TOOL_CUT"
-msgstr "Cut"
-
-msgid "TOOL_COPY"
-msgstr "Copy"
-
-msgid "TOOL_PASTE"
-msgstr "Paste"
-
-msgid "TOOL_LOAD_PDF"
-msgstr "Load PDF"
-
-msgid "TOOL_FIND_LAYOUT"
-msgstr "Find Layout"
-
-msgid "TOOL_READDATA"
-msgstr "Read Data"
-
-msgid "TOOL_LAYOUT_OPTIONS"
-msgstr "Layout Options"
-
-msgid "TOOL_ROTATE"
-msgstr "Rotate Image"
-
-msgid "TOOL_PAGE"
-msgstr "Page"
-
-msgid "TOOL_SCALE"
-msgstr "Scale"
-
-msgid "TOOL_SELECT"
-msgstr "Select"
-
-msgid "TOOL_NEWBOX"
-msgstr "New Box"
-
-msgid "TOOL_DELETEBOX"
-msgstr "Delete Box"
-
-msgid "TOOL_RESIZE"
-msgstr "Resize Box"
-
-msgid "TOOL_TEST"
-msgstr "Test Box"
-
-msgid "TOOL_MOVEPAGE"
-msgstr "Move Box Between Pages"
-
-msgid "TOOL_MOVEUP"
-msgstr "Move Up"
-
-msgid "TOOL_MOVEDOWN"
-msgstr "Move Down"
-
-msgid "UNNAMED_BOX"
-msgstr "(Unnamed)"
-
-msgid "LAYOUT_OPTIONS_DIALOG_TITLE"
-msgstr "Change Layout Options"
-
-msgid "FIND_LAYOUT_CHECKBOX"
-msgstr "Flag for Find Layout"
-
-msgid "SYSTEM_LANGUAGE"
-msgstr "System Language"
-
-msgid "READER_DATA_OUTPUT"
-msgstr "Reader Data Output"
-
-msgid "TOOL_UPDATE"
-msgstr "Update"
-
-msgid "LAYOUT_ERROR"
-msgstr "Layout Error"
-
-msgid "LAYOUT_NOTES"
-msgstr "Layout Notes"
-
-msgid "LAYOUT_FATAL_ERROR"
-msgstr "Fatal Error"
-
-msgid "LAYOUT_ERROR_CODE"
-msgstr "layout Error (Code {})"
-
-msgid "VARIABLE_NAME"
-msgstr "Name"
-
-msgid "VARIABLE_VALUE"
-msgstr "Value"
-
-msgid "TABLE_NUMBER"
-msgstr "Table {}"
