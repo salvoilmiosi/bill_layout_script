@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-08-24 17:29+0200\n"
+"POT-Creation-Date: 2021-08-24 22:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -153,11 +153,11 @@ msgstr "Function {0} requires at least {1} arguments"
 msgid "INDENTATION_SIZE"
 msgstr "Indentation Size"
 
-#: bill_layout_script/src/functions.cpp:267
+#: bill_layout_script/src/functions.cpp:268
 msgid "INVALID_DATE_FORMAT"
 msgstr "Invalid Date Format String"
 
-#: bill_layout_script/src/functions.cpp:68
+#: bill_layout_script/src/functions.cpp:69
 msgid "INVALID_FORMAT_STRING"
 msgstr "Invalid Format String: {}"
 
@@ -165,7 +165,7 @@ msgstr "Invalid Format String: {}"
 msgid "INVALID_PDF_DOCUMENT"
 msgstr "Invalid PDF document"
 
-#: bill_layout_script/src/functions.cpp:131
+#: bill_layout_script/src/functions.cpp:132
 msgid "INVALID_REGEXP"
 msgstr "Invalid Regular Expression"
 
@@ -202,19 +202,19 @@ msgstr "Invalid 'Mode' token: {}"
 msgid "INVALID_TOKEN_RECT"
 msgstr "Invalid 'Rect' token"
 
-#: layout_editor/src/output_dialog.cpp:56
+#: layout_editor/src/output_dialog.cpp:57
 msgid "LAYOUT_ERROR"
 msgstr "Layout Error"
 
-#: layout_editor/src/output_dialog.cpp:132
+#: layout_editor/src/output_dialog.cpp:133
 msgid "LAYOUT_ERROR_CODE"
 msgstr "layout Error (Code {})"
 
-#: layout_editor/src/output_dialog.cpp:130
+#: layout_editor/src/output_dialog.cpp:131
 msgid "LAYOUT_FATAL_ERROR"
 msgstr "Fatal Error"
 
-#: layout_editor/src/output_dialog.cpp:128
+#: layout_editor/src/output_dialog.cpp:129
 msgid "LAYOUT_NOTES"
 msgstr "Layout Notes"
 
@@ -420,7 +420,7 @@ msgstr "Save Layout File"
 msgid "SYSTEM_LANGUAGE"
 msgstr "System Language"
 
-#: layout_editor/src/output_dialog.cpp:142
+#: layout_editor/src/output_dialog.cpp:143
 msgid "TABLE_NUMBER"
 msgstr "Table {}"
 
@@ -574,6 +574,10 @@ msgid "VARIABLE_NAME"
 msgstr "Name"
 
 #: layout_editor/src/output_dialog.cpp:47
+msgid "VARIABLE_TYPE"
+msgstr "Type"
+
+#: layout_editor/src/output_dialog.cpp:48
 msgid "VARIABLE_VALUE"
 msgstr "Value"
 

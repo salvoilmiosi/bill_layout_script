@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-08-24 17:29+0200\n"
+"POT-Creation-Date: 2021-08-24 22:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -153,11 +153,11 @@ msgstr "La funzione {0} richiede almeno {1} argomenti"
 msgid "INDENTATION_SIZE"
 msgstr "Dimensioni indentazione"
 
-#: bill_layout_script/src/functions.cpp:267
+#: bill_layout_script/src/functions.cpp:268
 msgid "INVALID_DATE_FORMAT"
 msgstr "Stringa formato data non valida"
 
-#: bill_layout_script/src/functions.cpp:68
+#: bill_layout_script/src/functions.cpp:69
 msgid "INVALID_FORMAT_STRING"
 msgstr "Stringa di formato non valida: {}"
 
@@ -165,7 +165,7 @@ msgstr "Stringa di formato non valida: {}"
 msgid "INVALID_PDF_DOCUMENT"
 msgstr "Documento pdf invalido"
 
-#: bill_layout_script/src/functions.cpp:131
+#: bill_layout_script/src/functions.cpp:132
 msgid "INVALID_REGEXP"
 msgstr "Espressione regolare non valida"
 
@@ -202,19 +202,19 @@ msgstr "Token 'Mode' non valido: {}"
 msgid "INVALID_TOKEN_RECT"
 msgstr "Token 'Rect' non valido"
 
-#: layout_editor/src/output_dialog.cpp:56
+#: layout_editor/src/output_dialog.cpp:57
 msgid "LAYOUT_ERROR"
 msgstr "Errore di Layout"
 
-#: layout_editor/src/output_dialog.cpp:132
+#: layout_editor/src/output_dialog.cpp:133
 msgid "LAYOUT_ERROR_CODE"
 msgstr "Errore di Layout (Codice {})"
 
-#: layout_editor/src/output_dialog.cpp:130
+#: layout_editor/src/output_dialog.cpp:131
 msgid "LAYOUT_FATAL_ERROR"
 msgstr "Errore Fatale"
 
-#: layout_editor/src/output_dialog.cpp:128
+#: layout_editor/src/output_dialog.cpp:129
 msgid "LAYOUT_NOTES"
 msgstr "Note di Layout"
 
@@ -420,7 +420,7 @@ msgstr "Salva File di Layout"
 msgid "SYSTEM_LANGUAGE"
 msgstr "Lingua di sistema"
 
-#: layout_editor/src/output_dialog.cpp:142
+#: layout_editor/src/output_dialog.cpp:143
 msgid "TABLE_NUMBER"
 msgstr "Tabella {}"
 
@@ -574,6 +574,10 @@ msgid "VARIABLE_NAME"
 msgstr "Nome"
 
 #: layout_editor/src/output_dialog.cpp:47
+msgid "VARIABLE_TYPE"
+msgstr "Tipo"
+
+#: layout_editor/src/output_dialog.cpp:48
 msgid "VARIABLE_VALUE"
 msgstr "Valore"
 
@@ -611,19 +615,19 @@ msgid "bls::variable_type::DATETIME"
 msgstr "data"
 
 msgid "bls::variable_type::FLOAT"
-msgstr "numero a virgola mobile"
+msgstr "num. float"
 
 msgid "bls::variable_type::INTEGER"
-msgstr "numero intero"
+msgstr "num. intero"
 
 msgid "bls::variable_type::NULLVAR"
 msgstr "null"
 
 msgid "bls::variable_type::NUMBER"
-msgstr "numero decimale"
+msgstr "num. decimale"
 
 msgid "bls::variable_type::POINTER"
-msgstr "Puntatore"
+msgstr "puntatore"
 
 msgid "bls::variable_type::STRING"
 msgstr "stringa"
