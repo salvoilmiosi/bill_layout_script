@@ -2,29 +2,8 @@
 #define __TRANSLATIONS_H__
 
 #include <boost/locale.hpp>
-
-#ifdef USE_FMTLIB
-#include <fmt/format.h>
-namespace std {
-    inline std::string vformat(fmt::string_view fmt_str, fmt::format_args args) {
-        return fmt::vformat(fmt_str, args);
-    }
-
-    template<typename ... Ts>
-    inline auto make_format_args(Ts && ... args) {
-        return fmt::make_format_args(std::forward<Ts>(args) ... );
-    }
-
-    template<typename ... Ts>
-    inline std::string format(fmt::format_string<Ts...> fmt_str, Ts && ... args) {
-        return fmt::vformat(fmt_str, fmt::make_format_args(args ...));
-    }
-
-    using format_error = fmt::format_error;
-}
-#else
-#include <format>
-#endif
+#include "enums.h"
+#include "format.h"
 
 namespace intl {
     const std::locale &messages_locale();
@@ -42,6 +21,10 @@ namespace intl {
     template<typename ... Ts>
     std::string translate(const std::string &fmt_str, Ts && ... args) {
         return translate(fmt_str.c_str(), std::forward<Ts>(args) ...);
+    }
+
+    std::string enum_label(enums::is_enum auto value) {
+        return translate(enums::full_name(value));
     }
 }
 

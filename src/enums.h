@@ -7,6 +7,7 @@
 #include <map>
 
 #include "magic_enum.hpp"
+#include "format.h"
 
 namespace enums {
     namespace detail {
@@ -68,6 +69,10 @@ namespace enums {
 
     template<is_enum T> constexpr std::string_view to_string(T value) {
         return magic_enum::enum_name(value);
+    }
+    
+    template<is_enum T> constexpr std::string full_name(T value) {
+        return std::format("{}::{}", magic_enum::enum_type_name<T>(), magic_enum::enum_name(value));
     }
 
     template<data_enum T>

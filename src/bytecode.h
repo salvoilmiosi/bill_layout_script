@@ -100,21 +100,9 @@ namespace bls {
         (FOUNDLAYOUT)                   // ferma l'esecuzione se settata la flag find layout in reader
     )
 
-    template<typename T> using variant_type = std::conditional_t<std::is_void_v<T>, std::monostate, T>;
-
-    namespace detail {
-        template<enums::type_enum Enum, typename ISeq> struct enum_variant{};
-        template<enums::type_enum Enum, size_t ... Is> struct enum_variant<Enum, std::index_sequence<Is...>> {
-            using type = std::variant<variant_type<enums::get_type_t<static_cast<Enum>(Is)>> ...>;
-        };
-    }
-
-    template<enums::type_enum Enum> using enum_variant = typename detail::enum_variant<
-        Enum, std::make_index_sequence<enums::size<Enum>()>>::type;
-
     class command_args {
     private:
-        enum_variant<opcode> m_value;
+        util::enum_variant<opcode> m_value;
 
         template<size_t I, typename ... Ts>
         command_args(std::in_place_index_t<I> idx, Ts && ... args) : m_value(idx, std::forward<Ts>(args) ...) {}

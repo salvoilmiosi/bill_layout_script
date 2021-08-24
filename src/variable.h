@@ -8,6 +8,8 @@
 
 #include "fixed_point.h"
 #include "datetime.h"
+#include "enums.h"
+#include "type_list.h"
 
 namespace bls {
 
@@ -32,14 +34,20 @@ namespace bls {
     using variable_array = std::vector<variable>;
     using variable_ptr = const variable *;
 
+    DEFINE_ENUM_TYPES_IN_NS(bls, variable_type,
+        (NULLVAR)
+        (STRING, string_state)
+        (NUMBER, fixed_point)
+        (BOOLEAN, bool)
+        (INTEGER, int64_t)
+        (FLOAT, double)
+        (DATETIME, datetime)
+        (ARRAY, variable_array)
+        (POINTER, variable_ptr)
+    )
+
     class variable {
     public:
-        using variant_type = std::variant<std::monostate, string_state, fixed_point, bool, int64_t, double, datetime, variable_array, variable_ptr>;
-
-        static constexpr auto variant_type_names = std::array{
-            "TYPE_NULL", "TYPE_STRING", "TYPE_NUMBER", "TYPE_BOOL", "TYPE_INT", "TYPE_FLOAT", "TYPE_DATE", "TYPE_ARRAY", "TYPE_POINTER"
-        };
-        
         variable() = default;
 
         variable(const variable &var) {
@@ -85,13 +93,14 @@ namespace bls {
         variable(T range) : m_value(std::in_place_type<variable_array>, range.begin(), range.end()) {}
 
         variable(variable_ptr ptr) : m_value(ptr) {}
+        
+        variable_type type() const {
+            return static_cast<variable_type>(m_value.index());
+        }
 
         bool is_true() const;
         bool is_null() const;
         bool is_pointer() const;
-        bool is_string() const;
-        bool is_regex() const;
-        bool is_view() const;
         bool is_number() const;
         bool is_array() const;
 
@@ -132,7 +141,7 @@ namespace bls {
     private:
         mutable std::unique_ptr<std::string> m_str;
 
-        variant_type m_value;
+        util::enum_variant<variable_type> m_value;
     };
 
 }

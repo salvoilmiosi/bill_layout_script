@@ -6,12 +6,14 @@
 
 using namespace bls;
 
-template<typename T> static constexpr auto variant_type_name = variable::variant_type_names[
-    util::type_list_indexof_v<T, util::variant_type_list_t<variable::variant_type>>];
+template<typename T> static std::string variable_type_label() {
+    return intl::enum_label(static_cast<variable_type>(
+        util::variant_indexof_v<T, util::enum_variant<variable_type>>));
+}
 
 template<typename T1, typename T2>
 static inline auto make_conversion_error() {
-    return bls::conversion_error(intl::translate("CANT_CONVERT_TYPE_TO_TYPE", intl::translate(variant_type_name<T1>), intl::translate(variant_type_name<T2>)));
+    return bls::conversion_error(intl::translate("CANT_CONVERT_TYPE_TO_TYPE", variable_type_label<T1>(), variable_type_label<T2>()));
 }
 
 struct string_converter {
@@ -172,20 +174,6 @@ bool variable::is_null() const {
 
 bool variable::is_pointer() const {
     return std::holds_alternative<variable_ptr>(m_value);
-}
-
-bool variable::is_string() const {
-    return std::holds_alternative<string_state>(deref().m_value);
-}
-
-bool variable::is_regex() const {
-    auto *view = std::get_if<string_state>(&deref().m_value);
-    return view && view->flags.is_regex;
-}
-
-bool variable::is_view() const {
-    const auto &var = deref();
-    return std::holds_alternative<string_state>(var.m_value) && ! var.m_str;
 }
 
 bool variable::is_number() const {

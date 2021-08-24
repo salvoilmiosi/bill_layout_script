@@ -8,32 +8,11 @@
 #include "type_list.h"
 #include "content_view.h"
 
-namespace detail {
+template<typename T, typename TList> struct is_unique : std::negation<util::type_list_contains<T, TList>> {};
+template<typename T> struct is_nonvoid : std::negation<std::is_void<T>> {};
 
-    template<typename T, typename TList> using append_unique_nonvoid_t =
-        util::type_list_append_if_t<!std::is_void_v<T> && !util::type_list_contains_v<T, TList>, T, TList>;
-
-    template<typename TList, typename TFrom> struct unique_types{};
-    template<typename TList> struct unique_types<TList, util::type_list<>> {
-        using type = TList;
-    };
-    template<typename TList, typename First, typename ... Ts> struct unique_types<TList, util::type_list<First, Ts...>> {
-        using type = typename unique_types<append_unique_nonvoid_t<First, TList>, util::type_list<Ts...>>::type;
-    };
-
-}
-
-template<typename TList> using unique_types_t = typename detail::unique_types<util::type_list<>, TList>::type;
-
-namespace detail {
-    template<enums::type_enum Enum, typename ISeq> struct enum_type_list{};
-    template<enums::type_enum Enum, size_t ... Is> struct enum_type_list<Enum, std::index_sequence<Is...>> {
-        using type = util::type_list<typename enums::get_type_t<static_cast<Enum>(Is)> ...>;
-    };
-}
-
-template<enums::type_enum Enum> using enum_type_list_t = typename detail::enum_type_list<Enum,
-    std::make_index_sequence<enums::size<Enum>()>>::type;
+template<typename TList> using unique_types = util::type_list_filter_t<is_unique, TList>;
+template<typename TList> using nonvoid_types = util::type_list_filter_t<is_nonvoid, TList>;
 
 template<typename T>
 void print_size(std::string name = boost::core::demangle(typeid(T).name())) {
@@ -49,13 +28,12 @@ template<typename ... Ts> struct type_printer<util::type_list<Ts...>> {
 
 int main() {
     print_size<bls::command_args>();
-    type_printer<unique_types_t<enum_type_list_t<bls::opcode>>>{}();
+    type_printer<nonvoid_types<unique_types<util::enum_type_list_t<bls::opcode>>>>{}();
 
     std::cout << '\n';
 
     print_size<bls::variable>();
-    print_size<bls::variable::variant_type>();
-    type_printer<util::variant_type_list_t<bls::variable::variant_type>>{}();
+    type_printer<nonvoid_types<util::enum_type_list_t<bls::variable_type>>>{}();
 
     std::cout << '\n';
 

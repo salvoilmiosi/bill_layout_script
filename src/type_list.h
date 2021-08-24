@@ -2,6 +2,7 @@
 #define __TYPE_LIST_H__
 
 #include <type_traits>
+#include "enums.h"
 
 namespace util {
 
@@ -56,6 +57,59 @@ namespace util {
         using type = util::type_list<Ts...>;
     };
 
+    namespace detail {
+        template<typename T> using variant_type = std::conditional_t<std::is_void_v<T>, std::monostate, T>;
+
+        template<enums::type_enum Enum, typename ISeq> struct enum_variant{};
+        template<enums::type_enum Enum, size_t ... Is> struct enum_variant<Enum, std::index_sequence<Is...>> {
+            using type = std::variant<variant_type<enums::get_type_t<static_cast<Enum>(Is)>> ...>;
+        };
+
+        template<enums::type_enum Enum, typename ISeq> struct enum_type_list{};
+        template<enums::type_enum Enum, size_t ... Is> struct enum_type_list<Enum, std::index_sequence<Is...>> {
+            using type = util::type_list<typename enums::get_type_t<static_cast<Enum>(Is)> ...>;
+        };
+        
+        template<template<typename ...> typename Filter, typename T, typename TList> struct filter_value{};
+
+        template<template<typename, typename> typename Filter, typename T, typename TList>
+        struct filter_value<Filter, T, TList> : Filter<T, TList> {};
+
+        template<template<typename> typename Filter, typename T, typename TList>
+        struct filter_value<Filter, T, TList> : Filter<T> {};
+
+        template<template<typename ...> typename Filter, typename TList, typename TFrom> struct type_list_filter{};
+
+        template<template<typename ...> typename Filter, typename TList>
+        struct type_list_filter<Filter, TList, util::type_list<>> {
+            using type = TList;
+        };
+
+        template<template<typename ...> typename Filter, typename TList, typename First, typename ... Ts>
+        struct type_list_filter<Filter, TList, util::type_list<First, Ts...>> {
+            using type = typename type_list_filter<
+                Filter,
+                util::type_list_append_if_t<
+                    filter_value<Filter, First, TList>::value,
+                    First,
+                    TList
+                >,
+                util::type_list<Ts...>
+            >::type;
+        };
+    }
+
+    template<enums::type_enum Enum> using enum_type_list_t = typename detail::enum_type_list<Enum,
+        std::make_index_sequence<enums::size<Enum>()>>::type;
+
+    template<enums::type_enum Enum> using enum_variant = typename detail::enum_variant<
+        Enum, std::make_index_sequence<enums::size<Enum>()>>::type;
+
+    template<typename T, typename Variant> static constexpr size_t variant_indexof_v =
+        type_list_indexof_v<T, variant_type_list_t<Variant>>;
+
+    template<template<typename ...> typename Filter, typename TList>
+    using type_list_filter_t = typename detail::type_list_filter<Filter, type_list<>, TList>::type;
 }
 
 #endif

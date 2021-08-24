@@ -6,13 +6,13 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Bill Layout Script 0.1.0\n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-08-24 02:23+0200\n"
+"POT-Creation-Date: 2021-08-24 17:29+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Salvo Miosi <salvo.ilmiosi@gmail.com>\n"
-"Language-Team: Salvo Miosi <salvo.ilmiosi@gmail.com>\n"
-"Language: en_US\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -66,7 +66,7 @@ msgstr "Cannot call {} from top level"
 msgid "CANT_CALL_OUT_OF_TOP_LEVEL"
 msgstr "Cannot call {} out of top level"
 
-#: bill_layout_script/src/variable.cpp:14
+#: bill_layout_script/src/variable.cpp:16
 msgid "CANT_CONVERT_TYPE_TO_TYPE"
 msgstr "Cannot convert {} to {}"
 
@@ -537,33 +537,6 @@ msgstr "Undo"
 msgid "TOOL_UPDATE"
 msgstr "Update"
 
-msgid "TYPE_ARRAY"
-msgstr "list"
-
-msgid "TYPE_BOOL"
-msgstr "boolean"
-
-msgid "TYPE_DATE"
-msgstr "date"
-
-msgid "TYPE_FLOAT"
-msgstr "float"
-
-msgid "TYPE_INT"
-msgstr "integer"
-
-msgid "TYPE_NULL"
-msgstr "null"
-
-msgid "TYPE_NUMBER"
-msgstr "decimal"
-
-msgid "TYPE_POINTER"
-msgstr "pointer"
-
-msgid "TYPE_STRING"
-msgstr "string"
-
 #: layout_editor/src/box_dialog.cpp:184
 msgid "Test"
 msgstr "Test"
@@ -627,3 +600,30 @@ msgstr "Layout"
 
 msgid "bls::read_mode::RAW"
 msgstr "Raw"
+
+msgid "bls::variable_type::ARRAY"
+msgstr "list"
+
+msgid "bls::variable_type::BOOLEAM"
+msgstr "boolean"
+
+msgid "bls::variable_type::DATETIME"
+msgstr "date"
+
+msgid "bls::variable_type::FLOAT"
+msgstr "float"
+
+msgid "bls::variable_type::INTEGER"
+msgstr "integer"
+
+msgid "bls::variable_type::NULLVAR"
+msgstr "null"
+
+msgid "bls::variable_type::NUMBER"
+msgstr "decimal"
+
+msgid "bls::variable_type::POINTER"
+msgstr "pointer"
+
+msgid "bls::variable_type::STRING"
+msgstr "string"
