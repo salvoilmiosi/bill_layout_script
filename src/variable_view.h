@@ -18,17 +18,21 @@ namespace bls {
         std::span<const variable>::iterator m_current;
 
     public:
-        variable_view(const variable &var)
-            : m_span(&var, 1)
-            , m_current(m_span.begin()) {}
+        variable_view(const variable &var) {
+            m_span = std::span(var.as_pointer(), 1);
+            m_current = m_span.begin();
+        }
 
         variable_view(variable &&var) = delete;
 
-        variable_view(const variable &var, as_array_tag_t)
-            : m_span(var.is_array()
-                ? std::span(var.as_array())
-                : std::span(&var, 1))
-            , m_current(m_span.begin()) {}
+        variable_view(const variable &var, as_array_tag_t) {
+            if (var.is_array()) {
+                m_span = var.as_array();
+                m_current = m_span.begin();
+            } else if (!var.is_null()) {
+                throw conversion_error(intl::translate("CANT_CONVERT_TYPE_TO_TYPE", intl::enum_label(var.type()), intl::enum_label(variable_type::ARRAY)));
+            }
+        }
         
         variable_view(variable &&var, as_array_tag_t) = delete;
 

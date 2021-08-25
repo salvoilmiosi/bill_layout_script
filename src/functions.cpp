@@ -565,11 +565,8 @@ namespace bls {
         {"strcat", [](varargs<std::string_view> args) {
             return util::string_join(args);
         }},
-        {"strlen", [](std::string_view str) {
-            return str.size();
-        }},
-        {"size", [](vector_view<variable> vec) {
-            return vec.size();
+        {"size", [](const variable &var) {
+            return var.size();
         }},
         {"indexof", [](std::string_view str, std::string_view value, optional<size_t> index) {
             return string_find_icase(str, value, index).begin() - str.begin();

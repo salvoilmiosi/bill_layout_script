@@ -98,8 +98,9 @@ namespace bls {
             return static_cast<variable_type>(m_value.index());
         }
 
-        bool is_true() const;
+        size_t size() const;
         bool is_empty() const;
+        bool is_true() const;
         bool is_null() const;
         bool is_pointer() const;
         bool is_number() const;

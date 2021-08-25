@@ -153,22 +153,26 @@ variable variable::deref() && {
     }
 }
 
-struct empty_checker {
-    bool operator()(auto) const             { return false; }
-    bool operator()(std::monostate) const   { return true; }
-    bool operator()(string_state str) const { return str.empty(); }
-    bool operator()(const variable_array &arr) const { return arr.empty(); }
+struct size_getter {
+    size_t operator()(auto) const               { return 1; }
+    size_t operator()(std::monostate) const     { return 0; }
+    size_t operator()(string_state str) const   { return str.size(); }
+    size_t operator()(const variable_array &arr) const { return arr.size(); }
 };
 
-bool variable::is_true() const {
-    return std::visit(util::overloaded{
-        [](const auto &value) { return !empty_checker{}(value); },
-        [](const number_t auto &num) { return num != 0; }
-    }, deref().m_value);
+size_t variable::size() const {
+    return std::visit(size_getter{}, deref().m_value);
 }
 
 bool variable::is_empty() const {
-    return std::visit(empty_checker{}, deref().m_value);
+    return std::visit(std::not_fn(size_getter{}), deref().m_value);
+}
+
+bool variable::is_true() const {
+    return std::visit(util::overloaded{
+        [](const auto &value) { return size_getter{}(value) != 0; },
+        [](const number_t auto &num) { return num != 0; }
+    }, deref().m_value);
 }
 
 bool variable::is_null() const {

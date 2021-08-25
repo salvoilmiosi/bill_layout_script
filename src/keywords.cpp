@@ -296,12 +296,14 @@ void parser::parse_tie_stmt() {
     }
     read_expression();
     m_code.add_line<opcode::VIEWADDLIST>();
-    for(size_t i=0; i<num_vars; ++i) {
-        m_code.add_line<opcode::PUSHVIEW>();
-        m_code.push_back(op_cmd);
-        if (i != num_vars - 1) {
+    if (num_vars > 0) {
+        for (; num_vars > 1; --num_vars) {
+            m_code.add_line<opcode::PUSHVIEW>();
+            m_code.push_back(op_cmd);
             m_code.add_line<opcode::VIEWNEXT>();
         }
+        m_code.add_line<opcode::PUSHVIEW>();
+        m_code.push_back(op_cmd);
     }
     m_code.add_line<opcode::VIEWPOP>();
 }
