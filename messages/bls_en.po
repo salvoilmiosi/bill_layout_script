@@ -126,8 +126,8 @@ msgid "EDIT_BOX"
 msgstr "Edit Box"
 
 #: bill_layout_script/src/parser.cpp:356
-msgid "EMPTY_CONTENT_STACK"
-msgstr "Empty Content Stack"
+msgid "EMPTY_VIEW_STACK"
+msgstr "Empty View Stack"
 
 #: bill_layout_script/src/main.cpp:110
 msgid "FIND_LAYOUT"

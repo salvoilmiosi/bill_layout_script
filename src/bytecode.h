@@ -53,7 +53,7 @@ namespace bls {
         (NEWBOX)                        // resetta current_box
         (MVBOX, spacer_index)           // stack -> current_box[index]
         (MVNBOX, spacer_index)          // -stack -> current_box[index]
-        (RDBOX, readbox_options)        // poppler.get_text(current_box) -> content_stack
+        (RDBOX, readbox_options)        // poppler.get_text(current_box) -> view_stack
         (SELVAR, string_ptr)            // name -> selected (current_table)
         (SELVARDYN)                     // stack -> selected (current_table)
         (SELGLOBAL, string_ptr)         // name -> selected (globals)
@@ -72,7 +72,7 @@ namespace bls {
         (SUBITEM, size_t)               // stack.top = stack.top[index]
         (SUBITEMDYN)                    // stack -> stack.top = stack.top[stack]
         (PUSHVAR)                       // selected -> stack
-        (PUSHVIEW)                      // content_stack -> stack
+        (PUSHVIEW)                      // view_stack -> stack
         (PUSHNUM, fixed_point)          // number -> stack
         (PUSHBOOL, bool)                // bool -> stack
         (PUSHINT, int64_t)              // int -> stack
@@ -82,18 +82,19 @@ namespace bls {
         (CALLARGS, size_t)              // sets numargs
         (CALL, command_call)            // stack * numargs -> fun_name -> stack
         (SYSCALL, command_call)         // stack * numargs -> fun_name
-        (CNTADD)                        // stack -> content_stack
-        (CNTADDLIST)                    // stack -> content_stack
-        (CNTPOP)                        // content_stack.pop()
-        (NEXTRESULT)                    // content_stack.top.nextresult()
+        (VIEWADD)                       // stack -> view_stack
+        (VIEWADDLIST)                   // stack -> view_stack
+        (VIEWPOP)                       // view_stack.pop()
+        (VIEWNEXT)                      // view_stack.top.nextview()
         (JMP, command_node)             // unconditional jump
         (JZ, command_node)              // stack -> jump if top == 0
         (JNZ, command_node)             // stack -> jump if top != 0
-        (JTE, command_node)             // jump if content_stack.top at token end
+        (JVE, command_node)             // jump if view_stack.top at end
         (JSR, command_node)             // program_counter -> call_stack -- jump to subroutine and discard return value
         (JSRVAL, command_node)          // program_counter -> call_stack -- jump to subroutine
+        (MOVERVAL)                      // moves return value
+        (COPYRVAL)                      // copies return value
         (RET)                           // jump to call_stack.top
-        (RETVAL)                        // return to caller and push value to stack
         (IMPORT, string_ptr)            // importa il file e lo esegue
         (SETPATH, string_ptr)           // aggiunge il percorso del layout nella lista di output
         (SETLANG, string_ptr)           // imposta il locale corrente

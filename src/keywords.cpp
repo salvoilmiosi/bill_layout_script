@@ -34,7 +34,7 @@ void parser::parse_while_stmt() {
 
     auto while_label = m_code.make_label();
     auto endwhile_label = m_code.make_label();
-    m_loop_stack.emplace(while_label, endwhile_label, m_content_level);
+    m_loop_stack.emplace(while_label, endwhile_label, m_views_size);
     m_lexer.require(token_type::PAREN_BEGIN);
     m_code.add_label(while_label);
     read_expression();
@@ -51,7 +51,7 @@ void parser::parse_for_stmt() {
 
     auto for_label = m_code.make_label();
     auto endfor_label = m_code.make_label();
-    m_loop_stack.emplace(for_label, endfor_label, m_content_level);
+    m_loop_stack.emplace(for_label, endfor_label, m_views_size);
     m_lexer.require(token_type::PAREN_BEGIN);
     if (!m_lexer.check_next(token_type::SEMICOLON)) {
         assignment_stmt();
@@ -80,8 +80,8 @@ void parser::parse_goto_stmt() {
     m_lexer.require(token_type::KW_GOTO);
 
     auto tok = m_lexer.require(token_type::IDENTIFIER);
-    for (int i=0; i<m_content_level; ++i) {
-        m_code.add_line<opcode::CNTPOP>();
+    for (int i=0; i<m_views_size; ++i) {
+        m_code.add_line<opcode::VIEWPOP>();
     }
     if (auto it = m_goto_labels.find(tok.value); it != m_goto_labels.end()) {
         m_code.add_line<opcode::JMP>(it->second);
@@ -106,16 +106,16 @@ void parser::parse_function_stmt() {
     m_code.add_line<opcode::JMP>(endfun_label);
     m_code.add_label(fun_label);
 
-    auto old_content_level = m_content_level;
-    m_content_level = 0;
+    auto old_views_size = m_views_size;
+    m_views_size = 0;
 
     std::set<std::string_view> args;
     while (!m_lexer.check_next(token_type::PAREN_END)) {
         auto tok = m_lexer.next();
         switch (tok.type) {
         case token_type::CONTENT:
-            if (args.empty() && m_content_level == 0) {
-                ++m_content_level;
+            if (args.empty() && m_views_size == 0) {
+                ++m_views_size;
             } else {
                 throw unexpected_token(tok, token_type::IDENTIFIER);
             }
@@ -144,22 +144,22 @@ void parser::parse_function_stmt() {
         }
     }
 
-    m_functions.emplace(std::string(name.value), function_info{fun_label, args.size() + m_content_level});
+    m_functions.emplace(std::string(name.value), function_info{fun_label, args.size() + m_views_size});
     for (auto _ : args) {
         m_code.add_line<opcode::FWDVAR>();
     }
-    if (m_content_level > 0) {
-        m_code.add_line<opcode::CNTADD>();
+    if (m_views_size > 0) {
+        m_code.add_line<opcode::VIEWADD>();
     }
 
     read_statement();
 
-    if (m_content_level > 0) {
-        m_code.add_line<opcode::CNTPOP>();
+    if (m_views_size > 0) {
+        m_code.add_line<opcode::VIEWPOP>();
     }
     m_code.add_line<opcode::RET>();
     m_code.add_label(endfun_label);
-    m_content_level = old_content_level;
+    m_views_size = old_views_size;
 };
 
 void parser::parse_foreach_stmt() {
@@ -168,22 +168,22 @@ void parser::parse_foreach_stmt() {
     auto begin_label = m_code.make_label();
     auto continue_label = m_code.make_label();
     auto end_label = m_code.make_label();
-    m_loop_stack.emplace(continue_label, end_label, m_content_level);
+    m_loop_stack.emplace(continue_label, end_label, m_views_size);
 
     m_lexer.require(token_type::PAREN_BEGIN);
     read_expression();
     m_lexer.require(token_type::PAREN_END);
-    ++m_content_level;
-    m_code.add_line<opcode::CNTADDLIST>();
+    ++m_views_size;
+    m_code.add_line<opcode::VIEWADDLIST>();
     m_code.add_label(begin_label);
-    m_code.add_line<opcode::JTE>(end_label);
+    m_code.add_line<opcode::JVE>(end_label);
     read_statement();
     m_code.add_label(continue_label);
-    m_code.add_line<opcode::NEXTRESULT>();
+    m_code.add_line<opcode::VIEWNEXT>();
     m_code.add_line<opcode::JMP>(begin_label);
     m_code.add_label(end_label);
-    --m_content_level;
-    m_code.add_line<opcode::CNTPOP>();
+    --m_views_size;
+    m_code.add_line<opcode::VIEWPOP>();
     m_loop_stack.pop_back();
 };
 
@@ -192,11 +192,11 @@ void parser::parse_with_stmt() {
     m_lexer.require(token_type::PAREN_BEGIN);
     read_expression();
     m_lexer.require(token_type::PAREN_END);
-    ++m_content_level;
-    m_code.add_line<opcode::CNTADD>();
+    ++m_views_size;
+    m_code.add_line<opcode::VIEWADD>();
     read_statement();
-    --m_content_level;
-    m_code.add_line<opcode::CNTPOP>();
+    --m_views_size;
+    m_code.add_line<opcode::VIEWPOP>();
 };
 
 void parser::parse_import_stmt() {
@@ -215,8 +215,8 @@ void parser::parse_break_stmt() {
     if (m_loop_stack.empty()) {
         throw token_error(intl::translate("NOT_IN_A_LOOP"), tok_fun_name);
     }
-    for (int i = m_loop_stack.top().entry_content_level; i < m_content_level; ++i) {
-        m_code.add_line<opcode::CNTPOP>();
+    for (int i = m_loop_stack.top().entry_views_size; i < m_views_size; ++i) {
+        m_code.add_line<opcode::VIEWPOP>();
     }
     m_code.add_line<opcode::JMP>(m_loop_stack.top().break_node);
 };
@@ -227,32 +227,31 @@ void parser::parse_continue_stmt() {
     if (m_loop_stack.empty()) {
         throw token_error(intl::translate("NOT_IN_A_LOOP"), tok_fun_name);
     }
-    for (int i = m_loop_stack.top().entry_content_level; i < m_content_level; ++i) {
-        m_code.add_line<opcode::CNTPOP>();
+    for (int i = m_loop_stack.top().entry_views_size; i < m_views_size; ++i) {
+        m_code.add_line<opcode::VIEWPOP>();
     }
     m_code.add_line<opcode::JMP>(m_loop_stack.top().continue_node);
 };
 
 void parser::parse_return_stmt() {
-    auto tok_fun_name = m_lexer.require(token_type::KW_RETURN);
-    if (m_lexer.check_next(token_type::SEMICOLON)) {
-        for (int i = 0; i < m_content_level; ++i) {
-            m_code.add_line<opcode::CNTPOP>();
-        }
-        m_code.add_line<opcode::RET>();
-    } else {
+    m_lexer.require(token_type::KW_RETURN);
+    if (!m_lexer.check_next(token_type::SEMICOLON)) {
         read_expression();
+        m_lexer.require(token_type::SEMICOLON);
+
         switch (m_code.last_not_comment().command()) {
         case opcode::PUSHVAR:
         case opcode::PUSHVIEW:
-            m_code.add_line<opcode::CALL>("copy");
+            m_code.add_line<opcode::COPYRVAL>();
+            break;
+        default:
+            m_code.add_line<opcode::MOVERVAL>();
         }
-        for (int i = 0; i < m_content_level; ++i) {
-            m_code.add_line<opcode::CNTPOP>();
-        }
-        m_code.add_line<opcode::RETVAL>();
-        m_lexer.require(token_type::SEMICOLON);
     }
+    for (int i = 0; i < m_views_size; ++i) {
+        m_code.add_line<opcode::VIEWPOP>();
+    }
+    m_code.add_line<opcode::RET>();
 };
 
 void parser::parse_clear_stmt() {
@@ -296,13 +295,13 @@ void parser::parse_tie_stmt() {
         throw unexpected_token(tok, token_type::ASSIGN);
     }
     read_expression();
-    m_code.add_line<opcode::CNTADDLIST>();
+    m_code.add_line<opcode::VIEWADDLIST>();
     for(size_t i=0; i<num_vars; ++i) {
         m_code.add_line<opcode::PUSHVIEW>();
         m_code.push_back(op_cmd);
         if (i != num_vars - 1) {
-            m_code.add_line<opcode::NEXTRESULT>();
+            m_code.add_line<opcode::VIEWNEXT>();
         }
     }
-    m_code.add_line<opcode::CNTPOP>();
+    m_code.add_line<opcode::VIEWPOP>();
 }

@@ -616,10 +616,10 @@ namespace bls {
         {"doc_filename",    [](const reader *ctx) { return ctx->get_document().filename().string(); }},
         {"ate",             [](const reader *ctx) { return ctx->m_current_box.page > ctx->get_document().num_pages(); }},
         {"curindex", [](const reader *ctx) -> variable{
-            if (ctx->m_contents.empty()) {
+            if (ctx->m_views.empty()) {
                 return {};
             } else {
-                return ctx->m_contents.top().index();
+                return ctx->m_views.top().index();
             }
         }},
         

@@ -133,7 +133,7 @@ void parser::read_box(const layout_box &box) {
     }
 
     if (!box.flags.check(box_flags::NOREAD) && !box.flags.check(box_flags::SPACER)) {
-        ++m_content_level;
+        ++m_views_size;
         m_code.add_line<opcode::RDBOX>(box.mode, box.flags);
     }
 
@@ -143,8 +143,8 @@ void parser::read_box(const layout_box &box) {
     }
 
     if (!box.flags.check(box_flags::NOREAD) && !box.flags.check(box_flags::SPACER)) {
-        --m_content_level;
-        m_code.add_line<opcode::CNTPOP>();
+        --m_views_size;
+        m_code.add_line<opcode::VIEWPOP>();
     }
 }
 
@@ -352,8 +352,8 @@ void parser::sub_expression() {
         break;
     case token_type::CONTENT:
         m_lexer.advance(tok_first);
-        if (m_content_level == 0) {
-            throw token_error(intl::translate("EMPTY_CONTENT_STACK"), tok_first);
+        if (m_views_size == 0) {
+            throw token_error(intl::translate("EMPTY_VIEW_STACK"), tok_first);
         }
         m_code.add_line<opcode::PUSHVIEW>();
         break;

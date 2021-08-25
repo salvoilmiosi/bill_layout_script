@@ -6,7 +6,7 @@
 #include "bytecode.h"
 #include "utils.h"
 #include "type_list.h"
-#include "content_view.h"
+#include "variable_view.h"
 
 template<typename T, typename TList> struct is_unique : std::negation<util::type_list_contains<T, TList>> {};
 template<typename T> struct is_nonvoid : std::negation<std::is_void<T>> {};
@@ -37,7 +37,7 @@ int main() {
 
     std::cout << '\n';
 
-    print_size<bls::content_view>();
+    print_size<bls::variable_view>();
     
     return 0;
 }

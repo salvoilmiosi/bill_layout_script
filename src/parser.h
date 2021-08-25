@@ -31,7 +31,7 @@ namespace bls {
     struct loop_state {
         command_node continue_node;
         command_node break_node;
-        int entry_content_level;
+        int entry_views_size;
     };
 
     struct function_info {
@@ -100,7 +100,7 @@ namespace bls {
         simple_stack<loop_state> m_loop_stack;
         util::string_map<function_info> m_functions;
         util::string_map<command_node> m_goto_labels;
-        int m_content_level = 0;
+        int m_views_size = 0;
 
         friend class lexer;
     };

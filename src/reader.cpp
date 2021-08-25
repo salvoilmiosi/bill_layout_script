@@ -20,7 +20,7 @@ void reader::start() {
     m_notes.clear();
     m_layouts.clear();
     m_stack.clear();
-    m_contents.clear();
+    m_views.clear();
     m_selected.clear();
 
     m_values.emplace_back();
@@ -151,7 +151,7 @@ void reader::exec_command(const command_args &cmd) {
         [this](command_tag<opcode::RDBOX>, readbox_options opts) {
             m_current_box.mode = opts.mode;
             m_current_box.flags = opts.flags;
-            m_contents.emplace(get_document().get_text(m_current_box));
+            m_views.push(m_stack.emplace(get_document().get_text(m_current_box)));
         },
         [this](command_tag<opcode::SELVAR>, const std::string &name) {
             m_selected.emplace(*m_current_table, name);
@@ -209,7 +209,7 @@ void reader::exec_command(const command_args &cmd) {
             m_stack.push(m_selected.pop()->get_value());
         },
         [this](command_tag<opcode::PUSHVIEW>) {
-            m_stack.push(m_contents.top().view());
+            m_stack.push(m_views.top().view());
         },
         [this](command_tag<opcode::PUSHNUM>, fixed_point num) {
             m_stack.push(num);
@@ -238,17 +238,18 @@ void reader::exec_command(const command_args &cmd) {
         [this](command_tag<opcode::SYSCALL>, const command_call &call) {
             do_function_call(call);
         },
-        [this](command_tag<opcode::CNTADD>) {
-            m_contents.emplace(std::move(*m_stack.pop()));
+        [this](command_tag<opcode::VIEWADD>) {
+            m_views.emplace(m_stack.top());
         },
-        [this](command_tag<opcode::CNTADDLIST>) {
-            m_contents.emplace(std::move(*m_stack.pop()), as_array_tag);
+        [this](command_tag<opcode::VIEWADDLIST>) {
+            m_views.emplace(m_stack.top(), as_array_tag);
         },
-        [this](command_tag<opcode::CNTPOP>) {
-            m_contents.pop();
+        [this](command_tag<opcode::VIEWPOP>) {
+            m_views.pop();
+            m_stack.pop();
         },
-        [this](command_tag<opcode::NEXTRESULT>) {
-            m_contents.top().nextresult();
+        [this](command_tag<opcode::VIEWNEXT>) {
+            m_views.top().nextview();
         },
         [this](command_tag<opcode::JMP>, command_node node) {
             jump_to(node);
@@ -263,8 +264,8 @@ void reader::exec_command(const command_args &cmd) {
                 jump_to(node);
             }
         },
-        [this](command_tag<opcode::JTE>, command_node node) {
-            if (m_contents.top().tokenend()) {
+        [this](command_tag<opcode::JVE>, command_node node) {
+            if (m_views.top().ate()) {
                 jump_to(node);
             }
         },
@@ -274,24 +275,18 @@ void reader::exec_command(const command_args &cmd) {
         [this](command_tag<opcode::JSRVAL>, command_node node) {
             jump_subroutine(node, true);
         },
+        [this](command_tag<opcode::COPYRVAL>) {
+            m_calls.top().return_value = m_stack.pop()->deref();
+        },
+        [this](command_tag<opcode::MOVERVAL>) {
+            m_calls.top().return_value = std::move(*m_stack.pop());
+        },
         [this](command_tag<opcode::RET>) {
             if (m_calls.size() > 1) {
                 auto fun_call = m_calls.pop();
                 jump_to(fun_call->return_addr);
                 if (fun_call->getretvalue) {
-                    m_stack.emplace();
-                }
-            } else {
-                m_running = false;
-            }
-        },
-        [this](command_tag<opcode::RETVAL>) {
-            if (m_calls.size() > 1) {
-                auto fun_call = m_calls.pop();
-                jump_to(fun_call->return_addr);
-
-                if (!fun_call->getretvalue) {
-                    m_stack.pop();
+                    m_stack.push_back(std::move(fun_call->return_value));
                 }
             } else {
                 m_running = false;

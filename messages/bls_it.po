@@ -126,8 +126,8 @@ msgid "EDIT_BOX"
 msgstr "Modifica Rettangolo"
 
 #: bill_layout_script/src/parser.cpp:356
-msgid "EMPTY_CONTENT_STACK"
-msgstr "Stack contenuti vuoto"
+msgid "EMPTY_VIEW_STACK"
+msgstr "Stack viste vuoto"
 
 #: bill_layout_script/src/main.cpp:110
 msgid "FIND_LAYOUT"

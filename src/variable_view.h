@@ -1,5 +1,5 @@
-#ifndef __CONTENT_VIEW_H__
-#define __CONTENT_VIEW_H__
+#ifndef __VARIABLE_VIEW_H__
+#define __VARIABLE_VIEW_H__
 
 #include <span>
 
@@ -12,40 +12,40 @@ namespace bls {
     struct as_array_tag_t {};
     constexpr as_array_tag_t as_array_tag;
 
-    class content_view {
+    class variable_view {
     private:
-        const variable m_data;
-
         std::span<const variable> m_span;
         std::span<const variable>::iterator m_current;
 
     public:
-        content_view(variable &&var)
-            : m_data(std::move(var))
-            , m_span(&m_data, 1)
+        variable_view(const variable &var)
+            : m_span(&var, 1)
             , m_current(m_span.begin()) {}
 
-        content_view(variable &&var, as_array_tag_t)
-            : m_data(std::move(var))
-            , m_span(m_data.is_array()
-                ? std::span(m_data.as_array())
-                : std::span(&m_data, 1))
+        variable_view(variable &&var) = delete;
+
+        variable_view(const variable &var, as_array_tag_t)
+            : m_span(var.is_array()
+                ? std::span(var.as_array())
+                : std::span(&var, 1))
             , m_current(m_span.begin()) {}
+        
+        variable_view(variable &&var, as_array_tag_t) = delete;
 
         size_t index() const {
             return m_current - m_span.begin();
         }
 
-        void nextresult() {
+        void nextview() {
             ++m_current;
         }
 
-        bool tokenend() const {
+        bool ate() const {
             return m_current >= m_span.end();
         }
 
         variable view() const {
-            if (tokenend()) return {};
+            if (ate()) return {};
             return m_current->as_pointer();
         }
     };

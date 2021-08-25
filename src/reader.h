@@ -12,7 +12,7 @@
 #include "functions.h"
 #include "bytecode.h"
 #include "stack.h"
-#include "content_view.h"
+#include "variable_view.h"
 
 namespace bls {
 
@@ -23,6 +23,7 @@ DEFINE_ENUM_FLAGS_IN_NS(bls, reader_flags,
 struct function_call {
     variable_map vars;
     command_node return_addr;
+    variable return_value;
     bool getretvalue;
 
     function_call() : getretvalue(false) {}
@@ -105,7 +106,7 @@ private:
     variable_map m_globals;
 
     simple_stack<variable> m_stack;
-    simple_stack<content_view> m_contents;
+    simple_stack<variable_view> m_views;
     simple_stack<function_call> m_calls;
     simple_stack<variable_selector> m_selected;
 
