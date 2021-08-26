@@ -32,7 +32,7 @@ namespace bls {
             }
             if (!box.spacers.empty()) {
                 output << "### Spacers\n";
-                for (const auto &line : util::string_split(box.spacers, '\n')) {
+                for (std::string_view line : util::string_split(box.spacers, '\n')) {
                     if (line == "### End Spacers") {
                         throw parsing_error(intl::translate("INVALID_TOKEN_END_SPACERS"));
                     } else {
@@ -43,7 +43,7 @@ namespace bls {
             }
             if (!box.script.empty()) {
                 output << "### Script\n";
-                for (const auto &line : util::string_split(box.script, '\n')) {
+                for (std::string_view line : util::string_split(box.script, '\n')) {
                     if (line == "### End Script") {
                         throw parsing_error(intl::translate("INVALID_TOKEN_END_SCRIPT"));
                     } else {

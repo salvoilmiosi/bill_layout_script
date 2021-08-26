@@ -10,6 +10,7 @@
 #include "translations.h"
 #include "svstream.h"
 #include "exceptions.h"
+#include "contig_split_view.h"
 
 namespace util {
 
@@ -56,11 +57,7 @@ namespace util {
     // divide una stringa per separatore
     template<std::ranges::input_range R>
     inline auto string_split(std::string_view str, R &&separator) {
-        return str
-            | std::views::split(separator)
-            | std::views::transform([](auto && range) {
-                return std::string_view(&*range.begin(), std::ranges::distance(range));
-            });
+        return str | std::views::split(separator);
     }
 
     inline auto string_split(std::string_view str, char separator = ',') {
