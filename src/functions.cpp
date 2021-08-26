@@ -523,8 +523,8 @@ namespace bls {
             date.set_to_last_month_day();
             return date;
         }},
-        {"date_between", [](datetime date, datetime date_begin, datetime date_end) {
-            return date >= date_begin && date <= date_end;
+        {"isbetween", [](const variable &var, const variable &min, const variable &max) {
+            return var >= min && var <= max;
         }},
         {"singleline", [](std::string_view str) {
             return string_singleline(str);
