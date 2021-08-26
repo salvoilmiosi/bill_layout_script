@@ -168,12 +168,12 @@ void parser::parse_foreach_stmt() {
     auto begin_label = m_code.make_label();
     auto continue_label = m_code.make_label();
     auto end_label = m_code.make_label();
-    m_loop_stack.emplace(continue_label, end_label, m_views_size);
 
     m_lexer.require(token_type::PAREN_BEGIN);
     read_expression();
     m_lexer.require(token_type::PAREN_END);
     ++m_views_size;
+    m_loop_stack.emplace(continue_label, end_label, m_views_size);
     m_code.add_line<opcode::VIEWADDLIST>();
     m_code.add_label(begin_label);
     m_code.add_line<opcode::JVE>(end_label);
