@@ -375,6 +375,12 @@ namespace bls {
         {"hex", [](int num) {
             return std::format("{:x}", num);
         }},
+        {"split", [](std::string_view str, std::string_view separator) -> variable {
+            return util::string_split(str, separator);
+        }},
+        {"join", [](vector_view<std::string_view> strings, std::string_view separator) {
+            return util::string_join(strings, separator);
+        }},
         {"lines", [](std::string_view str) -> variable {
             return util::string_split(str, '\n')
                 | std::views::transform(util::string_trim)
