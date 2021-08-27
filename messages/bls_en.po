@@ -608,7 +608,7 @@ msgstr "Raw"
 msgid "bls::variable_type::ARRAY"
 msgstr "list"
 
-msgid "bls::variable_type::BOOLEAM"
+msgid "bls::variable_type::BOOLEAN"
 msgstr "boolean"
 
 msgid "bls::variable_type::DATETIME"

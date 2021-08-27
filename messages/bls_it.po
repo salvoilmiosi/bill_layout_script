@@ -608,7 +608,7 @@ msgstr "Grezza"
 msgid "bls::variable_type::ARRAY"
 msgstr "lista"
 
-msgid "bls::variable_type::BOOLEAM"
+msgid "bls::variable_type::BOOLEAN"
 msgstr "booleano"
 
 msgid "bls::variable_type::DATETIME"
