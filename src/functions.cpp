@@ -395,6 +395,9 @@ namespace bls {
         {"zip_sub", [](vector_view<variable> lhs, vector_view<variable> rhs) {
             return zip(lhs, rhs, std::minus<>{});
         }},
+        {"zip_mul", [](vector_view<variable> lhs, vector_view<variable> rhs) {
+            return zip(lhs, rhs, std::multiplies<>{});
+        }},
         {"sum", [](vector_view<fixed_point> args) {
             return std::reduce(args.begin(), args.end(), variable());
         }},
