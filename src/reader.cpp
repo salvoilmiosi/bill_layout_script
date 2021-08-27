@@ -107,6 +107,15 @@ command_node reader::add_layout(const std::filesystem::path &filename) {
     return add_code(parser{}.read_layout(filename, layout_box_list::from_file(filename)));
 }
 
+variable reader::do_function_call(const command_call &call) {
+    if (call->second.minargs == call->second.maxargs) {
+        m_numargs = call->second.minargs;
+    }
+    auto ret = call->second(this, arg_list(m_stack.end() - m_numargs, m_stack.end()));
+    m_stack.resize(m_stack.size() - m_numargs);
+    return ret;
+}
+
 static constexpr auto is_label = [](const command_args &cmd) {
     return cmd.command() == opcode::LABEL;
 };

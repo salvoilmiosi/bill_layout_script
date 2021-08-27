@@ -203,6 +203,9 @@ template<typename T, typename U> concept simple_comparable_with = requires(T lhs
     lhs <=> rhs;
 };
 
+template<typename T> concept comparable_with_null = not_monostate<T> &&
+    std::default_initializable<T> && std::three_way_comparable<T>;
+
 struct variable_comparator {
     template<typename Lhs, typename Rhs>
     std::partial_ordering operator()(const Lhs &, const Rhs &) const {
@@ -220,6 +223,16 @@ struct variable_comparator {
 
     std::partial_ordering operator()(const not_monostate auto &, std::monostate) {
         return std::partial_ordering::unordered;
+    }
+
+    template<comparable_with_null Rhs>
+    std::partial_ordering operator()(std::monostate, const Rhs &rhs) {
+        return Rhs{} <=> rhs;
+    }
+
+    template<comparable_with_null Lhs>
+    std::partial_ordering operator()(const Lhs &lhs, std::monostate) {
+        return lhs <=> Lhs{};
     }
 
     template<comparable_with_string T>

@@ -240,10 +240,8 @@ namespace bls {
             , maxargs(function_maxargs_v<Function>)
             , returns_value(!std::is_void_v<function_return_type_t<Function>>) {}
 
-        variable operator ()(class reader *ctx, simple_stack<variable> &stack, size_t numargs) const {
-            auto ret = m_fun(ctx, arg_list(stack.end() - numargs, stack.end()));
-            stack.resize(stack.size() - numargs);
-            return ret;
+        variable operator()(class reader *ctx, arg_list args) const {
+            return m_fun(ctx, args);
         }
     };
 

@@ -346,7 +346,7 @@ namespace bls {
         {"num", [](const reader *ctx, const variable &var) {
             return num_parser{ctx->m_locale}(var);
         }},
-        {"nums", [](const reader *ctx, vector_view<variable> vars) -> variable {
+        {"nums", [](const reader *ctx, vector_view<variable> vars) {
             return vars | std::views::transform(num_parser{ctx->m_locale});
         }},
         {"neg", [](const reader *ctx, const variable &var) {
@@ -375,18 +375,19 @@ namespace bls {
         {"hex", [](int num) {
             return std::format("{:x}", num);
         }},
-        {"split", [](std::string_view str, std::string_view separator) -> variable {
-            return util::string_split(str, separator);
+        {"split", [](std::string_view str, std::string_view separator) {
+            return util::string_split(str, separator)
+                | std::views::transform([](std::string_view str) { return std::string(str); });
         }},
         {"join", [](vector_view<std::string_view> strings, std::string_view separator) {
             return util::string_join(strings, separator);
         }},
-        {"lines", [](std::string_view str) -> variable {
+        {"lines", [](std::string_view str) {
             return util::string_split(str, '\n')
                 | std::views::transform(util::string_trim)
                 | std::views::filter(std::not_fn(&std::string::empty));
         }},
-        {"list", [](varargs<variable> args) -> variable {
+        {"list", [](varargs<variable> args) {
             return args;
         }},
         {"zip_add", [](vector_view<variable> lhs, vector_view<variable> rhs) {
@@ -398,8 +399,8 @@ namespace bls {
         {"zip_mul", [](vector_view<variable> lhs, vector_view<variable> rhs) {
             return zip(lhs, rhs, std::multiplies<>{});
         }},
-        {"sum", [](vector_view<fixed_point> args) {
-            return std::reduce(args.begin(), args.end(), variable());
+        {"sum", [](vector_view<variable> args) {
+            return std::reduce(args.begin(), args.end());
         }},
         {"trunc", [](fixed_point num, int decimal_places) {
             int pow = dec::dec_utils<dec::def_round_policy>::pow10(decimal_places);
@@ -418,14 +419,14 @@ namespace bls {
             if (value.is_null()) return {};
             return variable_array(num, value);
         }},
-        {"range", [](vector_view<variable> vec, size_t index, size_t size) -> variable {
+        {"range", [](vector_view<variable> vec, size_t index, size_t size) {
             return std::ranges::take_view(std::ranges::drop_view(vec, index), size);
         }},
-        {"percent", [](std::string_view str) {
+        {"percent", [](std::string_view str) -> variable {
             if (!str.empty()) {
-                return variable(std::string(str) + "%");
+                return std::string(str) + "%";
             } else {
-                return variable();
+                return {};
             }
         }},
         {"table_header", [](std::string_view header, varargs<std::string_view> labels) {
@@ -444,7 +445,7 @@ namespace bls {
                 return {};
             }
         }},
-        {"search_num", [](const reader *ctx, std::string_view str, std::string_view regex, optional_size<1> index) -> variable {
+        {"search_num", [](const reader *ctx, std::string_view str, std::string_view regex, optional_size<1> index) {
             return num_parser{ctx->m_locale}(search_regex(str, create_number_regex(ctx->m_locale, regex), index));
         }},
         {"searchpos", [](std::string_view str, std::string_view regex, optional_size<0> index) {
@@ -493,14 +494,14 @@ namespace bls {
         {"search_date", [](const reader *ctx, std::string_view str, const std::string &format, optional<std::string_view> regex, optional_size<1> index) {
             return search_date(ctx->m_locale, str, format, regex, index);
         }},
-        {"search_month", [](const reader *ctx, std::string_view str, const std::string &format, optional<std::string_view> regex, optional_size<1> index) {
+        {"search_month", [](const reader *ctx, std::string_view str, const std::string &format, optional<std::string_view> regex, optional_size<1> index) -> variable {
             variable var = search_date(ctx->m_locale, str, format, regex, index);
             if (!var.is_null()) {
                 datetime date = var.as_date();
                 date.set_day(1);
-                return variable(date);
+                return date;
             }
-            return variable();
+            return {};
         }},
         {"date_format", [](const reader *ctx, datetime date, const std::string &format) {
             return date.format(ctx->m_locale, format);
@@ -595,9 +596,9 @@ namespace bls {
         {"format", [](std::string_view format, varargs<std::string_view> args) {
             return string_format(format, args);
         }},
-        {"coalesce", [](varargs<variable> args) {
+        {"coalesce", [](varargs<variable> args) -> variable {
             if (auto it = std::ranges::find_if_not(args, &variable::is_null); it != args.end()) return *it;
-            return variable();
+            return {};
         }},
         {"readfile", [](const reader *ctx, std::string_view filename) -> variable {
             std::ifstream ifs(ctx->m_current_layout->parent_path() / std::filesystem::path(filename.begin(), filename.end()));
