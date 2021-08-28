@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-08-24 22:01+0200\n"
+"POT-Creation-Date: 2021-08-28 13:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -78,7 +78,7 @@ msgstr "Impossibile trovare il layout"
 msgid "CANT_OPEN_FILE"
 msgstr "Impossibile aprire il file {}"
 
-#: bill_layout_script/src/datetime.cpp:26
+#: bill_layout_script/src/datetime.cpp:36
 msgid "CANT_PARSE_DATE"
 msgstr "Impossibile leggere {} come data"
 
@@ -241,9 +241,6 @@ msgstr "&Copia\tCtrl-C"
 
 #: layout_editor/src/editor.cpp:123
 msgid "MENU_COPY_HINT"
-msgstr ""
-
-msgid "MENU_COPY_HINY"
 msgstr "Copia la selezione"
 
 #: layout_editor/src/editor.cpp:122
@@ -565,7 +562,7 @@ msgstr "Etichetta sconosciuta: {}"
 msgid "UNNAMED_BOX"
 msgstr "(Senza nome)"
 
-#: bill_layout_script/src/reader.cpp:312
+#: bill_layout_script/src/reader.cpp:316
 msgid "UNSUPPORTED_LANGUAGE"
 msgstr "Lingua non supportata: {}"
 
