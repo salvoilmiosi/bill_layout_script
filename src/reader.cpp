@@ -241,6 +241,18 @@ void reader::exec_command(const command_args &cmd) {
         [this](command_tag<opcode::PUSHREGEX>, const std::string &str) {
             m_stack.emplace(std::string_view(str), as_regex_tag);
         },
+        [this](command_tag<opcode::STKAPP>) {
+            auto top = m_stack.pop();
+            auto &var = *(m_stack.end() - 2);
+            if (var.is_array()) {
+                var.as_array().push_back(std::move(*top));
+            } else {
+                var = variable_array{std::move(*top)};
+            }
+        },
+        [this](command_tag<opcode::STKSWP>) {
+            std::swap(m_stack.top(), *(m_stack.end() - 2));
+        },
         [this](command_tag<opcode::CALLARGS>, size_t numargs) {
             m_numargs = numargs;
         },

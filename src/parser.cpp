@@ -254,27 +254,54 @@ void parser::read_expression() {
         {token_type::OR,            {"or",  1}},
     };
 
-    sub_expression();
+    if (m_lexer.check_next(token_type::KW_FOREACH)) {
+        m_lexer.require(token_type::PAREN_BEGIN);
+        read_expression();
+        m_lexer.require(token_type::PAREN_END);
 
-    simple_stack<decltype(operators)::const_iterator> op_stack;
-    
-    while (true) {
-        auto tok_op = m_lexer.peek();
-        auto it = operators.find(tok_op.type);
-        if (it == std::end(operators)) break;
+        auto label_loop_begin = m_code.make_label();
+        auto label_loop_end = m_code.make_label();
+
+        m_code.add_line<opcode::VIEWADDLIST>();
+        m_code.add_line<opcode::PUSHNULL>();
+
+        m_code.add_label(label_loop_begin);
+        m_code.add_line<opcode::JVE>(label_loop_end);
+
+        ++m_views_size;
+        read_expression();
+        --m_views_size;
+
+        m_code.add_line<opcode::STKAPP>();
+        m_code.add_line<opcode::VIEWNEXT>();
+        m_code.add_line<opcode::JMP>(label_loop_begin);
+        m_code.add_label(label_loop_end);
+
+        m_code.add_line<opcode::STKSWP>();
+        m_code.add_line<opcode::VIEWPOP>();
+    } else {
+        sub_expression();
+
+        simple_stack<decltype(operators)::const_iterator> op_stack;
         
-        m_lexer.advance(tok_op);
-        if (!op_stack.empty() && op_stack.back()->second.precedence >= it->second.precedence) {
+        while (true) {
+            auto tok_op = m_lexer.peek();
+            auto it = operators.find(tok_op.type);
+            if (it == std::end(operators)) break;
+            
+            m_lexer.advance(tok_op);
+            if (!op_stack.empty() && op_stack.back()->second.precedence >= it->second.precedence) {
+                m_code.push_back(op_stack.back()->second.command);
+                op_stack.pop_back();
+            }
+            op_stack.push_back(it);
+            sub_expression();
+        }
+
+        while (!op_stack.empty()) {
             m_code.push_back(op_stack.back()->second.command);
             op_stack.pop_back();
         }
-        op_stack.push_back(it);
-        sub_expression();
-    }
-
-    while (!op_stack.empty()) {
-        m_code.push_back(op_stack.back()->second.command);
-        op_stack.pop_back();
     }
 }
 

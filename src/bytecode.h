@@ -80,6 +80,8 @@ namespace bls {
         (PUSHDOUBLE, double)            // double -> stack
         (PUSHSTR, string_ptr)           // str -> stack
         (PUSHREGEX, string_ptr)         // str -> stack (flag come regex)
+        (STKAPP)                        // stack -> append to stack.top - 1
+        (STKSWP)                        // swaps top 2 elements in stack
         (CALLARGS, size_t)              // sets numargs
         (CALL, command_call)            // stack * numargs -> fun_name -> stack
         (SYSCALL, command_call)         // stack * numargs -> fun_name
@@ -93,8 +95,8 @@ namespace bls {
         (JVE, command_node)             // jump if view_stack.top at end
         (JSR, command_node)             // program_counter -> call_stack -- jump to subroutine and discard return value
         (JSRVAL, command_node)          // program_counter -> call_stack -- jump to subroutine
-        (MOVERVAL)                      // moves return value
-        (COPYRVAL)                      // copies return value
+        (MOVERVAL)                      // stack -> return value (move)
+        (COPYRVAL)                      // stack -> return value (copy)
         (RET)                           // jump to call_stack.top
         (IMPORT, string_ptr)            // importa il file e lo esegue
         (SETPATH, string_ptr)           // aggiunge il percorso del layout nella lista di output
