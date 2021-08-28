@@ -220,6 +220,9 @@ void reader::exec_command(const command_args &cmd) {
         [this](command_tag<opcode::PUSHVIEW>) {
             m_stack.push(m_views.top().view());
         },
+        [this](command_tag<opcode::PUSHNULL>) {
+            m_stack.emplace();
+        },
         [this](command_tag<opcode::PUSHNUM>, fixed_point num) {
             m_stack.push(num);
         },

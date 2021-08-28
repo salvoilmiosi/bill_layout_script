@@ -369,7 +369,6 @@ namespace bls {
         {"not", [](bool a) { return !a; }},
         {"and", [](bool a, bool b) { return a && b; }},
         {"or",  [](bool a, bool b) { return a || b; }},
-        {"null", []{ return variable(); }},
         {"isnull", [](const variable &var) { return var.is_null(); }},
         {"isempty", [](const variable &var) { return var.is_empty(); }},
         {"hex", [](int num) {

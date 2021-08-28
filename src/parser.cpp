@@ -327,6 +327,10 @@ void parser::sub_expression() {
         }
         break;
     }
+    case token_type::KW_NULL:
+        m_lexer.advance(tok_first);
+        m_code.add_line<opcode::PUSHNULL>();
+        break;
     case token_type::KW_TRUE:
         m_lexer.advance(tok_first);
         m_code.add_line<opcode::PUSHBOOL>(true);

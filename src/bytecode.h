@@ -73,6 +73,7 @@ namespace bls {
         (SUBITEMDYN)                    // stack -> stack.top = stack.top[stack]
         (PUSHVAR)                       // selected -> stack
         (PUSHVIEW)                      // view_stack -> stack
+        (PUSHNULL)                      // null -> stack
         (PUSHNUM, fixed_point)          // number -> stack
         (PUSHBOOL, bool)                // bool -> stack
         (PUSHINT, int64_t)              // int -> stack

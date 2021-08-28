@@ -32,6 +32,7 @@ namespace bls {
         (KW_TIE,        "tie")
         (KW_TRUE,       "true")
         (KW_FALSE,      "false")
+        (KW_NULL,       "null")
         (STRING,        "Stringa")
         (REGEXP,        "Espressione Regolare")
         (NUMBER,        "Numero")
@@ -85,7 +86,8 @@ namespace bls {
         {"global",      token_type::KW_GLOBAL},
         {"tie",         token_type::KW_TIE},
         {"true",        token_type::KW_TRUE},
-        {"false",       token_type::KW_FALSE}
+        {"false",       token_type::KW_FALSE},
+        {"null",        token_type::KW_NULL},
     };
 
     struct token {
