@@ -153,11 +153,12 @@ void parser::parse_function_stmt() {
     }
 
     read_statement();
-
-    if (m_views_size > 0) {
-        m_code.add_line<opcode::VIEWPOP>();
+    if (m_code.last_not_comment().command() != opcode::RET) {
+        if (m_views_size > 0) {
+            m_code.add_line<opcode::VIEWPOP>();
+        }
+        m_code.add_line<opcode::RET>();
     }
-    m_code.add_line<opcode::RET>();
     m_code.add_label(endfun_label);
     m_views_size = old_views_size;
 };
