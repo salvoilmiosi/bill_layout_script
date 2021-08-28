@@ -14,8 +14,8 @@ namespace std {
     }
 
     template<typename ... Ts>
-    inline std::string format(fmt::format_string<Ts...> fmt_str, Ts && ... args) {
-        return fmt::vformat(fmt_str, fmt::make_format_args(args ...));
+    inline std::string format(fmt::string_view fmt_str, Ts && ... args) {
+        return fmt::vformat(fmt_str, fmt::make_format_args(args ... ));
     }
 
     using format_error = fmt::format_error;
