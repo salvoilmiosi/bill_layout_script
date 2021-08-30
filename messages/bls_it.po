@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-08-28 13:31+0200\n"
+"POT-Creation-Date: 2021-08-30 11:26+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: layout_editor/src/editor.cpp:239 layout_editor/src/editor.cpp:319
+#: layout_editor/src/editor.cpp:237 layout_editor/src/editor.cpp:316
 #: layout_editor/src/editor_evt.cpp:30 layout_editor/src/editor_evt.cpp:161
 msgid "All files"
 msgstr "Tutti i file"
@@ -58,23 +58,25 @@ msgstr "Script:"
 msgid "BOX_SPACERS"
 msgstr "Spaziatori:"
 
-#: bill_layout_script/src/parser.cpp:461
+#: layout_config/src/main.cpp:69
+msgid "Browse"
+msgstr "Sfoglia"
+
+#: bill_layout_script/src/parser.cpp:492
 msgid "CANT_CALL_FROM_TOP_LEVEL"
 msgstr "Impossibile chiamare {} dal top level"
 
-#: bill_layout_script/src/parser.cpp:464
+#: bill_layout_script/src/parser.cpp:495
 msgid "CANT_CALL_OUT_OF_TOP_LEVEL"
 msgstr "Impossibile chiamare {} fuori dal top level"
 
 #: bill_layout_script/src/variable.cpp:16
+#: bill_layout_script/src/variable_view.h:33
 msgid "CANT_CONVERT_TYPE_TO_TYPE"
 msgstr "Impossibile convertire {} in {}"
 
-msgid "CANT_FIND_LAYOUT"
-msgstr "Impossibile trovare il layout"
-
 #: bill_layout_script/src/layout.h:57
-#: bill_layout_script/src/pdf_document.cpp:35 layout_editor/src/editor.cpp:231
+#: bill_layout_script/src/pdf_document.cpp:35 layout_editor/src/editor.cpp:229
 msgid "CANT_OPEN_FILE"
 msgstr "Impossibile aprire il file {}"
 
@@ -82,8 +84,8 @@ msgstr "Impossibile aprire il file {}"
 msgid "CANT_PARSE_DATE"
 msgstr "Impossibile leggere {} come data"
 
-#: bill_layout_script/src/fixed_point.h:54 bill_layout_script/src/utils.h:128
-#: bill_layout_script/src/utils.h:138
+#: bill_layout_script/src/fixed_point.h:54 bill_layout_script/src/utils.h:125
+#: bill_layout_script/src/utils.h:135
 msgid "CANT_PARSE_NUMBER"
 msgstr "Impossibile leggere {} come numero"
 
@@ -95,11 +97,43 @@ msgstr "Impossibile salvare il file {}"
 msgid "CHANGE_BOX_PAGE"
 msgstr "Cambia pagina di rettangolo"
 
+#: layout_config/src/main.cpp:119
+msgid "CONFIG_CONTROL_SCRIPT_PATH"
+msgstr "Script di Controllo"
+
+#: layout_config/src/main.cpp:122
+msgid "CONFIG_GOOGLE_DRIVE_DIR"
+msgstr "Cartella Google Drive"
+
+#: layout_config/src/main.cpp:83
+msgid "CONFIG_OPEN_DIR"
+msgstr "Apri Cartella"
+
+#: layout_config/src/main.cpp:89
+msgid "CONFIG_OPEN_FILE"
+msgstr "Apri File"
+
+#: layout_config/src/main.cpp:121
+msgid "CONFIG_OUTPUT_PATH"
+msgstr "Cartella Output"
+
+#: layout_config/src/main.cpp:120
+msgid "CONFIG_PDFS_PATH"
+msgstr "Cartella PDF"
+
+#: layout_config/src/main.cpp:118
+msgid "CONFIG_PYBLS_PATH"
+msgstr "File Pybls"
+
 #: layout_editor/src/box_dialog.cpp:182
 #: layout_editor/src/layout_options_dialog.cpp:46
 #: layout_editor/src/move_page_dialog.cpp:36
 msgid "Cancel"
 msgstr "Annulla"
+
+#: layout_config/src/main.cpp:127
+msgid "Close"
+msgstr "Chiudi"
 
 #: layout_editor/src/box_editor_panel.cpp:210
 msgid "DIALOG_TEST_READ_MODE"
@@ -125,7 +159,7 @@ msgstr "Etichetta goto duplicata: {}"
 msgid "EDIT_BOX"
 msgstr "Modifica Rettangolo"
 
-#: bill_layout_script/src/parser.cpp:356
+#: bill_layout_script/src/parser.cpp:387
 msgid "EMPTY_VIEW_STACK"
 msgstr "Stack viste vuoto"
 
@@ -222,137 +256,137 @@ msgstr "Note di Layout"
 msgid "LAYOUT_OPTIONS_DIALOG_TITLE"
 msgstr "Cambia Opzioni Di Layout"
 
-#: layout_editor/src/editor.cpp:239 layout_editor/src/editor.cpp:319
+#: layout_editor/src/editor.cpp:237 layout_editor/src/editor.cpp:316
 #: layout_editor/src/editor_evt.cpp:30
 msgid "Layout files"
 msgstr "File layout"
 
-#: layout_editor/src/editor.cpp:115
+#: layout_editor/src/editor.cpp:113
 msgid "MENU_CLOSE"
 msgstr "&Chiudi\tCtrl-W"
 
-#: layout_editor/src/editor.cpp:115
+#: layout_editor/src/editor.cpp:113
 msgid "MENU_CLOSE_HINT"
 msgstr "Chiudi la finestra"
 
-#: layout_editor/src/editor.cpp:123
+#: layout_editor/src/editor.cpp:121
 msgid "MENU_COPY"
 msgstr "&Copia\tCtrl-C"
 
-#: layout_editor/src/editor.cpp:123
+#: layout_editor/src/editor.cpp:121
 msgid "MENU_COPY_HINT"
 msgstr "Copia la selezione"
 
-#: layout_editor/src/editor.cpp:122
+#: layout_editor/src/editor.cpp:120
 msgid "MENU_CUT"
 msgstr "&Taglia\tCtrl-X"
 
-#: layout_editor/src/editor.cpp:122
+#: layout_editor/src/editor.cpp:120
 msgid "MENU_CUT_HINT"
 msgstr "Taglia la selezione"
 
-#: layout_editor/src/editor.cpp:126
+#: layout_editor/src/editor.cpp:124
 msgid "MENU_DELETE"
 msgstr "&Cancella Selezione\tDel"
 
-#: layout_editor/src/editor.cpp:126
+#: layout_editor/src/editor.cpp:124
 msgid "MENU_DELETE_HINT"
 msgstr "Cancella il rettangolo selezionato"
 
-#: layout_editor/src/editor.cpp:127
+#: layout_editor/src/editor.cpp:125
 msgid "MENU_EDIT"
 msgstr "&Modifica"
 
-#: layout_editor/src/editor.cpp:130
+#: layout_editor/src/editor.cpp:128
 msgid "MENU_EDITCONTROL"
 msgstr "Modifica &script di controllo"
 
-#: layout_editor/src/editor.cpp:132
+#: layout_editor/src/editor.cpp:130
 msgid "MENU_EDITOR"
 msgstr "&Editor"
 
-#: layout_editor/src/editor.cpp:116
+#: layout_editor/src/editor.cpp:114
 msgid "MENU_FILE"
 msgstr "&File"
 
-#: layout_editor/src/editor.cpp:112
+#: layout_editor/src/editor.cpp:110
 msgid "MENU_LOAD_PDF"
 msgstr "Carica &PDF\tCtrl-L"
 
-#: layout_editor/src/editor.cpp:112
+#: layout_editor/src/editor.cpp:110
 msgid "MENU_LOAD_PDF_HINT"
 msgstr "Carica un file PDF"
 
-#: layout_editor/src/editor.cpp:106
+#: layout_editor/src/editor.cpp:104
 msgid "MENU_NEW"
 msgstr "&Nuovo\tCtrl-N"
 
-#: layout_editor/src/editor.cpp:106
+#: layout_editor/src/editor.cpp:104
 msgid "MENU_NEW_HINT"
 msgstr "Crea un Nuovo Layout"
 
-#: layout_editor/src/editor.cpp:107
+#: layout_editor/src/editor.cpp:105
 msgid "MENU_OPEN"
 msgstr "&Apri...\tCtrl-O"
 
-#: layout_editor/src/editor.cpp:107
+#: layout_editor/src/editor.cpp:105
 msgid "MENU_OPEN_HINT"
 msgstr "Apri un Layout"
 
-#: layout_editor/src/editor.cpp:124
+#: layout_editor/src/editor.cpp:122
 msgid "MENU_PASTE"
 msgstr "&Incolla\tCtrl-V"
 
-#: layout_editor/src/editor.cpp:124
+#: layout_editor/src/editor.cpp:122
 msgid "MENU_PASTE_HINT"
 msgstr "Incolla nella selezione"
 
-#: layout_editor/src/editor.cpp:108
+#: layout_editor/src/editor.cpp:106
 msgid "MENU_RECENT"
 msgstr "Apri &Recenti"
 
-#: layout_editor/src/editor.cpp:113
+#: layout_editor/src/editor.cpp:111
 msgid "MENU_RECENT_PDF"
 msgstr "PDF Recenti..."
 
-#: layout_editor/src/editor.cpp:120
+#: layout_editor/src/editor.cpp:118
 msgid "MENU_REDO"
 msgstr "&Ripeti\tCtrl-Y"
 
-#: layout_editor/src/editor.cpp:120
+#: layout_editor/src/editor.cpp:118
 msgid "MENU_REDO_HINT"
 msgstr "Ripeti l'ultima operazione"
 
-#: layout_editor/src/editor.cpp:109
+#: layout_editor/src/editor.cpp:107
 msgid "MENU_SAVE"
 msgstr "&Salva\tCtrl-S"
 
-#: layout_editor/src/editor.cpp:110
+#: layout_editor/src/editor.cpp:108
 msgid "MENU_SAVEAS"
 msgstr "Sa&lva con nome...\tCtrl-Shift-S"
 
-#: layout_editor/src/editor.cpp:110
+#: layout_editor/src/editor.cpp:108
 msgid "MENU_SAVEAS_HINT"
 msgstr "Salva il Layout con nome..."
 
-#: layout_editor/src/editor.cpp:109
+#: layout_editor/src/editor.cpp:107
 msgid "MENU_SAVE_HINT"
 msgstr "Salva il Layout"
 
-#: layout_editor/src/editor.cpp:119
+#: layout_editor/src/editor.cpp:117
 msgid "MENU_UNDO"
 msgstr "&Annulla\tCtrl-Z"
 
-#: layout_editor/src/editor.cpp:119
+#: layout_editor/src/editor.cpp:117
 msgid "MENU_UNDO_HINT"
 msgstr "Annulla l'ultima operazione"
 
-#: bill_layout_script/src/keywords.cpp:216
-#: bill_layout_script/src/keywords.cpp:228
+#: bill_layout_script/src/keywords.cpp:217
+#: bill_layout_script/src/keywords.cpp:229
 msgid "NOT_IN_A_LOOP"
 msgstr "Non in un loop"
 
-#: bill_layout_script/src/reader.h:55
+#: bill_layout_script/src/reader.h:56
 msgid "NO_DOCUMENT_OPEN"
 msgstr "Nessun documento aperto"
 
@@ -362,7 +396,7 @@ msgstr "Nessun documento aperto"
 msgid "OK"
 msgstr "OK"
 
-#: layout_editor/src/editor.cpp:318
+#: layout_editor/src/editor.cpp:315
 msgid "OPEN_CONTROL_SCRIPT_DIALOG"
 msgstr "Apri script di controllo"
 
@@ -382,7 +416,7 @@ msgstr "Opzioni"
 msgid "PDF files"
 msgstr "File PDF"
 
-#: bill_layout_script/src/main.cpp:109 layout_editor/src/main.cpp:41
+#: bill_layout_script/src/main.cpp:109 layout_editor/src/main.cpp:44
 msgid "PDF_INPUT_FILE"
 msgstr "File di input pdf"
 
@@ -391,9 +425,9 @@ msgid "PRINT_HELP"
 msgstr "Aiuto"
 
 #: layout_editor/src/box_dialog.cpp:272 layout_editor/src/editor.cpp:86
-#: layout_editor/src/editor.cpp:231 layout_editor/src/editor.cpp:250
-#: layout_editor/src/editor.cpp:259 layout_editor/src/editor.cpp:311
-#: layout_editor/src/editor_evt.cpp:148
+#: layout_editor/src/editor.cpp:229 layout_editor/src/editor.cpp:248
+#: layout_editor/src/editor.cpp:257 layout_editor/src/editor.cpp:308
+#: layout_editor/src/editor_evt.cpp:148 layout_config/src/main.cpp:115
 msgid "PROGRAM_NAME"
 msgstr "Bill Layout Script"
 
@@ -405,17 +439,25 @@ msgstr "Lettura Dati"
 msgid "REQUIRED_INPUT_BLS"
 msgstr "Richiesto input bls"
 
-#: layout_editor/src/box_dialog.cpp:272 layout_editor/src/editor.cpp:259
+#: layout_config/src/main.cpp:126
+msgid "Reset"
+msgstr "Reset"
+
+#: layout_editor/src/box_dialog.cpp:272 layout_editor/src/editor.cpp:257
 msgid "SAVE_CHANGES_DIALOG"
 msgstr "Salvare le modifiche?"
 
-#: layout_editor/src/editor.cpp:238
+#: layout_editor/src/editor.cpp:236
 msgid "SAVE_LAYOUT_DIALOG"
 msgstr "Salva File di Layout"
 
 #: layout_editor/src/layout_options_dialog.cpp:27
 msgid "SYSTEM_LANGUAGE"
 msgstr "Lingua di sistema"
+
+#: layout_config/src/main.cpp:125
+msgid "Save"
+msgstr "Salva"
 
 #: layout_editor/src/output_dialog.cpp:143
 msgid "TABLE_NUMBER"
@@ -438,95 +480,95 @@ msgstr "Token 'End Script' non trovato"
 msgid "TOKEN_END_SPACERS_NOT_FOUND"
 msgstr "Token 'End Spacers' non trovato"
 
-#: layout_editor/src/editor.cpp:150
+#: layout_editor/src/editor.cpp:148
 msgid "TOOL_COPY"
 msgstr "Copia"
 
-#: layout_editor/src/editor.cpp:149
+#: layout_editor/src/editor.cpp:147
 msgid "TOOL_CUT"
 msgstr "Taglia"
 
-#: layout_editor/src/editor.cpp:181
+#: layout_editor/src/editor.cpp:179
 msgid "TOOL_DELETEBOX"
 msgstr "Cancella rettangolo"
 
-#: layout_editor/src/editor.cpp:156
+#: layout_editor/src/editor.cpp:154
 msgid "TOOL_FIND_LAYOUT"
 msgstr "Trova Layout"
 
-#: layout_editor/src/editor.cpp:158
+#: layout_editor/src/editor.cpp:156
 msgid "TOOL_LAYOUT_OPTIONS"
 msgstr "Opzioni Layout"
 
-#: layout_editor/src/editor.cpp:155
+#: layout_editor/src/editor.cpp:153
 msgid "TOOL_LOAD_PDF"
 msgstr "Carica PDF"
 
-#: layout_editor/src/editor.cpp:189
+#: layout_editor/src/editor.cpp:187
 msgid "TOOL_MOVEDOWN"
 msgstr "Muovi giù"
 
-#: layout_editor/src/editor.cpp:184
+#: layout_editor/src/editor.cpp:182
 msgid "TOOL_MOVEPAGE"
 msgstr "Sposta tra pagine"
 
-#: layout_editor/src/editor.cpp:188
+#: layout_editor/src/editor.cpp:186
 msgid "TOOL_MOVEUP"
 msgstr "Muovi su"
 
-#: layout_editor/src/editor.cpp:138
+#: layout_editor/src/editor.cpp:136
 msgid "TOOL_NEW"
 msgstr "Nuovo"
 
-#: layout_editor/src/editor.cpp:180
+#: layout_editor/src/editor.cpp:178
 msgid "TOOL_NEWBOX"
 msgstr "Nuovo rettangolo"
 
-#: layout_editor/src/editor.cpp:139
+#: layout_editor/src/editor.cpp:137
 msgid "TOOL_OPEN"
 msgstr "Apri"
 
-#: layout_editor/src/editor.cpp:165
+#: layout_editor/src/editor.cpp:163
 msgid "TOOL_PAGE"
 msgstr "Pagina"
 
-#: layout_editor/src/editor.cpp:151
+#: layout_editor/src/editor.cpp:149
 msgid "TOOL_PASTE"
 msgstr "Incolla"
 
-#: layout_editor/src/editor.cpp:157
+#: layout_editor/src/editor.cpp:155
 msgid "TOOL_READDATA"
 msgstr "Avvia Lettura"
 
-#: layout_editor/src/editor.cpp:145
+#: layout_editor/src/editor.cpp:143
 msgid "TOOL_REDO"
 msgstr "Ripeti"
 
-#: layout_editor/src/editor.cpp:182
+#: layout_editor/src/editor.cpp:180
 msgid "TOOL_RESIZE"
 msgstr "Ridimensiona rettangolo"
 
-#: layout_editor/src/editor.cpp:162
+#: layout_editor/src/editor.cpp:160
 msgid "TOOL_ROTATE"
 msgstr "Ruota Immagine"
 
-#: layout_editor/src/editor.cpp:140
+#: layout_editor/src/editor.cpp:138
 msgid "TOOL_SAVE"
 msgstr "Salva"
 
-#: layout_editor/src/editor.cpp:168
+#: layout_editor/src/editor.cpp:166
 msgid "TOOL_SCALE"
 msgstr "Scala"
 
-#: layout_editor/src/editor.cpp:179
+#: layout_editor/src/editor.cpp:177
 msgid "TOOL_SELECT"
 msgstr "Seleziona"
 
-#: layout_editor/src/editor.cpp:183
+#: layout_editor/src/editor.cpp:181
 msgid "TOOL_TEST"
 msgstr "Test rettangolo"
 
-#: layout_editor/src/editor.cpp:144
+#: layout_editor/src/editor.cpp:142
 msgid "TOOL_UNDO"
 msgstr "Annulla"
 
@@ -538,11 +580,11 @@ msgstr "Aggiorna"
 msgid "Test"
 msgstr "Test"
 
-#: bill_layout_script/src/lexer.h:115
+#: bill_layout_script/src/lexer.h:117
 msgid "UNEXPECTED_TOKEN"
 msgstr "Imprevisto '{}'"
 
-#: bill_layout_script/src/lexer.h:116
+#: bill_layout_script/src/lexer.h:118
 msgid "UNEXPECTED_TOKEN_REQUIRED"
 msgstr "Imprevisto '{}', richiesto '{}'"
 
@@ -550,7 +592,7 @@ msgstr "Imprevisto '{}', richiesto '{}'"
 msgid "UNKNOWN_ERROR"
 msgstr "Errore sconosciuto"
 
-#: bill_layout_script/src/parser.cpp:478
+#: bill_layout_script/src/parser.cpp:509
 msgid "UNKNOWN_FUNCTION"
 msgstr "Funzione sconosciuta: {}"
 
@@ -558,11 +600,11 @@ msgstr "Funzione sconosciuta: {}"
 msgid "UNKNOWN_LABEL"
 msgstr "Etichetta sconosciuta: {}"
 
-#: layout_editor/src/editor.cpp:277
+#: layout_editor/src/editor.cpp:275
 msgid "UNNAMED_BOX"
 msgstr "(Senza nome)"
 
-#: bill_layout_script/src/reader.cpp:316
+#: bill_layout_script/src/reader.cpp:331
 msgid "UNSUPPORTED_LANGUAGE"
 msgstr "Lingua non supportata: {}"
 
