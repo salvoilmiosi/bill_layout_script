@@ -19,7 +19,7 @@ namespace bls {
             return out << value;
         }
 
-        template<enums::is_enum E> std::ostream &operator()(const E &value) {
+        template<enums::reflected_enum E> std::ostream &operator()(const E &value) {
             return out << enums::to_string(value);
         }
 

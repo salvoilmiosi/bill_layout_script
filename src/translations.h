@@ -23,8 +23,8 @@ namespace intl {
         return translate(fmt_str.c_str(), std::forward<Ts>(args) ...);
     }
 
-    std::string enum_label(enums::is_enum auto value) {
-        return translate(enums::full_name(value));
+    std::string enum_label(enums::reflected_enum auto value) {
+        return translate(enums::full_name(value).data());
     }
 }
 

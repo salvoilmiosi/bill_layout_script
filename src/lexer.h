@@ -11,7 +11,7 @@
 
 namespace bls {
 
-    DEFINE_ENUM_DATA_IN_NS(bls, token_type, const char *,
+    DEFINE_ENUM_DATA_IN_NS(bls, token_type, std::string_view,
         (INVALID,       "Token Invalido")
         (END_OF_FILE,   "Fine File")
         (IDENTIFIER,    "Identificatore")

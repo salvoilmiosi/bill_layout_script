@@ -36,9 +36,6 @@ target_link_libraries(bls PUBLIC PkgConfig::poppler)
 add_subdirectory(external/decimal_for_cpp)
 target_link_libraries(bls PUBLIC decimal_for_cpp::decimal_for_cpp)
 
-add_subdirectory(external/magic_enum)
-target_link_libraries(bls PUBLIC magic_enum::magic_enum)
-
 set(BOOST_LOCALE_ENABLE_ICONV OFF)
 set(BOOST_LOCALE_ENABLE_ICU ON)
 set(BOOST_LOCALE_ENABLE_POSIX OFF)

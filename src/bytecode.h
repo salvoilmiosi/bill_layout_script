@@ -17,7 +17,7 @@ namespace bls {
         }
     };
 
-    DEFINE_ENUM_DATA_IN_NS(bls, spacer_index, static_vector<const char *>,
+    DEFINE_ENUM_DATA_IN_NS(bls, spacer_index, static_vector<std::string_view>,
         (PAGE,      "p", "page")
         (X,         "x")
         (Y,         "y")
@@ -136,9 +136,9 @@ namespace bls {
     template<typename ReturnType, typename Command, typename Function>
     requires std::same_as<std::remove_const_t<Command>, command_args>
     ReturnType visit_command(Function &&fun, Command &cmd) {
-        static constexpr auto command_vtable = []<size_t ... Is>(std::index_sequence<Is...>) {
+        static constexpr auto command_vtable = []<opcode ... Cmds>(enums::enum_sequence<Cmds ...>) {
             return std::array{ +[](Function &fun, Command &cmd) -> ReturnType {
-                constexpr opcode Cmd = static_cast<opcode>(Is);
+                constexpr opcode Cmd = Cmds;
                 if constexpr (std::is_void_v<enums::get_type_t<Cmd>>) {
                     return std::invoke(fun, command_tag<Cmd>{});
                 } else if constexpr (std::is_same_v<enums::get_type_t<Cmd>, string_ptr>) {
@@ -147,7 +147,7 @@ namespace bls {
                     return std::invoke(fun, command_tag<Cmd>{}, cmd.template get_args<Cmd>());
                 }
             } ... };
-        } (std::make_index_sequence<enums::size<opcode>()>{});
+        } (enums::make_enum_sequence<opcode>());
 
         return command_vtable[static_cast<size_t>(cmd.command())](fun, cmd);
     }

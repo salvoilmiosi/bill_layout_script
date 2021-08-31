@@ -60,14 +60,14 @@ namespace util {
     namespace detail {
         template<typename T> using variant_type = std::conditional_t<std::is_void_v<T>, std::monostate, T>;
 
-        template<enums::type_enum Enum, typename ISeq> struct enum_variant{};
-        template<enums::type_enum Enum, size_t ... Is> struct enum_variant<Enum, std::index_sequence<Is...>> {
-            using type = std::variant<variant_type<enums::get_type_t<static_cast<Enum>(Is)>> ...>;
+        template<typename EnumSeq> struct enum_variant{};
+        template<enums::type_enum Enum, Enum ... Es> struct enum_variant<enums::enum_sequence<Es...>> {
+            using type = std::variant<variant_type<enums::get_type_t<Es>> ... >;
         };
 
-        template<enums::type_enum Enum, typename ISeq> struct enum_type_list{};
-        template<enums::type_enum Enum, size_t ... Is> struct enum_type_list<Enum, std::index_sequence<Is...>> {
-            using type = util::type_list<typename enums::get_type_t<static_cast<Enum>(Is)> ...>;
+        template<typename EnumSeq> struct enum_type_list{};
+        template<enums::type_enum Enum, Enum ... Es> struct enum_type_list<enums::enum_sequence<Es...>> {
+            using type = util::type_list<enums::get_type_t<Es> ... >;
         };
         
         template<template<typename ...> typename Filter, typename T, typename TList> struct filter_value{};
@@ -99,11 +99,8 @@ namespace util {
         };
     }
 
-    template<enums::type_enum Enum> using enum_type_list_t = typename detail::enum_type_list<Enum,
-        std::make_index_sequence<enums::size<Enum>()>>::type;
-
-    template<enums::type_enum Enum> using enum_variant = typename detail::enum_variant<
-        Enum, std::make_index_sequence<enums::size<Enum>()>>::type;
+    template<enums::type_enum Enum> using enum_type_list_t = typename detail::enum_type_list<enums::make_enum_sequence<Enum>>::type;
+    template<enums::type_enum Enum> using enum_variant = typename detail::enum_variant<enums::make_enum_sequence<Enum>>::type;
 
     template<typename T, typename Variant> static constexpr size_t variant_indexof_v =
         type_list_indexof_v<T, variant_type_list_t<Variant>>;

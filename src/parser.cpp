@@ -103,27 +103,29 @@ void parser::read_box(const layout_box &box) {
     while(true) {
         auto tok = m_lexer.next();
         if (tok.type == token_type::IDENTIFIER) {
-            if (auto idx = enums::find_enum_index<spacer_index>(tok.value); idx != enums::invalid_enum_value<spacer_index>) {
-                bool negative = false;
-                auto tok_sign = m_lexer.next();
-                switch (tok_sign.type) {
-                case token_type::PLUS:
-                    break;
-                case token_type::MINUS:
-                    negative = true;
-                    break;
-                default:
-                    throw unexpected_token(tok_sign, token_type::PLUS);
-                }
-                read_expression();
-                m_lexer.require(token_type::SEMICOLON);
-                if (negative) {
-                    m_code.add_line<opcode::MVNBOX>(idx);
-                } else {
-                    m_code.add_line<opcode::MVBOX>(idx);
-                }
-            } else {
+            auto it = std::ranges::find_if(enums::enum_values_v<spacer_index>, [&](const auto &data) {
+                return std::ranges::find(data, tok.value) != data.end();
+            }, enums::get_data<spacer_index>);
+            if (it == enums::enum_values_v<spacer_index>.end()) {
                 throw token_error(intl::translate("INVALID_SPACER_FLAG", tok.value), tok);
+            }
+            bool negative = false;
+            auto tok_sign = m_lexer.next();
+            switch (tok_sign.type) {
+            case token_type::PLUS:
+                break;
+            case token_type::MINUS:
+                negative = true;
+                break;
+            default:
+                throw unexpected_token(tok_sign, token_type::PLUS);
+            }
+            read_expression();
+            m_lexer.require(token_type::SEMICOLON);
+            if (negative) {
+                m_code.add_line<opcode::MVNBOX>(*it);
+            } else {
+                m_code.add_line<opcode::MVBOX>(*it);
             }
         } else if (tok.type != token_type::END_OF_FILE) {
             throw unexpected_token(tok, token_type::IDENTIFIER);
@@ -230,30 +232,22 @@ void parser::assignment_stmt() {
     }
 }
 
+static const std::map<token_type, std::pair<std::string_view, int>> operators = {
+    {token_type::ASTERISK,      {"mul", 6}},
+    {token_type::SLASH,         {"div", 6}},
+    {token_type::PLUS,          {"add", 5}},
+    {token_type::MINUS,         {"sub", 5}},
+    {token_type::LESS,          {"lt",  4}},
+    {token_type::LESS_EQ,       {"leq", 4}},
+    {token_type::GREATER,       {"gt",  4}},
+    {token_type::GREATER_EQ,    {"geq", 4}},
+    {token_type::EQUALS,        {"eq",  3}},
+    {token_type::NOT_EQUALS,    {"neq", 3}},
+    {token_type::AND,           {"and", 2}},
+    {token_type::OR,            {"or",  1}},
+};
+
 void parser::read_expression() {
-    struct operator_precedence {
-        command_args command;
-        int precedence;
-
-        operator_precedence(std::string_view fun_name, int precedence)
-            : command(make_command<opcode::CALL>(fun_name))
-            , precedence(precedence) {}
-    };
-    static const std::map<token_type, operator_precedence> operators = {
-        {token_type::ASTERISK,      {"mul", 6}},
-        {token_type::SLASH,         {"div", 6}},
-        {token_type::PLUS,          {"add", 5}},
-        {token_type::MINUS,         {"sub", 5}},
-        {token_type::LESS,          {"lt",  4}},
-        {token_type::LESS_EQ,       {"leq", 4}},
-        {token_type::GREATER,       {"gt",  4}},
-        {token_type::GREATER_EQ,    {"geq", 4}},
-        {token_type::EQUALS,        {"eq",  3}},
-        {token_type::NOT_EQUALS,    {"neq", 3}},
-        {token_type::AND,           {"and", 2}},
-        {token_type::OR,            {"or",  1}},
-    };
-
     if (m_lexer.check_next(token_type::KW_FOREACH)) {
         m_lexer.require(token_type::PAREN_BEGIN);
         read_expression();
@@ -290,8 +284,8 @@ void parser::read_expression() {
             if (it == std::end(operators)) break;
             
             m_lexer.advance(tok_op);
-            if (!op_stack.empty() && op_stack.back()->second.precedence >= it->second.precedence) {
-                m_code.push_back(op_stack.back()->second.command);
+            if (!op_stack.empty() && std::get<int>(op_stack.back()->second) >= std::get<int>(it->second)) {
+                m_code.add_line<opcode::CALL>(std::get<std::string_view>(op_stack.back()->second));
                 op_stack.pop_back();
             }
             op_stack.push_back(it);
@@ -299,7 +293,7 @@ void parser::read_expression() {
         }
 
         while (!op_stack.empty()) {
-            m_code.push_back(op_stack.back()->second.command);
+            m_code.add_line<opcode::CALL>(std::get<std::string_view>(op_stack.back()->second));
             op_stack.pop_back();
         }
     }
