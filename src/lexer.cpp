@@ -85,6 +85,33 @@ void lexer::onLineStart() {
     ++m_line_end;
 }
 
+static const auto keyword_tokens = []{
+    util::string_map<token_type> ret;
+    for (auto value : enums::enum_values_v<token_type>) {
+        const auto &data = enums::get_data(value);
+        if (data.kind == token_kind::keyword) {
+            ret.emplace(data.value, value);
+        }
+    }
+    return ret;
+}();
+
+constexpr auto symbols_table = []{
+    std::array<std::array<token_type, 256>, 256> ret;
+    for (auto value : enums::enum_values_v<token_type>) {
+        const auto &data = enums::get_data(value);
+        if (data.kind == token_kind::symbol) {
+            assert(data.value.size() <= 2);
+            if (data.value.size() == 1) {
+                ret[data.value[0]][0] = value;
+            } else {
+                ret[data.value[0]][data.value[1]] = value;
+            }
+        }
+    }
+    return ret;
+}();
+
 token lexer::next(bool do_advance) {
     token tok;
 
@@ -93,187 +120,40 @@ token lexer::next(bool do_advance) {
     auto start = m_current;
 
     char c = nextChar();
-    bool ok = true;
-
-    switch (c) {
-    case '\0':
+    if (c == '\0') {
         tok.type = token_type::END_OF_FILE;
-        break;
-    case '"':
-        tok.type = token_type::STRING;
-        ok = readString();
-        break;
-    case '/':
-        tok.type = token_type::SLASH;
-        break;
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-        ok = readNumber();
-        if (std::find(start, m_current, '.') == m_current) {
-            tok.type = token_type::INTEGER;
+    } else if (c == '"') {
+        if (readString()) {
+            tok.type = token_type::STRING;
         } else {
-            tok.type = token_type::NUMBER;
+            tok.type = token_type::INVALID;
         }
-        break;
-    case '$':
-        tok.type = token_type::DOLLAR;
-        break;
-    case ',':
-        tok.type = token_type::COMMA;
-        break;
-    case '(':
-        tok.type = token_type::PAREN_BEGIN;
-        break;
-    case ')':
-        tok.type = token_type::PAREN_END;
-        break;
-    case '[':
-        tok.type = token_type::BRACKET_BEGIN;
-        break;
-    case ']':
-        tok.type = token_type::BRACKET_END;
-        break;
-    case '{':
-        tok.type = token_type::BRACE_BEGIN;
-        break;
-    case '}':
-        tok.type = token_type::BRACE_END;
-        break;
-    case '=':
-        if (*m_current == '=') {
-            nextChar();
-            tok.type = token_type::EQUALS;
+    } else if (c >= '0' && c <= '9') {
+        if (readNumber()) {
+            if (std::find(start, m_current, '.') == m_current) {
+                tok.type = token_type::INTEGER;
+            } else {
+                tok.type = token_type::NUMBER;
+            }
         } else {
-            tok.type = token_type::ASSIGN;
+            tok.type = token_type::INVALID;
         }
-        break;
-    case '*':
-        tok.type = token_type::ASTERISK;
-        break;
-    case ';':
-        tok.type = token_type::SEMICOLON;
-        break;
-    case '&':
-        if (*m_current == '&') {
-            nextChar();
-            tok.type = token_type::AND;
+    } else if (c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+        if (readIdentifier()) {
+            if (auto it = keyword_tokens.find(std::string_view{start, m_current}); it != keyword_tokens.end()) {
+                tok.type = it->second;
+            } else {
+                tok.type = token_type::IDENTIFIER;
+            }
         } else {
-            ok = false;
+            tok.type = token_type::INVALID;
         }
-        break;
-    case '|':
-        if (*m_current == '|') {
-            nextChar();
-            tok.type = token_type::OR;
-        } else {
-            ok = false;
-        }
-        break;
-    case '!':
-        if (*m_current == '=') {
-            nextChar();
-            tok.type = token_type::NOT_EQUALS;
-        } else {
-            tok.type = token_type::NOT;
-        }
-        break;
-    case '@':
-        tok.type = token_type::CONTENT;
-        break;
-    case ':':
-        if (*m_current == '=') {
-            nextChar();
-            tok.type = token_type::FORCE_ASSIGN;
-        } else {
-            tok.type = token_type::COLON;
-        }
-        break;
-    case '+':
-        if (*m_current == '=') {
-            nextChar();
-            tok.type = token_type::ADD_ASSIGN;
-        } else if (*m_current == '+') {
-            nextChar();
-            tok.type = token_type::ADD_ONE;
-        } else {
-            tok.type = token_type::PLUS;
-        }
-        break;
-    case '-':
-        if (*m_current == '=') {
-            nextChar();
-            tok.type = token_type::SUB_ASSIGN;
-        } else if (*m_current == '-') {
-            nextChar();
-            tok.type = token_type::SUB_ONE;
-        } else {
-            tok.type = token_type::MINUS;
-        }
-        break;
-    case '>':
-        if (*m_current == '=') {
-            nextChar();
-            tok.type = token_type::GREATER_EQ;
-        } else {
-            tok.type = token_type::GREATER;
-        }
-        break;
-    case '<':
-        if (*m_current == '=') {
-            nextChar();
-            tok.type = token_type::LESS_EQ;
-        } else {
-            tok.type = token_type::LESS;
-        }
-        break;
-    case 'a': case 'A':
-    case 'b': case 'B':
-    case 'c': case 'C':
-    case 'd': case 'D':
-    case 'e': case 'E':
-    case 'f': case 'F':
-    case 'g': case 'G':
-    case 'h': case 'H':
-    case 'i': case 'I':
-    case 'j': case 'J':
-    case 'k': case 'K':
-    case 'l': case 'L':
-    case 'm': case 'M':
-    case 'n': case 'N':
-    case 'o': case 'O':
-    case 'p': case 'P':
-    case 'q': case 'Q':
-    case 'r': case 'R':
-    case 's': case 'S':
-    case 't': case 'T':
-    case 'u': case 'U':
-    case 'v': case 'V':
-    case 'w': case 'W':
-    case 'x': case 'X':
-    case 'y': case 'Y':
-    case 'z': case 'Z':
-    case '_':
-        ok = readIdentifier();
-        if (auto it = keyword_tokens.find(std::string_view{start, m_current}); it != keyword_tokens.end()) {
-            tok.type = it->second;
-        } else {
-            tok.type = token_type::IDENTIFIER;
-        }
-        break;
-    default:
-        ok = false;
-        break;
+    } else if (tok.type = symbols_table[c][*m_current]; tok.type != token_type::INVALID) {
+        nextChar();
+    } else {
+        tok.type = symbols_table[c][0];
     }
 
-    if (!ok) tok.type = token_type::INVALID;
     tok.value = std::string_view(start, m_current);
 
     if (do_advance) {

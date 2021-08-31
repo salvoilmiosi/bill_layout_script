@@ -50,13 +50,25 @@ namespace enums {
     }
     template<typename T> concept flags_enum = is_flags_enum<T>();
 
+    template<reflected_enum T> static constexpr bool is_linear_enum() {
+        size_t i = 1;
+        for (auto value : enum_values_v<T>) {
+            if (value != static_cast<T>(i)) return false;
+            ++i;
+        }
+        return true;
+    }
+    template<typename T> concept linear_enum = is_linear_enum<T>();
+
     template<reflected_enum T> constexpr size_t indexof(T value) {
         if constexpr (flags_enum<T>) {
             size_t i = 0;
             for (size_t n = static_cast<size_t>(value); n != 1; n >>= 1, ++i);
             return i;
-        } else {
+        } else if constexpr (linear_enum<T>) {
             return static_cast<size_t>(value);
+        } else {
+            return std::ranges::find(enum_values_v<T>, value) - enum_values_v<T>.begin();
         }
     }
 
@@ -64,7 +76,7 @@ namespace enums {
     template<typename T> concept data_enum = requires(T) {
         enum_data<T>::value;
     };
-    template<data_enum T> const auto &get_data(T value) {
+    template<data_enum T> constexpr const auto &get_data(T value) {
         return enum_data<T>::value[indexof(value)];
     };
 

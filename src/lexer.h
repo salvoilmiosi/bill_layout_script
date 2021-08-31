@@ -11,84 +11,78 @@
 
 namespace bls {
 
-    DEFINE_ENUM_DATA_IN_NS(bls, token_type, std::string_view,
-        (INVALID,       "Token Invalido")
-        (END_OF_FILE,   "Fine File")
-        (IDENTIFIER,    "Identificatore")
-        (KW_IF,         "if")
-        (KW_ELSE,       "else")
-        (KW_WHILE,      "while")
-        (KW_FOR,        "for")
-        (KW_GOTO,       "goto")
-        (KW_FUNCTION,   "function")
-        (KW_FOREACH,    "foreach")
-        (KW_WITH,       "with")
-        (KW_IMPORT,     "import")
-        (KW_BREAK,      "break")
-        (KW_CONTINUE,   "continue")
-        (KW_RETURN,     "return")
-        (KW_CLEAR,      "clear")
-        (KW_GLOBAL,     "global")
-        (KW_TIE,        "tie")
-        (KW_TRUE,       "true")
-        (KW_FALSE,      "false")
-        (KW_NULL,       "null")
-        (STRING,        "Stringa")
-        (REGEXP,        "Espressione Regolare")
-        (NUMBER,        "Numero")
-        (INTEGER,       "Numero Intero")
-        (DOLLAR,        "$")
-        (SEMICOLON,     ";")
-        (PAREN_BEGIN,   "(")
-        (PAREN_END,     ")")
-        (COMMA,         ",")
-        (BRACKET_BEGIN, "[")
-        (BRACKET_END,   "]")
-        (BRACE_BEGIN,   "{")
-        (BRACE_END,     "}")
-        (ASSIGN,        "=")
-        (FORCE_ASSIGN,  ":=")
-        (ADD_ASSIGN,    "+=")
-        (SUB_ASSIGN,    "-=")
-        (ADD_ONE,       "++")
-        (SUB_ONE,       "--")
-        (CONTENT,       "@")
-        (COLON,         ":")
-        (ASTERISK,      "*")
-        (SLASH,         "/")
-        (PLUS,          "+")
-        (MINUS,         "-")
-        (AND,           "&&")
-        (OR,            "||")
-        (NOT,           "!")
-        (EQUALS,        "==")
-        (NOT_EQUALS,    "!=")
-        (GREATER,       ">")
-        (LESS,          "<")
-        (GREATER_EQ,    ">=")
-        (LESS_EQ,       "<=")
-    )
-
-    static const util::string_map<token_type> keyword_tokens {
-        {"if",          token_type::KW_IF},
-        {"else",        token_type::KW_ELSE},
-        {"while",       token_type::KW_WHILE},
-        {"for",         token_type::KW_FOR},
-        {"goto",        token_type::KW_GOTO},
-        {"function",    token_type::KW_FUNCTION},
-        {"foreach",     token_type::KW_FOREACH},
-        {"with",        token_type::KW_WITH},
-        {"import",      token_type::KW_IMPORT},
-        {"break",       token_type::KW_BREAK},
-        {"continue",    token_type::KW_CONTINUE},
-        {"return",      token_type::KW_RETURN},
-        {"clear",       token_type::KW_CLEAR},
-        {"global",      token_type::KW_GLOBAL},
-        {"tie",         token_type::KW_TIE},
-        {"true",        token_type::KW_TRUE},
-        {"false",       token_type::KW_FALSE},
-        {"null",        token_type::KW_NULL},
+    enum class token_kind {
+        standard,
+        keyword,
+        symbol
     };
+
+    struct token_info {
+        token_kind kind = token_kind::standard;
+        std::string_view value;
+        std::string_view op_fun_name;
+        int op_precedence = 0;
+    };
+
+    DEFINE_ENUM_DATA_IN_NS(bls, token_type, token_info,
+        (INVALID)
+        (END_OF_FILE)
+        (IDENTIFIER)
+        (STRING)
+        (REGEXP)
+        (NUMBER)
+        (INTEGER)
+
+        (KW_IF,         token_kind::keyword, "if")
+        (KW_ELSE,       token_kind::keyword, "else")
+        (KW_WHILE,      token_kind::keyword, "while")
+        (KW_FOR,        token_kind::keyword, "for")
+        (KW_GOTO,       token_kind::keyword, "goto")
+        (KW_FUNCTION,   token_kind::keyword, "function")
+        (KW_FOREACH,    token_kind::keyword, "foreach")
+        (KW_WITH,       token_kind::keyword, "with")
+        (KW_IMPORT,     token_kind::keyword, "import")
+        (KW_BREAK,      token_kind::keyword, "break")
+        (KW_CONTINUE,   token_kind::keyword, "continue")
+        (KW_RETURN,     token_kind::keyword, "return")
+        (KW_CLEAR,      token_kind::keyword, "clear")
+        (KW_GLOBAL,     token_kind::keyword, "global")
+        (KW_TIE,        token_kind::keyword, "tie")
+        (KW_TRUE,       token_kind::keyword, "true")
+        (KW_FALSE,      token_kind::keyword, "false")
+        (KW_NULL,       token_kind::keyword, "null")
+
+        (DOLLAR,        token_kind::symbol, "$")
+        (SEMICOLON,     token_kind::symbol, ";")
+        (PAREN_BEGIN,   token_kind::symbol, "(")
+        (PAREN_END,     token_kind::symbol, ")")
+        (COMMA,         token_kind::symbol, ",")
+        (BRACKET_BEGIN, token_kind::symbol, "[")
+        (BRACKET_END,   token_kind::symbol, "]")
+        (BRACE_BEGIN,   token_kind::symbol, "{")
+        (BRACE_END,     token_kind::symbol, "}")
+        (ASSIGN,        token_kind::symbol, "=")
+        (FORCE_ASSIGN,  token_kind::symbol, ":=")
+        (ADD_ASSIGN,    token_kind::symbol, "+=")
+        (SUB_ASSIGN,    token_kind::symbol, "-=")
+        (ADD_ONE,       token_kind::symbol, "++")
+        (SUB_ONE,       token_kind::symbol, "--")
+        (CONTENT,       token_kind::symbol, "@")
+        (COLON,         token_kind::symbol, ":")
+        (NOT,           token_kind::symbol, "!")
+        (ASTERISK,      token_kind::symbol, "*",    "mul", 6)
+        (SLASH,         token_kind::symbol, "/",    "div", 6)
+        (PLUS,          token_kind::symbol, "+",    "add", 5)
+        (MINUS,         token_kind::symbol, "-",    "sub", 5)
+        (LESS,          token_kind::symbol, "<",    "lt",  4)
+        (LESS_EQ,       token_kind::symbol, "<=",   "leq", 4)
+        (GREATER,       token_kind::symbol, ">",    "gt",  4)
+        (GREATER_EQ,    token_kind::symbol, ">=",   "geq", 4)
+        (EQUALS,        token_kind::symbol, "==",   "eq",  3)
+        (NOT_EQUALS,    token_kind::symbol, "!=",   "neq", 3)
+        (AND,           token_kind::symbol, "&&",   "and", 2)
+        (OR,            token_kind::symbol, "||",   "or",  1)
+    )
 
     struct token {
         token_type type;
@@ -114,8 +108,8 @@ namespace bls {
 
         unexpected_token(token tok, token_type expected = token_type::INVALID)
             : token_error(expected == token_type::INVALID
-                ? intl::translate("UNEXPECTED_TOKEN", enums::get_data(tok.type))
-                : intl::translate("UNEXPECTED_TOKEN_REQUIRED", enums::get_data(tok.type), enums::get_data(expected)), tok),
+                ? intl::translate("UNEXPECTED_TOKEN", enums::to_string(tok.type))
+                : intl::translate("UNEXPECTED_TOKEN_REQUIRED", enums::to_string(tok.type), enums::to_string(expected)), tok),
             expected(expected) {}
     };
 
