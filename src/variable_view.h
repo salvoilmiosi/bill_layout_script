@@ -5,7 +5,6 @@
 
 #include "variable.h"
 #include "utils.h"
-#include "stack.h"
 
 namespace bls {
 

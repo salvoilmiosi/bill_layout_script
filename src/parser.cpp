@@ -68,14 +68,19 @@ token parser::read_goto_label(const layout_box &box) {
     return {};
 }
 
-static const auto spacer_idx_map = [] {
-    util::string_map<spacer_index> ret;
-    for (auto value : enums::enum_values_v<spacer_index>) {
-        for (auto str : enums::get_data(value)) {
-            ret.emplace(str, value);
+constexpr util::static_string_map spacer_idx_map = [] {
+    using value_type = std::pair<std::string_view, spacer_index>;
+    constexpr auto ret = []{
+        constexpr size_t max_capacity = enums::size_v<spacer_index> * enums::data_type_t<spacer_index>::capacity();
+        util::static_vector<value_type, max_capacity> vec;
+        for (auto value : enums::enum_values_v<spacer_index>) {
+            for (auto str : enums::get_data(value)) {
+                vec.emplace_back(str, value);
+            }
         }
-    }
-    return ret;
+        return vec;
+    }();
+    return std::span<const value_type, ret.size()>(ret.begin(), ret.end());
 }();
 
 void parser::read_box(const layout_box &box) {
@@ -269,7 +274,7 @@ void parser::read_expression() {
     } else {
         sub_expression();
 
-        simple_stack<token_type> op_stack;
+        util::simple_stack<token_type> op_stack;
         
         while (true) {
             auto tok_op = m_lexer.peek();

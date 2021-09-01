@@ -5,7 +5,6 @@
 #include <functional>
 
 #include "enums.h"
-#include "stack.h"
 #include "utils.h"
 #include "bytecode.h"
 
@@ -137,7 +136,7 @@ namespace bls {
 
     private:
         std::function<void(std::string)> comment_callback;
-        simple_stack<std::string> comment_lines;
+        util::simple_stack<std::string> comment_lines;
 
         const char *m_begin;
         const char *m_current;

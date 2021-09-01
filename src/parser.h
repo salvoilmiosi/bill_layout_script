@@ -7,7 +7,6 @@
 #include "layout.h"
 #include "lexer.h"
 #include "bytecode.h"
-#include "stack.h"
 #include "utils.h"
 
 namespace bls {
@@ -97,7 +96,7 @@ namespace bls {
         lexer m_lexer;
         parser_code m_code;
 
-        simple_stack<loop_state> m_loop_stack;
+        util::simple_stack<loop_state> m_loop_stack;
         util::string_map<function_info> m_functions;
         util::string_map<command_node> m_goto_labels;
         int m_views_size = 0;

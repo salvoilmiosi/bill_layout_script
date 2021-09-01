@@ -17,7 +17,8 @@ namespace bls {
         }
     };
 
-    DEFINE_ENUM_DATA_IN_NS(bls, spacer_index, static_vector<std::string_view>,
+    using spacer_index_vector = util::static_vector<std::string_view, 2>;
+    DEFINE_ENUM_DATA_IN_NS(bls, spacer_index, spacer_index_vector,
         (PAGE,      "p", "page")
         (X,         "x")
         (Y,         "y")

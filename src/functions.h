@@ -6,7 +6,6 @@
 #include <map>
 
 #include "variable.h"
-#include "stack.h"
 #include "utils.h"
 #include "type_list.h"
 
@@ -90,7 +89,7 @@ namespace bls {
     template<int Value>     using optional_int =    optional<int,    int_getter<int, Value>>;
     template<size_t Value>  using optional_size =   optional<size_t, int_getter<size_t, Value>>;
 
-    using arg_list = std::ranges::subrange<typename simple_stack<variable>::const_iterator>;
+    using arg_list = std::ranges::subrange<typename util::simple_stack<variable>::const_iterator>;
     
     template<typename T> using varargs_base = std::ranges::transform_view<arg_list, variable_converter<T>>;
     template<typename T, size_t Minargs = 0> struct varargs : varargs_base<T> {

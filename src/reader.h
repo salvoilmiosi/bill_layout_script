@@ -11,7 +11,6 @@
 #include "variable_selector.h"
 #include "functions.h"
 #include "bytecode.h"
-#include "stack.h"
 #include "variable_view.h"
 
 namespace bls {
@@ -100,10 +99,10 @@ private:
 
     variable_map m_globals;
 
-    simple_stack<variable> m_stack;
-    simple_stack<variable_view> m_views;
-    simple_stack<function_call> m_calls;
-    simple_stack<variable_selector> m_selected;
+    util::simple_stack<variable> m_stack;
+    util::simple_stack<variable_view> m_views;
+    util::simple_stack<function_call> m_calls;
+    util::simple_stack<variable_selector> m_selected;
 
     std::set<std::filesystem::path> m_layouts;
     std::set<std::filesystem::path>::const_iterator m_current_layout;

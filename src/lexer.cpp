@@ -85,15 +85,19 @@ void lexer::onLineStart() {
     ++m_line_end;
 }
 
-static const auto keyword_tokens = []{
-    util::string_map<token_type> ret;
-    for (auto value : enums::enum_values_v<token_type>) {
-        const auto &data = enums::get_data(value);
-        if (data.kind == token_kind::keyword) {
-            ret.emplace(data.value, value);
+constexpr util::static_string_map keyword_tokens = [] {
+    using value_type = std::pair<std::string_view, token_type>;
+    constexpr auto ret = []{
+        util::static_vector<value_type, enums::size_v<token_type>> vec;
+        for (auto value : enums::enum_values_v<token_type>) {
+            const auto &data = enums::get_data(value);
+            if (data.kind == token_kind::keyword) {
+                vec.emplace_back(data.value, value);
+            }
         }
-    }
-    return ret;
+        return vec;
+    }();
+    return std::span<const value_type, ret.size()>(ret.begin(), ret.end());
 }();
 
 constexpr auto symbols_table = []{

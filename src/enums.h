@@ -72,6 +72,8 @@ namespace enums {
         }
     }
 
+    template<reflected_enum T> constexpr size_t size_v = enum_values_v<T>.size();
+
     template<reflected_enum T> struct enum_data {};
     template<typename T> concept data_enum = requires(T) {
         enum_data<T>::value;
@@ -79,6 +81,7 @@ namespace enums {
     template<data_enum T> constexpr const auto &get_data(T value) {
         return enum_data<T>::value[indexof(value)];
     };
+    template<data_enum T> using data_type_t = decltype(enum_data<T>::value)::value_type;
 
     template<reflected_enum auto Enum> struct get_type{};
     template<reflected_enum auto Enum> using get_type_t = typename get_type<Enum>::type;
