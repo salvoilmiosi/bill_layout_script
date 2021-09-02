@@ -13,8 +13,7 @@ private:
     std::array<value_type, Size> m_data;
 
 public:
-    constexpr static_map(std::span<const value_type, Size> data) {
-        std::ranges::copy(data, m_data.begin());
+    constexpr static_map(std::array<value_type, Size> &&data) : m_data(std::move(data)) {
         std::ranges::sort(m_data, {}, &value_type::first);
     }
 

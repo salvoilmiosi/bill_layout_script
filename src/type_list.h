@@ -2,7 +2,7 @@
 #define __TYPE_LIST_H__
 
 #include <type_traits>
-#include "enums.h"
+#include <variant>
 
 namespace util {
 
@@ -58,17 +58,6 @@ namespace util {
     };
 
     namespace detail {
-        template<typename T> using variant_type = std::conditional_t<std::is_void_v<T>, std::monostate, T>;
-
-        template<typename EnumSeq> struct enum_variant{};
-        template<enums::type_enum Enum, Enum ... Es> struct enum_variant<enums::enum_sequence<Es...>> {
-            using type = std::variant<variant_type<enums::get_type_t<Es>> ... >;
-        };
-
-        template<typename EnumSeq> struct enum_type_list{};
-        template<enums::type_enum Enum, Enum ... Es> struct enum_type_list<enums::enum_sequence<Es...>> {
-            using type = util::type_list<enums::get_type_t<Es> ... >;
-        };
         
         template<template<typename ...> typename Filter, typename T, typename TList> struct filter_value{};
 
@@ -99,14 +88,26 @@ namespace util {
         };
     }
 
-    template<enums::type_enum Enum> using enum_type_list_t = typename detail::enum_type_list<enums::make_enum_sequence<Enum>>::type;
-    template<enums::type_enum Enum> using enum_variant = typename detail::enum_variant<enums::make_enum_sequence<Enum>>::type;
-
     template<typename T, typename Variant> static constexpr size_t variant_indexof_v =
         type_list_indexof_v<T, variant_type_list_t<Variant>>;
 
     template<template<typename ...> typename Filter, typename TList>
     using type_list_filter_t = typename detail::type_list_filter<Filter, type_list<>, TList>::type;
+
+    template<typename TList1, typename TList2> struct type_list_concat{};
+    template<typename TList1, typename TList2> using type_list_concat_t = typename type_list_concat<TList1, TList2>::type;
+    template<typename ... Ts, typename ... Us> struct type_list_concat<type_list<Ts...>, type_list<Us...>> {
+        using type = type_list<Ts..., Us...>;
+    };
+
+    template<typename ... Ts> struct type_list_join{};
+    template<typename ... Ts> using type_list_join_t = typename type_list_join<Ts ...>::type;
+    template<> struct type_list_join<> {
+        using type = type_list<>;
+    };
+    template<typename First, typename ... Ts> struct type_list_join<First, Ts...> {
+        using type = type_list_concat_t<First, type_list_join_t<Ts ...>>;
+    };
 }
 
 #endif

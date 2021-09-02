@@ -8,8 +8,8 @@
 #include "type_list.h"
 #include "variable_view.h"
 
-template<typename T, typename TList> struct is_unique : std::negation<util::type_list_contains<T, TList>> {};
-template<typename T> struct is_nonvoid : std::negation<std::is_void<T>> {};
+template<typename T, typename TList> using is_unique = std::negation<util::type_list_contains<T, TList>>;
+template<typename T> using is_nonvoid = std::negation<std::is_void<T>>;
 
 template<typename TList> using unique_types = util::type_list_filter_t<is_unique, TList>;
 template<typename TList> using nonvoid_types = util::type_list_filter_t<is_nonvoid, TList>;
@@ -28,12 +28,12 @@ template<typename ... Ts> struct type_printer<util::type_list<Ts...>> {
 
 int main() {
     print_size<bls::command_args>();
-    type_printer<nonvoid_types<unique_types<util::enum_type_list_t<bls::opcode>>>>{}();
+    type_printer<nonvoid_types<unique_types<enums::enum_type_list<bls::opcode>>>>{}();
 
     std::cout << '\n';
 
     print_size<bls::variable>();
-    type_printer<nonvoid_types<util::enum_type_list_t<bls::variable_type>>>{}();
+    type_printer<nonvoid_types<enums::enum_type_list<bls::variable_type>>>{}();
 
     std::cout << '\n';
 

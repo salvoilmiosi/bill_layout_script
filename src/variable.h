@@ -143,7 +143,7 @@ namespace bls {
     private:
         mutable std::unique_ptr<std::string> m_str;
 
-        util::enum_variant<variable_type> m_value;
+        enums::enum_variant<variable_type> m_value;
     };
 
 }

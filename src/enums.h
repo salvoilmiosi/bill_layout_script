@@ -27,13 +27,6 @@ namespace enums {
         enum_values<T>::value;
     };
 
-    template<reflected_enum auto ... Values> struct enum_sequence{};
-    template<reflected_enum T, typename ISeq> struct make_enum_sequence_impl{};
-    template<reflected_enum T, size_t ... Is> struct make_enum_sequence_impl<T, std::index_sequence<Is...>> {
-        using type = enum_sequence<enum_values_v<T>[Is]...>;
-    };
-    template<reflected_enum T> using make_enum_sequence = typename make_enum_sequence_impl<T, std::make_index_sequence<enum_values_v<T>.size()>>::type;
-
     template<reflected_enum T> struct enum_names {};
     template<reflected_enum T> constexpr auto enum_names_v = enum_names<T>::value;
 
@@ -190,7 +183,7 @@ namespace enums {
 
 #define CREATE_ENUM_GET_DATA(enumName, elementTupleSeq, valueType) \
 template<> struct enum_data<enumName> { \
-    static inline const std::array value { \
+    static constexpr std::array value { \
         BOOST_PP_SEQ_FOR_EACH(GENERATE_CASE_GET_DATA, valueType, elementTupleSeq) \
     }; \
 };

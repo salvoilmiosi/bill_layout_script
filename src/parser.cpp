@@ -68,20 +68,26 @@ token parser::read_goto_label(const layout_box &box) {
     return {};
 }
 
-constexpr util::static_string_map spacer_idx_map = [] {
-    using value_type = std::pair<std::string_view, spacer_index>;
-    constexpr auto ret = []{
-        constexpr size_t max_capacity = enums::size_v<spacer_index> * enums::data_type_t<spacer_index>::capacity();
-        util::static_vector<value_type, max_capacity> vec;
-        for (auto value : enums::enum_values_v<spacer_index>) {
-            for (auto str : enums::get_data(value)) {
-                vec.emplace_back(str, value);
-            }
-        }
-        return vec;
-    }();
-    return std::span<const value_type, ret.size()>(ret.begin(), ret.end());
-}();
+template<spacer_index E, size_t I> struct spacer_idx_constant {
+    static constexpr std::string_view keyword = enums::get_data(E)[I];
+    static constexpr spacer_index value = E;
+};
+template<spacer_index E, typename ISeq> struct spacer_idx_constant_list{};
+template<spacer_index E, size_t ... Is> struct spacer_idx_constant_list<E, std::index_sequence<Is...>> {
+    using type = util::type_list<spacer_idx_constant<E, Is> ...>;
+};
+template<spacer_index E> using make_spacer_idx_constant_list =
+    typename spacer_idx_constant_list<E, std::make_index_sequence<enums::get_data(E).size()>>::type;
+
+template<typename ESeq> struct spacer_idx_constants_joined{};
+template<spacer_index ... Es> struct spacer_idx_constants_joined<enums::enum_sequence<Es...>> {
+    using type = util::type_list_join_t<make_spacer_idx_constant_list<Es>...>;
+};
+using make_spacer_idx_constants_joined = typename spacer_idx_constants_joined<enums::make_enum_sequence<spacer_index>>::type;
+
+constexpr util::static_string_map spacer_idx_map = []<typename ... Ts>(util::type_list<Ts...>) {
+    return std::array{std::make_pair(Ts::keyword, Ts::value) ... };
+}(make_spacer_idx_constants_joined());
 
 void parser::read_box(const layout_box &box) {
     if (box.flags.check(box_flags::DISABLED)) {

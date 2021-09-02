@@ -8,7 +8,7 @@ using namespace bls;
 
 template<typename T> static std::string variable_type_label() {
     return intl::enum_label(static_cast<variable_type>(
-        util::variant_indexof_v<T, util::enum_variant<variable_type>>));
+        util::variant_indexof_v<T, enums::enum_variant<variable_type>>));
 }
 
 template<typename T1, typename T2>

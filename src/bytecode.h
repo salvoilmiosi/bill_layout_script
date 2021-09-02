@@ -107,7 +107,7 @@ namespace bls {
 
     class command_args {
     private:
-        util::enum_variant<opcode> m_value;
+        enums::enum_variant<opcode> m_value;
 
         template<size_t I, typename ... Ts>
         command_args(std::in_place_index_t<I> idx, Ts && ... args) : m_value(idx, std::forward<Ts>(args) ...) {}
