@@ -284,7 +284,7 @@ void parser::read_expression() {
     } else {
         sub_expression();
 
-        util::simple_stack<const operator_symbol *> op_stack;
+        util::simple_stack<const operator_kind *> op_stack;
         
         while (true) {
             auto tok_op = m_lexer.peek();

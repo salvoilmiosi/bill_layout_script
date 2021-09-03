@@ -10,15 +10,15 @@
 
 namespace bls {
 
-    struct keyword {
+    struct keyword_kind {
         std::string_view value;
     };
 
-    struct symbol {
+    struct symbol_kind {
         std::string_view value;
     };
 
-    struct operator_symbol : symbol {
+    struct operator_kind : symbol_kind {
         std::string_view fun_name;
         int precedence;
     };
@@ -32,65 +32,65 @@ namespace bls {
         (NUMBER)
         (INTEGER)
 
-        (KW_IF,         keyword{ "if" })
-        (KW_ELSE,       keyword{ "else" })
-        (KW_WHILE,      keyword{ "while" })
-        (KW_FOR,        keyword{ "for" })
-        (KW_GOTO,       keyword{ "goto" })
-        (KW_FUNCTION,   keyword{ "function" })
-        (KW_FOREACH,    keyword{ "foreach" })
-        (KW_WITH,       keyword{ "with" })
-        (KW_IMPORT,     keyword{ "import" })
-        (KW_BREAK,      keyword{ "break" })
-        (KW_CONTINUE,   keyword{ "continue" })
-        (KW_RETURN,     keyword{ "return" })
-        (KW_CLEAR,      keyword{ "clear" })
-        (KW_GLOBAL,     keyword{ "global" })
-        (KW_TIE,        keyword{ "tie" })
-        (KW_TRUE,       keyword{ "true" })
-        (KW_FALSE,      keyword{ "false" })
-        (KW_NULL,       keyword{ "null" })
+        (KW_IF,         keyword_kind    { "if" })
+        (KW_ELSE,       keyword_kind    { "else" })
+        (KW_WHILE,      keyword_kind    { "while" })
+        (KW_FOR,        keyword_kind    { "for" })
+        (KW_GOTO,       keyword_kind    { "goto" })
+        (KW_FUNCTION,   keyword_kind    { "function" })
+        (KW_FOREACH,    keyword_kind    { "foreach" })
+        (KW_WITH,       keyword_kind    { "with" })
+        (KW_IMPORT,     keyword_kind    { "import" })
+        (KW_BREAK,      keyword_kind    { "break" })
+        (KW_CONTINUE,   keyword_kind    { "continue" })
+        (KW_RETURN,     keyword_kind    { "return" })
+        (KW_CLEAR,      keyword_kind    { "clear" })
+        (KW_GLOBAL,     keyword_kind    { "global" })
+        (KW_TIE,        keyword_kind    { "tie" })
+        (KW_TRUE,       keyword_kind    { "true" })
+        (KW_FALSE,      keyword_kind    { "false" })
+        (KW_NULL,       keyword_kind    { "null" })
 
-        (DOLLAR,        symbol{ "$" })
-        (SEMICOLON,     symbol{ ";" })
-        (PAREN_BEGIN,   symbol{ "(" })
-        (PAREN_END,     symbol{ ")" })
-        (COMMA,         symbol{ "," })
-        (BRACKET_BEGIN, symbol{ "[" })
-        (BRACKET_END,   symbol{ "]" })
-        (BRACE_BEGIN,   symbol{ "{" })
-        (BRACE_END,     symbol{ "}" })
-        (ASSIGN,        symbol{ "=" })
-        (FORCE_ASSIGN,  symbol{ ":=" })
-        (ADD_ASSIGN,    symbol{ "+=" })
-        (SUB_ASSIGN,    symbol{ "-=" })
-        (ADD_ONE,       symbol{ "++" })
-        (SUB_ONE,       symbol{ "--" })
-        (CONTENT,       symbol{ "@" })
-        (COLON,         symbol{ ":" })
-        (NOT,           symbol{ "!" })
+        (DOLLAR,        symbol_kind     { "$" })
+        (SEMICOLON,     symbol_kind     { ";" })
+        (PAREN_BEGIN,   symbol_kind     { "(" })
+        (PAREN_END,     symbol_kind     { ")" })
+        (COMMA,         symbol_kind     { "," })
+        (BRACKET_BEGIN, symbol_kind     { "[" })
+        (BRACKET_END,   symbol_kind     { "]" })
+        (BRACE_BEGIN,   symbol_kind     { "{" })
+        (BRACE_END,     symbol_kind     { "}" })
+        (ASSIGN,        symbol_kind     { "=" })
+        (FORCE_ASSIGN,  symbol_kind     { ":=" })
+        (ADD_ASSIGN,    symbol_kind     { "+=" })
+        (SUB_ASSIGN,    symbol_kind     { "-=" })
+        (ADD_ONE,       symbol_kind     { "++" })
+        (SUB_ONE,       symbol_kind     { "--" })
+        (CONTENT,       symbol_kind     { "@" })
+        (COLON,         symbol_kind     { ":" })
+        (NOT,           symbol_kind     { "!" })
         
-        (ASTERISK,      operator_symbol{ "*",    "mul", 6 })
-        (SLASH,         operator_symbol{ "/",    "div", 6 })
-        (PLUS,          operator_symbol{ "+",    "add", 5 })
-        (MINUS,         operator_symbol{ "-",    "sub", 5 })
-        (LESS,          operator_symbol{ "<",    "lt",  4 })
-        (LESS_EQ,       operator_symbol{ "<=",   "leq", 4 })
-        (GREATER,       operator_symbol{ ">",    "gt",  4 })
-        (GREATER_EQ,    operator_symbol{ ">=",   "geq", 4 })
-        (EQUALS,        operator_symbol{ "==",   "eq",  3 })
-        (NOT_EQUALS,    operator_symbol{ "!=",   "neq", 3 })
-        (AND,           operator_symbol{ "&&",   "and", 2 })
-        (OR,            operator_symbol{ "||",   "or",  1 })
+        (ASTERISK,      operator_kind   { "*",  "mul", 6 })
+        (SLASH,         operator_kind   { "/",  "div", 6 })
+        (PLUS,          operator_kind   { "+",  "add", 5 })
+        (MINUS,         operator_kind   { "-",  "sub", 5 })
+        (LESS,          operator_kind   { "<",  "lt",  4 })
+        (LESS_EQ,       operator_kind   { "<=", "leq", 4 })
+        (GREATER,       operator_kind   { ">",  "gt",  4 })
+        (GREATER_EQ,    operator_kind   { ">=", "geq", 4 })
+        (EQUALS,        operator_kind   { "==", "eq",  3 })
+        (NOT_EQUALS,    operator_kind   { "!=", "neq", 3 })
+        (AND,           operator_kind   { "&&", "and", 2 })
+        (OR,            operator_kind   { "||", "or",  1 })
     )
     
     template<token_type E, typename T> struct is_token_of_kind : std::false_type {};
     template<token_type E, typename T> requires enums::has_data<E>
     struct is_token_of_kind<E, T> : std::is_convertible<enums::enum_data_t<E>, T> {};
 
-    template<token_type E> using is_keyword = is_token_of_kind<E, keyword>;
-    template<token_type E> using is_symbol = is_token_of_kind<E, symbol>;
-    template<token_type E> using is_operator = is_token_of_kind<E, operator_symbol>;
+    template<token_type E> using is_keyword = is_token_of_kind<E, keyword_kind>;
+    template<token_type E> using is_symbol = is_token_of_kind<E, symbol_kind>;
+    template<token_type E> using is_operator = is_token_of_kind<E, operator_kind>;
 
     struct token {
         token_type type;
