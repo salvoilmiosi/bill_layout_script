@@ -46,21 +46,19 @@ namespace enums {
             detail::enum_sequence_to_type_list_t<ESeq>>>;
 
     namespace detail {
-        template<typename T> using variant_type = std::conditional_t<std::is_void_v<T>, std::monostate, T>;
-
         template<typename EnumSeq> struct enum_variant{};
-        template<type_enum Enum, Enum ... Es> struct enum_variant<enum_sequence<Es...>> {
-            using type = std::variant<variant_type<get_type_t<Es>> ... >;
+        template<reflected_enum Enum, Enum ... Es> struct enum_variant<enum_sequence<Es...>> {
+            using type = std::variant<enum_type_or_t<std::monostate, Es> ... >;
         };
 
         template<typename EnumSeq> struct enum_type_list{};
-        template<type_enum Enum, Enum ... Es> struct enum_type_list<enum_sequence<Es...>> {
-            using type = util::type_list<get_type_t<Es> ... >;
+        template<reflected_enum Enum, Enum ... Es> struct enum_type_list<enum_sequence<Es...>> {
+            using type = util::type_list<enum_type_or_t<void, Es> ... >;
         };
     }
 
-    template<type_enum Enum> using enum_type_list = typename detail::enum_type_list<make_enum_sequence<Enum>>::type;
-    template<type_enum Enum> using enum_variant = typename detail::enum_variant<make_enum_sequence<Enum>>::type;
+    template<reflected_enum Enum> using enum_type_list = typename detail::enum_type_list<make_enum_sequence<Enum>>::type;
+    template<reflected_enum Enum> using enum_variant = typename detail::enum_variant<make_enum_sequence<Enum>>::type;
 
 }
 

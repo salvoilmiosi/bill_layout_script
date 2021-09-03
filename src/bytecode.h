@@ -17,18 +17,17 @@ namespace bls {
         }
     };
 
-    using spacer_index_vector = util::static_vector<std::string_view, 2>;
-    DEFINE_ENUM_DATA_IN_NS(bls, spacer_index, spacer_index_vector,
-        (PAGE,      "p", "page")
-        (X,         "x")
-        (Y,         "y")
-        (WIDTH,     "w", "width")
-        (HEIGHT,    "h", "height")
-        (TOP,       "t", "top")
-        (RIGHT,     "r", "right")
-        (BOTTOM,    "b", "bottom")
-        (LEFT,      "l", "left")
-        (ROTATE,    "rot", "rotate")
+    DEFINE_ENUM_DATA_IN_NS(bls, spacer_index,
+        (PAGE,      std::array{ "p", "page" })
+        (X,         std::array{ "x" })
+        (Y,         std::array{ "y" })
+        (WIDTH,     std::array{ "w", "width" })
+        (HEIGHT,    std::array{ "h", "height" })
+        (TOP,       std::array{ "t", "top" })
+        (RIGHT,     std::array{ "r", "right" })
+        (BOTTOM,    std::array{ "b", "bottom" })
+        (LEFT,      std::array{ "l", "left" })
+        (ROTATE,    std::array{ "rot", "rotate" })
     )
 
     struct readbox_options {
@@ -121,12 +120,12 @@ namespace bls {
             return static_cast<opcode>(m_value.index());
         }
         
-        template<opcode Cmd> requires (! std::is_void_v<enums::get_type_t<Cmd>>)
+        template<opcode Cmd> requires enums::has_type<Cmd>
         const auto &get_args() const {
             return std::get<static_cast<size_t>(Cmd)>(m_value);
         }
 
-        template<opcode Cmd> requires (! std::is_void_v<enums::get_type_t<Cmd>>)
+        template<opcode Cmd> requires enums::has_type<Cmd>
         auto &get_args() {
             return std::get<static_cast<size_t>(Cmd)>(m_value);
         }
@@ -140,9 +139,9 @@ namespace bls {
         static constexpr auto command_vtable = []<opcode ... Cmds>(enums::enum_sequence<Cmds ...>) {
             return std::array{ +[](Function &fun, Command &cmd) -> ReturnType {
                 constexpr opcode Cmd = Cmds;
-                if constexpr (std::is_void_v<enums::get_type_t<Cmd>>) {
+                if constexpr (!enums::has_type<Cmd>) {
                     return std::invoke(fun, command_tag<Cmd>{});
-                } else if constexpr (std::is_same_v<enums::get_type_t<Cmd>, string_ptr>) {
+                } else if constexpr (std::is_same_v<enums::enum_type_t<Cmd>, string_ptr>) {
                     return std::invoke(fun, command_tag<Cmd>{}, *cmd.template get_args<Cmd>());
                 } else {
                     return std::invoke(fun, command_tag<Cmd>{}, cmd.template get_args<Cmd>());
@@ -153,17 +152,21 @@ namespace bls {
         return command_vtable[static_cast<size_t>(cmd.command())](fun, cmd);
     }
     
-    template<opcode Cmd, typename Function> struct command_return_type {
-        using type = std::invoke_result_t<Function, command_tag<Cmd>, std::add_lvalue_reference_t<enums::get_type_t<Cmd>>>;
+    template<opcode Cmd, typename Function>
+    struct command_return_type {
+        using type = std::invoke_result_t<Function, command_tag<Cmd>>;
     };
-    template<opcode Cmd, typename Function> requires std::is_same_v<enums::get_type_t<Cmd>, string_ptr>
+
+    template<opcode Cmd, typename Function> requires enums::has_type<Cmd>
+    struct command_return_type<Cmd, Function> {
+        using type = std::invoke_result_t<Function, command_tag<Cmd>, std::add_lvalue_reference_t<enums::enum_type_t<Cmd>>>;
+    };
+    
+    template<opcode Cmd, typename Function> requires enums::has_type<Cmd> && std::is_same_v<enums::enum_type_t<Cmd>, string_ptr>
     struct command_return_type<Cmd, Function> {
         using type = std::invoke_result_t<Function, command_tag<Cmd>, const std::string &>;
     };
-    template<opcode Cmd, typename Function> requires std::is_void_v<enums::get_type_t<Cmd>>
-    struct command_return_type<Cmd, Function> {
-        using type = std::invoke_result_t<Function, command_tag<Cmd>>;
-    };
+
     template<opcode Cmd, typename Function> using command_return_type_t = typename command_return_type<Cmd, Function>::type;
 
     template<typename Command, typename Function>
@@ -186,7 +189,7 @@ namespace bls {
             return make_command<Cmd>(std::forward<Ts>(args) ... );
         }
 
-        template<opcode Cmd, typename ... Ts> requires std::is_same_v<enums::get_type_t<Cmd>, string_ptr>
+        template<opcode Cmd, typename ... Ts> requires std::is_same_v<enums::enum_type_t<Cmd>, string_ptr>
         command_args new_line(Ts && ... args) {
             return make_command<Cmd>(string_data.emplace(string_data.end(), std::forward<Ts>(args) ... ));
         }

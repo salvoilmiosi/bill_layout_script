@@ -69,7 +69,7 @@ token parser::read_goto_label(const layout_box &box) {
 }
 
 template<spacer_index E, size_t I> struct spacer_idx_constant {
-    static constexpr std::string_view keyword = enums::get_data(E)[I];
+    static constexpr std::string_view keyword = enums::enum_data_v<E>[I];
     static constexpr spacer_index value = E;
 };
 template<spacer_index E, typename ISeq> struct spacer_idx_constant_list{};
@@ -77,7 +77,7 @@ template<spacer_index E, size_t ... Is> struct spacer_idx_constant_list<E, std::
     using type = util::type_list<spacer_idx_constant<E, Is> ...>;
 };
 template<spacer_index E> using make_spacer_idx_constant_list =
-    typename spacer_idx_constant_list<E, std::make_index_sequence<enums::get_data(E).size()>>::type;
+    typename spacer_idx_constant_list<E, std::make_index_sequence<enums::enum_data_v<E>.size()>>::type;
 
 template<typename ESeq> struct spacer_idx_constants_joined{};
 template<spacer_index ... Es> struct spacer_idx_constants_joined<enums::enum_sequence<Es...>> {
@@ -252,6 +252,10 @@ void parser::assignment_stmt() {
 }
 
 void parser::read_expression() {
+    constexpr util::contig_static_map operator_map = []<token_type ... Es>(enums::enum_sequence<Es...>) {
+        return std::array{std::make_pair(Es, &enums::enum_data_v<Es>) ... };
+    }(enums::filter_enum_sequence<is_operator, enums::make_enum_sequence<token_type>>());
+
     if (m_lexer.check_next(token_type::KW_FOREACH)) {
         m_lexer.require(token_type::PAREN_BEGIN);
         read_expression();
@@ -280,23 +284,24 @@ void parser::read_expression() {
     } else {
         sub_expression();
 
-        util::simple_stack<token_type> op_stack;
+        util::simple_stack<const operator_symbol *> op_stack;
         
         while (true) {
             auto tok_op = m_lexer.peek();
-            if (enums::get_data(tok_op.type).op_precedence == 0) break;
+            auto it = operator_map.find(tok_op.type);
+            if (it == operator_map.end()) break;
             
             m_lexer.advance(tok_op);
-            if (!op_stack.empty() && enums::get_data(op_stack.back()).op_precedence >= enums::get_data(tok_op.type).op_precedence) {
-                m_code.add_line<opcode::CALL>(enums::get_data(op_stack.back()).op_fun_name);
+            if (!op_stack.empty() && op_stack.back()->precedence >= it->second->precedence) {
+                m_code.add_line<opcode::CALL>(op_stack.back()->fun_name);
                 op_stack.pop_back();
             }
-            op_stack.push_back(tok_op.type);
+            op_stack.push_back(it->second);
             sub_expression();
         }
 
         while (!op_stack.empty()) {
-            m_code.add_line<opcode::CALL>(enums::get_data(op_stack.back()).op_fun_name);
+            m_code.add_line<opcode::CALL>(op_stack.back()->fun_name);
             op_stack.pop_back();
         }
     }

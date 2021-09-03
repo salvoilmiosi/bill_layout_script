@@ -10,20 +10,20 @@
 
 namespace bls {
 
-    enum class token_kind {
-        standard,
-        keyword,
-        symbol
-    };
-
-    struct token_info {
-        token_kind kind = token_kind::standard;
+    struct keyword {
         std::string_view value;
-        std::string_view op_fun_name;
-        int op_precedence = 0;
     };
 
-    DEFINE_ENUM_DATA_IN_NS(bls, token_type, token_info,
+    struct symbol {
+        std::string_view value;
+    };
+
+    struct operator_symbol : symbol {
+        std::string_view fun_name;
+        int precedence;
+    };
+
+    DEFINE_ENUM_DATA_IN_NS(bls, token_type,
         (INVALID)
         (END_OF_FILE)
         (IDENTIFIER)
@@ -32,56 +32,65 @@ namespace bls {
         (NUMBER)
         (INTEGER)
 
-        (KW_IF,         token_kind::keyword, "if")
-        (KW_ELSE,       token_kind::keyword, "else")
-        (KW_WHILE,      token_kind::keyword, "while")
-        (KW_FOR,        token_kind::keyword, "for")
-        (KW_GOTO,       token_kind::keyword, "goto")
-        (KW_FUNCTION,   token_kind::keyword, "function")
-        (KW_FOREACH,    token_kind::keyword, "foreach")
-        (KW_WITH,       token_kind::keyword, "with")
-        (KW_IMPORT,     token_kind::keyword, "import")
-        (KW_BREAK,      token_kind::keyword, "break")
-        (KW_CONTINUE,   token_kind::keyword, "continue")
-        (KW_RETURN,     token_kind::keyword, "return")
-        (KW_CLEAR,      token_kind::keyword, "clear")
-        (KW_GLOBAL,     token_kind::keyword, "global")
-        (KW_TIE,        token_kind::keyword, "tie")
-        (KW_TRUE,       token_kind::keyword, "true")
-        (KW_FALSE,      token_kind::keyword, "false")
-        (KW_NULL,       token_kind::keyword, "null")
+        (KW_IF,         keyword{ "if" })
+        (KW_ELSE,       keyword{ "else" })
+        (KW_WHILE,      keyword{ "while" })
+        (KW_FOR,        keyword{ "for" })
+        (KW_GOTO,       keyword{ "goto" })
+        (KW_FUNCTION,   keyword{ "function" })
+        (KW_FOREACH,    keyword{ "foreach" })
+        (KW_WITH,       keyword{ "with" })
+        (KW_IMPORT,     keyword{ "import" })
+        (KW_BREAK,      keyword{ "break" })
+        (KW_CONTINUE,   keyword{ "continue" })
+        (KW_RETURN,     keyword{ "return" })
+        (KW_CLEAR,      keyword{ "clear" })
+        (KW_GLOBAL,     keyword{ "global" })
+        (KW_TIE,        keyword{ "tie" })
+        (KW_TRUE,       keyword{ "true" })
+        (KW_FALSE,      keyword{ "false" })
+        (KW_NULL,       keyword{ "null" })
 
-        (DOLLAR,        token_kind::symbol, "$")
-        (SEMICOLON,     token_kind::symbol, ";")
-        (PAREN_BEGIN,   token_kind::symbol, "(")
-        (PAREN_END,     token_kind::symbol, ")")
-        (COMMA,         token_kind::symbol, ",")
-        (BRACKET_BEGIN, token_kind::symbol, "[")
-        (BRACKET_END,   token_kind::symbol, "]")
-        (BRACE_BEGIN,   token_kind::symbol, "{")
-        (BRACE_END,     token_kind::symbol, "}")
-        (ASSIGN,        token_kind::symbol, "=")
-        (FORCE_ASSIGN,  token_kind::symbol, ":=")
-        (ADD_ASSIGN,    token_kind::symbol, "+=")
-        (SUB_ASSIGN,    token_kind::symbol, "-=")
-        (ADD_ONE,       token_kind::symbol, "++")
-        (SUB_ONE,       token_kind::symbol, "--")
-        (CONTENT,       token_kind::symbol, "@")
-        (COLON,         token_kind::symbol, ":")
-        (NOT,           token_kind::symbol, "!")
-        (ASTERISK,      token_kind::symbol, "*",    "mul", 6)
-        (SLASH,         token_kind::symbol, "/",    "div", 6)
-        (PLUS,          token_kind::symbol, "+",    "add", 5)
-        (MINUS,         token_kind::symbol, "-",    "sub", 5)
-        (LESS,          token_kind::symbol, "<",    "lt",  4)
-        (LESS_EQ,       token_kind::symbol, "<=",   "leq", 4)
-        (GREATER,       token_kind::symbol, ">",    "gt",  4)
-        (GREATER_EQ,    token_kind::symbol, ">=",   "geq", 4)
-        (EQUALS,        token_kind::symbol, "==",   "eq",  3)
-        (NOT_EQUALS,    token_kind::symbol, "!=",   "neq", 3)
-        (AND,           token_kind::symbol, "&&",   "and", 2)
-        (OR,            token_kind::symbol, "||",   "or",  1)
+        (DOLLAR,        symbol{ "$" })
+        (SEMICOLON,     symbol{ ";" })
+        (PAREN_BEGIN,   symbol{ "(" })
+        (PAREN_END,     symbol{ ")" })
+        (COMMA,         symbol{ "," })
+        (BRACKET_BEGIN, symbol{ "[" })
+        (BRACKET_END,   symbol{ "]" })
+        (BRACE_BEGIN,   symbol{ "{" })
+        (BRACE_END,     symbol{ "}" })
+        (ASSIGN,        symbol{ "=" })
+        (FORCE_ASSIGN,  symbol{ ":=" })
+        (ADD_ASSIGN,    symbol{ "+=" })
+        (SUB_ASSIGN,    symbol{ "-=" })
+        (ADD_ONE,       symbol{ "++" })
+        (SUB_ONE,       symbol{ "--" })
+        (CONTENT,       symbol{ "@" })
+        (COLON,         symbol{ ":" })
+        (NOT,           symbol{ "!" })
+        
+        (ASTERISK,      operator_symbol{ "*",    "mul", 6 })
+        (SLASH,         operator_symbol{ "/",    "div", 6 })
+        (PLUS,          operator_symbol{ "+",    "add", 5 })
+        (MINUS,         operator_symbol{ "-",    "sub", 5 })
+        (LESS,          operator_symbol{ "<",    "lt",  4 })
+        (LESS_EQ,       operator_symbol{ "<=",   "leq", 4 })
+        (GREATER,       operator_symbol{ ">",    "gt",  4 })
+        (GREATER_EQ,    operator_symbol{ ">=",   "geq", 4 })
+        (EQUALS,        operator_symbol{ "==",   "eq",  3 })
+        (NOT_EQUALS,    operator_symbol{ "!=",   "neq", 3 })
+        (AND,           operator_symbol{ "&&",   "and", 2 })
+        (OR,            operator_symbol{ "||",   "or",  1 })
     )
+    
+    template<token_type E, typename T> struct is_token_of_kind : std::false_type {};
+    template<token_type E, typename T> requires enums::has_data<E>
+    struct is_token_of_kind<E, T> : std::is_convertible<enums::enum_data_t<E>, T> {};
+
+    template<token_type E> using is_keyword = is_token_of_kind<E, keyword>;
+    template<token_type E> using is_symbol = is_token_of_kind<E, symbol>;
+    template<token_type E> using is_operator = is_token_of_kind<E, operator_symbol>;
 
     struct token {
         token_type type;

@@ -14,7 +14,7 @@
 #include "enums.h"
 
 namespace bls {
-    DEFINE_ENUM_DATA_IN_NS(bls, read_mode, poppler::page::text_layout_enum,
+    DEFINE_ENUM_DATA_IN_NS(bls, read_mode,
         (DEFAULT,  poppler::page::non_raw_non_physical_layout)
         (LAYOUT,   poppler::page::physical_layout)
         (RAW,      poppler::page::raw_order_layout)

@@ -85,28 +85,26 @@ void lexer::onLineStart() {
     ++m_line_end;
 }
 
-template<token_type E> using is_keyword = std::bool_constant<enums::get_data(E).kind == token_kind::keyword>;
-constexpr util::static_string_map keyword_tokens = []<token_type ... Es>(enums::enum_sequence<Es...>) {
-    return std::array{std::make_pair(enums::get_data(Es).value, Es) ... };
-}(enums::filter_enum_sequence<is_keyword, enums::make_enum_sequence<token_type>>());
+token lexer::next(bool do_advance) {
+    constexpr util::static_string_map keyword_tokens = []<token_type ... Es>(enums::enum_sequence<Es...>) {
+        return std::array{std::make_pair(enums::enum_data_v<Es>.value, Es) ... };
+    }(enums::filter_enum_sequence<is_keyword, enums::make_enum_sequence<token_type>>());
 
-constexpr auto symbols_table = []{
-    std::array<std::array<token_type, 256>, 256> ret;
-    for (auto value : enums::enum_values_v<token_type>) {
-        const auto &data = enums::get_data(value);
-        if (data.kind == token_kind::symbol) {
-            assert(data.value.size() <= 2);
-            if (data.value.size() == 1) {
-                ret[data.value[0]][0] = value;
+    constexpr auto symbols_table = []{
+        std::array<std::array<token_type, 256>, 256> ret;
+        for (auto [str, value] : []<token_type ... Es>(enums::enum_sequence<Es...>) {
+            return std::array{std::make_pair(enums::enum_data_v<Es>.value, Es) ... };
+        }(enums::filter_enum_sequence<is_symbol, enums::make_enum_sequence<token_type>>())) {
+            assert(str.size() <= 2);
+            if (str.size() == 1) {
+                ret[str[0]][0] = value;
             } else {
-                ret[data.value[0]][data.value[1]] = value;
+                ret[str[0]][str[1]] = value;
             }
         }
-    }
-    return ret;
-}();
+        return ret;
+    }();
 
-token lexer::next(bool do_advance) {
     token tok;
 
     skipSpaces();

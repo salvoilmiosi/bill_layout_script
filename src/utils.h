@@ -11,7 +11,6 @@
 #include "svstream.h"
 #include "exceptions.h"
 #include "contig_split_view.h"
-#include "static_vector.h"
 #include "static_map.h"
 #include "simple_stack.h"
 #include "enum_sequence.h"
