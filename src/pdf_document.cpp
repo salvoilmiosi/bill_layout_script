@@ -51,11 +51,7 @@ void pdf_document::open(const std::filesystem::path &filename) {
 std::string pdf_document::get_text(const pdf_rect &rect) const {
     if (!isopen()) return "";
 
-    constexpr auto poppler_modes = []<read_mode ... Es>(enums::enum_sequence<Es...>) {
-        return std::array{enums::enum_data_v<Es> ...};
-    }(enums::make_enum_sequence<read_mode>());
-
-    auto poppler_mode = poppler_modes[enums::indexof(rect.mode)];
+    auto poppler_mode = enums::get_data(rect.mode);
 
     auto to_stdstring = [flags = rect.flags](const poppler::ustring &ustr) -> std::string {
         auto arr = ustr.to_utf8();

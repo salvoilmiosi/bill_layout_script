@@ -85,7 +85,7 @@ template<spacer_index ... Es> struct spacer_idx_constants_joined<enums::enum_seq
 };
 using make_spacer_idx_constants_joined = typename spacer_idx_constants_joined<enums::make_enum_sequence<spacer_index>>::type;
 
-constexpr util::static_string_map spacer_idx_map = []<typename ... Ts>(util::type_list<Ts...>) {
+constexpr util::static_map spacer_idx_map = []<typename ... Ts>(util::type_list<Ts...>) {
     return std::array{std::make_pair(Ts::keyword, Ts::value) ... };
 }(make_spacer_idx_constants_joined());
 

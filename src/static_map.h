@@ -30,8 +30,6 @@ public:
     }
 };
 
-template<typename Value, size_t Capacity> using static_string_map = static_map<std::string_view, Value, Capacity>;
-
 template<typename Key, typename Value, size_t Size>
 class contig_static_map {
 private:

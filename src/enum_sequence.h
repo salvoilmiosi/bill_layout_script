@@ -5,30 +5,14 @@
 #include "type_list.h"
 
 namespace enums {
-    template<reflected_enum auto ... Values> struct enum_sequence{};
+    template<reflected_enum auto Value> struct enum_constant {};
+
+    template<reflected_enum auto ... Values> using enum_sequence = util::type_list<enum_constant<Values>...>;
     
     namespace detail {
         template<reflected_enum T, typename ISeq> struct make_enum_sequence{};
         template<reflected_enum T, size_t ... Is> struct make_enum_sequence<T, std::index_sequence<Is...>> {
             using type = enum_sequence<enum_values_v<T>[Is]...>;
-        };
-
-        template<reflected_enum auto Value> struct enum_constant {
-            static constexpr auto value = Value;
-        };
-
-        template<typename ESeq> struct enum_sequence_to_type_list{};
-        template<typename ESeq> using enum_sequence_to_type_list_t = typename enum_sequence_to_type_list<ESeq>::type;
-        template<reflected_enum auto ... Values>
-        struct enum_sequence_to_type_list<enum_sequence<Values...>> {
-            using type = util::type_list<enum_constant<Values>...>;
-        };
-
-        template<typename TList> struct enum_constant_type_list_to_sequence{};
-        template<typename TList> using enum_constant_type_list_to_sequence_t = typename enum_constant_type_list_to_sequence<TList>::type;
-        template<reflected_enum auto ... Values>
-        struct enum_constant_type_list_to_sequence<util::type_list<enum_constant<Values>...>> {
-            using type = enum_sequence<Values...>;
         };
 
         template<template<reflected_enum auto> typename Filter>
@@ -41,9 +25,8 @@ namespace enums {
     template<reflected_enum T> using make_enum_sequence = typename detail::make_enum_sequence<T, std::make_index_sequence<enum_values_v<T>.size()>>::type;
 
     template<template<reflected_enum auto> typename Filter, typename ESeq>
-    using filter_enum_sequence = detail::enum_constant_type_list_to_sequence_t<
-        util::type_list_filter_t<detail::enum_filter_wrapper<Filter>::template type,
-            detail::enum_sequence_to_type_list_t<ESeq>>>;
+    using filter_enum_sequence = util::type_list_filter_t<
+        detail::enum_filter_wrapper<Filter>::template type, ESeq>;
 
     namespace detail {
         template<reflected_enum auto Enum> struct enum_type_or_monostate { using type = std::monostate; };
@@ -56,6 +39,13 @@ namespace enums {
     }
 
     template<reflected_enum Enum> using enum_variant = typename detail::enum_variant<make_enum_sequence<Enum>>::type;
+
+    template<reflected_enum Enum> auto get_data(Enum value) {
+        constexpr auto data_array = []<Enum ... Es>(enum_sequence<Es...>) {
+            return std::array{ enum_data_v<Es> ... };
+        }(make_enum_sequence<Enum>());
+        return data_array[indexof(value)];
+    }
 
 }
 
