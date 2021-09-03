@@ -46,18 +46,15 @@ namespace enums {
             detail::enum_sequence_to_type_list_t<ESeq>>>;
 
     namespace detail {
+        template<reflected_enum auto Enum> struct enum_type_or_monostate { using type = std::monostate; };
+        template<reflected_enum auto Enum> requires has_type<Enum> struct enum_type_or_monostate<Enum> { using type = enum_type_t<Enum>; };
+
         template<typename EnumSeq> struct enum_variant{};
         template<reflected_enum Enum, Enum ... Es> struct enum_variant<enum_sequence<Es...>> {
-            using type = std::variant<enum_type_or_t<std::monostate, Es> ... >;
-        };
-
-        template<typename EnumSeq> struct enum_type_list{};
-        template<reflected_enum Enum, Enum ... Es> struct enum_type_list<enum_sequence<Es...>> {
-            using type = util::type_list<enum_type_or_t<void, Es> ... >;
+            using type = std::variant<typename enum_type_or_monostate<Es>::type ... >;
         };
     }
 
-    template<reflected_enum Enum> using enum_type_list = typename detail::enum_type_list<make_enum_sequence<Enum>>::type;
     template<reflected_enum Enum> using enum_variant = typename detail::enum_variant<make_enum_sequence<Enum>>::type;
 
 }

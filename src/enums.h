@@ -77,10 +77,6 @@ namespace enums {
     template<reflected_enum auto Enum> struct enum_type{};
     template<reflected_enum auto Enum> constexpr bool has_type = requires { typename enum_type<Enum>::type; };
     template<reflected_enum auto Enum> using enum_type_t = typename enum_type<Enum>::type;
-    
-    template<typename T, reflected_enum auto Enum> struct enum_type_or { using type = T; };
-    template<typename T, reflected_enum auto Enum> requires has_type<Enum> struct enum_type_or<T, Enum> { using type = enum_type_t<Enum>; };
-    template<typename T, reflected_enum auto Enum> using enum_type_or_t = typename enum_type_or<T, Enum>::type;
 
     template<reflected_enum T> constexpr T invalid_enum_value = static_cast<T>(std::numeric_limits<std::underlying_type_t<T>>::max());
 

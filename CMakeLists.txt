@@ -84,8 +84,5 @@ if(BLS_BUILD_UTILS)
     add_executable(blsdump utils/blsdump.cpp)
     target_link_libraries(blsdump bls::bls)
 
-    add_executable(blssizes utils/sizes.cpp)
-    target_link_libraries(blssizes bls::bls)
-
-    install(TARGETS blsdump blssizes)
+    install(TARGETS blsdump)
 endif()

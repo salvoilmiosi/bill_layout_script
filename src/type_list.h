@@ -59,27 +59,19 @@ namespace util {
 
     namespace detail {
         
-        template<template<typename ...> typename Filter, typename T, typename TList> struct filter_value{};
+        template<template<typename> typename Filter, typename TList, typename TFrom> struct type_list_filter{};
 
-        template<template<typename, typename> typename Filter, typename T, typename TList>
-        struct filter_value<Filter, T, TList> : Filter<T, TList> {};
-
-        template<template<typename> typename Filter, typename T, typename TList>
-        struct filter_value<Filter, T, TList> : Filter<T> {};
-
-        template<template<typename ...> typename Filter, typename TList, typename TFrom> struct type_list_filter{};
-
-        template<template<typename ...> typename Filter, typename TList>
+        template<template<typename> typename Filter, typename TList>
         struct type_list_filter<Filter, TList, util::type_list<>> {
             using type = TList;
         };
 
-        template<template<typename ...> typename Filter, typename TList, typename First, typename ... Ts>
+        template<template<typename> typename Filter, typename TList, typename First, typename ... Ts>
         struct type_list_filter<Filter, TList, util::type_list<First, Ts...>> {
             using type = typename type_list_filter<
                 Filter,
                 util::type_list_append_if_t<
-                    filter_value<Filter, First, TList>::value,
+                    Filter<First>::value,
                     First,
                     TList
                 >,
