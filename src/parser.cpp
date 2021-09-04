@@ -85,8 +85,10 @@ template<spacer_index ... Es> struct spacer_idx_constants_joined<enums::enum_seq
 };
 using make_spacer_idx_constants_joined = typename spacer_idx_constants_joined<enums::make_enum_sequence<spacer_index>>::type;
 
-constexpr util::static_map spacer_idx_map = []<typename ... Ts>(util::type_list<Ts...>) {
-    return std::array{std::make_pair(Ts::keyword, Ts::value) ... };
+constexpr auto spacer_idx_map = []<typename ... Ts>(util::type_list<Ts...>) {
+    return util::static_map<std::string_view, spacer_index>(
+        {{Ts::keyword, Ts::value} ... }
+    );
 }(make_spacer_idx_constants_joined());
 
 void parser::read_box(const layout_box &box) {
@@ -252,8 +254,10 @@ void parser::assignment_stmt() {
 }
 
 void parser::read_expression() {
-    constexpr util::contig_static_map operator_map = []<token_type ... Es>(enums::enum_sequence<Es...>) {
-        return std::array{std::make_pair(Es, &enums::enum_data_v<Es>) ... };
+    constexpr auto operator_map = []<token_type ... Es>(enums::enum_sequence<Es...>) {
+        return util::static_map<token_type, const operator_kind *>(
+            {{Es, &enums::enum_data_v<Es>} ... }
+        );
     }(enums::filter_enum_sequence<is_operator, enums::make_enum_sequence<token_type>>());
 
     if (m_lexer.check_next(token_type::KW_FOREACH)) {

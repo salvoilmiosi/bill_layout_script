@@ -86,8 +86,10 @@ void lexer::onLineStart() {
 }
 
 token lexer::next(bool do_advance) {
-    constexpr util::static_map keyword_tokens = []<token_type ... Es>(enums::enum_sequence<Es...>) {
-        return std::array{std::make_pair(enums::enum_data_v<Es>.value, Es) ... };
+    constexpr auto keyword_tokens = []<token_type ... Es>(enums::enum_sequence<Es...>) {
+        return util::static_map<std::string_view, token_type>(
+            {{enums::enum_data_v<Es>.value, Es} ... }
+        );
     }(enums::filter_enum_sequence<is_keyword, enums::make_enum_sequence<token_type>>());
 
     constexpr auto symbols_table = []{

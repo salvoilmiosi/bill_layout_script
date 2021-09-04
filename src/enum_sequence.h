@@ -22,7 +22,7 @@ namespace enums {
         };
     }
 
-    template<reflected_enum T> using make_enum_sequence = typename detail::make_enum_sequence<T, std::make_index_sequence<enum_values_v<T>.size()>>::type;
+    template<reflected_enum T> using make_enum_sequence = typename detail::make_enum_sequence<T, std::make_index_sequence<size_v<T>>>::type;
 
     template<template<reflected_enum auto> typename Filter, typename ESeq>
     using filter_enum_sequence = util::type_list_filter_t<
