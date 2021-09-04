@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <string>
 
+#include "type_list.h"
+
 namespace enums {
     namespace detail {
         template<size_t S, typename ... Ts> struct sized_int {};
@@ -26,6 +28,31 @@ namespace enums {
     template<typename T> concept reflected_enum = std::is_enum_v<T> && requires {
         enum_values<T>::value;
     };
+
+    template<reflected_enum T> constexpr size_t size_v = enum_values_v<T>.size();
+
+    template<reflected_enum auto Value> struct enum_constant {};
+    template<reflected_enum auto Value> constexpr enum_constant<Value> enum_tag;
+
+    template<reflected_enum auto ... Values> using enum_sequence = util::type_list<enum_constant<Values>...>;
+    namespace detail {
+        template<reflected_enum T, typename ISeq> struct make_enum_sequence{};
+        template<reflected_enum T, size_t ... Is> struct make_enum_sequence<T, std::index_sequence<Is...>> {
+            using type = enum_sequence<enum_values_v<T>[Is]...>;
+        };
+
+        template<template<reflected_enum auto> typename Filter>
+        struct enum_filter_wrapper {
+            template<typename EnumConst> struct type{};
+            template<reflected_enum auto Value> struct type<enum_constant<Value>> : Filter<Value> {};
+        };
+    }
+
+    template<reflected_enum T> using make_enum_sequence = typename detail::make_enum_sequence<T, std::make_index_sequence<size_v<T>>>::type;
+
+    template<template<reflected_enum auto> typename Filter, typename ESeq>
+    using filter_enum_sequence = util::type_list_filter_t<
+        detail::enum_filter_wrapper<Filter>::template type, ESeq>;
 
     template<reflected_enum T> struct enum_names {};
     template<reflected_enum T> constexpr bool has_names = requires { enum_names<T>::value; };
@@ -67,12 +94,17 @@ namespace enums {
         }
     }
 
-    template<reflected_enum T> constexpr size_t size_v = enum_values_v<T>.size();
-
     template<reflected_enum auto Enum> struct enum_data{};
     template<reflected_enum auto Enum> constexpr bool has_data = requires { enum_data<Enum>::value; };
     template<reflected_enum auto Enum> constexpr auto enum_data_v = enum_data<Enum>::value;
     template<reflected_enum auto Enum> using enum_data_t = decltype(enum_data<Enum>::value);
+
+    template<reflected_enum Enum> auto get_data(Enum value) {
+        constexpr auto data_array = []<Enum ... Es>(enum_sequence<Es...>) {
+            return std::array{ enum_data_v<Es> ... };
+        }(make_enum_sequence<Enum>());
+        return data_array[indexof(value)];
+    }
     
     template<reflected_enum auto Enum> struct enum_type{};
     template<reflected_enum auto Enum> constexpr bool has_type = requires { typename enum_type<Enum>::type; };

@@ -2,7 +2,6 @@
 #define __TYPE_LIST_H__
 
 #include <type_traits>
-#include <variant>
 
 namespace util {
 
@@ -50,13 +49,6 @@ namespace util {
     template<bool Cond, typename T, typename TList> using type_list_append_if_t =
         std::conditional_t<Cond, type_list_append_t<T, TList>, TList>;
 
-    template<typename T> struct variant_type_list{};
-    template<typename T> using variant_type_list_t = typename variant_type_list<T>::type;
-
-    template<typename ... Ts> struct variant_type_list<std::variant<Ts...>> {
-        using type = util::type_list<Ts...>;
-    };
-
     namespace detail {
         
         template<template<typename> typename Filter, typename TList, typename TFrom> struct type_list_filter{};
@@ -80,10 +72,7 @@ namespace util {
         };
     }
 
-    template<typename T, typename Variant> static constexpr size_t variant_indexof_v =
-        type_list_indexof_v<T, variant_type_list_t<Variant>>;
-
-    template<template<typename ...> typename Filter, typename TList>
+    template<template<typename> typename Filter, typename TList>
     using type_list_filter_t = typename detail::type_list_filter<Filter, type_list<>, TList>::type;
 
     template<typename TList1, typename TList2> struct type_list_concat{};

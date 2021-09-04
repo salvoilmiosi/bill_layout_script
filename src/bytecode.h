@@ -8,6 +8,7 @@
 #include "fixed_point.h"
 #include "functions.h"
 #include "exceptions.h"
+#include "enum_variant.h"
 
 namespace bls {
     struct command_call : function_iterator {
@@ -108,8 +109,8 @@ namespace bls {
     private:
         enums::enum_variant<opcode> m_value;
 
-        template<size_t I, typename ... Ts>
-        command_args(std::in_place_index_t<I> idx, Ts && ... args) : m_value(idx, std::forward<Ts>(args) ...) {}
+        template<opcode Cmd, typename ... Ts>
+        command_args(enums::enum_constant<Cmd> idx, Ts && ... args) : m_value(idx, std::forward<Ts>(args) ...) {}
 
     public:
         command_args() = default;
@@ -117,21 +118,21 @@ namespace bls {
         friend command_args make_command(Ts && ... args);
 
         opcode command() const noexcept {
-            return static_cast<opcode>(m_value.index());
+            return m_value.enum_index();
         }
         
         template<opcode Cmd> requires enums::has_type<Cmd>
         const auto &get_args() const {
-            return std::get<static_cast<size_t>(Cmd)>(m_value);
+            return m_value.get<Cmd>();
         }
 
         template<opcode Cmd> requires enums::has_type<Cmd>
         auto &get_args() {
-            return std::get<static_cast<size_t>(Cmd)>(m_value);
+            return m_value.get<Cmd>();
         }
     };
 
-    template<opcode Cmd> struct command_tag {};
+    template<opcode Cmd> using command_tag = enums::enum_constant<Cmd>;
 
     template<typename ReturnType, typename Command, typename Function>
     requires std::same_as<std::remove_const_t<Command>, command_args>
@@ -149,7 +150,7 @@ namespace bls {
             } ... };
         } (enums::make_enum_sequence<opcode>());
 
-        return command_vtable[static_cast<size_t>(cmd.command())](fun, cmd);
+        return command_vtable[enums::indexof(cmd.command())](fun, cmd);
     }
     
     template<opcode Cmd, typename Function>
@@ -178,7 +179,7 @@ namespace bls {
 
     template<opcode Cmd, typename ... Ts>
     command_args make_command(Ts && ... args) {
-        return command_args(std::in_place_index<static_cast<size_t>(Cmd)>, std::forward<Ts>(args) ...);
+        return command_args(enums::enum_tag<Cmd>, std::forward<Ts>(args) ...);
     }
 
     struct command_list : command_list_base {

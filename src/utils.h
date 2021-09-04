@@ -13,7 +13,6 @@
 #include "contig_split_view.h"
 #include "static_map.h"
 #include "simple_stack.h"
-#include "enum_sequence.h"
 
 namespace util {
 

@@ -7,8 +7,7 @@
 using namespace bls;
 
 template<typename T> static std::string variable_type_label() {
-    return intl::enum_label(static_cast<variable_type>(
-        util::variant_indexof_v<T, enums::enum_variant<variable_type>>));
+    return intl::enum_label(enums::enum_variant_indexof_v<T, variable_variant>);
 }
 
 template<typename T1, typename T2>
@@ -49,7 +48,7 @@ struct string_converter {
 const std::string &variable::as_string() const & {
     const auto &var = deref();
     if (!var.m_str) {
-        var.m_str = std::make_unique<std::string>(std::visit(string_converter{}, var.m_value));
+        var.m_str = std::make_unique<std::string>(enums::visit(string_converter{}, var.m_value));
     }
     return *var.m_str;
 }
@@ -60,7 +59,7 @@ std::string variable::as_string() && {
     } else if (m_str) {
         return std::move(*m_str);
     } else {
-        return std::visit(string_converter{}, m_value);
+        return enums::visit(string_converter{}, m_value);
     }
 }
 
@@ -114,19 +113,19 @@ template<std::floating_point T> struct number_converter<T> : number_converter_ba
 template<typename T> concept number_t = std::invocable<number_converter<T>, string_state>;
 
 fixed_point variable::as_number() const {
-    return std::visit(number_converter<fixed_point>{}, deref().m_value);
+    return enums::visit(number_converter<fixed_point>{}, deref().m_value);
 }
 
 int64_t variable::as_int() const {
-    return std::visit(number_converter<int64_t>{}, deref().m_value);
+    return enums::visit(number_converter<int64_t>{}, deref().m_value);
 }
 
 double variable::as_double() const {
-    return std::visit(number_converter<double>{}, deref().m_value);
+    return enums::visit(number_converter<double>{}, deref().m_value);
 }
 
 datetime variable::as_date() const {
-    return std::visit(basic_converter<datetime>{}, deref().m_value);
+    return enums::visit(basic_converter<datetime>{}, deref().m_value);
 }
 
 variable_ptr variable::as_pointer() const {
@@ -161,15 +160,15 @@ struct size_getter {
 };
 
 size_t variable::size() const {
-    return std::visit(size_getter{}, deref().m_value);
+    return enums::visit(size_getter{}, deref().m_value);
 }
 
 bool variable::is_empty() const {
-    return std::visit(std::not_fn(size_getter{}), deref().m_value);
+    return enums::visit(std::not_fn(size_getter{}), deref().m_value);
 }
 
 bool variable::is_true() const {
-    return std::visit(util::overloaded{
+    return enums::visit(util::overloaded{
         [](const auto &value) { return size_getter{}(value) != 0; },
         [](const number_t auto &num) { return num != 0; }
     }, deref().m_value);
@@ -184,7 +183,7 @@ bool variable::is_pointer() const {
 }
 
 bool variable::is_number() const {
-    return std::visit(util::overloaded{
+    return enums::visit(util::overloaded{
         [](number_t auto)   { return true; },
         [](auto)            { return false; }
     }, deref().m_value);
@@ -247,7 +246,7 @@ struct variable_comparator {
 };
 
 std::partial_ordering variable::operator <=> (const variable &other) const {
-    return std::visit(variable_comparator{}, deref().m_value, other.deref().m_value);
+    return enums::visit(variable_comparator{}, deref().m_value, other.deref().m_value);
 }
 
 variable &variable::operator = (const variable &other) {
@@ -307,7 +306,7 @@ struct operator_caller {
 template<typename T> constexpr bool is_string_state = std::is_same_v<std::decay_t<T>, string_state>;
 
 variable &variable::operator += (const variable &other) {
-    std::visit(util::overloaded{
+    enums::visit(util::overloaded{
         [this](const auto &lhs, const auto &rhs) {
             string_flags flags = as_string_tag;
             if constexpr (is_string_state<decltype(lhs)>) {
@@ -349,7 +348,7 @@ variable variable::operator +(const variable &rhs) const {
 }
 
 variable variable::operator -() const {
-    return std::visit<variable>(util::overloaded{
+    return enums::visit<variable>(util::overloaded{
         [](std::monostate) {
             return variable();
         },
@@ -363,7 +362,7 @@ variable variable::operator -() const {
 }
 
 variable variable::operator -(const variable &other) const {
-    return std::visit<variable>(operator_caller<std::minus<>>{}, deref().m_value, other.deref().m_value);
+    return enums::visit<variable>(operator_caller<std::minus<>>{}, deref().m_value, other.deref().m_value);
 }
 
 variable &variable::operator -= (const variable &other) {
@@ -371,9 +370,9 @@ variable &variable::operator -= (const variable &other) {
 }
 
 variable variable::operator * (const variable &other) const {
-    return std::visit<variable>(operator_caller<std::multiplies<>>{}, deref().m_value, other.deref().m_value);
+    return enums::visit<variable>(operator_caller<std::multiplies<>>{}, deref().m_value, other.deref().m_value);
 }
 
 variable variable::operator / (const variable &other) const {
-    return std::visit<variable>(operator_caller<std::divides<>>{}, deref().m_value, other.deref().m_value);
+    return enums::visit<variable>(operator_caller<std::divides<>>{}, deref().m_value, other.deref().m_value);
 }

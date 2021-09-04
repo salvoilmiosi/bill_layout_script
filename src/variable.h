@@ -8,7 +8,7 @@
 
 #include "fixed_point.h"
 #include "datetime.h"
-#include "enums.h"
+#include "enum_variant.h"
 #include "type_list.h"
 
 namespace bls {
@@ -45,6 +45,8 @@ namespace bls {
         (ARRAY, variable_array)
         (POINTER, variable_ptr)
     )
+
+    using variable_variant = enums::enum_variant<variable_type>;
 
     class variable {
     public:
@@ -95,7 +97,7 @@ namespace bls {
         variable(variable_ptr ptr) : m_value(ptr) {}
         
         variable_type type() const {
-            return static_cast<variable_type>(m_value.index());
+            return m_value.enum_index();
         }
 
         size_t size() const;
@@ -143,7 +145,7 @@ namespace bls {
     private:
         mutable std::unique_ptr<std::string> m_str;
 
-        enums::enum_variant<variable_type> m_value;
+        variable_variant m_value;
     };
 
 }
