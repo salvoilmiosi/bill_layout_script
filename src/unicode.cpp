@@ -45,7 +45,7 @@ static bool decodeUnicodeCodePoint(location& current, location end, unsigned int
 }
 
 /// Converts a unicode code-point to UTF-8.
-static inline std::string codePointToUTF8(unsigned int cp) {
+static std::string codePointToUTF8(unsigned int cp) {
     std::string result;
 
     // based on description from http://en.wikipedia.org/wiki/UTF-8

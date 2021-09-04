@@ -11,7 +11,7 @@ template<typename T> static std::string variable_type_label() {
 }
 
 template<typename T1, typename T2>
-static inline auto make_conversion_error() {
+static auto make_conversion_error() {
     return bls::conversion_error(intl::translate("CANT_CONVERT_TYPE_TO_TYPE", variable_type_label<T1>(), variable_type_label<T2>()));
 }
 

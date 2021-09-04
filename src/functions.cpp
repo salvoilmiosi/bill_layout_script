@@ -46,7 +46,7 @@ namespace bls {
     // Formatta la stringa data, sostituendo $0 in fmt_args[0], $1 in fmt_args[1] e così via
     template<std::ranges::input_range R>
     static std::string string_format(std::string_view str, R &&fmt_args) {
-        static constexpr char FORMAT_CHAR = '$';
+        constexpr char FORMAT_CHAR = '$';
         std::string ret;
         auto it = str.begin();
         while (it != str.end()) {

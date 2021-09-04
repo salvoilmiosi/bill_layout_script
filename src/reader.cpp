@@ -116,7 +116,7 @@ variable reader::do_function_call(const command_call &call) {
     return ret;
 }
 
-static constexpr auto is_label = [](const command_args &cmd) {
+constexpr auto is_label = [](const command_args &cmd) {
     return cmd.command() == opcode::LABEL;
 };
 

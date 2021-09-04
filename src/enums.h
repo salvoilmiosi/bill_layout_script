@@ -60,7 +60,7 @@ namespace enums {
     template<reflected_enum T> struct enum_full_names {};
     template<reflected_enum T> constexpr bool has_full_names = requires { enum_full_names<T>::value; };
 
-    template<reflected_enum T> static constexpr bool is_flags_enum() {
+    template<reflected_enum T> constexpr bool is_flags_enum() {
         size_t i = 1;
         for (auto value : enum_values_v<T>) {
             if (value != static_cast<T>(i)) return false;
@@ -70,7 +70,7 @@ namespace enums {
     }
     template<typename T> concept flags_enum = is_flags_enum<T>();
 
-    template<reflected_enum T> static constexpr bool is_linear_enum() {
+    template<reflected_enum T> constexpr bool is_linear_enum() {
         size_t i = 1;
         for (auto value : enum_values_v<T>) {
             if (value != static_cast<T>(i)) return false;

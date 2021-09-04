@@ -17,8 +17,8 @@ namespace bls {
         bool is_regex;
     };
 
-    static constexpr string_flags as_string_tag{false};
-    static constexpr string_flags as_regex_tag{true};
+    constexpr string_flags as_string_tag{false};
+    constexpr string_flags as_regex_tag{true};
 
     struct string_state : std::string_view {
         string_state() = default;

@@ -8,7 +8,7 @@
 
 using namespace bls;
 
-static constexpr const char *ISO_FORMAT = "%Y-%m-%d";
+constexpr const char *ISO_FORMAT = "%Y-%m-%d";
 
 static const std::locale calendar_locale = [] {
     boost::locale::generator gen;

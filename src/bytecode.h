@@ -37,7 +37,9 @@ namespace bls {
     };
 
     struct command_label {
+        static inline int count = 0;
         int id;
+        command_label() : id(count++) {}
     };
 
     using command_list_base = std::list<class command_args>;
@@ -137,7 +139,7 @@ namespace bls {
     template<typename ReturnType, typename Command, typename Function>
     requires std::same_as<std::remove_const_t<Command>, command_args>
     ReturnType visit_command(Function &&fun, Command &cmd) {
-        static constexpr auto command_vtable = []<opcode ... Cmds>(enums::enum_sequence<Cmds ...>) {
+        constexpr auto command_vtable = []<opcode ... Cmds>(enums::enum_sequence<Cmds ...>) {
             return std::array{ +[](Function &fun, Command &cmd) -> ReturnType {
                 constexpr opcode Cmd = Cmds;
                 if constexpr (!enums::has_type<Cmd>) {

@@ -41,7 +41,7 @@ namespace util {
 #endif
 
     template<typename Container> struct range_to_tag {};
-    template<typename Container> static constexpr range_to_tag<Container> range_to;
+    template<typename Container> constexpr range_to_tag<Container> range_to;
 
     template<std::ranges::input_range R, typename Container>
     inline Container operator | (R &&range, range_to_tag<Container>) {
@@ -49,7 +49,7 @@ namespace util {
     }
 
     struct range_to_vector_tag {};
-    static constexpr range_to_vector_tag range_to_vector;
+    constexpr range_to_vector_tag range_to_vector;
 
     template<std::ranges::input_range R>
     inline auto operator | (R &&range, range_to_vector_tag) {

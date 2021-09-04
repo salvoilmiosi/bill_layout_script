@@ -21,7 +21,7 @@ namespace util {
     };
 
     template<typename T, typename TList> struct type_list_contains{};
-    template<typename T, typename TList> static constexpr bool type_list_contains_v = type_list_contains<T, TList>::value;
+    template<typename T, typename TList> constexpr bool type_list_contains_v = type_list_contains<T, TList>::value;
 
     template<typename T> struct type_list_contains<T, type_list<>> : std::false_type {};
 
@@ -30,7 +30,7 @@ namespace util {
     struct type_list_contains<T, type_list<First, Ts...>> : type_list_contains<T, type_list<Ts...>> {};
 
     template<typename T, typename TList> struct type_list_indexof{};
-    template<typename T, typename TList> static constexpr size_t type_list_indexof_v = type_list_indexof<T, TList>::value;
+    template<typename T, typename TList> constexpr size_t type_list_indexof_v = type_list_indexof<T, TList>::value;
 
     template<typename T, typename First, typename ... Ts> struct type_list_indexof<T, type_list<First, Ts...>> {
         static constexpr size_t value = 1 + type_list_indexof_v<T, type_list<Ts ...>>;

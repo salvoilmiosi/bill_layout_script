@@ -42,8 +42,7 @@ namespace bls {
         command_list unadded_labels;
 
         command_node make_label() {
-            static int label_count = 0;
-            return unadded_labels.emplace(unadded_labels.end(), make_command<opcode::LABEL>(label_count++));
+            return unadded_labels.emplace(unadded_labels.end(), make_command<opcode::LABEL>());
         }
 
         void add_label(command_node node) {
