@@ -163,6 +163,8 @@ namespace bls {
         bool readString();
         bool readRegexp();
         bool readNumber();
+        bool readLineComment();
+        bool readBlockComment();
     };
 
 }

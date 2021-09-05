@@ -28,29 +28,48 @@ char lexer::nextChar() {
     return *m_current++;
 }
 
+bool lexer::readLineComment() {
+    while (nextChar()) {
+        switch (*m_current) {
+        case '\r':
+        case '\n':
+            onLineStart();
+            return true;
+        }
+    }
+    return true;
+}
+
+bool lexer::readBlockComment() {
+    while (char c = nextChar()) {
+        switch (c) {
+        case '\r':
+        case '\n':
+            onLineStart();
+            break;
+        case '*':
+            if (*m_current == '/') {
+                nextChar();
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void lexer::skipSpaces() {
-    bool comment = false;
     while (m_current != m_end) {
         switch (*m_current) {
         case '\r':
         case '\n':
-            comment = false;
             onLineStart();
             [[fallthrough]];
         case ' ':
         case '\t':
             ++m_current;
             break;
-        case '#': // Skip comments
-            comment = true;
-            ++m_current;
-            break;
         default:
-            if (comment) {
-                ++m_current;
-            } else {
-                return;
-            }
+            return;
         }
     }
 }
@@ -144,6 +163,21 @@ token lexer::next(bool do_advance) {
         }
     } else if (tok.type = symbols_table[c][*m_current]; tok.type != token_type::INVALID) {
         nextChar();
+    } else if (c == '/') {
+        if (*m_current == '/') {
+            nextChar();
+            readLineComment();
+            return next(do_advance);
+        } else if (*m_current == '*') {
+            nextChar();
+            if (readBlockComment()) {
+                return next(do_advance);
+            } else {
+                tok.type = token_type::INVALID;
+            }
+        } else {
+            tok.type = symbols_table[c][0];
+        }
     } else {
         tok.type = symbols_table[c][0];
     }
