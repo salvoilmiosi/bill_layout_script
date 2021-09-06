@@ -20,13 +20,11 @@ namespace bls {
         std::string goto_label;
     };
 
-    class layout_box_list : public std::list<layout_box> {
-    public:
+    struct layout_box_list : std::list<layout_box> {
         using base = std::list<layout_box>;
         bool find_layout_flag = false;
         std::string language;
 
-    public:
         layout_box_list() = default;
 
         void clear() {
@@ -47,26 +45,9 @@ namespace bls {
             return base::emplace(pos, std::forward<Ts>(args) ...);
         }
 
-        friend std::ostream &operator << (std::ostream &output, const layout_box_list &layout);
-        friend std::istream &operator >> (std::istream &input, layout_box_list &layout);
+        static layout_box_list from_file(const std::filesystem::path &filename);
 
-        static layout_box_list from_file(const std::filesystem::path &filename) {
-            layout_box_list ret;
-            std::ifstream ifs(filename);
-            if (!ifs) {
-                throw file_error(intl::translate("CANT_OPEN_FILE", filename.string()));
-            }
-            ifs >> ret;
-            return ret;
-        }
-
-        void save_file(const std::filesystem::path &filename) {
-            std::ofstream ofs(filename);
-            if (!ofs) {
-                throw file_error(intl::translate("CANT_SAVE_FILE", filename.string()));
-            }
-            ofs << *this;
-        }
+        void save_file(const std::filesystem::path &filename);
     };
 
 }

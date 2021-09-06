@@ -55,10 +55,10 @@ namespace enums {
         detail::enum_filter_wrapper<Filter>::template type, ESeq>;
 
     template<reflected_enum T> struct enum_names {};
-    template<reflected_enum T> constexpr bool has_names = requires { enum_names<T>::value; };
+    template<typename T> concept has_names = reflected_enum<T> && requires { enum_names<T>::value; };
 
     template<reflected_enum T> struct enum_full_names {};
-    template<reflected_enum T> constexpr bool has_full_names = requires { enum_full_names<T>::value; };
+    template<typename T> concept has_full_names = reflected_enum<T> && requires { enum_full_names<T>::value; };
 
     template<reflected_enum T> constexpr bool is_flags_enum() {
         size_t i = 1;
@@ -120,61 +120,93 @@ namespace enums {
         }
     }
 
-    template<reflected_enum T> requires has_names<T>
+    template<has_names T>
     constexpr std::string_view to_string(T value) {
         return enum_names<T>::value[indexof(value)];
     }
     
-    template<reflected_enum T> requires has_full_names<T>
+    template<has_full_names T>
     constexpr std::string_view full_name(T value) {
         return enum_full_names<T>::value[indexof(value)];
     }
 
-    template<flags_enum T>
-    class bitset {
-    private:
-        using flags_t = std::underlying_type_t<T>;
-        flags_t m_value{0};
+    constexpr auto to_underlying(reflected_enum auto value) noexcept {
+        return static_cast<std::underlying_type_t<decltype(value)>>(value);
+    }
 
-    public:
-        constexpr bitset() = default;
-        constexpr bitset(flags_t value) : m_value(value) {}
-
-        constexpr bool empty() const {
-            return m_value == 0;
+    inline namespace flag_operators {
+        template<flags_enum T> constexpr T operator & (T lhs, T rhs) noexcept {
+            return static_cast<T>(to_underlying(lhs) & to_underlying(rhs));
         }
 
-        constexpr bool check(T value) const {
-            return m_value & static_cast<flags_t>(value);
+        template<flags_enum T> constexpr T &operator &= (T &lhs, T rhs) noexcept {
+            return lhs = lhs & rhs;
         }
 
-        constexpr void set(T value) {
-            m_value |= static_cast<flags_t>(value);
+        template<flags_enum T> constexpr T operator | (T lhs, T rhs) noexcept {
+            return static_cast<T>(to_underlying(lhs) | to_underlying(rhs));
         }
 
-        constexpr void unset(T value) {
-            m_value &= ~static_cast<flags_t>(value);
+        template<flags_enum T> constexpr T &operator |= (T &lhs, T rhs) noexcept {
+            return lhs = lhs | rhs;
         }
 
-        constexpr void toggle(T value) {
-            m_value ^= static_cast<flags_t>(value);
+        template<flags_enum T> constexpr T operator ~ (T value) noexcept {
+            return static_cast<T>(~to_underlying(value));
         }
 
-        constexpr void reset() {
-            m_value = 0;
+        template<flags_enum T> constexpr T operator ^ (T lhs, T rhs) noexcept {
+            return static_cast<T>(to_underlying(lhs) ^ to_underlying(rhs));
         }
 
-        constexpr flags_t data() const {
-            return m_value;
+        template<flags_enum T> constexpr T &operator ^= (T &lhs, T rhs) noexcept {
+            return lhs = lhs ^ rhs;
+        }
+    }
+
+    inline namespace stream_operators {
+        template<typename Stream, has_names T>
+        Stream &operator << (Stream &out, const T &value) {
+            return out << to_string(value);
         }
 
-        friend std::ostream &operator << (std::ostream &out, const bitset &flags) {
+        template<typename Stream, has_names T> requires flags_enum<T>
+        Stream &operator << (Stream &out, const T &flags) {
+            bool first = true;
             for (auto value : enum_values_v<T>) {
-                if (flags.check(value)) {
-                    out << to_string(value) << ' ';
+                if (bool(flags & value)) {
+                    if (first) {
+                        first = false;
+                    } else {
+                        out << ' ';
+                    }
+                    out << to_string(value);
                 }
             }
             return out;
+        }
+    }
+    
+    template<flags_enum T>
+    class bitset {
+    private:
+        T m_value;
+
+    public:
+        constexpr bitset(T value = static_cast<T>(0)) : m_value(value) {}
+
+        constexpr bool empty() const { return to_underlying(m_value) == 0; }
+        constexpr bool check(T value) const { return bool(m_value & value); }
+        constexpr void set(T value) { m_value |= value; }
+        constexpr void unset(T value) { m_value &= ~value; }
+        constexpr void toggle(T value) { m_value ^= value; }
+        constexpr void clear() { m_value = static_cast<T>(0); }
+
+        constexpr T data() const { return m_value; }
+
+        template<typename Stream> friend
+        Stream &operator << (Stream &out, const bitset &value) {
+            return out << value.data();
         }
     };
 }

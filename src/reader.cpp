@@ -10,7 +10,7 @@ using namespace bls;
 
 void reader::clear() {
     m_code.clear();
-    m_flags = 0;
+    m_flags.clear();
     m_doc = nullptr;
 }
 

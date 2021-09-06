@@ -112,7 +112,7 @@ token lexer::next(bool do_advance) {
     }(enums::filter_enum_sequence<is_keyword, enums::make_enum_sequence<token_type>>());
 
     constexpr auto symbols_table = []{
-        std::array<std::array<token_type, 256>, 256> ret;
+        std::array<std::array<token_type, 256>, 256> ret{};
         for (auto [str, value] : []<token_type ... Es>(enums::enum_sequence<Es...>) {
             return std::array{std::make_pair(enums::enum_data_v<Es>.value, Es) ... };
         }(enums::filter_enum_sequence<is_symbol, enums::make_enum_sequence<token_type>>())) {
