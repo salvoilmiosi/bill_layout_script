@@ -157,7 +157,15 @@ void parser::read_box(const layout_box &box) {
 
     if (!box.flags.check(box_flags::NOREAD) && !box.flags.check(box_flags::SPACER)) {
         ++m_views_size;
-        m_code.add_line<opcode::RDBOX>(box.mode, box.flags);
+        if (box.flags.check(box_flags::PAGE)) {
+            m_code.add_line<opcode::RDPAGE>(box.mode);
+        } else {
+            m_code.add_line<opcode::RDBOX>(box.mode);
+        }
+        if (box.flags.check(box_flags::TRIM)) {
+            m_code.add_line<opcode::CALL>("trim");
+        }
+        m_code.add_line<opcode::VIEWADD>();
     }
 
     m_lexer.set_script(box.script);
@@ -165,8 +173,7 @@ void parser::read_box(const layout_box &box) {
         read_statement();
     }
 
-    if (!box.flags.check(box_flags::NOREAD) && !box.flags.check(box_flags::SPACER)) {
-        --m_views_size;
+    for (; m_views_size > 0; --m_views_size) {
         m_code.add_line<opcode::VIEWPOP>();
     }
 }

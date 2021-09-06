@@ -157,10 +157,13 @@ void reader::exec_command(const command_args &cmd) {
         [this](command_tag<opcode::MVNBOX>, spacer_index idx) {
             move_box(m_current_box, idx, -(*m_stack.pop()));
         },
-        [this](command_tag<opcode::RDBOX>, readbox_options opts) {
-            m_current_box.mode = opts.mode;
-            m_current_box.flags = opts.flags;
-            m_views.push(m_stack.emplace(get_document().get_text(m_current_box)));
+        [this](command_tag<opcode::RDBOX>, read_mode mode) {
+            m_current_box.mode = mode;
+            m_stack.emplace(get_document().get_text(m_current_box));
+        },
+        [this](command_tag<opcode::RDPAGE>, read_mode mode) {
+            m_current_box.mode = mode;
+            m_stack.emplace(get_document().get_page_text(m_current_box));
         },
         [this](command_tag<opcode::SELVAR>, const std::string &name) {
             m_selected.emplace(*m_current_table, name);

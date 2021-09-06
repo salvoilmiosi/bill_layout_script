@@ -48,36 +48,32 @@ void pdf_document::open(const std::filesystem::path &filename) {
     }
 }
 
+std::string poppler_string_to_std(const poppler::ustring &ustr) {
+    auto arr = ustr.to_utf8();
+    std::erase_if(arr, [](auto ch) {
+        return ch == '\f'
+#ifdef _WIN32
+        || ch == '\r'
+#endif
+        ;
+    });
+    return {arr.begin(), arr.end()};
+}
+
 std::string pdf_document::get_text(const pdf_rect &rect) const {
     if (!isopen()) return "";
+    if (rect.page > num_pages() || rect.page <= 0) return "";
 
-    auto poppler_mode = enums::get_data(rect.mode);
+    auto &page = get_page(rect.page);
+    auto pgrect = page.page_rect();
+    
+    poppler::rectf poppler_rect(rect.x * pgrect.width(), rect.y * pgrect.height(), rect.w * pgrect.width(), rect.h * pgrect.height());
+    return poppler_string_to_std(page.text(poppler_rect, enums::get_data(rect.mode)));
+}
 
-    auto to_stdstring = [flags = rect.flags](const poppler::ustring &ustr) -> std::string {
-        auto arr = ustr.to_utf8();
-        std::erase_if(arr, [](auto ch) {
-            return ch == '\f'
-#ifdef _WIN32
-            || ch == '\r'
-#endif
-            ;
-        });
-        if (flags.check(box_flags::TRIM)) {
-            return util::string_trim(arr | util::range_to<std::string_view>);
-        } else {
-            return arr | util::range_to<std::string>;
-        }
-    };
-
-    if (rect.flags.check(box_flags::PAGE)) {
-        if (rect.page > num_pages() || rect.page <= 0) return "";
-        return to_stdstring(get_page(rect.page).text(poppler::rectf(), poppler_mode));
-    } else {
-        if (rect.page > num_pages() || rect.page <= 0) return "";
-        auto &page = get_page(rect.page);
-        auto pgrect = page.page_rect();
-        
-        poppler::rectf poppler_rect(rect.x * pgrect.width(), rect.y * pgrect.height(), rect.w * pgrect.width(), rect.h * pgrect.height());
-        return to_stdstring(page.text(poppler_rect, poppler_mode));
-    }
+std::string pdf_document::get_page_text(const pdf_rect &rect) const {
+    if (!isopen()) return "";
+    if (rect.page > num_pages() || rect.page <= 0) return "";
+    
+    return poppler_string_to_std(get_page(rect.page).text(poppler::rectf(), enums::get_data(rect.mode)));
 }

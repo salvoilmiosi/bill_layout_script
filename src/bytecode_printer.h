@@ -26,10 +26,6 @@ namespace {
             return out << bls::decimal_to_string(num);
         }
 
-        std::ostream &operator()(bls::readbox_options opts) {
-            return out << opts.mode << ' ' << opts.flags;
-        }
-
         std::ostream &operator()(bls::command_call call) {
             return out << call->first;
         }

@@ -19,20 +19,11 @@ namespace bls {
         (LAYOUT,   poppler::page::physical_layout)
         (RAW,      poppler::page::raw_order_layout)
     )
-
-    DEFINE_ENUM_FLAGS_IN_NS(bls, box_flags,
-        (DISABLED)
-        (PAGE)
-        (NOREAD)
-        (SPACER)
-        (TRIM)
-    )
     
     struct pdf_rect {
         double x, y, w, h;
         int page;
         read_mode mode = read_mode::DEFAULT;
-        enums::bitset<box_flags> flags;
 
         void rotate(int amt);
     };
@@ -51,6 +42,7 @@ namespace bls {
         }
 
         std::string get_text(const pdf_rect &rect) const;
+        std::string get_page_text(const pdf_rect &rect) const;
 
         const std::filesystem::path &filename() const { return m_filename; }
         int num_pages() const { return m_pages.size(); }

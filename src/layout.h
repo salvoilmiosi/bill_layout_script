@@ -13,11 +13,20 @@
 
 namespace bls {
 
+    DEFINE_ENUM_FLAGS_IN_NS(bls, box_flags,
+        (DISABLED)
+        (PAGE)
+        (NOREAD)
+        (SPACER)
+        (TRIM)
+    )
+
     struct layout_box : public pdf_rect {
         std::string name;
         std::string script;
         std::string spacers;
         std::string goto_label;
+        enums::bitset<box_flags> flags;
     };
 
     struct layout_box_list : std::list<layout_box> {

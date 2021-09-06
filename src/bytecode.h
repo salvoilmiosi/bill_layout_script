@@ -31,11 +31,6 @@ namespace bls {
         (ROTATE,    std::array{ "rot", "rotate" })
     )
 
-    struct readbox_options {
-        read_mode mode;
-        enums::bitset<box_flags> flags;
-    };
-
     struct command_label {
         static inline int count = 0;
         int id;
@@ -56,7 +51,8 @@ namespace bls {
         (NEWBOX)                        // resetta current_box
         (MVBOX, spacer_index)           // stack -> current_box[index]
         (MVNBOX, spacer_index)          // -stack -> current_box[index]
-        (RDBOX, readbox_options)        // poppler.get_text(current_box) -> view_stack
+        (RDBOX, read_mode)              // poppler.get_text(current_box) -> stack
+        (RDPAGE, read_mode)             // poppler.get_page_text(current_box) -> stack
         (SELVAR, string_ptr)            // name -> selected (current_table)
         (SELVARDYN)                     // stack -> selected (current_table)
         (SELGLOBAL, string_ptr)         // name -> selected (globals)
