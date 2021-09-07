@@ -47,26 +47,15 @@ namespace bls {
         }
     };
 
-    template<typename T> struct default_constructed {
-        static inline const T value{};
-    };
+    template<typename T> struct default_constructed { static inline const T value{}; };
 
     template<typename T, typename DefValue = default_constructed<T>>
-    struct optional : T {
-        using value_type = T;
-        optional() : value_type(DefValue::value) {}
-        optional(const T &value) : value_type(value) {}
-        optional(T &&value) : value_type(std::move(value)) {}
-    };
+    struct optional : T {};
 
     template<std::integral T, typename DefValue>
     struct optional<T, DefValue> {
-        using value_type = T;
-        value_type m_value;
-        optional(value_type value = DefValue::value) : m_value(value) {}
-        operator value_type() const {
-            return m_value;
-        }
+        T m_value;
+        operator T() const { return m_value; }
     };
 
     template<int Value>     using optional_int =    optional<int,    std::integral_constant<int, Value>>;
@@ -84,12 +73,6 @@ namespace bls {
     template<typename T> concept argument_type = requires(const variable &var) {
         variable_converter<T>{}(var);
     };
-
-    template<typename T> struct is_optional : std::false_type {};
-    template<argument_type T, typename DefValue> struct is_optional<optional<T, DefValue>> : std::true_type {};
-
-    template<typename T> struct is_varargs : std::false_type {};
-    template<argument_type T, size_t Minargs> struct is_varargs<varargs<T, Minargs>> : std::true_type {};
 
     class reader;
 
@@ -179,27 +162,36 @@ namespace bls {
     template<typename T>
     concept valid_function = function_object<T> && valid_args<T> && valid_return_type<function_return_type_t<T>>;
 
+    template<typename T> struct argument_getter{};
+    template<argument_type T> struct argument_getter<T> {
+        decltype(auto) operator()(arg_list &args, size_t index) const {
+            return variable_converter<T>{}(args[index]);
+        }
+    };
+    template<argument_type T, typename DefValue> struct argument_getter<optional<T, DefValue>> {
+        optional<T, DefValue> operator()(arg_list &args, size_t index) const {
+            if (index >= args.size()) {
+                return {DefValue::value};
+            } else {
+                return {variable_converter<T>{}(args[index])};
+            }
+        }
+    };
+    template<argument_type T, size_t Minargs> struct argument_getter<varargs<T, Minargs>> {
+        varargs<T, Minargs> operator()(arg_list &args, size_t index) const {
+            return arg_list(args.begin() + index, args.end());
+        }
+    };
+
+    template<typename TList, size_t I> static decltype(auto) get_arg(arg_list &args) {
+        return argument_getter<util::get_nth_t<I, TList>>{}(args, I);
+    }
+
     // rappresenta una closure che passa automaticamente gli argomenti
     // dallo stack ad una funzione lambda, convertendoli nei tipi giusti
     class function_handler {
     private:
         variable (*const m_fun) (class reader *ctx, arg_list);
-
-        template<typename TypeList, size_t I> static decltype(auto) get_arg(arg_list &args) {
-            using type = util::get_nth_t<I, TypeList>;
-            if constexpr (is_optional<type>{}) {
-                using opt_type = typename type::value_type;
-                if (I >= args.size()) {
-                    return type();
-                } else {
-                    return type(variable_converter<opt_type>{}(args[I]));
-                }
-            } else if constexpr (is_varargs<type>{}) {
-                return type(arg_list(args.begin() + I, args.end()));
-            } else {
-                return variable_converter<type>{}(args[I]);
-            }
-        }
 
         template<typename Function> static variable call_function(class reader *ctx, arg_list args) {
             using types = function_arg_types_t<Function>;
