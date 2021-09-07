@@ -13,7 +13,7 @@ namespace bls {
     class invalid_numargs : public token_error {
     private:
         static std::string get_message(const std::string &fun_name, size_t minargs, size_t maxargs) {
-            if (maxargs == std::numeric_limits<size_t>::max()) {
+            if (maxargs == args_infinite) {
                 return intl::translate("FUNCTION_REQUIRES_ARGS_LEAST", fun_name, minargs);
             } else if (minargs == maxargs) {
                 return intl::translate("FUNCTION_REQUIRES_ARGS_EXACT", fun_name, minargs);
