@@ -3,11 +3,11 @@
 
 #define DEC_TYPE_LEVEL 0
 
-#include "decimal.h"
-#include "utils.h"
-#include "exceptions.h"
-
 #include <string>
+
+#include "decimal.h"
+#include "utils/utils.h"
+
 
 namespace bls {
 

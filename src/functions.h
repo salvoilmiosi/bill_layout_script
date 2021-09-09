@@ -6,8 +6,6 @@
 #include <map>
 
 #include "variable.h"
-#include "utils.h"
-#include "type_list.h"
 
 namespace bls {
 

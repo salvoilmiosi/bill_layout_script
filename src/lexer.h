@@ -4,8 +4,6 @@
 #include <string>
 #include <functional>
 
-#include "enums.h"
-#include "utils.h"
 #include "bytecode.h"
 
 namespace bls {

@@ -6,8 +6,6 @@
 
 #include "layout.h"
 #include "lexer.h"
-#include "bytecode.h"
-#include "utils.h"
 
 namespace bls {
     class invalid_numargs : public token_error {

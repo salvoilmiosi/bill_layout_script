@@ -8,8 +8,6 @@
 
 #include "fixed_point.h"
 #include "datetime.h"
-#include "enum_variant.h"
-#include "type_list.h"
 
 namespace bls {
 

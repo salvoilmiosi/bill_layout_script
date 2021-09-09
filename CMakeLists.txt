@@ -10,6 +10,8 @@ if(MSVC)
 endif()
 
 add_library(bls SHARED
+    src/utils/translations.cpp
+    src/utils/unicode.cpp
     src/datetime.cpp
     src/functions.cpp
     src/keywords.cpp
@@ -18,8 +20,6 @@ add_library(bls SHARED
     src/parser.cpp
     src/pdf_document.cpp
     src/reader.cpp
-    src/translations.cpp
-    src/unicode.cpp
     src/variable.cpp
 )
 add_library(bls::bls ALIAS bls)
@@ -77,12 +77,7 @@ find_package(Boost REQUIRED COMPONENTS program_options)
 add_executable(blsexec src/main.cpp)
 target_link_libraries(blsexec bls::bls Boost::program_options)
 
-install(TARGETS bls blsexec)
+add_executable(blsdump src/blsdump.cpp)
+target_link_libraries(blsdump bls::bls)
 
-option(BLS_BUILD_UTILS "Build BLS Utils" ON)
-if(BLS_BUILD_UTILS)
-    add_executable(blsdump utils/blsdump.cpp)
-    target_link_libraries(blsdump bls::bls)
-
-    install(TARGETS blsdump)
-endif()
+install(TARGETS bls blsexec blsdump)

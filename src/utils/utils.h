@@ -7,12 +7,13 @@
 #include <ranges>
 #include <map>
 
-#include "translations.h"
-#include "svstream.h"
-#include "exceptions.h"
 #include "contig_split_view.h"
-#include "static_map.h"
+#include "enum_variant.h"
+#include "exceptions.h"
 #include "simple_stack.h"
+#include "static_map.h"
+#include "svstream.h"
+#include "translations.h"
 
 namespace util {
 

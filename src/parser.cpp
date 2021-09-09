@@ -3,7 +3,6 @@
 #include <iostream>
 #include <tuple>
 
-#include "utils.h"
 #include "bytecode.h"
 #include "fixed_point.h"
 #include "functions.h"

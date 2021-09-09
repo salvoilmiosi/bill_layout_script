@@ -4,11 +4,8 @@
 #include <list>
 
 #include "pdf_document.h"
-#include "utils.h"
 #include "fixed_point.h"
 #include "functions.h"
-#include "exceptions.h"
-#include "enum_variant.h"
 
 namespace bls {
     struct command_call : function_iterator {

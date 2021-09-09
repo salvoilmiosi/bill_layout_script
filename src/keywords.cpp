@@ -1,7 +1,5 @@
 #include "parser.h"
 
-#include "utils.h"
-
 using namespace bls;
 
 void parser::parse_if_stmt() {

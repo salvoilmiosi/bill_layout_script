@@ -1,6 +1,5 @@
 #include "reader.h"
 
-#include "utils.h"
 #include "parser.h"
 #include "bytecode_printer.h"
 

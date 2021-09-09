@@ -1,9 +1,5 @@
 #include "variable.h"
 
-#include "utils.h"
-#include "exceptions.h"
-#include "type_list.h"
-
 using namespace bls;
 
 template<typename T> static std::string variable_type_label() {

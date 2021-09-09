@@ -2,7 +2,7 @@
 #define __BYTECODE_PRINTER_H__
 
 #include "bytecode.h"
-#include "unicode.h"
+#include "utils/unicode.h"
 
 namespace {
     using namespace enums::stream_operators;

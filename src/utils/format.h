@@ -1,7 +1,9 @@
 #ifndef __FORMAT_H__
 #define __FORMAT_H__
 
-#ifdef USE_FMTLIB
+#if __has_include(<format>)
+#include <format>
+#elif defined(USE_FMTLIB)
 #include <fmt/format.h>
 namespace std {
     inline std::string vformat(fmt::string_view fmt_str, fmt::format_args args) {
@@ -21,7 +23,7 @@ namespace std {
     using format_error = fmt::format_error;
 }
 #else
-#include <format>
+#error "Cannot include format library"
 #endif
 
 #endif

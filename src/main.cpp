@@ -5,8 +5,8 @@
 
 #include "parser.h"
 #include "reader.h"
-#include "utils.h"
-#include "json_value.h"
+
+#include "utils/json_value.h"
 
 using namespace bls;
 using namespace boost;

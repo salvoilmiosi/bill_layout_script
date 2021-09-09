@@ -6,7 +6,6 @@
 #include <map>
 
 #include "variable.h"
-#include "bytecode.h"
 
 namespace bls {
 

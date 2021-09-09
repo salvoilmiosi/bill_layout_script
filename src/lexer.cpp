@@ -1,5 +1,5 @@
 #include "lexer.h"
-#include "unicode.h"
+#include "utils/unicode.h"
 
 #include <cassert>
 

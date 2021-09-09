@@ -7,10 +7,8 @@
 #include <list>
 #include <atomic>
 
-#include "variable.h"
-#include "variable_selector.h"
-#include "functions.h"
 #include "bytecode.h"
+#include "variable_selector.h"
 #include "variable_view.h"
 
 namespace bls {

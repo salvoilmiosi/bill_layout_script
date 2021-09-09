@@ -3,8 +3,6 @@
 #include <fstream>
 #include <regex>
 
-#include "utils.h"
-
 using namespace bls;
 
 void pdf_rect::rotate(int amt) {

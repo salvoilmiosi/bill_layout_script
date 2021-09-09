@@ -1,7 +1,6 @@
 #include "layout.h"
 
 #include "fixed_point.h"
-#include "utils.h"
 
 #include <iostream>
 #include <fstream>

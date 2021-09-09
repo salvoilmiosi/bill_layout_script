@@ -4,7 +4,6 @@
 #include <span>
 
 #include "variable.h"
-#include "utils.h"
 
 namespace bls {
 

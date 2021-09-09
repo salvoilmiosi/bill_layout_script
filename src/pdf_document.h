@@ -10,8 +10,7 @@
 #include <poppler-document.h>
 #include <poppler-page.h>
 
-#include "utils.h"
-#include "enums.h"
+#include "utils/utils.h"
 
 namespace bls {
     DEFINE_ENUM_DATA_IN_NS(bls, read_mode,

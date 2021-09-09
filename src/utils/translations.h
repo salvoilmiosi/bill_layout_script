@@ -2,8 +2,9 @@
 #define __TRANSLATIONS_H__
 
 #include <boost/locale.hpp>
-#include "enums.h"
+
 #include "format.h"
+#include "enums.h"
 
 namespace intl {
     const std::locale &messages_locale();

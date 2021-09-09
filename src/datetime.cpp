@@ -1,8 +1,5 @@
 #include "datetime.h"
 
-#include "svstream.h"
-#include "exceptions.h"
-
 #include <boost/locale.hpp>
 #include <sstream>
 

@@ -2,8 +2,6 @@
 #define __BOX_LAYOUT_H__
 
 #include "pdf_document.h"
-#include "exceptions.h"
-#include "utils.h"
 
 #include <list>
 #include <cstring>
