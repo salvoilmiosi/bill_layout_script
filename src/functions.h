@@ -137,7 +137,7 @@ namespace bls {
     // in puntatore a funzione. In questo modo il compilatore può
     // dedurre i tipi dei parametri della funzione tramite i template
     template<typename T> concept function_object = std::default_initializable<T> && requires {
-        T::operator();
+        &T::operator();
     };
 
     template<function_object Function> struct function_unwrapper<Function> : function_unwrapper<decltype(+Function{})> {};
@@ -213,12 +213,13 @@ namespace bls {
         const size_t maxargs;
         const bool returns_value;
 
-        template<valid_function Function>
+        template<typename Function>
         function_handler(Function)
             : m_fun(call_function<Function>)
             , minargs(function_minargs_v<Function>)
             , maxargs(function_maxargs_v<Function>)
-            , returns_value(!std::is_void_v<function_return_type_t<Function>>) {}
+            , returns_value(!std::is_void_v<function_return_type_t<Function>>)
+        { static_assert(valid_function<Function>); }
 
         variable operator()(class reader *ctx, arg_list args) const {
             return m_fun(ctx, args);
