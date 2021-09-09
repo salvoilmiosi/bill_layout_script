@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-08-30 11:26+0200\n"
+"POT-Creation-Date: 2021-09-09 12:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "All files"
 msgstr "Tutti i file"
 
-#: layout_editor/src/box_dialog.cpp:183
+#: layout_editor/src/box_dialog.cpp:181
 msgid "Apply"
 msgstr "Applica"
 
@@ -30,19 +30,19 @@ msgstr "Applica"
 msgid "BLS_INPUT_FILE"
 msgstr "File di input bls"
 
-#: layout_editor/src/box_dialog.cpp:159
+#: layout_editor/src/box_dialog.cpp:157
 msgid "BOX_FLAGS"
 msgstr "Flag:"
 
-#: layout_editor/src/box_dialog.cpp:170
+#: layout_editor/src/box_dialog.cpp:168
 msgid "BOX_GOTO_LABEL"
 msgstr "Etichetta:"
 
-#: layout_editor/src/box_dialog.cpp:158
+#: layout_editor/src/box_dialog.cpp:156
 msgid "BOX_MODE"
 msgstr "Modalità:"
 
-#: layout_editor/src/box_dialog.cpp:131
+#: layout_editor/src/box_dialog.cpp:132
 msgid "BOX_NAME"
 msgstr "Nome:"
 
@@ -50,46 +50,47 @@ msgstr "Nome:"
 msgid "BOX_PAGE_LABEL"
 msgstr "Pagina di rettangolo:"
 
-#: layout_editor/src/box_dialog.cpp:172
+#: layout_editor/src/box_dialog.cpp:170
 msgid "BOX_SCRIPT"
 msgstr "Script:"
 
-#: layout_editor/src/box_dialog.cpp:171
+#: layout_editor/src/box_dialog.cpp:169
 msgid "BOX_SPACERS"
 msgstr "Spaziatori:"
 
-#: layout_config/src/main.cpp:69
+#: config_gui/src/main.cpp:69
 msgid "Browse"
 msgstr "Sfoglia"
 
-#: bill_layout_script/src/parser.cpp:492
+#: bill_layout_script/src/parser.cpp:504
 msgid "CANT_CALL_FROM_TOP_LEVEL"
 msgstr "Impossibile chiamare {} dal top level"
 
-#: bill_layout_script/src/parser.cpp:495
+#: bill_layout_script/src/parser.cpp:507
 msgid "CANT_CALL_OUT_OF_TOP_LEVEL"
 msgstr "Impossibile chiamare {} fuori dal top level"
 
-#: bill_layout_script/src/variable.cpp:16
-#: bill_layout_script/src/variable_view.h:33
+#: bill_layout_script/src/variable.cpp:11
+#: bill_layout_script/src/variable_view.h:31
 msgid "CANT_CONVERT_TYPE_TO_TYPE"
 msgstr "Impossibile convertire {} in {}"
 
-#: bill_layout_script/src/layout.h:57
-#: bill_layout_script/src/pdf_document.cpp:35 layout_editor/src/editor.cpp:229
+#: bill_layout_script/src/layout.cpp:90
+#: bill_layout_script/src/pdf_document.cpp:33 layout_editor/src/editor.cpp:229
 msgid "CANT_OPEN_FILE"
 msgstr "Impossibile aprire il file {}"
 
-#: bill_layout_script/src/datetime.cpp:36
+#: bill_layout_script/src/datetime.cpp:33
 msgid "CANT_PARSE_DATE"
 msgstr "Impossibile leggere {} come data"
 
-#: bill_layout_script/src/fixed_point.h:54 bill_layout_script/src/utils.h:125
-#: bill_layout_script/src/utils.h:135
+#: bill_layout_script/src/fixed_point.h:54
+#: bill_layout_script/src/utils/utils.h:128
+#: bill_layout_script/src/utils/utils.h:138
 msgid "CANT_PARSE_NUMBER"
 msgstr "Impossibile leggere {} come numero"
 
-#: bill_layout_script/src/layout.h:66
+#: bill_layout_script/src/layout.cpp:14
 msgid "CANT_SAVE_FILE"
 msgstr "Impossibile salvare il file {}"
 
@@ -97,69 +98,69 @@ msgstr "Impossibile salvare il file {}"
 msgid "CHANGE_BOX_PAGE"
 msgstr "Cambia pagina di rettangolo"
 
-#: layout_config/src/main.cpp:119
+#: config_gui/src/main.cpp:119
 msgid "CONFIG_CONTROL_SCRIPT_PATH"
 msgstr "Script di Controllo"
 
-#: layout_config/src/main.cpp:122
+#: config_gui/src/main.cpp:122
 msgid "CONFIG_GOOGLE_DRIVE_DIR"
 msgstr "Cartella Google Drive"
 
-#: layout_config/src/main.cpp:83
+#: config_gui/src/main.cpp:83
 msgid "CONFIG_OPEN_DIR"
 msgstr "Apri Cartella"
 
-#: layout_config/src/main.cpp:89
+#: config_gui/src/main.cpp:89
 msgid "CONFIG_OPEN_FILE"
 msgstr "Apri File"
 
-#: layout_config/src/main.cpp:121
+#: config_gui/src/main.cpp:121
 msgid "CONFIG_OUTPUT_PATH"
 msgstr "Cartella Output"
 
-#: layout_config/src/main.cpp:120
+#: config_gui/src/main.cpp:120
 msgid "CONFIG_PDFS_PATH"
 msgstr "Cartella PDF"
 
-#: layout_config/src/main.cpp:118
+#: config_gui/src/main.cpp:118
 msgid "CONFIG_PYBLS_PATH"
 msgstr "File Pybls"
 
-#: layout_editor/src/box_dialog.cpp:182
+#: layout_editor/src/box_dialog.cpp:180
 #: layout_editor/src/layout_options_dialog.cpp:46
 #: layout_editor/src/move_page_dialog.cpp:36
 msgid "Cancel"
 msgstr "Annulla"
 
-#: layout_config/src/main.cpp:127
+#: config_gui/src/main.cpp:127
 msgid "Close"
 msgstr "Chiudi"
 
-#: layout_editor/src/box_editor_panel.cpp:210
+#: layout_editor/src/box_editor_panel.cpp:212
 msgid "DIALOG_TEST_READ_MODE"
 msgstr "Modalità di lettura:"
 
-#: layout_editor/src/box_editor_panel.cpp:210
+#: layout_editor/src/box_editor_panel.cpp:212
 msgid "DIALOG_TEST_READ_TITLE"
 msgstr "Test Lettura Rettangolo"
 
-#: bill_layout_script/src/keywords.cpp:128
+#: bill_layout_script/src/keywords.cpp:126
 msgid "DUPLICATE_FUNCTION_ARG_NAME"
 msgstr "Argomento funzione duplicato: {}"
 
-#: bill_layout_script/src/keywords.cpp:99
+#: bill_layout_script/src/keywords.cpp:97
 msgid "DUPLICATE_FUNCTION_NAME"
 msgstr "Nome funzione duplicata: {}"
 
-#: bill_layout_script/src/parser.cpp:35
+#: bill_layout_script/src/parser.cpp:34
 msgid "DUPLICATE_GOTO_LABEL"
 msgstr "Etichetta goto duplicata: {}"
 
-#: layout_editor/src/box_dialog.cpp:114
+#: layout_editor/src/box_dialog.cpp:115
 msgid "EDIT_BOX"
 msgstr "Modifica Rettangolo"
 
-#: bill_layout_script/src/parser.cpp:387
+#: bill_layout_script/src/parser.cpp:399
 msgid "EMPTY_VIEW_STACK"
 msgstr "Stack viste vuoto"
 
@@ -171,15 +172,15 @@ msgstr "Ferma esecuzione a layout trovato"
 msgid "FIND_LAYOUT_CHECKBOX"
 msgstr "Flag per Trova Layout"
 
-#: bill_layout_script/src/parser.h:22
+#: bill_layout_script/src/parser.h:19
 msgid "FUNCTION_REQUIRES_ARGSS_RANGE"
 msgstr "La funzione {0} richiede {1}-{2} argomenti"
 
-#: bill_layout_script/src/parser.h:20
+#: bill_layout_script/src/parser.h:17
 msgid "FUNCTION_REQUIRES_ARGS_EXACT"
 msgstr "La funzione {0} richiede {1} argomenti"
 
-#: bill_layout_script/src/parser.h:18
+#: bill_layout_script/src/parser.h:15
 msgid "FUNCTION_REQUIRES_ARGS_LEAST"
 msgstr "La funzione {0} richiede almeno {1} argomenti"
 
@@ -187,68 +188,69 @@ msgstr "La funzione {0} richiede almeno {1} argomenti"
 msgid "INDENTATION_SIZE"
 msgstr "Dimensioni indentazione"
 
-#: bill_layout_script/src/functions.cpp:268
+#: bill_layout_script/src/functions.cpp:265
 msgid "INVALID_DATE_FORMAT"
 msgstr "Stringa formato data non valida"
 
-#: bill_layout_script/src/functions.cpp:69
+#: bill_layout_script/src/functions.cpp:66
 msgid "INVALID_FORMAT_STRING"
 msgstr "Stringa di formato non valida: {}"
 
-#: bill_layout_script/src/pdf_document.cpp:40
+#: bill_layout_script/src/pdf_document.cpp:38
 msgid "INVALID_PDF_DOCUMENT"
 msgstr "Documento pdf invalido"
 
-#: bill_layout_script/src/functions.cpp:132
+#: bill_layout_script/src/functions.cpp:129
 msgid "INVALID_REGEXP"
 msgstr "Espressione regolare non valida"
 
-#: bill_layout_script/src/parser.cpp:126
+#: bill_layout_script/src/parser.cpp:130
 msgid "INVALID_SPACER_FLAG"
 msgstr "Flag spaziatore non valido"
 
-#: bill_layout_script/src/unicode.cpp:87 bill_layout_script/src/unicode.cpp:115
-#: bill_layout_script/src/unicode.cpp:122
+#: bill_layout_script/src/utils/unicode.cpp:87
+#: bill_layout_script/src/utils/unicode.cpp:115
+#: bill_layout_script/src/utils/unicode.cpp:122
 msgid "INVALID_STRING_CONSTANT"
 msgstr "Costante stringa non valida"
 
-#: bill_layout_script/src/layout.cpp:156 bill_layout_script/src/layout.cpp:169
+#: bill_layout_script/src/layout.cpp:162 bill_layout_script/src/layout.cpp:175
 msgid "INVALID_TOKEN"
 msgstr "Token non valido: {}"
 
-#: bill_layout_script/src/layout.cpp:48
+#: bill_layout_script/src/layout.cpp:53
 msgid "INVALID_TOKEN_END_SCRIPT"
 msgstr "Token 'End Script' non valido"
 
-#: bill_layout_script/src/layout.cpp:37
+#: bill_layout_script/src/layout.cpp:42
 msgid "INVALID_TOKEN_END_SPACERS"
 msgstr "Token 'End Spacers' non valido"
 
-#: bill_layout_script/src/layout.cpp:112
+#: bill_layout_script/src/layout.cpp:118
 msgid "INVALID_TOKEN_FLAGS"
 msgstr "Token 'Flags' non valido: {}"
 
-#: bill_layout_script/src/layout.cpp:103
+#: bill_layout_script/src/layout.cpp:109
 msgid "INVALID_TOKEN_MODE"
 msgstr "Token 'Mode' non valido: {}"
 
-#: bill_layout_script/src/layout.cpp:121
+#: bill_layout_script/src/layout.cpp:127
 msgid "INVALID_TOKEN_RECT"
 msgstr "Token 'Rect' non valido"
 
-#: layout_editor/src/output_dialog.cpp:57
+#: layout_editor/src/output_dialog.cpp:58
 msgid "LAYOUT_ERROR"
 msgstr "Errore di Layout"
 
-#: layout_editor/src/output_dialog.cpp:133
+#: layout_editor/src/output_dialog.cpp:134
 msgid "LAYOUT_ERROR_CODE"
 msgstr "Errore di Layout (Codice {})"
 
-#: layout_editor/src/output_dialog.cpp:131
+#: layout_editor/src/output_dialog.cpp:132
 msgid "LAYOUT_FATAL_ERROR"
 msgstr "Errore Fatale"
 
-#: layout_editor/src/output_dialog.cpp:129
+#: layout_editor/src/output_dialog.cpp:130
 msgid "LAYOUT_NOTES"
 msgstr "Note di Layout"
 
@@ -381,16 +383,16 @@ msgstr "&Annulla\tCtrl-Z"
 msgid "MENU_UNDO_HINT"
 msgstr "Annulla l'ultima operazione"
 
-#: bill_layout_script/src/keywords.cpp:217
-#: bill_layout_script/src/keywords.cpp:229
+#: bill_layout_script/src/keywords.cpp:215
+#: bill_layout_script/src/keywords.cpp:227
 msgid "NOT_IN_A_LOOP"
 msgstr "Non in un loop"
 
-#: bill_layout_script/src/reader.h:56
+#: bill_layout_script/src/reader.h:53
 msgid "NO_DOCUMENT_OPEN"
 msgstr "Nessun documento aperto"
 
-#: layout_editor/src/box_dialog.cpp:181
+#: layout_editor/src/box_dialog.cpp:179
 #: layout_editor/src/layout_options_dialog.cpp:45
 #: layout_editor/src/move_page_dialog.cpp:35 layout_editor/src/text_dialog.h:23
 msgid "OK"
@@ -424,26 +426,26 @@ msgstr "File di input pdf"
 msgid "PRINT_HELP"
 msgstr "Aiuto"
 
-#: layout_editor/src/box_dialog.cpp:272 layout_editor/src/editor.cpp:86
+#: layout_editor/src/box_dialog.cpp:270 layout_editor/src/editor.cpp:86
 #: layout_editor/src/editor.cpp:229 layout_editor/src/editor.cpp:248
 #: layout_editor/src/editor.cpp:257 layout_editor/src/editor.cpp:308
-#: layout_editor/src/editor_evt.cpp:148 layout_config/src/main.cpp:115
+#: layout_editor/src/editor_evt.cpp:148 config_gui/src/main.cpp:115
 msgid "PROGRAM_NAME"
 msgstr "Bill Layout Script"
 
-#: layout_editor/src/output_dialog.cpp:33
+#: layout_editor/src/output_dialog.cpp:34
 msgid "READER_DATA_OUTPUT"
 msgstr "Lettura Dati"
 
-#: bill_layout_script/src/main.cpp:125
+#: bill_layout_script/src/blsdump.cpp:11 bill_layout_script/src/main.cpp:125
 msgid "REQUIRED_INPUT_BLS"
 msgstr "Richiesto input bls"
 
-#: layout_config/src/main.cpp:126
+#: config_gui/src/main.cpp:126
 msgid "Reset"
 msgstr "Reset"
 
-#: layout_editor/src/box_dialog.cpp:272 layout_editor/src/editor.cpp:257
+#: layout_editor/src/box_dialog.cpp:270 layout_editor/src/editor.cpp:257
 msgid "SAVE_CHANGES_DIALOG"
 msgstr "Salvare le modifiche?"
 
@@ -455,28 +457,28 @@ msgstr "Salva File di Layout"
 msgid "SYSTEM_LANGUAGE"
 msgstr "Lingua di sistema"
 
-#: layout_config/src/main.cpp:125
+#: config_gui/src/main.cpp:125
 msgid "Save"
 msgstr "Salva"
 
-#: layout_editor/src/output_dialog.cpp:143
+#: layout_editor/src/output_dialog.cpp:144
 msgid "TABLE_NUMBER"
 msgstr "Tabella {}"
 
-#: layout_editor/src/box_dialog.cpp:191
-#: layout_editor/src/box_editor_panel.cpp:20
+#: layout_editor/src/box_dialog.cpp:189
+#: layout_editor/src/box_editor_panel.cpp:22
 msgid "TEST_OUTPUT"
 msgstr "Risultato della lettura"
 
-#: bill_layout_script/src/layout.cpp:160
+#: bill_layout_script/src/layout.cpp:166
 msgid "TOKEN_END_BOX_NOT_FOUND"
 msgstr "Token 'End Box' non trovato"
 
-#: bill_layout_script/src/layout.cpp:153
+#: bill_layout_script/src/layout.cpp:159
 msgid "TOKEN_END_SCRIPT_NOT_FOUND"
 msgstr "Token 'End Script' non trovato"
 
-#: bill_layout_script/src/layout.cpp:138
+#: bill_layout_script/src/layout.cpp:144
 msgid "TOKEN_END_SPACERS_NOT_FOUND"
 msgstr "Token 'End Spacers' non trovato"
 
@@ -572,11 +574,11 @@ msgstr "Test rettangolo"
 msgid "TOOL_UNDO"
 msgstr "Annulla"
 
-#: layout_editor/src/output_dialog.cpp:40
+#: layout_editor/src/output_dialog.cpp:41
 msgid "TOOL_UPDATE"
 msgstr "Aggiorna"
 
-#: layout_editor/src/box_dialog.cpp:184
+#: layout_editor/src/box_dialog.cpp:182
 msgid "Test"
 msgstr "Test"
 
@@ -588,15 +590,15 @@ msgstr "Imprevisto '{}'"
 msgid "UNEXPECTED_TOKEN_REQUIRED"
 msgstr "Imprevisto '{}', richiesto '{}'"
 
-#: bill_layout_script/src/main.cpp:88
+#: bill_layout_script/src/blsdump.cpp:25 bill_layout_script/src/main.cpp:88
 msgid "UNKNOWN_ERROR"
 msgstr "Errore sconosciuto"
 
-#: bill_layout_script/src/parser.cpp:509
+#: bill_layout_script/src/parser.cpp:521
 msgid "UNKNOWN_FUNCTION"
 msgstr "Funzione sconosciuta: {}"
 
-#: bill_layout_script/src/keywords.cpp:89
+#: bill_layout_script/src/keywords.cpp:87
 msgid "UNKNOWN_LABEL"
 msgstr "Etichetta sconosciuta: {}"
 
@@ -604,19 +606,19 @@ msgstr "Etichetta sconosciuta: {}"
 msgid "UNNAMED_BOX"
 msgstr "(Senza nome)"
 
-#: bill_layout_script/src/reader.cpp:331
+#: bill_layout_script/src/reader.cpp:333
 msgid "UNSUPPORTED_LANGUAGE"
 msgstr "Lingua non supportata: {}"
 
-#: layout_editor/src/output_dialog.cpp:46
+#: layout_editor/src/output_dialog.cpp:47
 msgid "VARIABLE_NAME"
 msgstr "Nome"
 
-#: layout_editor/src/output_dialog.cpp:47
+#: layout_editor/src/output_dialog.cpp:48
 msgid "VARIABLE_TYPE"
 msgstr "Tipo"
 
-#: layout_editor/src/output_dialog.cpp:48
+#: layout_editor/src/output_dialog.cpp:49
 msgid "VARIABLE_VALUE"
 msgstr "Valore"
 
