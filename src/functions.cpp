@@ -536,12 +536,6 @@ namespace bls {
         {"singleline", [](std::string_view str) {
             return string_singleline(str);
         }},
-        {"conditional", [](bool condition, const variable &var_if, optional<variable> var_else) {
-            return condition ? var_if : var_else;
-        }},
-        {"conditional_not", [](bool condition, const variable &var_if, optional<variable> var_else) {
-            return condition ? var_else : var_if;
-        }},
         {"trim", [](std::string_view str) {
             return util::string_trim(str);
         }},

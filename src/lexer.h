@@ -65,6 +65,7 @@ namespace bls {
         (ADD_ONE,       symbol_kind     { "++" })
         (SUB_ONE,       symbol_kind     { "--" })
         (CONTENT,       symbol_kind     { "@" })
+        (QUESTION_MARK, symbol_kind     { "?" })
         (COLON,         symbol_kind     { ":" })
         (NOT,           symbol_kind     { "!" })
         

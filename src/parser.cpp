@@ -300,6 +300,24 @@ void parser::parse_foreach_expression() {
     m_code.add_line<opcode::VIEWPOP>();
 }
 
+void parser::parse_ternary_expression() {
+    auto endif_label = m_code.make_label();
+    auto else_label = m_code.make_label();
+
+    if (auto &last = m_code.last_not_comment(); last.command() == opcode::CALL && last.get_args<opcode::CALL>()->first == "not") {
+        last = make_command<opcode::JNZ>(else_label);
+    } else {
+        m_code.add_line<opcode::JZ>(else_label);
+    }
+    read_expression();
+    m_lexer.require(token_type::COLON);
+
+    m_code.add_line<opcode::JMP>(endif_label);
+    m_code.add_label(else_label);
+    read_expression();
+    m_code.add_label(endif_label);
+}
+
 void parser::read_expression() {
     constexpr auto operator_map = []<token_type ... Es>(enums::enum_sequence<Es...>) {
         return util::static_map<token_type, const operator_kind *>(
@@ -332,6 +350,10 @@ void parser::read_expression() {
             m_code.add_line<opcode::CALL>(op_stack.back()->fun_name);
             op_stack.pop_back();
         }
+    }
+
+    if (m_lexer.check_next(token_type::QUESTION_MARK)) {
+        parse_ternary_expression();
     }
 }
 
