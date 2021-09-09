@@ -77,7 +77,7 @@ namespace bls {
     constexpr size_t args_infinite = std::numeric_limits<size_t>::max();
 
     template<typename TList> struct count_args {};
-    template<typename ... Ts> struct count_args_optional {};
+    template<typename TList> struct count_args_optional {};
 
     template<> struct count_args<util::type_list<>> {
         static constexpr size_t minargs = 0;
