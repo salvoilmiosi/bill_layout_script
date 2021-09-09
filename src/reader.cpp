@@ -244,12 +244,12 @@ void reader::exec_command(const command_args &cmd) {
             m_stack.emplace(std::string_view(str), as_regex_tag);
         },
         [this](command_tag<opcode::STKAPP>) {
-            auto top = m_stack.pop();
-            auto &var = *(m_stack.end() - 2);
+            auto top = m_stack.pop()->deref();
+            auto &var = m_stack.top();
             if (var.is_array()) {
-                var.as_array().push_back(std::move(*top));
+                var.as_array().push_back(std::move(top));
             } else {
-                var = variable_array{std::move(*top)};
+                var = variable_array{std::move(top)};
             }
         },
         [this](command_tag<opcode::STKSWP>) {

@@ -34,10 +34,6 @@ namespace bls {
         
         variable_view(variable &&var, as_array_tag_t) = delete;
 
-        size_t index() const {
-            return m_current - m_span.begin();
-        }
-
         void nextview() {
             ++m_current;
         }

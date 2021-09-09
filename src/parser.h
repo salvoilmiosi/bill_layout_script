@@ -68,6 +68,8 @@ namespace bls {
         void read_expression();
         void sub_expression();
 
+        void parse_foreach_expression();
+
         void read_function(token tok_fun_name, bool top_level);
         void read_variable_name();
         void read_variable_indices();

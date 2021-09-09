@@ -336,6 +336,8 @@ namespace bls {
         return ret;
     }
 
+    constexpr auto sv_to_string = [](std::string_view str) { return std::string(str); };
+
     const function_map function_lookup::functions {
         {"copy", [](const variable &var) { return var; }},
         {"type", [](const variable &var) { return enums::to_string(var.type()); }},
@@ -372,19 +374,18 @@ namespace bls {
             return std::format("{:x}", num);
         }},
         {"split", [](std::string_view str, std::string_view separator) {
-            return util::string_split(str, separator)
-                | std::views::transform([](std::string_view str) { return std::string(str); });
+            return util::string_split(str, separator) | std::views::transform(sv_to_string);
         }},
         {"join", [](vector_view<std::string_view> strings, std::string_view separator) {
             return util::string_join(strings, separator);
         }},
-        {"lines", [](std::string_view str) {
-            return util::string_split(str, '\n')
-                | std::views::transform(util::string_trim)
-                | std::views::filter(std::not_fn(&std::string::empty));
-        }},
         {"list", [](varargs<variable> args) {
             return args;
+        }},
+        {"enumerate", [](vector_view<variable> args) {
+            return args | std::views::transform([i=0](const variable &var) mutable {
+                return variable_array{i++, var};
+            });
         }},
         {"zip_add", [](vector_view<variable> lhs, vector_view<variable> rhs) {
             return zip(lhs, rhs, std::plus<>{});
@@ -618,13 +619,6 @@ namespace bls {
         {"doc_numpages",    [](const reader *ctx) { return ctx->get_document().num_pages(); }},
         {"doc_filename",    [](const reader *ctx) { return ctx->get_document().filename().string(); }},
         {"ate",             [](const reader *ctx) { return ctx->m_current_box.page > ctx->get_document().num_pages(); }},
-        {"curindex", [](const reader *ctx) -> variable{
-            if (ctx->m_views.empty()) {
-                return {};
-            } else {
-                return ctx->m_views.top().index();
-            }
-        }},
         
         {"error", [](std::string_view message, optional_int<-1> errcode) {
             throw scripted_error(std::string(message), errcode);

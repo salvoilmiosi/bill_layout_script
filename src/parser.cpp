@@ -259,6 +259,47 @@ void parser::assignment_stmt() {
     }
 }
 
+void parser::parse_foreach_expression() {
+    m_lexer.require(token_type::PAREN_BEGIN);
+    read_expression();
+    m_lexer.require(token_type::PAREN_END);
+
+    auto label_loop_begin = m_code.make_label();
+    auto label_loop_next = m_code.make_label();
+    auto label_loop_end = m_code.make_label();
+
+    m_code.add_line<opcode::VIEWADDLIST>();
+    m_code.add_line<opcode::PUSHNULL>();
+
+    m_code.add_label(label_loop_begin);
+    m_code.add_line<opcode::JVE>(label_loop_end);
+
+    ++m_views_size;
+
+    if (m_lexer.check_next(token_type::KW_IF)) {
+        m_lexer.require(token_type::PAREN_BEGIN);
+        read_expression();
+        m_lexer.require(token_type::PAREN_END);
+        if (auto &last = m_code.last_not_comment(); last.command() == opcode::CALL && last.get_args<opcode::CALL>()->first == "not") {
+            last = make_command<opcode::JNZ>(label_loop_next);
+        } else {
+            m_code.add_line<opcode::JZ>(label_loop_next);
+        }
+    }
+
+    read_expression();
+    --m_views_size;
+
+    m_code.add_line<opcode::STKAPP>();
+    m_code.add_label(label_loop_next);
+    m_code.add_line<opcode::VIEWNEXT>();
+    m_code.add_line<opcode::JMP>(label_loop_begin);
+    m_code.add_label(label_loop_end);
+
+    m_code.add_line<opcode::STKSWP>();
+    m_code.add_line<opcode::VIEWPOP>();
+}
+
 void parser::read_expression() {
     constexpr auto operator_map = []<token_type ... Es>(enums::enum_sequence<Es...>) {
         return util::static_map<token_type, const operator_kind *>(
@@ -267,30 +308,7 @@ void parser::read_expression() {
     }(enums::filter_enum_sequence<is_operator, enums::make_enum_sequence<token_type>>());
 
     if (m_lexer.check_next(token_type::KW_FOREACH)) {
-        m_lexer.require(token_type::PAREN_BEGIN);
-        read_expression();
-        m_lexer.require(token_type::PAREN_END);
-
-        auto label_loop_begin = m_code.make_label();
-        auto label_loop_end = m_code.make_label();
-
-        m_code.add_line<opcode::VIEWADDLIST>();
-        m_code.add_line<opcode::PUSHNULL>();
-
-        m_code.add_label(label_loop_begin);
-        m_code.add_line<opcode::JVE>(label_loop_end);
-
-        ++m_views_size;
-        read_expression();
-        --m_views_size;
-
-        m_code.add_line<opcode::STKAPP>();
-        m_code.add_line<opcode::VIEWNEXT>();
-        m_code.add_line<opcode::JMP>(label_loop_begin);
-        m_code.add_label(label_loop_end);
-
-        m_code.add_line<opcode::STKSWP>();
-        m_code.add_line<opcode::VIEWPOP>();
+        parse_foreach_expression();
     } else {
         sub_expression();
 
