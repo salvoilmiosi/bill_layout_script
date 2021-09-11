@@ -17,7 +17,7 @@ static const GlobalParamsIniter errorFunction([](ErrorCategory, Goffset pos, con
     } else {
         std::cerr << "poppler error: ";
     }
-    std::cerr << msg;
+    std::cerr << msg << std::endl;
 });
 
 void pdf_rect::rotate(int amt) {
@@ -42,6 +42,22 @@ void pdf_rect::rotate(int amt) {
     }
 }
 
+pdf_image &pdf_image::operator = (const pdf_image &other) {
+    m_width = other.m_width;
+    m_height = other.m_height;
+    std::free(m_data);
+    m_data = (unsigned char *) std::malloc(capacity());
+    std::memcpy(m_data, other.m_data, capacity());
+    return *this;
+}
+
+pdf_image &pdf_image::operator = (pdf_image &&other) noexcept {
+    m_width = other.m_width;
+    m_height = other.m_height;
+    std::swap(m_data, other.m_data);
+    return *this;
+}
+
 void pdf_document::open(const std::filesystem::path &filename) {
     m_document = std::make_unique<PDFDoc>(new GooString(filename.string()));
     if (!m_document->isOk() && m_document->getErrorCode() != errEncrypted) {
@@ -57,7 +73,7 @@ template<bool Slice> static std::string do_get_text(PDFDoc *doc, const pdf_rect 
     TextOutputDev td([](void *stream, const char *text, int len) {
         static_cast<std::string *>(stream)->append(text, len);
     }, &ret, rect.mode == read_mode::LAYOUT, 0, rect.mode == read_mode::RAW, false);
-    
+
     td.setTextEOL(eolUnix);
     td.setTextPageBreaks(false);
 
@@ -83,10 +99,9 @@ std::string pdf_document::get_page_text(const pdf_rect &rect) const {
 
 pdf_image pdf_document::render_page(int page, int rotation) const {
     SplashColor white{0xff, 0xff, 0xff};
-    SplashOutputDev dev(splashModeRGB8, 4, false, white, true);
+    SplashOutputDev dev(splashModeRGB8, 3, false, white, true);
     dev.setFontAntialias(true);
     dev.setVectorAntialias(true);
-    dev.setFreeTypeHinting(false, false);
     dev.startDoc(m_document.get());
 
     constexpr double resolution = 150.0;
@@ -94,16 +109,5 @@ pdf_image pdf_document::render_page(int page, int rotation) const {
     m_document->displayPage(&dev, page, resolution, resolution, rotation * 90, false, true, false);
 
     SplashBitmap *bitmap = dev.getBitmap();
-    pdf_image ret(bitmap->getWidth(), bitmap->getHeight());
-
-    const int bpr = (ret.width() * 3 + 3) & (~0b11);
-    
-    unsigned char *src_ptr = bitmap->getDataPtr();
-    unsigned char *dst_ptr = ret.data();
-    for (size_t i=0; i<ret.height(); ++i) {
-        std::memcpy(dst_ptr, src_ptr, ret.width() * 3);
-        src_ptr += bpr;
-        dst_ptr += ret.width() * 3;
-    }
-    return ret;
+    return pdf_image(bitmap->getWidth(), bitmap->getHeight(), bitmap->takeData());
 }

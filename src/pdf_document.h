@@ -31,52 +31,40 @@ namespace bls {
         int m_width = 0;
         int m_height = 0;
         unsigned char *m_data = nullptr;
-        size_t m_capacity = 0;
 
-        void make_data() {
-            m_capacity = m_width * m_height * 3;
-            m_data = (unsigned char *) std::malloc(m_capacity);
-        }
+        void make_data();
 
     public:
+        pdf_image(int width, int height) : m_width(width), m_height(height) {
+            m_data = (unsigned char *) std::malloc(capacity());
+        }
+
+        pdf_image(int width, int height, unsigned char *data)
+            : m_width(width), m_height(height), m_data(data) {}
+
         pdf_image() = default;
         ~pdf_image() {
-            delete m_data;
+            std::free(m_data);
         }
-        pdf_image(int width, int height) : m_width(width), m_height(height) {
-            make_data();
-        }
+
         pdf_image(const pdf_image &other) : pdf_image(other.m_width, other.m_height) {
-            std::memcpy(m_data, other.m_data, m_capacity);
+            std::memcpy(m_data, other.m_data, capacity());
         }
+
         pdf_image(pdf_image &&other) noexcept : m_width(other.m_width), m_height(other.m_height) {
             m_data = other.m_data;
             other.m_data = nullptr;
         }
-        pdf_image &operator = (const pdf_image &other) {
-            m_width = other.m_width;
-            m_height = other.m_height;
-            if (m_capacity < other.m_capacity) {
-                delete m_data;
-                make_data();
-            }
-            std::memcpy(m_data, other.m_data, other.m_capacity);
-            return *this;
-        }
-        pdf_image &operator = (pdf_image &&other) noexcept {
-            m_width = other.m_width;
-            m_height = other.m_height;
-            m_capacity = other.m_capacity;
-            std::swap(m_data, other.m_data);
-            return *this;
-        }
+
+        pdf_image &operator = (const pdf_image &other);
+        pdf_image &operator = (pdf_image &&other) noexcept;
 
         int width() const noexcept { return m_width; }
         int height() const noexcept { return m_height; }
-        int capacity() const noexcept { return m_capacity; }
+        int capacity() const noexcept { return m_width * m_height * 3; }
 
         unsigned char *data() const noexcept { return m_data; }
-        void release() { m_data = nullptr; }
+        unsigned char *release() { return std::exchange(m_data, nullptr); }
     };
 
     class pdf_document {
