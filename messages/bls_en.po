@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-09-09 12:14+0200\n"
+"POT-Creation-Date: 2021-09-11 17:50+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,12 +17,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: layout_editor/src/editor.cpp:237 layout_editor/src/editor.cpp:316
-#: layout_editor/src/editor_evt.cpp:30 layout_editor/src/editor_evt.cpp:161
+#: bls_editor/src/editor.cpp:236 bls_editor/src/editor.cpp:315
+#: bls_editor/src/editor_evt.cpp:30 bls_editor/src/editor_evt.cpp:161
 msgid "All files"
 msgstr "All files"
 
-#: layout_editor/src/box_dialog.cpp:181
+#: bls_editor/src/box_dialog.cpp:181
 msgid "Apply"
 msgstr "Apply"
 
@@ -30,31 +30,31 @@ msgstr "Apply"
 msgid "BLS_INPUT_FILE"
 msgstr "BLS Input File"
 
-#: layout_editor/src/box_dialog.cpp:157
+#: bls_editor/src/box_dialog.cpp:157
 msgid "BOX_FLAGS"
 msgstr "Flags:"
 
-#: layout_editor/src/box_dialog.cpp:168
+#: bls_editor/src/box_dialog.cpp:168
 msgid "BOX_GOTO_LABEL"
 msgstr "Label:"
 
-#: layout_editor/src/box_dialog.cpp:156
+#: bls_editor/src/box_dialog.cpp:156
 msgid "BOX_MODE"
 msgstr "Mode:"
 
-#: layout_editor/src/box_dialog.cpp:132
+#: bls_editor/src/box_dialog.cpp:132
 msgid "BOX_NAME"
 msgstr "Name:"
 
-#: layout_editor/src/move_page_dialog.cpp:25
+#: bls_editor/src/move_page_dialog.cpp:25
 msgid "BOX_PAGE_LABEL"
 msgstr "Box page:"
 
-#: layout_editor/src/box_dialog.cpp:170
+#: bls_editor/src/box_dialog.cpp:170
 msgid "BOX_SCRIPT"
 msgstr "Script:"
 
-#: layout_editor/src/box_dialog.cpp:169
+#: bls_editor/src/box_dialog.cpp:169
 msgid "BOX_SPACERS"
 msgstr "Spacers:"
 
@@ -62,11 +62,11 @@ msgstr "Spacers:"
 msgid "Browse"
 msgstr "Browse"
 
-#: bill_layout_script/src/parser.cpp:504
+#: bill_layout_script/src/parser.cpp:544
 msgid "CANT_CALL_FROM_TOP_LEVEL"
 msgstr "Cannot call {} from top level"
 
-#: bill_layout_script/src/parser.cpp:507
+#: bill_layout_script/src/parser.cpp:547
 msgid "CANT_CALL_OUT_OF_TOP_LEVEL"
 msgstr "Cannot call {} out of top level"
 
@@ -76,7 +76,7 @@ msgid "CANT_CONVERT_TYPE_TO_TYPE"
 msgstr "Cannot convert {} to {}"
 
 #: bill_layout_script/src/layout.cpp:90
-#: bill_layout_script/src/pdf_document.cpp:33 layout_editor/src/editor.cpp:229
+#: bill_layout_script/src/pdf_document.cpp:65 bls_editor/src/editor.cpp:228
 msgid "CANT_OPEN_FILE"
 msgstr "Cannot open file {}"
 
@@ -94,7 +94,7 @@ msgstr "Cannot parse {} as a number"
 msgid "CANT_SAVE_FILE"
 msgstr "Impossibile salvare il file {}"
 
-#: layout_editor/src/move_page_dialog.cpp:19
+#: bls_editor/src/move_page_dialog.cpp:19
 msgid "CHANGE_BOX_PAGE"
 msgstr "Change Box Page"
 
@@ -126,9 +126,9 @@ msgstr "PDFs Directory"
 msgid "CONFIG_PYBLS_PATH"
 msgstr "Pybls File"
 
-#: layout_editor/src/box_dialog.cpp:180
-#: layout_editor/src/layout_options_dialog.cpp:46
-#: layout_editor/src/move_page_dialog.cpp:36
+#: bls_editor/src/box_dialog.cpp:180
+#: bls_editor/src/layout_options_dialog.cpp:46
+#: bls_editor/src/move_page_dialog.cpp:36
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -136,11 +136,11 @@ msgstr "Cancel"
 msgid "Close"
 msgstr "Close"
 
-#: layout_editor/src/box_editor_panel.cpp:212
+#: bls_editor/src/box_editor_panel.cpp:212
 msgid "DIALOG_TEST_READ_MODE"
 msgstr "Read mode:"
 
-#: layout_editor/src/box_editor_panel.cpp:212
+#: bls_editor/src/box_editor_panel.cpp:212
 msgid "DIALOG_TEST_READ_TITLE"
 msgstr "Box Read Test"
 
@@ -156,11 +156,11 @@ msgstr "Duplicate Function Name: {}"
 msgid "DUPLICATE_GOTO_LABEL"
 msgstr "Duplicate label: {}"
 
-#: layout_editor/src/box_dialog.cpp:115
+#: bls_editor/src/box_dialog.cpp:115
 msgid "EDIT_BOX"
 msgstr "Edit Box"
 
-#: bill_layout_script/src/parser.cpp:399
+#: bill_layout_script/src/parser.cpp:439
 msgid "EMPTY_VIEW_STACK"
 msgstr "Empty View Stack"
 
@@ -168,7 +168,7 @@ msgstr "Empty View Stack"
 msgid "FIND_LAYOUT"
 msgstr "Stop execution when a layout is found"
 
-#: layout_editor/src/layout_options_dialog.cpp:17
+#: bls_editor/src/layout_options_dialog.cpp:17
 msgid "FIND_LAYOUT_CHECKBOX"
 msgstr "Flag for Find Layout"
 
@@ -195,10 +195,6 @@ msgstr "Invalid Date Format String"
 #: bill_layout_script/src/functions.cpp:66
 msgid "INVALID_FORMAT_STRING"
 msgstr "Invalid Format String: {}"
-
-#: bill_layout_script/src/pdf_document.cpp:38
-msgid "INVALID_PDF_DOCUMENT"
-msgstr "Invalid PDF document"
 
 #: bill_layout_script/src/functions.cpp:129
 msgid "INVALID_REGEXP"
@@ -238,148 +234,148 @@ msgstr "Invalid 'Mode' token: {}"
 msgid "INVALID_TOKEN_RECT"
 msgstr "Invalid 'Rect' token"
 
-#: layout_editor/src/output_dialog.cpp:58
+#: bls_editor/src/output_dialog.cpp:58
 msgid "LAYOUT_ERROR"
 msgstr "Layout Error"
 
-#: layout_editor/src/output_dialog.cpp:134
+#: bls_editor/src/output_dialog.cpp:134
 msgid "LAYOUT_ERROR_CODE"
 msgstr "layout Error (Code {})"
 
-#: layout_editor/src/output_dialog.cpp:132
+#: bls_editor/src/output_dialog.cpp:132
 msgid "LAYOUT_FATAL_ERROR"
 msgstr "Fatal Error"
 
-#: layout_editor/src/output_dialog.cpp:130
+#: bls_editor/src/output_dialog.cpp:130
 msgid "LAYOUT_NOTES"
 msgstr "Layout Notes"
 
-#: layout_editor/src/layout_options_dialog.cpp:14
+#: bls_editor/src/layout_options_dialog.cpp:14
 msgid "LAYOUT_OPTIONS_DIALOG_TITLE"
 msgstr "Change Layout Options"
 
-#: layout_editor/src/editor.cpp:237 layout_editor/src/editor.cpp:316
-#: layout_editor/src/editor_evt.cpp:30
+#: bls_editor/src/editor.cpp:236 bls_editor/src/editor.cpp:315
+#: bls_editor/src/editor_evt.cpp:30
 msgid "Layout files"
 msgstr "Layout files"
 
-#: layout_editor/src/editor.cpp:113
+#: bls_editor/src/editor.cpp:112
 msgid "MENU_CLOSE"
 msgstr "&Close\tCtrl-W"
 
-#: layout_editor/src/editor.cpp:113
+#: bls_editor/src/editor.cpp:112
 msgid "MENU_CLOSE_HINT"
 msgstr "Close the window"
 
-#: layout_editor/src/editor.cpp:121
+#: bls_editor/src/editor.cpp:120
 msgid "MENU_COPY"
 msgstr "&Copy\tCtrl-C"
 
-#: layout_editor/src/editor.cpp:121
+#: bls_editor/src/editor.cpp:120
 msgid "MENU_COPY_HINT"
 msgstr "Copies selection"
 
-#: layout_editor/src/editor.cpp:120
+#: bls_editor/src/editor.cpp:119
 msgid "MENU_CUT"
 msgstr "&Cut\tCtrl-X"
 
-#: layout_editor/src/editor.cpp:120
+#: bls_editor/src/editor.cpp:119
 msgid "MENU_CUT_HINT"
 msgstr "Cuts selection"
 
-#: layout_editor/src/editor.cpp:124
+#: bls_editor/src/editor.cpp:123
 msgid "MENU_DELETE"
 msgstr "&Delete\tDel"
 
-#: layout_editor/src/editor.cpp:124
+#: bls_editor/src/editor.cpp:123
 msgid "MENU_DELETE_HINT"
 msgstr "Deletes selection"
 
-#: layout_editor/src/editor.cpp:125
+#: bls_editor/src/editor.cpp:124
 msgid "MENU_EDIT"
 msgstr "&Edit"
 
-#: layout_editor/src/editor.cpp:128
+#: bls_editor/src/editor.cpp:127
 msgid "MENU_EDITCONTROL"
 msgstr "Edit &control script"
 
-#: layout_editor/src/editor.cpp:130
+#: bls_editor/src/editor.cpp:129
 msgid "MENU_EDITOR"
 msgstr "&Editor"
 
-#: layout_editor/src/editor.cpp:114
+#: bls_editor/src/editor.cpp:113
 msgid "MENU_FILE"
 msgstr "&File"
 
-#: layout_editor/src/editor.cpp:110
+#: bls_editor/src/editor.cpp:109
 msgid "MENU_LOAD_PDF"
 msgstr "Load &PDF\tCtrl-L"
 
-#: layout_editor/src/editor.cpp:110
+#: bls_editor/src/editor.cpp:109
 msgid "MENU_LOAD_PDF_HINT"
 msgstr "Load a PDF file"
 
-#: layout_editor/src/editor.cpp:104
+#: bls_editor/src/editor.cpp:103
 msgid "MENU_NEW"
 msgstr "&New\tCtrl-N"
 
-#: layout_editor/src/editor.cpp:104
+#: bls_editor/src/editor.cpp:103
 msgid "MENU_NEW_HINT"
 msgstr "Create new layout"
 
-#: layout_editor/src/editor.cpp:105
+#: bls_editor/src/editor.cpp:104
 msgid "MENU_OPEN"
 msgstr "&Open...\tCtrl-O"
 
-#: layout_editor/src/editor.cpp:105
+#: bls_editor/src/editor.cpp:104
 msgid "MENU_OPEN_HINT"
 msgstr "Open a layout"
 
-#: layout_editor/src/editor.cpp:122
+#: bls_editor/src/editor.cpp:121
 msgid "MENU_PASTE"
 msgstr "&Paste\tCtrl-V"
 
-#: layout_editor/src/editor.cpp:122
+#: bls_editor/src/editor.cpp:121
 msgid "MENU_PASTE_HINT"
 msgstr "Pastes onto selection"
 
-#: layout_editor/src/editor.cpp:106
+#: bls_editor/src/editor.cpp:105
 msgid "MENU_RECENT"
 msgstr "&Recent layouts..."
 
-#: layout_editor/src/editor.cpp:111
+#: bls_editor/src/editor.cpp:110
 msgid "MENU_RECENT_PDF"
 msgstr "Recent PDFs…"
 
-#: layout_editor/src/editor.cpp:118
+#: bls_editor/src/editor.cpp:117
 msgid "MENU_REDO"
 msgstr "&Redo\tCtrl-Y"
 
-#: layout_editor/src/editor.cpp:118
+#: bls_editor/src/editor.cpp:117
 msgid "MENU_REDO_HINT"
 msgstr "Redo last operation"
 
-#: layout_editor/src/editor.cpp:107
+#: bls_editor/src/editor.cpp:106
 msgid "MENU_SAVE"
 msgstr "&Save\tCtrl-S"
 
-#: layout_editor/src/editor.cpp:108
+#: bls_editor/src/editor.cpp:107
 msgid "MENU_SAVEAS"
 msgstr "Sa&ve as...\tCtrl-Shift-S"
 
-#: layout_editor/src/editor.cpp:108
+#: bls_editor/src/editor.cpp:107
 msgid "MENU_SAVEAS_HINT"
 msgstr "Save Layout as..."
 
-#: layout_editor/src/editor.cpp:107
+#: bls_editor/src/editor.cpp:106
 msgid "MENU_SAVE_HINT"
 msgstr "Save the layout"
 
-#: layout_editor/src/editor.cpp:117
+#: bls_editor/src/editor.cpp:116
 msgid "MENU_UNDO"
 msgstr "&Undo\tCtrl-Z"
 
-#: layout_editor/src/editor.cpp:117
+#: bls_editor/src/editor.cpp:116
 msgid "MENU_UNDO_HINT"
 msgstr "Undo last operation"
 
@@ -392,21 +388,21 @@ msgstr "Not In A Loop"
 msgid "NO_DOCUMENT_OPEN"
 msgstr "No document open"
 
-#: layout_editor/src/box_dialog.cpp:179
-#: layout_editor/src/layout_options_dialog.cpp:45
-#: layout_editor/src/move_page_dialog.cpp:35 layout_editor/src/text_dialog.h:23
+#: bls_editor/src/box_dialog.cpp:179
+#: bls_editor/src/layout_options_dialog.cpp:45
+#: bls_editor/src/move_page_dialog.cpp:35 bls_editor/src/text_dialog.h:23
 msgid "OK"
 msgstr "OK"
 
-#: layout_editor/src/editor.cpp:315
+#: bls_editor/src/editor.cpp:314
 msgid "OPEN_CONTROL_SCRIPT_DIALOG"
 msgstr "Open Control Script"
 
-#: layout_editor/src/editor_evt.cpp:29
+#: bls_editor/src/editor_evt.cpp:29
 msgid "OPEN_LAYOUT_DIALOG"
 msgstr "Open Layout File"
 
-#: layout_editor/src/editor_evt.cpp:160
+#: bls_editor/src/editor_evt.cpp:160
 msgid "OPEN_PDF_DIALOG"
 msgstr "Open PDF file"
 
@@ -414,11 +410,11 @@ msgstr "Open PDF file"
 msgid "OPTIONS"
 msgstr "Options"
 
-#: layout_editor/src/editor_evt.cpp:161
+#: bls_editor/src/editor_evt.cpp:161
 msgid "PDF files"
 msgstr "PDF files"
 
-#: bill_layout_script/src/main.cpp:109 layout_editor/src/main.cpp:44
+#: bill_layout_script/src/main.cpp:109 bls_editor/src/main.cpp:44
 msgid "PDF_INPUT_FILE"
 msgstr "PDF Input File"
 
@@ -426,14 +422,14 @@ msgstr "PDF Input File"
 msgid "PRINT_HELP"
 msgstr "Help"
 
-#: layout_editor/src/box_dialog.cpp:270 layout_editor/src/editor.cpp:86
-#: layout_editor/src/editor.cpp:229 layout_editor/src/editor.cpp:248
-#: layout_editor/src/editor.cpp:257 layout_editor/src/editor.cpp:308
-#: layout_editor/src/editor_evt.cpp:148 config_gui/src/main.cpp:115
+#: bls_editor/src/box_dialog.cpp:270 bls_editor/src/editor.cpp:85
+#: bls_editor/src/editor.cpp:228 bls_editor/src/editor.cpp:247
+#: bls_editor/src/editor.cpp:256 bls_editor/src/editor.cpp:307
+#: bls_editor/src/editor_evt.cpp:148 config_gui/src/main.cpp:115
 msgid "PROGRAM_NAME"
 msgstr "Bill Layout Script"
 
-#: layout_editor/src/output_dialog.cpp:34
+#: bls_editor/src/output_dialog.cpp:34
 msgid "READER_DATA_OUTPUT"
 msgstr "Reader Data Output"
 
@@ -445,15 +441,15 @@ msgstr "BLS File Required"
 msgid "Reset"
 msgstr "Reset"
 
-#: layout_editor/src/box_dialog.cpp:270 layout_editor/src/editor.cpp:257
+#: bls_editor/src/box_dialog.cpp:270 bls_editor/src/editor.cpp:256
 msgid "SAVE_CHANGES_DIALOG"
 msgstr "Save changes?"
 
-#: layout_editor/src/editor.cpp:236
+#: bls_editor/src/editor.cpp:235
 msgid "SAVE_LAYOUT_DIALOG"
 msgstr "Save Layout File"
 
-#: layout_editor/src/layout_options_dialog.cpp:27
+#: bls_editor/src/layout_options_dialog.cpp:27
 msgid "SYSTEM_LANGUAGE"
 msgstr "System Language"
 
@@ -461,12 +457,11 @@ msgstr "System Language"
 msgid "Save"
 msgstr "Save"
 
-#: layout_editor/src/output_dialog.cpp:144
+#: bls_editor/src/output_dialog.cpp:144
 msgid "TABLE_NUMBER"
 msgstr "Table {}"
 
-#: layout_editor/src/box_dialog.cpp:189
-#: layout_editor/src/box_editor_panel.cpp:22
+#: bls_editor/src/box_dialog.cpp:189 bls_editor/src/box_editor_panel.cpp:22
 msgid "TEST_OUTPUT"
 msgstr "Test Output"
 
@@ -482,111 +477,111 @@ msgstr "Token 'End Script' not found"
 msgid "TOKEN_END_SPACERS_NOT_FOUND"
 msgstr "Token 'End Spacers' not found"
 
-#: layout_editor/src/editor.cpp:148
+#: bls_editor/src/editor.cpp:147
 msgid "TOOL_COPY"
 msgstr "Copy"
 
-#: layout_editor/src/editor.cpp:147
+#: bls_editor/src/editor.cpp:146
 msgid "TOOL_CUT"
 msgstr "Cut"
 
-#: layout_editor/src/editor.cpp:179
+#: bls_editor/src/editor.cpp:178
 msgid "TOOL_DELETEBOX"
 msgstr "Delete Box"
 
-#: layout_editor/src/editor.cpp:154
+#: bls_editor/src/editor.cpp:153
 msgid "TOOL_FIND_LAYOUT"
 msgstr "Find Layout"
 
-#: layout_editor/src/editor.cpp:156
+#: bls_editor/src/editor.cpp:155
 msgid "TOOL_LAYOUT_OPTIONS"
 msgstr "Layout Options"
 
-#: layout_editor/src/editor.cpp:153
+#: bls_editor/src/editor.cpp:152
 msgid "TOOL_LOAD_PDF"
 msgstr "Load PDF"
 
-#: layout_editor/src/editor.cpp:187
+#: bls_editor/src/editor.cpp:186
 msgid "TOOL_MOVEDOWN"
 msgstr "Move Down"
 
-#: layout_editor/src/editor.cpp:182
+#: bls_editor/src/editor.cpp:181
 msgid "TOOL_MOVEPAGE"
 msgstr "Move Box Between Pages"
 
-#: layout_editor/src/editor.cpp:186
+#: bls_editor/src/editor.cpp:185
 msgid "TOOL_MOVEUP"
 msgstr "Move Up"
 
-#: layout_editor/src/editor.cpp:136
+#: bls_editor/src/editor.cpp:135
 msgid "TOOL_NEW"
 msgstr "New"
 
-#: layout_editor/src/editor.cpp:178
+#: bls_editor/src/editor.cpp:177
 msgid "TOOL_NEWBOX"
 msgstr "New Box"
 
-#: layout_editor/src/editor.cpp:137
+#: bls_editor/src/editor.cpp:136
 msgid "TOOL_OPEN"
 msgstr "Open"
 
-#: layout_editor/src/editor.cpp:163
+#: bls_editor/src/editor.cpp:162
 msgid "TOOL_PAGE"
 msgstr "Page"
 
-#: layout_editor/src/editor.cpp:149
+#: bls_editor/src/editor.cpp:148
 msgid "TOOL_PASTE"
 msgstr "Paste"
 
-#: layout_editor/src/editor.cpp:155
+#: bls_editor/src/editor.cpp:154
 msgid "TOOL_READDATA"
 msgstr "Read Data"
 
-#: layout_editor/src/editor.cpp:143
+#: bls_editor/src/editor.cpp:142
 msgid "TOOL_REDO"
 msgstr "Redo"
 
-#: layout_editor/src/editor.cpp:180
+#: bls_editor/src/editor.cpp:179
 msgid "TOOL_RESIZE"
 msgstr "Resize Box"
 
-#: layout_editor/src/editor.cpp:160
+#: bls_editor/src/editor.cpp:159
 msgid "TOOL_ROTATE"
 msgstr "Rotate Image"
 
-#: layout_editor/src/editor.cpp:138
+#: bls_editor/src/editor.cpp:137
 msgid "TOOL_SAVE"
 msgstr "Save"
 
-#: layout_editor/src/editor.cpp:166
+#: bls_editor/src/editor.cpp:165
 msgid "TOOL_SCALE"
 msgstr "Scale"
 
-#: layout_editor/src/editor.cpp:177
+#: bls_editor/src/editor.cpp:176
 msgid "TOOL_SELECT"
 msgstr "Select"
 
-#: layout_editor/src/editor.cpp:181
+#: bls_editor/src/editor.cpp:180
 msgid "TOOL_TEST"
 msgstr "Test Box"
 
-#: layout_editor/src/editor.cpp:142
+#: bls_editor/src/editor.cpp:141
 msgid "TOOL_UNDO"
 msgstr "Undo"
 
-#: layout_editor/src/output_dialog.cpp:41
+#: bls_editor/src/output_dialog.cpp:41
 msgid "TOOL_UPDATE"
 msgstr "Update"
 
-#: layout_editor/src/box_dialog.cpp:182
+#: bls_editor/src/box_dialog.cpp:182
 msgid "Test"
 msgstr "Test"
 
-#: bill_layout_script/src/lexer.h:117
+#: bill_layout_script/src/lexer.h:118
 msgid "UNEXPECTED_TOKEN"
 msgstr "Unexpected '{}'"
 
-#: bill_layout_script/src/lexer.h:118
+#: bill_layout_script/src/lexer.h:119
 msgid "UNEXPECTED_TOKEN_REQUIRED"
 msgstr "Unexpected '{}', required '{}'"
 
@@ -594,7 +589,7 @@ msgstr "Unexpected '{}', required '{}'"
 msgid "UNKNOWN_ERROR"
 msgstr "Unknown Error"
 
-#: bill_layout_script/src/parser.cpp:521
+#: bill_layout_script/src/parser.cpp:561
 msgid "UNKNOWN_FUNCTION"
 msgstr "Unknown function: {}"
 
@@ -602,7 +597,7 @@ msgstr "Unknown function: {}"
 msgid "UNKNOWN_LABEL"
 msgstr "Unknown label: {}"
 
-#: layout_editor/src/editor.cpp:275
+#: bls_editor/src/editor.cpp:274
 msgid "UNNAMED_BOX"
 msgstr "(Unnamed)"
 
@@ -610,15 +605,15 @@ msgstr "(Unnamed)"
 msgid "UNSUPPORTED_LANGUAGE"
 msgstr "Language not supported: {}"
 
-#: layout_editor/src/output_dialog.cpp:47
+#: bls_editor/src/output_dialog.cpp:47
 msgid "VARIABLE_NAME"
 msgstr "Name"
 
-#: layout_editor/src/output_dialog.cpp:48
+#: bls_editor/src/output_dialog.cpp:48
 msgid "VARIABLE_TYPE"
 msgstr "Type"
 
-#: layout_editor/src/output_dialog.cpp:49
+#: bls_editor/src/output_dialog.cpp:49
 msgid "VARIABLE_VALUE"
 msgstr "Value"
 
