@@ -3,6 +3,8 @@
 #include <fstream>
 #include <regex>
 
+#include <poppler-page-renderer.h>
+
 using namespace bls;
 
 void pdf_rect::rotate(int amt) {
@@ -59,19 +61,38 @@ std::string poppler_string_to_std(const poppler::ustring &ustr) {
 }
 
 std::string pdf_document::get_text(const pdf_rect &rect) const {
-    if (!isopen()) return "";
-    if (rect.page > num_pages() || rect.page <= 0) return "";
-
-    auto &page = get_page(rect.page);
+    if (!isopen() || rect.page > num_pages() || rect.page <= 0) return "";
+    const auto &page = *m_pages[rect.page - 1];
     auto pgrect = page.page_rect();
-    
     poppler::rectf poppler_rect(rect.x * pgrect.width(), rect.y * pgrect.height(), rect.w * pgrect.width(), rect.h * pgrect.height());
     return poppler_string_to_std(page.text(poppler_rect, enums::get_data(rect.mode)));
 }
 
 std::string pdf_document::get_page_text(const pdf_rect &rect) const {
-    if (!isopen()) return "";
-    if (rect.page > num_pages() || rect.page <= 0) return "";
+    if (!isopen() || rect.page > num_pages() || rect.page <= 0) return "";
+    const auto &page = *m_pages[rect.page - 1];
+    return poppler_string_to_std(page.text(poppler::rectf(), enums::get_data(rect.mode)));
+}
+
+pdf_image pdf_document::render_page(int page, int rotation) const {
+    poppler::page_renderer renderer;
+    renderer.set_image_format(poppler::image::format_enum::format_rgb24);
+    renderer.set_render_hint(poppler::page_renderer::antialiasing);
+    renderer.set_render_hint(poppler::page_renderer::text_antialiasing);
+
+    constexpr double resolution = 150.0;
+
+    poppler::image output = renderer.render_page(m_pages[page-1].get(), resolution, resolution, -1, -1, -1, -1, static_cast<poppler::rotation_enum>(rotation));
+    const char *src_ptr = output.const_data();
+
+    pdf_image ret(output.width(), output.height());
     
-    return poppler_string_to_std(get_page(rect.page).text(poppler::rectf(), enums::get_data(rect.mode)));
+    unsigned char *dst_ptr = ret.data();
+    for (size_t i=0; i<output.height(); ++i) {
+        std::memcpy(dst_ptr, src_ptr, output.width() * 3);
+        src_ptr += output.bytes_per_row();
+        dst_ptr += output.width() * 3;
+    }
+
+    return ret;
 }
