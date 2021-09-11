@@ -66,9 +66,9 @@ void pdf_document::open(const std::filesystem::path &filename) {
     }
 }
 
-template<bool Slice> static std::string do_get_text(PDFDoc *doc, const pdf_rect &rect) {
+std::string pdf_document::get_text(const pdf_rect &rect) const {
     std::string ret;
-    if (!doc || rect.page > doc->getNumPages() || rect.page < 1) return ret;
+    if (!isopen() || rect.page > num_pages() || rect.page < 1) return ret;
 
     TextOutputDev td([](void *stream, const char *text, int len) {
         static_cast<std::string *>(stream)->append(text, len);
@@ -77,24 +77,16 @@ template<bool Slice> static std::string do_get_text(PDFDoc *doc, const pdf_rect 
     td.setTextEOL(eolUnix);
     td.setTextPageBreaks(false);
 
-    if constexpr (Slice) {
-        const double w = doc->getPageCropWidth(rect.page);
-        const double h = doc->getPageCropHeight(rect.page);
+    const double w = m_document->getPageCropWidth(rect.page);
+    const double h = m_document->getPageCropHeight(rect.page);
 
-        doc->displayPageSlice(&td, rect.page, 72, 72, 0, false, true, false,
-            rect.x * w, rect.y * h, rect.w * w, rect.h * h);
-    } else {
-        doc->displayPage(&td, rect.page, 72, 72, 0, false, true, false);
-    }
+    m_document->displayPageSlice(&td, rect.page, 72, 72, 0, false, true, false,
+        rect.x * w, rect.y * h, rect.w * w, rect.h * h);
     return ret;
 }
 
-std::string pdf_document::get_text(const pdf_rect &rect) const {
-    return do_get_text<true>(m_document.get(), rect);
-}
-
 std::string pdf_document::get_page_text(const pdf_rect &rect) const {
-    return do_get_text<false>(m_document.get(), rect);
+    return get_text(pdf_rect(0.0, 0.0, 1.0, 1.0, rect.page, rect.mode));
 }
 
 pdf_image pdf_document::render_page(int page, int rotation) const {
