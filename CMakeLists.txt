@@ -30,7 +30,7 @@ target_link_libraries(bls PUBLIC translation_obj)
 target_include_directories(bls PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(poppler REQUIRED poppler-cpp>=0.88 IMPORTED_TARGET)
+pkg_check_modules(poppler REQUIRED poppler IMPORTED_TARGET)
 target_link_libraries(bls PUBLIC PkgConfig::poppler)
 
 add_subdirectory(external/decimal_for_cpp)

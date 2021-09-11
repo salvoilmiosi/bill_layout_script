@@ -7,16 +7,15 @@
 #include <tuple>
 #include <filesystem>
 
-#include <poppler-document.h>
-#include <poppler-page.h>
+#include <PDFDoc.h>
 
 #include "utils/utils.h"
 
 namespace bls {
-    DEFINE_ENUM_DATA_IN_NS(bls, read_mode,
-        (DEFAULT,  poppler::page::non_raw_non_physical_layout)
-        (LAYOUT,   poppler::page::physical_layout)
-        (RAW,      poppler::page::raw_order_layout)
+    DEFINE_ENUM_IN_NS(bls, read_mode,
+        (DEFAULT)
+        (LAYOUT)
+        (RAW)
     )
     
     struct pdf_rect {
@@ -74,6 +73,7 @@ namespace bls {
 
         int width() const noexcept { return m_width; }
         int height() const noexcept { return m_height; }
+        int capacity() const noexcept { return m_capacity; }
 
         unsigned char *data() const noexcept { return m_data; }
         void release() { m_data = nullptr; }
@@ -91,9 +91,13 @@ namespace bls {
 
         bool isopen() const { return m_document != nullptr; }
 
-        const std::filesystem::path &filename() const { return m_filename; }
+        std::filesystem::path filename() const {
+            return m_document->getFileName()->toStr();
+        }
         
-        int num_pages() const { return m_pages.size(); }
+        int num_pages() const {
+            return m_document->getNumPages();
+        }
 
         std::string get_text(const pdf_rect &rect) const;
         
@@ -102,10 +106,7 @@ namespace bls {
         pdf_image render_page(int page, int rotation = 0) const;
         
     private:
-        std::filesystem::path m_filename;
-
-        std::unique_ptr<poppler::document> m_document;
-        std::vector<std::unique_ptr<poppler::page>> m_pages;
+        std::unique_ptr<PDFDoc> m_document;
     };
 
 }

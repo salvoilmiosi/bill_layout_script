@@ -3,9 +3,22 @@
 #include <fstream>
 #include <regex>
 
-#include <poppler-page-renderer.h>
+#include <ErrorCodes.h>
+#include <GlobalParams.h>
+#include <TextOutputDev.h>
+#include <SplashOutputDev.h>
+#include <Splash/SplashBitmap.h>
 
 using namespace bls;
+
+static const GlobalParamsIniter errorFunction([](ErrorCategory, Goffset pos, const char *msg) {
+    if (pos >= 0) {
+        std::cerr << "poppler error (" << pos << "): ";
+    } else {
+        std::cerr << "poppler error: ";
+    }
+    std::cerr << msg;
+});
 
 void pdf_rect::rotate(int amt) {
     switch (amt % 4) {
@@ -30,69 +43,67 @@ void pdf_rect::rotate(int amt) {
 }
 
 void pdf_document::open(const std::filesystem::path &filename) {
-    std::ifstream ifs(filename, std::ios::in | std::ios::binary);
-    if (ifs.fail()) {
+    m_document = std::make_unique<PDFDoc>(new GooString(filename.string()));
+    if (!m_document->isOk() && m_document->getErrorCode() != errEncrypted) {
+        m_document.reset();
         throw file_error(intl::translate("CANT_OPEN_FILE", filename.string()));
-    }
-    std::vector<char> file_data{std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>()};
-    m_document.reset(poppler::document::load_from_data(&file_data));
-    if (!m_document) {
-        throw file_error(intl::translate("INVALID_PDF_DOCUMENT"));
-    }
-
-    m_filename = filename;
-
-    m_pages.clear();
-    for (int i=0; i < m_document->pages(); ++i) {
-        m_pages.emplace_back(m_document->create_page(i));
     }
 }
 
-std::string poppler_string_to_std(const poppler::ustring &ustr) {
-    auto arr = ustr.to_utf8();
-    std::erase_if(arr, [](auto ch) {
-        return ch == '\f'
-#ifdef _WIN32
-        || ch == '\r'
-#endif
-        ;
-    });
-    return {arr.begin(), arr.end()};
+template<bool Slice> static std::string do_get_text(PDFDoc *doc, const pdf_rect &rect) {
+    std::string ret;
+    if (!doc || rect.page > doc->getNumPages() || rect.page < 1) return ret;
+
+    TextOutputDev td([](void *stream, const char *text, int len) {
+        static_cast<std::string *>(stream)->append(text, len);
+    }, &ret, rect.mode == read_mode::LAYOUT, 0, rect.mode == read_mode::RAW, false);
+    
+    td.setTextEOL(eolUnix);
+    td.setTextPageBreaks(false);
+
+    if constexpr (Slice) {
+        const double w = doc->getPageCropWidth(rect.page);
+        const double h = doc->getPageCropHeight(rect.page);
+
+        doc->displayPageSlice(&td, rect.page, 72, 72, 0, false, true, false,
+            rect.x * w, rect.y * h, rect.w * w, rect.h * h);
+    } else {
+        doc->displayPage(&td, rect.page, 72, 72, 0, false, true, false);
+    }
+    return ret;
 }
 
 std::string pdf_document::get_text(const pdf_rect &rect) const {
-    if (!isopen() || rect.page > num_pages() || rect.page <= 0) return "";
-    const auto &page = *m_pages[rect.page - 1];
-    auto pgrect = page.page_rect();
-    poppler::rectf poppler_rect(rect.x * pgrect.width(), rect.y * pgrect.height(), rect.w * pgrect.width(), rect.h * pgrect.height());
-    return poppler_string_to_std(page.text(poppler_rect, enums::get_data(rect.mode)));
+    return do_get_text<true>(m_document.get(), rect);
 }
 
 std::string pdf_document::get_page_text(const pdf_rect &rect) const {
-    if (!isopen() || rect.page > num_pages() || rect.page <= 0) return "";
-    const auto &page = *m_pages[rect.page - 1];
-    return poppler_string_to_std(page.text(poppler::rectf(), enums::get_data(rect.mode)));
+    return do_get_text<false>(m_document.get(), rect);
 }
 
 pdf_image pdf_document::render_page(int page, int rotation) const {
-    poppler::page_renderer renderer;
-    renderer.set_image_format(poppler::image::format_enum::format_rgb24);
-    renderer.set_render_hint(poppler::page_renderer::antialiasing);
-    renderer.set_render_hint(poppler::page_renderer::text_antialiasing);
+    SplashColor white{0xff, 0xff, 0xff};
+    SplashOutputDev dev(splashModeRGB8, 4, false, white, true);
+    dev.setFontAntialias(true);
+    dev.setVectorAntialias(true);
+    dev.setFreeTypeHinting(false, false);
+    dev.startDoc(m_document.get());
 
     constexpr double resolution = 150.0;
 
-    poppler::image output = renderer.render_page(m_pages[page-1].get(), resolution, resolution, -1, -1, -1, -1, static_cast<poppler::rotation_enum>(rotation));
-    const char *src_ptr = output.const_data();
+    m_document->displayPage(&dev, page, resolution, resolution, rotation * 90, false, true, false);
 
-    pdf_image ret(output.width(), output.height());
+    SplashBitmap *bitmap = dev.getBitmap();
+    pdf_image ret(bitmap->getWidth(), bitmap->getHeight());
+
+    const int bpr = (ret.width() * 3 + 3) & (~0b11);
     
+    unsigned char *src_ptr = bitmap->getDataPtr();
     unsigned char *dst_ptr = ret.data();
-    for (size_t i=0; i<output.height(); ++i) {
-        std::memcpy(dst_ptr, src_ptr, output.width() * 3);
-        src_ptr += output.bytes_per_row();
-        dst_ptr += output.width() * 3;
+    for (size_t i=0; i<ret.height(); ++i) {
+        std::memcpy(dst_ptr, src_ptr, ret.width() * 3);
+        src_ptr += bpr;
+        dst_ptr += ret.width() * 3;
     }
-
     return ret;
 }
