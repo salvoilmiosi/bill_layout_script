@@ -3,7 +3,6 @@
 #include <fstream>
 #include <regex>
 
-#include <ErrorCodes.h>
 #include <GlobalParams.h>
 #include <TextOutputDev.h>
 #include <SplashOutputDev.h>
@@ -60,7 +59,7 @@ pdf_image &pdf_image::operator = (pdf_image &&other) noexcept {
 
 void pdf_document::open(const std::filesystem::path &filename) {
     m_document = std::make_unique<PDFDoc>(new GooString(filename.string()));
-    if (!m_document->isOk() && m_document->getErrorCode() != errEncrypted) {
+    if (!m_document->isOk()) {
         m_document.reset();
         throw file_error(intl::translate("CANT_OPEN_FILE", filename.string()));
     }
