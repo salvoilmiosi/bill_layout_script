@@ -316,11 +316,21 @@ void parser::parse_ternary_expression() {
     m_code.add_label(endif_label);
 }
 
+template<size_t ... Is> struct is_contiguous : std::false_type {};
+template<size_t ... Is> constexpr bool is_contiguous_v = is_contiguous<Is ...>::value;
+
+template<size_t I> struct is_contiguous<I> : std::true_type {};
+template<size_t First, size_t Second, size_t ... Others> requires (Second == First + 1)
+struct is_contiguous<First, Second, Others...> : is_contiguous<Second, Others...> {};
+
 void parser::read_expression() {
     constexpr auto operator_map = []<token_type ... Es>(enums::enum_sequence<Es...>) {
-        return util::static_map<token_type, const operator_kind *>(
-            {{Es, &enums::enum_data_v<Es>} ... }
-        );
+        std::pair<token_type, const operator_kind *> arr[] {{Es, &enums::enum_data_v<Es>} ... };
+        if constexpr (is_contiguous_v<enums::indexof(Es) ...>) {
+            return util::contig_static_map(std::move(arr));
+        } else {
+            return util::static_map(std::move(arr));
+        }
     }(enums::filter_enum_sequence<is_operator, enums::make_enum_sequence<token_type>>());
 
     if (m_lexer.check_next(token_type::KW_FOREACH)) {
