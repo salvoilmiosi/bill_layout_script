@@ -52,11 +52,26 @@ namespace bls {
                 return cmd.command() == opcode::COMMENT;
             });
         }
+
+        template<opcode Cmd, typename ... Ts>
+        command_args new_line(Ts && ... args) {
+            return make_command<Cmd>(std::forward<Ts>(args) ... );
+        }
+
+        template<opcode Cmd, typename ... Ts> requires std::is_same_v<enums::enum_type_t<Cmd>, string_ptr>
+        command_args new_line(Ts && ... args) {
+            return make_command<Cmd>(string_data.emplace(string_data.end(), std::forward<Ts>(args) ... ));
+        }
+
+        template<opcode Cmd, typename ... Ts>
+        void add_line(Ts && ... args) {
+            push_back(new_line<Cmd>(std::forward<Ts>(args) ... ));
+        }
     };
 
     class parser {
     public:
-        command_list read_layout(const std::filesystem::path &path, const layout_box_list &layout);
+        command_list operator()(const layout_box_list &layout);
         
     private:
         token read_goto_label(const layout_box &box);

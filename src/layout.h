@@ -32,29 +32,19 @@ namespace bls {
         bool find_layout_flag = false;
         std::string language;
 
+        std::filesystem::path filename;
+
         layout_box_list() = default;
+        explicit layout_box_list(const std::filesystem::path &filename);
+
+        void save_file();
 
         void clear() {
             base::clear();
             find_layout_flag = false;
             language.clear();
+            filename.clear();
         }
-
-        auto get_box_iterator(const layout_box *ptr) {
-            return std::ranges::find_if(*this, [&](const auto &box) {
-                return &box == ptr;
-            });
-        };
-        
-        template<typename ... Ts>
-        auto insert_after(base::iterator pos, Ts && ... args) {
-            if (pos != base::end()) ++pos;
-            return base::emplace(pos, std::forward<Ts>(args) ...);
-        }
-
-        static layout_box_list from_file(const std::filesystem::path &filename);
-
-        void save_file(const std::filesystem::path &filename);
     };
 
 }

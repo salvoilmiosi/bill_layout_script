@@ -12,9 +12,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     try {
-        std::filesystem::path input_file = argv[1];
-        
-        auto code = parser{}.read_layout(input_file, layout_box_list::from_file(input_file));
+        auto code = parser{}(layout_box_list(argv[1]));
         for (auto it = code.begin(); it != code.end(); ++it) {
             std::cout << bytecode_printer(code, it) << '\n';
         }

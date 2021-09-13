@@ -14,8 +14,8 @@ static parsing_error make_parsing_error(const layout_box &box, const token_error
         box.name, lexer.token_location_info(error.location), error.what()));
 }
 
-command_list parser::read_layout(const std::filesystem::path &path, const layout_box_list &layout) {
-    m_path = std::filesystem::canonical(path);
+command_list parser::operator()(const layout_box_list &layout) {
+    m_path = std::filesystem::canonical(layout.filename);
     m_code.add_line<opcode::SETPATH>(m_path.string());
 
     if (layout.find_layout_flag) {

@@ -102,24 +102,13 @@ static void to_subitem(variable &var, size_t idx) {
     var = variable();
 }
 
-command_node reader::add_layout(const std::filesystem::path &filename) {
-    return add_code(parser{}.read_layout(filename, layout_box_list::from_file(filename)));
-}
-
-variable reader::do_function_call(const command_call &call) {
-    if (call->second.minargs == call->second.maxargs) {
-        m_numargs = call->second.minargs;
-    }
-    auto ret = call->second(this, arg_list(m_stack.end() - m_numargs, m_stack.end()));
-    m_stack.resize(m_stack.size() - m_numargs);
-    return ret;
-}
-
 constexpr auto is_label = [](const command_args &cmd) {
     return cmd.command() == opcode::LABEL;
 };
 
-command_node reader::add_code(command_list &&new_code) {
+command_node reader::add_layout(const layout_box_list &layout) {
+    auto new_code = parser{}(layout);
+
     for (command_args &line : new_code) {
         visit_command(util::overloaded{
             []<opcode Cmd>(command_tag<Cmd>) {},
@@ -135,6 +124,15 @@ command_node reader::add_code(command_list &&new_code) {
     m_code.string_data.splice(m_code.string_data.end(), std::move(new_code.string_data));
     m_code.splice(m_code.end(), std::move(new_code));
     return loc;
+}
+
+variable reader::do_function_call(const command_call &call) {
+    if (call->second.minargs == call->second.maxargs) {
+        m_numargs = call->second.minargs;
+    }
+    auto ret = call->second(this, arg_list(m_stack.end() - m_numargs, m_stack.end()));
+    m_stack.resize(m_stack.size() - m_numargs);
+    return ret;
 }
 
 void reader::exec_command(const command_args &cmd) {
@@ -319,7 +317,7 @@ void reader::exec_command(const command_args &cmd) {
             }
         },
         [this](command_tag<opcode::IMPORT>, const std::string &path) {
-            auto node = add_layout(path);
+            auto node = add_layout(layout_box_list(path));
             *m_program_counter = make_command<opcode::JSR>(node);
             jump_subroutine(node);
         },

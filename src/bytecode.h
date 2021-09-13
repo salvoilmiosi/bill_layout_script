@@ -179,21 +179,6 @@ namespace bls {
 
     struct command_list : command_list_base {
         string_container string_data;
-
-        template<opcode Cmd, typename ... Ts>
-        command_args new_line(Ts && ... args) {
-            return make_command<Cmd>(std::forward<Ts>(args) ... );
-        }
-
-        template<opcode Cmd, typename ... Ts> requires std::is_same_v<enums::enum_type_t<Cmd>, string_ptr>
-        command_args new_line(Ts && ... args) {
-            return make_command<Cmd>(string_data.emplace(string_data.end(), std::forward<Ts>(args) ... ));
-        }
-
-        template<opcode Cmd, typename ... Ts>
-        void add_line(Ts && ... args) {
-            push_back(new_line<Cmd>(std::forward<Ts>(args) ... ));
-        }
     };
 
 }

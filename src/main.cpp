@@ -49,7 +49,7 @@ int MainApp::run() {
         }
         
         if (find_layout) my_reader.add_flag(reader_flags::FIND_LAYOUT);
-        my_reader.add_layout(input_bls);
+        my_reader.add_layout(layout_box_list(input_bls));
         my_reader.start();
         
         auto write_table = [&](const variable_map &table) {

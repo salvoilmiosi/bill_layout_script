@@ -7,6 +7,7 @@
 #include <list>
 #include <atomic>
 
+#include "layout.h"
 #include "bytecode.h"
 #include "variable_selector.h"
 #include "variable_view.h"
@@ -36,10 +37,6 @@ class reader {
 public:
     reader() = default;
 
-    reader(const pdf_document &doc) {
-        set_document(doc);
-    }
-
     void set_document(const pdf_document &doc) {
         m_doc = &doc;
     }
@@ -55,8 +52,7 @@ public:
     }
 
     // ritorna l'indirizzo del codice aggiunto
-    command_node add_layout(const std::filesystem::path &filename);
-    command_node add_code(command_list &&new_code);
+    command_node add_layout(const layout_box_list &layout);
 
     void add_flag(reader_flags flag) {
         m_flags.set(flag);

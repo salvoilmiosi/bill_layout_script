@@ -8,7 +8,7 @@
 using namespace bls;
 using namespace enums::stream_operators;
 
-void layout_box_list::save_file(const std::filesystem::path &filename) {
+void layout_box_list::save_file() {
     std::ofstream output(filename);
     if (!output) {
         throw file_error(intl::translate("CANT_SAVE_FILE", filename.string()));
@@ -83,8 +83,7 @@ static std::istream &getline_clearcr(std::istream &input, std::string &line) {
     return input;
 }
 
-layout_box_list layout_box_list::from_file(const std::filesystem::path &filename) {
-    layout_box_list layout;
+layout_box_list::layout_box_list(const std::filesystem::path &filename) : filename(filename) {
     std::ifstream input(filename);
     if (!input) {
         throw file_error(intl::translate("CANT_OPEN_FILE", filename.string()));
@@ -165,16 +164,14 @@ layout_box_list layout_box_list::from_file(const std::filesystem::path &filename
             if (fail) {
                 throw parsing_error(intl::translate("TOKEN_END_BOX_NOT_FOUND"));
             } else {
-                layout.push_back(current);
+                push_back(current);
             }
         } else if (auto suf = suffix(line, "### Language")) {
-            layout.language = suf.value;
+            language = suf.value;
         } else if (line == "### Flag Find Layout") {
-            layout.find_layout_flag = true;
+            find_layout_flag = true;
         } else if (line.front() != '#') {
             throw parsing_error(intl::translate("INVALID_TOKEN", line));
         }
     }
-
-    return layout;
 }
