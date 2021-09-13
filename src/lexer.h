@@ -15,10 +15,13 @@ namespace bls {
         std::string_view value;
     };
 
-    struct operator_kind : symbol_kind {
+    struct operator_kind {
         std::string_view fun_name;
         int precedence;
     };
+
+    struct keyword_op_kind : keyword_kind, operator_kind {};
+    struct symbol_op_kind : symbol_kind, operator_kind {};
 
     DEFINE_ENUM_DATA_IN_NS(bls, token_type,
         (INVALID)
@@ -68,18 +71,18 @@ namespace bls {
         (COLON,         symbol_kind     { ":" })
         (NOT,           symbol_kind     { "!" })
         
-        (ASTERISK,      operator_kind   { "*",  "mul", 6 })
-        (SLASH,         operator_kind   { "/",  "div", 6 })
-        (PLUS,          operator_kind   { "+",  "add", 5 })
-        (MINUS,         operator_kind   { "-",  "sub", 5 })
-        (LESS,          operator_kind   { "<",  "lt",  4 })
-        (LESS_EQ,       operator_kind   { "<=", "leq", 4 })
-        (GREATER,       operator_kind   { ">",  "gt",  4 })
-        (GREATER_EQ,    operator_kind   { ">=", "geq", 4 })
-        (EQUALS,        operator_kind   { "==", "eq",  3 })
-        (NOT_EQUALS,    operator_kind   { "!=", "neq", 3 })
-        (AND,           operator_kind   { "&&", "and", 2 })
-        (OR,            operator_kind   { "||", "or",  1 })
+        (ASTERISK,      symbol_op_kind  { "*",  "mul", 6 })
+        (SLASH,         symbol_op_kind  { "/",  "div", 6 })
+        (PLUS,          symbol_op_kind  { "+",  "add", 5 })
+        (MINUS,         symbol_op_kind  { "-",  "sub", 5 })
+        (LESS,          symbol_op_kind  { "<",  "lt",  4 })
+        (LESS_EQ,       symbol_op_kind  { "<=", "leq", 4 })
+        (GREATER,       symbol_op_kind  { ">",  "gt",  4 })
+        (GREATER_EQ,    symbol_op_kind  { ">=", "geq", 4 })
+        (EQUALS,        symbol_op_kind  { "==", "eq",  3 })
+        (NOT_EQUALS,    symbol_op_kind  { "!=", "neq", 3 })
+        (AND,           symbol_op_kind  { "&&", "and", 2 })
+        (OR,            symbol_op_kind  { "||", "or",  1 })
     )
     
     template<token_type E, typename T> struct is_token_of_kind : std::false_type {};
