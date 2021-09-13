@@ -2,7 +2,6 @@
 #define __LEXER_H__
 
 #include <string>
-#include <functional>
 
 #include "bytecode.h"
 
@@ -124,9 +123,8 @@ namespace bls {
     public:
         void set_script(std::string_view str);
 
-        template<typename T>
-        void set_comment_callback(T &&fun) {
-            comment_callback = std::forward<T>(fun);
+        void set_code_ptr(class parser_code *code) {
+            m_code = code;
         }
 
         token next(bool do_advance = true);
@@ -143,7 +141,7 @@ namespace bls {
         std::string token_location_info(const token &tok) const;
 
     private:
-        std::function<void(std::string)> comment_callback;
+        class parser_code *m_code = nullptr;
         util::simple_stack<std::string> comment_lines;
 
         const char *m_begin;

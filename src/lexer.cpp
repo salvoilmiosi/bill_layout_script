@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include "parser.h"
 #include "utils/unicode.h"
 
 #include <cassert>
@@ -98,7 +99,7 @@ void lexer::onLineStart() {
     for (; m_line_end != m_end && *m_line_end != '\n'; ++m_line_end);
     for (; m_line_begin != m_line_end && isspace(*m_line_begin); ++m_line_begin);
     std::string_view line{m_line_begin, m_line_end};
-    if (!line.empty() && comment_callback) {
+    if (!line.empty() && m_code) {
         comment_lines.push_back(std::format("{}: {}", m_line_count, line));
     }
     ++m_line_end;
@@ -223,9 +224,9 @@ token lexer::check_next(token_type type) {
 }
 
 void lexer::advance(token tok) {
-    if (comment_callback) {
+    if (m_code) {
         for (auto &line : comment_lines) {
-            comment_callback(std::move(line));
+            m_code->add_line<opcode::COMMENT>(std::move(line));
         }
     }
     comment_lines.clear();

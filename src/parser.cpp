@@ -55,7 +55,7 @@ command_list parser::operator()(const layout_box_list &layout) {
 }
 
 token parser::read_goto_label(const layout_box &box) {
-    m_lexer.set_comment_callback(nullptr);
+    m_lexer.set_code_ptr(nullptr);
     m_lexer.set_script(box.goto_label);
     auto tok_label = m_lexer.next();
     if (tok_label.type == token_type::IDENTIFIER) {
@@ -117,9 +117,7 @@ void parser::read_box(const layout_box &box) {
         m_code.add_line<opcode::MVBOX>(spacer_index::PAGE);
     }
 
-    m_lexer.set_comment_callback([this](std::string line){
-        m_code.add_line<opcode::COMMENT>(std::move(line));
-    });
+    m_lexer.set_code_ptr(&m_code);
     m_lexer.set_script(box.spacers);
 
     while(true) {
