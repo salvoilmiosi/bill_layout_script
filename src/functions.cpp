@@ -340,6 +340,13 @@ namespace bls {
 
     const function_map function_lookup::functions {
         {"copy", [](const variable &var) { return var; }},
+        {"required", [](const variable &var) {
+            if (var.is_null()) {
+                throw layout_error(intl::translate("FIELD_IS_REQUIRED"));
+            } else {
+                return var;
+            }
+        }},
         {"type", [](const variable &var) { return enums::to_string(var.type()); }},
         {"str", [](const std::string &str) { return str; }},
         {"num", [](const reader *ctx, const variable &var) {
