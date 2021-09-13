@@ -15,7 +15,7 @@ static parsing_error make_parsing_error(const layout_box &box, const token_error
 }
 
 command_list parser::operator()(const layout_box_list &layout) {
-    m_path = std::filesystem::canonical(layout.filename);
+    m_path = std::filesystem::weakly_canonical(layout.filename);
     m_code.add_line<opcode::SETPATH>(m_path.string());
 
     if (layout.find_layout_flag) {
