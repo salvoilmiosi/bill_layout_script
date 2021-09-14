@@ -72,10 +72,10 @@ if(USE_UNORDERED_MAP)
     target_compile_definitions(bls PUBLIC USE_UNORDERED_MAP)
 endif()
 
-find_package(Boost REQUIRED COMPONENTS program_options)
+find_package(cxxopts REQUIRED)
 
 add_executable(blsexec src/main.cpp)
-target_link_libraries(blsexec bls::bls Boost::program_options)
+target_link_libraries(blsexec bls::bls cxxopts::cxxopts)
 
 add_executable(blsdump src/blsdump.cpp)
 target_link_libraries(blsdump bls::bls)

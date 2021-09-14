@@ -1,7 +1,7 @@
 #include <iostream>
 #include <filesystem>
 
-#include <boost/program_options.hpp>
+#include <cxxopts.hpp>
 
 #include "parser.h"
 #include "reader.h"
@@ -9,7 +9,6 @@
 #include "utils/json_value.h"
 
 using namespace bls;
-using namespace boost;
 
 struct MainApp {
     int run();
@@ -96,32 +95,28 @@ int MainApp::run() {
 int main(int argc, char **argv) {
     try {
         MainApp app;
+        
+        cxxopts::Options options(argv[0], intl::translate("PROGRAM_DESCRIPTION"));
 
-        namespace po = program_options;
-
-        po::options_description desc(intl::translate("OPTIONS"));
-        po::positional_options_description pos;
-        pos.add("input-bls", -1);
-
-        desc.add_options()
-            ("help,h", intl::translate("PRINT_HELP").c_str())
-            ("input-bls", po::value(&app.input_bls), intl::translate("BLS_INPUT_FILE").c_str())
-            ("input-pdf,p", po::value(&app.input_pdf), intl::translate("PDF_INPUT_FILE").c_str())
-            ("find-layout", po::bool_switch(&app.find_layout), intl::translate("FIND_LAYOUT").c_str())
-            ("indent-size", po::value(&app.indent_size), intl::translate("INDENTATION_SIZE").c_str())
+        options.add_options()
+            ("input-bls",   intl::translate("BLS_INPUT_FILE"),      cxxopts::value(app.input_bls))
+            ("p,input-pdf", intl::translate("PDF_INPUT_FILE"),      cxxopts::value(app.input_pdf))
+            ("find-layout", intl::translate("FIND_LAYOUT"),         cxxopts::value(app.find_layout))
+            ("indent-size", intl::translate("INDENTATION_SIZE"),    cxxopts::value(app.indent_size))
+            ("h,help",      intl::translate("PRINT_HELP"))
         ;
 
-        po::variables_map vm;
-        po::store(po::command_line_parser(argc, argv).
-            options(desc).positional(pos).run(), vm);
-        po::notify(vm);
+        options.positional_help(intl::translate("BLS_INPUT_FILE"));
+        options.parse_positional({"input-bls"});
 
-        if (vm.count("help")) {
-            std::cout << desc << std::endl;
+        auto results = options.parse(argc, argv);
+
+        if (results.count("help")) {
+            std::cout << options.help() << std::endl;
             return 0;
         }
 
-        if (!vm.count("input-bls")) {
+        if (!results.count("input-bls")) {
             std::cout << intl::translate("REQUIRED_INPUT_BLS") << std::endl;
             return 0;
         }

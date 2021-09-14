@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-09-13 17:10+0200\n"
+"POT-Creation-Date: 2021-09-14 13:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgstr "Tutti i file"
 msgid "Apply"
 msgstr "Applica"
 
-#: bill_layout_script/src/main.cpp:108
+#: bill_layout_script/src/main.cpp:102
 msgid "BLS_INPUT_FILE"
 msgstr "File di input bls"
 
@@ -62,11 +62,11 @@ msgstr "Spaziatori:"
 msgid "Browse"
 msgstr "Sfoglia"
 
-#: bill_layout_script/src/parser.cpp:542
+#: bill_layout_script/src/parser.cpp:552
 msgid "CANT_CALL_FROM_TOP_LEVEL"
 msgstr "Impossibile chiamare {} dal top level"
 
-#: bill_layout_script/src/parser.cpp:545
+#: bill_layout_script/src/parser.cpp:555
 msgid "CANT_CALL_OUT_OF_TOP_LEVEL"
 msgstr "Impossibile chiamare {} fuori dal top level"
 
@@ -160,7 +160,7 @@ msgstr "Etichetta goto duplicata: {}"
 msgid "EDIT_BOX"
 msgstr "Modifica Rettangolo"
 
-#: bill_layout_script/src/parser.cpp:437
+#: bill_layout_script/src/parser.cpp:447
 msgid "EMPTY_VIEW_STACK"
 msgstr "Stack viste vuoto"
 
@@ -168,7 +168,7 @@ msgstr "Stack viste vuoto"
 msgid "FIELD_IS_REQUIRED"
 msgstr "Il campo è richiesto"
 
-#: bill_layout_script/src/main.cpp:110
+#: bill_layout_script/src/main.cpp:104
 msgid "FIND_LAYOUT"
 msgstr "Ferma esecuzione a layout trovato"
 
@@ -188,7 +188,7 @@ msgstr "La funzione {0} richiede {1} argomenti"
 msgid "FUNCTION_REQUIRES_ARGS_LEAST"
 msgstr "La funzione {0} richiede almeno {1} argomenti"
 
-#: bill_layout_script/src/main.cpp:111
+#: bill_layout_script/src/main.cpp:105
 msgid "INDENTATION_SIZE"
 msgstr "Dimensioni indentazione"
 
@@ -410,21 +410,21 @@ msgstr "Apri File di Layout"
 msgid "OPEN_PDF_DIALOG"
 msgstr "Apri File PDF"
 
-#: bill_layout_script/src/main.cpp:102
-msgid "OPTIONS"
-msgstr "Opzioni"
-
 #: bls_editor/src/editor_evt.cpp:161
 msgid "PDF files"
 msgstr "File PDF"
 
-#: bill_layout_script/src/main.cpp:109 bls_editor/src/main.cpp:44
+#: bill_layout_script/src/main.cpp:103 bls_editor/src/main.cpp:44
 msgid "PDF_INPUT_FILE"
 msgstr "File di input pdf"
 
-#: bill_layout_script/src/main.cpp:107
+#: bill_layout_script/src/main.cpp:106
 msgid "PRINT_HELP"
-msgstr "Aiuto"
+msgstr "Mostra schermata di aiuto"
+
+#: bill_layout_script/src/main.cpp:99
+msgid "PROGRAM_DESCRIPTION"
+msgstr "Legge un pdf ed estrae i dati in base a un file di layout"
 
 #: bls_editor/src/box_dialog.cpp:270 bls_editor/src/editor.cpp:85
 #: bls_editor/src/editor.cpp:227 bls_editor/src/editor.cpp:246
@@ -437,7 +437,7 @@ msgstr "Bill Layout Script"
 msgid "READER_DATA_OUTPUT"
 msgstr "Lettura Dati"
 
-#: bill_layout_script/src/blsdump.cpp:11 bill_layout_script/src/main.cpp:125
+#: bill_layout_script/src/blsdump.cpp:11 bill_layout_script/src/main.cpp:119
 msgid "REQUIRED_INPUT_BLS"
 msgstr "Richiesto input bls"
 
@@ -581,19 +581,19 @@ msgstr "Aggiorna"
 msgid "Test"
 msgstr "Test"
 
-#: bill_layout_script/src/lexer.h:117
+#: bill_layout_script/src/lexer.h:120
 msgid "UNEXPECTED_TOKEN"
 msgstr "Imprevisto '{}'"
 
-#: bill_layout_script/src/lexer.h:118
+#: bill_layout_script/src/lexer.h:121
 msgid "UNEXPECTED_TOKEN_REQUIRED"
 msgstr "Imprevisto '{}', richiesto '{}'"
 
-#: bill_layout_script/src/blsdump.cpp:23 bill_layout_script/src/main.cpp:88
+#: bill_layout_script/src/blsdump.cpp:23 bill_layout_script/src/main.cpp:87
 msgid "UNKNOWN_ERROR"
 msgstr "Errore sconosciuto"
 
-#: bill_layout_script/src/parser.cpp:559
+#: bill_layout_script/src/parser.cpp:569
 msgid "UNKNOWN_FUNCTION"
 msgstr "Funzione sconosciuta: {}"
 
