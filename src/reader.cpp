@@ -102,23 +102,8 @@ static void to_subitem(variable &var, size_t idx) {
     var = variable();
 }
 
-constexpr auto is_label = [](const command_args &cmd) {
-    return cmd.command() == opcode::LABEL;
-};
-
 command_node reader::add_layout(const layout_box_list &layout) {
-    auto new_code = parser{}(layout);
-
-    for (command_args &line : new_code) {
-        visit_command(util::overloaded{
-            []<opcode Cmd>(command_tag<Cmd>) {},
-            []<opcode Cmd>(command_tag<Cmd>, auto &) {},
-            []<opcode Cmd>(command_tag<Cmd>, command_node &node) {
-                for (; is_label(*node); ++node);
-            }
-        }, line);
-    }
-    new_code.remove_if(is_label);
+    auto new_code = parser{parser_flags::OPTIMIZE_LABELS}(layout);
 
     auto loc = new_code.begin();
     m_code.string_data.splice(m_code.string_data.end(), std::move(new_code.string_data));

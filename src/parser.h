@@ -69,9 +69,18 @@ namespace bls {
         }
     };
 
+    DEFINE_ENUM_FLAGS_IN_NS(bls, parser_flags,
+        (SKIP_COMMENTS)
+        (OPTIMIZE_LABELS)
+    )
+
     class parser {
     public:
+        parser(enums::bitset<parser_flags> flags = {}) : m_flags(flags) {}
+
         command_list operator()(const layout_box_list &layout);
+
+        void add_flags(parser_flags flags) { m_flags.set(flags); }
         
     private:
         token read_goto_label(const layout_box &box);
@@ -105,6 +114,8 @@ namespace bls {
         void parse_tie_stmt();
 
     private:
+        enums::bitset<parser_flags> m_flags;
+
         std::filesystem::path m_path;
         std::string m_lang;
 

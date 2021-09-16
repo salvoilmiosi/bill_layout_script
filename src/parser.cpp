@@ -14,6 +14,10 @@ static parsing_error make_parsing_error(const layout_box &box, const token_error
         box.name, lexer.token_location_info(error.location), error.what()));
 }
 
+constexpr auto is_label = [](const command_args &cmd) {
+    return cmd.command() == opcode::LABEL;
+};
+
 command_list parser::operator()(const layout_box_list &layout) {
     m_path = std::filesystem::weakly_canonical(layout.filename);
     m_code.add_line<opcode::SETPATH>(m_path.string());
@@ -50,6 +54,19 @@ command_list parser::operator()(const layout_box_list &layout) {
     }
     
     m_code.add_line<opcode::RET>();
+
+    if (m_flags.check(parser_flags::OPTIMIZE_LABELS)) {
+        for (command_args &line : m_code) {
+            visit_command(util::overloaded{
+                []<opcode Cmd>(command_tag<Cmd>) {},
+                []<opcode Cmd>(command_tag<Cmd>, auto &) {},
+                []<opcode Cmd>(command_tag<Cmd>, command_node &node) {
+                    for (; is_label(*node); ++node);
+                }
+            }, line);
+        }
+        m_code.remove_if(is_label);
+    }
 
     return std::move(m_code);
 }
@@ -99,7 +116,9 @@ void parser::read_box(const layout_box &box) {
         m_code.add_label(m_goto_labels.at(std::string(tok.value)));
     }
     
-    m_code.add_line<opcode::BOXNAME>(box.name);
+    if (!m_flags.check(parser_flags::SKIP_COMMENTS)) {
+        m_code.add_line<opcode::BOXNAME>(box.name);
+    }
 
     if (!box.flags.check(box_flags::NOREAD) || box.flags.check(box_flags::SPACER)) {
         m_code.add_line<opcode::NEWBOX>();
@@ -117,7 +136,9 @@ void parser::read_box(const layout_box &box) {
         m_code.add_line<opcode::MVBOX>(spacer_index::PAGE);
     }
 
-    m_lexer.set_code_ptr(&m_code);
+    if (!m_flags.check(parser_flags::SKIP_COMMENTS)) {
+        m_lexer.set_code_ptr(&m_code);
+    }
     m_lexer.set_script(box.spacers);
 
     while(true) {
