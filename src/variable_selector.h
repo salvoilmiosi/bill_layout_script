@@ -9,7 +9,7 @@
 
 namespace bls {
 
-    using variable_map = util::string_map<variable>;
+    using variable_map = std::map<std::string, variable, std::less<>>;
 
     class variable_selector {
     private:
