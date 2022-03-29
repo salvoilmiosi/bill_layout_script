@@ -12,7 +12,7 @@
 #include "utils/utils.h"
 
 namespace bls {
-    DEFINE_ENUM_IN_NS(bls, read_mode,
+    DEFINE_ENUM(read_mode,
         (DEFAULT)
         (LAYOUT)
         (RAW)

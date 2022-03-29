@@ -1,6 +1,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "utils/unicode.h"
+#include "utils/filter_enum_sequence.h"
 
 #include <cassert>
 

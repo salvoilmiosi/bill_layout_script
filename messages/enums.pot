@@ -17,53 +17,53 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "bls::box_flags::DISABLED"
+msgid "box_flags::DISABLED"
 msgstr ""
 
-msgid "bls::box_flags::NOREAD"
+msgid "box_flags::NOREAD"
 msgstr ""
 
-msgid "bls::box_flags::PAGE"
+msgid "box_flags::PAGE"
 msgstr ""
 
-msgid "bls::box_flags::SPACER"
+msgid "box_flags::SPACER"
 msgstr ""
 
-msgid "bls::box_flags::TRIM"
+msgid "box_flags::TRIM"
 msgstr ""
 
-msgid "bls::read_mode::DEFAULT"
+msgid "read_mode::DEFAULT"
 msgstr ""
 
-msgid "bls::read_mode::LAYOUT"
+msgid "read_mode::LAYOUT"
 msgstr ""
 
-msgid "bls::read_mode::RAW"
+msgid "read_mode::RAW"
 msgstr ""
 
-msgid "bls::variable_type::ARRAY"
+msgid "variable_type::ARRAY"
 msgstr ""
 
-msgid "bls::variable_type::BOOLEAN"
+msgid "variable_type::BOOLEAN"
 msgstr ""
 
-msgid "bls::variable_type::DATETIME"
+msgid "variable_type::DATETIME"
 msgstr ""
 
-msgid "bls::variable_type::FLOAT"
+msgid "variable_type::FLOAT"
 msgstr ""
 
-msgid "bls::variable_type::INTEGER"
+msgid "variable_type::INTEGER"
 msgstr ""
 
-msgid "bls::variable_type::NULLVAR"
+msgid "variable_type::NULLVAR"
 msgstr ""
 
-msgid "bls::variable_type::NUMBER"
+msgid "variable_type::NUMBER"
 msgstr ""
 
-msgid "bls::variable_type::POINTER"
+msgid "variable_type::POINTER"
 msgstr ""
 
-msgid "bls::variable_type::STRING"
+msgid "variable_type::STRING"
 msgstr ""

@@ -69,7 +69,7 @@ namespace bls {
         }
     };
 
-    DEFINE_ENUM_FLAGS_IN_NS(bls, parser_flags,
+    DEFINE_ENUM_FLAGS(parser_flags,
         (SKIP_COMMENTS)
         (OPTIMIZE_LABELS)
     )

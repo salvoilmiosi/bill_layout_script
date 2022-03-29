@@ -11,7 +11,7 @@
 
 namespace bls {
 
-    DEFINE_ENUM_FLAGS_IN_NS(bls, box_flags,
+    DEFINE_ENUM_FLAGS(box_flags,
         (DISABLED)
         (PAGE)
         (NOREAD)

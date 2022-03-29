@@ -102,8 +102,8 @@ layout_box_list::layout_box_list(const std::filesystem::path &filename) : filena
                     fail = false;
                     break;
                 } else if (auto suf = suffix(line, "### Mode")) {
-                    if (auto it = enums::from_string<read_mode>(suf.value); it != enums::invalid_enum_value<read_mode>) {
-                        current.mode = it;
+                    if (auto value = enums::from_string<read_mode>(suf.value)) {
+                        current.mode = *value;
                     } else {
                         throw parsing_error(intl::translate("INVALID_TOKEN_MODE", suf.value));
                     }
@@ -111,8 +111,8 @@ layout_box_list::layout_box_list(const std::filesystem::path &filename) : filena
                     util::isviewstream ss{suf.value};
                     std::string label;
                     while (ss >> label) {
-                        if (auto it = enums::from_string<box_flags>(label); it != enums::invalid_enum_value<box_flags>) {
-                            current.flags.set(it);
+                        if (auto value = enums::from_string<box_flags>(label)) {
+                            current.flags.set(*value);
                         } else {
                             throw parsing_error(intl::translate("INVALID_TOKEN_FLAGS", label));
                         }

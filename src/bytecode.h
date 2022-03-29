@@ -15,7 +15,7 @@ namespace bls {
         }
     };
 
-    DEFINE_ENUM_DATA_IN_NS(bls, spacer_index,
+    DEFINE_ENUM_DATA(spacer_index,
         (PAGE,      std::array{ "p", "page" })
         (X,         std::array{ "x" })
         (Y,         std::array{ "y" })
@@ -40,7 +40,7 @@ namespace bls {
     using string_container = std::list<std::string>;
     using string_ptr = string_container::const_iterator;
 
-    DEFINE_ENUM_TYPES_IN_NS(bls, opcode,
+    DEFINE_ENUM_TYPES(opcode,
         (NOP)                           // no operation
         (LABEL, command_label)          // command label
         (BOXNAME, string_ptr)           // set box name
@@ -105,7 +105,7 @@ namespace bls {
         enums::enum_variant<opcode> m_value;
 
         template<opcode Cmd, typename ... Ts>
-        command_args(enums::enum_constant<Cmd> idx, Ts && ... args) : m_value(idx, std::forward<Ts>(args) ...) {}
+        command_args(enums::enum_tag_t<Cmd> idx, Ts && ... args) : m_value(idx, std::forward<Ts>(args) ...) {}
 
     public:
         command_args() = default;
@@ -116,18 +116,18 @@ namespace bls {
             return m_value.enum_index();
         }
         
-        template<opcode Cmd> requires enums::has_type<Cmd>
+        template<opcode Cmd> requires enums::value_with_type<Cmd>
         const auto &get_args() const {
             return m_value.get<Cmd>();
         }
 
-        template<opcode Cmd> requires enums::has_type<Cmd>
+        template<opcode Cmd> requires enums::value_with_type<Cmd>
         auto &get_args() {
             return m_value.get<Cmd>();
         }
     };
 
-    template<opcode Cmd> using command_tag = enums::enum_constant<Cmd>;
+    template<opcode Cmd> using command_tag = enums::enum_tag_t<Cmd>;
 
     template<typename ReturnType, typename Command, typename Function>
     requires std::same_as<std::remove_const_t<Command>, command_args>
@@ -135,7 +135,7 @@ namespace bls {
         constexpr auto command_vtable = []<opcode ... Cmds>(enums::enum_sequence<Cmds ...>) {
             return std::array{ +[](Function &fun, Command &cmd) -> ReturnType {
                 constexpr opcode Cmd = Cmds;
-                if constexpr (!enums::has_type<Cmd>) {
+                if constexpr (!enums::value_with_type<Cmd>) {
                     return std::invoke(fun, command_tag<Cmd>{});
                 } else if constexpr (std::is_same_v<enums::enum_type_t<Cmd>, string_ptr>) {
                     return std::invoke(fun, command_tag<Cmd>{}, *cmd.template get_args<Cmd>());
@@ -153,12 +153,12 @@ namespace bls {
         using type = std::invoke_result_t<Function, command_tag<Cmd>>;
     };
 
-    template<opcode Cmd, typename Function> requires enums::has_type<Cmd>
+    template<opcode Cmd, typename Function> requires enums::value_with_type<Cmd>
     struct command_return_type<Cmd, Function> {
         using type = std::invoke_result_t<Function, command_tag<Cmd>, std::add_lvalue_reference_t<enums::enum_type_t<Cmd>>>;
     };
     
-    template<opcode Cmd, typename Function> requires enums::has_type<Cmd> && std::is_same_v<enums::enum_type_t<Cmd>, string_ptr>
+    template<opcode Cmd, typename Function> requires enums::value_with_type<Cmd> && std::is_same_v<enums::enum_type_t<Cmd>, string_ptr>
     struct command_return_type<Cmd, Function> {
         using type = std::invoke_result_t<Function, command_tag<Cmd>, const std::string &>;
     };

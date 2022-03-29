@@ -23,7 +23,7 @@ namespace bls {
     struct keyword_op_kind : keyword_kind, operator_kind {};
     struct symbol_op_kind : symbol_kind, operator_kind {};
 
-    DEFINE_ENUM_DATA_IN_NS(bls, token_type,
+    DEFINE_ENUM_DATA(token_type,
         (INVALID)
         (END_OF_FILE)
         (IDENTIFIER)
@@ -86,7 +86,7 @@ namespace bls {
     )
     
     template<token_type E, typename T> struct is_token_of_kind : std::false_type {};
-    template<token_type E, typename T> requires enums::has_data<E>
+    template<token_type E, typename T> requires enums::value_with_data<E>
     struct is_token_of_kind<E, T> : std::is_convertible<enums::enum_data_t<E>, T> {};
 
     template<token_type E> using is_keyword = is_token_of_kind<E, keyword_kind>;

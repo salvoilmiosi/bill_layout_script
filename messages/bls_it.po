@@ -621,53 +621,53 @@ msgstr "Tipo"
 msgid "VARIABLE_VALUE"
 msgstr "Valore"
 
-msgid "bls::box_flags::DISABLED"
+msgid "box_flags::DISABLED"
 msgstr "Disabilita"
 
-msgid "bls::box_flags::NOREAD"
+msgid "box_flags::NOREAD"
 msgstr "Nessuna Lettura"
 
-msgid "bls::box_flags::PAGE"
+msgid "box_flags::PAGE"
 msgstr "Leggi Pagina"
 
-msgid "bls::box_flags::SPACER"
+msgid "box_flags::SPACER"
 msgstr "Spaziatore"
 
-msgid "bls::box_flags::TRIM"
+msgid "box_flags::TRIM"
 msgstr "Taglia Spazi"
 
-msgid "bls::read_mode::DEFAULT"
+msgid "read_mode::DEFAULT"
 msgstr "Default"
 
-msgid "bls::read_mode::LAYOUT"
+msgid "read_mode::LAYOUT"
 msgstr "Layout"
 
-msgid "bls::read_mode::RAW"
+msgid "read_mode::RAW"
 msgstr "Grezza"
 
-msgid "bls::variable_type::ARRAY"
+msgid "variable_type::ARRAY"
 msgstr "lista"
 
-msgid "bls::variable_type::BOOLEAN"
+msgid "variable_type::BOOLEAN"
 msgstr "booleano"
 
-msgid "bls::variable_type::DATETIME"
+msgid "variable_type::DATETIME"
 msgstr "data"
 
-msgid "bls::variable_type::FLOAT"
+msgid "variable_type::FLOAT"
 msgstr "num. float"
 
-msgid "bls::variable_type::INTEGER"
+msgid "variable_type::INTEGER"
 msgstr "num. intero"
 
-msgid "bls::variable_type::NULLVAR"
+msgid "variable_type::NULLVAR"
 msgstr "null"
 
-msgid "bls::variable_type::NUMBER"
+msgid "variable_type::NUMBER"
 msgstr "num. decimale"
 
-msgid "bls::variable_type::POINTER"
+msgid "variable_type::POINTER"
 msgstr "puntatore"
 
-msgid "bls::variable_type::STRING"
+msgid "variable_type::STRING"
 msgstr "stringa"

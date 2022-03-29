@@ -6,6 +6,7 @@
 #include "bytecode.h"
 #include "fixed_point.h"
 #include "functions.h"
+#include "utils/filter_enum_sequence.h"
 
 using namespace bls;
 

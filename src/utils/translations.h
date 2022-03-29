@@ -24,8 +24,9 @@ namespace intl {
         return translate(fmt_str.c_str(), std::forward<Ts>(args) ...);
     }
 
-    std::string enum_label(enums::reflected_enum auto value) {
-        return translate(enums::full_name(value).data());
+    template<enums::reflected_enum E>
+    std::string enum_label(E value) {
+        return translate(std::format("{}::{}", enums::enum_name_v<E>, enums::to_string(value)));
     }
 }
 

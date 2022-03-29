@@ -32,7 +32,7 @@ namespace bls {
     using variable_array = std::vector<variable>;
     using variable_ptr = const variable *;
 
-    DEFINE_ENUM_TYPES_IN_NS(bls, variable_type,
+    DEFINE_ENUM_TYPES(variable_type,
         (NULLVAR)
         (STRING, string_state)
         (NUMBER, fixed_point)
