@@ -44,17 +44,17 @@ set(BOOST_LOCALE_ENABLE_WINAPI OFF)
 add_subdirectory(external/boostlocale)
 target_link_libraries(bls PUBLIC Boost::locale)
 
-function(check_cpp_function TEST_FILE_NAME OUT_RESULT)
+macro(check_cpp_function TEST_FILE_NAME OUT_RESULT)
+    cmake_parse_arguments(CHECK_ARGS "" "" "LIBRARIES" ${ARGN})
+    
     set(TEST_FILE ".cmake/.test_${TEST_FILE_NAME}.cpp")
     try_compile(TEST_RESULT
         ${CMAKE_CURRENT_BINARY_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}
-        CXX_STANDARD 20)
-    if (TEST_RESULT)
-        message("-- Using STL ${TEST_FILE_NAME}")
-    endif()
+        CXX_STANDARD 20
+        LINK_LIBRARIES ${CHECK_ARGS_LIBRARIES})
     set(${OUT_RESULT} ${TEST_RESULT} PARENT_SCOPE)
-endfunction()
+endmacro()
 
 check_cpp_function(format HAVE_STD_FORMAT)
 if(NOT HAVE_STD_FORMAT)
@@ -70,6 +70,11 @@ endif()
 check_cpp_function(map USE_UNORDERED_MAP)
 if(USE_UNORDERED_MAP)
     target_compile_definitions(bls PUBLIC USE_UNORDERED_MAP)
+endif()
+
+check_cpp_function(pdfdoc USE_PDFDOC_NEW_CONSTRUCTOR LIBRARIES PkgConfig::poppler)
+if(NOT USE_PDFDOC_NEW_CONSTRUCTOR)
+    target_compile_definitions(bls PUBLIC OLD_PDFDOC_CONSTRUCTOR)
 endif()
 
 find_package(cxxopts REQUIRED)
