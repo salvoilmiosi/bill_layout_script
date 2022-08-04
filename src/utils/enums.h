@@ -3,6 +3,7 @@
 
 #include <boost/preprocessor.hpp>
 
+#include <functional>
 #include <algorithm>
 #include <optional>
 #include <string>
@@ -35,7 +36,7 @@ namespace enums {
     template<enumeral auto E> constexpr enum_tag_t<E> enum_tag;
 
     template<typename T, typename E> concept enum_tag_for = requires {
-        enumeral<E>;
+        requires enumeral<E>;
         { T::value } -> std::convertible_to<E>;
     };
 
@@ -185,20 +186,6 @@ namespace enums {
         return value_to_string(value);
     }
 
-    template<enum_with_names T> requires flags_enum<T>
-    constexpr std::string to_string(T value) {
-        std::string ret;
-        for (T v : enum_values_v<T>) {
-            if (bool(value & v)) {
-                if (!ret.empty()) {
-                    ret += ' ';
-                }
-                ret.append(value_to_string(v));
-            }
-        }
-        return ret;
-    }
-
     template<enum_with_names T>
     constexpr std::optional<T> value_from_string(std::string_view str) {
         if (auto it = std::ranges::find(enum_names_v<T>, str); it != enum_names_v<T>.end()) {
@@ -211,26 +198,6 @@ namespace enums {
     template<enum_with_names T>
     constexpr std::optional<T> from_string(std::string_view str) {
         return value_from_string<T>(str);
-    }
-
-    template<enum_with_names T> requires flags_enum<T>
-    constexpr std::optional<T> from_string(std::string_view str) {
-        constexpr std::string_view whitespace = " \t";
-        T ret{};
-        while (true) {
-            size_t pos = str.find_first_not_of(whitespace);
-            if (pos == std::string_view::npos) break;
-            str = str.substr(pos);
-            pos = str.find_first_of(whitespace);
-            if (auto value = value_from_string<T>(str.substr(0, pos))) {
-                ret |= *value;
-            } else {
-                return std::nullopt;
-            }
-            if (pos == std::string_view::npos) break;
-            str = str.substr(pos);
-        }
-        return ret;
     }
 
     inline namespace flag_operators {
@@ -261,6 +228,40 @@ namespace enums {
         template<flags_enum T> constexpr T &operator ^= (T &lhs, T rhs) {
             return lhs = lhs ^ rhs;
         }
+    }
+
+    template<enum_with_names T> requires flags_enum<T>
+    constexpr std::string to_string(T value) {
+        std::string ret;
+        for (T v : enum_values_v<T>) {
+            if (bool(value & v)) {
+                if (!ret.empty()) {
+                    ret += ' ';
+                }
+                ret.append(value_to_string(v));
+            }
+        }
+        return ret;
+    }
+
+    template<enum_with_names T> requires flags_enum<T>
+    constexpr std::optional<T> from_string(std::string_view str) {
+        constexpr std::string_view whitespace = " \t";
+        T ret{};
+        while (true) {
+            size_t pos = str.find_first_not_of(whitespace);
+            if (pos == std::string_view::npos) break;
+            str = str.substr(pos);
+            pos = str.find_first_of(whitespace);
+            if (auto value = value_from_string<T>(str.substr(0, pos))) {
+                ret |= *value;
+            } else {
+                return std::nullopt;
+            }
+            if (pos == std::string_view::npos) break;
+            str = str.substr(pos);
+        }
+        return ret;
     }
     
     template<typename RetType, typename Function, reflected_enum T> RetType visit_enum(Function &&fun, T value) {

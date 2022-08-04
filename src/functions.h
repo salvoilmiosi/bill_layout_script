@@ -64,7 +64,7 @@ namespace bls {
     template<typename T> using varargs_base = std::ranges::transform_view<arg_list, variable_converter<T>>;
     template<typename T, size_t Minargs = 0> struct varargs : varargs_base<T> {
         using var_type = T;
-        template<typename U>
+        template<std::ranges::input_range U> requires std::ranges::view<U>
         varargs(U &&obj) : varargs_base<T>(std::forward<U>(obj), variable_converter<T>{}) {}
     };
 

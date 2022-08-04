@@ -186,15 +186,15 @@ namespace bls {
     template<std::ranges::input_range R>
     static variable table_header(std::string_view value, R &&labels) {
         std::cmatch header_match;
-        std::regex header_regex(std::format(".*{}.*", util::string_join(labels |
-        std::views::transform([first=true](std::string_view str) mutable {
-            if (first) {
-                first = false;
-                return std::string(str);
-            } else {
-                return std::format("(?:{})?", str);
-            }
-        }), ".*")), std::regex::icase);
+        std::regex header_regex(std::format(".*{}.*", util::string_join(std::ranges::transform_view(labels,
+            [first=true](std::string_view str) mutable {
+                if (first) {
+                    first = false;
+                    return std::string(str);
+                } else {
+                    return std::format("(?:{})?", str);
+                }
+            }), ".*")), std::regex::icase);
         if (!std::regex_search(value.data(), value.data() + value.size(), header_match, header_regex)) {
             return {};
         }
