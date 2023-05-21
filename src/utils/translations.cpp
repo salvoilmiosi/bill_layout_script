@@ -15,7 +15,7 @@ namespace intl {
         info.domains.push_back(blg::messages_info::domain("bls"));
 
         boost::locale::generator gen;
-        gen.categories(boost::locale::information_facet);
+        gen.categories(boost::locale::category_t::information);
         std::locale loc = gen("");
 
         const auto &properties = std::use_facet<boost::locale::info>(loc);

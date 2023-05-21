@@ -10,9 +10,9 @@ static const std::string ISO_FORMAT = "%Y-%m-%d";
 static const std::locale calendar_locale = [] {
     boost::locale::generator gen;
     gen.categories(
-        boost::locale::calendar_facet |
-        boost::locale::formatting_facet |
-        boost::locale::parsing_facet
+        boost::locale::category_t::calendar |
+        boost::locale::category_t::formatting |
+        boost::locale::category_t::parsing
     );
     return gen("");
 }();

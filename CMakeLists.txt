@@ -41,7 +41,9 @@ set(BOOST_LOCALE_ENABLE_ICU ON)
 set(BOOST_LOCALE_ENABLE_POSIX OFF)
 set(BOOST_LOCALE_ENABLE_STD OFF)
 set(BOOST_LOCALE_ENABLE_WINAPI OFF)
+set(BUILD_SHARED_LIBS ON)
 add_subdirectory(external/boostlocale)
+
 target_link_libraries(bls PUBLIC Boost::locale)
 
 macro(check_cpp_function TEST_FILE_NAME OUT_RESULT)
@@ -70,11 +72,6 @@ endif()
 check_cpp_function(map USE_UNORDERED_MAP)
 if(USE_UNORDERED_MAP)
     target_compile_definitions(bls PUBLIC USE_UNORDERED_MAP)
-endif()
-
-check_cpp_function(pdfdoc USE_PDFDOC_NEW_CONSTRUCTOR LIBRARIES PkgConfig::poppler)
-if(NOT USE_PDFDOC_NEW_CONSTRUCTOR)
-    target_compile_definitions(bls PUBLIC OLD_PDFDOC_CONSTRUCTOR)
 endif()
 
 find_package(cxxopts REQUIRED)

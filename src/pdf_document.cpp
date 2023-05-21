@@ -1,5 +1,6 @@
 #include "pdf_document.h"
 
+#include <iostream>
 #include <fstream>
 #include <regex>
 
@@ -58,11 +59,11 @@ pdf_image &pdf_image::operator = (pdf_image &&other) noexcept {
 }
 
 void pdf_document::open(const std::filesystem::path &filename) {
-    #ifndef OLD_PDFDOC_CONSTRUCTOR
+    if constexpr (std::is_constructible_v<PDFDoc, std::unique_ptr<GooString> &&>) {
         m_document = std::make_unique<PDFDoc>(std::make_unique<GooString>(filename.string()));
-    #else
+    } else {
         m_document = std::make_unique<PDFDoc>(new GooString(filename.string()));
-    #endif
+    }
     if (!m_document->isOk()) {
         m_document.reset();
         throw file_error(intl::translate("CANT_OPEN_FILE", filename.string()));
