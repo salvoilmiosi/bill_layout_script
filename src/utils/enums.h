@@ -10,6 +10,7 @@
 #include <ranges>
 #include <limits>
 #include <bit>
+#include <cstdint>
 
 namespace enums {
     namespace detail {
